@@ -1,0 +1,58 @@
+<!-- =============================================================================
+     Homebrewing Assistant — chat UI (@n8n/chat, streaming)  · architecture D5 / §7.7
+     Streaming needs n8n >= 1.106.3 with BOTH the Chat Trigger (Response Mode =
+     "Streaming response") AND the AI Agent node streaming-enabled. The widget
+     auto-detects streaming — no client change required.
+
+     Wire WEBHOOK_URL to WF4 (chat-agent) once it exists in Phase 2. Until then
+     this page loads but has nothing to talk to.
+
+     Serve it (nginx is already up):
+        cp chat/chat.html shared/extracted-images/chat.html
+        open http://localhost:8080/chat.html
+     ...or just open this file directly in a browser.
+============================================================================= -->
+<meta charset="utf-8" />
+<title>Homebrewing Assistant</title>
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+<style>
+  :root {
+    --chat--color-primary: #b45309;   /* amber — beer */
+    --chat--color-secondary: #78350f;
+    --chat--window--width: 480px;
+    --chat--window--height: 640px;
+  }
+  body { margin: 0; font-family: system-ui, sans-serif; }
+</style>
+
+<div id="homebrew-chat"></div>
+
+<script type="module">
+  import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+
+  // TODO(Phase 2): replace with the WF4 "chat-agent" Chat Trigger webhook URL,
+  // e.g. http://localhost:5678/webhook/<id>/chat
+  const WEBHOOK_URL = 'http://localhost:5678/webhook/REPLACE_WITH_WF4_CHAT_WEBHOOK/chat';
+
+  createChat({
+    webhookUrl: WEBHOOK_URL,
+    mode: 'fullscreen',
+    target: '#homebrew-chat',
+    loadPreviousSession: true,
+    showWelcomeScreen: false,
+    initialMessages: [
+      'Hi — I’m your brewing assistant.',
+      'Ask about your batches, your inventory, BJCP styles, or brewing theory.',
+    ],
+    i18n: {
+      en: {
+        title: 'Homebrewing Assistant',
+        subtitle: 'Your records + the books, kept honestly separate.',
+        inputPlaceholder: 'e.g. Which of my IPAs were bitter with dry hop > 8 g/L?',
+        getStarted: 'New conversation',
+        footer: '',
+        closeButtonTooltip: 'Close',
+      },
+    },
+  });
+</script>

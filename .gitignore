@@ -1,0 +1,32 @@
+# secrets  (the bare `.env` pattern matches .env in any dir: scripts/.env, etc.)
+.env
+supabase/docker/.env
+
+# Claude Code local settings (machine-specific)
+.claude/settings.local.json
+
+# Supabase runtime data (PGDATA + generated volumes)
+supabase/docker/volumes/db/data/
+supabase/docker/volumes/storage/
+supabase/docker/volumes/functions/*
+!supabase/docker/volumes/functions/main/
+
+# ingestion working area — keep the folder skeleton, not the payloads
+shared/rag-files/pending/*
+!shared/rag-files/pending/.gitkeep
+shared/rag-files/processing/*
+!shared/rag-files/processing/.gitkeep
+shared/rag-files/processed/*
+!shared/rag-files/processed/.gitkeep
+shared/rag-files/failed/*
+!shared/rag-files/failed/.gitkeep
+shared/extracted-images/*
+!shared/extracted-images/.gitkeep
+shared/docling-scratch/
+
+# n8n import marker
+n8n/demo-data/.imported
+
+# python
+__pycache__/
+*.pyc
