@@ -1335,10 +1335,14 @@ Establish the Phase 2 baseline (`bge-m3`, `HybridChunker@512`, RRF `k=50`, top-6
 
 ## 11. Phased rollout
 
-> **Build status — 2026-07-27.** Phase 0 ✅ complete and verified against the live
-> DB. Phase 1 🟡 in progress: WF2 (structured/BJCP) done, WF1 (document) not started.
+> **Build status — 2026-07-27.** Phase 0 ✅ complete, including the live-login
+> test that was its last open item. Phase 1 🟡 in progress: WF2 (structured/BJCP)
+> done and its defect ledger closed (Phase 1.1 ✅), WF1 (document) not started.
 > Phases 2–5 ⬜ not started. Status marks below are **verified**, not asserted —
 > each ✅ names the check that produced it. See §11.1 for the defect ledger.
+>
+> **Next action: WF1.** Nothing blocks it. Build it from the corrected WF2 in
+> `n8n/demo-data/workflows/wf2-digestion.json`, carrying D14/D15/D21 forward.
 
 ### Phase 0 — Schema and demolition *(one evening)* — ✅ **COMPLETE**
 
@@ -1346,12 +1350,12 @@ Establish the Phase 2 baseline (`bge-m3`, `HybridChunker@512`, RRF `k=50`, top-6
 
 Build: ✅ verify `bge-m3` returns 1024 dims on GPU · ✅ create `kb`/`brew`/`mem`/`nlq` schemas · ✅ `kb` DDL + HNSW index (`chunk_embeddings_hnsw_idx`, `vector_cosine_ops`, m=16, ef_construction=64) · ✅ `nlq.search_knowledge` · ✅ `agent_ro`/`n8n_agent` roles.
 
-Deprecate: ✅ `DROP TABLE documents` (`to_regclass('public.documents')` → NULL) · ✅ delete the 1536-dim snippet (`nods_page_section` → NULL) · ✅ remove Qdrant and Open WebUI from compose (neither appears as a service) · ⬜ deactivate the demo Basic LLM Chain workflow *(Phase 2 deletes it outright — see §12 #6)*.
+Deprecate: ✅ `DROP TABLE documents` (`to_regclass('public.documents')` → NULL) · ✅ delete the 1536-dim snippet (`nods_page_section` → NULL) · ✅ remove Qdrant and Open WebUI from compose (neither appears as a service) · ✅ the demo Basic LLM Chain workflow is gone — `n8n list:workflow` returns only *Digestion*.
 
 **Exit:** ✅ **both criteria met.**
 - `nlq.search_knowledge` exists as `SECURITY DEFINER` with `search_path=kb, public`, executes without error, and returns fused results (evidence in §11.1).
 - The read-only boundary holds at the grant level: `has_table_privilege('n8n_agent','brew.batches','SELECT')` → `false`, `has_schema_privilege('n8n_agent','kb','USAGE')` → `false`, `nlq` USAGE → `true`. `n8n_agent` also carries `default_transaction_read_only=on` and `statement_timeout=10s`.
-- ⚠️ **Still owed:** a *live login* test as `n8n_agent`. Catalog privileges prove the grants; they do not prove the credential works, that the password is what n8n holds, or that `default_transaction_read_only` actually rejects a write. Do this before Phase 2 wires the agent.
+- ✅ **Live login verified (2026-07-27).** `n8n_agent` connects with `AGENT_DB_PASSWORD`, reports `default_transaction_read_only=on` and `statement_timeout=10s`, `CREATE TABLE` is refused with *"cannot execute CREATE TABLE in a read-only transaction"*, and `kb` is denied at the schema level. The boundary holds in practice, not just in the catalog.
 
 ### Phase 1 — One document, end to end *(a weekend)* — 🟡 **IN PROGRESS**
 
@@ -1367,19 +1371,25 @@ That last one is the real gate. Read the top 6 chunks for five questions. If the
 
 ⚠️ **The retrieval gate cannot be met by the current corpus.** 116 BJCP style cards are *style* knowledge, not *process* knowledge. `search_knowledge('diacetyl rest temperature for lagers', …)` returns lager style cards — correct behaviour over the corpus that exists, and useless as a quality signal. Judge retrieval only after WF1 puts a real book in `kb.chunks`; until then the style cards can verify **mechanics** (§11.1) but not **relevance**.
 
-### Phase 1.1 — Fix the WF2 defect ledger *(before WF1 copies it)*
+### Phase 1.1 — Fix the WF2 defect ledger *(before WF1 copies it)* — ✅ **COMPLETE**
 
-WF2 works and its output is correct, but four defects (D13–D16) sit in the node graph. WF1 will be built from the same patterns, so fix them in WF2 first rather than duplicating them:
+WF2 worked and its output was correct, but four defects (D13–D16) sat in the node graph. WF1 will be built from the same patterns, so they were fixed in WF2 first rather than duplicated. The workflow now lives in the repo at `n8n/demo-data/workflows/wf2-digestion.json` — edit it there and `n8n import:workflow`, not in the editor.
 
-| # | Node | Defect | Fix |
-|---|------|--------|-----|
-| D13 | any hashing node | Crypto node emits **MD5** into `file_sha256`; `char(64)` pads it silently, so it looks fine | Set `type: SHA256` explicitly in every hashing node. Audit existing rows — a padded MD5 is a false dedup key |
-| D14 | Generate style cards, Verify coverage | Re-derive `version_id` via `ORDER BY version DESC LIMIT 1` instead of taking `$1` | One source of truth per run: the `version_id` returned by *Ensure KB doc + version*, threaded as `$1` |
-| D15 | ingest chain | Parallel branches feeding a shared downstream node — n8n orders branches by **node position**, not data dependency | Keep ingest chains strictly linear |
-| D16 | Verify coverage | Sets `is_current` without clearing the prior version | Flip in one statement; `document_versions_one_current_idx` (unique partial on `document_id WHERE is_current`) already exists to catch this |
-| — | Clear old cards | Deletes from a **live** version mid-run | Build the new version, then flip `is_current` (D16). Never delete from the version that is currently serving |
+| # | Node | Defect | Resolution |
+|---|------|--------|------------|
+| D13 | any hashing node | *Filed as:* Crypto emits **MD5** into `file_sha256`; `char(64)` pads it silently | **Not a defect (D20).** The node is typeVersion 2, whose `type` default is `SHA256` — v1's default was MD5. Live row audited: 64 hex chars, no padding. `action`/`type`/`encoding` now pinned explicitly so a downgrade can't change the dedup key |
+| D14 | Generate style cards, Verify coverage | Re-derive `version_id` via `ORDER BY version DESC LIMIT 1` instead of taking `$1` | ✅ Both now take the `version_id` returned by *Ensure KB doc + version* as `$1`. No `ORDER BY version DESC` remains in the graph |
+| D15 | ingest chain | Parallel branches feeding a shared downstream node — n8n orders branches by **node position**, not data dependency | ✅ One linear chain. Because Crypto *consumes* the binary it hashes (D21), the chain reads the file twice: hash → re-read → parse |
+| D16 | Verify coverage | Sets `is_current` without clearing the prior version | ✅ via `kb.promote_version()` — **not** in one statement; see below |
+| — | Clear old cards | Deletes from a **live** version mid-run | ✅ Guarded: the delete is a no-op unless the target version is not current. A re-run against the serving version refreshes chunks in place via the existing upsert |
 
-**Exit:** WF2 re-run produces a byte-identical `kb.chunks` set, `file_sha256` is a genuine 64-hex SHA-256, and no node references a version it did not receive as a parameter.
+**D16 is subtler than filed.** "Flip in one statement" cannot work: `document_versions_one_current_idx` is a *partial* unique index, so it is checked per-tuple and rejects the transient double-current state. Both the original node and the drafted CTE replacement fail with `duplicate key`. A partial unique index also cannot be made `DEFERRABLE`. Promotion therefore lives in `kb.promote_version(version_id)` (`db/init/10_kb.sql`): clear and set as two statements inside one call, with a coverage guard that refuses to promote a version that still has missing embeddings.
+
+**Exit:** ✅ **all four met**, verified against the live DB.
+- Byte-identical `kb.chunks` set across re-runs — `md5(string_agg(content_sha256, ',' ORDER BY chunk_index))` = `48a8990d…` before and after.
+- `file_sha256` is a genuine 64-hex SHA-256 (`~ '^[0-9a-f]{64}$'` → true).
+- No node references a version it did not receive as a parameter.
+- Full path exercised: three embeddings deleted and `is_current` cleared, re-run restored 116/116 coverage at 1024 dims and exactly one current version.
 
 ### Phase 2 — Minimal agent, two tools *(a weekend)* — ⬜ not started
 
@@ -1561,17 +1571,36 @@ Retrieval quality decays invisibly as the corpus grows — nothing errors, answe
 2026-07-27  D15 No parallel branches into a shared downstream node.
                 n8n orders branches by node position, not data
                 dependency. Ingest chains are linear.
-2026-07-27  D16 is_current flip must clear the prior version in the same
-                statement (unique partial index on document_id WHERE
-                is_current).
+2026-07-27  D16 is_current flip must clear the prior version — but NOT in
+                the same statement. document_versions_one_current_idx
+                rejects the transient double-current state, so both the
+                original node and the drafted CTE replacement fail with
+                "duplicate key". Promotion now lives in
+                kb.promote_version(version_id): two statements in one
+                call, and it refuses to promote a version with missing
+                embeddings. Verified: flip clears the prior, idempotent
+                on re-call, coverage guard blocks an incomplete version.
 2026-07-27  D17 WF2 complete: 116 BJCP 2021 styles in brew.bjcp_styles,
                 116 style cards in kb.chunks, 116 bge-m3 embeddings at
                 1024 dims, verified aligned and idempotent.
 2026-07-27  D18 Phase 0 closed. nlq.search_knowledge and the
                 agent_ro/n8n_agent/mem_writer roles were already applied
                 by db-init — the "still open" status was stale. RRF
-                fusion verified live (§11.1). Residual: no live-login
-                test of the n8n_agent credential.
+                fusion verified live (§11.1). Residual cleared 2026-07-27:
+                n8n_agent logs in, reports default_transaction_read_only=on
+                and statement_timeout=10s, CREATE TABLE is rejected
+                ("cannot execute CREATE TABLE in a read-only transaction"),
+                and kb is denied at the schema level. Phase 2 unblocked.
+2026-07-27  D20 D13 as filed was wrong. The Crypto node is typeVersion 2,
+                whose `type` default is SHA256 (v1 defaulted to MD5), so
+                the stored digests were always genuine — the live row is
+                64 hex chars with no padding. Hash identity is now pinned
+                explicitly anyway (action/type/encoding), so a node
+                downgrade cannot silently change the dedup key.
+2026-07-27  D21 Crypto discards the binary it hashes (binaryProcessed
+                guard in CryptoV2), so a linear chain cannot feed both
+                the hasher and the parser from one read. WF1 must read
+                the file twice — hash first, then re-read for parsing.
 2026-07-27  D19 Retrieval relevance is NOT gated on the BJCP corpus.
                 116 style cards carry no process vocabulary, so the FTS
                 arm returns 0 for process queries and RRF degenerates to

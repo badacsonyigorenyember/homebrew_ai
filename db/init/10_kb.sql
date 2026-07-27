@@ -82,3 +82,41 @@ CREATE TABLE IF NOT EXISTS kb.ingest_log (
   detail     jsonb,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- Promote a version to current, but only once it is fully embedded (§11.1 D16)
+-- The clear and the set must be separate statements: document_versions_one_current_idx
+-- is a partial unique index, and a single UPDATE (or a data-modifying CTE) that
+-- flips both rows trips it on the transient double-current state.
+CREATE OR REPLACE FUNCTION kb.promote_version(p_version_id bigint)
+RETURNS TABLE (version_id bigint, is_current boolean, total bigint, missing bigint)
+LANGUAGE plpgsql AS $$
+DECLARE
+  v_doc     bigint;
+  v_total   bigint;
+  v_missing bigint;
+BEGIN
+  SELECT v.document_id INTO v_doc
+  FROM kb.document_versions v WHERE v.id = p_version_id;
+  IF v_doc IS NULL THEN
+    RAISE EXCEPTION 'kb.promote_version: no such version %', p_version_id;
+  END IF;
+
+  SELECT count(*), count(*) FILTER (WHERE e.chunk_id IS NULL)
+    INTO v_total, v_missing
+  FROM kb.chunks c
+  LEFT JOIN kb.chunk_embeddings e ON e.chunk_id = c.id AND e.model = 'bge-m3'
+  WHERE c.version_id = p_version_id;
+
+  IF v_total > 0 AND v_missing = 0 THEN
+    UPDATE kb.document_versions v SET is_current = false
+    WHERE v.document_id = v_doc AND v.id <> p_version_id AND v.is_current;
+
+    UPDATE kb.document_versions v SET is_current = true
+    WHERE v.id = p_version_id AND NOT v.is_current;
+  END IF;
+
+  RETURN QUERY
+  SELECT v.id, v.is_current, v_total, v_missing
+  FROM kb.document_versions v WHERE v.id = p_version_id;
+END;
+$$;
