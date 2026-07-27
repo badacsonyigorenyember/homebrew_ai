@@ -1,17 +1,23 @@
-# secrets  (the bare `.env` pattern matches .env in any dir: scripts/.env, etc.)
+# =============================================================================
+# Secrets — never commit
+# (the bare `.env` pattern matches .env in ANY dir: scripts/.env, etc.)
+# =============================================================================
 .env
+.env.*
+!.env.example
 supabase/docker/.env
 
-# Claude Code local settings (machine-specific)
-.claude/settings.local.json
-
-# Supabase runtime data (PGDATA + generated volumes)
+# =============================================================================
+# Supabase runtime data (PGDATA + generated volumes) — regenerated on `up`
+# =============================================================================
 supabase/docker/volumes/db/data/
 supabase/docker/volumes/storage/
 supabase/docker/volumes/functions/*
 !supabase/docker/volumes/functions/main/
 
-# ingestion working area — keep the folder skeleton, not the payloads
+# =============================================================================
+# Ingestion working area — keep the folder skeleton, not the payloads (§6.5)
+# =============================================================================
 shared/rag-files/pending/*
 !shared/rag-files/pending/.gitkeep
 shared/rag-files/processing/*
@@ -27,6 +33,34 @@ shared/docling-scratch/
 # n8n import marker
 n8n/demo-data/.imported
 
-# python
+# =============================================================================
+# Tooling / local settings
+# =============================================================================
+.claude/settings.local.json
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Node (if any tooling is added later)
+node_modules/
+
+# Logs & temp
+*.log
+*.tmp
+*.bak
+
+# =============================================================================
+# OS & editor cruft
+# =============================================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

@@ -1335,29 +1335,53 @@ Establish the Phase 2 baseline (`bge-m3`, `HybridChunker@512`, RRF `k=50`, top-6
 
 ## 11. Phased rollout
 
-### Phase 0 — Schema and demolition *(one evening)*
+> **Build status — 2026-07-27.** Phase 0 ✅ complete and verified against the live
+> DB. Phase 1 🟡 in progress: WF2 (structured/BJCP) done, WF1 (document) not started.
+> Phases 2–5 ⬜ not started. Status marks below are **verified**, not asserted —
+> each ✅ names the check that produced it. See §11.1 for the defect ledger.
+
+### Phase 0 — Schema and demolition *(one evening)* — ✅ **COMPLETE**
 
 **Goal:** a clean foundation and a smaller compose file.
 
-Build: verify `bge-m3` returns 1024 dims on GPU · create `kb`/`brew`/`mem`/`nlq` schemas · `kb` DDL + HNSW index · `nlq.search_knowledge` · `agent_ro`/`n8n_agent` roles.
+Build: ✅ verify `bge-m3` returns 1024 dims on GPU · ✅ create `kb`/`brew`/`mem`/`nlq` schemas · ✅ `kb` DDL + HNSW index (`chunk_embeddings_hnsw_idx`, `vector_cosine_ops`, m=16, ef_construction=64) · ✅ `nlq.search_knowledge` · ✅ `agent_ro`/`n8n_agent` roles.
 
-Deprecate: `DROP TABLE documents` (the 117 rows) · delete the 1536-dim snippet · remove Qdrant and Open WebUI from compose · deactivate the demo Basic LLM Chain workflow.
+Deprecate: ✅ `DROP TABLE documents` (`to_regclass('public.documents')` → NULL) · ✅ delete the 1536-dim snippet (`nods_page_section` → NULL) · ✅ remove Qdrant and Open WebUI from compose (neither appears as a service) · ⬜ deactivate the demo Basic LLM Chain workflow *(Phase 2 deletes it outright — see §12 #6)*.
 
-**Exit:** `SELECT * FROM nlq.search_knowledge('test', <random 1024-vec>)` returns 0 rows without error. `n8n_agent` gets permission denied on `SELECT * FROM brew.batches`.
+**Exit:** ✅ **both criteria met.**
+- `nlq.search_knowledge` exists as `SECURITY DEFINER` with `search_path=kb, public`, executes without error, and returns fused results (evidence in §11.1).
+- The read-only boundary holds at the grant level: `has_table_privilege('n8n_agent','brew.batches','SELECT')` → `false`, `has_schema_privilege('n8n_agent','kb','USAGE')` → `false`, `nlq` USAGE → `true`. `n8n_agent` also carries `default_transaction_read_only=on` and `statement_timeout=10s`.
+- ⚠️ **Still owed:** a *live login* test as `n8n_agent`. Catalog privileges prove the grants; they do not prove the credential works, that the password is what n8n holds, or that `default_transaction_read_only` actually rejects a write. Do this before Phase 2 wires the agent.
 
-### Phase 1 — One document, end to end *(a weekend)*
+### Phase 1 — One document, end to end *(a weekend)* — 🟡 **IN PROGRESS**
 
 **Goal:** one PDF correctly in the database. No chat.
 
-Build: WF1 · Docling async + poll · chunking config against `bge-m3` · cleaning rules + `kb.ingest_log` · embedding loop (batch 32) · folder state machine · WF2 for BJCP.
+Build: ⬜ WF1 · ⬜ Docling async + poll · ⬜ chunking config against `bge-m3` · ⬜ cleaning rules + `kb.ingest_log` · ⬜ embedding loop (batch 32) · ⬜ folder state machine · ✅ **WF2 for BJCP** — 116 BJCP 2021 styles in `brew.bjcp_styles`, 116 style cards in `kb.chunks`, 116 `bge-m3` embeddings at 1024 dims, coverage 100%, re-run inserts nothing (D17).
 
-Deprecate: the n8n heading-splitter Code node.
+Deprecate: ⬜ the n8n heading-splitter Code node *(blocked on WF1 — it is what replaces it)*.
 
 **Exit:** ingest one real brewing book. Then: chunk count within ±20% of `page_count × 2.5`; zero chunks under 30 tokens; every chunk has a non-empty `heading_path` and a `page_from`; embedding coverage 100%; **re-running WF1 on the same file inserts nothing**; a hand-written SQL call to `nlq.search_knowledge('diacetyl rest', …)` returns something you'd have picked yourself.
 
 That last one is the real gate. Read the top 6 chunks for five questions. If they're wrong, fix chunking now — every later phase inherits this.
 
-### Phase 2 — Minimal agent, two tools *(a weekend)*
+⚠️ **The retrieval gate cannot be met by the current corpus.** 116 BJCP style cards are *style* knowledge, not *process* knowledge. `search_knowledge('diacetyl rest temperature for lagers', …)` returns lager style cards — correct behaviour over the corpus that exists, and useless as a quality signal. Judge retrieval only after WF1 puts a real book in `kb.chunks`; until then the style cards can verify **mechanics** (§11.1) but not **relevance**.
+
+### Phase 1.1 — Fix the WF2 defect ledger *(before WF1 copies it)*
+
+WF2 works and its output is correct, but four defects (D13–D16) sit in the node graph. WF1 will be built from the same patterns, so fix them in WF2 first rather than duplicating them:
+
+| # | Node | Defect | Fix |
+|---|------|--------|-----|
+| D13 | any hashing node | Crypto node emits **MD5** into `file_sha256`; `char(64)` pads it silently, so it looks fine | Set `type: SHA256` explicitly in every hashing node. Audit existing rows — a padded MD5 is a false dedup key |
+| D14 | Generate style cards, Verify coverage | Re-derive `version_id` via `ORDER BY version DESC LIMIT 1` instead of taking `$1` | One source of truth per run: the `version_id` returned by *Ensure KB doc + version*, threaded as `$1` |
+| D15 | ingest chain | Parallel branches feeding a shared downstream node — n8n orders branches by **node position**, not data dependency | Keep ingest chains strictly linear |
+| D16 | Verify coverage | Sets `is_current` without clearing the prior version | Flip in one statement; `document_versions_one_current_idx` (unique partial on `document_id WHERE is_current`) already exists to catch this |
+| — | Clear old cards | Deletes from a **live** version mid-run | Build the new version, then flip `is_current` (D16). Never delete from the version that is currently serving |
+
+**Exit:** WF2 re-run produces a byte-identical `kb.chunks` set, `file_sha256` is a genuine 64-hex SHA-256, and no node references a version it did not receive as a parameter.
+
+### Phase 2 — Minimal agent, two tools *(a weekend)* — ⬜ not started
 
 **Goal:** prove routing works before scaling the tool set.
 
@@ -1367,7 +1391,7 @@ Deprecate: the demo workflow — **delete it now**, not "later".
 
 **Exit:** streaming visibly works in `chat.html`. A knowledge question calls the search tool; a batch question calls `find_batches`; **neither calls the other** across 20 manual questions. "How much Citra do I have?" (no tool yet) produces "I don't have a tool for that" — *not* an invented number. Baseline latency recorded.
 
-### Phase 3 — Full tool set and NLQ *(1–2 weeks)*
+### Phase 3 — Full tool set and NLQ *(1–2 weeks)* — ⬜ not started
 
 **Goal:** every intent class answerable, with measurement.
 
@@ -1375,17 +1399,73 @@ Build: remaining `nlq` functions + tools (7 total) · brewing math functions · 
 
 **Exit:** all §10.2 gates met. Specifically tool accuracy ≥ 0.90, truth correctness = 1.00, citation validity ≥ 0.95. Record the baseline — this is the number every future change is measured against.
 
-### Phase 4 — Learning layer *(a weekend)*
+### Phase 4 — Learning layer *(a weekend)* — ⬜ not started
 
 Build: `mem.memories` + `mem.memory_embeddings` · WF5 extraction chain with structured output · confidence gate + stop-list · `save_memory` with human approval · preference injection into the system prompt.
 
 **Exit:** ten conversations produce ≥ 3 correctly-extracted preferences and **zero junk memories**. Injected preferences visibly change a recommendation. **Re-run the Phase 3 eval — scores must not regress.** Memory that degrades general answers is a net negative.
 
-### Phase 5 — Optional, evidence-driven *(only if §10.4 says so)*
+### Phase 5 — Optional, evidence-driven *(only if §10.4 says so)* — ⬜ not started
 
 Candidates in order of likely value: A/B `qwen3-embedding` via WF7 (cheap, no new infra) → tune `rrf_k` and over-fetch → reranker sidecar → re-chunk at a different `max_tokens` → Qdrant (last resort).
 
 **Exit:** each addition is kept only if it moves a gated metric by ≥ 5% relative. Otherwise revert. A change that doesn't move a number is a change that added maintenance for nothing.
+
+### 11.1 Verification evidence — 2026-07-27
+
+Everything above marked ✅ was checked against the running Supabase instance
+(`postgres`, port 5432), not inferred from the migration files.
+
+**`nlq.search_knowledge` — mechanics confirmed, relevance not yet testable.**
+
+The function is live and both retrieval arms provably contribute. The proof uses a
+deliberately *mismatched* pair — the FTS text and the query embedding describe
+different things — so each arm's contribution is separable in the output:
+
+```sql
+-- embedding is bge-m3("diacetyl rest temperature for lagers"); text is unrelated
+SELECT doc_title, heading_path[array_length(heading_path,1)] AS leaf, score
+FROM nlq.search_knowledge('roasted barley dry stout', :'q'::vector(1024), 6);
+```
+
+| leaf | score | arm |
+|---|---|---|
+| 2A International Pale Lager | 0.01961 | vector rank 1 |
+| 15A Irish Red Ale | 0.01961 | **FTS rank 1** |
+| 2C International Dark Lager | 0.01923 | vector rank 2 |
+| 15B Irish Stout | 0.01923 | **FTS rank 2** |
+| 3A Czech Pale Lager | 0.01887 | vector rank 3 |
+| 3C Czech Amber Lager | 0.01852 | vector rank 4 |
+
+Lagers come from the embedding, Irish styles from the text — interleaved exactly as
+RRF should. The scores decode cleanly: `1/(50+1)=0.01961`, `1/(50+2)=0.01923`, and
+so on.
+
+**Read `0.0196` as a warning, not a pass.** Every score here is a *single-arm* score.
+A chunk found by both arms would score ≈ `0.039`. Across the whole style-card corpus
+there is currently **no query where both arms agree on the same chunk** — the FTS arm
+returns 0 hits for process-shaped queries (`'diacetyl rest temperature for lagers'` →
+0 rows matching `c.fts`), because style cards contain no process vocabulary. RRF is
+therefore running degenerate-to-vector-only most of the time. That is a corpus
+property, not a bug, and it will resolve when WF1 lands a real book. Until then:
+
+> **Do not tune `p_rrf_k` against this corpus.** With one arm empty, `rrf_k` only
+> rescales a monotonic list — it cannot change the ordering, so any "improvement"
+> you measure is noise. `rrf_k` tuning belongs in Phase 5 (§10.4), after Phase 1.
+
+**Read-only boundary — grants confirmed, credential not.** See the Phase 0 exit note.
+The outstanding test is a real connection:
+
+```bash
+psql "postgresql://n8n_agent:<pw>@localhost:5432/postgres" \
+  -c "SELECT * FROM brew.batches LIMIT 1;" \
+  -c "SELECT count(*) FROM nlq.search_knowledge('stout', array_fill(0::real,ARRAY[1024])::vector, 3);" \
+  -c "CREATE TABLE should_fail(x int);"
+```
+
+Expected: statement 1 `permission denied for schema brew`, statement 2 succeeds,
+statement 3 `cannot execute CREATE TABLE in a read-only transaction`. All three must
+hold; passing only the first two means the write ban is untested.
 
 ---
 
@@ -1472,11 +1552,41 @@ Retrieval quality decays invisibly as the corpus grows — nothing errors, answe
 2026-07-22  D8  No reranker in v1 (Ollama has no rerank endpoint; sidecar required).
 2026-07-22  D9  No Python sidecar in v1. Brewing math lives in Postgres functions.
 2026-07-22  D10 Flat `documents` table dropped, not migrated.
+2026-07-27  D13 file_sha256 must be SHA-256, not MD5. n8n Crypto node
+                defaults to MD5; char(64) pads silently. Explicit
+                type: SHA256 required in every hashing node.
+2026-07-27  D14 One source of truth for version_id per run: the value
+                returned by "Ensure KB doc + version", passed as $1.
+                No re-deriving via ORDER BY version DESC LIMIT 1.
+2026-07-27  D15 No parallel branches into a shared downstream node.
+                n8n orders branches by node position, not data
+                dependency. Ingest chains are linear.
+2026-07-27  D16 is_current flip must clear the prior version in the same
+                statement (unique partial index on document_id WHERE
+                is_current).
+2026-07-27  D17 WF2 complete: 116 BJCP 2021 styles in brew.bjcp_styles,
+                116 style cards in kb.chunks, 116 bge-m3 embeddings at
+                1024 dims, verified aligned and idempotent.
+2026-07-27  D18 Phase 0 closed. nlq.search_knowledge and the
+                agent_ro/n8n_agent/mem_writer roles were already applied
+                by db-init — the "still open" status was stale. RRF
+                fusion verified live (§11.1). Residual: no live-login
+                test of the n8n_agent credential.
+2026-07-27  D19 Retrieval relevance is NOT gated on the BJCP corpus.
+                116 style cards carry no process vocabulary, so the FTS
+                arm returns 0 for process queries and RRF degenerates to
+                vector-only. rrf_k tuning deferred to Phase 5, after WF1
+                lands a real book.
 ```
 
 ---
 
 ## Start tomorrow
+
+> **⚠️ Superseded 2026-07-27.** This section was the Phase 0 kickoff and is done:
+> `bge-m3` confirmed at 1024 dims, `kb` schema live, HNSW index built (§11.1).
+> It is kept as the reference DDL, not as an instruction. **The current next
+> action is Phase 1.1 → WF1** — see the top of §11.
 
 **Confirm the embedding dimension, then create the `kb` schema.** Everything downstream is dimension-locked — this is the one decision you cannot cheaply reverse, so make it first and make it real rather than on paper.
 

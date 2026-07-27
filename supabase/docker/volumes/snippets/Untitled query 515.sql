@@ -1,14 +1,14 @@
--- 1. Delete all rows after the 117th row
-WITH ordered_rows AS (
-    SELECT ctid, ROW_NUMBER() OVER (ORDER BY id ASC) AS row_num
-    FROM documents
+-- Semantic sanity: Irish Stout's nearest neighbours should be dark beers
+WITH q AS (
+  SELECT e.embedding FROM kb.chunk_embeddings e
+  JOIN kb.chunks c ON c.id = e.chunk_id
+  WHERE e.model='bge-m3' AND c.heading_path[3] LIKE '15B%'
+  LIMIT 1
 )
-DELETE FROM documents
-WHERE ctid IN (
-    SELECT ctid 
-    FROM ordered_rows 
-    WHERE row_num > 117
-);
-
--- 2. Dynamically reset the id sequence to resume at 118
-SELECT setval(pg_get_serial_sequence('documents', 'id'), 117);
+SELECT c.heading_path[3] AS style,
+       round((e.embedding <=> (SELECT embedding FROM q))::numeric, 4) AS dist
+FROM kb.chunk_embeddings e
+JOIN kb.chunks c ON c.id = e.chunk_id
+JOIN kb.document_versions v ON v.id = c.version_id AND v.is_current
+WHERE e.model = 'bge-m3'
+ORDER BY 2 LIMIT 8;
