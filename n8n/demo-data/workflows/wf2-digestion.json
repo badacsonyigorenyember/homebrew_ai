@@ -1,0 +1,561 @@
+[
+  {
+    "updatedAt": "2026-07-27T18:51:48.162Z",
+    "createdAt": "2026-07-25T06:43:28.415Z",
+    "id": "8NIhL7FVxD0FJlzm",
+    "name": "Digestion",
+    "description": null,
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          208
+        ],
+        "id": "ed8071bc-fbac-4eb2-a25d-400104e2060e",
+        "name": "When clicking ‘Execute workflow’"
+      },
+      {
+        "parameters": {
+          "fileSelector": "/data/shared/rag-files/pending/styles.json",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.readWriteFile",
+        "typeVersion": 1.1,
+        "position": [
+          224,
+          208
+        ],
+        "id": "9e747d37-5628-415b-b822-c2d9e160f0f7",
+        "name": "Read/Write Files from Disk"
+      },
+      {
+        "parameters": {
+          "binaryData": true,
+          "dataPropertyName": "file_sha256"
+        },
+        "type": "n8n-nodes-base.crypto",
+        "typeVersion": 2,
+        "position": [
+          448,
+          96
+        ],
+        "id": "7958edc2-b6d3-4644-9e9d-970774905c7f",
+        "name": "Crypto"
+      },
+      {
+        "parameters": {
+          "operation": "fromJson",
+          "binaryPropertyName": "=data",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.extractFromFile",
+        "typeVersion": 1.1,
+        "position": [
+          448,
+          288
+        ],
+        "id": "c7d6ff48-c2af-4ef1-aa4f-b790d37d9c41",
+        "name": "Extract from File"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO brew.bjcp_styles\n  (guide_year, code, name, category, og_min, og_max, fg_min, fg_max,\n   ibu_min, ibu_max, srm_min, srm_max, abv_min, abv_max,\n   overall_impression, aroma, appearance, flavor, mouthfeel, comments,\n   history, characteristic_ingredients, style_comparison, commercial_examples, tags)\nVALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,\n        $21,$22,$23, string_to_array(NULLIF($24,''),'|'), string_to_array(NULLIF($25,''),'|'))\nON CONFLICT (guide_year, code) DO UPDATE SET\n  name=EXCLUDED.name, category=EXCLUDED.category,\n  og_min=EXCLUDED.og_min, og_max=EXCLUDED.og_max, fg_min=EXCLUDED.fg_min, fg_max=EXCLUDED.fg_max,\n  ibu_min=EXCLUDED.ibu_min, ibu_max=EXCLUDED.ibu_max, srm_min=EXCLUDED.srm_min, srm_max=EXCLUDED.srm_max,\n  abv_min=EXCLUDED.abv_min, abv_max=EXCLUDED.abv_max,\n  overall_impression=EXCLUDED.overall_impression, aroma=EXCLUDED.aroma, appearance=EXCLUDED.appearance,\n  flavor=EXCLUDED.flavor, mouthfeel=EXCLUDED.mouthfeel, comments=EXCLUDED.comments,\n  history=EXCLUDED.history, characteristic_ingredients=EXCLUDED.characteristic_ingredients,\n  style_comparison=EXCLUDED.style_comparison,\n  commercial_examples=EXCLUDED.commercial_examples, tags=EXCLUDED.tags;",
+          "options": {
+            "queryReplacement": "={{ $json.params }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          896,
+          288
+        ],
+        "id": "cadb3a73-2503-4b33-8c66-90447ac35cb9",
+        "name": "Upsert style rows",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH d AS (\n  INSERT INTO kb.documents (slug, title, doc_type, language)\n  VALUES ('bjcp-2021-beer-styles','BJCP 2021 Beer Style Guidelines','style_guide','en')\n  ON CONFLICT (slug) DO UPDATE SET title = EXCLUDED.title\n  RETURNING id\n),\nins AS (\n  INSERT INTO kb.document_versions\n    (document_id, version, source_filename, file_sha256, chunker_config, is_current)\n  SELECT d.id,\n         COALESCE((SELECT max(v.version) FROM kb.document_versions v\n                   WHERE v.document_id = d.id), 0) + 1,\n         'styles.json', $1,\n         '{\"source\":\"structured\",\"generator\":\"bjcp-style-card\"}'::jsonb,\n         false\n  FROM d\n  ON CONFLICT (file_sha256) DO NOTHING\n  RETURNING id\n)\nSELECT id AS version_id FROM ins\nUNION ALL\nSELECT id FROM kb.document_versions WHERE file_sha256 = $1\nLIMIT 1;",
+          "options": {
+            "queryReplacement": "={{ [$json.file_sha256] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          896,
+          96
+        ],
+        "id": "d4ab793f-2619-4138-b0a3-ab802bb16af0",
+        "name": "Ensure KB doc + version",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "DELETE FROM kb.chunks WHERE version_id = $1;",
+          "options": {
+            "queryReplacement": "={{ [$('Ensure KB doc + version').first().json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1120,
+          96
+        ],
+        "id": "9f8c297d-d7a4-4cc7-a32b-5f4f773c232f",
+        "name": "Clear old cards",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO kb.chunks\n  (version_id, chunk_index, content, raw_content, heading_path, token_count, content_sha256)\nSELECT\n  (SELECT v.id FROM kb.document_versions v\n   JOIN kb.documents d ON d.id = v.document_id\n   WHERE d.slug = 'bjcp-2021-beer-styles'\n   ORDER BY v.version DESC LIMIT 1),\n  row_number() OVER (ORDER BY s.code) - 1,\n  format('BJCP 2021 > %s > %s %s'||E'\\n%s', s.category, s.code, s.name, card.body),\n  card.body,\n  ARRAY['BJCP 2021', s.category, s.code||' '||s.name],\n  NULL::int,\n  encode(sha256(convert_to(card.body,'UTF8')),'hex')\nFROM brew.bjcp_styles s\nCROSS JOIN LATERAL (\n  SELECT concat_ws(E'\\n',\n    format('%s (BJCP %s) — %s', s.name, s.code, s.category),\n    CASE WHEN s.og_min IS NOT NULL THEN\n      format('Vital statistics: OG %s-%s, FG %s-%s, IBU %s-%s, SRM %s-%s, ABV %s-%s%%',\n        s.og_min,s.og_max,s.fg_min,s.fg_max,s.ibu_min,s.ibu_max,\n        s.srm_min,s.srm_max,s.abv_min,s.abv_max)\n    END,\n    'Overall impression: '||coalesce(s.overall_impression,''),\n    'Aroma: '||coalesce(s.aroma,''),\n    'Appearance: '||coalesce(s.appearance,''),\n    'Flavor: '||coalesce(s.flavor,''),\n    'Mouthfeel: '||coalesce(s.mouthfeel,''),\n    'Comments: '||coalesce(s.comments,''),\n    'History: '||coalesce(s.history,''),\n    'Characteristic ingredients: '||coalesce(s.characteristic_ingredients,''),\n    'Style comparison: '||coalesce(s.style_comparison,''),\n    'Commercial examples: '||coalesce(array_to_string(s.commercial_examples, ', '),''),\n    'Tags: '||coalesce(array_to_string(s.tags, ', '),'')\n  ) AS body\n) card\nWHERE s.guide_year = 2021\nON CONFLICT (version_id, chunk_index) DO UPDATE SET\n  content        = EXCLUDED.content,\n  raw_content    = EXCLUDED.raw_content,\n  heading_path   = EXCLUDED.heading_path,\n  content_sha256 = EXCLUDED.content_sha256;",
+          "options": {
+            "queryReplacement": "={{ [$('Ensure KB doc + version').first().json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1344,
+          96
+        ],
+        "id": "ca0464b5-64c2-4770-9825-3844a20f701f",
+        "name": "Generate style cards",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT c.id, c.content\nFROM kb.chunks c\nWHERE c.version_id = $1\n  AND NOT EXISTS (SELECT 1 FROM kb.chunk_embeddings e\n                  WHERE e.chunk_id = c.id AND e.model = 'bge-m3')\nORDER BY c.chunk_index;",
+          "options": {
+            "queryReplacement": "={{ [$('Ensure KB doc + version').first().json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1568,
+          96
+        ],
+        "id": "ff9c07bd-bc2a-4e64-b116-1bc815c09c22",
+        "name": "Execute a SQL query",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "batchSize": 32,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          1792,
+          96
+        ],
+        "id": "ba15ef70-c617-4c51-92c7-7b9175c8954f",
+        "name": "Loop Over Items"
+      },
+      {
+        "parameters": {
+          "jsCode": "const src = $('Assemble embed input').first().json;\nconst emb = $json.embeddings;\nif (!Array.isArray(emb) || emb.length !== src.ids.length)\n  throw new Error(`Embedding count ${emb?.length} != inputs ${src.ids.length}`);\nif (emb[0].length !== 1024)\n  throw new Error(`Expected 1024 dims, got ${emb[0].length} — schema mismatch`);\nreturn src.ids.map((id, i) => ({\n  json: { chunk_id: id, embedding: '[' + emb[i].join(',') + ']' },\n}));"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2464,
+          112
+        ],
+        "id": "5c75a9c3-72a8-4828-ae65-0bfe4f203465",
+        "name": "Zip ids + embeddings"
+      },
+      {
+        "parameters": {
+          "jsCode": "// --- locate the styles array regardless of how Extract from File emitted it ---\nconst inputItems = $input.all();\nlet styles;\n\nif (inputItems.length > 1) {\n  // emitted as one item per style\n  styles = inputItems.map(i => i.json);\n} else {\n  const j = inputItems[0].json;\n  if (Array.isArray(j)) styles = j;\n  else {\n    // single item wrapping the array under some key — find the array of style objects\n    const key = Object.keys(j).find(k => Array.isArray(j[k]) && j[k][0]?.number);\n    if (!key) throw new Error('Could not find styles array. Top-level keys: ' + Object.keys(j).join(', '));\n    styles = j[key];\n  }\n}\nif (!Array.isArray(styles) || styles.length === 0) throw new Error('No styles parsed');\nif (styles.length !== 116) throw new Error(`Expected 116 styles, got ${styles.length}`);\n\nconst GUIDE_YEAR = 2021;\nconst num = (v) => {\n  if (v === null || v === undefined || v === '') return null;\n  const n = Number(v);\n  if (Number.isNaN(n)) throw new Error(`Non-numeric vital stat \"${v}\"`);\n  return n;\n};\nconst intOrNull = (v) => { const n = num(v); return n === null ? null : Math.round(n); };\nconst splitList = (v) => (v ?? '').split(',').map(x => x.trim()).filter(Boolean);\n\nconst out = [];\nconst seen = new Set();\nfor (const s of styles) {\n  const code = (s.number ?? '').trim();\n  if (!code) throw new Error(`Style missing \"number\": ${JSON.stringify(s).slice(0, 80)}`);\n  if (seen.has(code)) throw new Error(`Duplicate style code ${code}`);\n  seen.add(code);\n\n  const og_min = num(s.ogmin),  og_max = num(s.ogmax);\n  const fg_min = num(s.fgmin),  fg_max = num(s.fgmax);\n  const ibu_min = intOrNull(s.ibumin), ibu_max = intOrNull(s.ibumax);\n  const srm_min = num(s.srmmin), srm_max = num(s.srmmax);\n  const abv_min = num(s.abvmin), abv_max = num(s.abvmax);\n\n  // range check ONLY when both bounds exist (20 specialty styles have none)\n  const chk = (lo, hi, label) => {\n    if (lo !== null && hi !== null && lo > hi)\n      throw new Error(`${code}: ${label} min>max (${lo} > ${hi})`);\n  };\n  chk(og_min, og_max, 'OG'); chk(fg_min, fg_max, 'FG'); chk(ibu_min, ibu_max, 'IBU');\n  chk(srm_min, srm_max, 'SRM'); chk(abv_min, abv_max, 'ABV');\n\n  out.push({ json: { code, name: s.name, params: [\n    GUIDE_YEAR, code, (s.name ?? '').trim(), (s.category ?? '').trim(),\n    og_min, og_max, fg_min, fg_max, ibu_min, ibu_max, srm_min, srm_max, abv_min, abv_max,\n    s.overallimpression ?? '', s.aroma ?? '', s.appearance ?? '',\n    s.flavor ?? '', s.mouthfeel ?? '', s.comments ?? '',\n    s.history ?? '', s.characteristicingredients ?? '', s.stylecomparison ?? '',\n    splitList(s.commercialexamples).join('|'), splitList(s.tags).join('|'),\n  ]}});\n}\nreturn out;"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          672,
+          288
+        ],
+        "id": "2f45f95f-0f71-4a56-a163-e6df39da660f",
+        "name": "Parse styles"
+      },
+      {
+        "parameters": {
+          "jsCode": "return [{ json: { file_sha256: $('Crypto').first().json.file_sha256 } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          672,
+          96
+        ],
+        "id": "a908b218-fd55-45e4-8a1f-68e788f422a2",
+        "name": "Collapse to one"
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\nreturn [{ json: {\n  ids:    items.map(i => i.json.id),\n  inputs: items.map(i => i.json.content),\n}}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2016,
+          112
+        ],
+        "id": "ffcfe0a1-b4d0-411d-8e54-3903082847fa",
+        "name": "Assemble embed input"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://ollama:11434/api/embed",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { \"model\": \"bge-m3\", \"input\": $json.inputs, \"keep_alive\": -1 } }}",
+          "options": {
+            "timeout": 120000
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          2240,
+          112
+        ],
+        "id": "8518d743-b7c0-4a62-8cc6-514c7848ce1e",
+        "name": "Ollama embed",
+        "retryOnFail": true,
+        "waitBetweenTries": 5000
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO kb.chunk_embeddings (chunk_id, model, embedding)\nVALUES ($1, 'bge-m3', $2::vector)\nON CONFLICT (chunk_id, model) DO UPDATE\n  SET embedding = EXCLUDED.embedding, created_at = now()\nRETURNING chunk_id, (xmax = 0) AS inserted;",
+          "options": {
+            "queryReplacement": "={{ [$json.chunk_id, $json.embedding] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2688,
+          144
+        ],
+        "id": "a7095eff-6d30-4685-ae91-b9c0f51dfe1c",
+        "name": "Insert embeddings",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH target AS (\n  SELECT v.id, v.document_id FROM kb.document_versions v\n  JOIN kb.documents d ON d.id = v.document_id\n  WHERE v.id = $1\n),\ncov AS (\n  SELECT count(*) AS total,\n         count(*) FILTER (WHERE e.chunk_id IS NULL) AS missing\n  FROM kb.chunks c\n  LEFT JOIN kb.chunk_embeddings e\n    ON e.chunk_id = c.id AND e.model = 'bge-m3'\n  WHERE c.version_id = $1\n),\nclear AS (\n  UPDATE kb.document_versions v SET is_current = false\n  FROM target t, cov\n  WHERE v.document_id = t.document_id AND v.id <> t.id\n    AND cov.total > 0 AND cov.missing = 0\n)\nUPDATE kb.document_versions v SET is_current = true\nFROM cov WHERE v.id = $1 AND cov.total > 0 AND cov.missing = 0\nRETURNING v.id, v.is_current;",
+          "options": {
+            "queryReplacement": "="
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2592,
+          -192
+        ],
+        "id": "933f1dc3-385a-4756-98be-6927c13f942e",
+        "name": "Verify coverage + flip is_current1",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH cov AS (\n SELECT count(*) AS total,\n count(*) FILTER (WHERE e.chunk_id IS NULL) AS missing\n FROM kb.chunks c\n LEFT JOIN kb.chunk_embeddings e ON e.chunk_id = c.id AND e.model = 'bge-m3'\n WHERE c.version_id = (\n SELECT v.id FROM kb.document_versions v\n JOIN kb.documents d ON d.id = v.document_id\n WHERE d.slug = 'bjcp-2021-beer-styles'\n ORDER BY v.version DESC LIMIT 1)\n)\nUPDATE kb.document_versions v\nSET is_current = (cov.total > 0 AND cov.missing = 0)\nFROM cov\nWHERE v.id = (\n SELECT v2.id FROM kb.document_versions v2\n JOIN kb.documents d ON d.id = v2.document_id\n WHERE d.slug = 'bjcp-2021-beer-styles'\n ORDER BY v2.version DESC LIMIT 1)\nRETURNING v.id, v.is_current, cov.total, cov.missing;",
+          "options": {
+            "queryReplacement": "="
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2016,
+          -112
+        ],
+        "id": "33a5b7c2-2f46-4a9f-8b17-2543d3ca9c1f",
+        "name": "Verify coverage + flip is_current",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "When clicking ‘Execute workflow’": {
+        "main": [
+          [
+            {
+              "node": "Read/Write Files from Disk",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read/Write Files from Disk": {
+        "main": [
+          [
+            {
+              "node": "Crypto",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Extract from File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Crypto": {
+        "main": [
+          [
+            {
+              "node": "Collapse to one",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract from File": {
+        "main": [
+          [
+            {
+              "node": "Parse styles",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert style rows": {
+        "main": [
+          []
+        ]
+      },
+      "Ensure KB doc + version": {
+        "main": [
+          [
+            {
+              "node": "Clear old cards",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Clear old cards": {
+        "main": [
+          [
+            {
+              "node": "Generate style cards",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate style cards": {
+        "main": [
+          [
+            {
+              "node": "Execute a SQL query",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute a SQL query": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loop Over Items": {
+        "main": [
+          [
+            {
+              "node": "Verify coverage + flip is_current",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Assemble embed input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Zip ids + embeddings": {
+        "main": [
+          [
+            {
+              "node": "Insert embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse styles": {
+        "main": [
+          [
+            {
+              "node": "Upsert style rows",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Collapse to one": {
+        "main": [
+          [
+            {
+              "node": "Ensure KB doc + version",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assemble embed input": {
+        "main": [
+          [
+            {
+              "node": "Ollama embed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ollama embed": {
+        "main": [
+          [
+            {
+              "node": "Zip ids + embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert embeddings": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "nodeGroups": [],
+    "pinData": {},
+    "versionId": "5f4a1686-48e9-4eb2-9a18-8c3acea1baad",
+    "activeVersionId": null,
+    "versionCounter": 123,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-07-25T06:43:28.415Z",
+        "createdAt": "2026-07-25T06:43:28.415Z",
+        "role": "workflow:owner",
+        "workflowId": "8NIhL7FVxD0FJlzm",
+        "projectId": "cIpOMqhSXz7mHAJj",
+        "project": {
+          "updatedAt": "2026-07-23T14:53:00.343Z",
+          "createdAt": "2026-07-23T14:06:58.898Z",
+          "id": "cIpOMqhSXz7mHAJj",
+          "name": "János Tóth <janos.toth.2000@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "392cafdf-bd25-4c0b-8d4a-e40c58c63156"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]
