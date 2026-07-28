@@ -11,8 +11,8 @@ Self-contained handoff. A fresh session should work from this file plus
 ## 0. Where we are
 
 - Phase 0 closed, including the live-login test of `n8n_agent`.
-- Phase 1.1 closed — WF2's defect ledger (D13–D16) fixed, committed on branch
-  `phase-1.1-wf2-defect-ledger` (2 commits, **not pushed, not merged to `main`**).
+- Phase 1.1 closed — WF2's defect ledger (D13–D16) fixed, merged to `main` and
+  pushed (`977151a`).
 - WF2 is the only workflow in n8n, tracked at `n8n/demo-data/workflows/wf2-digestion.json`
   — **edit the file, then import.** Do not edit in the browser editor.
 - `kb.chunks` holds 116 BJCP style cards. A correct corpus fingerprints as
@@ -341,6 +341,5 @@ docker exec supabase-db psql -U postgres -d postgres -c "select count(*) chunks,
 
 - [ ] Correct §6.2 of the architecture doc with the verified endpoint shape and defaults (§2).
 - [ ] Amend the Phase 1 chunk-count exit criterion to the token-based form (§6).
-- [ ] Merge/push `phase-1.1-wf2-defect-ledger` (2 commits, local only).
 - [ ] Prove D15 empirically — truncate `brew.bjcp_styles`, run the *old* graph,
       confirm it generates 0 cards. Recoverable; the fingerprint in §0 verifies the rebuild.
