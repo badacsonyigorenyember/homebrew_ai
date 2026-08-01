@@ -1,6 +1,6 @@
 # Plan 01 — WF1 `ingest-document`, first book: *How to Brew*
 
-**Status:** §3 probe done ✅ · **Next:** §4 build WF1 · **Blocks:** Phase 1 exit, everything after it
+**Status:** §3 probe done ✅ · §4.1 shape decided ✅ · **Next:** §4 build WF1 · **Blocks:** Phase 1 exit, everything after it
 **Written:** 2026-07-27 · **Probed:** 2026-08-01 · **Prereqs:** all met (Phase 0 ✅, Phase 1.1 ✅)
 
 Self-contained handoff. A fresh session should work from this file plus
@@ -21,6 +21,8 @@ Self-contained handoff. A fresh session should work from this file plus
 - **§3 probe ran 2026-08-01: 483 chunks, 229 s, both §2 blockers cleared.** A second
   probe settled image handling: **Option A — images are not ingested, `image_refs`
   stays NULL.** No open questions. **§4 is ready to build.**
+- **WF1 is manually triggered, one book per execution — never scheduled (§4.1,
+  decided 2026-08-01).** The nightly trigger and the chat-recency guard are struck.
 
 ---
 
@@ -245,14 +247,13 @@ Carry these forward from WF2. Each was learned the hard way (§11.1 D14/D15/D21)
 - **Promote via `kb.promote_version($1)`**, never a hand-rolled `is_current` flip.
 
 ```
-Schedule Trigger (nightly)
-  └─ Guard: skip if mem.chat_turns activity < 5 min ago        [§5, D12]
-  └─ Read/Write Files      pending/*.pdf
+Manual Trigger                                               [§4.1 — run by hand]
+  └─ Read/Write Files      pending/<one-book>.pdf   ← pinned path, NOT a glob
   └─ Crypto                action=hash, type=SHA256, encoding=hex   ← pin all three
   └─ Postgres              dedup: SELECT by file_sha256
   └─ IF                    already ingested → move to processed/, stop
   └─ Re-read file          (Crypto ate the binary)
-  └─ HTTP POST             /v1/chunk/hybrid/source/async     [config from §3]
+  └─ HTTP POST             /v1/chunk/hybrid/file/async       [config from §3]
   └─ Wait 15s ─┐
   └─ HTTP GET  /v1/status/poll/{task_id}
   └─ IF pending └─ loop back    ← MAX-ITERATION GUARD, see below
@@ -272,6 +273,45 @@ Schedule Trigger (nightly)
 **Poll guard:** set max iterations from the probe's wall-clock time × 2, floor 160
 (= 40 min at 15 s). A hung Docling task must not loop forever.
 → Measured 229 s; 229 × 2 = 458 s = 31 iterations, so **the floor governs: use 160.**
+
+### 4.1 ✅ DECIDED 2026-08-01 — manual trigger, one book per execution
+
+**WF1 is not scheduled.** It is a manually-triggered workflow, run by hand once per
+book. Corpus growth is deliberate and staged (§9), not continuous, so there is
+nothing for a nightly job to pick up. Settled — do not re-add automation during the
+build:
+
+- **`manualTrigger`, not `scheduleTrigger`.** WF2 already carries the exact node
+  block to copy. The workflow is never activated; test and run it headless with
+  `n8n execute --id=` (§10), so no trigger fires on its own.
+- **The `mem.chat_turns` recency guard is deleted, not disabled.** It existed only
+  because a nightly job could fire mid-conversation and contend for the GPU (§8).
+  Choosing when to run *is* that mitigation — just don't chat during the ~4 minutes.
+- **`fileSelector` is a pinned single path**, exactly as WF2 pins `styles.json`.
+  A `pending/*.pdf` glob currently matches **two** files and would fan out into two
+  items through the async poll loop, where Wait → poll → IF-loop-back has no coherent
+  meaning with several tasks in flight. **One book per execution.** Re-point the path
+  and run again for the next book.
+
+**What survives the simplification, and why** — these look redundant for a one-shot
+run and are not:
+
+| Kept | Reason |
+|---|---|
+| Dedup on `file_sha256` + IF branch | Two nodes. §9 guarantees re-runs (Stout guide, then Phase 3's 3–5 books). Without it one accidental double-execute silently doubles the corpus and degrades every later retrieval. Also a literal §7 exit criterion |
+| Poll loop + 160 guard | Unavoidable — 229 s per conversion regardless of trigger |
+| `pending/` → `processed/` move | *More* useful when driven by hand: the folder is the record of which books are in |
+
+**Scope for the first run: `how_to_brew_john_palmer.pdf` alone.** `Stout-Style-Guide.pdf`
+is also staged in `pending/` but has never been profiled or probed, and §9 fixes
+Phase 1 at *How to Brew* only so the §7 gate stays attributable. Ingest it on a
+second run, after the gate passes.
+
+### 4.2 Click-by-click build guide
+
+**`plans/01a-wf1-build-guide.md`** expands the diagram above into 27 nodes with exact
+field values, the full SQL, both Code nodes, the wiring, and the verification queries.
+Follow it beside the n8n editor. This section stays the design; that file is the build.
 
 ### Field mapping — Docling → `kb.chunks`
 
@@ -391,7 +431,7 @@ Then delete the n8n heading-splitter Code node (§12 #7).
 | Risk | Mitigation |
 |---|---|
 | Docling conversion is slow (248 pp, 177 images, accurate tables) | **Measured: 229 s.** Async only; poll guard 160 (§4) |
-| GPU contention with chat | Never ingest while chatting (§5). Nightly + recency guard |
+| GPU contention with chat | Never ingest while chatting. **Handled by §4.1** — the run is manual, so don't start one mid-conversation. No guard node |
 | `bge-m3` tokenizer download | Loaded fine on the probe — but it is a HuggingFace fetch; confirm the container has network or a cache |
 | 177 images inflate the payload | Moot — images are not ingested (§3 Option A). Keep `image_export_mode: referenced` anyway so nothing base64 can leak into chunk text |
 | Book is copyrighted | Local, personal corpus. Do not redistribute chunks or expose the corpus publicly |
@@ -401,6 +441,9 @@ Then delete the n8n heading-splitter Code node (§12 #7).
 ## 9. When to add more books
 
 **Never add books between recording a baseline and comparing against it.**
+
+Each book is one manual execution of WF1 — re-point `fileSelector` and run again
+(§4.1). This is why the dedup branch stays in the workflow.
 
 | When | Corpus | Why |
 |---|---|---|
