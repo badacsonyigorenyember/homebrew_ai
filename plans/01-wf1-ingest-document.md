@@ -1,7 +1,7 @@
 # Plan 01 — WF1 `ingest-document`, first book: *How to Brew*
 
-**Status:** not started · **Blocks:** Phase 1 exit, everything after it
-**Written:** 2026-07-27 · **Prereqs:** all met (Phase 0 ✅, Phase 1.1 ✅)
+**Status:** §3 probe done ✅ · **Next:** §4 build WF1 · **Blocks:** Phase 1 exit, everything after it
+**Written:** 2026-07-27 · **Probed:** 2026-08-01 · **Prereqs:** all met (Phase 0 ✅, Phase 1.1 ✅)
 
 Self-contained handoff. A fresh session should work from this file plus
 `homebrew_assistant_architecture.md` §5–6 and §11, without re-deriving anything below.
@@ -17,7 +17,10 @@ Self-contained handoff. A fresh session should work from this file plus
   — **edit the file, then import.** Do not edit in the browser editor.
 - `kb.chunks` holds 116 BJCP style cards. A correct corpus fingerprints as
   `md5(string_agg(content_sha256, ',' ORDER BY chunk_index))` = `48a8990d2ba3c4a8ca44f35345c75b39`
-- **WF1 is the next step.** The book is chosen and staged. Nothing blocks the build.
+- **WF1 is the next step.** The book is chosen and staged.
+- **§3 probe ran 2026-08-01: 483 chunks, 229 s, both §2 blockers cleared.** A second
+  probe settled image handling: **Option A — images are not ingested, `image_refs`
+  stays NULL.** No open questions. **§4 is ready to build.**
 
 ---
 
@@ -37,9 +40,9 @@ sha256  e29d11cf7ed0cefe52c2544a782e94bc6bb53213e5a84dc1b926c6d37960f410
 | Producer | Acrobat Distiller 7.0, from Word | **Digital-native, not a scan** |
 | Fonts | TrueType, WinAnsi, tagged PDF | Real text layer |
 | Text quality | 0 replacement chars, 72.8% alpha | Extraction is clean |
-| Body text | 78,201 words ≈ **105,000 tokens** | Drives the chunk estimate below |
+| Body text | 78,201 words = **139,859 bge-m3 tokens** (measured 2026-08-01) | Drives the chunk estimate below |
 | Density | mean 314 words/page (median 314 — very even) | |
-| Embedded images | **177** | §6.4 image handling is real work here, not theoretical |
+| Embedded images | **177** (Docling parses 182) | **Not ingested — §3 Option A.** Text and tables only |
 | Running heads/footers | **none** | Most common repeated line occurs 2×, not 150× |
 | Page-number-only lines | 6 in the whole book | Negligible |
 
@@ -99,15 +102,25 @@ this section over §6.2.**
 | `image_export_mode` | `embedded` | `referenced` | Set explicitly or base64 lands in chunk text |
 | `pdf_backend` / `ocr_engine` | `docling_parse` / `auto` | `dlparse_v4` / `easyocr` | Verify accepted before relying on them |
 
-### Two blockers to resolve first
+### Two blockers — both CLEARED by the §3 probe (2026-08-01)
 
-- [ ] **`raw_text` returned `null`** on a probe with `include_raw_text: true`, but
-      `kb.chunks.raw_content` is `NOT NULL`. Either the flag misbehaves or
-      `raw_content` must be derived in the cleaning node. **Resolve before writing
-      the insert node.** Fallback: strip the heading prefix from `text`.
-- [ ] **`page_numbers` was empty** on the markdown probe. Expected for markdown,
-      but `page_from` is a Phase 1 exit requirement. **Confirm it populates on this
-      PDF before building the mapping** — this is the first thing to test in §3.
+- [x] **`raw_text`** — populated on **all 483 chunks**, 0 null / 0 empty. The earlier
+      `null` came from the markdown-only probe, not from the flag. Map `raw_text`
+      straight into `raw_content`. **No heading-strip fallback needed.**
+- [x] **`page_numbers`** — populated on **all 483 chunks**, spanning pages 1–248 with
+      every page represented. `page_from`/`page_to` map cleanly.
+
+### Endpoint shape — corrections found while probing
+
+- Prefer **`POST /v1/chunk/hybrid/file/async`** (multipart) over `…/source/async`.
+  It takes the PDF as a file part — no base64 step, no ~30 MB JSON body.
+- Multipart options are **flat, prefixed form fields**, not nested objects:
+  `convert_pdf_backend`, `chunking_tokenizer`, … (see the §3 command).
+- **`to_formats` does not exist on the chunk endpoints** — it is a `/v1/convert`
+  parameter only. Sending it on a chunk call is dead config.
+- `chunking_image_placeholder` defaults to `![IMAGE]`, gated by
+  `chunking_use_markdown_images` (default `false`). It is a **static string, not a
+  template** — both stay at their defaults per §3 Option A.
 
 ### One decision §6 never makes
 
@@ -118,41 +131,106 @@ tables are high-value and a markdown grid embeds better than flattened triplets.
 
 ---
 
-## 3. Step 1 — Probe before building anything
+## 3. Step 1 — Probe before building anything ✅ DONE 2026-08-01
 
 Do **not** build the workflow first. One curl against the real book answers the two
 blockers and calibrates every number below. Expect several minutes: 248 pages,
 177 images, `table_mode: accurate`.
 
+This is the exact command that produced the numbers below:
+
 ```bash
-curl -s -X POST http://localhost:5001/v1/chunk/hybrid/source/async \
-  -H 'Content-Type: application/json' -d '{
-  "sources": [{"kind": "file", "base64_string": "<...>", "filename": "how_to_brew_john_palmer.pdf"}],
-  "convert_options": {
-    "from_formats": ["pdf"], "to_formats": ["md", "json"],
-    "image_export_mode": "referenced",
-    "do_ocr": false,
-    "pdf_backend": "dlparse_v4", "table_mode": "accurate", "do_table_structure": true,
-    "abort_on_error": false
-  },
-  "chunking_options": {
-    "chunker": "hybrid", "tokenizer": "BAAI/bge-m3", "max_tokens": 512,
-    "merge_peers": true, "include_raw_text": true, "use_markdown_tables": true
-  }
-}'
+curl -s -X POST http://localhost:5001/v1/chunk/hybrid/file/async \
+  -F 'files=@shared/rag-files/pending/how_to_brew_john_palmer.pdf' \
+  -F 'convert_from_formats=pdf' \
+  -F 'convert_image_export_mode=referenced' \
+  -F 'convert_do_ocr=false' \
+  -F 'convert_pdf_backend=dlparse_v4' \
+  -F 'convert_table_mode=accurate' \
+  -F 'convert_do_table_structure=true' \
+  -F 'convert_abort_on_error=false' \
+  -F 'chunking_tokenizer=BAAI/bge-m3' \
+  -F 'chunking_max_tokens=512' \
+  -F 'chunking_merge_peers=true' \
+  -F 'chunking_include_raw_text=true' \
+  -F 'chunking_use_markdown_tables=true'
 ```
+
+**`chunking_use_markdown_images` is deliberately absent** (defaults to `false`) —
+§3 Option A. This is the exact config WF1 must send.
+
+It returns `{"task_id": …, "task_status": "pending"}` **immediately — that ack is
+success, not an error.** Then poll `GET /v1/status/poll/{task_id}` until
+`task_status` leaves `pending`/`started`, and fetch `GET /v1/result/{task_id}`.
+
+⚠️ `task_status: "success"` means *the task ran*, not that it worked. Always also
+check `documents[0].status` and `len(chunks)` — a bad payload yields
+`success` + `chunks: []` + `documents[0].status: "failure"` in under a millisecond.
 
 `do_ocr: false` — the text layer is clean and OCR on a digital PDF is slower *and
 worse* (§6.1). If tables come out mangled, that is a `table_mode` problem, not OCR.
 
-**Record from the probe:**
+**Recorded from the probe:**
 
-- [ ] total chunk count
-- [ ] `page_numbers` populated? ← **exit-criterion blocker**
-- [ ] `raw_text` populated? ← **NOT NULL blocker**
-- [ ] token distribution: min / median / max, and count over 512
-- [ ] where the 177 images landed and what the refs look like
-- [ ] wall-clock conversion time → sets the poll guard in §4
+- [x] total chunk count → **483**
+- [x] `page_numbers` populated? → **✅ all 483**, pages 1–248, every page present
+- [x] `raw_text` populated? → **✅ all 483**, 0 null / 0 empty
+- [x] token distribution → min 15 · p25 169 · **median 283** · p75 422 · max 524 ·
+      mean 290 · **4 over 512** · 3 under 30 · **total 139,859**
+- [x] where the 177 images landed → **nowhere. See the finding below.**
+- [x] wall-clock → **229 s** (~3.8 min) → poll guard in §4
+
+Also confirmed: `headings[]` non-empty on all 483; 68 chunks carry a table and all
+68 render as pipe-markdown, so `use_markdown_tables=true` does what §2 wanted;
+contextualization overhead is only ~25 chars (~7 tokens) median.
+
+### ⚠️ Finding — images, and why `image_refs` cannot work as §4 describes
+
+**Probe 1 (`use_markdown_images` default `false`):** across all 483 chunks
+`doc_items` holds **only** `texts` (1251) and `tables` (81) — **zero picture refs** —
+and `metadata.has_image` is `false` everywhere. The chunker drops pictures entirely.
+Docling *does* parse them: a control convert of pp. 20–30 returned 5 `#/pictures/N`
+items with real `image.uri` filenames. This also explains why only 3 chunks fall
+under 30 tokens instead of §5's expected handful — figure-only pages yielded no chunks.
+
+**Probe 2 (`chunking_use_markdown_images=true`), 488 chunks / 145 s:** pictures now
+reach the chunks — **182 picture refs** in `doc_items` (indices 0–181, all distinct),
+**134 chunks** with `metadata.has_image`. But:
+
+> **`chunking_image_placeholder` is a static string, not a template.** Every one of
+> the 134 chunks carries the literal text `![IMAGE]` — **0 markdown refs with a path.**
+
+So §4's mapping — *"filenames parsed from `![…](…)`"* — **cannot be implemented from
+chunk text at any configuration.** Image identity exists only as `doc_items` entries
+`#/pictures/N`, resolvable to `image_%06d_<sha256>.png` via `pictures[N].image.uri`
+in the converted document (needs `include_converted_doc=true` or a second convert).
+
+Costs of enabling it: +5 chunks, under-30 count rises **3 → 8**, and the new tiny
+chunks are pure junk — `'![IMAGE]'` (5 tokens, p1), `'7.2 The "Hot Break"\n![IMAGE]'`
+(12 tokens). The placeholder also lands in **`raw_text`**, so it pollutes
+`raw_content` and changes `content_sha256`.
+
+**⚠️ Unverified:** whether the referenced PNG bytes are persisted anywhere reachable.
+With `target_type=inbody` the `uri` may be a name only — storing filenames could
+create dangling refs. Verify before choosing Option B.
+
+### ✅ DECIDED 2026-08-01 — Option A: images are not ingested
+
+**Leave `chunking_use_markdown_images` at its default `false`.** Consequences, which
+are now settled and must not be re-litigated during the §4 build:
+
+- `kb.chunks.image_refs` is **NULL for this book.** WF1 does not populate it.
+- §5's two image rules are **struck** — there is nothing for them to act on.
+- The §3 probe-1 numbers (**483 chunks**, 3 under-30) are the operative ones
+  everywhere in this plan. Probe 2's 488 / 8 are recorded for contrast only.
+- `raw_content` and `content_sha256` stay free of `![IMAGE]` pollution.
+
+**Rationale:** the placeholder is contentless. It cannot be resolved to a filename
+from chunk text, so it adds nothing retrievable while corrupting the hash and
+manufacturing 5 junk chunks. Option B — populating `image_refs` from `doc_items`
+`#/pictures/N` plus a converted-doc pass to resolve `image_%06d_<sha>.png` — remains
+technically available if figure references are ever wanted, but it also requires
+first verifying the PNG bytes are persisted at all, which was never established.
 
 ---
 
@@ -193,18 +271,25 @@ Schedule Trigger (nightly)
 
 **Poll guard:** set max iterations from the probe's wall-clock time × 2, floor 160
 (= 40 min at 15 s). A hung Docling task must not loop forever.
+→ Measured 229 s; 229 × 2 = 458 s = 31 iterations, so **the floor governs: use 160.**
 
 ### Field mapping — Docling → `kb.chunks`
 
 | Column | Source | Note |
 |---|---|---|
-| `content` | `text` | already contextualized |
-| `raw_content` | `raw_text` | **NOT NULL** — fallback: strip heading prefix from `text` |
-| `heading_path` | `headings[]` | |
-| `page_from` / `page_to` | `min/max(page_numbers)` | **verify populated — §2 blocker** |
-| `token_count` | `num_tokens` | assert ≤ 512, log violations, do not truncate silently |
+| `content` | `text` | already contextualized (adds ~7 tokens) |
+| `raw_content` | `raw_text` | ✅ never null on this book — map straight through, no fallback |
+| `heading_path` | `headings[]` | ✅ non-empty on all 483 |
+| `page_from` / `page_to` | `min/max(page_numbers)` | ✅ populated on all 483 |
+| `token_count` | `num_tokens` | **log-only, do not assert ≤ 512** — see below |
 | `content_sha256` | `encode(sha256(convert_to(raw_content,'UTF8')),'hex')` | in SQL, same as WF2 |
-| `image_refs` | filenames parsed from `![…](…)` | replace ref with `[[IMG:file.png]]` — **never store a URL** (§6.4) |
+| `image_refs` | — | **NULL — do not populate.** §3 Option A. Markdown parsing is impossible (static `![IMAGE]`, no filename); images are not ingested for this book |
+
+**Why `token_count` is log-only:** the chunker packs against `max_tokens` on the
+*raw* text, then `contextualize()` prepends the heading path afterwards. A chunk
+packed to ~514 emerges at 521. That is how the 4 over-512 chunks (max 524) arose —
+it is arithmetic, not a defect, and no config value prevents it. **No truncation
+risk either way: bge-m3's window is 8192 tokens.**
 
 ---
 
@@ -213,40 +298,57 @@ Schedule Trigger (nightly)
 §6.3 generic rules, with this book's specifics. Log every drop to `kb.ingest_log`
 with a reason — the log is how you tell "cleaning worked" from "cleaning ate the book".
 
-| Rule | This book | Expected effect |
+Dry-run counts below are **measured against the 483 probe chunks**, not estimated.
+
+| Rule | This book | Measured effect |
 |---|---|---|
-| Front matter | drop `p1` (title/ISBN) and `p2–p6` (TOC) | ~6 pages |
-| Heading regex `^(Contents\|Index\|Glossary\|Acknowledg\|Copyright\|About the Author)` | matches the p2 block | folded into the above |
-| Appendices E, F | drop `Metric Conversions`, `Recommended Reading` | ~8 pages |
-| Per-chapter `References` | drop by heading path | ~15 short chunks |
-| `token_count < 30` and no table | 15 pages are figure-only | expect a handful |
-| Image-only chunks | 177 images — some chunks will be pure figure | roll ref into preceding chunk |
+| Front matter | drop `p1` (title/ISBN) and `p2–p6` (TOC) | **18 chunks** |
+| Heading regex `^(Contents\|Index\|Glossary\|Acknowledg\|Copyright\|About the Author)` | matches the p2 block | 1, folded into the above |
+| Appendices E, F | drop `Metric Conversions`, `Recommended Reading` | **1 chunk** |
+| Per-chapter `References` | drop by heading path | **16 chunks** (2,028 tokens) — estimate was ~15 ✅ |
+| `token_count < 30` and no table | 15 pages are figure-only | **3** |
+| ~~Image-only chunks~~ | ~~177 images — some chunks will be pure figure~~ | **STRUCK — §3 Option A.** Pictures are not ingested; no such chunks exist |
 | Repeated line >60% of pages | **no-op — this book has no running heads** | 0 |
 | Page-number-only lines | only 6 in the book | 0–6 |
 
+**Total: 35 unique drops → 448 chunks retained.**
+
 ---
 
-## 6. Expected numbers — and a criterion that will fail
+## 6. Expected numbers — RESOLVED by the probe
 
-105,000 body tokens. HybridChunker at `max_tokens: 512` with `merge_peers: true`
-averages roughly 300 tokens/chunk in practice, so:
+**Actual: 483 chunks, mean 290 tokens, median 283.**
 
-```
-105,000 / ~300  ≈  300–400 chunks
-```
+The prediction was directionally right and quantitatively wrong, in an instructive
+way. The original guess of 300–400 chunks rested on **105,000 body tokens**, derived
+from 78,201 words at ~1.34 tokens/word. **The real figure is 139,859** — bge-m3 runs
+~1.79 tokens/word on this text, and markdown table serialization adds more. The
+formula was fine; its input was 25% low.
 
-**The Phase 1 exit criterion "chunk count within ±20% of `page_count × 2.5`" gives
-496–744 for this book. Expect to miss it, low.**
-
-That heuristic implies ~170 tokens/chunk, which contradicts a 512-token chunker on
-a 314-words/page book. **The heuristic is wrong for this book — do not "fix"
-chunking to satisfy it.** Amend the criterion to a token-based one and record why:
+Scoring the amended criterion with the **measured** token count:
 
 > chunk count within ±25% of `body_tokens / 320`, **and** median `token_count`
 > between 200 and 450, **and** zero chunks over 512.
 
-If the real count lands near 620, that means chunks average 170 tokens — that is
-the actual defect signal, and it would mean `merge_peers` is not working.
+| Clause | Target | Actual | |
+|---|---|---|---|
+| count ±25% of `139,859 / 320 = 437` | 328–546 | **483** | ✅ |
+| median `token_count` 200–450 | 200–450 | **283** | ✅ |
+| zero chunks over 512 | 0 | **4** (max 524) | ❌ — but see below |
+
+**The third clause is unachievable as written and must be amended.**
+`contextualize()` prepends the heading path *after* the chunker has already packed
+to `max_tokens`, so any chunk packed near 512 necessarily exceeds it. Restate it
+against the pre-contextualization text:
+
+> …**and** zero chunks whose **`raw_text`** exceeds 512 tokens.
+
+For reference, the original heuristic (±20% of `page_count × 2.5` = 496–744) misses
+**low by 2.6%** — far closer than the "expect 300–400" prediction. It is still the
+wrong criterion for the reason given, but it was not badly calibrated.
+
+**`merge_peers` verdict: working.** The defect signal was ~170 tokens/chunk. Actual
+is 290. No chunking changes needed.
 
 ---
 
@@ -254,8 +356,9 @@ the actual defect signal, and it would mean `merge_peers` is not working.
 
 Mechanical criteria first:
 
-- [ ] zero chunks under 30 tokens
+- [ ] zero chunks under 30 tokens *(3 in the raw probe; §5 cleaning drops them)*
 - [ ] every chunk has a non-empty `heading_path` **and** a `page_from`
+      *(pre-verified on all 483 probe chunks — should be free)*
 - [ ] embedding coverage 100% at 1024 dims
 - [ ] **re-running WF1 on the same file inserts nothing**
 - [ ] exactly one `is_current` version
@@ -287,10 +390,10 @@ Then delete the n8n heading-splitter Code node (§12 #7).
 
 | Risk | Mitigation |
 |---|---|
-| Docling conversion is slow (248 pp, 177 images, accurate tables) | Async only. Time the §3 probe before setting the poll guard |
+| Docling conversion is slow (248 pp, 177 images, accurate tables) | **Measured: 229 s.** Async only; poll guard 160 (§4) |
 | GPU contention with chat | Never ingest while chatting (§5). Nightly + recency guard |
 | `bge-m3` tokenizer download | Loaded fine on the probe — but it is a HuggingFace fetch; confirm the container has network or a cache |
-| 177 images inflate the payload | `image_export_mode: referenced`, not `embedded` |
+| 177 images inflate the payload | Moot — images are not ingested (§3 Option A). Keep `image_export_mode: referenced` anyway so nothing base64 can leak into chunk text |
 | Book is copyrighted | Local, personal corpus. Do not redistribute chunks or expose the corpus publicly |
 
 ---
@@ -339,7 +442,15 @@ docker exec supabase-db psql -U postgres -d postgres -c "select count(*) chunks,
 
 ## 11. Deferred
 
-- [ ] Correct §6.2 of the architecture doc with the verified endpoint shape and defaults (§2).
-- [ ] Amend the Phase 1 chunk-count exit criterion to the token-based form (§6).
+- [ ] Correct §6.2 of the architecture doc with the verified endpoint shape and defaults (§2),
+      including the multipart endpoint, the flat `convert_*`/`chunking_*` form fields,
+      and the fact that `to_formats` does not exist on chunk endpoints.
+- [ ] Amend the Phase 1 chunk-count exit criterion to the token-based form (§6),
+      **with the over-512 clause scored against `raw_text`** — the probe showed the
+      original wording cannot be satisfied while `contextualize()` is on.
+- [x] ~~Choose §3 Option A or B for images.~~ **Decided 2026-08-01: Option A.**
+- [ ] §6.4 of the architecture doc assumes chunk text carries parseable image refs.
+      It does not, at any config — correct it alongside §6.2, and note that this
+      corpus ingests text and tables only.
 - [ ] Prove D15 empirically — truncate `brew.bjcp_styles`, run the *old* graph,
       confirm it generates 0 cards. Recoverable; the fingerprint in §0 verifies the rebuild.
