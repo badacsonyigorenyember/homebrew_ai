@@ -459,7 +459,37 @@ pending/Stout-Style-Guide.pdf
 - **Embedding reuse:** `content_sha256` on chunks means re-ingesting a book where you fixed one typo re-embeds one chunk, not 3,000.
 - **Crash safety:** a half-built version has `is_current = false` and is invisible. Cleanup is `DELETE FROM kb.document_versions WHERE NOT is_current AND ingested_at < now() - interval '1 day' AND id NOT IN (SELECT ...)` — or just leave it.
 
-### 3.8 Image reference mapping
+### 3.8 Image reference mapping — ⛔ NOT IMPLEMENTABLE AS WRITTEN
+
+> **Probed and decided 2026-08-01 (`plans/01-wf1-ingest-document.md` §3, Option A):
+> images are not ingested. `kb.chunks.image_refs` is NULL for this corpus, and WF1
+> does not populate it.** Everything below the line is the original design, kept
+> because it is still correct *if* image bytes are ever wanted — but step 1 cannot
+> be built from chunk text at any configuration.
+>
+> **Why.** The premise is that chunk text carries parseable `![…](path)` refs. It does
+> not. With `chunking_use_markdown_images` at its default `false`, the chunker drops
+> pictures entirely — `doc_items` holds only `texts` and `tables`, zero picture refs,
+> across all 483 chunks. Setting it `true` brings pictures in (182 refs, 134 chunks
+> flagged `has_image`) but **`chunking_image_placeholder` is a static string, not a
+> template**: every one of those chunks carries the literal text `![IMAGE]` and
+> **zero markdown refs with a path**.
+>
+> Enabling it costs +5 chunks, raises the under-30-token count 3 → 8 with pure junk
+> (`'![IMAGE]'`, 5 tokens), and — worst — the placeholder lands in `raw_text`, so it
+> pollutes `raw_content` and changes `content_sha256`.
+>
+> **Option B, if figure references are ever wanted:** image identity exists only as
+> `doc_items` entries `#/pictures/N`, resolvable to `image_%06d_<sha256>.png` via
+> `pictures[N].image.uri` in the converted document (needs `include_converted_doc=true`
+> or a second convert). ⚠️ **Unverified:** whether the referenced PNG bytes are
+> persisted anywhere reachable. With `target_type=inbody` the `uri` may be a name
+> only — storing filenames could create dangling refs. Verify that *first*.
+>
+> Keep `convert_image_export_mode=referenced` regardless, so nothing base64 can leak
+> into chunk text.
+
+---
 
 Docling emits `![Image](image_017.png)` with `image_export_mode: "referenced"`, writing files under `./shared/extracted-images/`.
 
@@ -558,27 +588,35 @@ Per-request in n8n, set `keep_alive: -1` on both the chat model and the embeddin
 
 Seven workflows plus a family of tool sub-workflows. Every one is separately activatable — architecture rule 4.
 
-### WF1 — `ingest-document`
+### WF1 — `ingest-document` — ✅ **BUILT** (`HowToBrew`)
 
 | | |
 |---|---|
-| **Trigger** | Schedule Trigger (nightly 03:00) + Manual Trigger for on-demand |
+| **Trigger** | **Manual Trigger only** — never scheduled. Corpus growth is deliberate and staged (§11 Phase 3), so there is nothing for a nightly job to pick up |
 | **Purpose** | PDF in `pending/` → chunks + embeddings in `kb.*` |
-| **Input** | Files in `./shared/rag-files/pending/` |
-| **Output** | `kb.document_versions` + `kb.chunks` + `kb.chunk_embeddings` rows; file moved to `processed/` |
+| **Input** | **One pinned file path per execution**, not a glob — see below |
+| **Output** | `kb.document_versions` + `kb.chunks` + `kb.chunk_embeddings` rows |
 | **Services** | Docling Serve, Ollama (`bge-m3`), Supabase Postgres |
-| **Depends on** | `kb` schema, `IMAGE_BASE_URL` |
+| **Depends on** | `kb` schema |
+| **Tracked at** | `n8n/demo-data/workflows/wf1-howtobrew.json` — **edit the file, then import**; do not edit in the browser |
+| **Build guide** | `plans/01a-wf1-build-guide.md` — node-by-node, with the full SQL |
 
-**Pattern:** plain workflow — Read/Write Files → Crypto (SHA-256) → Postgres (dedup check) → IF → HTTP Request (Docling async) → Wait/HTTP poll loop → Code (normalise chunk payload) → Postgres (insert chunks) → **Loop Over Items (batch 32)** → HTTP Request (Ollama `/api/embed`) → Postgres (insert vectors) → Postgres (atomic `is_current` swap) → Move file.
+**Pattern:** Manual Trigger → Read/Write Files (hash pass) → Crypto (SHA-256) → Postgres (dedup lookup) → IF → Read/Write Files (**re-read — Crypto consumes the binary it hashes**) → HTTP Request (Docling `/v1/chunk/hybrid/file/async`) → Wait 15 s / poll loop with a 160-iteration guard → Code (assert finished) → HTTP Request (fetch result) → Code (clean + normalise) → Postgres (ensure doc + version, `is_current=false`) → Postgres (insert chunks, batched) → Postgres (embedding reuse by `content_sha256`) → Postgres (select chunks needing embeddings) → **Loop Over Items (batch 32)** → HTTP Request (Ollama `/api/embed`) → Code (zip ids + vectors, assert 1024 dims) → Postgres (insert vectors) → *(done)* Postgres `kb.promote_version($1)` → Code (assert promoted).
+
+**Why one pinned path and not `pending/*.pdf`:** a glob currently matches two PDFs and would fan out into two items through the async poll loop, where Wait → poll → IF-loop-back has no coherent meaning with several tasks in flight. One book per execution; re-point the path and run again.
 
 **No AI Agent here.** Ingestion is deterministic ETL; an agent adds nondeterminism and cost to a job with one correct answer.
 
 **Anti-patterns:**
-- ❌ Docling *sync* endpoint. Default server-side timeout is 2 minutes — a 400-page book will always fail. Use `/v1/convert/source/async` + `/v1/status/poll/{task_id}`.
+- ❌ Docling *sync* endpoint. Default server-side timeout is 2 minutes — a 400-page book will always fail. Use the async chunk endpoint + `/v1/status/poll/{task_id}` (§6.1).
 - ❌ Splitting markdown in a Code node. Use Docling's chunker (§6).
 - ❌ Embedding one chunk per item without `Loop Over Items`. 3,000 parallel HTTP items will OOM n8n and stampede Ollama.
 - ❌ Using the `processed/` folder as the dedup check. Hash the file.
 - ❌ Default n8n Vector Store nodes. They assume a LangChain-shaped table and will fight your schema. Use plain Postgres nodes.
+- ⛔ **A `DELETE from kb.documents` reset node left in the graph.** This is D22 (§11.2), currently live in `HowToBrew` as the first node after the trigger. It wipes the corpus every run, so the dedup branch has never executed and a second book would destroy the first. **Remove it.**
+- ❌ Parallel branches feeding a shared downstream node. n8n v1 orders by **node position**, not data dependency (D15).
+- ❌ Re-deriving `version_id` with `ORDER BY version DESC`. Thread it as `$1` from the node that created it (D14).
+- ❌ A hand-rolled `is_current` flip. Use `kb.promote_version($1)`; the partial unique index rejects the transient double-current state (D16).
 
 ### WF2 — `ingest-structured`
 
@@ -693,40 +731,51 @@ Why sub-workflows rather than Postgres-node-as-tool: you get one place to shape 
 
 ### 6.1 Docling Serve usage
 
+> ✅ **Corrected 2026-08-02 against `docling-serve 1.19.0` running in this stack.**
+> The original version of this section was written from the `/v1/convert` API and was
+> wrong in four ways. What follows is the shape WF1 actually sends and that produced
+> the 447-chunk corpus. Probe evidence: `plans/01-wf1-ingest-document.md` §2–3.
+
 **Always async.** Sync endpoints carry a ~2-minute server-side timeout; raising the HTTP client timeout does nothing because the server closes the connection.
 
-```
-POST /v1/convert/source/async   →  { "task_id": "...", "task_status": "pending" }
-GET  /v1/status/poll/{task_id}  →  poll until "success" | "failure"
-GET  /v1/result/{task_id}       →  the converted document
-```
-(A WebSocket at `/v1/status/ws/{task_id}` exists for push updates; polling is simpler in n8n and perfectly adequate for a nightly job.)
+**Use the chunk endpoint, not convert.** `/v1/chunk/hybrid/…` converts *and* chunks in
+one call — there is no separate convert step. Prefer the **multipart `file`** variant
+over `source`: it takes the PDF as a file part, so no base64 step and no ~30 MB JSON body.
 
-Request options for brewing PDFs:
+```
+POST /v1/chunk/hybrid/file/async   →  { "task_id": "...", "task_status": "pending" }
+GET  /v1/status/poll/{task_id}     →  poll until status leaves pending/started
+GET  /v1/result/{task_id}          →  { chunks: [...], documents: [...] }
+```
+(A WebSocket at `/v1/status/ws/{task_id}` exists for push updates; polling is simpler in n8n and perfectly adequate.)
 
-```json
-{
-  "options": {
-    "from_formats": ["pdf"],
-    "to_formats": ["md", "json"],
-    "image_export_mode": "referenced",
-    "do_ocr": true,
-    "force_ocr": false,
-    "ocr_engine": "easyocr",
-    "ocr_lang": ["en"],
-    "pdf_backend": "dlparse_v4",
-    "table_mode": "accurate",
-    "do_table_structure": true,
-    "abort_on_error": false
-  }
-}
+⚠️ **That immediate `{"task_id", "task_status": "pending"}` ack is success, not an error.**
+
+⚠️ **`task_status: "success"` means the task *ran*, not that it *worked*.** Also check
+`documents[0].status` and `len(chunks)` — a bad payload yields `success` + `chunks: []`
++ `documents[0].status: "failure"` in under a millisecond.
+
+**Options are flat, prefixed form fields — not a nested `options` object.** The exact
+set WF1 sends:
+
+```
+convert_from_formats=pdf          chunking_tokenizer=BAAI/bge-m3
+convert_image_export_mode=referenced   chunking_max_tokens=512
+convert_do_ocr=false              chunking_merge_peers=true
+convert_pdf_backend=dlparse_v4    chunking_include_raw_text=true
+convert_table_mode=accurate       chunking_use_markdown_tables=true
+convert_do_table_structure=true
+convert_abort_on_error=false
 ```
 
 - `table_mode: "accurate"` — non-negotiable. Brewing books are *full* of tables (hop varieties, water profiles, style vital statistics). `fast` mangles them and you lose the highest-value content in the book.
-- `to_formats` includes `json` — the DoclingDocument JSON carries page provenance that markdown discards. That's where `page_from`/`page_to` come from.
-- `do_ocr: true, force_ocr: false` — OCR only the scanned pages. Forcing OCR on a digital PDF is slower and *worse*.
+- ❌ **`to_formats` does not exist on the chunk endpoints.** It is a `/v1/convert` parameter only; sending it here is dead config. Page provenance arrives as `page_numbers[]` on each chunk, which is where `page_from`/`page_to` come from.
+- ❌ **`do_ocr: true` was wrong for this corpus.** *How to Brew* is digital-native with a clean text layer; OCR on a digital PDF is slower **and worse**. Set `convert_do_ocr=false` and only revisit for genuinely scanned books. Mangled tables are a `table_mode` problem, not an OCR one.
+- **`chunking_use_markdown_tables=true`** — the API defaults it to `false`, and the original text never decided how tables should be *serialized*. Measured: 68 of 483 chunks carry a table and all 68 render as pipe-markdown, which embeds better than flattened triplets.
 
-In n8n: a Wait node (15 s) inside a loop against `/v1/status/poll/`, with a max-iteration guard so a hung Docling task doesn't loop forever.
+**Measured on the 248-page book:** 483 raw chunks, **229 s** wall clock. The n8n poll
+loop is a 15 s Wait with a **160-iteration guard** (≈ 40 min), so a healthy run exits
+after ~16 polls and a hung task cannot loop forever.
 
 ### 6.2 Chunking strategy — Docling `HybridChunker`, and why
 
@@ -742,40 +791,103 @@ In n8n: a Wait node (15 s) inside a loop against `/v1/status/poll/`, with a max-
 2. **`contextualize(chunk)`** prepends the heading hierarchy to the chunk text. A chunk about mash temperature carries `Stout > Irish Stout > Vital Statistics` into its embedding — which is why a query for "Irish stout mash temp" retrieves it even though the body may never say "Irish".
 3. **Tokenizer parity.** The chunker uses the *same tokenizer as the embedder*. Configure it against `BAAI/bge-m3` with `max_tokens: 512`. Chunker and embedder disagreeing on token counts is the classic silent truncation bug.
 
-```json
-{
-  "chunking": {
-    "chunker": "hybrid",
-    "tokenizer": "BAAI/bge-m3",
-    "max_tokens": 512,
-    "merge_peers": true,
-    "repeat_table_headers": true
-  }
-}
+Sent as flat form fields (§6.1), not the nested object this section used to show:
+
+```
+chunking_tokenizer=BAAI/bge-m3
+chunking_max_tokens=512
+chunking_merge_peers=true
+chunking_include_raw_text=true
+chunking_use_markdown_tables=true
 ```
 
-`repeat_table_headers: true` means a hop table split across chunks keeps its column headers in each piece — otherwise chunk 2 is a grid of numbers with no idea what they measure.
+⚠️ **The tokenizer must be set explicitly — the API default is
+`sentence-transformers/all-MiniLM-L6-v2`.** Leaving it unset *is* the silent-truncation
+bug this section warns about, not a guard against it.
 
-⚠️ **Known issue:** `max_tokens` is not strictly enforced after `contextualize()` — a long heading path can push a chunk slightly over. Assert `token_count <= 512` in your normalisation Code node and log violations rather than discovering them as silent truncation at embed time.
+❌ **`repeat_table_headers` does not exist in this API.** Omit it; sending it may 422.
+The claim it made was still worth wanting, and `use_markdown_tables=true` covers the
+real case here — measured, no table was split across chunks in this book.
+
+**`merge_peers` verdict: working.** The defect signal would have been ~170 tokens/chunk;
+actual mean is 290, median 291.
+
+### ⚠️ Corrected 2026-08-02 — what `max_tokens` and `token_count` actually mean
+
+The original warning here said `max_tokens` is not enforced *after* `contextualize()`,
+and told you to assert `token_count <= 512`. **Both halves are wrong**, measured by
+re-embedding stored text and reading Ollama's `prompt_eval_count`:
+
+| `chunk_index` | Docling `num_tokens` | measured `raw_content` | measured `content` | heading overhead |
+|---|---|---|---|---|
+| 369 | 524 | 527 | 541 | +14 |
+| 65 | 521 | 529 | 539 | +10 |
+| 376 | 519 | 530 | 539 | +9 |
+| 272 | 513 | 542 | 550 | +8 |
+
+1. **`num_tokens` counts the *raw* text, not the contextualized text.** Calibrated
+   against 8 random mid-size chunks: mean delta ~0, scatter ±16. So the
+   `token_count` you store **understates what actually gets embedded** by ~6–21 tokens.
+   Never read it as "tokens sent to the embedder".
+2. **The over-limit chunks are not a contextualization artifact.** Their raw text is
+   already 527–542 tokens. All four contain markdown tables, and `HybridChunker` will
+   not split a table mid-row — splitting would produce two half-tables, each worse
+   than one long one. This is correct behaviour.
+3. **Do not assert `token_count <= 512` and fail the run.** It would fail on correct
+   output. The risk a token cap guards against is *silent truncation at embed time*,
+   and the widest chunk here is 550 against **bge-m3's 8192-token window** — three
+   orders of headroom. Log the violations, gate on this instead:
+
+> **≤ 1% of chunks exceed `max_tokens`, every one of them explained, and no chunk's
+> embedded `content` approaches the embedder's context window.**
+
+Scored on this book: 4/447 = **0.9%**, all unsplittable tables, max 550 / 8192. ✅
 
 ### 6.3 Markdown cleaning rules
 
 Applied in one Code node between Docling and insert. Keep them declarative and few:
 
-| Rule | Action |
-|---|---|
-| Chunk is image-only (`raw_content` strips to empty after removing `![…](…)`) | **Drop.** Record image in the *preceding* chunk's `image_refs` |
-| `token_count < 30` and no table | **Drop.** Below the noise floor; retrieves as junk |
-| Heading path matches `/^(Contents|Table of Contents|Index|Glossary|Acknowledg|Copyright|About the Author)/i` | **Drop** |
-| Repeated line appearing on >60% of pages | **Strip as masthead/footer** |
-| Page-number-only lines (`^\s*\d{1,4}\s*$`) | Strip |
-| Sequences of 3+ dot-leaders (`\.{3,}`) | Strip (TOC residue) |
-| Chunk is >80% non-alphanumeric | **Drop** (OCR garbage) |
-| Everything else | Keep verbatim — do not "clean" prose |
+| Rule | Action | Measured on *How to Brew* |
+|---|---|---|
+| ~~Chunk is image-only~~ | ~~Drop, record in preceding chunk's `image_refs`~~ | **STRUCK** — pictures never reach chunks (§3.8). No such chunks exist |
+| `token_count < 30` and no table | **Drop.** Below the noise floor; retrieves as junk | 3 |
+| Front matter — `page_to <= 6` (title, ISBN, TOC) | **Drop** | 18 |
+| Heading path matches `/^(Contents\|Table of Contents\|Index\|Glossary\|Acknowledg\|Copyright\|About the Author)/i` | **Drop** | folded into the above |
+| Per-chapter `References` lists, by heading path | **Drop** — citation noise, no process content | 16 |
+| Back matter with no process content (metric conversions, recommended reading) | **Drop** | 1 |
+| Repeated line appearing on >60% of pages | **Strip as masthead/footer** | 0 — this book has no running heads |
+| Page-number-only lines (`^\s*\d{1,4}\s*$`) | Strip | 0–6 |
+| Sequences of 3+ dot-leaders (`\.{3,}`) | Strip (TOC residue) | — |
+| Chunk is >80% non-alphanumeric | **Drop** (OCR garbage) | 0 — digital-native, `do_ocr=false` |
+| Everything else | Keep verbatim — do not "clean" prose | |
+
+**Result: 483 raw → 447 kept.** Emit **one item holding the whole array**, not one item
+per chunk, so the insert is a single `jsonb_to_recordset` query rather than 447 round
+trips. Keep Docling's original `chunk_index` — it has gaps after drops, which is
+intentional provenance; the unique constraint is `(version_id, chunk_index)` and needs
+no contiguity.
 
 Log every drop with its reason to a `kb.ingest_log` table. When retrieval later misses something, you need to know whether it was never ingested or just ranked poorly. This one table saves hours.
 
+⛔ **Not actually done — D23 (§11.2).** The logging node was never built, `kb.ingest_log`
+is empty, and the per-rule breakdown for this book is unrecoverable. The counts above
+are from the pre-ingest probe, not from the run. Build the node before the next book.
+
 ### 6.4 Embedding: batching, retry, failure
+
+> ✅ **Confirmed in practice 2026-08-02.** 447 chunks in 14 batches of 32, 100% coverage
+> at 1024 dims, no failures. Two deviations from the design below, both live: failure
+> isolation is **not** wired (`Continue (using error output)` is off — a failed batch
+> fails the run, which for a manual one-book job is arguably correct), and nothing is
+> written to `kb.ingest_log` (D23, §11.2). Node-level **Retry On Fail is on**.
+>
+> Two implementation details the original text omits, and both are load-bearing:
+> - **Use `/api/embed`, not `/api/embeddings`.** The older singular endpoint takes
+>   `prompt` (one string) and returns `embedding`; this one takes `input` (an array)
+>   and returns `embeddings` (an array of arrays).
+> - **Hand pgvector a *string*, not a JS array.** `'[' + vec.join(',') + ']'` is
+>   pgvector's text input format. Passing a raw JS array makes the pg driver serialise
+>   it as a Postgres array (`{0.1,0.2,…}`), which `::vector` rejects.
 
 - **Batch size 32** via `Loop Over Items`. Ollama's `/api/embed` takes an array `input`. 32 × ~512 tokens is a comfortable single forward pass on 16 GB.
 - **`keep_alive: -1`** on every embed call. Otherwise the embedder is evicted between batches and you pay a reload each time.
@@ -801,6 +913,13 @@ failed/      ← ADD THIS. Moved here on unrecoverable error, with a .log sideca
 ```
 
 Two new folders, both earning their place: without `processing/` you cannot tell "not started" from "died halfway"; without `failed/` a broken PDF is retried nightly forever.
+
+⛔ **Not implemented — D24 (§11.2).** All four directories exist on disk, but WF1 has no
+move node: `how_to_brew_john_palmer.pdf` is still in `pending/` after a successful ingest.
+Low urgency now that the trigger is manual and `file_sha256` is authoritative — the
+"retried nightly forever" argument for `failed/` evaporated with the nightly schedule
+(§5 WF1). Worth building as *human* record-keeping, which is the only job these folders
+have left.
 
 **Restated because it's the important part:** these folders are for *your* visibility. Authoritative state is `kb.document_versions`. A file manually moved back to `pending/` will be hash-rejected — which is correct behaviour, not a bug. Add a `--force` path (delete the version row first) for genuine re-ingestion.
 
@@ -1335,14 +1454,21 @@ Establish the Phase 2 baseline (`bge-m3`, `HybridChunker@512`, RRF `k=50`, top-6
 
 ## 11. Phased rollout
 
-> **Build status — 2026-07-27.** Phase 0 ✅ complete, including the live-login
-> test that was its last open item. Phase 1 🟡 in progress: WF2 (structured/BJCP)
-> done and its defect ledger closed (Phase 1.1 ✅), WF1 (document) not started.
+> **Build status — 2026-08-02.** Phase 0 ✅ complete. Phase 1 🟢 **all but one
+> criterion met**: WF2 (structured/BJCP) done and its defect ledger closed
+> (Phase 1.1 ✅), **WF1 built, run, and the retrieval gate passed** (§11.2).
+> *How to Brew* is in the corpus at 447 chunks with 100% embedding coverage.
 > Phases 2–5 ⬜ not started. Status marks below are **verified**, not asserted —
-> each ✅ names the check that produced it. See §11.1 for the defect ledger.
+> each ✅ names the check that produced it. See §11.1–11.2 for the evidence.
 >
-> **Next action: WF1.** Nothing blocks it. Build it from the corrected WF2 in
-> `n8n/demo-data/workflows/wf2-digestion.json`, carrying D14/D15/D21 forward.
+> **⛔ One blocker before Phase 1 can close — D22, see §11.2.** WF1's first node
+> after the trigger is `DELETE from kb.documents where id!=1`, a debugging reset
+> left in the graph. It wipes the corpus on every run, so the dedup branch can
+> never fire and the *"re-running WF1 inserts nothing"* criterion is structurally
+> unreachable. Ingesting a second book would delete the first. **Delete that node,
+> then re-run to prove idempotency.**
+>
+> **Next action: remove D22, prove idempotency, then Phase 2 (WF4).**
 
 ### Phase 0 — Schema and demolition *(one evening)* — ✅ **COMPLETE**
 
@@ -1357,19 +1483,44 @@ Deprecate: ✅ `DROP TABLE documents` (`to_regclass('public.documents')` → NUL
 - The read-only boundary holds at the grant level: `has_table_privilege('n8n_agent','brew.batches','SELECT')` → `false`, `has_schema_privilege('n8n_agent','kb','USAGE')` → `false`, `nlq` USAGE → `true`. `n8n_agent` also carries `default_transaction_read_only=on` and `statement_timeout=10s`.
 - ✅ **Live login verified (2026-07-27).** `n8n_agent` connects with `AGENT_DB_PASSWORD`, reports `default_transaction_read_only=on` and `statement_timeout=10s`, `CREATE TABLE` is refused with *"cannot execute CREATE TABLE in a read-only transaction"*, and `kb` is denied at the schema level. The boundary holds in practice, not just in the catalog.
 
-### Phase 1 — One document, end to end *(a weekend)* — 🟡 **IN PROGRESS**
+### Phase 1 — One document, end to end *(a weekend)* — 🟢 **7 of 8 criteria met**
 
 **Goal:** one PDF correctly in the database. No chat.
 
-Build: ⬜ WF1 · ⬜ Docling async + poll · ⬜ chunking config against `bge-m3` · ⬜ cleaning rules + `kb.ingest_log` · ⬜ embedding loop (batch 32) · ⬜ folder state machine · ✅ **WF2 for BJCP** — 116 BJCP 2021 styles in `brew.bjcp_styles`, 116 style cards in `kb.chunks`, 116 `bge-m3` embeddings at 1024 dims, coverage 100%, re-run inserts nothing (D17).
+Build: ✅ **WF1** (`HowToBrew`, `n8n/demo-data/workflows/wf1-howtobrew.json`) · ✅ Docling async + poll (`/v1/chunk/hybrid/file/async`, 15 s Wait loop, 160-poll guard) · ✅ chunking config against `bge-m3` (tokenizer pinned — see §6.2) · 🟡 cleaning rules ✅ but `kb.ingest_log` **never wired** (D23) · ✅ embedding loop (batch 32, 14 batches) · 🟡 folder state machine — `pending/`→`processed/` move node not built · ✅ **WF2 for BJCP** — 116 BJCP 2021 styles in `brew.bjcp_styles`, 116 style cards in `kb.chunks`, 116 `bge-m3` embeddings at 1024 dims, coverage 100%, re-run inserts nothing (D17).
 
-Deprecate: ⬜ the n8n heading-splitter Code node *(blocked on WF1 — it is what replaces it)*.
+Deprecate: ✅ the n8n heading-splitter Code node — gone; `n8n list:workflow` returns only `Digestion` and `HowToBrew`, neither contains it.
 
 **Exit:** ingest one real brewing book. Then: chunk count within ±20% of `page_count × 2.5`; zero chunks under 30 tokens; every chunk has a non-empty `heading_path` and a `page_from`; embedding coverage 100%; **re-running WF1 on the same file inserts nothing**; a hand-written SQL call to `nlq.search_knowledge('diacetyl rest', …)` returns something you'd have picked yourself.
 
 That last one is the real gate. Read the top 6 chunks for five questions. If they're wrong, fix chunking now — every later phase inherits this.
 
-⚠️ **The retrieval gate cannot be met by the current corpus.** 116 BJCP style cards are *style* knowledge, not *process* knowledge. `search_knowledge('diacetyl rest temperature for lagers', …)` returns lager style cards — correct behaviour over the corpus that exists, and useless as a quality signal. Judge retrieval only after WF1 puts a real book in `kb.chunks`; until then the style cards can verify **mechanics** (§11.1) but not **relevance**.
+**Scored 2026-08-02 (evidence in §11.2):**
+
+| Criterion | Result | |
+|---|---|---|
+| Chunk count | 447 for 248 pp. **The `page_count × 2.5` heuristic is retired** — replaced by the token-based form below | ✅ |
+| Zero chunks under 30 tokens | `under_30 = 0` | ✅ |
+| Non-empty `heading_path` **and** `page_from` on every chunk | `no_heading = 0`, `no_page = 0` | ✅ |
+| Embedding coverage 100% at 1024 dims | `gaps = 0`, `vector_dims` returns a single row: `1024` | ✅ |
+| Exactly one `is_current` version per document | 2 rows, one per document (BJCP + book) — `promote_version` scopes the flip | ✅ |
+| Chunks over `max_tokens` bounded and explained | 4/447 = 0.9%, all unsplittable markdown tables (§6.2) | ✅ |
+| **The five retrieval questions return chunks you'd have picked** | **Passed — tested by hand 2026-08-02** | ✅ |
+| **Re-running WF1 on the same file inserts nothing** | **Not provable while D22 is in the graph** | ⛔ |
+
+~~⚠️ The retrieval gate cannot be met by the current corpus.~~ **Struck 2026-08-02.**
+That warning applied when `kb.chunks` held only 116 BJCP style cards. *How to Brew* is
+now in the corpus and the gate has been run and passed. Style cards no longer crowd out
+process questions — see the D19 note in §11.2.
+
+**Amended chunk-count criterion.** `page_count × 2.5` was never the right measure; it
+happens to land within 2.6% here by luck. Use instead:
+
+> chunk count within ±25% of `body_tokens / 320`, **and** median `token_count` between
+> 200 and 450, **and** ≤ 1% of chunks over `max_tokens` with every one of them explained.
+
+Scored: 139,859 / 320 = 437, range 328–546, **actual 447** ✅ · median **291** ✅ ·
+over-512 **4/447 = 0.9%**, all tables ✅.
 
 ### Phase 1.1 — Fix the WF2 defect ledger *(before WF1 copies it)* — ✅ **COMPLETE**
 
@@ -1477,6 +1628,70 @@ Expected: statement 1 `permission denied for schema brew`, statement 2 succeeds,
 statement 3 `cannot execute CREATE TABLE in a read-only transaction`. All three must
 hold; passing only the first two means the write ban is untested.
 
+### 11.2 Verification evidence — 2026-08-02 (WF1 and the retrieval gate)
+
+Procedure and commands in `plans/02-phase1-retrieval-gate.md`. Everything below was
+measured against the running stack, not inferred.
+
+**Corpus.** `kb.chunks` 563 = 116 BJCP style cards + **447** *How to Brew* chunks.
+Embedding gaps 0. `vector_dims` returns exactly one distinct value, `1024`.
+`is_current` = 2, one per document. Book version id **41**, `source_filename`
+`how_to_brew_john_palmer.pdf`, `file_sha256` `e29d11cf…f410` (matches the §3 probe).
+
+**Chunk quality.** 447 chunks · min 30 · **median 291** · max 524 · `over_512` 4 ·
+`under_30` 0 · `no_heading` 0 · `no_page` 0.
+
+**The retrieval gate — passed.** Five questions, top 6 read by hand, judged against
+*"would I have picked these myself?"*. Calibration runs recorded during authoring:
+
+| Q | Asked | Result |
+|---|---|---|
+| 1 | diacetyl rest temp/timing for lagers | ranks 1 & 3 = `10.4 Yeast Starters and Diacetyl Rests` (p.98). **4/6, first hit rank 1** |
+| 3 | when to add hops, bittering vs aroma | ranks 1/2/3 = `Bittering`, `Flavoring`, `Finishing` (p.41). **6/6, first hit rank 1** |
+| 4 | pitching rate / rehydrating dry yeast | ranks 2/3/4 = `Preparing Dry Yeast`, `Re-hydrating Dry Yeast`, `Pitching the Yeast`. **first hit rank 2** |
+| 2, 5 | mash pH · acetaldehyde | run and judged by hand — passed |
+
+**D19 displaced.** No BJCP style cards appear in the top 6 of any process question,
+including the `"what temperature for a single infusion mash"` control. That was the
+explicit failure mode Phase 1 existed to fix.
+
+**Soft spot, logged not fixed.** On the control question rank 1 is a recipe
+(`American Pale Ale`, p.180) and the actual explanation `16.1 Single Temperature
+Infusion` (p.149) lands at rank 2. Recipe chunks are mostly markdown table
+scaffolding and compete well on FTS for terms like "mash". Re-check during the
+Phase 3 eval; do not tune retrieval against a single observation.
+
+**⛔ D22 — WF1 wipes the corpus on every run.** The first node after the manual
+trigger is a Postgres node running `DELETE from kb.documents where id!=1`, wired
+`Manual Trigger → [delete] → Read PDF for hashing`. It is a debugging reset that was
+never removed. Consequences:
+
+- `kb.documents` cascades, so **every run destroys all book documents, versions,
+  chunks and embeddings**, keeping only `id=1` (BJCP).
+- `Dedup lookup` therefore always returns `existing_version_id: null`, `Is new file?`
+  always takes the true branch, and **the dedup branch has never once executed**.
+- The exit criterion *"re-running WF1 on the same file inserts nothing"* is not
+  merely unproven, it is unreachable. Confirmed on the 2026-08-02 09:04 execution:
+  168 s wall clock, `Docling submit` → … → `Insert embeddings` all ran, and the book
+  version advanced 40 → 41.
+- **Ingesting a second book would delete the first.** This must be fixed before the
+  Stout guide, and before anything in §9 that adds books.
+
+Data integrity is nonetheless intact: the ingest is deterministic, so the rebuild
+produced an identical corpus. Fingerprint
+`md5(string_agg(content_sha256, ',' ORDER BY chunk_index))` = `7451314f19df941f1f0a1063262bf355` over 447 chunks.
+
+**D23 — `kb.ingest_log` is never written.** The `Log ingest summary` node was never
+built, so no drop ledger exists for this book. §6.3's promise — *"when retrieval later
+misses something, you need to know whether it was never ingested or just ranked
+poorly"* — is currently unfulfilled. Cleaning dropped 36 of 483 chunks (483 → 447)
+and the per-rule breakdown is unrecoverable. Build the node before the next book.
+
+**D24 — the folder state machine is not implemented.** No `Move to processed` node;
+`how_to_brew_john_palmer.pdf` is still in `pending/`. Harmless while `file_sha256` is
+authoritative (§12 #8), but `processing/` and `failed/` from §6.5 do not exist in the
+graph at all.
+
 ---
 
 ## 12. Deprecation list
@@ -1486,12 +1701,12 @@ Delete or stop using, in this order:
 | # | Thing | Action | When |
 |---|---|---|---|
 | 1 | Supabase `documents` table (~117 rows) | **`DROP TABLE`.** Do not migrate — wrong chunking, no provenance | Phase 0 |
-| 2 | The 1536-dim pgvector snippet (`nods_page_section`) | **Delete the file.** OpenAI-shaped; no Ollama embedder is 1536-dim | Phase 0 |
+| 2 | The 1536-dim pgvector snippet (`nods_page_section`) | **Delete the file.** OpenAI-shaped; no Ollama embedder is 1536-dim | Phase 0 — 🟡 **half done.** The *table* is gone (`nods_page_section` → NULL) but the *file* is still tracked at `supabase/docker/volumes/snippets/OpenAI Vector Search.sql` |
 | 3 | Qdrant service + volume | **Remove from compose.** §3.6 | Phase 0 |
 | 4 | Open WebUI | **Remove from compose.** Costs RAM you need; `chat.html` is the interface | Phase 0 |
 | 5 | `llama3.2` as the chat model | **`ollama rm`.** A compose default, never a decision | Phase 0 |
-| 6 | Demo "Chat Trigger → Basic LLM Chain → Ollama" workflow | **Delete.** Not deactivate — delete, so it can't be copied from | Phase 2 |
-| 7 | n8n Code node markdown heading-splitter | **Delete.** Docling `HybridChunker` replaces it | Phase 1 |
+| 6 | Demo "Chat Trigger → Basic LLM Chain → Ollama" workflow | **Delete.** Not deactivate — delete, so it can't be copied from | Phase 2 — ✅ **already gone.** `n8n list:workflow` returns only `Digestion` and `HowToBrew` |
+| 7 | n8n Code node markdown heading-splitter | **Delete.** Docling `HybridChunker` replaces it | Phase 1 — ✅ **done.** `n8n list:workflow` returns only `Digestion` and `HowToBrew`; neither contains it |
 | 8 | Filesystem-as-state-machine (`pending`/`processed` as dedup) | Keep folders as UI; **`file_sha256` is authoritative** | Phase 1 |
 | 9 | Any n8n Vector Store node pointed at Supabase | **Don't adopt.** Assumes a LangChain table shape that fights your schema | — |
 | 10 | `homebrew-rag` (FastAPI + Chroma + BM25) | Already reference-only. **Keep it that way** — do not partially port it | — |
