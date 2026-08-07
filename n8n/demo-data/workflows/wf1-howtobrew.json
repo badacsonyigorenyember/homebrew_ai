@@ -462,27 +462,6 @@
       {
         "parameters": {
           "operation": "executeQuery",
-          "query": "DELETE from kb.documents where id!=1",
-          "options": {}
-        },
-        "type": "n8n-nodes-base.postgres",
-        "typeVersion": 2.6,
-        "position": [
-          0,
-          48
-        ],
-        "id": "4617feb0-91c6-4349-a6b7-62708c3e0916",
-        "name": "Execute a SQL query2",
-        "credentials": {
-          "postgres": {
-            "id": "fDjeFLjBj3r9berH",
-            "name": "Postgres account"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "operation": "executeQuery",
           "query": "INSERT INTO kb.chunk_embeddings (chunk_id, model, embedding)\nVALUES ($1, 'bge-m3', $2::vector)\nON CONFLICT (chunk_id, model) DO UPDATE\n  SET embedding = EXCLUDED.embedding, created_at = now()\nRETURNING chunk_id, (xmax = 0) AS inserted;",
           "options": {
             "queryReplacement": "={{ [$json.chunk_id, $json.embedding] }}"
@@ -523,6 +502,29 @@
         "id": "4c65c3a1-5a6e-4e7d-843f-f1c2a3181b56",
         "name": "Ollama embed",
         "retryOnFail": false
+      },
+      {
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          4480,
+          -144
+        ],
+        "id": "a37cd47e-c762-45f6-9773-6d68990479dd",
+        "name": "Log ingest summary",
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO kb.ingest_log (version_id, stage, level, message, detail)\nVALUES\n  ($1::bigint, 'clean',\n   CASE WHEN ($2::jsonb->>'dropped')::int > 0 THEN 'warn' ELSE 'info' END,\n   format('cleaning kept %s of %s chunks, %s dropped',\n          $2::jsonb->>'kept', $2::jsonb->>'raw_chunks', $2::jsonb->>'dropped'),\n   jsonb_build_object('stats', $2::jsonb, 'drops', $3::jsonb)),\n  ($1::bigint, 'promote',\n   CASE WHEN ($4::jsonb->>'missing')::int > 0 THEN 'error' ELSE 'info' END,\n   format('version %s promoted: %s chunks, %s missing embeddings',\n          $4::jsonb->>'version_id', $4::jsonb->>'total', $4::jsonb->>'missing'),\n   $4::jsonb)\nRETURNING id, stage, level, message;",
+          "options": {
+            "queryReplacement": "={{ [ $('Ensure doc + version').first().json.version_id, JSON.stringify($('Clean + normalise').first().json.stats), JSON.stringify($('Clean + normalise').first().json.drops), JSON.stringify($json) ] }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
       }
     ],
     "connections": {
@@ -530,7 +532,7 @@
         "main": [
           [
             {
-              "node": "Execute a SQL query2",
+              "node": "Read PDF for hashing",
               "type": "main",
               "index": 0
             }
@@ -771,17 +773,6 @@
           ]
         ]
       },
-      "Execute a SQL query2": {
-        "main": [
-          [
-            {
-              "node": "Read PDF for hashing",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
       "Insert embeddings": {
         "main": [
           [
@@ -798,6 +789,17 @@
           [
             {
               "node": "Zip ids + embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript": {
+        "main": [
+          [
+            {
+              "node": "Log ingest summary",
               "type": "main",
               "index": 0
             }
