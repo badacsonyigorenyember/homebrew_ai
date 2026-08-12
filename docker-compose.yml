@@ -7,7 +7,7 @@
 #   - Open WebUI removed       (architecture D5 — chat.html is the interface)
 #   - Ollama pulls gemma4:12b + bge-m3, NOT llama3.2 (architecture §4)
 #   - Ollama pinned/keep-alive so chat + embedder stay resident (§4.5)
-#   - db-init service applies the kb/brew/mem/nlq schema to Supabase Postgres
+#   - db-init service applies the kb/ref/brew/mem/nlq schema to Supabase Postgres
 #   - n8n demo-data import removed (fresh build — no demo workflow, §12 #6)
 #
 # Bring up (AMD GPU on Linux):   docker compose --profile gpu-amd up -d
@@ -168,8 +168,11 @@ services:
           sleep 2
         done
         echo "Postgres is up. Applying schema migrations ..."
-        for f in /db-init/00_extensions.sql /db-init/10_kb.sql /db-init/20_brew.sql \
-                 /db-init/30_mem.sql /db-init/40_nlq.sql; do
+        # NOTE: this list is the execution order and it does NOT glob. A new
+        # db/init/*.sql file silently never runs until its name is added here.
+        # 15_ref.sql must precede 20_brew.sql: brew.recipes.style_id -> ref.styles.
+        for f in /db-init/00_extensions.sql /db-init/10_kb.sql /db-init/15_ref.sql \
+                 /db-init/20_brew.sql /db-init/30_mem.sql /db-init/40_nlq.sql; do
           echo ">> $$f"
           psql -v ON_ERROR_STOP=1 -f "$$f"
         done

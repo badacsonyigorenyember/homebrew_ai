@@ -12,6 +12,14 @@
 
 -- Hybrid retrieval over the book/PDF corpus: FTS + vector, fused with RRF (§3.4).
 -- Over-fetch p_candidates from each arm, fuse, return p_limit.
+--
+-- The DROP is required, not defensive: CREATE OR REPLACE cannot change a
+-- function's return type, and this one gained `authority` (D31 Layer 4). It
+-- matches on argument types only, so it re-runs harmlessly on every db-init and
+-- makes any future column addition here survivable. 50_roles.sql runs after this
+-- file and re-grants EXECUTE, so the drop costs the agent nothing.
+DROP FUNCTION IF EXISTS nlq.search_knowledge(text, vector, int, int, int, text, text);
+
 CREATE OR REPLACE FUNCTION nlq.search_knowledge(
   p_query_text  text,
   p_query_embed vector(1024),
@@ -23,7 +31,10 @@ CREATE OR REPLACE FUNCTION nlq.search_knowledge(
 ) RETURNS TABLE (
   chunk_id bigint, doc_slug text, doc_title text, heading_path text[],
   page_from int, page_to int, raw_content text, image_refs text[],
-  image_dir text, score real
+  -- authority is for the passage header the model reads ("Palmer suggests X;
+  -- Angry Chair's practice is Y, which is opinion"). It is NOT a ranking input
+  -- and must never become one (D31 Layer 4).
+  image_dir text, authority text, score real
 ) LANGUAGE sql STABLE SECURITY DEFINER SET search_path = kb, public AS $$
 WITH kw AS (
   SELECT c.id, row_number() OVER (
@@ -52,7 +63,7 @@ fused AS (
   FROM kw FULL OUTER JOIN vec ON kw.id = vec.id
 )
 SELECT c.id, d.slug, d.title, c.heading_path, c.page_from, c.page_to,
-       c.raw_content, c.image_refs, v.image_dir, f.score::real
+       c.raw_content, c.image_refs, v.image_dir, d.authority, f.score::real
 FROM fused f
 JOIN kb.chunks c ON c.id = f.id
 JOIN kb.document_versions v ON v.id = c.version_id
@@ -78,7 +89,8 @@ CREATE OR REPLACE FUNCTION nlq.find_batches(
   batch_no text, recipe_name text, style_code text, style_name text,
   brewed_on date, og numeric, fg numeric, abv numeric,
   dry_hop_rate_g_per_l numeric, descriptors text[], avg_score numeric
-) LANGUAGE sql STABLE SECURITY DEFINER SET search_path = brew, public AS $$
+-- search_path includes ref because style names now come from ref.styles (D32).
+) LANGUAGE sql STABLE SECURITY DEFINER SET search_path = brew, ref, public AS $$
   SELECT b.batch_no, r.name, s.code, s.name, b.brewed_on, b.og, b.fg,
          brew.f_abv(b.og, b.fg),
          brew.f_dry_hop_rate_g_per_l(b.id),
@@ -87,7 +99,7 @@ CREATE OR REPLACE FUNCTION nlq.find_batches(
          (SELECT round(avg(sn.score),1) FROM brew.sensory_notes sn WHERE sn.batch_id = b.id)
   FROM brew.batches b
   LEFT JOIN brew.recipes r ON r.id = b.recipe_id
-  LEFT JOIN brew.bjcp_styles s ON s.id = r.style_id
+  LEFT JOIN ref.styles s ON s.id = r.style_id
   WHERE (p_style_name IS NULL OR s.name ILIKE '%'||p_style_name||'%')
     AND (p_style_code IS NULL OR s.code = upper(p_style_code))
     AND (p_brewed_after  IS NULL OR b.brewed_on >= p_brewed_after)

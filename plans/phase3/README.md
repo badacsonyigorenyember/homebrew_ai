@@ -1,7 +1,28 @@
 # Phase 3 — the corpus, rebuilt one source at a time
 
-**Status:** 🔴 **clean slate — purged 2026-08-07** · **Written:** 2026-08-07
-**Prereqs:** none. Nothing is built.
+**Status:** 🟢 **0a built 2026-08-07** · 🟡 **0b built and Tier-A verified 2026-08-12, A/B not
+run** · **Written:** 2026-08-07
+**Prereqs:** none for 0a. Books 0b–9 need 0a's schema and engine, both of which now exist.
+
+> ## 🟡 Where the corpus actually stands — measured 2026-08-12
+>
+> | | Measured |
+> |---|---|
+> | `kb.chunks` | **679** — *How to Brew* **447** + BJCP style cards **232** (variant B) |
+> | embedding gaps · dims · `is_current` versions | **0** · **1024** · **2** |
+> | `ref.styles` | **116** BJCP 2021 rows · 96 with vitals · 20 without · 30 entry instructions |
+> | n8n workflows | **3** — `wf1-ingest-book`, `ingest-how-to-brew`, `ingest-bjcp-styles`, all exported and committed |
+>
+> **Three things are done that this README previously listed as outstanding:** the
+> `ingest-how-to-brew` launcher exists, the styles workflow exists, and every workflow JSON
+> is tracked. **Three are still open, and they are the ones that produce evidence rather than
+> artefacts:**
+>
+> | Open | Why it still matters |
+> |---|---|
+> | ⛔ **§5.5's A/B never ran** | only variant **B** was executed — no A0, no A. B is deployed by default, not by measurement, so **D32b is still open** |
+> | ⛔ **A5, the repair ledger** | *How to Brew* was genuinely re-ingested on 2026-08-12 and reproduced 447 chunks with the drop ledger matching exactly — but node 26 still lacks `$5`, so `detail->'repairs'` came back empty. The chance was there and was missed; the next one is a deliberate re-ingest |
+> | ⛔ **Tier B has never been recorded** | there is still **no standing-question baseline**, and the corpus has changed twice since 0a. Book 1 has nothing to regress against until five `ask.sh` calls are run and written down |
 **This is the only live plan.** Everything before it is in
 [`plans/archive/`](../archive/README.md), indexed by what is still true.
 
@@ -29,9 +50,10 @@
 > [`archive/phase2/03-wf4-design.md`](../archive/phase2/03-wf4-design.md) §6 — before
 > anything was deleted.
 >
-> ⚠️ **`db-init` has deliberately NOT been re-run.** Re-running it now would recreate the
-> *old* schema. The init files get the `ref` schema (D32) **first**; that is book 0a.
-> Until then the app database has no application schemas at all.
+> ✅ **Resolved by book 0a.** The `db/init` files were rewritten for D32 first, then applied.
+> All five schemas — `kb` `ref` `brew` `mem` `nlq` — now exist, and `db-init` is safe to
+> re-run. The warning this paragraph used to carry (*"do not re-run db-init, it would
+> recreate the old schema"*) no longer applies.
 >
 > **Why this was the right moment.** Everything in that database was reproducible from
 > files on disk — `how_to_brew_john_palmer.pdf` and `styles.json` — and `brew`, `mem` and
@@ -58,7 +80,7 @@ gets followed.
 
 | Change | Effect |
 |---|---|
-| **Everything purged** (D33) | 🔴 the DB has no application schemas and n8n has no workflows. §1.3 is the rebuild inventory |
+| **Everything purged** (D33), then **books 0a and 0b rebuilt it** | 🟢 five schemas live; `wf1-ingest-book` + `ingest-how-to-brew` + `ingest-bjcp-styles` built and committed; **679 chunks** — *How to Brew* 447 and 232 style cards. §1.3 tracks what is back and what is still outstanding |
 | *Radical Brewing* removed from `pending/` | ✅ closed. The file was a 3-page ad, not a book. **It must also come out of the corpus doc's ingredient/process table** — the coverage map is what the agent's refusal behaviour depends on, so a book listed but not ingested is worse than one that was never listed |
 | `byo_pastry_stouts.md` added | ✅ reviewed, reformatted, and now **book 8** |
 | `Beer_faults.pdf` transcribed to `beer_faults.json` | ✅ **book 6**, and much easier than the first draft claimed. §2 |
@@ -70,11 +92,11 @@ is a checklist rather than a feeling.
 
 | # | Thing | Rebuilt from | Where it lands |
 |---|---|---|---|
-| 1 | `ref` · `kb` · `brew` · `mem` · `nlq` schemas | `db/init/*.sql`, **edited for D32 first** | book 0a |
-| 2 | **`wf1-ingest-book`** — the 25-node engine | [`archive/01a-wf1-build-guide.md`](../archive/01a-wf1-build-guide.md) + `backup/…/fVLL8o9qwpyXpmPs.json`, minus every book constant (D30) | book 0a |
-| 3 | `ingest-how-to-brew` launcher (2 nodes) | new — §2.1 | book 0a |
-| 4 | *How to Brew* corpus | the PDF, through #2 | book 0a — **must reproduce 447 chunks**, §1.4 |
-| 5 | **`ref.styles`** import + card generator | `styles.json` + `backup/…/8NIhL7FVxD0FJlzm.json` (the old `Digestion`), widened to 11 fields | book 0b |
+| 1 | ✅ `ref` · `kb` · `brew` · `mem` · `nlq` schemas | `db/init/*.sql`, **edited for D32 first** | **done** — all five live; `15_ref.sql` added to the compose file list |
+| 2 | ✅ **`wf1-ingest-book`** — the engine, **26 nodes** | rebuilt per [`00a-rebuild.md`](00a-rebuild.md) §2.2, minus every book constant (D30) | **done** — 13-field input contract |
+| 3 | ✅ `ingest-how-to-brew` launcher (2 nodes) | new — [`00b-styles.md`](00b-styles.md) §P.1 | **done 2026-08-12**, id `BAe1fP1g7ZUsbIaq`, exported and committed. D30's per-book pattern now exists for books 1–9 to copy |
+| 4 | ✅ *How to Brew* corpus | the PDF, through #2 | **done — 447 chunks**, 0 embedding gaps, §1.4. Re-ingested 2026-08-12 after a `kb` truncate and **reproduced 447 with the identical 36-drop ledger** — the fixture has now held twice, through two independent builds |
+| 5 | ✅ **`ref.styles`** import + card generator | `styles.json`, all 11 prose fields | **done 2026-08-12** — `ingest-bjcp-styles`, 22 nodes, id `Ejf3ESE3SK1XBqe3`. 116 rows, 232 cards (variant B). ⛔ **the card-format A/B did not run** — see [`00b-styles.md`](00b-styles.md) §5.4 |
 | 6 | `tool-search-brewing-knowledge` | `backup/…/QNAqwfeQyHLxtjZr.json` — 6 nodes, was working | after book 0b |
 | 7 | **WF4 `chat-agent`** | `backup/…/ztLTT3xiKT8eCSfh.json` + [`archive/phase2/03b`](../archive/phase2/03b-wf4-build-guide.md). **System prompt v3 verbatim from [`archive/phase2/03-wf4-design.md`](../archive/phase2/03-wf4-design.md) §6**, with §7.1's de-enumeration edit | after book 0b |
 | 8 | `Prep turn` / `Log turn` → `mem.chat_turns` | never built; carried from the archive as an open item | with #7 — build it this time |
@@ -92,6 +114,11 @@ therefore a **test with a known answer**:
 
 > **If book 0a does not reproduce ~447 chunks with 0 embedding gaps, the D30 engine split
 > is wrong — and you know it before touching a new book.**
+
+✅ **Result, measured 2026-08-07: 447 chunks, 0 embedding gaps, 1024 dims, 1 `is_current`
+version — exact, not approximate.** The D30 split holds: a rebuilt 26-node engine carrying
+no book constants reproduced a fixture produced by a workflow full of them. The drop ledger
+also matches at 36 (front matter 18, References 16, source-specific 1, token floor 1).
 
 The original plan proved the engine on Water, where there is no prior to compare against.
 This is strictly better, and it is why *How to Brew* is re-ingested first rather than
@@ -297,9 +324,10 @@ lost. Requirement §5.6 is a *presentation* requirement; solve it in presentatio
 > Draught) each own their topic and present no scoping choice, so there is nothing for
 > D31 to gate until the style sources arrive.
 >
-> The one piece with an earlier deadline needs no decision: **add `kb.documents.authority`
-> at book 1**, nullable, and populate it as each source lands. Backfilling nine documents
-> later is a `UPDATE` per document — cheap, but pointless to defer.
+> ✅ The one piece with an earlier deadline is **done**: `kb.documents.authority` was added
+> at book 0a and *How to Brew* carries `reference`. `nlq.search_knowledge` already returns
+> the column — added while it had zero callers, because `CREATE OR REPLACE` cannot change a
+> function's return type later. Populate it per source from here on.
 >
 > **The line worth your attention is one sentence: authority never enters ranking.** It is
 > the rule most likely to be violated later in good faith — *"Palmer is the reference, boost
@@ -325,8 +353,8 @@ three chunks about the mash. That is measurable. Wait for it.
 
 | # | Source | Path | New capability exercised | Est. |
 |---|---|---|---|---|
-| **0a** | 🔴 **Rebuild** — `db/init` with `ref` → engine → *How to Brew* | new schema + `wf1-ingest-book` | the D30 split, tested against a **known answer: 447 chunks**. §1.4 | ~4 h |
-| **0b** | ⭐ **Styles model** — `ref.styles` + widened `styles.json` import | new WF | one styles model; runs the card-format A/B (§5.5) | ~3 h |
+| **0a** | ✅ **Rebuild** — `db/init` with `ref` → engine → *How to Brew* | new schema + `wf1-ingest-book` | the D30 split, tested against a **known answer: 447 chunks** — ✅ **reproduced exactly**. §1.4 | ~4 h |
+| **0b** | 🟡 **Styles model** — `ref.styles` + widened `styles.json` import | new WF — ✅ built, [`00b`](00b-styles.md) | one styles model ✅ **116 rows, 232 cards**; the card-format A/B (§5.5) ⛔ **not run** | ~3 h |
 | **1** | **Water** — Palmer & Kaminski, 273 p | engine, `profile: book` | the D30 split itself, on the easiest possible file | ~90 min |
 | **2** | **Yeast** — White & Zainasheff, 325 p | engine, `profile: book` | nothing — should be near-free | ~40 min |
 | **3** | **Malt** — Mallett, 335 p | engine, `profile: book` | table-dense body under `table_mode=accurate` | ~50 min |
@@ -400,14 +428,17 @@ Extrapolated from the one measured book (248 p → 447 chunks) and plan 06's pro
 
 | | chunks | running total |
 |---|---|---|
-| **now** — How to Brew 447 + BJCP cards 116 | 563 | 563 |
-| **0** styles model — **regenerates** the 116 cards; +116 if the A/B picks variant B | ~0 or +116 | ~563–679 |
-| **1–3** Water · Yeast · Malt | ~490 · ~590 · ~600 | ~2,243 |
-| **4** Draught manual | ~250 | ~2,493 |
-| **5** BA 2026 cards + Study Guide prose | ~100 · ~130 | ~2,723 |
-| **6–7** faults · hops | ~21 · ~110 | ~2,854 |
-| **8** pastry stouts | ~12 | ~2,866 |
-| **9** stout guide | 218 | **~3,084** |
+| **0a+0b — measured 2026-08-12** — How to Brew **447** + BJCP cards **232** (variant B) | **679** | **679** |
+| **1–3** Water · Yeast · Malt | ~490 · ~590 · ~600 | ~2,359 |
+| **4** Draught manual | ~250 | ~2,609 |
+| **5** BA 2026 cards + Study Guide prose | ~100 · ~130 | ~2,839 |
+| **6–7** faults · hops | ~21 · ~110 | ~2,970 |
+| **8** pastry stouts | ~12 | ~2,982 |
+| **9** stout guide | 218 | **~3,200** |
+
+**The first row is now measured, not projected**, and it landed at the top of the
+563–679 range this table used to straddle, because variant B is deployed. If the A/B is run
+and A0 or A wins, the corpus drops by 116 and every later total with it.
 
 **~3,100 chunks.** Architecture §3.6 sized pgvector for 40–60k and called 500k
 comfortable, so **do not let corpus growth become an infrastructure conversation.** The
@@ -586,19 +617,27 @@ rule is one variable per run.
 `UNIQUE (file_sha256)`, and both variants are generated from the same `styles.json`, so
 they hash identically. This is the same constraint plan 06 §8.2 hit.
 
-**That is fine, because WF2 is already built to be re-run in place.** `Ensure KB doc +
-version` uses `ON CONFLICT (file_sha256) DO NOTHING` with a `UNION ALL` fallback, so a
-re-run **reuses the same `version_id`**, and `Clear old cards` deletes that version's
-chunks before regeneration. So the loop is:
+**That is fine, because `ingest-bjcp-styles` is built to be re-run in place** — see
+[`00b-styles.md`](00b-styles.md) §2, nodes 10 and 11. `Ensure KB doc + version` uses
+`ON CONFLICT (file_sha256) DO UPDATE … RETURNING id`, so a re-run **reuses the same
+`version_id`** and records the variant in `chunker_config`; `Demote + clear old cards`
+demotes the version and deletes its chunks (embeddings cascade) before regeneration. So the
+loop is:
 
-1. edit the `Generate style cards` SQL to the variant
-2. re-run WF2 — cards are cleared and regenerated, embeddings follow
+1. set the `variant` field on the `Card variant` node — `A0`, then `A`, then `B`
+2. re-run the workflow — cards are cleared and regenerated, embeddings follow
 3. run the probe set, record
 4. repeat
 
-Each cycle is minutes: it is a JSON parse and ~230 embeddings, no Docling. **No rollback
-SQL is needed** — the next run overwrites. Export the workflow JSON per variant so the
-winner is reproducible.
+⚠️ **The variant is a launcher field, not an edit to the card SQL.** Hand-editing a 60-line
+`INSERT … SELECT` three times makes the thing under test also the thing being modified three
+times, and the export then records only the last paste. As a field it lands in
+`kb.document_versions.chunker_config`, so *"which variant produced these cards"* stays
+answerable from SQL.
+
+Each cycle is **~2–5 minutes measured-adjacent** (variant B ran in that band on 2026-08-12):
+a JSON parse and 116–232 embeddings, no Docling. **No rollback SQL is needed** — the next run
+overwrites.
 
 #### The probe set — 8 questions, 4 of each kind
 
@@ -789,6 +828,15 @@ the sentence, written out.
 6. **A criterion that does not fit gets argued, not tuned.** Plan 06 §5.1 is the
    precedent: the stout guide misses the chunk-size band in *both* directions, and the
    right answer was a format-aware criterion, not a changed `max_tokens`.
+7. ⚠️ **Run [`scripts/hyphen-probe.sh`](../../scripts/hyphen-probe.sh) on every PDF before
+   ingesting it, and put the result in `text_repairs`.** Added after book 0a. Every
+   extractor joins wrapped lines and drops the trailing hyphen, so a numeric range split
+   across a line break silently fuses — `45-`/`90 minutes` becomes `4590 minutes`. No
+   Docling option changes this and OCR does not help; both were tested
+   ([`00a-rebuild.md`](00a-rebuild.md) §1.3). **Measured: 5 of the 9 sources are affected.**
+   The BA guidelines are the dangerous one — 9 sites, all *final-gravity ranges* headed for
+   `ref.styles` vitals, so book 0b must run the probe before parsing. The output is a draft:
+   table columns produce false positives, so read it before pasting.
 
 ---
 
@@ -857,8 +905,8 @@ and they are why the §10 eval baseline waits until the corpus is complete.
 
 | # | Source | Plan | Probed | Built | Tier A | Tier B | Tier C |
 |---|---|---|---|---|---|---|---|
-| 0a | Rebuild + How to Brew | ⬜ | ✅ prior run measured (447) | ⬜ | ⬜ | ⬜ | ⬜ |
-| 0b | Styles model | ⬜ | ✅ data measured, §5.4 | ⬜ | ⬜ | ⬜ **+ A/B §5.5** | ⬜ |
+| 0a | Rebuild + How to Brew | ✅ [00a](00a-rebuild.md) | ✅ 447, re-measured | ✅ **engine + launcher, both committed** | 🟡 **A3, A5 left** | ⬜ **no baseline recorded** | ⬜ n/a — no WF4 |
+| 0b | Styles model | ✅ [00b](00b-styles.md) | ✅ re-measured 2026-08-12 | ✅ **22 nodes, committed** | ✅ **A0–A5b pass** | ⛔ **A/B not run — only variant B** | ⬜ n/a — no WF4 |
 | 1 | Water | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | 2 | Yeast | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | 3 | Malt | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
@@ -876,14 +924,25 @@ and they are why the §10 eval baseline waits until the corpus is complete.
 | **D30** | engine + per-book launcher, §2.1 | ✅ **settled** — your call |
 | **D33** | full reset, §D33 above | ✅ **settled and executed** 2026-08-07 |
 | **D32** | the styles model — `ref` schema, §5.3 | ✅ **accepted** — D33 removed its only counter-argument |
-| **D32b** | one card or two, §5.5 | ✅ **settled: by A/B, not by argument.** Three runs in book 0b, rule fixed in advance |
-| **D31** | overlap policy, §3.3 | ⬜ **open — decide by book 5.** Books 1–4 each own their topic and present no scoping choice. Add `kb.documents.authority` at book 0a regardless; that part needs no decision |
+| **D32b** | one card or two, §5.5 | ⛔ **still open.** The *method* is settled — three runs, rule fixed in advance — but only variant **B** was executed on 2026-08-12, so B is deployed **by default, not by measurement**. Running A0 and A is 2 × ~3 min plus the probe set |
+| **D31** | overlap policy, §3.3 | ⬜ **open — decide by book 5.** Books 1–4 each own their topic and present no scoping choice. `kb.documents.authority` ✅ shipped at book 0a, as planned |
 
-**Nothing is blocked.** D31 is the only open decision and it is not needed until book 5.
+**Nothing is blocked by a decision.** D31 is the only open one and it is not needed until
+book 5. **Book 1 is blocked by a missing measurement**, which is different and cheaper to fix.
 
-**Next step:** *"give me the detailed plan for 0a"* → `plans/phase3/00a-rebuild.md` —
-the `db/init` edits for `ref`, the engine split node by node, the `ingest-how-to-brew`
-launcher, and the 447-chunk verification.
+**What is left before book 1 — three items, all small, and all evidence rather than build:**
 
-⚠️ **0a comes first and is not optional.** There is no corpus and no ingest workflow, so
-every other source is blocked behind it. 0b needs 0a's schema; books 1–9 need 0a's engine.
+| | What | Why it is not optional |
+|---|---|---|
+| **Tier B baseline** ⭐ | the 5 standing questions from [`02-phase1-retrieval-gate.md`](../archive/02-phase1-retrieval-gate.md), run once against today's 679-chunk corpus and **written down** | ⛔ **the single blocker for book 1.** Every later source's keep/roll-back rule compares against a prior rank-1 chunk, and there is no prior. Five `ask.sh` calls |
+| **the A/B** | run variants A0 and A, record all three results including the losers ([`00b`](00b-styles.md) §6) | D32b is open. B ships today because it ran last, not because it won — and §5.5 exists precisely so that the split is not decided by which variant someone happened to build |
+| **A5** | node 26's `$5` parameter, then a deliberate re-ingest | the 2026-08-12 re-ingest was a real run and the ledger was still empty. Cheap to wire, and it is the only record of *which* hyphen repairs fired |
+
+⚠️ **A3 cannot be checked retroactively** — a dedup short-circuit writes nothing to the
+database, so it must be watched live: run `ingest-how-to-brew`, confirm it ends at
+`Already ingested — stop` in seconds.
+
+**Then book 1:** *"give me the detailed plan for Water"* → `plans/phase3/01-water.md`. It uses
+the engine with a new `ingest-water` launcher, `profile: book`, and standing rule 7's hyphen
+probe applies — the file has **5 at-risk sites** measured (pH `5.6-6.0`, `(65-70°C)`,
+`0.005-0.010`, `50-70%`).

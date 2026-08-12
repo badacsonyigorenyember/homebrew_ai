@@ -1,7 +1,8 @@
 -- =============================================================================
 -- 20_brew.sql  ·  Truth schema (architecture §3.3)
 -- What I actually did: ingredients, inventory, recipes, batches, measurements,
--- sensory notes, BJCP styles. SQL-only surface — NEVER vectorised into kb.*.
+-- sensory notes. SQL-only surface — NEVER vectorised into kb.*, with no carve-out
+-- since D32 moved BJCP styles out to ref.styles.
 -- Brewing math lives here as deterministic Postgres functions (§3.3), never the LLM.
 -- Idempotent.
 -- =============================================================================
@@ -32,28 +33,15 @@ CREATE TABLE IF NOT EXISTS brew.inventory (
   notes         text
 );
 
-CREATE TABLE IF NOT EXISTS brew.bjcp_styles (
-  id         bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  guide_year int NOT NULL,
-  code       text NOT NULL,          -- '15B'
-  name       text NOT NULL,          -- 'Irish Stout'
-  category   text,
-  og_min numeric(5,3), og_max numeric(5,3),
-  fg_min numeric(5,3), fg_max numeric(5,3),
-  ibu_min int, ibu_max int,
-  srm_min numeric(4,1), srm_max numeric(4,1),
-  abv_min numeric(4,2), abv_max numeric(4,2),
-  overall_impression text, aroma text, appearance text,
-  flavor text, mouthfeel text, comments text,
-  commercial_examples text[],
-  UNIQUE (guide_year, code)
-);
+-- brew.bjcp_styles is GONE (D32). Published style guidelines are reference data,
+-- not "what I actually did", and they now live in ref.styles (15_ref.sql) keyed
+-- by (guide, guide_year, code) so BJCP 2021 and BA 2026 coexist as rows.
 
 CREATE TABLE IF NOT EXISTS brew.recipes (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   name text NOT NULL, version int NOT NULL DEFAULT 1,
   parent_recipe_id bigint REFERENCES brew.recipes(id),
-  style_id bigint REFERENCES brew.bjcp_styles(id),
+  style_id bigint REFERENCES ref.styles(id),   -- was brew.bjcp_styles(id) — D32
   batch_size_l numeric(6,2) NOT NULL,
   target_og numeric(5,3), target_fg numeric(5,3),
   target_ibu int, target_srm numeric(4,1),

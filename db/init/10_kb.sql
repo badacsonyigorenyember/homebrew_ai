@@ -16,6 +16,11 @@ CREATE TABLE IF NOT EXISTS kb.documents (
   authors      text[],
   language     text NOT NULL DEFAULT 'en',
   edition_note text,
+  -- Presentation metadata (D31 Layer 4), populated by the ingest launcher.
+  -- NEVER enters ranking: boosting the "reference" source suppresses exactly the
+  -- disagreement this corpus exists to surface, and does it invisibly -- you
+  -- would never see the passage that lost. Solve §5.6 in presentation.
+  authority    text CHECK (authority IN ('reference','guideline','practitioner')),
   created_at   timestamptz NOT NULL DEFAULT now()
 );
 

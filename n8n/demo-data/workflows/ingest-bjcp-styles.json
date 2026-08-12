@@ -1,0 +1,736 @@
+[
+  {
+    "updatedAt": "2026-08-12T08:44:48.323Z",
+    "createdAt": "2026-08-12T07:45:11.956Z",
+    "id": "Ejf3ESE3SK1XBqe3",
+    "name": "ingest-bjcp-styles",
+    "description": null,
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "965c66a6-048c-488d-9694-4881db836763",
+        "name": "When clicking ‘Execute workflow’"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f656a0e9-8fba-4faa-be48-b2bd0d8f8988",
+                "name": "variant",
+                "value": "B",
+                "type": "string"
+              },
+              {
+                "id": "08d4ea95-91d5-4b11-aec5-4f74c58d025d",
+                "name": "guide",
+                "value": "BJCP",
+                "type": "string"
+              },
+              {
+                "id": "bf8da00e-f70c-45bf-999e-d235cb5374f2",
+                "name": "guide_year",
+                "value": 2021,
+                "type": "number"
+              },
+              {
+                "id": "cd37dcc3-8fe4-4473-a42c-4b106252be33",
+                "name": "slug",
+                "value": "bjcp-2021-beer-styles",
+                "type": "string"
+              },
+              {
+                "id": "16f28fb5-8c3b-4461-af77-569861a659c9",
+                "name": "title",
+                "value": "BJCP 2021 Beer Style Guidelines",
+                "type": "string"
+              },
+              {
+                "id": "0baa9cf7-3add-40bd-9f6c-ab7847872a63",
+                "name": "doc_type",
+                "value": "style_guide",
+                "type": "string"
+              },
+              {
+                "id": "f48086eb-0402-4b73-8742-207b7c8bf798",
+                "name": "authority",
+                "value": "guideline",
+                "type": "string"
+              },
+              {
+                "id": "3d35eba1-7aa0-4f65-923b-6d99b0fe33f4",
+                "name": "language",
+                "value": "en",
+                "type": "string"
+              },
+              {
+                "id": "0241d82a-8972-4b06-8217-bf80ee7ea7dc",
+                "name": "file_path",
+                "value": "/data/shared/rag-files/pending/styles.json",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          208,
+          0
+        ],
+        "id": "c008080a-737e-4a1e-8768-8b7a9be865e2",
+        "name": "Card variant"
+      },
+      {
+        "parameters": {
+          "fileSelector": "={{ $('Card variant').first().json.file_path }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.readWriteFile",
+        "typeVersion": 1.1,
+        "position": [
+          416,
+          0
+        ],
+        "id": "8165cd06-0183-453d-9e7e-f5feac19464f",
+        "name": "Read styles.json"
+      },
+      {
+        "parameters": {
+          "binaryData": true,
+          "dataPropertyName": "file_sha256"
+        },
+        "type": "n8n-nodes-base.crypto",
+        "typeVersion": 2,
+        "position": [
+          624,
+          0
+        ],
+        "id": "5a038f17-1698-4046-8438-decd1be2911c",
+        "name": "Crypto"
+      },
+      {
+        "parameters": {
+          "fileSelector": "={{ $('Card variant').first().json.file_path }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.readWriteFile",
+        "typeVersion": 1.1,
+        "position": [
+          864,
+          0
+        ],
+        "id": "db7c590b-5f2b-44bd-a5ac-93d40dd1918d",
+        "name": "Read styles.json for parsing"
+      },
+      {
+        "parameters": {
+          "operation": "fromJson",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.extractFromFile",
+        "typeVersion": 1.1,
+        "position": [
+          1072,
+          0
+        ],
+        "id": "87835f7e-13be-42ad-9f50-799cc5ec95ee",
+        "name": "Extract from File"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO ref.styles\n  (guide, guide_year, code, name, category,\n   og_min, og_max, fg_min, fg_max, ibu_min, ibu_max,\n   srm_min, srm_max, abv_min, abv_max,\n   overall_impression, aroma, appearance, flavor, mouthfeel, comments,\n   history, characteristic_ingredients, style_comparison, entry_instructions,\n   commercial_examples, tags)\nSELECT $1::text, $2::int,\n       x.code, x.name, x.category,\n       x.og_min, x.og_max, x.fg_min, x.fg_max, x.ibu_min, x.ibu_max,\n       x.srm_min, x.srm_max, x.abv_min, x.abv_max,\n       x.overall_impression, x.aroma, x.appearance, x.flavor, x.mouthfeel, x.comments,\n       x.history, x.characteristic_ingredients, x.style_comparison, x.entry_instructions,\n       CASE WHEN x.commercial_examples IS NULL THEN NULL\n            ELSE ARRAY(SELECT jsonb_array_elements_text(x.commercial_examples)) END,\n       CASE WHEN x.tags IS NULL THEN NULL\n            ELSE ARRAY(SELECT jsonb_array_elements_text(x.tags)) END\nFROM jsonb_to_recordset($3::jsonb) AS x(\n  code text, name text, category text,\n  og_min numeric, og_max numeric, fg_min numeric, fg_max numeric,\n  ibu_min int, ibu_max int, srm_min numeric, srm_max numeric,\n  abv_min numeric, abv_max numeric,\n  overall_impression text, aroma text, appearance text, flavor text,\n  mouthfeel text, comments text, history text,\n  characteristic_ingredients text, style_comparison text, entry_instructions text,\n  commercial_examples jsonb, tags jsonb\n)\nON CONFLICT (guide, guide_year, code) DO UPDATE SET\n  name = EXCLUDED.name, category = EXCLUDED.category,\n  og_min = EXCLUDED.og_min, og_max = EXCLUDED.og_max,\n  fg_min = EXCLUDED.fg_min, fg_max = EXCLUDED.fg_max,\n  ibu_min = EXCLUDED.ibu_min, ibu_max = EXCLUDED.ibu_max,\n  srm_min = EXCLUDED.srm_min, srm_max = EXCLUDED.srm_max,\n  abv_min = EXCLUDED.abv_min, abv_max = EXCLUDED.abv_max,\n  overall_impression = EXCLUDED.overall_impression, aroma = EXCLUDED.aroma,\n  appearance = EXCLUDED.appearance, flavor = EXCLUDED.flavor,\n  mouthfeel = EXCLUDED.mouthfeel, comments = EXCLUDED.comments,\n  history = EXCLUDED.history,\n  characteristic_ingredients = EXCLUDED.characteristic_ingredients,\n  style_comparison = EXCLUDED.style_comparison,\n  entry_instructions = EXCLUDED.entry_instructions,\n  commercial_examples = EXCLUDED.commercial_examples, tags = EXCLUDED.tags;",
+          "options": {
+            "queryReplacement": "={{ [ $('Card variant').first().json.guide, $('Card variant').first().json.guide_year, JSON.stringify($json.rows) ] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1488,
+          0
+        ],
+        "id": "b06252af-852b-42ed-aa95-8db470ebc1d3",
+        "name": "Upsert style rows",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// ---- styles.json -> validated ref.styles rows ----\n// The source is already structured, so this node's job is not extraction but\n// REFUSAL: every assumption plan 00b §1 measured is re-asserted here, and a\n// source that has changed under us fails at parse time rather than 116 wrong\n// cards and eight minutes of GPU later.\n\nconst inputItems = $input.all();\n\n// Locate the array regardless of how Extract from File emitted it.\nlet styles;\nif (inputItems.length > 1) {\n  styles = inputItems.map(i => i.json);          // one item per style\n} else {\n  const j = inputItems[0].json;\n  if (Array.isArray(j)) styles = j;\n  else {\n    const key = Object.keys(j).find(k => Array.isArray(j[k]) && j[k][0]?.number);\n    if (!key) throw new Error('Could not find styles array. Top-level keys: ' + Object.keys(j).join(', '));\n    styles = j[key];\n  }\n}\nif (!Array.isArray(styles) || styles.length === 0) throw new Error('No styles parsed');\nif (styles.length !== 116)\n  throw new Error(`Expected 116 styles, got ${styles.length} — the source changed; re-run plan 00b §1 before continuing`);\n\n// ---- every key this parser knows about ----\n// An unrecognised key is a THROW, not a shrug. Silently ignoring one is exactly\n// how five prose fields go missing for a year. Book 5 hands this same parser a\n// different guide; a throw makes that a decision.\n// All 28 keys measured across the 116 styles (plan 00b §1.1).\nconst KNOWN = new Set([\n  'name','number','category','categorynumber',\n  'overallimpression','aroma','appearance','flavor','mouthfeel','comments',\n  'history','characteristicingredients','stylecomparison','entryinstructions',\n  'commercialexamples','tags',\n  // vital statistics: present on 96 of 116, absent on the other 20\n  'ogmin','ogmax','fgmin','fgmax','ibumin','ibumax','srmmin','srmmax','abvmin','abvmax',\n  // measured on 21B Specialty IPA only — folded into comments below\n  'currentlydefinedtypes','strengthclassifications',\n]);\n\n// Keys with no column, carrying real content. Folded into `comments` with a\n// visible label rather than dropped (plan 00b §1.3). One row affected: 21B.\nconst FOLD = { currentlydefinedtypes: 'Currently defined types',\n               strengthclassifications: 'Strength classifications' };\n\nconst num = (v) => {\n  if (v === null || v === undefined || v === '') return null;\n  const n = Number(v);\n  if (Number.isNaN(n)) throw new Error(`Non-numeric vital stat \"${v}\"`);\n  return n;\n};\nconst intOrNull = (v) => { const n = num(v); return n === null ? null : Math.round(n); };\n\n// Free text -> text[] . Two sentinels matter and both were measured:\n//   34C.commercialexamples is the literal string \"None\"  -> SQL NULL, so the\n//     card omits the line instead of listing a beer called None.\n//   an empty string                                       -> SQL NULL.\nconst NULLISH = new Set(['', 'none', 'n/a', 'na', '-']);\nconst splitList = (v) => {\n  const s = (v ?? '').toString().trim();\n  if (NULLISH.has(s.toLowerCase())) return null;\n  const out = s.split(',').map(x => x.trim()).filter(Boolean);\n  return out.length ? out : null;\n};\nconst textOrNull = (v) => {\n  const s = (v ?? '').toString().trim();\n  return s === '' ? null : s;\n};\n\nconst rows = [], notes = [], seen = new Set();\nlet withVitals = 0, withoutVitals = 0, withEntry = 0, foldedFields = 0, noExamples = 0;\n\nfor (const s of styles) {\n  for (const k of Object.keys(s))\n    if (!KNOWN.has(k))\n      throw new Error(`Unknown field \"${k}\" on style ${s.number ?? '?'} — add a column or a fold rule to plan 00b §1.3 before ingesting`);\n\n  const code = (s.number ?? '').trim();\n  if (!code) throw new Error(`Style missing \"number\": ${JSON.stringify(s).slice(0, 80)}`);\n  if (!/^[0-9]{1,2}[A-Z]$/.test(code)) throw new Error(`Style code \"${code}\" is not the BJCP <digits><letter> form`);\n  if (seen.has(code)) throw new Error(`Duplicate style code ${code}`);\n  seen.add(code);\n\n  const og_min = num(s.ogmin),  og_max = num(s.ogmax);\n  const fg_min = num(s.fgmin),  fg_max = num(s.fgmax);\n  const ibu_min = intOrNull(s.ibumin), ibu_max = intOrNull(s.ibumax);\n  const srm_min = num(s.srmmin), srm_max = num(s.srmmax);\n  const abv_min = num(s.abvmin), abv_max = num(s.abvmax);\n\n  // Range check ONLY where both bounds exist: 20 specialty styles define none,\n  // and that is correct data rather than missing data (plan 00b §1.2).\n  const chk = (lo, hi, label) => {\n    if (lo !== null && hi !== null && lo > hi)\n      throw new Error(`${code}: ${label} min>max (${lo} > ${hi})`);\n  };\n  chk(og_min, og_max, 'OG'); chk(fg_min, fg_max, 'FG'); chk(ibu_min, ibu_max, 'IBU');\n  chk(srm_min, srm_max, 'SRM'); chk(abv_min, abv_max, 'ABV');\n\n  // A style declares vitals as a set or not at all. A half-set means the source\n  // is malformed in a way the has_vitals branch would misread.\n  const vit = [og_min, og_max, fg_min, fg_max, ibu_min, ibu_max, srm_min, srm_max, abv_min, abv_max];\n  const present = vit.filter(v => v !== null).length;\n  if (present !== 0 && present !== 10)\n    throw new Error(`${code}: ${present} of 10 vital stats present — expected all or none`);\n  if (present === 10) withVitals++; else withoutVitals++;\n\n  let comments = textOrNull(s.comments);\n  for (const [key, label] of Object.entries(FOLD)) {\n    const v = textOrNull(s[key]);\n    if (v === null) continue;\n    comments = (comments ? comments + '\\n' : '') + `${label}: ${v}`;\n    foldedFields++;\n    notes.push({ code, action: 'folded into comments', field: key });\n  }\n\n  const entry = textOrNull(s.entryinstructions);\n  if (entry !== null) withEntry++;\n\n  const examples = splitList(s.commercialexamples);\n  if (examples === null) {\n    noExamples++;\n    notes.push({ code, action: 'commercial_examples -> NULL', raw: (s.commercialexamples ?? '').toString().slice(0, 40) });\n  }\n\n  rows.push({\n    code,\n    name:      textOrNull(s.name),\n    category:  textOrNull(s.category),\n    og_min, og_max, fg_min, fg_max, ibu_min, ibu_max,\n    srm_min, srm_max, abv_min, abv_max,\n    overall_impression:         textOrNull(s.overallimpression),\n    aroma:                      textOrNull(s.aroma),\n    appearance:                 textOrNull(s.appearance),\n    flavor:                     textOrNull(s.flavor),\n    mouthfeel:                  textOrNull(s.mouthfeel),\n    comments,\n    history:                    textOrNull(s.history),\n    characteristic_ingredients: textOrNull(s.characteristicingredients),\n    style_comparison:           textOrNull(s.stylecomparison),\n    entry_instructions:         entry,\n    commercial_examples:        examples,   // array or null -> jsonb in node 8\n    tags:                       splitList(s.tags),\n  });\n}\n\n// Re-assert plan 00b §1's measured probe. These are not soft expectations: a\n// mismatch means the file on disk is not the file that was measured.\nconst expect = (got, want, what) => {\n  if (got !== want) throw new Error(`${what}: got ${got}, expected ${want} — re-run plan 00b §1 before ingesting`);\n};\nexpect(rows.length,   116, 'style rows');\nexpect(withVitals,     96, 'styles with vital statistics');\nexpect(withoutVitals,  20, 'styles without vital statistics');\nexpect(withEntry,      30, 'styles with entry instructions');\nexpect(noExamples,      1, 'styles with no commercial examples');\n\nreturn [{ json: {\n  rows,\n  notes,\n  stats: {\n    styles:         rows.length,\n    with_vitals:    withVitals,\n    without_vitals: withoutVitals,\n    with_entry:     withEntry,\n    no_examples:    noExamples,\n    folded_fields:  foldedFields,\n    warnings:       notes.length,\n  },\n}}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1280,
+          0
+        ],
+        "id": "5c0ab7fe-d95a-4b7f-a247-c30deff12936",
+        "name": "Parse + validate styles"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT count(*)                                            AS rows,\n       count(*) FILTER (WHERE has_vitals)                  AS with_vitals,\n       count(*) FILTER (WHERE NOT has_vitals)              AS without_vitals,\n       count(*) FILTER (WHERE entry_instructions IS NOT NULL) AS with_entry,\n       count(*) FILTER (WHERE commercial_examples IS NULL) AS no_examples,\n       count(*) FILTER (WHERE style_comparison IS NULL\n                          OR history IS NULL\n                          OR characteristic_ingredients IS NULL) AS missing_new_prose,\n       count(*) FILTER (WHERE og_min > og_max OR fg_min > fg_max\n                          OR ibu_min > ibu_max OR srm_min > srm_max\n                          OR abv_min > abv_max)             AS inverted_ranges\nFROM ref.styles WHERE guide = $1 AND guide_year = $2;",
+          "options": {
+            "queryReplacement": "={{ [ $('Card variant').first().json.guide, $('Card variant').first().json.guide_year ] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1696,
+          0
+        ],
+        "id": "c0790308-4d68-4bf8-a8dc-5d013293b3ad",
+        "name": "Assert style rows Postgres",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const r = $json;\nconst exp = { rows: 116, with_vitals: 96, without_vitals: 20, with_entry: 30,\n              no_examples: 1, missing_new_prose: 0, inverted_ranges: 0 };\nfor (const [k, v] of Object.entries(exp))\n  if (Number(r[k]) !== v)\n    throw new Error(`ref.styles check \"${k}\" = ${r[k]}, expected ${v} — see plan 00b §1.2`);\nreturn [{ json: r }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1904,
+          0
+        ],
+        "id": "f91a1e4b-eae9-4609-8c59-0a48bb1076ca",
+        "name": "Assert style rows Code"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH d AS (\n  INSERT INTO kb.documents (slug, title, doc_type, language, authority)\n  VALUES ($2, $3, $4, $5, $6)\n  ON CONFLICT (slug) DO UPDATE SET\n    title = EXCLUDED.title, doc_type = EXCLUDED.doc_type,\n    language = EXCLUDED.language, authority = EXCLUDED.authority\n  RETURNING id\n)\nINSERT INTO kb.document_versions\n  (document_id, version, source_filename, file_sha256, chunker_config, is_current)\nSELECT d.id,\n       COALESCE((SELECT max(v.version) FROM kb.document_versions v\n                 WHERE v.document_id = d.id), 0) + 1,\n       'styles.json', $1,\n       jsonb_build_object('source','structured','generator','bjcp-style-card',\n                          'variant', $7::text, 'guide', 'BJCP', 'guide_year', 2021),\n       false\nFROM d\nON CONFLICT (file_sha256) DO UPDATE\n  SET chunker_config = EXCLUDED.chunker_config\nRETURNING id AS version_id;",
+          "options": {
+            "queryReplacement": "={{ (() => { const p = $('Card variant').first().json; return [  $('Crypto').first().json.file_sha256,  p.slug, p.title, p.doc_type, p.language, p.authority, p.variant]; })() }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2112,
+          0
+        ],
+        "id": "a41fc9f0-b306-4626-b070-4004edee0fea",
+        "name": "Ensure KB doc + version",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH demoted AS (\n  UPDATE kb.document_versions SET is_current = false\n  WHERE id = $1 RETURNING id\n)\nDELETE FROM kb.chunks\nWHERE version_id = (SELECT id FROM demoted)\nRETURNING chunk_index;",
+          "options": {
+            "queryReplacement": "={{ [$json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2320,
+          0
+        ],
+        "id": "6e8ab1f5-662d-48ef-921c-a0ef9b6ee06b",
+        "name": "Demote + clear old cards",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH cfg AS (SELECT $2::text AS variant),\nparts AS (\n  SELECT s.code, s.name, s.category, p.kind, p.ord, p.body\n  FROM ref.styles s\n  CROSS JOIN cfg\n  CROSS JOIN LATERAL (\n    SELECT concat_ws(E'\\n',\n      format('%s (BJCP %s) — %s', s.name, s.code, s.category),\n      CASE WHEN s.has_vitals THEN\n        format('Vital statistics: OG %s-%s, FG %s-%s, IBU %s-%s, SRM %s-%s, ABV %s-%s%%',\n               s.og_min, s.og_max, s.fg_min, s.fg_max, s.ibu_min, s.ibu_max,\n               s.srm_min, s.srm_max, s.abv_min, s.abv_max) END,\n      'Overall impression: ' || s.overall_impression,\n      'Aroma: '      || s.aroma,\n      'Appearance: ' || s.appearance,\n      'Flavor: '     || s.flavor,\n      'Mouthfeel: '  || s.mouthfeel\n    ) AS sensory,\n    concat_ws(E'\\n',\n      'Comments: '                   || s.comments,\n      'History: '                    || s.history,\n      'Characteristic ingredients: ' || s.characteristic_ingredients,\n      'Style comparison: '           || s.style_comparison,\n      'Entry instructions: '         || s.entry_instructions,\n      'Commercial examples: '        || array_to_string(s.commercial_examples, ', '),\n      'Tags: '                       || array_to_string(s.tags, ', ')\n    ) AS context\n  ) b\n  CROSS JOIN LATERAL (\n    SELECT * FROM (VALUES\n      ('single',  0, CASE cfg.variant\n                       WHEN 'A0' THEN concat_ws(E'\\n', b.sensory,\n                              'Comments: ' || s.comments,\n                              'Commercial examples: '\n                                || array_to_string(s.commercial_examples, ', '))\n                       WHEN 'A'  THEN concat_ws(E'\\n', b.sensory, b.context)\n                     END),\n      ('sensory', 0, CASE cfg.variant WHEN 'B' THEN b.sensory END),\n      ('context', 1, CASE cfg.variant WHEN 'B' THEN b.context END)\n    ) AS t(kind, ord, body)\n    WHERE t.body IS NOT NULL\n  ) p\n  WHERE s.guide = 'BJCP' AND s.guide_year = 2021\n)\nINSERT INTO kb.chunks\n  (version_id, chunk_index, content, raw_content, heading_path,\n   page_from, page_to, token_count, content_sha256)\nSELECT $1::bigint,\n       (row_number() OVER (ORDER BY code, ord) - 1)::int,\n       array_to_string(hp, ' > ') || E'\\n' || body,\n       body,\n       hp,\n       NULL::int, NULL::int, NULL::int,\n       encode(sha256(convert_to(body, 'UTF8')), 'hex')\nFROM parts,\nLATERAL (SELECT CASE WHEN kind = 'single'\n                     THEN ARRAY['BJCP 2021', category, code || ' ' || name]\n                     ELSE ARRAY['BJCP 2021', category, code || ' ' || name,\n                                initcap(kind)] END AS hp) h\nON CONFLICT (version_id, chunk_index) DO UPDATE SET\n  content        = EXCLUDED.content,\n  raw_content    = EXCLUDED.raw_content,\n  heading_path   = EXCLUDED.heading_path,\n  content_sha256 = EXCLUDED.content_sha256;",
+          "options": {
+            "queryReplacement": "={{ [ $('Ensure KB doc + version').first().json.version_id, $('Card variant').first().json.variant ] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2528,
+          0
+        ],
+        "id": "c5b781cf-0eda-4f66-973e-6b77757b4811",
+        "name": "Generate style cards",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT c.id, c.content\nFROM kb.chunks c\nWHERE c.version_id = $1\n  AND NOT EXISTS (SELECT 1 FROM kb.chunk_embeddings e\n                  WHERE e.chunk_id = c.id AND e.model = 'bge-m3')\nORDER BY c.chunk_index;",
+          "options": {
+            "queryReplacement": "={{ [$('Ensure KB doc + version').first().json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2736,
+          0
+        ],
+        "id": "fb8a34ca-a712-49d0-85fc-927943ce95c1",
+        "name": "Select cards needing embeddings",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "batchSize": 32,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          2944,
+          0
+        ],
+        "id": "975a52aa-d853-4e99-b0a6-27bbc2bb8861",
+        "name": "Loop Over Items"
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\nreturn [{ json: {\n  ids:    items.map(i => i.json.id),\n  inputs: items.map(i => i.json.content),\n}}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3152,
+          208
+        ],
+        "id": "080a178f-7ad0-4cd7-8d00-33b0e2e8199f",
+        "name": "Assemble embed input"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://ollama:11434/api/embed",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { \"model\": \"bge-m3\", \"input\": $json.inputs, \"keep_alive\": -1 } }}",
+          "options": {
+            "timeout": 120000
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          3360,
+          208
+        ],
+        "id": "6d0ebe98-cb2a-4a10-ba22-ed53acb5f38d",
+        "name": "Ollama embed",
+        "retryOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "const src = $('Assemble embed input').first().json;\nconst emb = $json.embeddings;\nif (!Array.isArray(emb) || emb.length !== src.ids.length)\n  throw new Error(`Embedding count ${emb?.length} != inputs ${src.ids.length}`);\nif (emb[0].length !== 1024)\n  throw new Error(`Expected 1024 dims, got ${emb[0].length} — schema mismatch`);\nreturn src.ids.map((id, i) => ({\n  json: { chunk_id: id, embedding: '[' + emb[i].join(',') + ']' },\n}));"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3568,
+          208
+        ],
+        "id": "8deaeb2b-d1b4-4e09-87e7-9a89603835af",
+        "name": "Zip ids + embeddings"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO kb.chunk_embeddings (chunk_id, model, embedding)\nVALUES ($1, 'bge-m3', $2::vector)\nON CONFLICT (chunk_id, model) DO UPDATE\n  SET embedding = EXCLUDED.embedding, created_at = now()\nRETURNING chunk_id, (xmax = 0) AS inserted;",
+          "options": {
+            "queryReplacement": "={{ [$json.chunk_id, $json.embedding] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          3776,
+          208
+        ],
+        "id": "6f592462-4ec7-4689-8f78-7d947d16a2eb",
+        "name": "Insert embeddings",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT * FROM kb.promote_version($1);",
+          "options": {
+            "queryReplacement": "={{ [$('Ensure KB doc + version').first().json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          3152,
+          -96
+        ],
+        "id": "9514bf94-56a6-459c-b3af-c04e5f42dd99",
+        "name": "Promote version",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const r = $json;\nif (r.missing > 0) throw new Error(`${r.missing} of ${r.total} cards have no embedding — not promoted`);\nif (!r.is_current) throw new Error(`Version ${r.version_id} did not become current`);\nreturn [{ json: r }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3360,
+          -96
+        ],
+        "id": "33c83971-e42b-4999-94cd-ca604c92d2c6",
+        "name": "Assert promoted"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO kb.ingest_log (version_id, stage, level, message, detail)\nVALUES\n  ($1::bigint, 'parse',\n   CASE WHEN ($2::jsonb->>'warnings')::int > 0 THEN 'warn' ELSE 'info' END,\n   format('parsed %s styles for variant %s: %s with vitals, %s without, %s entry instructions, %s notes folded',\n          $2::jsonb->>'styles', $3::text, $2::jsonb->>'with_vitals',\n          $2::jsonb->>'without_vitals', $2::jsonb->>'with_entry',\n          $2::jsonb->>'folded_fields'),\n   jsonb_build_object('stats', $2::jsonb, 'variant', $3::text,\n                      'notes', $4::jsonb)),\n  ($1::bigint, 'promote',\n   CASE WHEN ($5::jsonb->>'missing')::int > 0 THEN 'error' ELSE 'info' END,\n   format('version %s promoted: %s cards, %s missing embeddings',\n          $5::jsonb->>'version_id', $5::jsonb->>'total', $5::jsonb->>'missing'),\n   $5::jsonb)\nRETURNING id, stage, level, message;",
+          "options": {
+            "queryReplacement": "={{ [ $('Ensure KB doc + version').first().json.version_id, JSON.stringify($('Parse + validate styles').first().json.stats), $('Card variant').first().json.variant, JSON.stringify($('Parse + validate styles').first().json.notes), JSON.stringify($json) ] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          3568,
+          -96
+        ],
+        "id": "e08bead1-050c-4b74-b32e-68f91e11567b",
+        "name": "Log run summary",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "When clicking ‘Execute workflow’": {
+        "main": [
+          [
+            {
+              "node": "Card variant",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Card variant": {
+        "main": [
+          [
+            {
+              "node": "Read styles.json",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read styles.json": {
+        "main": [
+          [
+            {
+              "node": "Crypto",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Crypto": {
+        "main": [
+          [
+            {
+              "node": "Read styles.json for parsing",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read styles.json for parsing": {
+        "main": [
+          [
+            {
+              "node": "Extract from File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract from File": {
+        "main": [
+          [
+            {
+              "node": "Parse + validate styles",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse + validate styles": {
+        "main": [
+          [
+            {
+              "node": "Upsert style rows",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert style rows": {
+        "main": [
+          [
+            {
+              "node": "Assert style rows Postgres",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assert style rows Postgres": {
+        "main": [
+          [
+            {
+              "node": "Assert style rows Code",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assert style rows Code": {
+        "main": [
+          [
+            {
+              "node": "Ensure KB doc + version",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ensure KB doc + version": {
+        "main": [
+          [
+            {
+              "node": "Demote + clear old cards",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Demote + clear old cards": {
+        "main": [
+          [
+            {
+              "node": "Generate style cards",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate style cards": {
+        "main": [
+          [
+            {
+              "node": "Select cards needing embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Select cards needing embeddings": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loop Over Items": {
+        "main": [
+          [
+            {
+              "node": "Promote version",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Assemble embed input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assemble embed input": {
+        "main": [
+          [
+            {
+              "node": "Ollama embed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ollama embed": {
+        "main": [
+          [
+            {
+              "node": "Zip ids + embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Zip ids + embeddings": {
+        "main": [
+          [
+            {
+              "node": "Insert embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert embeddings": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Promote version": {
+        "main": [
+          [
+            {
+              "node": "Assert promoted",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assert promoted": {
+        "main": [
+          [
+            {
+              "node": "Log run summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "nodeGroups": [],
+    "pinData": {},
+    "versionId": "7c94323d-fb81-4d3c-910c-3e49ee62fd0b",
+    "activeVersionId": null,
+    "versionCounter": 102,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-08-12T07:45:11.956Z",
+        "createdAt": "2026-08-12T07:45:11.956Z",
+        "role": "workflow:owner",
+        "workflowId": "Ejf3ESE3SK1XBqe3",
+        "projectId": "cIpOMqhSXz7mHAJj",
+        "project": {
+          "updatedAt": "2026-07-23T14:53:00.343Z",
+          "createdAt": "2026-07-23T14:06:58.898Z",
+          "id": "cIpOMqhSXz7mHAJj",
+          "name": "János Tóth <janos.toth.2000@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "392cafdf-bd25-4c0b-8d4a-e40c58c63156"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]

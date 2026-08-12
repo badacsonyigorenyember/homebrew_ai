@@ -3,17 +3,27 @@
 -- The agent's DB credential gets rights on nlq and NOTHING else. A separate
 -- writer credential gets EXECUTE on mem.f_save_memory only.
 --
+-- ⛔ THIS IS A psql SCRIPT, NOT PORTABLE SQL. Do not paste it into Supabase
+--    Studio or any other SQL client: `\gexec` is a psql meta-command and
+--    `:'agent_pw'` is a psql client-side variable. Both are syntax errors to
+--    the server. Run it with:  docker compose up db-init
+--
 -- Passwords are injected by the migration runner via psql variables:
 --   psql -v agent_pw='...' -v mem_pw='...' -f 50_roles.sql
 -- Idempotent (safe to re-run; passwords are refreshed each run).
+--
+-- Reminder for anyone debugging a "permission denied for schema kb" in n8n:
+-- that is this file working. n8n_agent is the READ-ONLY agent login and reaches
+-- nlq only. Ingest and any other writer must use the schema-owning credential.
 -- =============================================================================
 
 -- 1) Group role: read-only, no login -----------------------------------------
 SELECT 'CREATE ROLE agent_ro NOLOGIN'
 WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'agent_ro')\gexec
 
--- 2) Lock down the private schemas: the agent must never see kb/brew/mem -------
-REVOKE ALL ON SCHEMA kb, brew, mem FROM PUBLIC;
+-- 2) Lock down the private schemas: the agent must never see kb/brew/ref/mem ---
+--    ref is reference data, but it is still reached only through nlq (D32).
+REVOKE ALL ON SCHEMA kb, brew, ref, mem FROM PUBLIC;
 
 -- 3) The only surface the agent may touch -------------------------------------
 GRANT USAGE  ON SCHEMA nlq TO agent_ro;

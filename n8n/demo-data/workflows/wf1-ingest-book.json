@@ -1,0 +1,966 @@
+[
+  {
+    "updatedAt": "2026-08-12T05:39:49.666Z",
+    "createdAt": "2026-08-07T10:52:49.308Z",
+    "id": "NoNCV2mkQEppWP7O",
+    "name": "wf1-ingest-book",
+    "description": null,
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "file_path"
+              },
+              {
+                "name": "source_format"
+              },
+              {
+                "name": "slug"
+              },
+              {
+                "name": "title"
+              },
+              {
+                "name": "doc_type"
+              },
+              {
+                "name": "authors"
+              },
+              {
+                "name": "language"
+              },
+              {
+                "name": "edition_note"
+              },
+              {
+                "name": "authority"
+              },
+              {
+                "name": "profile"
+              },
+              {
+                "name": "front_matter_max_page",
+                "type": "number"
+              },
+              {
+                "name": "extra_drop_regex"
+              },
+              {
+                "name": "text_repairs"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          32
+        ],
+        "id": "c695e07b-2db2-46b5-a2c8-f1e4e946a664",
+        "name": "Ingest book input"
+      },
+      {
+        "parameters": {
+          "fileSelector": "={{ $('Ingest book input').first().json.file_path }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.readWriteFile",
+        "typeVersion": 1.1,
+        "position": [
+          224,
+          32
+        ],
+        "id": "a2459ee1-d99c-4799-a930-8bfaadf7fb47",
+        "name": "Read file for hashing"
+      },
+      {
+        "parameters": {
+          "binaryData": true,
+          "dataPropertyName": "file_sha256"
+        },
+        "type": "n8n-nodes-base.crypto",
+        "typeVersion": 2,
+        "position": [
+          448,
+          32
+        ],
+        "id": "9c6fc7b3-7a28-4ed3-85d7-f68e4905c5b3",
+        "name": "Crypto"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT\n  $1::char(64)                AS file_sha256,\n  v.id                        AS existing_version_id,\n  COALESCE((SELECT count(*) FROM kb.chunks c WHERE c.version_id = v.id), 0) AS existing_chunks\nFROM (SELECT 1) dummy\nLEFT JOIN kb.document_versions v ON v.file_sha256 = $1::char(64);",
+          "options": {
+            "queryReplacement": "={{ [$json.file_sha256] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          672,
+          32
+        ],
+        "id": "eed461a0-d6c5-4b7f-aa55-3b3307373968",
+        "name": "Dedup lookup",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "fc715ca4-03f7-42a0-b713-e636aa22bdf7",
+                "leftValue": "={{ $json.existing_version_id === null }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          896,
+          32
+        ],
+        "id": "6ce84912-77dc-4eff-babd-665b3a4d4c70",
+        "name": "Is new file?"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.noOp",
+        "typeVersion": 1,
+        "position": [
+          1120,
+          112
+        ],
+        "id": "dbb6a99a-3327-4935-aa73-28278127e1ba",
+        "name": "Already ingested"
+      },
+      {
+        "parameters": {
+          "fileSelector": "={{ $('Ingest book input').first().json.file_path }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.readWriteFile",
+        "typeVersion": 1.1,
+        "position": [
+          1120,
+          -80
+        ],
+        "id": "540db583-7f05-475d-974f-59ebf7de2eeb",
+        "name": "Read file for upload"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://docling:5001/v1/chunk/hybrid/file/async",
+          "sendBody": true,
+          "contentType": "multipart-form-data",
+          "bodyParameters": {
+            "parameters": [
+              {
+                "parameterType": "formBinaryData",
+                "name": "files",
+                "inputDataFieldName": "data"
+              },
+              {
+                "name": "convert_from_formats",
+                "value": "={{ $('Ingest book input').first().json.source_format }}"
+              },
+              {
+                "name": "convert_image_export_mode",
+                "value": "referenced"
+              },
+              {
+                "name": "convert_do_ocr",
+                "value": "false"
+              },
+              {
+                "name": "convert_pdf_backend",
+                "value": "dlparse_v4"
+              },
+              {
+                "name": "convert_table_mode",
+                "value": "accurate"
+              },
+              {
+                "name": "chunking_tokenizer",
+                "value": "BAAI/bge-m3"
+              },
+              {
+                "name": "chunking_max_tokens",
+                "value": "512"
+              },
+              {
+                "name": "chunking_include_raw_text",
+                "value": "true"
+              },
+              {
+                "name": "chunking_use_markdown_tables",
+                "value": "true"
+              }
+            ]
+          },
+          "options": {
+            "timeout": 60000
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          1344,
+          -80
+        ],
+        "id": "0ef8e662-f1fe-4223-a0c1-3f46babc7977",
+        "name": "Docling submit"
+      },
+      {
+        "parameters": {
+          "amount": 15
+        },
+        "type": "n8n-nodes-base.wait",
+        "typeVersion": 1.1,
+        "position": [
+          1568,
+          -80
+        ],
+        "id": "00407fce-0460-4326-b01b-64101dc86c34",
+        "name": "Wait 15s",
+        "webhookId": "22e14ae4-00cf-41a5-97b9-c1d077d41712"
+      },
+      {
+        "parameters": {
+          "url": "=http://docling:5001/v1/status/poll/{{ $('Docling submit').first().json.task_id }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          1792,
+          -224
+        ],
+        "id": "d59b3dba-288e-42fe-82be-c286c8a685f7",
+        "name": "Docling poll"
+      },
+      {
+        "parameters": {
+          "jsCode": "const s = $json.task_status;\nif (['pending', 'started', 'not_started'].includes(s))\n  throw new Error(`Poll guard hit: still \"${s}\" after 160 polls (~40 min). Docling task is hung.`);\nif (s !== 'success')\n  throw new Error(`Docling task_status = \"${s}\"`);\nreturn $input.all();"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2240,
+          -80
+        ],
+        "id": "027e0df3-5c48-4e8a-80b7-55dc34fe3ec1",
+        "name": "Assert task finished"
+      },
+      {
+        "parameters": {
+          "url": "=http://docling:5001/v1/result/{{ $('Docling submit').first().json.task_id }}",
+          "options": {
+            "response": {
+              "response": {
+                "responseFormat": "json"
+              }
+            },
+            "timeout": 120000
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          2464,
+          -80
+        ],
+        "id": "c2256033-037d-48df-927b-a2437cc83d82",
+        "name": "Docling fetch result"
+      },
+      {
+        "parameters": {
+          "jsCode": "// ---- Docling result -> cleaned chunks ----\nconst p       = $('Ingest book input').first().json;\nconst PROFILE = p.profile;\nconst FRONT_MAX = Number(p.front_matter_max_page);\n\nif (!Number.isFinite(FRONT_MAX))\n  throw new Error(`front_matter_max_page is not a number: ${p.front_matter_max_page}`);\n\nconst res = $json;\n\n// task_status \"success\" means the task ran, not that it worked.\nconst doc = (res.documents && res.documents[0]) || null;\nif (doc && doc.status && !['success', 'partial_success'].includes(doc.status))\n  throw new Error(`Docling documents[0].status = \"${doc.status}\"`);\n\nconst chunks = res.chunks;\nif (!Array.isArray(chunks) || chunks.length === 0)\n  throw new Error('Docling returned no chunks');\n\n// ---- profile registry. A new source format is a branch here, not a workflow ----\nconst PROFILES = {\n  book: {\n    dropHeading: /^(Contents|Index|Glossary|Acknowledg|Copyright|About the Author)/i,\n    dropReferences: true,\n    minTokens: 30,\n  },\n  // ba_manual    -> book 4 (Draught manual, two-column).\n  // byo_magazine -> book 9 (stout guide). See archive/06-stout-guide-ingest.md §3.\n  // Deliberately absent until then: a profile that silently behaves like `book`\n  // is worse than a thrown error.\n};\n\nconst cfg = PROFILES[PROFILE];\nif (!cfg) throw new Error(`Unknown cleaning profile \"${PROFILE}\" — implement it in this node before running`);\n\n// Per-source extras: appendix titles and the like. Empty string = no rule.\nconst EXTRA = (p.extra_drop_regex || '').trim();\nconst extraRe = EXTRA ? new RegExp(EXTRA, 'i') : null;\n\n// ---- source text repairs: put back the hyphens that line wrapping ate ----\n// A range split across a line break (\"45-\" / \"90 minutes\") is joined by every PDF\n// extractor into \"4590 minutes\". Not recoverable here, so the pairs come from\n// scripts/hyphen-probe.sh as launcher data (§1.3).\n// Literal find/replace, applied to BOTH `text` (embedded) and `raw_text` (read by\n// the model) before anything else looks at them. Runs over every chunk including\n// the ones about to be dropped, so the counts describe the book, not the survivors.\n// `applied` counts field-level replacements, so a single site in the PDF scores 2 —\n// once in `text`, once in `raw_text`. What matters is that it is never 0.\nlet REPAIRS;\nconst rawRepairs = p.text_repairs ?? [];\nif (Array.isArray(rawRepairs)) {\n  REPAIRS = rawRepairs;                    // trigger field typed `array`\n} else if (typeof rawRepairs === 'string') {\n  try {                                    // trigger field typed `string`\n    REPAIRS = JSON.parse(rawRepairs.trim() || '[]');\n  } catch (e) {\n    throw new Error(`text_repairs is not valid JSON: ${e.message}`);\n  }\n} else {\n  throw new Error(`text_repairs must be an array or a JSON string, got ${typeof rawRepairs}`);\n}\nif (!Array.isArray(REPAIRS)) throw new Error('text_repairs must resolve to an array');\n\nconst repairCounts = REPAIRS.map(([find, repl]) => {\n  if (typeof find !== 'string' || typeof repl !== 'string' || !find)\n    throw new Error(`text_repairs entries must be [\"find\",\"replace\"] string pairs, got ${JSON.stringify([find, repl])}`);\n  let n = 0;\n  for (const c of chunks) {\n    for (const field of ['text', 'raw_text']) {\n      const before = c[field];\n      if (typeof before !== 'string' || !before.includes(find)) continue;\n      // function replacer: disables $-substitution in the replacement string\n      c[field] = before.replaceAll(find, () => repl);\n      n += before.split(find).length - 1;\n    }\n  }\n  return { find, replace: repl, applied: n };\n});\n\n// A repair that matches nothing is a lie about the source, not a harmless no-op:\n// either the text changed under us (Docling upgrade) or the pair was mistyped.\nconst dead = repairCounts.filter(r => r.applied === 0);\nif (dead.length)\n  throw new Error(`text_repairs matched nothing: ${dead.map(r => JSON.stringify(r.find)).join(', ')} — re-probe the source before re-running`);\n\nconst drops = [];\nconst kept  = [];\n\nfor (const c of chunks) {\n  const pages    = Array.isArray(c.page_numbers) ? c.page_numbers.filter(Number.isFinite) : [];\n  const pageFrom = pages.length ? Math.min(...pages) : null;\n  const pageTo   = pages.length ? Math.max(...pages) : null;\n  const heads    = Array.isArray(c.headings) ? c.headings : [];\n  const headStr  = heads.join(' > ');\n  const raw      = (c.raw_text ?? '').trim();\n  const tokens   = Number.isFinite(c.num_tokens) ? c.num_tokens : null;\n  // shape-agnostic: doc_items entries may be strings or objects\n  const hasTable = JSON.stringify(c.doc_items ?? []).includes('/tables/');\n\n  const drop = (reason) => {\n    drops.push({ chunk_index: c.chunk_index, reason, page_from: pageFrom,\n                 heading: headStr.slice(0, 120), tokens });\n  };\n\n  if (!raw)                                                { drop('empty raw_text');                 continue; }\n  if (pageTo !== null && pageTo <= FRONT_MAX)              { drop(`front matter (p1-p${FRONT_MAX})`); continue; }\n  if (heads.some(h => cfg.dropHeading.test(h)))            { drop('front-matter heading');            continue; }\n  if (extraRe && extraRe.test(headStr))                    { drop('source-specific heading');         continue; }\n  if (cfg.dropReferences &&\n      heads.some(h => /^references$/i.test(h.trim())))     { drop('chapter References list');         continue; }\n  if (tokens !== null && tokens < cfg.minTokens && !hasTable) { drop(`under ${cfg.minTokens} tokens, no table`); continue; }\n  if (/^\\s*\\d{1,3}\\s*$/.test(raw))                         { drop('page-number-only');                continue; }\n\n  kept.push({\n    chunk_index:  c.chunk_index,\n    content:      c.text,\n    raw_content:  raw,\n    heading_path: heads.length ? heads : null,\n    page_from:    pageFrom,\n    page_to:      pageTo,\n    token_count:  tokens,\n  });\n}\n\nif (kept.length === 0) throw new Error('Cleaning removed every chunk - check the rules');\n\nconst toks = kept.map(k => k.token_count).filter(Number.isFinite).sort((a, b) => a - b);\n\nreturn [{ json: {\n  chunks: kept,\n  drops,\n  repairs: repairCounts,\n  stats: {\n    profile:         PROFILE,\n    raw_chunks:      chunks.length,\n    repairs_applied: repairCounts.reduce((s, r) => s + r.applied, 0),\n    kept:            kept.length,\n    dropped:         drops.length,\n    median_tokens:   toks.length ? toks[Math.floor(toks.length / 2)] : null,\n    max_tokens:      toks.length ? toks[toks.length - 1] : null,\n    over_512:        toks.filter(t => t > 512).length,\n    under_30:        toks.filter(t => t < 30).length,\n    missing_heading: kept.filter(k => !k.heading_path).length,\n    missing_page:    kept.filter(k => k.page_from === null).length,\n    page_count:      Math.max(...kept.map(k => k.page_to ?? 0)),\n  },\n}}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2688,
+          -80
+        ],
+        "id": "409ed9ba-4a05-4112-bf45-eaf2ebe2adad",
+        "name": "Clean + normalise"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH d AS (\n  INSERT INTO kb.documents (slug, title, doc_type, authors, language,\n                            edition_note, authority)\n  VALUES ($6, $7, $8, string_to_array($9, ';'), $10, $11, $12)\n  ON CONFLICT (slug) DO UPDATE SET\n    title        = EXCLUDED.title,\n    doc_type     = EXCLUDED.doc_type,\n    authors      = EXCLUDED.authors,\n    edition_note = EXCLUDED.edition_note,\n    authority    = EXCLUDED.authority\n  RETURNING id\n),\nins AS (\n  INSERT INTO kb.document_versions\n    (document_id, version, source_filename, file_sha256,\n     docling_version, chunker_config, page_count, is_current)\n  SELECT d.id,\n         COALESCE((SELECT max(v.version) FROM kb.document_versions v\n                   WHERE v.document_id = d.id), 0) + 1,\n         $2, $1, $3, $4::jsonb, $5::int, false\n  FROM d\n  ON CONFLICT (file_sha256) DO NOTHING\n  RETURNING id\n)\nSELECT id AS version_id FROM ins\nUNION ALL\nSELECT id FROM kb.document_versions WHERE file_sha256 = $1\nLIMIT 1;",
+          "options": {
+            "queryReplacement": "={{ (() => { const p = $('Ingest book input').first().json; return [   $('Crypto').first().json.file_sha256,   p.file_path.split('/').pop(),   'docling-serve 1.19.0',   JSON.stringify({ endpoint: 'chunk/hybrid/file/async', tokenizer: 'BAAI/bge-m3', max_tokens: 512, use_markdown_tables: true, use_markdown_images: false, table_mode: 'accurate', do_ocr: false, pdf_backend: 'dlparse_v4', profile: p.profile }),   $json.stats.page_count,   p.slug, p.title, p.doc_type, p.authors, p.language, p.edition_note, p.authority ]; })() }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2912,
+          -80
+        ],
+        "id": "b61a273c-6b4b-4db9-8f59-259b61de277c",
+        "name": "Ensure doc + version",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO kb.chunks\n  (version_id, chunk_index, content, raw_content, heading_path,\n   page_from, page_to, token_count, content_sha256)\nSELECT $1::bigint,\n       x.chunk_index,\n       x.content,\n       x.raw_content,\n       CASE WHEN x.heading_path IS NULL THEN NULL\n            ELSE ARRAY(SELECT jsonb_array_elements_text(x.heading_path)) END,\n       x.page_from, x.page_to, x.token_count,\n       encode(sha256(convert_to(x.raw_content, 'UTF8')), 'hex')\nFROM jsonb_to_recordset($2::jsonb) AS x(\n  chunk_index  int,\n  content      text,\n  raw_content  text,\n  heading_path jsonb,\n  page_from    int,\n  page_to      int,\n  token_count  int\n)\nON CONFLICT (version_id, chunk_index) DO UPDATE SET\n  content        = EXCLUDED.content,\n  raw_content    = EXCLUDED.raw_content,\n  heading_path   = EXCLUDED.heading_path,\n  page_from      = EXCLUDED.page_from,\n  page_to        = EXCLUDED.page_to,\n  token_count    = EXCLUDED.token_count,\n  content_sha256 = EXCLUDED.content_sha256;",
+          "options": {
+            "queryReplacement": "={{ [ $json.version_id, JSON.stringify($('Clean + normalise').first().json.chunks) ] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          3136,
+          -80
+        ],
+        "id": "bbcc0651-d436-4598-8447-896f46b46f76",
+        "name": "Insert chunks",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO kb.chunk_embeddings (chunk_id, model, embedding)\nSELECT DISTINCT ON (c.id) c.id, 'bge-m3', e.embedding\nFROM kb.chunks c\nJOIN kb.chunks c2            ON c2.content_sha256 = c.content_sha256 AND c2.id <> c.id\nJOIN kb.chunk_embeddings e   ON e.chunk_id = c2.id AND e.model = 'bge-m3'\nWHERE c.version_id = $1\nON CONFLICT (chunk_id, model) DO NOTHING;",
+          "options": {
+            "queryReplacement": "={{ [$('Ensure doc + version').first().json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          3360,
+          -80
+        ],
+        "id": "0f26cc21-61bc-4750-83a8-bc3cd8c945dc",
+        "name": "Reuse embeddings",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT c.id, c.content\nFROM kb.chunks c\nWHERE c.version_id = $1\n  AND NOT EXISTS (SELECT 1 FROM kb.chunk_embeddings e\n                  WHERE e.chunk_id = c.id AND e.model = 'bge-m3')\nORDER BY c.chunk_index;",
+          "options": {
+            "queryReplacement": "={{ [$('Ensure doc + version').first().json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          3584,
+          -80
+        ],
+        "id": "da249d47-8194-4f12-b5e9-01c305d1ad01",
+        "name": "Select chunks needing embeddings",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "480a4c11-057c-4ed0-a1d8-402360687f34",
+                "leftValue": "={{ ['pending','started','not_started'].includes($json.task_status) && $runIndex < 160 }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "false",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          2016,
+          -80
+        ],
+        "id": "90848538-e677-42fb-845b-85cdcff01ce3",
+        "name": "Still running?"
+      },
+      {
+        "parameters": {
+          "batchSize": 32,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          3808,
+          -80
+        ],
+        "id": "1db1cf86-5bc7-42b1-8a67-c6ddeef0b9de",
+        "name": "Loop Over Items"
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\nreturn [{ json: {\n  ids:    items.map(i => i.json.id),\n  inputs: items.map(i => i.json.content),\n}}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          4032,
+          -64
+        ],
+        "id": "3fe6457c-9e0d-49ae-bb7b-329ee7b23c30",
+        "name": "Assemble embed input"
+      },
+      {
+        "parameters": {
+          "jsCode": "const src = $('Assemble embed input').first().json;\nconst emb = $json.embeddings;\nif (!Array.isArray(emb) || emb.length !== src.ids.length)\n  throw new Error(`Embedding count ${emb?.length} != inputs ${src.ids.length}`);\nif (emb[0].length !== 1024)\n  throw new Error(`Expected 1024 dims, got ${emb[0].length} — schema mismatch`);\nreturn src.ids.map((id, i) => ({\n  json: { chunk_id: id, embedding: '[' + emb[i].join(',') + ']' },\n}));"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          4480,
+          -64
+        ],
+        "id": "4cea5f72-e3de-4237-ad36-53eacdd4f62b",
+        "name": "Zip ids + embeddings"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO kb.chunk_embeddings (chunk_id, model, embedding)\nVALUES ($1, 'bge-m3', $2::vector)\nON CONFLICT (chunk_id, model) DO UPDATE\n  SET embedding = EXCLUDED.embedding, created_at = now()\nRETURNING chunk_id, (xmax = 0) AS inserted;",
+          "options": {
+            "queryReplacement": "={{ [$json.chunk_id, $json.embedding] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          4704,
+          -32
+        ],
+        "id": "24014bc9-4148-416b-8a32-8e10c42e8657",
+        "name": "Insert embeddings",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT * FROM kb.promote_version($1);",
+          "options": {
+            "queryReplacement": "={{ [$('Ensure doc + version').first().json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          4032,
+          -256
+        ],
+        "id": "d6f9e655-cf40-4b52-9a6f-4fbd49b8f67d",
+        "name": "Promote version",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const r = $json;\nif (r.missing > 0)  throw new Error(`${r.missing} of ${r.total} chunks have no embedding — not promoted`);\nif (!r.is_current)  throw new Error(`Version ${r.version_id} did not become current`);\nreturn [{ json: r }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          4256,
+          -256
+        ],
+        "id": "f8258022-841a-481e-8ff3-0b9dc582e8f3",
+        "name": "Assert promoted"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://ollama:11434/api/embed",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { \"model\": \"bge-m3\", \"input\": $json.inputs, \"keep_alive\": -1 } }}",
+          "options": {
+            "timeout": 120000
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          4256,
+          -64
+        ],
+        "id": "5bb306ca-03b3-49a2-8bfb-63fe6966efa1",
+        "name": "Ollama embed",
+        "retryOnFail": true
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO kb.ingest_log (version_id, stage, level, message, detail)\nVALUES\n  ($1::bigint, 'clean',\n   CASE WHEN ($2::jsonb->>'dropped')::int > 0 THEN 'warn' ELSE 'info' END,\n   format('cleaning kept %s of %s chunks, %s dropped',\n          $2::jsonb->>'kept', $2::jsonb->>'raw_chunks', $2::jsonb->>'dropped'),\n   jsonb_build_object('stats', $2::jsonb, 'drops', $3::jsonb)),\n  ($1::bigint, 'promote',\n   CASE WHEN ($4::jsonb->>'missing')::int > 0 THEN 'error' ELSE 'info' END,\n   format('version %s promoted: %s chunks, %s missing embeddings',\n          $4::jsonb->>'version_id', $4::jsonb->>'total', $4::jsonb->>'missing'),\n   $4::jsonb)\nRETURNING id, stage, level, message;",
+          "options": {
+            "queryReplacement": "={{ [ $('Ensure doc + version').first().json.version_id, JSON.stringify($('Clean + normalise').first().json.stats), JSON.stringify($('Clean + normalise').first().json.drops), JSON.stringify($json) ] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          4480,
+          -256
+        ],
+        "id": "e328c258-db99-4db5-9c1d-77e004afe54d",
+        "name": "Log ingest summary",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// ---- Docling result -> cleaned chunks ----\nconst p       = $('Ingest book input').first().json;\nconst PROFILE = p.profile;\nconst FRONT_MAX = Number(p.front_matter_max_page);\n\nif (!Number.isFinite(FRONT_MAX))\n  throw new Error(`front_matter_max_page is not a number: ${p.front_matter_max_page}`);\n\nconst res = $json;\n\n// task_status \"success\" means the task ran, not that it worked.\nconst doc = (res.documents && res.documents[0]) || null;\nif (doc && doc.status && !['success', 'partial_success'].includes(doc.status))\n  throw new Error(`Docling documents[0].status = \"${doc.status}\"`);\n\nconst chunks = res.chunks;\nif (!Array.isArray(chunks) || chunks.length === 0)\n  throw new Error('Docling returned no chunks');\n\n// ---- profile registry. A new source format is a branch here, not a workflow ----\nconst PROFILES = {\n  book: {\n    dropHeading: /^(Contents|Index|Glossary|Acknowledg|Copyright|About the Author)/i,\n    dropReferences: true,\n    minTokens: 30,\n  },\n  // ba_manual    -> book 4 (Draught manual, two-column).\n  // byo_magazine -> book 9 (stout guide). See archive/06-stout-guide-ingest.md §3.\n  // Deliberately absent until then: a profile that silently behaves like `book`\n  // is worse than a thrown error.\n};\n\nconst cfg = PROFILES[PROFILE];\nif (!cfg) throw new Error(`Unknown cleaning profile \"${PROFILE}\" — implement it in this node before running`);\n\n// Per-source extras: appendix titles and the like. Empty string = no rule.\nconst EXTRA = (p.extra_drop_regex || '').trim();\nconst extraRe = EXTRA ? new RegExp(EXTRA, 'i') : null;\n\nconst drops = [];\nconst kept  = [];\n\nfor (const c of chunks) {\n  const pages    = Array.isArray(c.page_numbers) ? c.page_numbers.filter(Number.isFinite) : [];\n  const pageFrom = pages.length ? Math.min(...pages) : null;\n  const pageTo   = pages.length ? Math.max(...pages) : null;\n  const heads    = Array.isArray(c.headings) ? c.headings : [];\n  const headStr  = heads.join(' > ');\n  const raw      = (c.raw_text ?? '').trim();\n  const tokens   = Number.isFinite(c.num_tokens) ? c.num_tokens : null;\n  // shape-agnostic: doc_items entries may be strings or objects\n  const hasTable = JSON.stringify(c.doc_items ?? []).includes('/tables/');\n\n  const drop = (reason) => {\n    drops.push({ chunk_index: c.chunk_index, reason, page_from: pageFrom,\n                 heading: headStr.slice(0, 120), tokens });\n  };\n\n  if (!raw)                                                { drop('empty raw_text');                 continue; }\n  if (pageTo !== null && pageTo <= FRONT_MAX)              { drop(`front matter (p1-p${FRONT_MAX})`); continue; }\n  if (heads.some(h => cfg.dropHeading.test(h)))            { drop('front-matter heading');            continue; }\n  if (extraRe && extraRe.test(headStr))                    { drop('source-specific heading');         continue; }\n  if (cfg.dropReferences &&\n      heads.some(h => /^references$/i.test(h.trim())))     { drop('chapter References list');         continue; }\n  if (tokens !== null && tokens < cfg.minTokens && !hasTable) { drop(`under ${cfg.minTokens} tokens, no table`); continue; }\n  if (/^\\s*\\d{1,3}\\s*$/.test(raw))                         { drop('page-number-only');                continue; }\n\n  kept.push({\n    chunk_index:  c.chunk_index,\n    content:      c.text,\n    raw_content:  raw,\n    heading_path: heads.length ? heads : null,\n    page_from:    pageFrom,\n    page_to:      pageTo,\n    token_count:  tokens,\n  });\n}\n\nif (kept.length === 0) throw new Error('Cleaning removed every chunk - check the rules');\n\nconst toks = kept.map(k => k.token_count).filter(Number.isFinite).sort((a, b) => a - b);\n\nreturn [{ json: {\n  chunks: kept,\n  drops,\n  stats: {\n    profile:         PROFILE,\n    raw_chunks:      chunks.length,\n    kept:            kept.length,\n    dropped:         drops.length,\n    median_tokens:   toks.length ? toks[Math.floor(toks.length / 2)] : null,\n    max_tokens:      toks.length ? toks[toks.length - 1] : null,\n    over_512:        toks.filter(t => t > 512).length,\n    under_30:        toks.filter(t => t < 30).length,\n    missing_heading: kept.filter(k => !k.heading_path).length,\n    missing_page:    kept.filter(k => k.page_from === null).length,\n    page_count:      Math.max(...kept.map(k => k.page_to ?? 0)),\n  },\n}}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          0,
+          336
+        ],
+        "id": "81c8b805-5792-4032-9be5-5fa40ba592b0",
+        "name": "Clean + normalise1"
+      }
+    ],
+    "connections": {
+      "Ingest book input": {
+        "main": [
+          [
+            {
+              "node": "Read file for hashing",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read file for hashing": {
+        "main": [
+          [
+            {
+              "node": "Crypto",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Crypto": {
+        "main": [
+          [
+            {
+              "node": "Dedup lookup",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Dedup lookup": {
+        "main": [
+          [
+            {
+              "node": "Is new file?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Is new file?": {
+        "main": [
+          [
+            {
+              "node": "Read file for upload",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Already ingested",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read file for upload": {
+        "main": [
+          [
+            {
+              "node": "Docling submit",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Docling submit": {
+        "main": [
+          [
+            {
+              "node": "Wait 15s",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wait 15s": {
+        "main": [
+          [
+            {
+              "node": "Docling poll",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Docling poll": {
+        "main": [
+          [
+            {
+              "node": "Still running?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assert task finished": {
+        "main": [
+          [
+            {
+              "node": "Docling fetch result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Docling fetch result": {
+        "main": [
+          [
+            {
+              "node": "Clean + normalise",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Clean + normalise": {
+        "main": [
+          [
+            {
+              "node": "Ensure doc + version",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ensure doc + version": {
+        "main": [
+          [
+            {
+              "node": "Insert chunks",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert chunks": {
+        "main": [
+          [
+            {
+              "node": "Reuse embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Reuse embeddings": {
+        "main": [
+          [
+            {
+              "node": "Select chunks needing embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Still running?": {
+        "main": [
+          [
+            {
+              "node": "Assert task finished",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Wait 15s",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Select chunks needing embeddings": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loop Over Items": {
+        "main": [
+          [
+            {
+              "node": "Promote version",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Assemble embed input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assemble embed input": {
+        "main": [
+          [
+            {
+              "node": "Ollama embed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Zip ids + embeddings": {
+        "main": [
+          [
+            {
+              "node": "Insert embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert embeddings": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Promote version": {
+        "main": [
+          [
+            {
+              "node": "Assert promoted",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assert promoted": {
+        "main": [
+          [
+            {
+              "node": "Log ingest summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ollama embed": {
+        "main": [
+          [
+            {
+              "node": "Zip ids + embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "nodeGroups": [],
+    "pinData": {
+      "Ingest book input": [
+        {
+          "json": {
+            "file_path": "/data/shared/rag-files/pending/how_to_brew_john_palmer.pdf",
+            "source_format": "pdf",
+            "slug": "how-to-brew-palmer",
+            "title": "How to Brew",
+            "doc_type": "book",
+            "authors": "John Palmer",
+            "language": "en",
+            "edition_note": "3rd edition, 2006",
+            "authority": "reference",
+            "profile": "book",
+            "front_matter_max_page": 6,
+            "extra_drop_regex": "(Metric Conversions|Recommended Reading)",
+            "text_repairs": [
+              [
+                "(95105°F,",
+                "(95-105°F,"
+              ],
+              [
+                "4590",
+                "45-90"
+              ],
+              [
+                "6575F.",
+                "65-75F."
+              ],
+              [
+                "5560",
+                "55-60"
+              ],
+              [
+                "$2050",
+                "$20-50"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    "versionId": "321af151-3285-4cd3-8a16-70e993546a61",
+    "activeVersionId": null,
+    "versionCounter": 168,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-08-07T10:52:49.308Z",
+        "createdAt": "2026-08-07T10:52:49.308Z",
+        "role": "workflow:owner",
+        "workflowId": "NoNCV2mkQEppWP7O",
+        "projectId": "cIpOMqhSXz7mHAJj",
+        "project": {
+          "updatedAt": "2026-07-23T14:53:00.343Z",
+          "createdAt": "2026-07-23T14:06:58.898Z",
+          "id": "cIpOMqhSXz7mHAJj",
+          "name": "János Tóth <janos.toth.2000@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "392cafdf-bd25-4c0b-8d4a-e40c58c63156"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]
