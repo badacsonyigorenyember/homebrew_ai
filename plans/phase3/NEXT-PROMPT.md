@@ -1,5 +1,28 @@
 # Prompt for the next session
 
+> ## ⛔ SPENT — this prompt has been run. Do not paste it again.
+>
+> **It asked for the book 2 (Yeast) plan, and [`02-yeast.md`](02-yeast.md) is written** —
+> probed 2026-08-12 against the live Docling service, 526 raw chunks measured, 463 predicted
+> kept, mapper-only. Re-running this prompt would re-probe a file that has already been probed.
+>
+> ⚠️ **What is *not* done: Yeast has not been built or ingested.** The plan is the deliverable;
+> the build and the run are yours (README §6's revised division of work).
+>
+> ⭐ **The next session's task depends on which of those two you do first**, and this file is
+> deliberately not guessing:
+>
+> | If you have | The next prompt should ask for |
+> |---|---|
+> | **not yet run `ingest-yeast`** | nothing from Claude — build it from [`02-yeast.md`](02-yeast.md) §2 and run it |
+> | **run it, and want the record closed** | the measured column beside §4.0's predictions, Tier A + Tier B recorded in `02-yeast.md`, README §9's book 2 row ticked |
+> | **run it and recorded it** | the **book 3 (Malt)** plan, same contract — and §5.7's three carry-forward questions are already written at the end of `02-yeast.md` |
+>
+> ⛔ **Rewrite this file before the next session, once you know which.** A stale NEXT-PROMPT is
+> how book 1 ended up re-deriving things that were already measured.
+
+**Everything below is the spent prompt, kept as the record of what book 2 was asked for.**
+
 Paste everything below the line into a fresh Claude Code session started in
 `/home/gorenyember/AI Homebrew Assistant`.
 

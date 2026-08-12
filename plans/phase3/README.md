@@ -1,7 +1,8 @@
 # Phase 3 — the corpus, rebuilt one source at a time
 
-**Status:** 🟢 **0a, 0b and 1 built and Tier-B verified** ·
-**Written:** 2026-08-07 · **§6 contract revised 2026-08-12**
+**Status:** 🟢 **0a, 0b and 1 built and Tier-B verified · 2 planned and probed · the agent
+scheduled at book 4.5 (§4.2)** ·
+**Written:** 2026-08-07 · **§6 contract revised 2026-08-12 · agent timing set 2026-08-12**
 **Prereqs:** none for 0a. Books 0b–9 need 0a's schema and engine, both of which now exist.
 
 > ## 🟡 Where the corpus actually stands — measured 2026-08-12
@@ -28,6 +29,13 @@
 > | ✅ **Standing rule 4 — restored 2026-08-12** | all four live workflows backed up to `backup/n8n-workflows-20260812-140306/`; `wf1-ingest-book.json` and `ingest-water.json` re-exported to `n8n/demo-data/workflows/`. ⚠️ **Re-export again after the `$5` edit and the orphan deletion** |
 > | ⚠️ **A5, the repair ledger — half wired** | the Query Parameters pass `$5`; the SQL still ignores it. **One line.** Book 1's repairs were reconstructible from the total; *How to Brew*'s five pairs would not be |
 > | 🟡 **Housekeeping — half done** | ✅ the four stale JSONs are cleared and `wf4-chat-agent.json` is preserved at `backup/wf4-chat-agent-systemprompt-v3.json` (system prompt v3 verified present). ⛔ **The orphaned `Clean + normalise1` node is still live** — a **third** divergent copy of the cleaning profile, since the live node has the untab fix and it does not |
+>
+> ⭐ **New since the last revision — two things, both scheduling rather than build:**
+>
+> | | |
+> |---|---|
+> | ✅ **Book 2 is planned and probed** | [`02-yeast.md`](02-yeast.md) — **526 raw chunks measured 2026-08-12**, 463 predicted kept. ⭐ **Mapper-only: zero new nodes, zero new profiles, zero schema changes and — unlike book 1 — zero shared-code edits.** §4's *"should be near-free"* prediction holds a second time. ⚠️ But the mapper is doing work no previous book's did: *Yeast*'s display font has a broken `ToUnicode` map, so `dropHeading` and `dropReferences` match **0 of 262** headings and all 27 front/back-matter drops ride on `extra_drop_regex` |
+> | ⭐ **The agent has a date: book 4.5** | §4.2 — `tool-search-brewing-knowledge` + WF4 + `mem.chat_turns` logging, built **after book 4 and before book 5**, which is where cross-source disagreement first exists. ⛔ **This is what closes the *"Tier C — not runnable"* line that every plan so far ends on** |
 >
 > ✅ **Closed since the last revision:** D32b (the card format — variant B, by argument,
 > §5.5) and the A/B protocol itself, which §6's revision retires.
@@ -106,9 +114,9 @@ is a checklist rather than a feeling.
 | 3 | ✅ `ingest-how-to-brew` launcher (2 nodes) | new — [`00b-styles.md`](00b-styles.md) §P.1 | **done 2026-08-12**, id `BAe1fP1g7ZUsbIaq`, exported and committed. D30's per-book pattern now exists for books 1–9 to copy |
 | 4 | ✅ *How to Brew* corpus | the PDF, through #2 | **done — 447 chunks**, 0 embedding gaps, §1.4. Re-ingested 2026-08-12 after a `kb` truncate and **reproduced 447 with the identical 36-drop ledger** — the fixture has now held twice, through two independent builds |
 | 5 | ✅ **`ref.styles`** import + card generator | `styles.json`, all 11 prose fields | **done 2026-08-12** — `ingest-bjcp-styles`, 22 nodes, id `Ejf3ESE3SK1XBqe3`. 116 rows, 232 cards (variant B). ⛔ **the card-format A/B did not run** — see [`00b-styles.md`](00b-styles.md) §5.4 |
-| 6 | `tool-search-brewing-knowledge` | `backup/…/QNAqwfeQyHLxtjZr.json` — 6 nodes, was working | after book 0b |
-| 7 | **WF4 `chat-agent`** | `backup/…/ztLTT3xiKT8eCSfh.json` + [`archive/phase2/03b`](../archive/phase2/03b-wf4-build-guide.md). **System prompt v3 verbatim from [`archive/phase2/03-wf4-design.md`](../archive/phase2/03-wf4-design.md) §6**, with §7.1's de-enumeration edit | after book 0b |
-| 8 | `Prep turn` / `Log turn` → `mem.chat_turns` | never built; carried from the archive as an open item | with #7 — build it this time |
+| 6 | `tool-search-brewing-knowledge` | `backup/…/QNAqwfeQyHLxtjZr.json` — 6 nodes, was working | ⭐ **book 4.5** — §4.2 |
+| 7 | **WF4 `chat-agent`** | `backup/…/ztLTT3xiKT8eCSfh.json` + [`archive/phase2/03b`](../archive/phase2/03b-wf4-build-guide.md). **System prompt v3 verbatim from [`archive/phase2/03-wf4-design.md`](../archive/phase2/03-wf4-design.md) §6**, with §7.1's de-enumeration edit | ⭐ **book 4.5** — §4.2 |
+| 8 | `Prep turn` / `Log turn` → `mem.chat_turns` | never built; carried from the archive as an open item | ⛔ **inside #7's build, not after it** — §4.2 |
 | ⏸ | `tool-find-batches` | 1-node stub, parked by D25 | **do not rebuild** |
 
 **Rebuilding WF4 is not a regression.** It was 5 nodes, it is fully documented, and the
@@ -368,6 +376,7 @@ three chunks about the mash. That is measurable. Wait for it.
 | **2** | **Yeast** — White & Zainasheff, 325 p | engine, `profile: book` | nothing — should be near-free | ~40 min |
 | **3** | **Malt** — Mallett, 335 p | engine, `profile: book` | table-dense body under `table_mode=accurate` | ~50 min |
 | **4** | **Draught Beer Quality Manual**, 124 p | engine, **new** `profile: ba_manual` | two-column layout; first new cleaning profile | ~90 min |
+| ⭐ **4.5** | **The agent** — `tool-search-brewing-knowledge` + **WF4 `chat-agent`** + `mem.chat_turns` logging | ⛔ **not a source.** §1.3 items 6, 7, 8 | ⭐ **Tier C becomes runnable**, for the first time in the phase. The de-enumeration prompt edit (§7.1) and its `tier1_routing.py` re-run land here, where no ingest is happening. §4.2 | ~4 h |
 | **5** | **BA 2026** + **BJCP Study Guide** | new WF rows + engine | extra sources into the model book 0 built. §5 | ~3 h |
 | **6** | **Beer Fault List** — `beer_faults.json`, 21 rows | **new WF** | the structured path, on already-clean data | ~2 h |
 | **7** | **Hop Variety Handbook**, 44 p | **new WF** | `hops` table; extraction from repeating PDF spec cards | ~3 h |
@@ -431,25 +440,73 @@ Against ~2,900 it is **~7%**. Same file, same chunks, a third of the risk — bo
 by running it ninth. Plan 06 needs no rewrite, only a note that its percentages assume it
 runs first.
 
-### 4.2 Projected corpus
+### 4.2 ⭐ Book 4.5 — where the agent gets built, and why not earlier
+
+**Decided 2026-08-12, while planning book 2.** The question was *"when do we build a working
+agent that can fetch the books, check whether it can find a proper answer, and merge several
+sources into one response?"* — and the answer is a **seam**, not a source: **after book 4,
+before book 5.**
+
+⛔ **Every per-source plan so far ends with the same line: *"Tier C — not runnable, no WF4."***
+Books 0a, 0b, 1 and 2 all carry it. That is not a skip, it is a debt, and it compounds: each
+source lands with pipeline and retrieval evidence and **no end-to-end evidence at all**.
+
+**Four reasons the seam is at 4.5 and not somewhere else:**
+
+| | |
+|---|---|
+| ⭐ **Book 5 is where disagreement first exists** | BA 2026 and BJCP 2021 state different numbers about the same styles. Merging and attributing two conflicting sources is exactly what Layer 4 exists for, and the agent should be **live and measured as book 5 lands** rather than retrofitted onto a corpus that already contains the conflict. Build at 4.5 and book 5 is the agent's first real test |
+| **Books 1–4 are one group by construction** | §4.1: same shape, no scoping choice, and **D31 does not gate until book 5**. The boundary after book 4 is the only place in the sequence where nothing is mid-flight |
+| ⛔ **The prompt edit needs a run with no ingest in it** | WF4 carries §7.1's de-enumeration edit and therefore a `tier1_routing.py` re-run. **Standing rule 2 forbids moving the prompt and the corpus in the same run.** 4.5 is the only free slot |
+| **The Tier C backlog clears in one sitting** | each plan already specifies its own five Tier C questions, so books 0a–4 are ~20 questions against an existing spec — not a new design job |
+
+⛔ **Why not now, after book 2.** Three overlapping documents on two axes is not enough to
+measure *merging*. You would be testing the agent, not the corpus, and you would have to test
+it again at book 5 anyway. **Why not at book 8 or 9**, when practitioner sources finally make
+`authority` discriminate: nine sources would then be ingested with no end-to-end check, and the
+first failure would have eight candidate causes.
+
+**Two consequences that are part of the decision, not additions to it:**
+
+1. ⛔ **`mem.chat_turns` logging (§1.3 item 8) is built *inside* WF4, not after it.**
+   `chunk_ids` per turn is the prerequisite for the retrieval-hit-rate metric, and **every turn
+   logged before the logging exists is a turn that cannot be scored.** It has been carried as an
+   open item since phase 2 precisely because it kept being deferred to "after".
+2. **The test suite splits in two, and only the first half is written at 4.5.** At 4.5: the
+   per-source Tier C questions already specified in plans 00a–04, plus the hard refusal check.
+   ⭐ **At book 5: the merge/conflict eval** — *"where two sources disagree, are both
+   attributed?"* — because that is the first point at which the cases can be written from **real
+   disagreements** instead of invented ones. §10.1's full eval baseline still waits for source 9,
+   per §8; that ordering does not change.
+
+⚠️ **4.5 is a build, so it obeys the same rules as a source:** export and commit before running
+(standing rule 4), one variable per run (rule 2), and ⛔ **read `tier1_routing.py`'s knowledge
+row before believing the prompt is fine** — v3.1 looked strictly safer than v3 and scored 20
+points worse (§7.1).
+
+### 4.3 Projected corpus
 
 Extrapolated from the one measured book (248 p → 447 chunks) and plan 06's probe:
 
 | | chunks | running total |
 |---|---|---|
 | **0a+0b — measured 2026-08-12** — How to Brew **447** + BJCP cards **232** (variant B) | **679** | **679** |
-| **1–3** Water · Yeast · Malt | ~490 · ~590 · ~600 | ~2,359 |
-| **4** Draught manual | ~250 | ~2,609 |
-| **5** BA 2026 cards + Study Guide prose | ~100 · ~130 | ~2,839 |
-| **6–7** faults · hops | ~21 · ~110 | ~2,970 |
-| **8** pastry stouts | ~12 | ~2,982 |
-| **9** stout guide | 218 | **~3,200** |
+| **1 — measured 2026-08-12** — Water | **382** *(projected ~490)* | **1,061** |
+| **2 — predicted from a real probe** — Yeast | **463** *(projected ~590)* | **1,524** |
+| **3** Malt | ~600 | ~2,124 |
+| **4** Draught manual | ~250 | ~2,374 |
+| **5** BA 2026 cards + Study Guide prose | ~100 · ~130 | ~2,604 |
+| **6–7** faults · hops | ~21 · ~110 | ~2,735 |
+| **8** pastry stouts | ~12 | ~2,747 |
+| **9** stout guide | 218 | **~2,965** |
 
-**The first row is now measured, not projected**, and it landed at the top of the
-563–679 range this table used to straddle, because variant B is deployed. If the A/B is run
-and A0 or A wins, the corpus drops by 116 and every later total with it.
+⭐ **The first three rows are no longer projections, and both books came in *under* the
+extrapolation** — Water by 22%, Yeast by 22%. The reason is the same in both cases and worth
+carrying to book 3: the projection scaled *How to Brew*'s 1.80 kept chunks per page, and both
+later books sit near **1.40**. Page counts are a poor proxy for chunk counts across
+publishers — *Yeast* is 325 pages on a 3.5″ × 5.19″ trim.
 
-**~3,100 chunks.** Architecture §3.6 sized pgvector for 40–60k and called 500k
+**~2,950 chunks, not ~3,200.** Architecture §3.6 sized pgvector for 40–60k and called 500k
 comfortable, so **do not let corpus growth become an infrastructure conversation.** The
 thing that degrades is top-6 competition — §3 — and it degrades silently (R5).
 
@@ -1000,21 +1057,28 @@ being told the other seven do not exist. It appears **once** in
 `n8n/demo-data/workflows/wf4-chat-agent.json`. The live tool description is already generic
 (*"books and the BJCP 2021 style guidelines"*) and needs only its trailing clause revisited.
 
-**The fix is to stop enumerating.** At book 1, once:
+**The fix is to stop enumerating** — one sentence, written this way:
 
 > *"You answer from that brewer's library — a collection of brewing books, style guidelines
 > and practitioner articles — not from your own memory."*
 
-Every later source then costs **zero** prompt edits. Enumerating a growing corpus inside a
-token-budgeted prompt is a maintenance liability, and §6.2 measured that this prompt is
-already at the length where additions start costing accuracy.
+⚠️ **Corrected 2026-08-12: this is no longer an *edit at book 1*, it is how WF4 is built at
+book 4.5.** The original wording assumed WF4 would exist by book 1. It does not — §1.3 items 6
+and 7 are unbuilt, §4.2 schedules them — so books 1–4 land against **no prompt at all**, and
+the de-enumerated sentence goes in **from the first keystroke** rather than replacing an
+enumerated one. [`01-water.md`](01-water.md) §9.1 already specifies it that way, and books 2–4
+inherit it at **zero** cost, which was the whole point of not enumerating.
 
-⚠️ **It is a prompt edit, so the rule applies without exception:** edit the tracked JSON,
-`n8n import:workflow`, **re-activate** (import deactivates), restart n8n, run
-`scripts/stress/tier1_routing.py`, and **read the knowledge row first**. v3.1 looked
-strictly safer than v3 and scored 20 points worse. Do not eyeball it.
+Enumerating a growing corpus inside a token-budgeted prompt is a maintenance liability, and
+§6.2 measured that this prompt is already at the length where additions start costing accuracy.
 
-**After book 1, re-run tier 1 only when** the prompt or a tool description changed, or a
+⚠️ **It is still a prompt, so the rule applies without exception when 4.5 is built:** edit the
+tracked JSON, `n8n import:workflow`, **re-activate** (import deactivates), restart n8n, run
+`scripts/stress/tier1_routing.py`, and **read the knowledge row first** — it must be **30/30**
+and the total must not fall below v3's **73/84**. v3.1 looked strictly safer than v3 and scored
+20 points worse. Do not eyeball it.
+
+**After book 4.5, re-run tier 1 only when** the prompt or a tool description changed, or a
 Tier C test failed. Adding a source without a prompt change cannot move routing — different
 variable — and 9 runs of an 84-call harness to detect nothing is a bad trade.
 
@@ -1037,8 +1101,10 @@ and they are why the §10 eval baseline waits until the corpus is complete.
       measured against the 2026-08-07 baseline — not against the last source's
 - [ ] Retrieval share: no probe question returns ≥ 3 of 6 from one document it doesn't own
 - [ ] `tier1_routing.py` — **knowledge row 30/30**, total not below v3's 73/84
-- [ ] **`mem.chat_turns` logging built** (`Prep turn` / `Log turn`) — carried over from the
-      archive as an open item; `chunk_ids` is a prerequisite for the retrieval-hit-rate metric
+- [ ] **`mem.chat_turns` logging built** (`Prep turn` / `Log turn`) — ⭐ **scheduled: inside
+      book 4.5's WF4 build, §4.2.** `chunk_ids` is a prerequisite for the retrieval-hit-rate
+      metric, and every turn logged before the logging exists is a turn that cannot be scored,
+      which is why it is no longer allowed to be "after"
 - [ ] The coverage map in `homebrew_assistant_architecture.md` and corpus doc §3 matches
       what is actually ingested, **with the Radical Brewing row removed**
 - [ ] **Only then** build the §10.1 eval set and record the §10.4 baseline
@@ -1052,10 +1118,11 @@ and they are why the §10 eval baseline waits until the corpus is complete.
 | 0a | Rebuild + How to Brew | ✅ [00a](00a-rebuild.md) | ✅ 447, re-measured | ✅ **engine + launcher, both committed** | 🟡 **A3 watchable, `$5` left** | ✅ **Q1 and Q3 hit their documented ranks** | ⬜ n/a — no WF4 |
 | 0b | Styles model | ✅ [00b](00b-styles.md) | ✅ re-measured 2026-08-12 | ✅ **22 nodes, committed** | ✅ **A0–A5b pass** | ✅ **covered by book 1's run** — Q10 returns 5 of 6 style cards | ⬜ n/a — no WF4 |
 | **1** | **Water** | ✅ [01](01-water.md) | ✅ **440 raw, measured 2026-08-12** | ✅ **built and run — 382 chunks, 0 gaps** | ✅ **all pass; 18 of 19 predictions exact** | ✅ **10 questions; Layer 2 fires on nothing** | ⬜ n/a — no WF4 |
-| 2 | Yeast | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| 3 | Malt | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| 4 | Draught manual | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| 5 | BA 2026 + Study Guide | ⬜ **needs D31** | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| **2** | **Yeast** | ✅ [02](02-yeast.md) | ✅ **526 raw, measured 2026-08-12** | ⬜ | ⬜ | ⬜ | ⬜ n/a — no WF4 |
+| 3 | Malt | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ n/a — no WF4 |
+| 4 | Draught manual | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ n/a — no WF4 |
+| ⭐ **4.5** | **The agent** — search tool + WF4 + turn logging | ⬜ **§4.2 sets the timing; the build guide is [`archive/phase2/03b`](../archive/phase2/03b-wf4-build-guide.md)** | n/a | ⬜ | n/a | ⭐ **re-baseline after** | ⭐ **unblocks Tier C for 0a–4, retroactively** |
+| 5 | BA 2026 + Study Guide | ⬜ **needs D31** | ⬜ | ⬜ | ⬜ | ⬜ | ⭐ **the merge/conflict eval lands here** |
 | 6 | Beer faults | ⬜ | ✅ source JSON generated | ⬜ | ⬜ | ⬜ | ⬜ |
 | 7 | Hop handbook | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | 8 | Pastry stouts | ⬜ | ✅ file reviewed | ⬜ | ⬜ | ⬜ | ⬜ |
