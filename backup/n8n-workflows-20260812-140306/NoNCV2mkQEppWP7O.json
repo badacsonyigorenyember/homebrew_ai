@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-08-12T12:14:32.462Z",
+    "updatedAt": "2026-08-12T11:13:04.033Z",
     "createdAt": "2026-08-07T10:52:49.308Z",
     "id": "NoNCV2mkQEppWP7O",
     "name": "wf1-ingest-book",
@@ -562,7 +562,7 @@
       {
         "parameters": {
           "operation": "executeQuery",
-          "query": "INSERT INTO kb.ingest_log (version_id, stage, level, message, detail)\nVALUES\n  ($1::bigint, 'clean',\n   CASE WHEN ($2::jsonb->>'dropped')::int > 0 THEN 'warn' ELSE 'info' END,\n   format('cleaning kept %s of %s chunks, %s dropped',\n          $2::jsonb->>'kept', $2::jsonb->>'raw_chunks', $2::jsonb->>'dropped'),\n   jsonb_build_object('stats', $2::jsonb, 'drops', $3::jsonb, 'repairs', $5::jsonb)),\n  ($1::bigint, 'promote',\n   CASE WHEN ($4::jsonb->>'missing')::int > 0 THEN 'error' ELSE 'info' END,\n   format('version %s promoted: %s chunks, %s missing embeddings',\n          $4::jsonb->>'version_id', $4::jsonb->>'total', $4::jsonb->>'missing'),\n   $4::jsonb)\nRETURNING id, stage, level, message;",
+          "query": "INSERT INTO kb.ingest_log (version_id, stage, level, message, detail)\nVALUES\n  ($1::bigint, 'clean',\n   CASE WHEN ($2::jsonb->>'dropped')::int > 0 THEN 'warn' ELSE 'info' END,\n   format('cleaning kept %s of %s chunks, %s dropped',\n          $2::jsonb->>'kept', $2::jsonb->>'raw_chunks', $2::jsonb->>'dropped'),\n   jsonb_build_object('stats', $2::jsonb, 'drops', $3::jsonb)),\n  ($1::bigint, 'promote',\n   CASE WHEN ($4::jsonb->>'missing')::int > 0 THEN 'error' ELSE 'info' END,\n   format('version %s promoted: %s chunks, %s missing embeddings',\n          $4::jsonb->>'version_id', $4::jsonb->>'total', $4::jsonb->>'missing'),\n   $4::jsonb)\nRETURNING id, stage, level, message;",
           "options": {
             "queryReplacement": "={{ [ $('Ensure doc + version').first().json.version_id, JSON.stringify($('Clean + normalise').first().json.stats), JSON.stringify($('Clean + normalise').first().json.drops), JSON.stringify($json), JSON.stringify($('Clean + normalise').first().json.repairs) ] }}"
           }
@@ -934,9 +934,9 @@
         }
       ]
     },
-    "versionId": "f555525b-d3ee-4bdc-a4dd-9f3b06f3a6f6",
+    "versionId": "f325fd7b-1fe9-4f90-a3cb-842d5ecef814",
     "activeVersionId": null,
-    "versionCounter": 171,
+    "versionCounter": 170,
     "triggerCount": 0,
     "tags": [],
     "shared": [

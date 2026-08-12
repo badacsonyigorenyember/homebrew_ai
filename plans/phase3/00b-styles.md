@@ -5,7 +5,7 @@
 **Prereqs:** book 0a's schema and corpus (✅ live) · the four prerequisite items in §P below
 **Follows:** [`plans/phase3/README.md`](README.md) §6, the per-source plan contract.
 
-> ## What is done, measured 2026-08-12
+> ## ✅ What is done, measured 2026-08-12
 >
 > | | State |
 > |---|---|
@@ -14,15 +14,58 @@
 > | Style cards in `kb.chunks` | ✅ **232, variant B**, 0 embedding gaps, 1024 dims, `is_current` |
 > | Parser ledger | ✅ exactly the 3 predicted notes (21B ×2 folds, 34C → NULL) |
 > | Tier A | ✅ A0–A5b pass — §6 carries the measured values |
-> | **§5.5's A/B** | ⛔ **not run.** Only variant **B** was executed; there is no A0 run and no A run, so `kb.ingest_log` holds one `parse` row for this version, not three. **D32b is therefore still open** — B is deployed by default, not by measurement |
-> | **Tier B** | ⬜ not recorded |
-> | Tier C | ⬜ not runnable — no WF4 yet, by design (§6) |
+> | ✅ **The card format** | ✅ **settled 2026-08-12: variant B, by argument. D32b closed.** The three-run A/B is **retired** — README §6's revision drops multi-variant sequences. See below |
+> | ⬜ **Tier B** | ⬜ **not recorded**, and this is now the outstanding item for this plan |
+> | Tier C | ⬜ not runnable — no WF4, by design (§6) |
 >
-> ⚠️ **B being deployed is not the same as B having won.** The whole point of §5.5 was that
-> the split is a retrieval *bet*, and a bet that ships unmeasured is just the argument
-> winning quietly. Running A0 and A is 2 × ~3 minutes plus the probe set (§8 steps 6–10);
-> until then the §6 A/B table stays empty and D32b stays open in
-> [README §9](README.md).
+> ### Why B stays, without running A0 and A
+>
+> | Variant | Median tokens | Six cards in context | Verdict |
+> |---|---|---|---|
+> | **A0** — 6 prose fields | ~471 predicted | ~2,826 | ⛔ **discards five prose fields**, including `stylecomparison` — literally *"how does this differ from X"* (§1.1). Losing content to save context is the wrong trade when the split saves the same context and loses nothing |
+> | **A** — all 11, one card | ~679 predicted | **~4,074** ⚠️ | ⛔ **busts the ~3,000-token budget by 36%.** Not a preference — six A cards do not fit |
+> | ✅ **B** — all 11, split | ~350 predicted | ~2,100 | ✅ **everything A carries, at half the width** |
+>
+> ⚠️ **What is given up, recorded so it is not rediscovered as a surprise:** the original bet
+> was that *splitting* helps retrieval. **That stays untested.** If style questions later
+> retrieve badly, the sensory/context split is the live suspect — and re-testing costs two
+> ~3-minute runs, because §2 node 12's three-branch `CASE` and the `Card variant` field are
+> deliberately left in place.
+
+> ## ⭐ Reset — undo everything this workflow added
+>
+> **Run this to start over**, including after a run that died partway. ⚠️ **Cards first** —
+> `ref.styles` has no FK from `kb.chunks`, so deleting the rows first leaves orphaned cards,
+> which is exactly the drift §4 exists to prevent.
+>
+> ```bash
+> docker exec supabase-db psql -U postgres -d postgres -c "delete from kb.document_versions where file_sha256='b0707bf268f6e0b85d05534a2e62a9eb2ecc5e674a9a0048f6e55d2a0d268178'; delete from ref.styles where guide='BJCP' and guide_year=2021;"
+> ```
+>
+> | | |
+> |---|---|
+> | **Keyed on** | `styles.json`'s SHA-256, and `(guide, guide_year)` — neither can touch another source |
+> | **Cascades** | `kb.chunks` from the version · `kb.chunk_embeddings` from the chunks · `kb.ingest_log` from the version |
+> | **Left behind** | ✅ the `kb.documents` row — reused via `ON CONFLICT (slug) DO UPDATE` |
+> | ⚠️ **Check first at any later date** | `brew.recipes.style_id` references `ref.styles(id)`. `brew.recipes` is **empty** (measured), so nothing blocks the delete today |
+>
+> **Verify — expected `447 · 0 · 1` after a full reset:**
+>
+> ```bash
+> docker exec supabase-db psql -U postgres -d postgres -Atc "select count(*) from kb.chunks; select count(*) from kb.chunks c left join kb.chunk_embeddings e on e.chunk_id=c.id and e.model='bge-m3' where e.chunk_id is null; select count(*) from kb.document_versions where is_current;"
+> ```
+>
+> ⭐ **A partial re-run needs no reset at all.** Nodes 10 and 11 demote, clear and regenerate
+> in place, so simply re-running the workflow overwrites. The reset is for backing the source
+> out of the corpus entirely.
+
+> ⓘ **Contract note.** Written against README §6's original nine-section skeleton; **§6 was
+> revised 2026-08-12** to prerequisites → build → reset → testing → evidence. Nothing is
+> missing, it is ordered differently: **§P** is the prerequisites, **§2 and §3** the build,
+> **the box above and §7** the reset, **§6** the testing, **§1** the evidence.
+>
+> ⭐ **n8n expressions here are written without the leading `=`** — paste them straight into
+> the expression editor, which supplies it.
 
 **Target, in one line:** an empty `ref.styles` becomes **116 BJCP 2021 rows carrying all 11
 prose fields**, and those rows generate the style cards in `kb.chunks` — in the card format
@@ -150,7 +193,7 @@ Node 26 `Log ingest summary` needs its **`$5`** parameter so `detail->'repairs'`
 `kb.ingest_log`. The full Query Parameters expression is five positional values:
 
 ```
-={{ [ $('Ensure doc + version').first().json.version_id, JSON.stringify($('Clean + normalise').first().json.stats), JSON.stringify($('Clean + normalise').first().json.drops), JSON.stringify($json), JSON.stringify($('Clean + normalise').first().json.repairs) ] }}
+{{ [ $('Ensure doc + version').first().json.version_id, JSON.stringify($('Clean + normalise').first().json.stats), JSON.stringify($('Clean + normalise').first().json.drops), JSON.stringify($json), JSON.stringify($('Clean + normalise').first().json.repairs) ] }}
 ```
 
 and the `clean` row's `detail` builds as
@@ -502,7 +545,7 @@ flattening both into "a source says". ⛔ It must never enter ranking.
 | Field | Value |
 |---|---|
 | Operation | `Read File(s) From Disk` |
-| File(s) Selector | `={{ $('Card variant').first().json.file_path }}` |
+| File(s) Selector | `{{ $('Card variant').first().json.file_path }}` |
 | Put Output File in Field | `data` |
 
 An explicit path, never a glob — `pending/` currently holds 13 files.
@@ -587,7 +630,7 @@ ON CONFLICT (guide, guide_year, code) DO UPDATE SET
 ```
 
 **Query Parameters:**
-`={{ [ $('Card variant').first().json.guide, $('Card variant').first().json.guide_year, JSON.stringify($json.rows) ] }}`
+`{{ [ $('Card variant').first().json.guide, $('Card variant').first().json.guide_year, JSON.stringify($json.rows) ] }}`
 
 Four things worth knowing:
 
@@ -622,7 +665,7 @@ SELECT count(*)                                            AS rows,
 FROM ref.styles WHERE guide = $1 AND guide_year = $2;
 ```
 
-**Query Parameters:** `={{ [ $('Card variant').first().json.guide, $('Card variant').first().json.guide_year ] }}`
+**Query Parameters:** `{{ [ $('Card variant').first().json.guide, $('Card variant').first().json.guide_year ] }}`
 
 **9b — `Assert style rows`, Code:**
 
@@ -670,7 +713,7 @@ RETURNING id AS version_id;
 **Query Parameters:**
 
 ```
-={{ (() => { const p = $('Card variant').first().json; return [
+{{ (() => { const p = $('Card variant').first().json; return [
   $('Crypto').first().json.file_sha256,
   p.slug, p.title, p.doc_type, p.language, p.authority, p.variant
 ]; })() }}
@@ -699,7 +742,7 @@ WHERE version_id = (SELECT id FROM demoted)
 RETURNING chunk_index;
 ```
 
-**Query Parameters:** `={{ [$json.version_id] }}`
+**Query Parameters:** `{{ [$json.version_id] }}`
 
 ⚠️ **Demoting before deleting is deliberate and it is the subtle one.** Run 1 promotes the
 version; run 2 must clear that same version's cards to regenerate them. A `DELETE` guarded by
@@ -794,7 +837,7 @@ ON CONFLICT (version_id, chunk_index) DO UPDATE SET
   content_sha256 = EXCLUDED.content_sha256;
 ```
 
-**Query Parameters:** `={{ [ $('Ensure KB doc + version').first().json.version_id, $('Card variant').first().json.variant ] }}`
+**Query Parameters:** `{{ [ $('Ensure KB doc + version').first().json.version_id, $('Card variant').first().json.variant ] }}`
 
 Six things worth knowing:
 
@@ -842,7 +885,7 @@ WHERE c.version_id = $1
 ORDER BY c.chunk_index;
 ```
 
-**Query Parameters:** `={{ [$('Ensure KB doc + version').first().json.version_id] }}`
+**Query Parameters:** `{{ [$('Ensure KB doc + version').first().json.version_id] }}`
 
 #### 14 · `Loop Over Items` — Split in Batches (typeVersion 3)
 
@@ -878,7 +921,7 @@ why a card is findable by style name at all.
 |---|---|
 | Method / URL | `POST` `http://ollama:11434/api/embed` |
 | Send Body / Content Type / Specify Body | ON · `JSON` · `Using JSON` |
-| JSON | `={{ { "model": "bge-m3", "input": $json.inputs, "keep_alive": -1 } }}` |
+| JSON | `{{ { "model": "bge-m3", "input": $json.inputs, "keep_alive": -1 } }}` |
 | Options → Timeout | `120000` |
 | **Settings → Retry On Fail** | **ON** |
 
@@ -922,7 +965,7 @@ ON CONFLICT (chunk_id, model) DO UPDATE
 RETURNING chunk_id, (xmax = 0) AS inserted;
 ```
 
-**Query Parameters:** `={{ [$json.chunk_id, $json.embedding] }}`
+**Query Parameters:** `{{ [$json.chunk_id, $json.embedding] }}`
 **Execute Once must stay OFF** — this runs once per item, 32 per batch.
 
 Wire `Insert embeddings → Loop Over Items` to close the loop.
@@ -933,7 +976,7 @@ Wire `Insert embeddings → Loop Over Items` to close the loop.
 SELECT * FROM kb.promote_version($1);
 ```
 
-**Query Parameters:** `={{ [$('Ensure KB doc + version').first().json.version_id] }}`
+**Query Parameters:** `{{ [$('Ensure KB doc + version').first().json.version_id] }}`
 **Settings → Execute Once: ON** — the loop's `done` output carries every card.
 
 Never hand-roll the `is_current` flip. The function refuses to promote unless
@@ -977,7 +1020,7 @@ RETURNING id, stage, level, message;
 **Query Parameters:**
 
 ```
-={{ [ $('Ensure KB doc + version').first().json.version_id, JSON.stringify($('Parse + validate styles').first().json.stats), $('Card variant').first().json.variant, JSON.stringify($('Parse + validate styles').first().json.notes), JSON.stringify($json) ] }}
+{{ [ $('Ensure KB doc + version').first().json.version_id, JSON.stringify($('Parse + validate styles').first().json.stats), $('Card variant').first().json.variant, JSON.stringify($('Parse + validate styles').first().json.notes), JSON.stringify($json) ] }}
 ```
 
 **Two rows per run, exactly as the engine writes two.** `notes` is this source's equivalent of
@@ -1508,7 +1551,18 @@ from the A/B set): flag any question where **≥ 3 of 6** results come from one 
 does not own*. At two documents this becomes a real measurement for the first time — at book
 0a it was trivially 6/6 and not a signal.
 
-### The A/B — §5.5's protocol, three runs
+### ~~The A/B — §5.5's protocol, three runs~~ — ⛔ **RETIRED 2026-08-12. Do not run.**
+
+**D32b is closed: variant B stays, decided by argument** (the status block at the top of this
+file carries it). README §6's revision drops multi-variant sequences from the plan contract —
+a plan proposes one design and measures it.
+
+⭐ **The machinery is deliberately left in the workflow**, not ripped out: the `Card variant`
+Set field and node 12's three-branch `CASE` still accept `A0`, `A` and `B`. That is what makes
+the retired question cheap to reopen — two ~3-minute runs — if style retrieval ever looks
+wrong. **Everything below is retained as the reasoning record, not as instructions.**
+
+#### The original protocol — retired, retained
 
 ⚠️ **The variants cannot coexist.** `kb.document_versions` carries `UNIQUE (file_sha256)`
 (verified in P.0) and all three are generated from the same `styles.json`, so they hash
@@ -1685,15 +1739,11 @@ a recorded baseline.
    version, so style questions would return nothing anyway.
 6. **Run A1–A4** and record. Then run **the 8 A/B questions plus the 5 standing questions**
    and fill the `A0` columns of §6's two tables.
-7. **Run 2 (A).** Change **only** `variant` to `A`. Re-run. Repeat step 6 into the `A` columns.
-8. **Apply the A0 → A half of the decision rule.** If A loses, record it and **stay at A0** —
-   the split question is then moot and the A/B ends here, with the negative result written
-   into §6's table. That is a valid outcome, not a failed plan.
-9. **Run 3 (B).** Change **only** `variant` to `B`. Re-run. Repeat step 6 into the `B` columns.
-   Note A4 now expects `chunks 679`.
-10. **Apply the A → B half of the decision rule**, including the tiebreak. Then set `variant`
-    to the winner and **run once more**, so the corpus ends in the winning state rather than
-    in whichever variant happened to run last.
+7. ~~**Run 2 (A)** … **Run 3 (B)** … apply the decision rule.~~
+   ⛔ **Steps 7–10 are retired.** D32b is closed by argument (top of this file); the workflow
+   ships with `variant` = **`B`**. Leave it there. If the split is ever re-questioned, the
+   `Card variant` field and node 12's `CASE` still accept `A0` and `A`.
+
 11. **Run A3** (idempotency / determinism) against the winning variant, and confirm exactly one
     `kb.document_versions` row for this `file_sha256`.
 12. **Re-export and commit** with the variant and the measured numbers in the message. Paste

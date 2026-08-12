@@ -1,9 +1,45 @@
 # Plan 00a — the schema, the ingest engine, and *How to Brew*
 
-**Status:** ⬜ not started · **Written:** 2026-08-07
+**Status:** ✅ **built and verified** — 447 chunks, 0 embedding gaps, reproduced twice ·
+**Written:** 2026-08-07
 **Prereqs:** D33 executed (✅) · D32 accepted (✅) · D30 settled (✅)
 **Blocks:** everything. 0b needs this schema; books 1–9 need this engine.
 **Follows:** [`plans/phase3/README.md`](README.md) §6, the per-source plan contract.
+
+> ## ⭐ Reset — undo everything this workflow added
+>
+> **Run this to start over**, including after a run that died partway — the engine writes a
+> `kb.documents` row, a `kb.document_versions` row and its chunks before it ever reaches the
+> embedding loop, so a half-finished run leaves state behind.
+>
+> ```bash
+> docker exec supabase-db psql -U postgres -d postgres -c "delete from kb.document_versions where file_sha256='e29d11cf7ed0cefe52c2544a782e94bc6bb53213e5a84dc1b926c6d37960f410';"
+> ```
+>
+> | | |
+> |---|---|
+> | **Keyed on** | *How to Brew*'s SHA-256 — it cannot touch another document |
+> | **Cascades** | `kb.chunks` from the version · `kb.chunk_embeddings` from the chunks · `kb.ingest_log` from the version |
+> | **Left behind** | ✅ the `kb.documents` row — reused via `ON CONFLICT (slug) DO UPDATE` |
+> | ⛔ **Cannot undo** | schema changes from `db/init/*.sql`, or any edit to the engine's nodes |
+>
+> **Verify — expected `0` chunks for this slug after the reset:**
+>
+> ```bash
+> docker exec supabase-db psql -U postgres -d postgres -Atc "select count(*) from kb.chunks c join kb.document_versions v on v.id=c.version_id join kb.documents d on d.id=v.document_id where d.slug='how-to-brew-palmer';"
+> ```
+>
+> ⚠️ **This is also the only way to re-ingest.** The dedup branch is keyed on the same hash,
+> so without the reset a second run stops at `Already ingested`. That is deliberate — and it
+> is why §1.4's fixture test could not be rehearsed before D33's purge.
+
+> ⓘ **Contract note.** Written against README §6's original nine-section skeleton; **§6 was
+> revised 2026-08-12** to prerequisites → build → reset → testing → evidence. Nothing is
+> missing, it is ordered differently.
+>
+> ⭐ **n8n expressions here are written without the leading `=`** — paste them straight into
+> the expression editor, which supplies it. Where the plan quotes an **exported JSON file**
+> the `=` is part of the stored value and stays.
 
 **Target, in one line:** an empty database and an empty n8n become a five-schema
 application database, a 26-node ingest engine, a 2-node launcher, and **447 chunks of
@@ -342,7 +378,7 @@ Every downstream node reads these as `$('Ingest book input').first().json.<field
 | Field | Value |
 |---|---|
 | Operation | `Read File(s) From Disk` |
-| File(s) Selector | `={{ $('Ingest book input').first().json.file_path }}` |
+| File(s) Selector | `{{ $('Ingest book input').first().json.file_path }}` |
 | Put Output File in Field | `data` |
 
 An explicit path, never a glob: `*.pdf` currently matches twelve files and would push twelve
@@ -374,7 +410,7 @@ FROM (SELECT 1) dummy
 LEFT JOIN kb.document_versions v ON v.file_sha256 = $1::char(64);
 ```
 
-**Options → Query Parameters:** `={{ [$json.file_sha256] }}`
+**Options → Query Parameters:** `{{ [$json.file_sha256] }}`
 
 **The `LEFT JOIN` off a dummy row is the point of this query:** it always returns exactly one
 row, with `existing_version_id` NULL for a new file. A bare `SELECT … WHERE` returns zero
@@ -386,7 +422,7 @@ the workflow would report success having done nothing.
 Condition, **Boolean → is true**:
 
 ```
-={{ $json.existing_version_id === null }}
+{{ $json.existing_version_id === null }}
 ```
 
 A boolean expression rather than a typed comparison, so it reads identically regardless of
@@ -423,7 +459,7 @@ Postgres and If nodes have replaced the item stream regardless.
 | # | Parameter Type | Name | Value |
 |---|---|---|---|
 | 1 | `n8n Binary File` | `files` | Input Data Field Name: `data` |
-| 2 | Form Data | `convert_from_formats` | `={{ $('Ingest book input').first().json.source_format }}` |
+| 2 | Form Data | `convert_from_formats` | `{{ $('Ingest book input').first().json.source_format }}` |
 | 3 | Form Data | `convert_image_export_mode` | `referenced` |
 | 4 | Form Data | `convert_do_ocr` | `false` |
 | 5 | Form Data | `convert_pdf_backend` | `dlparse_v4` |
@@ -468,7 +504,7 @@ response, which has no `task_id`.
 Condition, **Boolean → is false**, on:
 
 ```
-={{ ['pending','started','not_started'].includes($json.task_status) && $runIndex < 160 }}
+{{ ['pending','started','not_started'].includes($json.task_status) && $runIndex < 160 }}
 ```
 
 - **true** (the expression is false — polling is over) → node 12
@@ -542,7 +578,7 @@ LIMIT 1;
 **Query Parameters:**
 
 ```
-={{ (() => { const p = $('Ingest book input').first().json; return [
+{{ (() => { const p = $('Ingest book input').first().json; return [
   $('Crypto').first().json.file_sha256,
   p.file_path.split('/').pop(),
   'docling-serve 1.19.0',
@@ -603,7 +639,7 @@ ON CONFLICT (version_id, chunk_index) DO UPDATE SET
 ```
 
 **Query Parameters:**
-`={{ [ $json.version_id, JSON.stringify($('Clean + normalise').first().json.chunks) ] }}`
+`{{ [ $json.version_id, JSON.stringify($('Clean + normalise').first().json.chunks) ] }}`
 
 `content_sha256` is computed in SQL over `raw_content`. `image_refs` stays NULL.
 
@@ -619,7 +655,7 @@ WHERE c.version_id = $1
 ON CONFLICT (chunk_id, model) DO NOTHING;
 ```
 
-**Query Parameters:** `={{ [$('Ensure doc + version').first().json.version_id] }}`
+**Query Parameters:** `{{ [$('Ensure doc + version').first().json.version_id] }}`
 
 Near-zero effect on the first book — it is what makes a **re-ingest** cheap. Identical text
 keeps its vector instead of paying for 447 embeddings again.
@@ -635,7 +671,7 @@ WHERE c.version_id = $1
 ORDER BY c.chunk_index;
 ```
 
-**Query Parameters:** `={{ [$('Ensure doc + version').first().json.version_id] }}`
+**Query Parameters:** `{{ [$('Ensure doc + version').first().json.version_id] }}`
 
 #### 19 · `Loop Over Items` — Split in Batches (typeVersion 3)
 
@@ -674,7 +710,7 @@ the heading path prepended, which is what makes a chunk retrievable out of conte
 | Send Body | **ON** |
 | Body Content Type | `JSON` |
 | Specify Body | `Using JSON` |
-| JSON | `={{ { "model": "bge-m3", "input": $json.inputs, "keep_alive": -1 } }}` |
+| JSON | `{{ { "model": "bge-m3", "input": $json.inputs, "keep_alive": -1 } }}` |
 | Options → Timeout | `120000` |
 | **Settings → Retry On Fail** | **ON** |
 
@@ -725,7 +761,7 @@ ON CONFLICT (chunk_id, model) DO UPDATE
 RETURNING chunk_id, (xmax = 0) AS inserted;
 ```
 
-**Query Parameters:** `={{ [$json.chunk_id, $json.embedding] }}`
+**Query Parameters:** `{{ [$json.chunk_id, $json.embedding] }}`
 
 - **Runs once per input item** — 32 queries per batch, 447 in total, measured at 8–14 ms per
   batch, so the round trips are free next to the GPU time. **Execute Once must stay OFF.**
@@ -739,7 +775,7 @@ RETURNING chunk_id, (xmax = 0) AS inserted;
 SELECT * FROM kb.promote_version($1);
 ```
 
-**Query Parameters:** `={{ [$('Ensure doc + version').first().json.version_id] }}`
+**Query Parameters:** `{{ [$('Ensure doc + version').first().json.version_id] }}`
 **Settings → Execute Once: ON** — the loop's `done` output carries all 447 items.
 
 Never hand-roll the `is_current` flip. The function refuses to promote unless
@@ -779,7 +815,7 @@ RETURNING id, stage, level, message;
 **Query Parameters:**
 
 ```
-={{ [ $('Ensure doc + version').first().json.version_id, JSON.stringify($('Clean + normalise').first().json.stats), JSON.stringify($('Clean + normalise').first().json.drops), JSON.stringify($json), JSON.stringify($('Clean + normalise').first().json.repairs) ] }}
+{{ [ $('Ensure doc + version').first().json.version_id, JSON.stringify($('Clean + normalise').first().json.stats), JSON.stringify($('Clean + normalise').first().json.drops), JSON.stringify($json), JSON.stringify($('Clean + normalise').first().json.repairs) ] }}
 ```
 
 Five parameters, positional — `$5` is the repair ledger, so which substitutions fired and

@@ -1,28 +1,37 @@
 # Phase 3 — the corpus, rebuilt one source at a time
 
-**Status:** 🟢 **0a built 2026-08-07** · 🟡 **0b built and Tier-A verified 2026-08-12, A/B not
-run** · **Written:** 2026-08-07
+**Status:** 🟢 **0a, 0b and 1 built and Tier-B verified** ·
+**Written:** 2026-08-07 · **§6 contract revised 2026-08-12**
 **Prereqs:** none for 0a. Books 0b–9 need 0a's schema and engine, both of which now exist.
 
 > ## 🟡 Where the corpus actually stands — measured 2026-08-12
 >
 > | | Measured |
 > |---|---|
-> | `kb.chunks` | **679** — *How to Brew* **447** + BJCP style cards **232** (variant B) |
-> | embedding gaps · dims · `is_current` versions | **0** · **1024** · **2** |
+> | `kb.chunks` | **1,061** — *How to Brew* **447** · BJCP style cards **232** · **Water 382** |
+> | embedding gaps · dims · `is_current` versions | **0** · **1024** · **3** |
 > | `ref.styles` | **116** BJCP 2021 rows · 96 with vitals · 20 without · 30 entry instructions |
-> | n8n workflows | **3** — `wf1-ingest-book`, `ingest-how-to-brew`, `ingest-bjcp-styles`, all exported and committed |
+> | n8n workflows | **4** — `wf1-ingest-book`, `ingest-how-to-brew`, `ingest-bjcp-styles`, `ingest_water` |
 >
-> **Three things are done that this README previously listed as outstanding:** the
-> `ingest-how-to-brew` launcher exists, the styles workflow exists, and every workflow JSON
-> is tracked. **Three are still open, and they are the ones that produce evidence rather than
-> artefacts:**
+> ⭐ **Book 1 landed and every acceptance number hit — 18 of 19 exactly, not within
+> tolerance.** 440 raw → 382 kept, drop ledger 17/34/4/3 on the predicted page ranges,
+> median 342 tokens, 0 missing pages, 0 missing headings, 382/382 embedded. That is the
+> strongest evidence yet for §6's probe-then-plan rule, and for D30's engine split: a
+> 273-page book from a different publisher needed **zero** new nodes, **zero** new profiles
+> and **zero** schema changes.
+>
+> **What is still open — all of it evidence or hygiene, none of it build:**
 >
 > | Open | Why it still matters |
 > |---|---|
-> | ⛔ **§5.5's A/B never ran** | only variant **B** was executed — no A0, no A. B is deployed by default, not by measurement, so **D32b is still open** |
-> | ⛔ **A5, the repair ledger** | *How to Brew* was genuinely re-ingested on 2026-08-12 and reproduced 447 chunks with the drop ledger matching exactly — but node 26 still lacks `$5`, so `detail->'repairs'` came back empty. The chance was there and was missed; the next one is a deliberate re-ingest |
-> | ⛔ **Tier B has never been recorded** | there is still **no standing-question baseline**, and the corpus has changed twice since 0a. Book 1 has nothing to regress against until five `ask.sh` calls are run and written down |
+> | ✅ **Tier B — recorded 2026-08-12** | ⭐ **10 questions, and Layer 2 fires on nothing.** Q1 and Q3 return exactly their documented rank-1 chunks, unchanged by Water's 382 chunks · all 4 of book 1's positive controls at **rank 1** · **Water is 36% of the corpus and returns 0 of 6 on a style question**. The 25% corpus-share proxy crossed; the thing it proxies for did not happen. ⚠️ It is a **post-Water** baseline — no before/after exists for Q2, Q4, Q5 |
+> | ✅ **Standing rule 4 — restored 2026-08-12** | all four live workflows backed up to `backup/n8n-workflows-20260812-140306/`; `wf1-ingest-book.json` and `ingest-water.json` re-exported to `n8n/demo-data/workflows/`. ⚠️ **Re-export again after the `$5` edit and the orphan deletion** |
+> | ⚠️ **A5, the repair ledger — half wired** | the Query Parameters pass `$5`; the SQL still ignores it. **One line.** Book 1's repairs were reconstructible from the total; *How to Brew*'s five pairs would not be |
+> | 🟡 **Housekeeping — half done** | ✅ the four stale JSONs are cleared and `wf4-chat-agent.json` is preserved at `backup/wf4-chat-agent-systemprompt-v3.json` (system prompt v3 verified present). ⛔ **The orphaned `Clean + normalise1` node is still live** — a **third** divergent copy of the cleaning profile, since the live node has the untab fix and it does not |
+>
+> ✅ **Closed since the last revision:** D32b (the card format — variant B, by argument,
+> §5.5) and the A/B protocol itself, which §6's revision retires.
+
 **This is the only live plan.** Everything before it is in
 [`plans/archive/`](../archive/README.md), indexed by what is still true.
 
@@ -583,7 +592,40 @@ explicitly. Recorded here because that is the plan that will be written months f
 questions — and it is dropped at import. `tags`
 (`session-strength, dark-color, britishisles, brown-ale-family, malty`) is free FTS fuel.
 
-### 5.5 ⚖️ The card format is decided by measurement — the A/B
+### 5.5 ⚖️ The card format — ✅ **settled 2026-08-12: variant B, by argument. D32b closed.**
+
+> ⭐ **This section is kept as the record of why, not as a protocol to run.** It was written
+> as a three-run A/B with the decision rule fixed in advance. **That A/B is retired** — §6's
+> revision drops multi-variant sequences — so the question is settled here, on the evidence
+> that already exists, and the runner-up is written down.
+>
+> **The decision: variant B — all 11 prose fields, split into a sensory card and a context
+> card. 232 cards. It is what is deployed.**
+>
+> **Why B, without running A0 and A.** The measured card sizes below decide it:
+>
+> | Variant | Median tokens | Six cards in context | Verdict |
+> |---|---|---|---|
+> | **A0** — 6 prose fields | ~471 predicted | ~2,826 | ⛔ **discards five prose fields**, including `stylecomparison` — literally *"how does this differ from X"*, among the most-asked style questions (§5.4 finding 3). Losing content to save context is the wrong trade when a split saves the same context and loses nothing |
+> | **A** — all 11 fields, one card | ~679 predicted | **~4,074** ⚠️ | ⛔ **busts the ~3,000-token budget by 36%**. This is not a retrieval preference, it is an arithmetic failure: six A cards do not fit |
+> | ✅ **B** — all 11 fields, two cards | ~350 predicted | ~2,100 | ✅ **carries everything A carries, at half the width.** The only variant that is both complete and within budget |
+>
+> **The argument is not "B retrieves better" — that was the bet the A/B would have tested,
+> and it is now untested and recorded as such.** The argument is narrower and does not need a
+> run: **A0 is incomplete and A does not fit.** B is the only option that is neither, and the
+> §5.2 rule that makes it safe — a sensory card and a context card carry **disjoint** fields,
+> so no sentence appears in both — is a property of the design, not of a measurement.
+>
+> ⚠️ **What is genuinely given up, stated so it is not rediscovered as a surprise:** nobody
+> knows whether splitting *helps* retrieval or merely fails to hurt it. If style questions
+> later retrieve badly, **the sensory/context split is a live suspect** and this paragraph is
+> the note that says so. Re-testing it costs two ~3-minute runs of `ingest-bjcp-styles` with
+> the `variant` field changed — the workflow still supports A0 and A, and §2 node 12's
+> three-branch `CASE` is deliberately left in place for exactly that.
+>
+> **Everything below is the original protocol, retained as the reasoning record.**
+
+#### The original protocol — retired, retained for the reasoning
 
 **Decided 2026-08-07 (your call): build each variant, measure it, keep the winner.** The
 argument for splitting the card is a retrieval bet, not a correctness fix, and this plan's
@@ -700,81 +742,150 @@ is the thing that stops the question being reopened in three months.
 `plans/phase3/<NN>-<slug>.md`, follows this skeleton in this order, and is not finished
 until every section has content.
 
-### §0 — The one-line verdict
-Engine or new workflow, and why. Per-node table of *correct as-is / parameterise / needs
-real work*. [Archived plan 06 §0](../archive/06-stout-guide-ingest.md) is the model.
+> ### How the work is actually divided — revised 2026-08-12
+>
+> This replaces the nine-section contract that governed plans 00a, 00b and 01. Those plans
+> were written for a reader who would be talked through a build step by step and stopped
+> mid-run to check things. **That is not how the work happens.**
+>
+> | Who | Does what |
+> |---|---|
+> | **The plan** | states the prerequisites, specifies the build completely, gives a **reset command**, and lists the tests |
+> | **You** | build the whole workflow, then run it. If something breaks, you say so |
+>
+> **Four consequences, and they are the whole revision:**
+>
+> 1. ⛔ **No stop-and-check-before-embedding steps.** A build is built and run. If the
+>    numbers come back wrong, the reset command (§3) makes starting over cheap, which is a
+>    better safety net than a checkpoint that interrupts every run to catch a rare one.
+> 2. ⛔ **No A/B or multi-variant sequences.** A plan proposes one design and measures it.
+>    Where two designs were genuinely arguable — the styles card format, §5.5 — the question
+>    is settled by argument on the record and the runner-up written down, not by three runs.
+>    **D32b is closed on this basis.**
+> 3. ⭐ **Every plan carries a reset command** — §3, new and required.
+> 4. ⭐ **n8n expressions are written without the leading `=`.** §3.1.
 
-### §1 — The probe, run before the plan is written
-**No plan is written from assumptions.** Submit the file to the live Docling service with
-the engine's exact form fields and measure first:
+---
 
-| Measure | What it decides |
-|---|---|
-| raw chunk count, chunks/page | sizing; prose vs. structured |
-| median / max / p25 / p75 `num_tokens` | whether §11's chunk-size band is met |
-| count under 30, count over 512 | drop rules; whether merging is needed |
-| chunks with no `page_from` | **must be 0** — citations break without it |
-| **top 20 headings by frequency** | plan 06's entire design turned on this one table |
-| front-matter page range | the `FRONT_MAX` constant |
-| 3 real chunks, verbatim | the only way to see what cleaning actually has to do |
+### §0 — The verdict, in one screen
+Engine or new workflow, and why. If it is the engine, a per-node table of *correct as-is /
+parameterise / needs real work*, and ⛔ **an explicit sentence if anything outside the
+launcher changes** — that is the signal that the D30 split is not holding.
+[Archived plan 06 §0](../archive/06-stout-guide-ingest.md) and
+[`01-water.md`](01-water.md) §0 are the models.
 
-The probe output goes **in the plan**, as a table. For a structured source, the equivalent
-is: row count, field coverage, and any row that fails validation.
+### §1 — Prerequisites
+What must be true before the build starts, verified against the **live stack** rather than
+carried from a previous plan. Two parts:
 
-### §2 — What changes, node by node
-Usually **two nodes** on the engine path (the launcher's Set node, and the cleaning
-profile). Table of: node, current value, new value, one-line why.
+- **What is already true** — a table of checks actually run, with the command and the
+  result. Plans have been wrong before, including in ways that cost a re-ingest.
+- **What must be done first** — open items from earlier books that this one depends on, in
+  the order they must happen, with the reason any ordering is forced.
+
+⛔ **If nothing is outstanding, the section says so in one line.** Present, so its emptiness
+is a decision rather than an omission.
+
+### §2 — The build
+**Complete enough to build from, without coming back to ask.**
+
+- **New workflow:** the full node list, in build order, with settings, SQL and code inline,
+  and a wiring diagram. [`00b-styles.md`](00b-styles.md) §2 is the model.
+- **Existing workflow:** the exact parameterisation — which node, which field, which value,
+  and **where each value came from**. [`01-water.md`](01-water.md) §2.2 is the model: a
+  13-row mapper table where every row names its source of truth.
 
 **Every node gets a "why this node exists" line when it is not self-evident.** Not
 *"Crypto node — hashes the file"*, but *"Crypto computes the SHA-256 dedup key; the Read
 node runs twice because Crypto consumes the binary it hashes (D13/D20)"*. If a node's
 purpose is obvious from its name, **say nothing** — padding hides the three nodes that
-genuinely need explaining. For a new workflow, this is the full node list with SQL inline.
+genuinely need explaining.
 
-### §3 — The cleaning profile / parser
-Complete code, ready to paste, with every drop rule naming the §1 number that motivates it.
+**Include, where they apply:**
 
-⚠️ Every plan repeats plan 06 §4's warning: **if `heading_path` is modified, `content` must
-be rebuilt**, or the embedding still carries the old heading and the repair does nothing.
+- **The cleaning profile or parser**, complete and paste-ready, with every drop rule naming
+  the §5 number that motivates it.
+  ⚠️ Every plan repeats plan 06 §4's warning: **if `heading_path` is modified, `content`
+  must be rebuilt**, or the embedding still carries the old heading and the repair does
+  nothing.
+- **Overlap scoping** (§3 Layer 1) — what this source duplicates that is already in the
+  corpus, and the rule that keeps or drops it, with an expected **overlap chunks dropped**
+  count. One line if it overlaps nothing.
+- **What this source does to WF4** — the concrete edits, with exact text. Never *"update the
+  system prompt"*, always the sentence written out. One line if nothing changes.
 
-### §4 — Overlap scoping (§3 Layer 1)
-What this source duplicates that is already in the corpus, and the explicit rule that drops
-or keeps it, with an expected **overlap chunks dropped** count. If it overlaps nothing, the
-section says so in one line — present, so its absence is a decision rather than an omission.
+#### §3.1 — n8n expressions: no leading `=`
 
-### §5 — Acceptance numbers, predicted before the run
-Computed by running §3's rules over §1's real probe output, with a gate column:
+⭐ **Write every expression as `{{ … }}`, never `={{ … }}`.**
 
-| Check | Predicted | Gate |
-|---|---|---|
-| kept chunks | *n* | ±10% |
-| median tokens | *n* | 200–450, or a documented miss and why |
-| under-30 | 0 | **must be 0** |
-| missing page / heading | 0 | **must be 0** |
-| embedding coverage | *n*/*n* | **100%** |
-| `kb.ingest_log` rows | 2 | must be 2 |
-| corpus share after | *x*% | < 25% |
+The `=` is an artefact of n8n's **JSON export format**, where it marks a field as an
+expression rather than a literal. In the **UI**, that role is played by the expression
+editor itself — so a pasted `=` becomes a literal `=` inside the expression and the field
+silently evaluates to something wrong.
 
-Plus a runtime estimate, so a hung run is recognisable as hung.
+```
+✅  {{ $('Ingest book input').first().json.file_path }}
+⛔  ={{ $('Ingest book input').first().json.file_path }}
+```
 
-### §6 — Test cases ⭐
-Three tiers, **all required**, written so they can be handed to me or to the agent and run
-without further explanation.
+⚠️ **The exception is when the plan quotes an exported JSON file**, where the `=` is part of
+the stored value and must stay. Say which one you are looking at.
 
-**Tier A — pipeline (SQL, deterministic).** Copy-pasteable `docker compose exec` blocks
-with expected output stated:
+### §3 — ⭐ Reset: undo everything this workflow added
+**New and required.** One copy-pasteable command that returns the database to exactly the
+state before this source's workflow first ran — so a run that dies halfway, or finishes with
+wrong numbers, can simply be started over.
+
+**It has to work on a *partial* run, not just a complete one.** That is the whole point: a
+workflow that failed at the embedding loop has already written a `kb.documents` row, a
+`kb.document_versions` row and some or all of its chunks. A reset that only handles the
+clean case is a reset that is useless exactly when it is needed.
+
+**For an engine-path source**, keyed on the file hash so it cannot touch another document:
+
+```sql
+DELETE FROM kb.document_versions WHERE file_sha256 = '<sha256 of the source file>';
+-- kb.chunks cascade from the version; kb.chunk_embeddings cascade from chunks;
+-- kb.ingest_log cascades. Nothing else in the corpus is touched.
+```
+
+**For a structured source**, the same plus its rows and generated cards, **cards first** —
+`ref.*` has no FK from `kb.chunks`, so deleting the rows first leaves orphaned cards, which
+is precisely the drift the design exists to prevent.
+
+**Every plan's §3 states, explicitly:**
+
+| | |
+|---|---|
+| the **exact literal** the command is keyed on | the file's SHA-256, or the guide and year |
+| what **cascades** and what does not | so nothing is deleted twice or missed |
+| the **verify-after** query and its expected output | a reset you cannot confirm is not a reset |
+| whether `kb.documents` is left behind | ✅ normally yes — `ON CONFLICT (slug) DO UPDATE` reuses it on the next run, and deleting it gains nothing |
+| anything the reset **cannot** undo | a shared-code edit, a renamed node, an exported JSON |
+
+⛔ **The plan never runs this.** It is written so it exists before it is needed, and it is
+triggered by you.
+
+### §4 — Testing
+**Two tiers, both required, written so they can be handed over and run without further
+explanation.** Copy-pasteable `docker exec` blocks with the expected output stated.
+
+**Tier A — pipeline (SQL, deterministic).** At minimum:
 
 1. rows by document + embedding coverage + null pages/headings — plan 06 §7.6's query,
-   unmodified; it is already the right one
-2. `kb.ingest_log` has 2 rows with a populated `drops` array
-3. **idempotency** — run again, stops at `Is new file?`, inserts 0
-4. `count(*)` before vs after matches §5's prediction
+   unmodified; it is already the right one. ⛔ **Including a row for every *existing*
+   document**, which is the check that this ingest touched nothing else
+2. `kb.ingest_log` has 2 rows, with a populated `drops` array and a populated `repairs`
+   array
+3. the drop ledger **by reason**, against the predicted counts
+4. **idempotency** — run again, stops at `Is new file?`, inserts 0
+5. `count(*)` before vs after matches the predicted number
 
 **Tier B — retrieval (`scripts/ask.sh`, deterministic).**
 
-- **≥ 3 positive controls** — questions this source newly makes answerable, each stating
-  the expected document slug and the rank it must reach. *"What sulfate-to-chloride ratio
-  suits a hoppy pale ale?"* → `water-comprehensive-guide` in the top 3.
+- **≥ 3 positive controls** — questions this source newly makes answerable, each stating the
+  expected document slug and the rank it must reach. *"What sulfate-to-chloride ratio suits
+  a hoppy pale ale?"* → `water-comprehensive-guide` in the top 3.
 - **the 5 standing regression questions** from
   [`02-phase1-retrieval-gate.md`](../archive/02-phase1-retrieval-gate.md), run **before**
   the ingest for a same-session baseline and again after. Keep/roll-back rule, unchanged
@@ -784,61 +895,94 @@ with expected output stated:
   |---|---|
   | prior rank-1 chunk still top 3 on all five | **keep**, log the shift |
   | falls out of top 6 on **one** | keep, log as a defect |
-  | falls out of top 6 on **two or more** | ⛔ **roll back** |
+  | falls out of top 6 on **two or more** | ⛔ **reset** (§3) |
 
-- the §3 Layer-2 **retrieval share** check over those 10 questions.
+- the §3 Layer-2 **retrieval share** check over those 10 questions. **Record it even when it
+  fires nothing** — a recorded null is what makes the first real firing legible.
 
-**Tier C — agent (ask the assistant, judged).** 3–5 questions through the n8n chat panel:
+**Tier C — agent (ask the assistant, judged).** ⚠️ **Not runnable until WF4 exists**, and
+every plan says so explicitly rather than omitting the tier. When it is runnable, 3–5
+questions through the n8n chat panel:
 
 | Type | Pass condition |
 |---|---|
 | new coverage | answers, names the new source, `[S…]` markers all resolve |
-| **refusal still holds** | *"How much Citra do I have?"* → *"I don't have a tool for that yet"*. **Every plan re-runs this** — it is the one hard fail, and every corpus change is a chance to break it |
+| **refusal still holds** | *"How much Citra do I have?"* → *"I don't have a tool for that yet"*. **Every plan re-runs this** — it is the one hard fail |
 | citation integrity | no `[S…]` the tool did not return |
 | conflict surfacing | where the new source disagrees with an existing one, both are attributed (Layer 4) |
 
 Each plan states whether `scripts/stress/tier1_routing.py` needs re-running — see §7.
 
-### §7 — Rollback, stated before the run
+**Predicted numbers, with a gate column**, computed by running §2's rules over §5's real
+probe output — because a test with no expected value is not a test:
 
-```sql
-DELETE FROM kb.document_versions WHERE id = <version_id>;  -- chunks + embeddings cascade
-```
+| Check | Predicted | Gate |
+|---|---|---|
+| kept chunks | *n* | ±10% |
+| median tokens | *n* | 200–450, or a documented miss and why |
+| under-30 | 0 | **must be 0** |
+| missing page / heading | 0 | **must be 0** |
+| embedding coverage | *n*/*n* | **100%** |
+| `kb.ingest_log` rows | 2 | must be 2 |
+| corpus share after | *x*% | < 25%, or argued |
 
-For structured sources, the equivalent `DELETE` on the table plus its generated cards.
+Plus a **runtime estimate, so a hung run is recognisable as hung** — and a threshold past
+which it is definitely hung, with the most likely cause.
 
-### §8 — Run procedure
-Numbered, **baseline first**, with a **stop-and-check before embedding** step. Plan 06 §7
-is the shape; don't deviate without a reason.
+### §5 — Evidence: what was measured before the plan was written
+⭐ **Standing rule 1, and the section the rest of the plan is derived from.** No plan is
+written from assumptions. Submit the file to the **live** Docling service with the engine's
+exact form fields and measure first:
 
-### §9 — What this source does to WF4
-The concrete edits from §7, with exact text. Never *"update the system prompt"* — always
-the sentence, written out.
+| Measure | What it decides |
+|---|---|
+| raw chunk count, chunks/page | sizing; prose vs. structured |
+| median / max / p25 / p75 `num_tokens` | whether §11's chunk-size band is met |
+| count under 30, count over 512 | drop rules; whether merging is needed |
+| chunks with no `page_from` | **must be 0** — citations break without it |
+| **top 20 headings by frequency** | plan 06's entire design turned on this one table |
+| front-matter page range | the `front_matter_max_page` constant |
+| **the hyphen probe, checked against the Docling output** | `text_repairs` — standing rule 7 |
+| 3 real chunks, verbatim | the only way to see what cleaning actually has to do |
+
+For a structured source the equivalent is: row count, per-field coverage, and any row that
+fails validation.
+
+**The probe output goes in the plan, as tables.** It is what makes every predicted number in
+§4 a derivation rather than a guess — and [`01-water.md`](01-water.md) §5.5 is the evidence
+that this works: 18 of 19 acceptance numbers landed **exactly**, not within tolerance.
+
+---
 
 ### Standing rules
 
-1. **Measure, then plan.** No plan without §1. Plan 06's design turned on one
+1. **Measure, then plan.** No plan without §5. Plan 06's design turned on one
    heading-frequency table nobody would have guessed.
 2. **One source per execution, one variable per run.** Never ingest two before re-running
    Tier B. §10.3's most-ignored rule.
 3. **Never ingest while chatting.** §4.5 — embedding saturates the GPU.
-4. **Export the workflow JSON and commit it** before the run. n8n's DB is not a backup.
+4. ⛔ **Export the workflow JSON and commit it** before the run. n8n's DB is not a backup —
+   and this rule has been broken once already, at book 1, where a shared-code edit and an
+   entire launcher existed only in n8n's database.
 5. **Every number is labelled `predicted` or `measured`.** One without a label is a defect
    in the plan.
 6. **A criterion that does not fit gets argued, not tuned.** Plan 06 §5.1 is the
    precedent: the stout guide misses the chunk-size band in *both* directions, and the
    right answer was a format-aware criterion, not a changed `max_tokens`.
 7. ⚠️ **Run [`scripts/hyphen-probe.sh`](../../scripts/hyphen-probe.sh) on every PDF before
-   ingesting it, and put the result in `text_repairs`.** Added after book 0a. Every
-   extractor joins wrapped lines and drops the trailing hyphen, so a numeric range split
-   across a line break silently fuses — `45-`/`90 minutes` becomes `4590 minutes`. No
-   Docling option changes this and OCR does not help; both were tested
-   ([`00a-rebuild.md`](00a-rebuild.md) §1.3). **Measured: 5 of the 9 sources are affected.**
-   The BA guidelines are the dangerous one — 9 sites, all *final-gravity ranges* headed for
-   `ref.styles` vitals, so book 0b must run the probe before parsing. The output is a draft:
-   table columns produce false positives, so read it before pasting.
-
----
+   ingesting it, and put the result in `text_repairs`.** Every extractor joins wrapped lines
+   and drops the trailing hyphen, so a numeric range split across a line break silently
+   fuses — `45-`/`90 minutes` becomes `4590 minutes`. No Docling option changes this and OCR
+   does not help; both were tested ([`00a-rebuild.md`](00a-rebuild.md) §1.3).
+   ⛔ **The script's output is a hypothesis, not the answer — check every pair against the
+   real Docling result before pasting.** Book 1 is the precedent and it failed in both
+   directions: one drafted pair matched **nothing** (which aborts the ingest, by design),
+   and another, `["35","3-5"]`, matched **79** places and would have silently rewritten the
+   copyright page's `TP583.P35 2013`. Meanwhile the site the README had recorded as at-risk
+   turned out not to be, because Docling and `pdftotext` disagree about which wraps they
+   join. See [`01-water.md`](01-water.md) §5.6.
+8. ⭐ **Every plan carries a reset command (§3), and it must work on a partial run.**
+   Replaces the stop-and-check-before-embedding step that plans 00a–01 used.
 
 ## 7. What this phase does to WF4
 
@@ -905,9 +1049,9 @@ and they are why the §10 eval baseline waits until the corpus is complete.
 
 | # | Source | Plan | Probed | Built | Tier A | Tier B | Tier C |
 |---|---|---|---|---|---|---|---|
-| 0a | Rebuild + How to Brew | ✅ [00a](00a-rebuild.md) | ✅ 447, re-measured | ✅ **engine + launcher, both committed** | 🟡 **A3, A5 left** | ⬜ **no baseline recorded** | ⬜ n/a — no WF4 |
-| 0b | Styles model | ✅ [00b](00b-styles.md) | ✅ re-measured 2026-08-12 | ✅ **22 nodes, committed** | ✅ **A0–A5b pass** | ⛔ **A/B not run — only variant B** | ⬜ n/a — no WF4 |
-| 1 | Water | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| 0a | Rebuild + How to Brew | ✅ [00a](00a-rebuild.md) | ✅ 447, re-measured | ✅ **engine + launcher, both committed** | 🟡 **A3 watchable, `$5` left** | ✅ **Q1 and Q3 hit their documented ranks** | ⬜ n/a — no WF4 |
+| 0b | Styles model | ✅ [00b](00b-styles.md) | ✅ re-measured 2026-08-12 | ✅ **22 nodes, committed** | ✅ **A0–A5b pass** | ✅ **covered by book 1's run** — Q10 returns 5 of 6 style cards | ⬜ n/a — no WF4 |
+| **1** | **Water** | ✅ [01](01-water.md) | ✅ **440 raw, measured 2026-08-12** | ✅ **built and run — 382 chunks, 0 gaps** | ✅ **all pass; 18 of 19 predictions exact** | ✅ **10 questions; Layer 2 fires on nothing** | ⬜ n/a — no WF4 |
 | 2 | Yeast | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | 3 | Malt | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | 4 | Draught manual | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
@@ -924,25 +1068,31 @@ and they are why the §10 eval baseline waits until the corpus is complete.
 | **D30** | engine + per-book launcher, §2.1 | ✅ **settled** — your call |
 | **D33** | full reset, §D33 above | ✅ **settled and executed** 2026-08-07 |
 | **D32** | the styles model — `ref` schema, §5.3 | ✅ **accepted** — D33 removed its only counter-argument |
-| **D32b** | one card or two, §5.5 | ⛔ **still open.** The *method* is settled — three runs, rule fixed in advance — but only variant **B** was executed on 2026-08-12, so B is deployed **by default, not by measurement**. Running A0 and A is 2 × ~3 min plus the probe set |
+| **D32b** | one card or two, §5.5 | ✅ **closed 2026-08-12 — variant B, by argument.** A0 discards five prose fields; A busts the context budget by 36%. B is the only complete variant that fits. ⚠️ Whether the *split* helps retrieval is untested and recorded as such — §5.5 names it as the live suspect if style questions retrieve badly |
 | **D31** | overlap policy, §3.3 | ⬜ **open — decide by book 5.** Books 1–4 each own their topic and present no scoping choice. `kb.documents.authority` ✅ shipped at book 0a, as planned |
 
 **Nothing is blocked by a decision.** D31 is the only open one and it is not needed until
-book 5. **Book 1 is blocked by a missing measurement**, which is different and cheaper to fix.
+book 5.
 
-**What is left before book 1 — three items, all small, and all evidence rather than build:**
+**Where things actually stand, 2026-08-12 — books 0a, 0b and 1 are built; the gap is
+evidence, not build:**
 
-| | What | Why it is not optional |
+| | What | Status |
 |---|---|---|
-| **Tier B baseline** ⭐ | the 5 standing questions from [`02-phase1-retrieval-gate.md`](../archive/02-phase1-retrieval-gate.md), run once against today's 679-chunk corpus and **written down** | ⛔ **the single blocker for book 1.** Every later source's keep/roll-back rule compares against a prior rank-1 chunk, and there is no prior. Five `ask.sh` calls |
-| **the A/B** | run variants A0 and A, record all three results including the losers ([`00b`](00b-styles.md) §6) | D32b is open. B ships today because it ran last, not because it won — and §5.5 exists precisely so that the split is not decided by which variant someone happened to build |
-| **A5** | node 26's `$5` parameter, then a deliberate re-ingest | the 2026-08-12 re-ingest was a real run and the ledger was still empty. Cheap to wire, and it is the only record of *which* hyphen repairs fired |
+| ⛔ **Tier B, all three books** | the 5 standing questions from [`02-phase1-retrieval-gate.md`](../archive/02-phase1-retrieval-gate.md), plus book 1's 4 positive controls and the Layer-2 retrieval-share check | ⛔ **never run, for any source.** This is now the largest hole in the record: three documents are in the corpus and **nothing** is known about how they compete. ⚠️ A pre-Water baseline is no longer takeable — Water is already in — so Q1 and Q3 act as the gate (they have documented expected results) and the rest becomes a post-Water baseline for books 2–9 |
+| ⛔ **A5 — the repair ledger** | node 26's `$5` | ⚠️ **half done.** The Query Parameters already pass five values; the SQL still reads `jsonb_build_object('stats', $2, 'drops', $3)` and ignores `$5`. **One line.** Book 1's repairs were reconstructible from the total, but *How to Brew*'s five pairs would not be — wire it before book 2 |
+| ⛔ **Standing rule 4 was broken at book 1** | the untab edit to `wf1-ingest-book` and the whole `ingest-water` launcher exist **only in n8n's database** | ⛔ export and commit both. The tracked `wf1-ingest-book.json` is stale: 27 nodes, no untab, no `$5` |
+| ⚠️ **Housekeeping** | the orphaned `Clean + normalise1` node; four stale JSONs in `n8n/demo-data/workflows/` | still open. ⛔ The orphan is now a **third** divergent copy of the cleaning profile, since the live node has the untab fix and it does not. Move `wf4-chat-agent.json` to `backup/` rather than deleting it — it is one of three surviving copies of system prompt v3 |
+| ✅ A3 · the A/B | — | A3 is watchable at any time (§4 Tier A). The A/B is **retired** — D32b closed by argument, §5.5 |
 
 ⚠️ **A3 cannot be checked retroactively** — a dedup short-circuit writes nothing to the
-database, so it must be watched live: run `ingest-how-to-brew`, confirm it ends at
-`Already ingested — stop` in seconds.
+database, so it must be watched live: run the launcher, confirm it ends at
+`Already ingested` in seconds with an unchanged `kb.chunks` fingerprint.
 
-**Then book 1:** *"give me the detailed plan for Water"* → `plans/phase3/01-water.md`. It uses
-the engine with a new `ingest-water` launcher, `profile: book`, and standing rule 7's hyphen
-probe applies — the file has **5 at-risk sites** measured (pH `5.6-6.0`, `(65-70°C)`,
-`0.005-0.010`, `50-70%`).
+**Book 1 is built.** [`01-water.md`](01-water.md) — the engine with an `ingest-water`
+launcher, `profile: book`, **382 chunks measured**. ⭐ **Standing rule 7's warning earned its
+⛔ there:** the hyphen probe drafted 5 pairs for this file and **two were wrong** — one
+matched nothing (which aborts the ingest, correctly) and `["35","3-5"]` matched **79**
+places. The final set is **4 pairs**, and the site the earlier draft of this README called
+at-risk — pH `5.6-6.0` — **is not**, because Docling kept that hyphen where `pdftotext`
+predicted a fusion. See [`01-water.md`](01-water.md) §5.6.
