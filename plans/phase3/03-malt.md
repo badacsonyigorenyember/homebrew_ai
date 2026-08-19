@@ -3,8 +3,9 @@
 **Status:** ✅ **built, run and scored** — ingested **2026-08-19 11:03:53 → 11:06:55 UTC**
 (n8n executions 248/249, **3 min 02 s**), **340 chunks `measured`**; ⭐ **Tier A A1–A7 and all
 11 Tier B questions run and recorded 2026-08-19** in §4.
-⛔ **Two items open:** A3 **not yet observed**, and §1.2 item 1 (the orphaned
-`Clean + normalise1` node) **handed over — it is a UI action**.
+⭐ ✅ **§1.2 item 1 is CLOSED** — the orphaned `Clean + normalise1` node was deleted in the UI at
+**10:58:46 UTC**, five minutes before the run; the engine is **26 nodes**, live and tracked.
+⛔ **One item open:** A3 **not yet observed**.
 ⚠️ **One item to reconcile:** ⭐ **two `ingest-malt` workflows exist** — §2.1a.
 Tier C ⬜ **not runnable** (§4.3, book 4.5).
 **Written:** 2026-08-19 · **§4 completed with `measured` results 2026-08-19**
@@ -35,7 +36,8 @@ from §5's probe output.
 > | ⭐ §4.2d — the epigraph defect | ⛔ ✅ **predicted and confirmed.** `-Bill Simpson` retrieved at **rank 3 on Q8** and **rank 6 on Q6**, `-William Littell Tizard…` at **rank 4 on Q10**. ⭐ **Three questions, three unreadable citations — the defect is no longer cosmetic.** §4.2d |
 > | ⭐ **standing rule 4** | ✅ **kept for the first time in the phase** — the launcher was in git before it was in a run |
 > | ⚠️ **what the run did *not* settle** | `$5`'s ledger reads **2 / 2**, and a symmetric ledger cannot distinguish *stored* from *reconstructed*. Stated in §4.1 A2c rather than ticked |
-> | ⛔ **still open** | A3 never observed · the orphaned `Clean + normalise1` still live · ⭐ **a duplicate `ingest-malt` workflow**, §2.1a |
+> | ⭐ ✅ **the orphan is gone** | `Clean + normalise1` was deleted in the UI at **10:58:46 UTC** and the engine re-exported — **26 nodes**, live and tracked, for the first time since book 1 flagged it. ⭐ **The run at 11:03:53 therefore executed a 26-node engine**, and `Clean + normalise` is byte-identical at 8,229 characters |
+> | ⛔ **still open** | A3 never observed · ⭐ **a duplicate `ingest-malt` workflow**, §2.1a |
 >
 > ⭐ **n8n expressions in this plan are written without the leading `=`** (README §6 §3.1).
 > Paste them into the expression editor, which supplies the `=` itself. **The one place a `=`
@@ -153,7 +155,7 @@ Walked over all 26 wired nodes of `wf1-ingest-book`. ⭐ **Every row is *correct
 | 13 `Clean + normalise` | ✅ **correct as-is** | ⭐ **and its untab block is load-bearing here** — §0.1. All three `book`-profile rules fire on this source, which no previous book managed |
 | 14 `Ensure doc + version` … 25 `Assert embeddings` | ✅ correct as-is | `Loop Over Items` batchSize **32** `measured` → **11** batches for 340 chunks |
 | 26 `Log ingest summary` | ✅ correct as-is | ⚠️ its promote message still interpolates the version **row id** — §0.4 |
-| ⛔ `Clean + normalise1` (orphan, 27th) | ⛔ **deleted before the build** | §1.2 item 1 |
+| ⭐ ✅ `Clean + normalise1` (was the 27th) | ⭐ **deleted 10:58:46 UTC, before the run** | §1.2 item 1 — the engine is **26 nodes** |
 | **`ingest-malt` (new, 2 nodes)** | 🆕 **the intended change** | 13 constants. §2 |
 
 ### 0.4 What is *not* built, so its absence is a decision
@@ -181,7 +183,7 @@ Re-measured for this plan. ⛔ **Nothing below is carried from the prompt or fro
 | corpus totals | the §4 A4 query | **1,524** chunks · **0** embedding gaps · **4** `is_current` · **1024** dims (one distinct value) |
 | `kb.documents` | the §4 A1 query | `how-to-brew-palmer` **447** (30/291/524) · `water-comprehensive-guide` **382** (31/342/513) · `yeast-practical-guide` **463** (30/313/512) · `bjcp-2021-beer-styles` **232** |
 | n8n workflows | `n8n list:workflow` | ⭐ **5** — `wf1-ingest-book` `NoNCV2mkQEppWP7O` · `ingest-how-to-brew` `BAe1fP1g7ZUsbIaq` · `ingest-water` `ciWYDt5MhFseACiN` · `ingest-bjcp-styles` `Ejf3ESE3SK1XBqe3` · `ingest-yeast` `UvDB7iJdXH262CNl`. ⛔ **None is an agent, none is a tool** |
-| ⚠️ `wf1-ingest-book` node count | live export + tracked JSON, connection graph walked | ⛔ **27 in both** — 26 wired, 1 orphan `Clean + normalise1`, `jsCode` **4,259** chars against the live `Clean + normalise`'s **8,229**, and **no untab block**. §1.2 item 1 |
+| ⚠️ `wf1-ingest-book` node count | live export + tracked JSON, connection graph walked | ⛔ **27 in both** at the time of writing — 26 wired, 1 orphan `Clean + normalise1`, `jsCode` **4,259** chars against the live `Clean + normalise`'s **8,229**, and **no untab block**. ⭐ **Closed later the same day: §1.2 item 1, now 26** |
 | ⭐ **`$5` — read back, not assumed** | `select r->>'find', (r->>'applied')::int from kb.ingest_log, jsonb_array_elements(detail->'repairs') r` | ✅ **four rows, `54 / 17 / 10 / 6`**, summing to 87 — the Yeast ledger, still stored. ⚠️ §4.1 A2c states what Malt's ledger can and cannot prove |
 | ⛔ `detail ? 'repairs'` across the log | `select stage, detail ? 'repairs' from kb.ingest_log` | **8 rows, true on exactly one** — Yeast's `clean`. The `$5` edit post-dates books 0a/0b/1 |
 | ✅ the untab block | live `Clean + normalise` | **present** (`const untab = …replaceAll('\t',' ')`), above the repair loop |
@@ -217,16 +219,29 @@ UI, then re-export so the engine is **26 nodes** as documented:
 docker exec n8n n8n export:workflow --id=NoNCV2mkQEppWP7O --pretty --output=/demo-data/workflows/wf1-ingest-book.json && docker exec n8n chown 1000:1000 /demo-data/workflows/wf1-ingest-book.json
 ```
 
-⛔ **Status 2026-08-19: NOT DONE — handed over, because it cannot be done from the CLI.**
-`measured`: `n8n --help` offers `export:workflow`, `import:workflow`, `list:workflow`,
-`publish:workflow`, `unpublish:workflow`, `execute` and `audit`. **There is no node-level
-edit.** The only CLI route is `import:workflow` over `wf1-ingest-book`, and ⛔ **that is
-explicitly not taken**: an import rewrites the engine's stored version, which is a second
-variable in a run that should have one, on the one workflow every book depends on.
+⭐ ✅ **DONE 2026-08-19 at 10:58:46 UTC — in the UI, five minutes before the run.**
 
-⚠️ **So this is a UI action and it is yours.** Open `wf1-ingest-book`, delete the
-`Clean + normalise1` node, save, then re-export. `measured` after the export above:
-`wf1-ingest-book` is still **27 nodes**, so §4.6's first line is currently ⛔.
+⚠️ **It could not be done from the CLI, and that is why it took three books.** `measured`:
+`n8n --help` offers `export:workflow`, `import:workflow`, `list:workflow`, `publish:workflow`,
+`unpublish:workflow`, `execute` and `audit` — **there is no node-level edit.** The only CLI
+route was `import:workflow` over `wf1-ingest-book`, and ⛔ **that was explicitly refused**: an
+import rewrites the engine's stored version, which is a second variable in a run that should
+have one, on the one workflow every book depends on. **So it was handed over, and done by hand.**
+
+⭐ **`measured` after the fact, against the live stack:**
+
+| Check | Result |
+|---|---|
+| `wf1-ingest-book` node count, **live** | ⭐ ✅ **26** |
+| node count, **tracked JSON** | ⭐ ✅ **26** |
+| `Clean + normalise1` present | ⭐ ✅ **no** — in either |
+| ⛔ `Clean + normalise` unchanged | ✅ **8,229 characters**, untab block present, `repairCounts` loop present — **byte-identical to the node book 1 left behind** |
+| the engine the run executed | ⭐ **26 nodes** — the deletion at 10:58:46 preceded execution 249 at 11:03:53 |
+
+⭐ **Flagged at book 1, flagged again at book 2, closed at book 3.** ⚠️ **It changed nothing
+about the ingest** — the orphan had no connections and n8n never reached it — which is exactly
+what made it survive two books. **The value is that there is no longer a third divergent copy
+of the cleaning profile in tracked source.**
 
 ⛔ **This does not touch `Clean + normalise` itself.** The live cleaning profile stays
 byte-identical, and ⚠️ **nothing in book 3 depends on the deletion** — the orphan has no
@@ -329,8 +344,8 @@ be the reproducible record of *what ran*. Tracking the copy that never executed 
 prevent, arriving from the opposite direction.
 
 ⛔ **The unused duplicate should be deleted, and it is a UI action.** There is no
-`delete:workflow` in the n8n CLI (§1.2 records the same finding for the orphaned node), so
-`ingestMalt00001A` is handed over alongside `Clean + normalise1`. ⚠️ **Two workflows with the
+`delete:workflow` in the n8n CLI — ⭐ **the same constraint that kept `Clean + normalise1` alive
+for three books, and which was closed the same way: by hand** (§1.2). ⚠️ **Two workflows with the
 same name is worse than an orphaned node with a unique one** — the next person to click Run has
 a 50% chance of running the wrong artefact.
 
@@ -1290,9 +1305,12 @@ three times.**
 
 ### 4.6 Exit — book 3 is done when
 
-- [⛔] §1.2 item 1 — the orphan **deleted** and the engine re-exported at **26 nodes**
-  - ⛔ **not done, handed over.** `measured` 2026-08-19: no n8n CLI command edits a node, and
-    importing over `wf1-ingest-book` is refused as a second variable. Still **27 nodes**
+- [✅] §1.2 item 1 — the orphan **deleted** and the engine re-exported at **26 nodes**
+  - ⭐ **done 2026-08-19 10:58:46 UTC, in the UI**, five minutes before the run. `measured`:
+    **26 nodes live and 26 tracked**, no `Clean + normalise1` in either, and
+    `Clean + normalise` byte-identical at 8,229 characters. ⭐ **Flagged at book 1, flagged
+    again at book 2, closed at book 3** — and it took a UI action because the n8n CLI has no
+    node-level edit
 - [⛔] §1.2 item 2 — **A3 observed live** after the `promote` row exists
   - ⛔ **not observed.** `measured`: `hpW9P0n7fxXY9KdF` has exactly **one** execution (248).
     ⭐ **Unlike books 1 and 2 the obstacle is gone** — the `promote` row exists (A2), so the
@@ -1724,9 +1742,10 @@ verdict is *not* mapper-only:** a new `ba_manual` cleaning profile for a two-col
 > at **rank 1**, all five positive controls at **rank 1**, and Layer 2 firing on **nothing** for
 > the third run running. ⭐ **Two open design questions closed by measurement** — the glyph
 > decoder and merge-forward — and ⭐ **one standing rule kept for the first time in the phase.**
-> ⛔ **Three things are open and none of them is the ingest:** A3 was never observed, the
-> orphaned `Clean + normalise1` is still live, and there are now **two** workflows named
-> `ingest-malt`.
+> ⭐ **And a three-book hygiene debt was finally paid**: the orphaned `Clean + normalise1` node,
+> flagged at book 1 and again at book 2, was deleted before the run — the engine is **26 nodes**
+> for the first time since the phase started tracking it. ⛔ **Two things are open and neither is
+> the ingest:** A3 was never observed, and there are now **two** workflows named `ingest-malt`.
 
 ⛔ **What book 4 inherits, stated so it is not rediscovered:**
 
@@ -1740,6 +1759,8 @@ verdict is *not* mapper-only:** a new `ba_manual` cleaning profile for a two-col
    line wrapping is denser per page than anywhere in the corpus so far.** ⚠️ **Run the broadened
    sweep, not just the script**, and consider fixing the script in book 4's run, which is
    already touching shared code.
+   ⭐ **This is now the phase's only *code* defect that is still open** — §1.2 item 1 closed the
+   orphan, so `scripts/` is where the remaining drift lives.
 4. ⛔ ⭐ **The epigraph-heading defect retrieved, on three questions — fix it at book 4.**
    `measured` §4.2d: `-Bill Simpson` at **rank 3 on Q8** and **rank 6 on Q6**,
    `-William Littell Tizard…` at **rank 4 on Q10**. ⭐ **This is the condition book 3 set, and it

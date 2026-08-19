@@ -1728,10 +1728,13 @@ normalise1`** node is still live, still divergent, still a third copy of the cle
 ⛔ **None is a defect in the corpus. All three are the record, and the record is what this
 phase is for.**
 
-⭐ **Update 2026-08-19, after book 3's run — one of the three is closed.** **Standing rule 4 was
-kept**: `ingest-malt.json` was exported and committed *before* its first run, the first time the
-property the rule protects has survived a book. ⛔ **The other two are still open** — A3 has
-still never been observed on any book launcher since book 0a, and the orphaned
-`Clean + normalise1` is still live, now with book 3's finding attached: **no n8n CLI command
-edits a node**, so it can only be done in the UI. ⚠️ **Book 3 added a fourth of the same kind** —
-a duplicate `ingest-malt` workflow, blocked by the same UI-only constraint.
+⭐ **Update 2026-08-19, after book 3's run — two of the three are closed.**
+**Standing rule 4 was kept**: `ingest-malt.json` was exported and committed *before* its first
+run, the first time the property the rule protects has survived a book. ⭐ **And the orphaned
+`Clean + normalise1` node is gone** — deleted 2026-08-19 at 10:58:46 UTC, five minutes before
+book 3's ingest; `wf1-ingest-book` is **26 nodes** live and tracked, and `Clean + normalise` is
+byte-identical at 8,229 characters. ⚠️ **Why it took three books: no n8n CLI command edits a
+node**, so it needed a UI action.
+⛔ **One is still open** — A3 has still never been observed on any book launcher since book 0a.
+⚠️ **And book 3 added one of its own**: a duplicate `ingest-malt` workflow, blocked by that same
+UI-only constraint.
