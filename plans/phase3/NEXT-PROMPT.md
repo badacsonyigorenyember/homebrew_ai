@@ -17,6 +17,34 @@ wrong before.
 > rule 3 forbids ingesting while I am chatting, so **stop and ask before executing the
 > launcher**, and do everything on both sides of that without stopping.
 
+> ## ⭐ Progress marker — book 3 is RUN and SCORED, updated 2026-08-19
+>
+> ⛔ **Do not restart from the top if you are resuming.** What is finished:
+>
+> | Step | Status |
+> |---|---|
+> | 1 · probe first | ✅ **done** — live Docling, the ten form fields, **458 raw chunks, 160.85 s**. Hyphen probe plus three broadened sweeps. [`03-malt.md`](03-malt.md) §5 |
+> | 2 · write `03-malt.md` | ✅ **done** — six sections, §5 measured first and placed last, all five handover questions answered in their own sections |
+> | 3 · delete the orphaned `Clean + normalise1` | ⛔ **NOT DONE — handed over.** `measured`: no n8n CLI command edits a node. It is a UI action. `wf1-ingest-book` is still **27 nodes** |
+> | 4 · build and export `ingest-malt` | ✅ **done** — exported and committed **before** the first run. ⭐ **Standing rule 4 kept for the first time in the phase** |
+> | 5 · the ingest | ✅ **run 2026-08-19 11:03:53 → 11:06:55 UTC** (executions 248/249, **3 min 02 s**) — ⚠️ **triggered from the UI, not by the assistant** |
+> | 6 · A3 last | ⛔ **NOT OBSERVED.** ⭐ The `promote` row exists, so the obstacle books 1 and 2 hit is gone and the check is one click. Recorded as *not observed*, never as passed |
+> | 7 · close the record | ✅ **done** — §4.0 has a measured column, Tier A A1–A7 and all 11 Tier B questions are recorded inline, §4.6 is scored ✅/⚠️/⛔, README §9 and §4.3 updated |
+>
+> ⭐ **Result: 340 chunks, 30 of 30 predicted numbers exact, none falsified.** Tier B **keep** —
+> all five prior rank-1 chunks still at **rank 1**, Q1–Q5 byte-identical to the post-Yeast
+> baseline, all 5 controls at rank 1, Layer 2 fires on nothing. `kb.chunks` = **1,864**.
+>
+> ⛔ **Three things are open, all of them UI actions or one click:**
+> **A3** · the orphaned **`Clean + normalise1`** node · ⭐ a **duplicate `ingest-malt` workflow**
+> (`ingestMalt00001A`, never ran — the tracked JSON is the one that did).
+>
+> ⚠️ **This file is now stale as an instruction set.** Rewriting it for **book 4 — the Draught
+> Beer Quality Manual, 124 p**, the first source needing a new `ba_manual` cleaning profile, is
+> the remaining task. [`03-malt.md`](03-malt.md)'s *"What book 3 hands to book 4"* section is
+> the source material: nine numbered items, including the epigraph-heading fix, the
+> `hyphen-probe.sh` bug and the chunk-size band.
+
 ---
 
 Read `@plans/phase3/README.md` (the contract — **§6** is the six-section skeleton every plan

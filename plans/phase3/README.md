@@ -1,22 +1,23 @@
 # Phase 3 — the corpus, rebuilt one source at a time
 
 **Status:** 🟢 **0a, 0b, 1 and 2 built and Tier-B verified · the agent scheduled at book 4.5
-(§4.2) · book 3 (Malt) is next to plan** ·
+(§4.2) ·** ⭐ **book 3 (Malt) built, run and Tier-A/Tier-B verified — 340 chunks** ·
 **Written:** 2026-08-07 · **§6 contract revised 2026-08-12 · agent timing set 2026-08-12 ·
-book 2's record closed 2026-08-19**
+book 2's record closed 2026-08-19 · ⭐ book 3 run and closed 2026-08-19**
 **Prereqs:** none for 0a. Books 0b–9 need 0a's schema and engine, both of which now exist.
 
 > ## 🟢 Where the corpus actually stands — measured 2026-08-19
 >
 > | | Measured |
 > |---|---|
-> | `kb.chunks` | ⭐ **1,524** — **Yeast 463** (30.4%) · *How to Brew* **447** (29.3%) · **Water 382** (25.1%) · BJCP style cards **232** (15.2%) |
-> | embedding gaps · dims · `is_current` versions | **0** · **1024** (one value) · **4** |
-> | `page_count` per book | Yeast **305** · How to Brew **248** · Water **239** |
+> | `kb.chunks` | ⭐ **1,864** — *How to Brew* **447** (24.0%) · **Yeast 463** (24.8%) · **Water 382** (20.5%) · ⭐ **Malt 340** (18.2%) · BJCP style cards **232** (12.4%) |
+> | ⭐ **corpus share** | ⭐ **no document is above 25%** — for the first time since book 0b |
+> | embedding gaps · dims · `is_current` versions | **0** · **1024** (one value) · ⭐ **5** |
+> | `page_count` per book | Yeast **305** · How to Brew **248** · Water **239** · ⭐ **Malt 262** |
 > | `ref.styles` | **116** BJCP 2021 rows · 96 with vitals · 20 without · 30 entry instructions |
-> | n8n workflows | ⭐ **5** — `wf1-ingest-book`, `ingest-how-to-brew`, `ingest-bjcp-styles`, `ingest-water`, **`ingest-yeast`**. ⛔ **None is an agent or a tool** — Tier C still not runnable |
+> | n8n workflows | ⚠️ **7** — `wf1-ingest-book`, `ingest-how-to-brew`, `ingest-bjcp-styles`, `ingest-water`, `ingest-yeast`, and ⛔ ⭐ **two named `ingest-malt`** (`hpW9P0n7fxXY9KdF`, which ran; `ingestMalt00001A`, which never did). ⛔ **None is an agent or a tool** — Tier C still not runnable |
 >
-> ⭐ **Probe-then-plan has now been tested twice and it is getting *more* accurate, not less.**
+> ⭐ **Probe-then-plan has now been tested three times and it is still getting *more* accurate.**
 > Book 1: **18 of 19** acceptance numbers exact. ⭐ **Book 2: 21 of 21** — 526 raw → 463 kept,
 > drop ledger 27/21/15 by reason, median 313, `page_count` 305, `repairs_applied` 87, corpus
 > total 1,524, every one of them derived from a §5 probe before the run. That is the strongest
@@ -24,16 +25,33 @@ book 2's record closed 2026-08-19**
 > other publishers needed **zero** new nodes, **zero** new profiles and **zero** schema
 > changes, and book 2 needed **zero shared-code edits** as well.
 >
+> ⭐ **Book 3: 30 of 30** — 458 raw → **340 kept**, drop ledger **62 / 29 / 12 / 8 / 7**, median
+> **339**, p25/p75 **160 / 482**, min/max **44 / 517**, `page_count` **262**, `repairs_applied`
+> **4**, corpus **1,864**, and A7's residue counts **5 / 7 / 1 / 262**. ⛔ **Not one needed a
+> tolerance and not one prediction in the plan was falsified.** ⭐ **The runtime estimate held
+> too — `predicted` ~3 min, `measured` 3 min 02 s** — which is the first time that number has
+> been right, because it was derived from book 2's execution record instead of inherited as
+> prose.
+>
 > ⚠️ **Where the accuracy stops, stated so it is not over-read.** Book 2's two wrong
 > predictions were both *outside* the gate table and both were arithmetic rather than
 > pipeline: a `text_repairs` check that counted **sites** and asserted **rows**, and a glyph
 > residue counted on the wrong field. **A number derived from the probe by simulation held
 > every time; a number written by hand next to one did not.**
 >
-> ⭐ **New since the last revision — book 2 is built and its record is closed:**
+> ⭐ **New since the last revision — book 2's record is closed and book 3 is planned and armed:**
 >
 > | | |
 > |---|---|
+> | ⭐ ✅ **Book 3 built, run and closed** | [`03-malt.md`](03-malt.md) — probed 2026-08-19 (**458 raw, 160.85 s**), ingested the same day (**3 min 02 s**, executions 248/249), **340 chunks**. ⭐ **Thirty predicted numbers, thirty exact.** Tier B **keep** — all five prior rank-1 chunks still at **rank 1**, Q1–Q5 **byte-identical** to the post-Yeast baseline, all **5** controls at rank 1. ⭐ **Mapper-only: zero new nodes, zero new profiles, zero schema changes, zero shared-code edits** — the third book in a row |
+> | ⭐ ⛔ **The epigraph-heading defect retrieved — it is no longer cosmetic** | Water's `-J. Palmer` was recorded as a known cost. `measured` at book 3: `-Bill Simpson` reaches **rank 3 on Q8** and **rank 6 on Q6**, `-William Littell Tizard…` **rank 4 on Q10**. ⭐ **Three documents, and for the first time it retrieves on questions the source *owns*** — a correct Mallett passage cited to the author of the chapter's epigraph. ⛔ **Fix it at book 4**, which is already editing the cleaning node |
+> | ⭐ ✅ **Ownership declared before the run — Layer 2's last unmeasured term** | [`02-yeast.md`](02-yeast.md) §4.2b complained that five of book 2's ten questions were resolved by adjudicating ownership **after** seeing the results. Book 3 declared all **11** in the plan. `measured`: ⭐ **zero post-hoc adjudications were needed.** The rule is now a measurement rather than a judgement |
+> | ⚠️ **Layer 2 fires on nothing, a third time — and the corpus-share proxy is 0 for 3** | books 1 and 2 **crossed** 25% and took 0 of 6 on the style question; ⭐ **book 3 does not cross it, takes 0 of 6 anyway, and puts the whole corpus back under the line.** ⛔ **Corpus share has predicted retrieval share three times and been wrong three times.** Argued, not deleted (standing rule 6) — the case it was written for is still ahead at book 5 |
+> | ⭐ ✅ **Standing rule 4 kept, for the first time** | `ingest-malt.json` was exported from n8n and **committed before any execution of it existed** (`a9bcefb`). Broken at book 1, broken again at book 2 — ⭐ **book 3 is the first book where the launcher was in git before it was in a run** |
+> | ⭐ ⛔ **`hyphen-probe.sh` has a false-negative bug, found at book 3** | [`03-malt.md`](03-malt.md) §5.6 — Docling normalises en dashes to ASCII **after** joining a wrap, so an en-dashed numeric range that wraps is **invisible** to the script and **fused** by Docling. `measured`: the probe returned `0 at-risk site(s)` while two real fusions sit in kept text — `212220°F` (p.256) and `5565°F` (p.259). ⛔ **The first of three books where the draft failed *silently*.** Fix is one character class, `[-‐–—]$`; handed to book 4 |
+> | ⭐ ⛔ **The glyph decoder is closed by measurement** | [`02-yeast.md`](02-yeast.md) §0.3 set the test: *"if a second Brewers Publications title ships the same broken display font, build it."* `measured` at book 3 — **it does not.** *Malt* is Brewers Publications 2014 and has **0** glyph runs in 458 chunks. **The `+17` offset was a property of one PDF's font subset, as argued** |
+> | ⭐ ✅ **Book 1's untab edit is confirmed *necessary*, not merely safe** | book 2 proved it a provable no-op (0 tabs). ⭐ Book 3 proves it load-bearing: *Malt* carries **147,910** tabs — **twice Water's, and more tabs than spaces** — with **296 of 458** chunks carrying one **inside a heading**. Without it, 296 citations would render `-Bill\tSimpson` |
+> | ⭐ ⛔ **Merge-forward is decided against, and book 2 named the wrong fix** | [`02-yeast.md`](02-yeast.md) §4.4 said *"if Malt shows it again, build merge-forward."* `measured`: Malt's token floor takes **7**, and **0** are severed prerequisites — all 7 are **sentence tails** sharing the preceding chunk's heading, which merge-forward would not fix and merge-**backward** would. ⭐ **Two problems were being counted as one.** [`03-malt.md`](03-malt.md) §0.2 |
 > | ⭐ ✅ **Book 2 built, run and closed** | [`02-yeast.md`](02-yeast.md) — ingested 2026-08-12, record closed 2026-08-19. **526 raw → 463 kept**, and ⭐ **every one of §4.0's twenty-one predicted numbers hit exactly** — the drop ledger by reason (27/21/15), median 313, `page_count` 305, `repairs_applied` 87, corpus total 1,524. Book 1 landed 18 of 19; **book 2 landed all of them.** ⭐ **Mapper-only: zero new nodes, zero new profiles, zero schema changes and — unlike book 1 — zero shared-code edits.** §4's *"should be near-free"* prediction holds a second time |
 > | ⭐ ✅ **The repair ledger records, per pair** | `kb.ingest_log`'s `clean` row carries `repairs` `54 / 17 / 10 / 6`, matching [`02-yeast.md`](02-yeast.md) §2.4 pair for pair. **`$5` is passed *and stored*.** The asymmetry is what makes it a real test — a total could not have produced those four numbers. ⚠️ **One observation on one book**; book 3 re-reads it rather than assuming it |
 > | ✅ **Tier B at four documents — Layer 2 fires on nothing, again** | **keep**: all five prior rank-1 chunks still top 3, **all four positive controls at rank 1**, Q2 and Q3 byte-identical to the post-Water baseline. ⭐ **Yeast is 30.4% of the corpus and returns 0 of 6 on the style question** — the second document to cross the 25% proxy without touching a question it does not own |
@@ -44,8 +62,8 @@ book 2's record closed 2026-08-19**
 > | Open | Why it still matters |
 > |---|---|
 > | ⛔ **A3 — the dedup short-circuit — has still never been observed on a book launcher since book 0a** | it writes nothing, so it cannot be checked after the fact. `measured`: `ingest-yeast` has exactly **one** execution. ⚠️ Book 1's attempt (executions 244/245) was launched **86 s before the first run committed**, so it ran the full path instead — and finished with status **`success`** having promoted nothing. **Run A3 as the last step of book 3's session** |
-> | ⛔ **Standing rule 4 broken again, at book 2** | `ingest-yeast.json` existed **only in n8n's database** from creation until 2026-08-19. Same rule, same failure, one book after this README recorded it as broken at book 1. It is exported now |
-> | ⛔ **The orphaned `Clean + normalise1` node is still live** | `measured` 2026-08-19: `wf1-ingest-book` is **27 nodes**, not 26, in both the live workflow and the tracked JSON. Still no connections, still **without** the untab fix — a **third divergent copy** of the cleaning profile |
+> | ✅ ⭐ **Standing rule 4 — CLOSED at book 3** | broken at book 1, broken again at book 2. ⭐ **`ingest-malt.json` was exported and committed before its first run**, which is the property the rule exists for and the first time it has held |
+> | ⛔ **The orphaned `Clean + normalise1` node is still live — and now we know why it keeps surviving** | `measured` 2026-08-19: `wf1-ingest-book` is **27 nodes** in both the live workflow and the tracked JSON, still unconnected, still **without** the untab fix. ⭐ **Book 3 established the cause: there is no n8n CLI command that edits a node** — only `export`/`import`/`list`/`publish`/`execute`/`audit` — and importing over the engine is a second variable in a run. ⛔ **It is a UI action and it has to be done by hand.** [`03-malt.md`](03-malt.md) §1.2 |
 >
 > ✅ **Closed since the last revision:** D32b (the card format — variant B, by argument,
 > §5.5) and the A/B protocol itself, which §6's revision retires.
@@ -120,10 +138,11 @@ is a checklist rather than a feeling.
 | # | Thing | Rebuilt from | Where it lands |
 |---|---|---|---|
 | 1 | ✅ `ref` · `kb` · `brew` · `mem` · `nlq` schemas | `db/init/*.sql`, **edited for D32 first** | **done** — all five live; `15_ref.sql` added to the compose file list |
-| 2 | ✅ **`wf1-ingest-book`** — the engine, **26 nodes** | rebuilt per [`00a-rebuild.md`](00a-rebuild.md) §2.2, minus every book constant (D30) | **done** — 13-field input contract |
+| 2 | ✅ **`wf1-ingest-book`** — the engine, **26 nodes** ⚠️ **live: 27** | rebuilt per [`00a-rebuild.md`](00a-rebuild.md) §2.2, minus every book constant (D30) | **done** — 13-field input contract. ⚠️ the 27th is the orphaned `Clean + normalise1`; §9 |
 | 3 | ✅ `ingest-how-to-brew` launcher (2 nodes) | new — [`00b-styles.md`](00b-styles.md) §P.1 | **done 2026-08-12**, id `BAe1fP1g7ZUsbIaq`, exported and committed. D30's per-book pattern now exists for books 1–9 to copy |
 | 4 | ✅ *How to Brew* corpus | the PDF, through #2 | **done — 447 chunks**, 0 embedding gaps, §1.4. Re-ingested 2026-08-12 after a `kb` truncate and **reproduced 447 with the identical 36-drop ledger** — the fixture has now held twice, through two independent builds |
 | 5 | ✅ **`ref.styles`** import + card generator | `styles.json`, all 11 prose fields | **done 2026-08-12** — `ingest-bjcp-styles`, 22 nodes, id `Ejf3ESE3SK1XBqe3`. 116 rows, 232 cards (variant B). ⛔ **the card-format A/B did not run** — see [`00b-styles.md`](00b-styles.md) §5.4 |
+| 5b | ⭐ **Per-book launchers** — `ingest-water`, `ingest-yeast`, ⭐ **`ingest-malt`** | D30's 2-node pattern, copied per book | ✅ **`ingest-malt` done and run 2026-08-19**, id `hpW9P0n7fxXY9KdF`, exported and committed ⭐ **before its first run**. ⚠️ a second, unused workflow of the same name exists — [`03-malt.md`](03-malt.md) §2.1a |
 | 6 | `tool-search-brewing-knowledge` | `backup/…/QNAqwfeQyHLxtjZr.json` — 6 nodes, was working | ⭐ **book 4.5** — §4.2 |
 | 7 | **WF4 `chat-agent`** | `backup/…/ztLTT3xiKT8eCSfh.json` + [`archive/phase2/03b`](../archive/phase2/03b-wf4-build-guide.md). **System prompt v3 verbatim from [`archive/phase2/03-wf4-design.md`](../archive/phase2/03-wf4-design.md) §6**, with §7.1's de-enumeration edit | ⭐ **book 4.5** — §4.2 |
 | 8 | `Prep turn` / `Log turn` → `mem.chat_turns` | never built; carried from the archive as an open item | ⛔ **inside #7's build, not after it** — §4.2 |
@@ -384,7 +403,7 @@ three chunks about the mash. That is measurable. Wait for it.
 | **0b** | 🟡 **Styles model** — `ref.styles` + widened `styles.json` import | new WF — ✅ built, [`00b`](00b-styles.md) | one styles model ✅ **116 rows, 232 cards**; the card-format A/B (§5.5) ⛔ **not run** | ~3 h |
 | **1** | **Water** — Palmer & Kaminski, 273 p | engine, `profile: book` | the D30 split itself, on the easiest possible file | ~90 min |
 | **2** | **Yeast** — White & Zainasheff, 325 p | engine, `profile: book` | nothing — should be near-free | ~40 min |
-| **3** | **Malt** — Mallett, 335 p | engine, `profile: book` | table-dense body under `table_mode=accurate` | ~50 min |
+| **3** | ✅ **Malt** — Mallett, 335 p | engine, `profile: book` | ⛔ ⭐ **the stated capability is falsified.** `measured` 2026-08-19: Malt is **5.9%** table chunks (27 of 458) against *Yeast*'s **8.0%** — the **least** table-dense book of the three. ⭐ **What it actually exercised is the untab path at double Water's scale** (147,910 tabs, **0** surviving) and the first source where **all three** `book`-profile rules fire. [`03-malt.md`](03-malt.md) §0 | ⭐ **run in 3 min 02 s** |
 | **4** | **Draught Beer Quality Manual**, 124 p | engine, **new** `profile: ba_manual` | two-column layout; first new cleaning profile | ~90 min |
 | ⭐ **4.5** | **The agent** — `tool-search-brewing-knowledge` + **WF4 `chat-agent`** + `mem.chat_turns` logging | ⛔ **not a source.** §1.3 items 6, 7, 8 | ⭐ **Tier C becomes runnable**, for the first time in the phase. The de-enumeration prompt edit (§7.1) and its `tier1_routing.py` re-run land here, where no ingest is happening. §4.2 | ~4 h |
 | **5** | **BA 2026** + **BJCP Study Guide** | new WF rows + engine | extra sources into the model book 0 built. §5 | ~3 h |
@@ -422,6 +441,13 @@ strength and the corpus has one Palmer chapter of it.
 parameterisation is broken and you want to learn that on book 3 of 9, not book 8. Three
 books of one shape is also the smallest sample that shows whether the engine generalises —
 one proves nothing, two is a coincidence.
+
+⭐ **`measured` 2026-08-19 — the sample is complete and the prediction held.** Books 1, 2 and 3
+are from **three different publishers and two different production toolchains**, and all three
+landed with **zero new nodes, zero new profiles and zero schema changes**. Only book 1 needed a
+shared-code edit (the untab block), and ⭐ **book 3 is what proved that edit was necessary rather
+than merely safe** — 147,910 tabs, 296 of them inside headings, none surviving. **The D30 split
+is no longer a coincidence.**
 
 **Draught fourth: a format change on a topically disjoint file.** The first new cleaning
 profile since the stout guide, and the manual is the only source covering dispense — so if
@@ -503,7 +529,7 @@ Extrapolated from the one measured book (248 p → 447 chunks) and plan 06's pro
 | **0a+0b — measured 2026-08-12** — How to Brew **447** + BJCP cards **232** (variant B) | **679** | **679** |
 | **1 — measured 2026-08-12** — Water | **382** *(projected ~490)* | **1,061** |
 | ⭐ **2 — measured 2026-08-19** — Yeast | **463** *(predicted 463; projected ~590)* | **1,524** |
-| ⭐ **3 — probed 2026-08-19** — Malt | ⛔ **340** *(predicted; projected ~600)* | ⭐ **~1,864** |
+| ⭐ **3 — measured 2026-08-19** — Malt | ⛔ **340** *(predicted 340; projected ~600)* | ⭐ **1,864** |
 | **4** Draught manual | ~250 | ~2,114 |
 | **5** BA 2026 cards + Study Guide prose | ~100 · ~130 | ~2,344 |
 | **6–7** faults · hops | ~21 · ~110 | ~2,475 |
@@ -529,8 +555,9 @@ of any book — **1.02**, against Yeast 1.42, Water 1.40 and *How to Brew* 1.80.
 shifted by the same −260. ⚠️ **Books 4–9 are still naive projections** and each will move when
 its own probe runs; the correction is recorded here rather than absorbed silently.
 
-**~2,950 chunks, not ~3,200.** Architecture §3.6 sized pgvector for 40–60k and called 500k
-comfortable, so **do not let corpus growth become an infrastructure conversation.** The
+**⭐ `predicted` ~2,700 chunks, not ~2,950 and not ~3,200.** Architecture §3.6 sized pgvector
+for 40–60k and called 500k comfortable, so **do not let corpus growth become an infrastructure
+conversation.** The
 thing that degrades is top-6 competition — §3 — and it degrades silently (R5).
 
 ---
@@ -1142,7 +1169,7 @@ and they are why the §10 eval baseline waits until the corpus is complete.
 | 0b | Styles model | ✅ [00b](00b-styles.md) | ✅ re-measured 2026-08-12 | ✅ **22 nodes, committed** | ✅ **A0–A5b pass** | ✅ **covered by book 1's run** — Q10 returns 5 of 6 style cards | ⬜ n/a — no WF4 |
 | **1** | **Water** | ✅ [01](01-water.md) | ✅ **440 raw, measured 2026-08-12** | ✅ **built and run — 382 chunks, 0 gaps** | ✅ **all pass; 18 of 19 predictions exact** | ✅ **10 questions; Layer 2 fires on nothing** | ⬜ n/a — no WF4 |
 | **2** | **Yeast** | ✅ [02](02-yeast.md) | ✅ **526 raw, measured 2026-08-12** | ✅ **built and run — 463 chunks, 0 gaps** | ⭐ ✅ **A1–A7 recorded; 21 of 21 predicted numbers exact.** ⚠️ two predictions missed (A5 units, A6 over-count) · ⛔ **A3 not observed** | ✅ **10 questions; keep — 4 controls at rank 1; Layer 2 fires on nothing** | ⬜ n/a — no WF4 |
-| **3** | **Malt** | ✅ [03](03-malt.md) | ✅ **458 raw, measured 2026-08-19** | 🟡 **`ingest-malt` built and ⭐ committed *before* the run — standing rule 4 kept for the first time.** ⛔ **not yet run** | ⬜ | ⬜ | ⬜ n/a — no WF4 |
+| **3** | **Malt** | ✅ [03](03-malt.md) | ✅ **458 raw, measured 2026-08-19** | ✅ **built and run — 340 chunks, 0 gaps.** ⭐ **committed *before* the run — standing rule 4 kept for the first time.** ⚠️ a duplicate launcher exists | ⭐ ✅ **A1–A7 recorded; 30 of 30 predicted numbers exact, none falsified.** ⛔ **A3 not observed** | ✅ **11 questions; keep — 5 controls at rank 1; Layer 2 fires on nothing.** ⛔ **the epigraph defect retrieved on 3** | ⬜ n/a — no WF4 |
 | 4 | Draught manual | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ n/a — no WF4 |
 | ⭐ **4.5** | **The agent** — search tool + WF4 + turn logging | ⬜ **§4.2 sets the timing; the build guide is [`archive/phase2/03b`](../archive/phase2/03b-wf4-build-guide.md)** | n/a | ⬜ | n/a | ⭐ **re-baseline after** | ⭐ **unblocks Tier C for 0a–4, retroactively** |
 | 5 | BA 2026 + Study Guide | ⬜ **needs D31** | ⬜ | ⬜ | ⬜ | ⬜ | ⭐ **the merge/conflict eval lands here** |
@@ -1164,23 +1191,43 @@ and they are why the §10 eval baseline waits until the corpus is complete.
 **Nothing is blocked by a decision.** D31 is the only open one and it is not needed until
 book 5.
 
-**Where things actually stand, 2026-08-19 — books 0a, 0b, 1 and 2 are built and all four are
-Tier-B verified. What is left is hygiene, and it repeats:**
+**Where things actually stand, 2026-08-19 — ⭐ books 0a, 0b, 1, 2 and 3 are built and all five
+are Tier-B verified. What is left is hygiene, one item has finally stopped repeating, and one
+has stopped being cosmetic:**
 
 | | What | Status |
 |---|---|---|
-| ✅ **Tier B, all four books** | the 5 standing questions from [`02-phase1-retrieval-gate.md`](../archive/02-phase1-retrieval-gate.md), the per-book positive controls, and the Layer-2 retrieval-share check | ✅ **run at 1,061 chunks (2026-08-12) and again at 1,524 (2026-08-19).** Both runs: **keep**, all positive controls at rank 1, **Layer 2 fires on nothing**. ⚠️ Still a **post-Water** baseline — Q2, Q4 and Q5 have no pre-Water prior and never will |
-| ✅ **A5 — the repair ledger** | node 26's `$5` | ✅ **done and proven.** Yeast's `clean` row carries four per-pair counts — `54 / 17 / 10 / 6` — matching a prediction made from the probe. ⚠️ **One observation**; book 3 re-reads it rather than assuming it |
-| ⛔ **Standing rule 4 was broken at book 1 — and again at book 2** | book 1: the untab edit and the `ingest-water` launcher · **book 2: the whole `ingest-yeast` launcher** | ⚠️ **all now exported.** `ingest-yeast.json` was written 2026-08-19, a week after its run — the artefact is recovered, the property the rule protects is not. ⛔ **Book 3 exports before running, or the rule is decorative** |
+| ✅ **Tier B, all five books** | the 5 standing questions from [`02-phase1-retrieval-gate.md`](../archive/02-phase1-retrieval-gate.md), the per-book positive controls, and the Layer-2 retrieval-share check | ✅ **run at 1,061 (2026-08-12), 1,524 and ⭐ 1,864 chunks (2026-08-19).** All three runs: **keep**, every positive control at rank 1, **Layer 2 fires on nothing**. ⭐ **At book 3 the five standing top-6s were byte-identical to the post-Yeast baseline** — 340 new chunks displaced nothing. ⚠️ Still a **post-Water** baseline — Q2, Q4 and Q5 have no pre-Water prior and never will |
+| ✅ **A5 — the repair ledger** | node 26's `$5` | ✅ **done and proven.** Yeast's `clean` row carries four per-pair counts — `54 / 17 / 10 / 6`. ⭐ **Re-read from the live database 2026-08-19 rather than assumed** ([`03-malt.md`](03-malt.md) §1.1) — still stored, still per pair. ⚠️ **Book 3 cannot strengthen it**: Malt has two repair pairs and both read `applied = 2`, and a symmetric ledger cannot distinguish *stored* from *reconstructed*. Said in the plan instead of ticked |
+| ✅ ⭐ **Standing rule 4 — broken at book 1, broken again at book 2, KEPT at book 3** | book 1: the untab edit and the `ingest-water` launcher · book 2: the whole `ingest-yeast` launcher · ⭐ **book 3: `ingest-malt.json`** | ⭐ ✅ **closed.** `ingest-malt.json` was exported out of n8n and committed in `a9bcefb` **before any execution of that workflow existed**. Books 1 and 2 recovered the artefact after the fact; book 3 is the first to preserve the property the rule is for |
 | ⛔ **A3 — the dedup short-circuit** | run the launcher a second time; it must end at `Already ingested` in seconds | ⛔ **still never observed on a book launcher since book 0a.** ⚠️ Book 1's attempt (n8n executions 244/245) was launched **86 s before the first run committed**, so dedup found nothing and it ran the full path — finishing with status **`success`** having promoted nothing. **That is the engine's real behaviour on a duplicate concurrent run, and it is now on the record** |
-| ⚠️ **Housekeeping** | the orphaned `Clean + normalise1` node; stale JSONs in `n8n/demo-data/workflows/` | ⛔ **the orphan is still live** — `measured` 2026-08-19, `wf1-ingest-book` is **27 nodes** in both the live workflow and the tracked JSON, and the orphan still lacks the untab fix. A **third** divergent copy of the cleaning profile, unchanged since book 1 flagged it |
-| ⚠️ **A cosmetic engine defect, found at book 2** | `Log ingest summary`'s promote message reads *"version 5 promoted"* while `kb.document_versions.version` is **1** | it interpolates the **row id**, not the version number, and has done since book 0a. Nothing reads the string. ⛔ **Fix it in a run that is already touching the engine** — book 3 or 4.5 — not in a mapper-only book |
+| ⛔ **Housekeeping — the orphan, and ⭐ now we know why it survives** | the orphaned `Clean + normalise1` node | ⛔ **still live** — `measured` 2026-08-19, `wf1-ingest-book` is **27 nodes** in both the live workflow and the tracked JSON, still without the untab fix. ⭐ **Book 3 established the cause rather than just re-flagging it: no n8n CLI command edits a node** (`export`/`import`/`list`/`publish`/`unpublish`/`execute`/`audit` are the whole surface), and importing over the engine is a second variable in a run. ⛔ **It is a UI action and has to be done by hand** — which is why three sessions in a row have deferred it |
+| ⛔ ⭐ **The epigraph-heading defect — now RETRIEVING, on three documents** | a chapter's epigraph byline becomes the `heading_path` of the chapter's opening prose | Water's `-J. Palmer` was a recorded cost. ⭐ `measured` at book 3: `-Bill Simpson` at **rank 3 on Q8** and **rank 6 on Q6**, `-William Littell Tizard…` at **rank 4 on Q10** — ⛔ **on questions Malt owns**, so the citation a user receives names the wrong person. ⛔ **No longer cosmetic. Fix at book 4**, which is already editing the cleaning node; repairing `heading_path` requires rebuilding `content` (plan 06 §4) |
+| ⭐ ⛔ **A duplicate workflow, created at book 3** | **two** workflows are named `ingest-malt` | `hpW9P0n7fxXY9KdF` ran (executions 248/249) and is what `ingest-malt.json` tracks; `ingestMalt00001A` never ran. All 13 mapper fields were diffed and are identical. ⛔ **The unused one needs deleting and there is no `delete:workflow` in the n8n CLI** — same UI-only constraint as the orphaned node. ⚠️ **Worse than the orphan**: the next person to click Run has a 50% chance of picking the wrong artefact |
+| ⭐ ⛔ **A `scripts/` defect, found at book 3** | `hyphen-probe.sh` returns a **false negative** on en-dashed numeric ranges | Docling normalises `–` to `-` **after** joining the wrap; the script matches an ASCII `-` on the `pdftotext` output, where the character is still an en dash. `measured`: `0 at-risk site(s)` reported while `212220°F` and `5565°F` sit in kept text. ⛔ **The first silent failure of the draft in three books.** Fix: `[-‐–—]$`. **Book 4 is a two-column PDF and should fix it there** — [`03-malt.md`](03-malt.md) §5.6 |
+| ⚠️ **A cosmetic engine defect, found at book 2** | `Log ingest summary`'s promote message reads *"version 5 promoted"* while `kb.document_versions.version` is **1** | it interpolates the **row id**, not the version number, and has done since book 0a. Nothing reads the string. ⛔ **Not fixed at book 3** — deleting an orphaned node is not "touching the engine", and book 3's verdict is mapper-only. ⭐ **Handed to book 4**, whose verdict is already *not* mapper-only |
 
 ⚠️ **A3 cannot be checked retroactively** — a dedup short-circuit writes nothing to the
 database, so it must be watched live: run the launcher, confirm it ends at
 `Already ingested` in seconds with an unchanged `kb.chunks` fingerprint. ⭐ **Run it as the
 *last* step of the ingest session**, after the log rows exist — book 1's attempt failed only
 because it was launched too early.
+
+⭐ **Book 3 is built and its record is closed.** [`03-malt.md`](03-malt.md) — the engine
+unchanged, an `ingest-malt` launcher, `profile: book`, **340 chunks measured** from a
+**458-chunk** probe. ⭐ **All five questions [`02-yeast.md`](02-yeast.md) handed over are
+answered:** the glyph decoder is closed (Malt has **0** glyph runs, so the `+17` offset was a
+property of one font subset); merge-forward is decided against and **tested** (7 token-floor
+drops, **0** severed prerequisites, and a procedure-shaped control returns 6 of 6 at rank 1);
+the pair-concentration metric is adopted and recorded for all 11 questions; ownership is
+declared before the run and needed **zero** adjudications; and the compound-question warning
+was applied rather than ignored.
+
+⭐ **Standing rule 7 came out a third way here.** Book 1's draft had false positives, book 2's
+matched nothing — ⛔ **book 3's was empty and *wrong*.** `hyphen-probe.sh` reported
+`0 at-risk site(s)` while Docling fused two temperature ranges in kept text, because Docling
+normalises en dashes to ASCII **after** joining the wrap. The final `text_repairs` is two pairs
+the script never saw. See [`03-malt.md`](03-malt.md) §2.4, §5.6.
 
 **Book 2 is built and its record is closed.** [`02-yeast.md`](02-yeast.md) — the engine
 unchanged, an `ingest-yeast` launcher, `profile: book`, **463 chunks measured**. ⭐ **The

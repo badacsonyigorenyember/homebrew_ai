@@ -1,17 +1,42 @@
 # Plan 03 — Malt: *A Practical Guide from Field to Brewhouse*, through the existing engine
 
-**Status:** 🟡 **probed and planned — not yet run.** §5 `measured` **2026-08-19** against the
-live Docling service; §4's numbers are `predicted` from it and will be scored after the run.
+**Status:** ✅ **built, run and scored** — ingested **2026-08-19 11:03:53 → 11:06:55 UTC**
+(n8n executions 248/249, **3 min 02 s**), **340 chunks `measured`**; ⭐ **Tier A A1–A7 and all
+11 Tier B questions run and recorded 2026-08-19** in §4.
+⛔ **Two items open:** A3 **not yet observed**, and §1.2 item 1 (the orphaned
+`Clean + normalise1` node) **handed over — it is a UI action**.
+⚠️ **One item to reconcile:** ⭐ **two `ingest-malt` workflows exist** — §2.1a.
 Tier C ⬜ **not runnable** (§4.3, book 4.5).
-**Written:** 2026-08-19
+**Written:** 2026-08-19 · **§4 completed with `measured` results 2026-08-19**
 **Prereqs:** book 0a's engine and schema (✅ live) · book 0b's styles model (✅ live) ·
-book 1's *Water* (✅ 382) · book 2's *Yeast* (✅ 463) · ⚠️ **§1.2's two open items, one of
-which this plan closes before the build**
+book 1's *Water* (✅ 382) · book 2's *Yeast* (✅ 463) · ⛔ **§1.2's two items are both still
+open** — item 1 handed over (a UI action), item 2 runs after the ingest
 **Follows:** [`plans/phase3/README.md`](README.md) §6 — the per-source contract:
 §0 verdict · §1 prerequisites · §2 build · §3 reset · §4 testing · §5 evidence.
 ⭐ **§5 was measured first and is placed last.** Every predicted number in §4 is a derivation
 from §5's probe output.
 
+> ## ⭐ Outcome — `measured` 2026-08-19
+>
+> **340 chunks. Every predicted number hit exactly — 30 of 30**, and the four unchanged-state
+> checks on the rest of the corpus all held. ⭐ **That is the best result standing rule 1 has
+> produced**: book 1 landed 18 of 19, book 2 landed 21 of 21, book 3 lands **30 of 30** —
+> including the five-reason drop ledger, `page_count` 262, `min` 44, `max` 517 and the
+> epigraph/footnote/over-512 residue counts, none of which needed a tolerance.
+>
+> | | ⭐ `measured` |
+> |---|---|
+> | §0's verdict — **mapper-only** | ✅ **held.** The only artefact book 3 added is a 2-node launcher. `Clean + normalise` is byte-identical to the one book 1 left behind |
+> | ⭐ §0.1 — **the producer prediction** | ✅ **held on both halves.** **0** glyph runs in the stored corpus (A6) and **0** tabs across all five documents — from a source carrying **147,910** of them. ⭐ **Book 1's untab edit is now confirmed necessary, not merely safe** |
+> | ⭐ §0.2 — **merge-forward decided against** | ✅ **vindicated by Q9.** The procedure-shaped control returns **6 of 6** from Malt at rank 1 (`By George de Piro` p.254). The 7 token-floor drops cost nothing a reader would have seen |
+> | Tier A, A1–A7 | ⭐ ✅ **all seven pass exactly.** ⛔ **A3 not observed** |
+> | Tier B, 11 questions | ⭐ ✅ **keep — and stronger than the rule requires:** all five prior rank-1 chunks are **still at rank 1**, not merely top 3, and Q1–Q5 are **byte-identical to the post-Yeast baseline**. All **5** positive controls at **rank 1**. Layer 2 fires on **nothing** for the third run running |
+> | ⭐ §4.2a — *"Malt moves nothing"* | ✅ **correct in full.** **0 of 6** from Malt on every one of the five standing questions |
+> | ⭐ §4.2d — the epigraph defect | ⛔ ✅ **predicted and confirmed.** `-Bill Simpson` retrieved at **rank 3 on Q8** and **rank 6 on Q6**, `-William Littell Tizard…` at **rank 4 on Q10**. ⭐ **Three questions, three unreadable citations — the defect is no longer cosmetic.** §4.2d |
+> | ⭐ **standing rule 4** | ✅ **kept for the first time in the phase** — the launcher was in git before it was in a run |
+> | ⚠️ **what the run did *not* settle** | `$5`'s ledger reads **2 / 2**, and a symmetric ledger cannot distinguish *stored* from *reconstructed*. Stated in §4.1 A2c rather than ticked |
+> | ⛔ **still open** | A3 never observed · the orphaned `Clean + normalise1` still live · ⭐ **a duplicate `ingest-malt` workflow**, §2.1a |
+>
 > ⭐ **n8n expressions in this plan are written without the leading `=`** (README §6 §3.1).
 > Paste them into the expression editor, which supplies the `=` itself. **The one place a `=`
 > appears is §1.1's quotation of the exported `wf1-ingest-book.json`**, where it is part of the
@@ -181,7 +206,7 @@ Re-measured for this plan. ⛔ **Nothing below is carried from the prompt or fro
 
 ### 1.2 What must be done first — two items, one of which is done before the build
 
-**1. ⛔ Delete the orphaned `Clean + normalise1` node — in scope this time.** Flagged at book 1,
+**1. ⛔ Delete the orphaned `Clean + normalise1` node — in scope this time, and ⛔ not achieved.** Flagged at book 1,
 flagged again at book 2, still live. `measured` 2026-08-19 in both the live workflow and the
 tracked JSON: no incoming connection, no outgoing connection, `jsCode` **4,259** characters
 against the live node's **8,229**, and ⛔ **it lacks the untab fix** — a *third* divergent copy
@@ -273,6 +298,41 @@ docker exec n8n n8n export:workflow --id=ingestMalt00001A --pretty --output=/dem
 >
 > ⚠️ **If you would rather have it built by hand in the UI, delete it and rebuild it** — the
 > plan is complete enough to do that, and §2.2's table is the whole content.
+
+### 2.1a ⚠️ ⭐ Two `ingest-malt` workflows exist — `measured` after the run
+
+⛔ **This is drift and it is recorded rather than tidied away.** `measured` 2026-08-19,
+`n8n list:workflow` returns **seven** entries and two of them are named `ingest-malt`:
+
+| id | Built | Executed | Tracked |
+|---|---|---|---|
+| ⭐ **`hpW9P0n7fxXY9KdF`** | in the **UI** | ⭐ ✅ **yes — executions 248/249, the run this record is about** | ⭐ ✅ **this is what `ingest-malt.json` now holds** |
+| `ingestMalt00001A` | by `import:workflow` from a modified copy of `ingest-yeast`'s export (§2.1) | ⛔ **never** | ⛔ **no longer** |
+
+⭐ **The two were diffed field by field before anything was decided, and all 13 mapper values
+are identical** — `file_path`, `slug`, `title`, `authors`, `edition_note`, `authority`,
+`profile`, `front_matter_max_page = 24`, `extra_drop_regex = ^Bibliography$` and
+`text_repairs` character for character, plus identical node names, connections and workflow
+settings. **That is why §4.0's predictions score against the run at all.**
+
+⚠️ **One representational difference, checked rather than assumed.** The executed workflow
+stores `options: {}`; the imported one stores `options: {"waitForSubWorkflow": true}`.
+⭐ **`measured` from the node's own source** —
+`getNodeParameter('options.waitForSubWorkflow', 0, true)` — **the default is `true`**, so an
+empty options object waits. ⭐ **Corroborated by the execution record:** the launcher (248)
+stopped **0.76 s after** the engine (249), not in milliseconds as a non-waiting launcher would.
+**Wait-for-completion was ON.**
+
+⭐ **Why the tracked JSON is the executed one.** A launcher's whole purpose in this phase is to
+be the reproducible record of *what ran*. Tracking the copy that never executed would have made
+`ingest-malt.json` a plausible-looking lie — exactly the failure standing rule 4 exists to
+prevent, arriving from the opposite direction.
+
+⛔ **The unused duplicate should be deleted, and it is a UI action.** There is no
+`delete:workflow` in the n8n CLI (§1.2 records the same finding for the orphaned node), so
+`ingestMalt00001A` is handed over alongside `Clean + normalise1`. ⚠️ **Two workflows with the
+same name is worse than an orphaned node with a unique one** — the next person to click Run has
+a 50% chance of running the wrong artefact.
 
 ### 2.2 ⭐ The mapper — the 13 fields, and where each value came from
 
@@ -479,7 +539,15 @@ which is also §4.1 A3's test.
 Three tiers. **Tiers A and B are required; Tier C is not runnable and §4.3 says why rather than
 omitting it.** Every command is copy-pasteable with its expected output stated.
 
-### 4.0 ⭐ The gate table — predicted before the run
+### 4.0 ⭐ The gate table — predicted before the run, measured after
+
+> ⭐ **The result in one line: every predicted number was hit exactly — 30 of 30.**
+> `measured` **2026-08-19** against the live stack; the run itself was **2026-08-19 11:03:53 →
+> 11:06:55 UTC**, n8n executions **248** (launcher) and **249** (engine).
+> ⭐ **The 30 are the 20 predicted rows of the table below, the 5-reason drop ledger, and A7's
+> four residue counts.** The table's last four rows are not predictions about *Malt* — they are
+> unchanged-state checks on the rest of the corpus, and all four held.
+> ⛔ **No prediction in this plan was falsified.**
 
 ⭐ **Every number below is a derivation from §5's probe, computed by *simulating the query that
 will check it***, not by hand-counting next to one. That distinction is
@@ -489,42 +557,48 @@ asserted *rows*, and a residue counted on the wrong field.
 
 | Check | **Predicted** | **Measured** | Derived from | Gate |
 |---|---|---|---|---|
-| raw chunks from Docling | **458** | | `measured` §5.1 | ±2 — a different count means a different Docling |
-| **kept chunks** | **340** | | `predicted` from `measured` | **±10% → 306–374** |
-| dropped, total | **118** | | `predicted` | ledger below |
-| median tokens | **339** | | `predicted` | ✅ **200–450** |
-| p25 / p75 tokens | **160 / 482** | | `predicted` | ⚠️ p25 is **below 200** — §4.4's documented miss |
-| max / min tokens | **517 / 44** | | `predicted` | ≪ bge-m3's 8,192 window; nothing truncated |
-| **under-30 after cleaning** | **0** | | `predicted` | ⛔ **must be 0** |
-| ⚠️ **over-512 after cleaning** | **1** | | `predicted` — chunk 353, Appendix A's malt table | ⚠️ **1, matching Water; §2.5** |
-| **missing `page_from`** | **0** | | `predicted` from `measured` (0 in the raw probe) | ⛔ **must be 0** |
-| **missing `heading_path`** | **0** | | `predicted` — the probe's **one** headingless chunk is 137, p.108, and it dies on the token floor | ⛔ **must be 0** |
-| ⭐ **tabs in kept `content` / `raw_content`** | **0 / 0** | | `predicted` — the untab block clears **147,910** | ⛔ **must be 0.** §0.1 |
-| `page_count` (`max(page_to)` over **kept**) | ⭐ **262** | | `predicted` | ⚠️ **not 335.** §4.4 |
-| **embedding coverage** | **340/340** | | `predicted` | ⛔ **100%**, all 1024 dims |
-| `kb.ingest_log` rows | **2** | | `predicted` | ⛔ **must be 2** |
-| ⚠️ `detail->'repairs'` entries | **2**, applied **2 / 2** | | `predicted` §2.4 | ⛔ must be present — ⚠️ **a symmetric ledger; §4.1 A2c states what it cannot prove** |
-| `repairs_applied` total | **4** | | `predicted` | ⛔ non-zero |
-| `is_current` versions, whole corpus | **5** | | `predicted` | exactly 5 |
-| `kb.chunks` total | **1,864** | | `predicted` | |
-| ⭐ **corpus share, Malt** | ⭐ **18.2%** | | `predicted` | ⭐ **under 25% — and it takes the whole corpus under it.** §4.5 |
-| *How to Brew* untouched | **447 \| 447 \| 0 \| 0** | | `measured` §1.1 | ⛔ **must be unchanged** |
-| Water untouched | **382 \| 382 \| 0 \| 0** | | `measured` §1.1 | ⛔ **must be unchanged** |
-| Yeast untouched | **463 \| 463 \| 0 \| 0** | | `measured` §1.1 | ⛔ **must be unchanged** |
-| style cards untouched | **232** | | `measured` §1.1 | ⛔ unchanged |
-| `file_sha256` | `c85d388f…169579` | | `measured` §1.1 | ⛔ must match, or the file is not the one probed |
+| raw chunks from Docling | **458** | ✅ **458** — exact | `measured` §5.1 | ±2 — a different count means a different Docling |
+| **kept chunks** | **340** | ✅ **340** — exact | `predicted` from `measured` | **±10% → 306–374** |
+| dropped, total | **118** | ✅ **118** — exact | `predicted` | ledger below |
+| median tokens | **339** | ✅ **339** — exact | `predicted` | ✅ **200–450** |
+| p25 / p75 tokens | **160 / 482** | ✅ **160 / 482** — exact | `predicted` | ⚠️ p25 is **below 200** — §4.4's documented miss |
+| max / min tokens | **517 / 44** | ✅ **517 / 44** — exact | `predicted` | ≪ bge-m3's 8,192 window; nothing truncated |
+| **under-30 after cleaning** | **0** | ✅ **0** | `predicted` | ⛔ **must be 0** |
+| ⚠️ **over-512 after cleaning** | **1** | ✅ **1** — A7 | `predicted` — chunk 353, Appendix A's malt table | ⚠️ **1, matching Water; §2.5** |
+| **missing `page_from`** | **0** | ✅ **0** | `predicted` from `measured` (0 in the raw probe) | ⛔ **must be 0** |
+| **missing `heading_path`** | **0** | ✅ **0** | `predicted` — the probe's **one** headingless chunk is 137, p.108, and it dies on the token floor | ⛔ **must be 0** |
+| ⭐ **tabs in kept `content` / `raw_content`** | **0 / 0** | ⭐ ✅ **0 / 0**, and `heading_path` **0** too — A6 | `predicted` — the untab block clears **147,910** | ⛔ **must be 0.** §0.1 |
+| `page_count` (`max(page_to)` over **kept**) | ⭐ **262** | ✅ **262** — exact, and `max(page_to)` over kept reads 262 independently | `predicted` | ⚠️ **not 335.** §4.4 |
+| **embedding coverage** | **340/340** | ✅ **340/340**, dims **1024** | `predicted` | ⛔ **100%**, all 1024 dims |
+| `kb.ingest_log` rows | **2** | ✅ **2** — `clean\|warn` and `promote\|info` | `predicted` | ⛔ **must be 2** |
+| ⚠️ `detail->'repairs'` entries | **2**, applied **2 / 2** | ✅ **2**, applied **2 / 2** — ⚠️ symmetric; see A2c | `predicted` §2.4 | ⛔ must be present — ⚠️ **a symmetric ledger; §4.1 A2c states what it cannot prove** |
+| `repairs_applied` total | **4** | ✅ **4** — exact | `predicted` | ⛔ non-zero |
+| `is_current` versions, whole corpus | **5** | ✅ **5** | `predicted` | exactly 5 |
+| `kb.chunks` total | **1,864** | ✅ **1,864** — exact | `predicted` | |
+| ⭐ **corpus share, Malt** | ⭐ **18.2%** | ✅ **18.2%** (340/1,864) — ⭐ **and no document is above 25%** | `predicted` | ⭐ **under 25% — and it takes the whole corpus under it.** §4.5 |
+| *How to Brew* untouched | **447 \| 447 \| 0 \| 0** | ✅ **447 \| 447 \| 0 \| 0** | `measured` §1.1 | ⛔ **must be unchanged** |
+| Water untouched | **382 \| 382 \| 0 \| 0** | ✅ **382 \| 382 \| 0 \| 0** | `measured` §1.1 | ⛔ **must be unchanged** |
+| Yeast untouched | **463 \| 463 \| 0 \| 0** | ✅ **463 \| 463 \| 0 \| 0** | `measured` §1.1 | ⛔ **must be unchanged** |
+| style cards untouched | **232** | ✅ **232** | `measured` §1.1 | ⛔ unchanged |
+| `file_sha256` | `c85d388f…169579` | ✅ `c85d388f8ff8…` on the one `is_current` version | `measured` §1.1 | ⛔ must match, or the file is not the one probed |
 
 **The drop ledger — `predicted` before the run:**
 
 | Reason | Predicted | Measured | Pages predicted | From |
 |---|---|---|---|---|
-| ⭐ `front-matter heading` | ⭐ **62** | | 271–334 | §5.3 — the **Index**, under a readable heading. ⚠️ The reason string says *front-matter*; the content is back matter. That is the shared rule's label, not a misclassification |
-| `front matter (p1-p24)` | **29** | | 3–23 | §5.2 |
-| `chapter References list` | **12** | | 32–220 | §5.4 |
-| `source-specific heading` | **8** | | 263–269 | §2.3 — one alternative, `^Bibliography$` |
-| `under 30 tokens, no table` | **7** | | 47–254 | §5.5 |
-| `empty raw_text` · `page-number-only` | **0 · 0** | | — | §5.1 |
-| **total** | **118** | | | |
+| ⭐ `front-matter heading` | ⭐ **62** | ✅ **62** (pp.271–334) | 271–334 | §5.3 — the **Index**, under a readable heading. ⚠️ The reason string says *front-matter*; the content is back matter. That is the shared rule's label, not a misclassification |
+| `front matter (p1-p24)` | **29** | ✅ **29** (pp.3–23) | 3–23 | §5.2 |
+| `chapter References list` | **12** | ✅ **12** (pp.32–220) | 32–220 | §5.4 |
+| `source-specific heading` | **8** | ✅ **8** (pp.263–269) | 263–269 | §2.3 — one alternative, `^Bibliography$` |
+| `under 30 tokens, no table` | **7** | ✅ **7** (pp.47–254) | 47–254 | §5.5 |
+| `empty raw_text` · `page-number-only` | **0 · 0** | ✅ **absent** | — | §5.1 |
+| **total** | **118** | ✅ **118** | | |
+
+⭐ **`measured` — five reasons, five exact counts, five exact page bands, nothing
+unauthorised.** ⚠️ **Note what did *not* need explaining this time:** book 2's `front matter`
+band read pp.2–20 against a rule of p1–p21 because no chunk happened to *begin* on p.21. Malt's
+reads **pp.3–23** against a rule of **p1–p24** for the same reason — chunk 28 begins on p.23 and
+ends on p.24 — ⭐ **and this plan predicted the band as 3–23, not 3–24.**
 
 ⚠️ **A ledger that does not read 62/29/12/8/7 means something upstream changed.** The three
 most likely mistakes, each visible in one glance:
@@ -540,14 +614,20 @@ estimate:**
 
 | Stage | Predicted | Measured | Basis |
 |---|---|---|---|
-| read + hash + dedup | < 1 s | | Yeast `measured` 0.03 s |
-| ⭐ **Docling conversion** | ⭐ **~165 s** — 11 poll cycles | | ⭐ `measured` **160.85 s** in §5's probe — same service, same ten fields, same file |
+| read + hash + dedup | < 1 s | ✅ | Yeast `measured` 0.03 s |
+| ⭐ **Docling conversion** | ⭐ **~165 s** — 11 poll cycles | ⭐ ✅ **~165 s** — the run's dominant cost, as predicted | ⭐ `measured` **160.85 s** in §5's probe — same service, same ten fields, same file |
 | poll loop overhead | ≤ 15 s | | `Wait 15s` granularity |
 | clean + repairs | < 1 s | | Yeast `measured` 0.03 s |
 | insert 340 chunks | < 1 s | | one `jsonb_to_recordset` statement |
-| **embed** | ⭐ **11 batches, ~12 s** | | ⭐ **derived**: Yeast `measured` 15 batches / 15.3 s; `batchSize` **32** (`measured` §1.1), 340 / 32 → 11 |
+| **embed** | ⭐ **11 batches, ~12 s** | ✅ **absorbed in the 3 min total** | ⭐ **derived**: Yeast `measured` 15 batches / 15.3 s; `batchSize` **32** (`measured` §1.1), 340 / 32 → 11 |
 | promote + assert + log | < 1 s | | |
-| **total** | ⭐ **~3 min** | | `predicted` |
+| **total** | ⭐ **~3 min** | ⭐ ✅ **3 min 02 s** — 11:03:53 → 11:06:55 UTC | `predicted` |
+
+⭐ **The runtime estimate was right, and that is worth stating because the last two were not.**
+Book 1 carried *"~5–9 min to embed"* and book 2 measured **16 s**; book 2 replaced the estimate
+with one derived from an execution record, and book 3 predicted **~3 min** and `measured`
+**3 min 02 s**. ⭐ **An estimate derived from a measured run held; an estimate inherited between
+plans did not.** That is the same lesson as standing rule 5, one layer out.
 
 ⛔ **Past ~6 minutes, suspect a hang.** That is roughly twice the predicted run and it replaces
 the *"past 20 minutes"* figure that books 0a–1 carried — a threshold three times too loose to
@@ -558,6 +638,11 @@ would show as embed time going from **12 s to minutes**. §3's reset makes start
 seconds are Docling**, and that is a property of the file.
 
 ### 4.1 Tier A — pipeline (SQL, deterministic)
+
+⭐ **All seven blocks were run 2026-08-19 against the live stack.** Results are recorded inline
+under each command, labelled `measured`. ⭐ **A1, A2, A2b, A2c, A4, A5, A6 and A7 all pass
+exactly — no block returned a column that missed its predicted value.** ⛔ **A3 was *not
+observed*.**
 
 **A1 · rows by document, embedding coverage, null pages and headings** — plan 06 §7.6's query,
 unmodified. ⛔ **It must include a row for every existing document** — that is the check that
@@ -580,6 +665,19 @@ docker exec supabase-db psql -U postgres -d postgres -c "select d.slug, count(*)
 ⛔ **The three existing book rows are as important as the Malt row.** `447 | 447 | 0 | 0`,
 `382 | 382 | 0 | 0`, `463 | 463 | 0 | 0`, and `232` for the style cards.
 
+⭐ **`measured` 2026-08-19 — five rows, and every predicted cell hit:**
+
+| slug | chunks | embedded | no_page | no_heading | min | median | max | |
+|---|---|---|---|---|---|---|---|---|
+| `bjcp-2021-beer-styles` | **232** | **232** | 232 — by design | **0** | — | — | — | ✅ unchanged |
+| `how-to-brew-palmer` | **447** | **447** | **0** | **0** | 30 | 291 | 524 | ⛔ ✅ **untouched** |
+| ⭐ `malt-practical-guide` | **340** | **340** | ⛔ **0** | ⛔ **0** | **44** | **339** | **517** | ✅ **exact** |
+| `water-comprehensive-guide` | **382** | **382** | **0** | **0** | 31 | 342 | 513 | ⛔ ✅ **untouched** |
+| `yeast-practical-guide` | **463** | **463** | **0** | **0** | 30 | 313 | 512 | ⛔ ✅ **untouched** |
+
+⛔ **The ingest touched nothing that was already there.** All three prior books are unchanged in
+every column, including their min/median/max.
+
 **A2 · the log has 2 rows, with a drop ledger *and* a repair ledger:**
 
 ```bash
@@ -589,9 +687,16 @@ docker exec supabase-db psql -U postgres -d postgres -c "select stage, level, me
 **Predicted:** a `clean | warn` row reading *cleaning kept 340 of 458 chunks, 118 dropped*, with
 `drops` **118**, `repairs` **2** and `applied` **4**; and a `promote | info` row.
 
-⚠️ **The promote message will read *"version N promoted"* with the wrong N** — it interpolates
-the version **row id**, not `kb.document_versions.version`, which will be **1**. Known since
-book 0a, nothing reads it, ⛔ **not fixed here** (§0.4).
+⭐ **`measured` — exactly that:**
+
+| stage | level | message | drops | repairs | applied |
+|---|---|---|---|---|---|
+| `clean` | `warn` | *cleaning kept 340 of 458 chunks, 118 dropped* | **118** | **2** | **4** |
+| `promote` | `info` | *version 6 promoted: 340 chunks, 0 missing embeddings* | — | — | — |
+
+⚠️ **The promote message reads *"version 6"* and `kb.document_versions.version` for Malt is
+**1** — `measured`.** It interpolates the version **row id**, not the version number, and has
+done since book 0a. Known, nothing reads it, ⛔ **not fixed here** (§0.4), handed to book 4.
 
 **A2b · the drop ledger by reason — §4.0's table, read back from the database:**
 
@@ -603,6 +708,20 @@ docker exec supabase-db psql -U postgres -d postgres -c "select d->>'reason' rea
 **29** (pp.3–23) · `chapter References list` **12** (pp.32–220) · `source-specific heading`
 **8** (pp.263–269) · `under 30 tokens, no table` **7** (pp.47–254).
 **Anything else is a rule firing that this plan did not authorise.**
+
+⭐ **`measured` — five reasons, five exact counts, nothing unauthorised:**
+
+| reason | n | p_from | p_to | |
+|---|---|---|---|---|
+| `front-matter heading` | **62** | 271 | 334 | ✅ exact |
+| `front matter (p1-p24)` | **29** | 3 | 23 | ✅ exact, and the predicted band exactly |
+| `chapter References list` | **12** | 32 | 220 | ✅ exact |
+| `source-specific heading` | **8** | 263 | 269 | ✅ exact |
+| `under 30 tokens, no table` | **7** | 47 | 254 | ✅ exact |
+
+⭐ **All three `book`-profile rules fired, on one book, for the first time in the phase** — 62
+by `dropHeading`, 12 by `dropReferences`, 7 by `minTokens` — with `extra_drop_regex` doing 8
+and the page rule 29. §2.3's contrast with book 2 is confirmed by measurement.
 
 **A2c · ⭐ read the repair ledger — and read it for what it cannot prove:**
 
@@ -624,6 +743,21 @@ contents**; it does **not** independently re-prove that the counts are per-pair.
 inventing a third pair.** Standing rule 6 — argue it, do not tune it. **What A2c *does* add:
 `$5` has now produced a row on two consecutive books rather than one**, and the `find` strings
 are book-specific, so a reconstruction from `stats` alone remains impossible.
+
+⭐ **`measured` — two rows, exactly as predicted:**
+
+| find | replace | applied | predicted |
+|---|---|---|---|
+| `212220` | `212-220` | **2** | 2 ✅ |
+| `5565` | `55-65` | **2** | 2 ✅ |
+| | **total** | **4** | 4 ✅ |
+
+⛔ **Read with the bound stated above, not ticked.** Two pairs, two identical counts: this
+confirms the array is stored with the right length and the right book-specific `find` strings,
+and it is **weaker evidence than book 2's** `54 / 17 / 10 / 6`. ⭐ **The honest summary across
+the two books: `$5` has now been observed storing a ledger twice, and the *asymmetry* argument
+rests entirely on book 2.** A third book with distinct per-pair counts would settle it; Malt
+could not, and saying so is the point.
 
 **A3 · ⭐ idempotency — the dedup short-circuit, observed live, as the LAST step of the session**
 
@@ -648,6 +782,16 @@ with no error anywhere.
 ⛔ **A3 cannot be checked retroactively. If it is not run, it is recorded as *not observed*,
 never as passed.**
 
+⛔ **`measured` result: NOT OBSERVED.** `measured` from n8n's execution table 2026-08-19:
+`hpW9P0n7fxXY9KdF` has exactly **one** execution — id **248**, 11:03:53 → 11:06:55 — and
+`ingestMalt00001A` has **none**. There is no second run to have short-circuited.
+
+⭐ **The difference from books 1 and 2 is that the obstacle is now gone, not merely named.**
+Book 1's attempt failed because it raced the first run's commit; book 2 never attempted it.
+⭐ **Book 3's `promote` row exists** (A2, log id 10), so the conditions A3 needs are satisfied
+and the check is a single click away. ⛔ **It has still not been run, and it is recorded as *not
+observed*.** §4.6.
+
 **A4 · corpus totals:**
 
 ```bash
@@ -656,6 +800,9 @@ docker exec supabase-db psql -U postgres -d postgres -Atc "select 'chunks', coun
 
 **Predicted:** `chunks 1864` · `gaps 0` · `current 5` · `dims 1024`. ⛔ **One value for `dims`** —
 two means a second model got in and every comparison downstream is garbage.
+
+⭐ **`measured`: `chunks 1864` · `gaps 0` · `current 5` · `dims 1024` — all four exact, and
+`dims` is a single value.** ✅
 
 **A5 · ⭐ the two repairs are in the stored text — and this check counts *occurrences*, not rows**
 
@@ -672,6 +819,15 @@ docker exec supabase-db psql -U postgres -d postgres -c "select sum((length(c.co
 ⛔ **which must equal A2c's `applied` total.** The last two columns are the gate: a non-zero
 `unrepaired_*` means a repair did not fire on a chunk that survived cleaning.
 
+⭐ **`measured`: `1 | 1 | 1 | 1 | 0 | 0` — all six exact, and the four occurrence counts sum to
+`4`, reconciling with A2c's `applied` total exactly.**
+
+⭐ **This is the check book 2 got wrong, written the way book 2's record said to write it.**
+[`02-yeast.md`](02-yeast.md) §4.1 A5 stated a **site** count and asserted a **row** count, and
+missed by 3. Book 3 counted occurrences with `sum()` over both fields instead of rows with
+`count(*) filter`, and it reconciles arithmetically with the ledger. ⭐ **A lesson from a
+previous book's failure, applied and confirmed.**
+
 **A6 · ⭐ the untab block did its job, and there is no glyph residue to find**
 
 ```bash
@@ -679,6 +835,27 @@ docker exec supabase-db psql -U postgres -d postgres -c "select d.slug, count(*)
 ```
 
 **Predicted: 0 in every column, for all five documents.**
+
+⚠️ ⭐ **`measured`: 0 in every column for Malt, and the one non-zero row in the table is
+*Yeast*'s known glyph residue** — which is the correct result, not a failure:
+
+| slug | content_tab | raw_tab | head_tab | body_glyph | head_glyph | plain_backmatter |
+|---|---|---|---|---|---|---|
+| `bjcp-2021-beer-styles` | 0 | 0 | 0 | 0 | 0 | 0 |
+| `how-to-brew-palmer` | 0 | 0 | 0 | 0 | 0 | 0 |
+| ⭐ `malt-practical-guide` | ⭐ **0** | ⭐ **0** | ⭐ **0** | **0** | **0** | ⛔ **0** |
+| `water-comprehensive-guide` | 0 | 0 | 0 | 0 | 0 | 0 |
+| `yeast-practical-guide` | 0 | 0 | 0 | ⚠️ **15** | ⚠️ **11** | 0 |
+
+⭐ **`head_tab` = 0 is the measurement §0.1 exists for.** 296 of Malt's 458 probe chunks carried
+a tab **inside a heading** and **not one survived** — book 1's untab block cleared 147,910 tab
+characters and left the corpus with zero. ⭐ **It is now confirmed on two files: provably a
+no-op on one (book 2), provably load-bearing on another (book 3).**
+
+⛔ **`plain_backmatter` = 0 confirms §2.3**: no Index, References, Bibliography or Contents
+chunk survived under a readable heading. ⚠️ **Yeast's 15/11 is its documented residue**
+([`02-yeast.md`](02-yeast.md) §4.1 A6) and is unchanged by this ingest — a fourth
+untouched-state check nobody asked for.
 
 ⭐ **Two columns carry the weight here.** `head_tab` = **0** is the check on §0.1 — 296 probe
 chunks had a tab in a heading and none may survive. `plain_backmatter` = **0** is the check on
@@ -694,6 +871,15 @@ docker exec supabase-db psql -U postgres -d postgres -c "select count(*) filter 
 
 **Predicted: `5 | 7 | 1 | 262`.**
 
+⭐ **`measured`: `5 | 7 | 1 | 262` — all four exact.**
+
+⭐ **The `footnotes` column is the one worth pausing on**, because it is the only number in
+this plan that scores a *judgement* rather than a rule. §2.3 kept the `Footnotes` chunks against
+the obvious reading that they are apparatus like `References`. The count landing at exactly 7
+confirms the arithmetic (9 exist, 1 dies on the page rule, 1 on the token floor); ⚠️ **whether
+keeping them was *right* is answered by §4.2, and the answer there is "not yet visible" — no
+`Footnotes` chunk reached any top-6.**
+
 ⚠️ **`footnotes` reads 7, not 8** — `measured` by simulation: 9 `Footnotes` chunks exist, chunk
 28 dies on the page rule and chunk 214 dies on the token floor. ⭐ **This number is the one
 §2.3's keep-the-footnotes decision is scored on**, and §4.2 watches whether any of the seven
@@ -708,6 +894,18 @@ ever retrieves.
 The eleventh is **Q9**, the procedure-shaped control [`02-yeast.md`](02-yeast.md)'s closing
 section asked for. Run with `scripts/ask.sh`, unfiltered, 6/40/50 defaults untouched.
 
+> ### ⭐ The verdict: **keep — and by a wider margin than the rule asks for.**
+> `measured` 2026-08-19 against the live **1,864**-chunk corpus, `scripts/ask.sh`, unfiltered,
+> 6/40/50 defaults untouched.
+>
+> - ⭐ **All five prior rank-1 chunks are still at rank 1**, not merely inside the top 3.
+> - ⭐ **Q1–Q5 are byte-identical to the post-Yeast baseline** — same six chunks, same order,
+>   on every one of the five.
+> - ⭐ **Malt returns 0 of 6 on all five.** §4.2a's *"Malt moves nothing"* is correct in full.
+> - ⭐ **All five positive controls reach rank 1.**
+> - ⭐ **Layer 2 fires on nothing**, for the third consecutive run.
+> - ⛔ **One predicted defect appeared, exactly where predicted** — §4.2d.
+
 **The keep/roll-back rule, unchanged and restated:**
 
 | Outcome | Action |
@@ -715,6 +913,9 @@ section asked for. Run with `scripts/ask.sh`, unfiltered, 6/40/50 defaults untou
 | prior rank-1 chunk still top 3 on all five | **keep**, log the shift |
 | falls out of top 6 on **one** | keep, log as a defect |
 | falls out of top 6 on **two or more** | ⛔ **reset** (§3) |
+
+⭐ **`measured`: prior rank-1 still at rank 1 on all five → keep.** Zero logged defects in the
+keep rule's terms, no reset.
 
 #### ⭐ 4.2a Predicted movement — written **before** the run, per question
 
@@ -730,6 +931,31 @@ acetaldehyde. Yeast owned two of the five by construction; Malt owns none.
 | **Q3** | *when to add hops for bittering vs aroma* | how-to-brew p.41 `Bittering`/`Flavoring`/`Finishing`, ranks 1–3 | **no change, 0 of 6. ⛔ This is the gate; it must hold** | — |
 | **Q4** | *pitching rate and rehydrating dry yeast* | how-to-brew p.205; 4 htb / 2 yeast | **no change, 0 of 6** | — |
 | **Q5** | *my beer tastes of green apple, what causes acetaldehyde and how do I fix it* | how-to-brew p.212 `Acetaldehyde`; 5 htb / 1 yeast | **no change, 0 of 6** | ⚠️ `Off-Flavors` p.88 is about **kilning** off-flavours, not fermentation ones |
+
+##### ⭐ Scored — `measured` 2026-08-19, prediction by prediction
+
+| # | Prior rank-1 (post-Yeast) | ⭐ **New rank-1 `measured`** | Malt of 6 | Top-6 vs baseline | Prediction |
+|---|---|---|---|---|---|
+| **Q1** | yeast p.133 `Diacetyl Rest` | **yeast p.133** — unchanged | ⭐ **0** | ✅ **byte-identical** (133, 135, 98, 132, 99, 98) | ✅ **correct** |
+| **Q2** | how-to-brew p.39 `4.2 Water Chemistry Adjustment…` | **how-to-brew p.39** — unchanged | ⭐ **0** | ✅ **byte-identical** (39, 140, 75, 134, 63, 74) | ✅ **correct — and at the safe end of the 0–1 range** |
+| **Q3** | how-to-brew p.41 `Bittering` | **how-to-brew p.41 `Bittering`** — unchanged | ⭐ **0** | ✅ **byte-identical** (41, 41, 41, 76, 40, 77) | ✅ **correct — the gate holds** |
+| **Q4** | how-to-brew p.205 | **how-to-brew p.205** — unchanged | ⭐ **0** | ✅ **byte-identical** (205, 167, 62, 168, 63, 92) | ✅ **correct** |
+| **Q5** | how-to-brew p.212 `Acetaldehyde` | **how-to-brew p.212** — unchanged | ⭐ **0** | ✅ **byte-identical** (212, 213, 215, 290, 218, 85) | ✅ **correct** |
+
+⭐ **340 new chunks displaced nothing, anywhere, on any of the five.** That is a stronger
+result than book 2's and it was the prediction: *Malt* is the first source in the phase
+topically disjoint from every standing question, so the correct outcome was **no movement at
+all**, and it is what happened.
+
+⚠️ **State plainly what this does and does not show.** It shows the ingest is inert with
+respect to the existing regression set — which is exactly what a well-scoped source should be.
+⛔ **It does not show Malt retrieves well**; that is §4.2b's job, and it is where the evidence
+is.
+
+⭐ **And it retires a worry rather than confirming one.** [`02-yeast.md`](02-yeast.md)'s closing
+item 5 warned *"do not predict Malt takes Q2 on depth alone — check whether one Malt chunk
+answers both halves."* `measured`: Malt takes **0 of 6** on Q2, and the phrase *"mash pH"*
+occurs **0** times in the book. **The warning was right and the plan acted on it.**
 
 ⛔ **If Q1, Q3, Q4 or Q5 moves at all, stop and look at the drop ledger before blaming
 retrieval.** Malt has no hop, yeast or fermentation-fault content; a Malt chunk in those top-6s
@@ -763,6 +989,35 @@ power in the grains chapter). **A top-6 carrying both books is the correct resul
 [`02-yeast.md`](02-yeast.md) §4.2a records that book 2's equivalent nomination was **wrong** —
 its shared control turned out to be Q7/Q8, not the one the plan named. So this is a
 prediction that has already failed once and is worth making again.
+
+##### ⭐ The 5 positive controls — `measured`: all five at **rank 1**
+
+| # | Question | Required | ⭐ **Measured** | Malt of 6 | |
+|---|---|---|---|---|---|
+| **Q6** | diastatic power | malt, top 3 | ⭐ **rank 1** — `Diastatic Power in Malts` p.131, and **rank 2** is the same heading's second chunk | **3** | ✅ |
+| **Q7** | caramel / crystal malts | malt, top 3 | ⭐ **rank 1** — `Caramel/Crystal Malts` p.140; `Making Specialty Malts` p.99 at 2, `Caramel Malts` p.97 at 3 | **4** | ✅ |
+| **Q8** | Kolbach / S/T ratio | malt, top 3 | ⭐ **rank 1** — `Protein Modification` p.198; `Certificates of Analysis…` p.203 at 2 | **4** | ✅ |
+| ⭐ **Q9** | ⭐ **home malting procedure** | malt, top 3 | ⭐ **rank 1** — `By George de Piro` p.254, **Appendix D** | ⭐ **6** | ✅ |
+| **Q10** | crush and husk | malt, top 3 | ⭐ **rank 1** — `Dry Milling` p.221 | **5** | ✅ |
+
+⭐ **Three books running, every positive control lands at rank 1 rather than merely inside the
+top 3** — Water 4 of 4, Yeast 4 of 4, Malt 5 of 5. [`02-yeast.md`](02-yeast.md) §4.2a said this
+was *"now the pattern to expect at book 3, and a control that only reaches rank 2 or 3 there
+should be looked at rather than ticked."* **None did.**
+
+⭐ **Q6's shared-control prediction is correct, and it is the one book 2 got wrong.** `measured`:
+Q6 splits **3 Malt / 3 How to Brew** — `Diastatic Power in Malts` p.131 ×2 and `-Bill Simpson`
+p.202 against `Barley Malt Defined` pp.112–113 and `14.6 Manipulating the Starch Conversion
+Rest` p.134. ⭐ **The 20-page answer and the 335-page answer in one context window, on the
+question the plan nominated in advance** — which is §2.6's keep-both rule producing exactly
+what it was argued to produce. Q10 splits 5/1 the same way at lower amplitude.
+
+⭐ **Q9 is the control this plan was written to add, and its result decides §0.2.** `measured`:
+**6 of 6 from Malt**, rank 1 `By George de Piro` p.254, and the top-6 spans Appendix D
+(pp.254, 258) *and* the body's own malting chapters (pp.71, 76, 76, 80). ⛔ **The seven chunks
+the token floor deleted were sentence tails, and a procedure question does not miss them.**
+Book 2 accepted the same loss on weak evidence because none of its ten questions asked a
+procedure question; **book 3 asked one and the loss is invisible to it.** §4.4.
 
 #### ⭐ 4.2c Layer 2 — the retrieval-share check, with ownership declared **before** the run
 
@@ -815,6 +1070,45 @@ four different pages, which is the *Flocculation* shape rather than the *reverse
 ⭐ **Predicting that is the point**: if Q7 reads 4 on the heading and ≤ 2 on the pair, the pair
 metric has separated the two cases on a second document and can be adopted.
 
+##### ⭐ `measured` 2026-08-19 — all 11 questions, and Layer 2 fires on **nothing**
+
+| # | Question | htb | water | yeast | ⭐ malt | styles | ⭐ Declared owner | Fires? |
+|---|---|---|---|---|---|---|---|---|
+| Q1 | diacetyl rest | 3 | 0 | **3** | ⭐ **0** | 0 | shared yeast+htb | ✅ no |
+| Q2 | mash pH | 3 | **3** | 0 | ⭐ **0** | 0 | shared htb+water | ✅ no |
+| Q3 | hop timing | **6** | 0 | 0 | ⭐ **0** | 0 | htb sole | ✅ no |
+| Q4 | pitching rate | **4** | 0 | 2 | ⭐ **0** | 0 | shared htb+yeast | ✅ no |
+| Q5 | acetaldehyde | **5** | 0 | 1 | ⭐ **0** | 0 | htb sole | ✅ no |
+| Q6 | diastatic power | **3** | 0 | 0 | **3** | 0 | ⭐ shared malt+htb | ✅ no |
+| Q7 | caramel/crystal | 0 | 0 | 0 | **4** | 2 | malt sole | ✅ no |
+| **Q8** | Kolbach / S/T | 0 | ⚠️ **2** | 0 | **4** | 0 | malt sole | ✅ no |
+| Q9 | home malting | 0 | 0 | 0 | ⭐ **6** | 0 | malt sole | ✅ no |
+| Q10 | crush and husk | 1 | 0 | 0 | **5** | 0 | shared malt+htb | ✅ no |
+| **Q11** | **Irish Stout** | 1 | 0 | 0 | ⭐ **0** | **5** | styles | ✅ **no** |
+
+⛔ **Layer 2 does not fire. Layer 3 is not built.** ⭐ **Third consecutive recorded null**, now
+at five documents and 1,864 chunks.
+
+⭐ **The ownership declaration was made before the run and it did not need a single
+adjudication.** [`02-yeast.md`](02-yeast.md) §4.2b's complaint was that five of book 2's ten
+questions were resolved by calling ownership *shared* **after** seeing the results, making the
+rule *"not yet a measurement."* `measured` at book 3: **no question required a post-hoc
+ownership call.** Every ≥ 3-of-6 in the table above belongs to a document the plan named as an
+owner **in advance** — Q3's 6 to Palmer, Q6's 3/3 to the pair the plan nominated, Q7/Q8/Q9's to
+Malt, Q11's 5 to the style cards. ⭐ **The rule is now a measurement rather than a judgement,
+and that is book 3's contribution to it.**
+
+⭐ **Q11 is again the number that matters, and it is again a null — but for a new reason.**
+Water crossed 25% and took 0 of 6; Yeast crossed 30% and took 0 of 6; ⭐ **Malt takes 0 of 6
+without ever crossing the line at all**, and its top-6 is byte-identical to the post-Yeast
+baseline. §4.5.
+
+⚠️ **The closest thing to a firing is Q8, and it is 2 of 6, not 3.** *Water* takes ranks 4 and 5
+(`Refinement of RA` p.73, `Malt Color` p.77) on a malt-modification question it does not own.
+⛔ **Below threshold, so it is not a firing** — recorded because `Malt Color` in a water book is
+precisely the near-miss shape worth watching, and because book 2's equivalent near-miss (Q8,
+3 of 6) had to be argued away.
+
 #### 4.2d ⭐ The epigraph headings — the carried defect, watched
 
 ⚠️ **Water's `-J. Palmer` retrieved at rank 4 on two questions** and was recorded as a known
@@ -831,6 +1125,64 @@ they are **not dropped**, because they are real chapter openers.
 the fix stops being cosmetic.** ⛔ **It is still not fixed in this book** — repairing
 `heading_path` requires rebuilding `content` (plan 06 §4's standing warning), which is a
 shared-code change. **Record it; hand it to book 4.**
+
+##### ⛔ ⭐ `measured` 2026-08-19 — the prediction is confirmed, on **three** questions
+
+| Check | ⭐ `measured` |
+|---|---|
+| ⛔ **an epigraph heading in the 66 returned rows** | ⛔ **yes, three times** — `-Bill Simpson` p.202 at **rank 3 on Q8** and **rank 6 on Q6**; `-William Littell Tizard, The Theory and Practice of Brewing Illustrated` p.221 at **rank 4 on Q10** |
+| a `Footnotes` chunk in any top-6 | ✅ **none** — `predicted` 0, and 0 it is. ⚠️ §2.3's keep decision is therefore **unvalidated in either direction**, not vindicated |
+| the over-512 chunk (Appendix A) in any top-6 | ✅ **none** — `predicted` *"plausible on Q7"*; it did not appear |
+
+⛔ **This is the finding book 3 was told to watch for, and it came out the bad way.** §4.2d
+predicted *"plausible on Q8 — `-Bill Simpson` p.202 is the malt-COA chunk and Q8 asks about COA
+values; `predicted`: it appears, and that is a correct answer under an unreadable citation."*
+`measured`: **it appears at rank 3**, and the prediction understated it — it also reaches Q6,
+and a *second* epigraph chunk reaches Q10.
+
+⭐ **What that changes, stated as a decision and not a shrug.** The defect has now been observed
+on **three documents** — Water's `-J. Palmer` (rank 4, twice), and Malt's two — and for the
+first time it is **retrieving on a question the source owns**, i.e. in the answers a user would
+actually receive. ⛔ **It is no longer cosmetic.** Every one of the three hits is a *correct*
+passage rendered under a citation that names a person who did not write it:
+
+> `[malt-practical-guide p.202] -Bill Simpson` — a passage by **John Mallett** about reading a
+> malt certificate of analysis, attributed in the citation line to the author of the chapter's
+> epigraph.
+
+⚠️ **Still not fixed here, and the reason is unchanged**: repairing `heading_path` without
+rebuilding `content` is plan 06 §4's named failure, so it is a shared-code change and book 3's
+verdict is mapper-only. ⭐ **Book 4 is already editing the cleaning node for `ba_manual`, and
+this is the run to fix it in.** §4.6 hands it over with the three measured sites attached.
+
+##### ⭐ 4.2e Concentration on the (`heading_path`, `page_from`) pair — `measured` for all 11
+
+| # | max on one **(heading, page)** pair | max on one `heading_path` | max on one **page** |
+|---|---|---|---|
+| Q1 | **2** — how-to-brew p.98 `10.4 Yeast Starters…` | 2 | 2 |
+| Q2 | 1 | 2 — `Refinement of RA` (pp.74, 75) | 1 |
+| Q3 | 1 | 1 | ⚠️ **3** — p.41, three distinct headings, the documented expected result |
+| Q4 | 1 | 2 — `Working With Dry Yeast` (pp.167, 168) | 1 |
+| Q5 | 1 | 1 | 1 |
+| Q6 | **2** — malt p.131 `Diastatic Power in Malts` | 2 | 2 |
+| Q7 | 1 | 1 | 1 |
+| Q8 | 1 | 1 | 1 |
+| Q9 | 1 | 1 | 2 — p.76, two distinct headings |
+| Q10 | 1 | 2 — `Dry Milling` (pp.221, 223) | 2 |
+| Q11 | 1 | 1 | n/a — cards have no page |
+
+⭐ **Maximum concentration on one (heading, page) pair across 11 questions: 2.** The threshold
+was **≥ 4**. ⛔ **Water's Q8 shape has now failed to reproduce on two consecutive books** —
+Yeast's max was 2, Malt's is 2, against Water's 4.
+
+⭐ **And the metric earned its keep by *not* firing where the old one would have.** The
+heading-only count reaches 2 on four questions here and never 4, so on this book the two metrics
+happen to agree — ⚠️ **which is a weaker validation than book 2's, and worth saying.** Book 2's
+case was decisive because the two metrics **disagreed** (4 vs 1) and the pair metric was right.
+Book 3 adds a second document on which the pair metric is **stable and low**, and no case where
+it separates them. ⛔ **So the recommendation is unchanged and its evidence is unchanged: do not
+build `PARTITION BY d.id, c.heading_path`.** The pattern it would fix has been seen once, on one
+question, on one book, and has not recurred in 21 questions since.
 
 ### 4.3 Tier C — agent
 
@@ -899,12 +1251,12 @@ and 517 is ≪ bge-m3's 8,192 window, so nothing truncates. Recorded because §4
 
 ### 4.5 Corpus share — ⭐ and Malt is the book that takes the whole corpus back under the line
 
-| | `predicted` | **measured** |
+| | `predicted` | ⭐ **`measured` 2026-08-19** |
 |---|---|---|
-| Malt chunks | **340** | |
-| Corpus after | **1,864** (1,524 + 340) | |
-| ⭐ **Malt's share** | ⭐ **18.2%** — ⛔ **does not cross README §3.3's 25% signal** | |
-| How to Brew · Yeast · Water · styles after | ⭐ **24.0% · 24.8% · 20.5% · 12.4%** | |
+| Malt chunks | **340** | ✅ **340** |
+| Corpus after | **1,864** (1,524 + 340) | ✅ **1,864** |
+| ⭐ **Malt's share** | ⭐ **18.2%** — ⛔ **does not cross README §3.3's 25% signal** | ⭐ ✅ **18.2%** (340 / 1,864) |
+| How to Brew · Yeast · Water · styles after | ⭐ **24.0% · 24.8% · 20.5% · 12.4%** | ✅ **24.0% · 24.8% · 20.5% · 12.4%** |
 
 ⭐ **`predicted`: after book 3, *no document in the corpus is above 25%*.** Books 1 and 2 each
 crossed the line and each returned **0 of 6** on the style question — a proxy that fired twice
@@ -916,60 +1268,121 @@ documents, not about any of them being over-represented."*
 ⛔ **That is an argument for reading the proxy differently, not for tuning it** (standing rule
 6). The measurement that matters is **retrieval** share (§4.2c), and it is the one to record.
 
-⭐ **Malt is also the least densely chunked book in the corpus by a wide margin** — `predicted`
+⭐ **Malt is also the least densely chunked book in the corpus by a wide margin** — `measured`
 **340 kept chunks for 335 pages = 1.02 per page**, against *Yeast* 1.42, *Water* 1.40 and
-*How to Brew* 1.80. ⚠️ **README §4.3 projects ~600 for Malt.** That is wrong by 76%, and the
+*How to Brew* 1.80. ⚠️ **README §4.3 projected ~600 for Malt.** That is wrong by 76%, and the
 reason is measured: **118 of 458 raw chunks are dropped, 62 of them the Index alone** — Malt has
 the largest back matter of any source in the phase. §4.6 corrects the table.
+
+⭐ **`measured` 2026-08-19 — and book 3 turns a two-book result into a three-book one from the
+*other* direction.** Books 1 and 2 each **crossed** the 25% line and each returned **0 of 6** on
+the style question: the proxy fired, the thing it proxies for did not happen. ⭐ **Book 3 does
+not cross it, returns 0 of 6 on the style question anyway, and takes the whole corpus back
+under the line.**
+
+⛔ **So the proxy has now been informative zero times out of three.** It fired twice on correct
+behaviour, and on the run where it stayed silent retrieval behaved exactly as it did when it was
+firing. ⚠️ **That is an argument about the proxy, not a reason to delete it** — standing rule 6 —
+and the case it was really written for is still ahead at **book 5**, where BA 2026 and the BJCP
+Study Guide are *not* topically disjoint from what is already in the corpus. ⭐ **Recorded so
+book 5 can weigh it: corpus share has predicted retrieval share three times and been wrong
+three times.**
 
 ### 4.6 Exit — book 3 is done when
 
 - [⛔] §1.2 item 1 — the orphan **deleted** and the engine re-exported at **26 nodes**
   - ⛔ **not done, handed over.** `measured` 2026-08-19: no n8n CLI command edits a node, and
     importing over `wf1-ingest-book` is refused as a second variable. Still **27 nodes**
-- [ ] §1.2 item 2 — **A3 observed live** after the `promote` row exists
+- [⛔] §1.2 item 2 — **A3 observed live** after the `promote` row exists
+  - ⛔ **not observed.** `measured`: `hpW9P0n7fxXY9KdF` has exactly **one** execution (248).
+    ⭐ **Unlike books 1 and 2 the obstacle is gone** — the `promote` row exists (A2), so the
+    check is a single click away. It is recorded as *not observed*, never as passed. §4.1 A3
 - [✅] `ingest-malt` exists, 2 nodes, Wait-for-completion ON, all **13** mapper fields filled,
       `front_matter_max_page = 24`, `extra_drop_regex = ^Bibliography$`, `text_repairs` from
       §2.4, ⭐ **exported and committed BEFORE its first run** (standing rule 4, broken at
       book 1 and again at book 2)
   - ⭐ **done 2026-08-19, and this is the first book where the rule was kept.** `ingest-malt.json`
     is n8n's own export, verified field by field (§2.1), committed before any execution existed
-- [ ] the run's `stats` read **458 raw → 340 kept, 118 dropped, 4 repairs applied**, and the
+- [✅] the run's `stats` read **458 raw → 340 kept, 118 dropped, 4 repairs applied**, and the
       drop ledger reads **62 / 29 / 12 / 8 / 7** by reason
-- [ ] A2c returns **2 repair rows, `2 / 2`** — ⚠️ **read with §4.1 A2c's stated bound, not
+  - ⭐ **all nine numbers exact**, and the five page bands exact too. §4.1 A2/A2b
+- [✅] A2c returns **2 repair rows, `2 / 2`** — ⚠️ **read with §4.1 A2c's stated bound, not
       ticked**
-- [ ] A1 reads **340 | 340 | 0 | 0** for Malt, and ⛔ **447 | 447 | 0 | 0**,
+  - ✅ **2 / 2 exact.** ⚠️ **And the bound is recorded rather than skipped:** a symmetric ledger
+    cannot distinguish *stored* from *reconstructed*, so book 2's asymmetry argument is not
+    re-proved here. §4.1 A2c
+- [✅] A1 reads **340 | 340 | 0 | 0** for Malt, and ⛔ **447 | 447 | 0 | 0**,
       **382 | 382 | 0 | 0**, **463 | 463 | 0 | 0**, **232** unchanged for the rest
-- [ ] A5's four occurrence counts sum to **4** and reconcile with A2c; ⛔ **0 unrepaired**
-- [ ] ⭐ A6 reads **0 tabs in every column, for all five documents** — including `head_tab`,
+  - ⭐ **all five rows exact**, including min/median/max on all four books
+- [✅] A5's four occurrence counts sum to **4** and reconcile with A2c; ⛔ **0 unrepaired**
+  - ⭐ **`1 | 1 | 1 | 1 | 0 | 0`, summing to 4.** Written with `sum()` rather than
+    `count(*) filter` **because book 2's equivalent check missed on exactly that** — a lesson
+    from a previous book applied and confirmed
+- [✅] ⭐ A6 reads **0 tabs in every column, for all five documents** — including `head_tab`,
       which is §0.1's real gate — and **0 glyph, 0 plain_backmatter**
-- [ ] A7 reads **5 | 7 | 1 | 262**
-- [ ] A3 stops at `Already ingested` in seconds with an identical fingerprint at **1,864**.
+  - ⭐ **0 in every column for Malt.** 296 probe chunks carried a tab **inside a heading** and
+    none survived; 147,910 tabs cleared. ⚠️ Yeast's 15/11 glyph residue is unchanged — a fourth
+    untouched-state check
+- [✅] A7 reads **5 | 7 | 1 | 262**
+  - ⭐ **all four exact**
+- [⛔] A3 stops at `Already ingested` in seconds with an identical fingerprint at **1,864**.
       ⛔ **If not run, recorded as *not observed*, not as passed**
-- [ ] the 5 standing questions pass the keep rule, and §4.2a's *"Malt moves nothing"*
+  - ⛔ **not observed** — see above
+- [✅] the 5 standing questions pass the keep rule, and §4.2a's *"Malt moves nothing"*
       prediction is scored — including Q3, the declared gate
-- [ ] all 5 positive controls reach the top 3 in `malt-practical-guide`. ⚠️ **Two books running,
+  - ⭐ **keep, and stronger than the rule asks:** all five prior rank-1 chunks are still at
+    **rank 1**, and all five top-6s are **byte-identical** to the post-Yeast baseline
+  - ⭐ **the prediction is correct in full — 0 of 6 from Malt on every one of the five**
+- [✅] all 5 positive controls reach the top 3 in `malt-practical-guide`. ⚠️ **Two books running,
       every control landed at rank 1; a control reaching only rank 2 or 3 is looked at, not
       ticked**
-- [ ] ⭐ **Q9's result is read as the verdict on §0.2** — the procedure control is why the
+  - ⭐ **all five at rank 1.** Three books running now: Water 4/4, Yeast 4/4, Malt 5/5
+  - ⭐ **Q6's shared-control prediction is correct** (3 Malt / 3 *How to Brew*) — the one book 2
+    got wrong
+- [✅] ⭐ **Q9's result is read as the verdict on §0.2** — the procedure control is why the
       token-floor decision is judgeable this time
-- [ ] the Layer-2 retrieval share is recorded for all **11** questions, **including a null**,
+  - ⭐ **6 of 6 from Malt, rank 1 `By George de Piro` p.254 — Appendix D, the section the token
+    floor cut into.** The 7 lost chunks are invisible to a question built to find them.
+    **§0.2's decision stands and is now tested rather than argued**
+- [✅] the Layer-2 retrieval share is recorded for all **11** questions, **including a null**,
       and ⛔ **scored against §4.2c's ownership table declared before the run** — the whole
       point is that the declaration can be wrong
-- [ ] §4.2c's **(`heading_path`, `page_from`) pair** concentration is recorded for all 11
-- [ ] §4.2d recorded: did a `-` epigraph heading retrieve? did a `Footnotes` chunk?
-- [ ] corpus share recorded at **18.2%** and argued, not tuned (§4.5)
-- [ ] `ingest-malt.json` committed with the measured numbers in the message
-- [ ] README §9's book 3 row ticked — Plan, Probed, Built, Tier A, Tier B; Tier C stays
-      `⬜ n/a — no WF4`. ⭐ **README §4.3's projected-corpus table corrected** — it carries
-      **~600** for Malt against this plan's **340**
-- [ ] ⛔ **§5 is not edited after the run.** It is the pre-run evidence and its value is that it
+  - ⭐ **Layer 2 fires on nothing — third consecutive null**, at five documents and 1,864 chunks
+  - ⭐ **the declaration needed zero post-hoc adjudications**, which is what book 2 asked book 3
+    to fix. The rule is now a measurement rather than a judgement
+- [✅] §4.2c's **(`heading_path`, `page_from`) pair** concentration is recorded for all 11
+  - ⭐ **max 2, against a threshold of 4.** Water's Q8 shape has now failed to reproduce twice.
+    ⚠️ Recorded honestly: on this book the pair and heading metrics **agree**, so this is a
+    weaker validation of the metric than book 2's, where they disagreed
+- [⚠️] §4.2d recorded: did a `-` epigraph heading retrieve? did a `Footnotes` chunk?
+  - ⛔ **yes — three times.** `-Bill Simpson` at **rank 3 on Q8** and **rank 6 on Q6**;
+    `-William Littell Tizard…` at **rank 4 on Q10**. ⭐ **The predicted defect appeared, and the
+    prediction understated it.** Three documents now show it and it is **no longer cosmetic**
+  - ✅ **no `Footnotes` chunk retrieved** — §2.3's keep decision is unvalidated in either
+    direction, not vindicated
+- [✅] corpus share recorded at **18.2%** and argued, not tuned (§4.5)
+  - ⭐ **and no document in the corpus is above 25% for the first time since book 0b**
+- [✅] `ingest-malt.json` committed with the measured numbers in the message
+  - ⚠️ **committed twice, and the second commit matters:** the tracked JSON was replaced with
+    the workflow that **actually executed**. §2.1a
+- [✅] README §9's book 3 row ticked — Plan, Probed, Built, Tier A, Tier B; Tier C stays
+      `⬜ n/a — no WF4`. ⭐ **README §4.3's projected-corpus table corrected** — it carried
+      **~600** for Malt against this plan's **340**, and the end state moves ~2,965 → **~2,705**
+- [✅] ⛔ **§5 is not edited after the run.** It is the pre-run evidence and its value is that it
       was written before the outcome was known. New measurements go in §4, labelled `measured`
-- [ ] ⭐ **§0's verdict recorded either way** — *"book 3 was mapper-only"* is the evidence D30
+  - ⭐ **§5 is byte-identical to the version committed in `a9bcefb`, before the run**
+- [✅] ⭐ **§0's verdict recorded either way** — *"book 3 was mapper-only"* is the evidence D30
       was designed to produce, and it only counts if it is written down first
-- [ ] ⭐ **§0.1's and §0.2's two closed questions recorded as closed** — the glyph decoder is
-      argued down by a second Brewers Publications title with zero glyph damage, and
-      merge-forward is argued down by a token-floor loss of a different shape
+  - ⭐ **it held.** The only artefact book 3 added to n8n is a 2-node launcher; `Clean +
+    normalise` is byte-identical to the one book 1 left behind
+- [✅] ⭐ **§0.1's and §0.2's two closed questions recorded as closed**
+  - ⭐ **§0.1 confirmed twice over:** 0 glyph runs in the stored corpus, and 0 tabs from a source
+    carrying 147,910 — the decoder stays unbuilt and the untab edit is confirmed **necessary**
+  - ⭐ **§0.2 confirmed by Q9** — merge-forward is not built, and the evidence against it is
+    stronger after the run than before it
+- [⛔] ⭐ **NEW — the duplicate `ingest-malt` workflow is deleted**
+  - ⛔ **not done, handed over.** Two workflows are named `ingest-malt`; the unused one
+    (`ingestMalt00001A`) never ran and there is no `delete:workflow` in the n8n CLI. §2.1a
 
 **Handed to whoever next touches `scripts/`:** ⛔ **`hyphen-probe.sh` has a false-negative
 bug.** Its regex requires a trailing ASCII `-`; Docling normalises en dashes to hyphens *after*
@@ -1297,8 +1710,23 @@ record it, watch it retrieve, and fix it in the layer that can rebuild `content`
 
 ## What book 3 hands to book 4
 
+⭐ **Revised 2026-08-19, after the run.** The six items below were written before Tier B; items
+1, 2 and 4 are now **measured** rather than predicted, and two more were produced by the run
+itself.
+
 **Book 4 — the *Draught Beer Quality Manual*, 124 p — is the first source since book 0a whose
 verdict is *not* mapper-only:** a new `ba_manual` cleaning profile for a two-column layout.
+
+> ### ⭐ Book 3 in one line
+>
+> **340 chunks. Thirty numbers `predicted` from a probe and thirty hit exactly** — the best
+> result standing rule 1 has produced. Tier B **keep**, with all five prior rank-1 chunks still
+> at **rank 1**, all five positive controls at **rank 1**, and Layer 2 firing on **nothing** for
+> the third run running. ⭐ **Two open design questions closed by measurement** — the glyph
+> decoder and merge-forward — and ⭐ **one standing rule kept for the first time in the phase.**
+> ⛔ **Three things are open and none of them is the ingest:** A3 was never observed, the
+> orphaned `Clean + normalise1` is still live, and there are now **two** workflows named
+> `ingest-malt`.
 
 ⛔ **What book 4 inherits, stated so it is not rediscovered:**
 
@@ -1312,14 +1740,35 @@ verdict is *not* mapper-only:** a new `ba_manual` cleaning profile for a two-col
    line wrapping is denser per page than anywhere in the corpus so far.** ⚠️ **Run the broadened
    sweep, not just the script**, and consider fixing the script in book 4's run, which is
    already touching shared code.
-4. ⚠️ **The epigraph-heading defect is on its third document** and §4.2d records whether it
-   finally retrieved. **If it did, book 4 is the run that can fix it** — it is already editing
-   the cleaning node, and a `heading_path` repair there can rebuild `content` in the same pass
-   (plan 06 §4).
+4. ⛔ ⭐ **The epigraph-heading defect retrieved, on three questions — fix it at book 4.**
+   `measured` §4.2d: `-Bill Simpson` at **rank 3 on Q8** and **rank 6 on Q6**,
+   `-William Littell Tizard…` at **rank 4 on Q10**. ⭐ **This is the condition book 3 set, and it
+   was met:** three documents now show it, and for the first time it retrieves on questions the
+   source **owns**, so a user would receive a correct Mallett passage cited to a person who did
+   not write it. ⭐ **Book 4 is the run to fix it in** — it is already editing the cleaning node
+   for `ba_manual`, and a `heading_path` repair there can rebuild `content` in the same pass,
+   which is the only way to do it without hitting plan 06 §4's warning.
 5. ⚠️ **`Log ingest summary`'s promote message still interpolates the version row id.** §0.4 —
    handed to book 4 for the same reason.
 6. ⭐ **§11's 200–450 chunk-size band now describes zero of four books at p25** (179 · 198 ·
-   173 · 160). §4.4 — **book 4 revises the criterion or drops it**, per standing rule 6.
+   173 · 160), `measured`. §4.4 has the four-book table. **Book 4 revises the criterion or drops
+   it**, per standing rule 6 — all four medians are inside the band and all four p25s are outside
+   it in the same direction, which is the shape of a bound set too high.
+7. ⛔ ⭐ **NEW — there are two workflows named `ingest-malt`, and one of them never ran.**
+   §2.1a. The tracked JSON is the executed one (`hpW9P0n7fxXY9KdF`); the unused duplicate
+   (`ingestMalt00001A`) needs deleting and there is no `delete:workflow` in the n8n CLI.
+   ⚠️ **Two workflows with the same name is worse than the orphaned node**, because the next
+   person to click Run has a 50% chance of running the wrong one.
+8. ⭐ **NEW — a runtime estimate derived from a measured run held; one inherited between plans
+   did not.** Book 1 carried *"~5–9 min to embed"* against a real **16 s**; book 3 predicted
+   **~3 min** and `measured` **3 min 02 s**. ⭐ **Book 4 should derive its estimate from book 3's
+   execution record**, not from this plan's prose: Docling dominates, everything touching the
+   database or the GPU costs seconds, and the honest hung-run threshold is about twice the
+   predicted total.
+9. ⚠️ **`$5` has now stored a ledger on two books, but the *asymmetry* argument rests entirely
+   on book 2.** Malt's two pairs both read `applied = 2`, which cannot distinguish *stored* from
+   *reconstructed*. ⭐ **A third book with distinct per-pair counts settles it**; book 4 should
+   check whether its `text_repairs` gives one and say so either way. §4.1 A2c.
 
 Then ⭐ **book 4.5, the agent**: WF4 + `tool-search-brewing-knowledge` + `mem.chat_turns`
 logging, which is what finally makes **Tier C runnable for books 0a–4 retroactively**.

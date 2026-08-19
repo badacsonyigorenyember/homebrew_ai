@@ -1,8 +1,8 @@
 [
   {
-    "updatedAt": "2026-08-19T10:00:00.000Z",
-    "createdAt": "2026-08-19T10:00:00.000Z",
-    "id": "ingestMalt00001A",
+    "updatedAt": "2026-08-19T11:03:41.253Z",
+    "createdAt": "2026-08-19T11:01:29.958Z",
+    "id": "hpW9P0n7fxXY9KdF",
     "name": "ingest-malt",
     "description": null,
     "active": false,
@@ -16,7 +16,7 @@
           0,
           0
         ],
-        "id": "47c051b8-e047-4983-b680-e894ebb3e3a7",
+        "id": "519de76b-6173-43ee-8bc7-0edff4a34574",
         "name": "When clicking ‘Execute workflow’"
       },
       {
@@ -31,17 +31,17 @@
           "workflowInputs": {
             "mappingMode": "defineBelow",
             "value": {
+              "front_matter_max_page": 24,
               "file_path": "/data/shared/rag-files/pending/malt-a-practical-guide-from-field-to-brewhouse-978-1-938469-12-1-1-938469-12-7-978-1-938469-16-9.pdf",
               "source_format": "pdf",
               "slug": "malt-practical-guide",
               "title": "Malt: A Practical Guide from Field to Brewhouse",
               "doc_type": "book",
               "authors": "John Mallett",
-              "language": "en",
               "edition_note": "Brewers Publications, 2014",
+              "language": "en",
               "authority": "reference",
               "profile": "book",
-              "front_matter_max_page": 24,
               "extra_drop_regex": "^Bibliography$",
               "text_repairs": "[[\"212220\",\"212-220\"],[\"5565\",\"55-65\"]]"
             },
@@ -181,17 +181,15 @@
             "attemptToConvertTypes": false,
             "convertFieldsToString": true
           },
-          "options": {
-            "waitForSubWorkflow": true
-          }
+          "options": {}
         },
         "type": "n8n-nodes-base.executeWorkflow",
         "typeVersion": 1.3,
         "position": [
-          208,
+          128,
           0
         ],
-        "id": "8a9beb29-b686-45a8-bbe8-e2471a62ccd0",
+        "id": "373e6bfc-973b-4cbd-a6ac-89f32f221ce3",
         "name": "Call 'wf1-ingest-book'"
       }
     ],
@@ -216,17 +214,17 @@
     "meta": null,
     "nodeGroups": [],
     "pinData": {},
-    "versionId": "e85d989c-6b02-4ea7-94f3-7af14bed5910",
+    "versionId": "ceee0cab-7086-400e-8a94-5137bd62c025",
     "activeVersionId": null,
-    "versionCounter": 1,
+    "versionCounter": 18,
     "triggerCount": 0,
     "tags": [],
     "shared": [
       {
-        "updatedAt": "2026-08-19T10:43:34.980Z",
-        "createdAt": "2026-08-19T10:43:34.980Z",
+        "updatedAt": "2026-08-19T11:01:29.958Z",
+        "createdAt": "2026-08-19T11:01:29.958Z",
         "role": "workflow:owner",
-        "workflowId": "ingestMalt00001A",
+        "workflowId": "hpW9P0n7fxXY9KdF",
         "projectId": "cIpOMqhSXz7mHAJj",
         "project": {
           "updatedAt": "2026-07-23T14:53:00.343Z",

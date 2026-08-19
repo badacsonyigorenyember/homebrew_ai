@@ -1659,6 +1659,32 @@ retrieval.
 ⭐ **Revised 2026-08-19, after the run.** The three questions below were written before Tier B;
 question 3 is now **answered**, and two more were produced by the run itself.
 
+> ### ⭐ Scoreboard — how book 3 answered them, added 2026-08-19
+>
+> ⛔ **This block is a pointer, not a rewrite.** The five items below are left exactly as book 2
+> wrote them; [`03-malt.md`](03-malt.md) is where each is settled.
+>
+> | # | Question | ⭐ Answer, `measured` at book 3 |
+> |---|---|---|
+> | **1** | Is Malt's front matter set in a working font? | ⭐ ✅ **Yes — and the decoder is therefore closed.** `measured`: **0** glyph runs in all 458 chunks, text **and** headings. *Malt* is a Brewers Publications title from 2014 and reproduces nothing. ⭐ **What it has instead is 147,910 tabs** — twice Water's — which makes book 1's untab edit **load-bearing** rather than merely safe. [`03-malt.md`](03-malt.md) §0.1 |
+> | **2** | Does the token floor take another dozen chunks? | ⭐ ⛔ **No — 7, and book 2 named the wrong fix.** All 7 are **sentence tails** carrying the *preceding* chunk's heading; **0** are severed prerequisites, so **merge-forward would fix 0 of 7**. ⭐ **And book 3 tested it rather than arguing it**: the procedure-shaped control this section asked for returns **6 of 6 from Malt at rank 1**, from the very appendix the token floor cut into. ⛔ **Neither merge is built, and the case is weaker after the run than before it.** [`03-malt.md`](03-malt.md) §0.2, §4.4 |
+> | **3** | Does per-heading concentration repeat? | ✅ already answered here; ⭐ **book 3 adopts the (`heading_path`, `page_from`) pair metric** and records it for all 11 questions. [`03-malt.md`](03-malt.md) §4.2c |
+> | **4** | State each Tier B question's owning document *before* the run | ⭐ ✅ **done, and it worked.** An 11-row ownership table was declared in the plan; `measured`, **zero post-hoc adjudications were needed** — every ≥ 3-of-6 belonged to a document named as an owner in advance. ⭐ **Layer 2's only unmeasured term is now measured.** [`03-malt.md`](03-malt.md) §4.2c |
+> | **5** | A compound standing question is won by whichever source covers both halves | ⭐ ✅ **applied, not ignored** — book 3 predicts *Malt moves nothing* on all five standing questions, and Q2 (mash pH) is predicted **0–1 of 6** on that reasoning. `measured`: the phrase *"mash pH"* occurs **0** times in *Malt*. [`03-malt.md`](03-malt.md) §4.2a |
+>
+> ⭐ **And two items book 2's list did not anticipate:**
+>
+> - ⛔ **`scripts/hyphen-probe.sh` has a false-negative bug.** It drafted `[]` for *Malt* while
+>   two real fusions — `212220°F` and `5565°F` — sit in kept text, because Docling normalises en
+>   dashes to ASCII *after* joining the wrap. ⛔ **The first silent failure of the draft in three
+>   books.** [`03-malt.md`](03-malt.md) §5.6
+> - ⛔ ⭐ **§4.2d's carried defect finally retrieved.** This plan recorded Water's `-J. Palmer` as
+>   *"present in the corpus, not yet retrieved"* and told book 3 to watch for the same thing in
+>   *Malt*. `measured`: it happened on **three** questions — `-Bill Simpson` at rank 3 (Q8) and
+>   rank 6 (Q6), `-William Littell Tizard…` at rank 4 (Q10) — **and on questions Malt owns.**
+>   ⭐ **The watch this section set up is what turned a cosmetic note into a scheduled fix at
+>   book 4.** [`03-malt.md`](03-malt.md) §4.2d
+
 **Book 3 (*Malt*, Mallett, 335 pages) is the same shape and should again be mapper-only** —
 README §4 gives it *"table-dense body under `table_mode=accurate`"* as its new capability, and
 Yeast already exercised that path on 42 table chunks with no complaint.
@@ -1701,3 +1727,11 @@ one book after README §9 recorded it as broken at book 1; and the orphaned **`C
 normalise1`** node is still live, still divergent, still a third copy of the cleaning profile.
 ⛔ **None is a defect in the corpus. All three are the record, and the record is what this
 phase is for.**
+
+⭐ **Update 2026-08-19, after book 3's run — one of the three is closed.** **Standing rule 4 was
+kept**: `ingest-malt.json` was exported and committed *before* its first run, the first time the
+property the rule protects has survived a book. ⛔ **The other two are still open** — A3 has
+still never been observed on any book launcher since book 0a, and the orphaned
+`Clean + normalise1` is still live, now with book 3's finding attached: **no n8n CLI command
+edits a node**, so it can only be done in the UI. ⚠️ **Book 3 added a fourth of the same kind** —
+a duplicate `ingest-malt` workflow, blocked by the same UI-only constraint.

@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-08-12T12:14:32.462Z",
+    "updatedAt": "2026-08-19T10:58:46.055Z",
     "createdAt": "2026-08-07T10:52:49.308Z",
     "id": "NoNCV2mkQEppWP7O",
     "name": "wf1-ingest-book",
@@ -581,19 +581,6 @@
             "name": "Postgres account"
           }
         }
-      },
-      {
-        "parameters": {
-          "jsCode": "// ---- Docling result -> cleaned chunks ----\nconst p       = $('Ingest book input').first().json;\nconst PROFILE = p.profile;\nconst FRONT_MAX = Number(p.front_matter_max_page);\n\nif (!Number.isFinite(FRONT_MAX))\n  throw new Error(`front_matter_max_page is not a number: ${p.front_matter_max_page}`);\n\nconst res = $json;\n\n// task_status \"success\" means the task ran, not that it worked.\nconst doc = (res.documents && res.documents[0]) || null;\nif (doc && doc.status && !['success', 'partial_success'].includes(doc.status))\n  throw new Error(`Docling documents[0].status = \"${doc.status}\"`);\n\nconst chunks = res.chunks;\nif (!Array.isArray(chunks) || chunks.length === 0)\n  throw new Error('Docling returned no chunks');\n\n// ---- profile registry. A new source format is a branch here, not a workflow ----\nconst PROFILES = {\n  book: {\n    dropHeading: /^(Contents|Index|Glossary|Acknowledg|Copyright|About the Author)/i,\n    dropReferences: true,\n    minTokens: 30,\n  },\n  // ba_manual    -> book 4 (Draught manual, two-column).\n  // byo_magazine -> book 9 (stout guide). See archive/06-stout-guide-ingest.md §3.\n  // Deliberately absent until then: a profile that silently behaves like `book`\n  // is worse than a thrown error.\n};\n\nconst cfg = PROFILES[PROFILE];\nif (!cfg) throw new Error(`Unknown cleaning profile \"${PROFILE}\" — implement it in this node before running`);\n\n// Per-source extras: appendix titles and the like. Empty string = no rule.\nconst EXTRA = (p.extra_drop_regex || '').trim();\nconst extraRe = EXTRA ? new RegExp(EXTRA, 'i') : null;\n\nconst drops = [];\nconst kept  = [];\n\nfor (const c of chunks) {\n  const pages    = Array.isArray(c.page_numbers) ? c.page_numbers.filter(Number.isFinite) : [];\n  const pageFrom = pages.length ? Math.min(...pages) : null;\n  const pageTo   = pages.length ? Math.max(...pages) : null;\n  const heads    = Array.isArray(c.headings) ? c.headings : [];\n  const headStr  = heads.join(' > ');\n  const raw      = (c.raw_text ?? '').trim();\n  const tokens   = Number.isFinite(c.num_tokens) ? c.num_tokens : null;\n  // shape-agnostic: doc_items entries may be strings or objects\n  const hasTable = JSON.stringify(c.doc_items ?? []).includes('/tables/');\n\n  const drop = (reason) => {\n    drops.push({ chunk_index: c.chunk_index, reason, page_from: pageFrom,\n                 heading: headStr.slice(0, 120), tokens });\n  };\n\n  if (!raw)                                                { drop('empty raw_text');                 continue; }\n  if (pageTo !== null && pageTo <= FRONT_MAX)              { drop(`front matter (p1-p${FRONT_MAX})`); continue; }\n  if (heads.some(h => cfg.dropHeading.test(h)))            { drop('front-matter heading');            continue; }\n  if (extraRe && extraRe.test(headStr))                    { drop('source-specific heading');         continue; }\n  if (cfg.dropReferences &&\n      heads.some(h => /^references$/i.test(h.trim())))     { drop('chapter References list');         continue; }\n  if (tokens !== null && tokens < cfg.minTokens && !hasTable) { drop(`under ${cfg.minTokens} tokens, no table`); continue; }\n  if (/^\\s*\\d{1,3}\\s*$/.test(raw))                         { drop('page-number-only');                continue; }\n\n  kept.push({\n    chunk_index:  c.chunk_index,\n    content:      c.text,\n    raw_content:  raw,\n    heading_path: heads.length ? heads : null,\n    page_from:    pageFrom,\n    page_to:      pageTo,\n    token_count:  tokens,\n  });\n}\n\nif (kept.length === 0) throw new Error('Cleaning removed every chunk - check the rules');\n\nconst toks = kept.map(k => k.token_count).filter(Number.isFinite).sort((a, b) => a - b);\n\nreturn [{ json: {\n  chunks: kept,\n  drops,\n  stats: {\n    profile:         PROFILE,\n    raw_chunks:      chunks.length,\n    kept:            kept.length,\n    dropped:         drops.length,\n    median_tokens:   toks.length ? toks[Math.floor(toks.length / 2)] : null,\n    max_tokens:      toks.length ? toks[toks.length - 1] : null,\n    over_512:        toks.filter(t => t > 512).length,\n    under_30:        toks.filter(t => t < 30).length,\n    missing_heading: kept.filter(k => !k.heading_path).length,\n    missing_page:    kept.filter(k => k.page_from === null).length,\n    page_count:      Math.max(...kept.map(k => k.page_to ?? 0)),\n  },\n}}];"
-        },
-        "type": "n8n-nodes-base.code",
-        "typeVersion": 2,
-        "position": [
-          0,
-          336
-        ],
-        "id": "81c8b805-5792-4032-9be5-5fa40ba592b0",
-        "name": "Clean + normalise1"
       }
     ],
     "connections": {
@@ -934,9 +921,9 @@
         }
       ]
     },
-    "versionId": "f555525b-d3ee-4bdc-a4dd-9f3b06f3a6f6",
+    "versionId": "ec165c31-6c21-46b0-b844-933f4a0ff56b",
     "activeVersionId": null,
-    "versionCounter": 171,
+    "versionCounter": 172,
     "triggerCount": 0,
     "tags": [],
     "shared": [
@@ -959,8 +946,8 @@
       }
     ],
     "versionMetadata": {
-      "name": null,
-      "description": null
+      "name": "Version ec165c31",
+      "description": ""
     }
   }
 ]
