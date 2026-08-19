@@ -503,12 +503,12 @@ Extrapolated from the one measured book (248 p → 447 chunks) and plan 06's pro
 | **0a+0b — measured 2026-08-12** — How to Brew **447** + BJCP cards **232** (variant B) | **679** | **679** |
 | **1 — measured 2026-08-12** — Water | **382** *(projected ~490)* | **1,061** |
 | ⭐ **2 — measured 2026-08-19** — Yeast | **463** *(predicted 463; projected ~590)* | **1,524** |
-| **3** Malt | ~600 | ~2,124 |
-| **4** Draught manual | ~250 | ~2,374 |
-| **5** BA 2026 cards + Study Guide prose | ~100 · ~130 | ~2,604 |
-| **6–7** faults · hops | ~21 · ~110 | ~2,735 |
-| **8** pastry stouts | ~12 | ~2,747 |
-| **9** stout guide | 218 | **~2,965** |
+| ⭐ **3 — probed 2026-08-19** — Malt | ⛔ **340** *(predicted; projected ~600)* | ⭐ **~1,864** |
+| **4** Draught manual | ~250 | ~2,114 |
+| **5** BA 2026 cards + Study Guide prose | ~100 · ~130 | ~2,344 |
+| **6–7** faults · hops | ~21 · ~110 | ~2,475 |
+| **8** pastry stouts | ~12 | ~2,487 |
+| **9** stout guide | 218 | ⭐ **~2,705** |
 
 ⭐ **The first three rows are no longer projections, and both books came in *under* the
 extrapolation** — Water by 22%, Yeast by 22%. The reason is the same in both cases and worth
@@ -516,12 +516,18 @@ carrying to book 3: the projection scaled *How to Brew*'s 1.80 kept chunks per p
 later books sit near **1.40**. Page counts are a poor proxy for chunk counts across
 publishers — *Yeast* is 325 pages on a 3.5″ × 5.19″ trim.
 
-⭐ **`measured` 2026-08-19: Yeast landed at exactly the 463 its plan predicted, so the running
-total of 1,524 and the ~2,965 end state are unchanged.** ⚠️ **Book 3's row is still the naive
-projection.** `measured`, the three ingested books sit at **1.80 · 1.40 · 1.42** kept chunks per
-page; *Malt* is 335 pages, so **~470–600** is the honest band and **~600** is its top end, not
-its centre. Recorded rather than silently adjusted — the number that matters is the one book 3's
-own probe produces.
+⭐ **`measured` 2026-08-19: Yeast landed at exactly the 463 its plan predicted.**
+
+⛔ **And book 3's probe has now corrected the projection by 260 chunks.** [`03-malt.md`](03-malt.md)
+§5.1: *Malt* yields **458 raw → 340 kept `predicted`**, against this table's **~600**. The band
+the last revision called honest — *"~470–600"* — was still **too high**, and the reason is
+measurable rather than a trend: ⭐ **118 of Malt's 458 raw chunks are dropped, 62 of them the
+Index alone.** *Malt* has the largest back matter in the phase and the lowest kept-chunks-per-page
+of any book — **1.02**, against Yeast 1.42, Water 1.40 and *How to Brew* 1.80.
+
+⭐ **The end state therefore moves from ~2,965 to ~2,705**, and every downstream row above is
+shifted by the same −260. ⚠️ **Books 4–9 are still naive projections** and each will move when
+its own probe runs; the correction is recorded here rather than absorbed silently.
 
 **~2,950 chunks, not ~3,200.** Architecture §3.6 sized pgvector for 40–60k and called 500k
 comfortable, so **do not let corpus growth become an infrastructure conversation.** The
@@ -1136,7 +1142,7 @@ and they are why the §10 eval baseline waits until the corpus is complete.
 | 0b | Styles model | ✅ [00b](00b-styles.md) | ✅ re-measured 2026-08-12 | ✅ **22 nodes, committed** | ✅ **A0–A5b pass** | ✅ **covered by book 1's run** — Q10 returns 5 of 6 style cards | ⬜ n/a — no WF4 |
 | **1** | **Water** | ✅ [01](01-water.md) | ✅ **440 raw, measured 2026-08-12** | ✅ **built and run — 382 chunks, 0 gaps** | ✅ **all pass; 18 of 19 predictions exact** | ✅ **10 questions; Layer 2 fires on nothing** | ⬜ n/a — no WF4 |
 | **2** | **Yeast** | ✅ [02](02-yeast.md) | ✅ **526 raw, measured 2026-08-12** | ✅ **built and run — 463 chunks, 0 gaps** | ⭐ ✅ **A1–A7 recorded; 21 of 21 predicted numbers exact.** ⚠️ two predictions missed (A5 units, A6 over-count) · ⛔ **A3 not observed** | ✅ **10 questions; keep — 4 controls at rank 1; Layer 2 fires on nothing** | ⬜ n/a — no WF4 |
-| 3 | Malt | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ n/a — no WF4 |
+| **3** | **Malt** | ✅ [03](03-malt.md) | ✅ **458 raw, measured 2026-08-19** | 🟡 **`ingest-malt` built and ⭐ committed *before* the run — standing rule 4 kept for the first time.** ⛔ **not yet run** | ⬜ | ⬜ | ⬜ n/a — no WF4 |
 | 4 | Draught manual | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ n/a — no WF4 |
 | ⭐ **4.5** | **The agent** — search tool + WF4 + turn logging | ⬜ **§4.2 sets the timing; the build guide is [`archive/phase2/03b`](../archive/phase2/03b-wf4-build-guide.md)** | n/a | ⬜ | n/a | ⭐ **re-baseline after** | ⭐ **unblocks Tier C for 0a–4, retroactively** |
 | 5 | BA 2026 + Study Guide | ⬜ **needs D31** | ⬜ | ⬜ | ⬜ | ⬜ | ⭐ **the merge/conflict eval lands here** |
