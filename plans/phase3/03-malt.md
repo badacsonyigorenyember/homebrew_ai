@@ -301,8 +301,9 @@ docker exec n8n n8n export:workflow --id=ingestMalt00001A --pretty --output=/dem
 > ⚠️ **Why this is not the thing §1.2 refuses.** §1.2's objection is to importing over
 > **`wf1-ingest-book`**, an existing workflow every book depends on. `ingest-malt` did not
 > exist; there was nothing to overwrite and nothing to deactivate. `measured` immediately
-> after: all six workflows `active=false`, `wf1-ingest-book` unchanged at 27 nodes,
-> `ingest-yeast` unchanged at 2.
+> after: all six workflows `active=false`, `ingest-yeast` unchanged at 2, and
+> `wf1-ingest-book` unchanged — ⚠️ **27 nodes at that moment; the orphan was deleted
+> separately, by hand in the UI, later the same day** (§1.2 item 1).
 >
 > ⭐ **Verified from the round-tripped export, not from the input file:** id
 > `ingestMalt00001A`, **2 nodes**, `executeWorkflow` typeVersion **1.3**,
