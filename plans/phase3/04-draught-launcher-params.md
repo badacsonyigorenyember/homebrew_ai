@@ -5,6 +5,44 @@ runnable checks with their expected values. Everything under "measured" was read
 file or the live stack on 2026-08-19; everything under "expected" is a prediction to score
 the run against.
 
+> ## ⭐ Outcome — run 2026-08-19, `measured`
+>
+> **226 chunks, 0 embedding gaps, version 7 current.** Every parameter below went in unchanged
+> and the run needed one thing this file called for: the **`ba_manual` profile**, which did not
+> exist and which `Clean + normalise` refused to guess at (*"Unknown cleaning profile"* — the
+> deliberate throw). It was added in `774e9c2` and imported into the live workflow.
+>
+> | Check from the *Tests* section | Predicted here | ⭐ `measured` |
+> |---|---|---|
+> | chunks | 150–350 (README: ~250) | ✅ **226** |
+> | `first_page` ≥ 13 · `last_page` ≤ 124 | ✅ | ✅ **13 / 124** |
+> | embedding gaps | 0 | ✅ **0** |
+> | dims | 1024, one distinct value | ✅ **1\|1024** |
+> | versions · current | `6\|6` | ✅ **6\|6** |
+> | glossary / index chunks | 0 | ✅ **0** |
+> | `repairs_applied` | 0 (`text_repairs` is `[]`) | ✅ **0** |
+> | tabs in stored text | ~0 | ✅ **0** |
+> | `ingest_log` | `clean` + `promote` | ✅ both — `clean` is **warn** (46 dropped, which is normal), `promote` **info** |
+>
+> **Drop ledger:** 272 raw → 226 kept — **25** front-matter heading · **17** front matter
+> (p1–p12) · **4** under-30-tokens. ⭐ **The 25 are `ba_manual`'s own rule**: on `profile: book`
+> the glossary and index would have been ingested whole.
+> **Token shape:** median **232** · p25 **136** · min/max **40 / 542** · **6** over 512 ·
+> **0** under 30 · **0** missing heading · **0** missing page.
+>
+> ⛔ **Two things this run leaves open, stated so they are not mistaken for done:**
+>
+> 1. ⭐ **A new defect, found afterwards: 29 Private Use Area codepoints**, 21 of them inside
+>    `heading_path`. `U+F6BA` is this PDF's display-font hyphen and nothing renders it, so the
+>    corpus stores `DIRECTDRAW`, `LONGDRAW`, `OFFFLAVORS`, `SINGLEUSE`, `AIRCOOLED`. The body
+>    text of the same chunks spells them correctly. See [`README.md`](README.md)'s book 4
+>    section — **this reopens the glyph decoder book 3 closed.**
+> 2. ⛔ **Tier A and Tier B have not been run**, and this file is not a §6 plan: there was no
+>    predicted chunk count to score, so **standing rule 1 was not exercised on book 4.**
+>
+> ⚠️ The launcher in n8n is named **`ingest-drought`** — misspelled — and is **not exported to
+> git**, which breaks standing rule 4 one book after it was first kept.
+
 ## Source facts (measured)
 
 | | Value |
@@ -24,7 +62,10 @@ the run against.
 
 ## Prerequisites
 
-1. **The `ba_manual` cleaning profile does not exist yet.** `Clean + normalise` in
+1. ✅ **DONE in `774e9c2`.** ~~The `ba_manual` cleaning profile does not exist yet.~~ It now
+   exists in both the tracked JSON and the live workflow; the text below is kept because it is
+   what the error meant and what the fix was.
+   **The `ba_manual` cleaning profile does not exist yet.** `Clean + normalise` in
    `wf1-ingest-book` carries `PROFILES = { book: … }` and a deliberate throw:
    `Unknown cleaning profile "ba_manual" — implement it in this node before running`.
    The run fails at node 13 until a `ba_manual` key is added. Minimum viable shape,
@@ -32,11 +73,15 @@ the run against.
 
    ```js
    ba_manual: {
-     dropHeading: /^(Contents|Table of Contents|Index|Draught Beer Glossary|Acknowledg|Copyright|Preface)/i,
+     dropHeading: /^(Contents|Table of Contents|Index(?![a-z])|Draught Beer Glossary|Glossary|Acknowledg|Copyright|Preface)/i,
      dropReferences: false,
      minTokens: 30,
    },
    ```
+
+   `Index(?![a-z])` rather than `Index`: the copyright page credits *"Indexing: Doug Easton"*,
+   which the naive form matched. `dropReferences: false` because this manual carries no
+   per-chapter References lists, and no appendix rule because Appendices A–D are content.
 
    If you would rather not touch the node yet, `profile: "book"` runs unchanged — but its
    `dropHeading` is anchored and will **not** match `DRAUGHT BEER GLOSSARY`, so the glossary

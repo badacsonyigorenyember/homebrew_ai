@@ -2,20 +2,23 @@
 
 **Status:** 🟢 **0a, 0b, 1 and 2 built and Tier-B verified · the agent scheduled at book 4.5
 (§4.2) ·** ⭐ **book 3 (Malt) built, run and Tier-A/Tier-B verified — 340 chunks** ·
+⭐ **book 4 (Draught manual) built and run 2026-08-19 — 226 chunks, the first source with a
+new cleaning profile since 0a.** ⚠️ **Tier A/B not yet run on it, and it has no §0–§5 plan**
 **Written:** 2026-08-07 · **§6 contract revised 2026-08-12 · agent timing set 2026-08-12 ·
-book 2's record closed 2026-08-19 · ⭐ book 3 run and closed 2026-08-19**
+book 2's record closed 2026-08-19 · ⭐ book 3 run and closed 2026-08-19 · ⭐ book 4 run
+2026-08-19**
 **Prereqs:** none for 0a. Books 0b–9 need 0a's schema and engine, both of which now exist.
 
-> ## 🟢 Where the corpus actually stands — measured 2026-08-19
+> ## 🟢 Where the corpus actually stands — measured 2026-08-19 (re-measured after book 4)
 >
 > | | Measured |
 > |---|---|
-> | `kb.chunks` | ⭐ **1,864** — *How to Brew* **447** (24.0%) · **Yeast 463** (24.8%) · **Water 382** (20.5%) · ⭐ **Malt 340** (18.2%) · BJCP style cards **232** (12.4%) |
-> | ⭐ **corpus share** | ⭐ **no document is above 25%** — for the first time since book 0b |
-> | embedding gaps · dims · `is_current` versions | **0** · **1024** (one value) · ⭐ **5** |
-> | `page_count` per book | Yeast **305** · How to Brew **248** · Water **239** · ⭐ **Malt 262** |
+> | `kb.chunks` | ⭐ **2,090** — **Yeast 463** (22.2%) · *How to Brew* **447** (21.4%) · **Water 382** (18.3%) · **Malt 340** (16.3%) · BJCP style cards **232** (11.1%) · ⭐ **Draught 226** (10.8%) |
+> | ⭐ **corpus share** | ⭐ **no document is above 25%**, and the top share is now **22.2%** — the flattest the corpus has been |
+> | embedding gaps · dims · `is_current` versions | **0** · **1024** (one value) · ⭐ **6** |
+> | `page_count` per book | Yeast **305** · How to Brew **248** · Water **239** · Malt **262** · ⭐ **Draught 124** |
 > | `ref.styles` | **116** BJCP 2021 rows · 96 with vitals · 20 without · 30 entry instructions |
-> | n8n workflows | ⚠️ **7** — `wf1-ingest-book`, `ingest-how-to-brew`, `ingest-bjcp-styles`, `ingest-water`, `ingest-yeast`, and ⛔ ⭐ **two named `ingest-malt`** (`hpW9P0n7fxXY9KdF`, which ran; `ingestMalt00001A`, which never did). ⛔ **None is an agent or a tool** — Tier C still not runnable |
+> | n8n workflows | ⚠️ **8** — `wf1-ingest-book`, `ingest-how-to-brew`, `ingest-bjcp-styles`, `ingest-water`, `ingest-yeast`, ⛔ ⭐ **two named `ingest-malt`** (`hpW9P0n7fxXY9KdF`, which ran; `ingestMalt00001A`, which never did), and ⛔ ⭐ **`ingest-drought`** (`7woo7XABKVdazwZO`) — book 4's launcher, **misspelled** (*drought*, not *draught*) and ⛔ **not exported to git**, so standing rule 4 is broken again one book after it was first kept. ⛔ **None is an agent or a tool** — Tier C still not runnable |
 >
 > ⭐ **Probe-then-plan has now been tested three times and it is still getting *more* accurate.**
 > Book 1: **18 of 19** acceptance numbers exact. ⭐ **Book 2: 21 of 21** — 526 raw → 463 kept,
@@ -56,6 +59,63 @@ book 2's record closed 2026-08-19 · ⭐ book 3 run and closed 2026-08-19**
 > | ⭐ ✅ **The repair ledger records, per pair** | `kb.ingest_log`'s `clean` row carries `repairs` `54 / 17 / 10 / 6`, matching [`02-yeast.md`](02-yeast.md) §2.4 pair for pair. **`$5` is passed *and stored*.** The asymmetry is what makes it a real test — a total could not have produced those four numbers. ⚠️ **One observation on one book**; book 3 re-reads it rather than assuming it |
 > | ✅ **Tier B at four documents — Layer 2 fires on nothing, again** | **keep**: all five prior rank-1 chunks still top 3, **all four positive controls at rank 1**, Q2 and Q3 byte-identical to the post-Water baseline. ⭐ **Yeast is 30.4% of the corpus and returns 0 of 6 on the style question** — the second document to cross the 25% proxy without touching a question it does not own |
 > | ⭐ **The agent has a date: book 4.5** | §4.2 — `tool-search-brewing-knowledge` + WF4 + `mem.chat_turns` logging, built **after book 4 and before book 5**, which is where cross-source disagreement first exists. ⛔ **This is what closes the *"Tier C — not runnable"* line that every plan so far ends on** |
+>
+> ---
+>
+> ### ⭐ New — book 4 (Draught Beer Quality Manual) ran 2026-08-19, and it is the first book
+> ### since 0a whose verdict is *not* mapper-only
+>
+> ⚠️ **Read this section knowing what it is not.** Book 4 was run from a parameters-and-checks
+> note ([`04-draught-launcher-params.md`](04-draught-launcher-params.md)), **not** from a §0–§5
+> plan, so **standing rule 1's probe-then-plan was not exercised** — there is no table of
+> predicted numbers to score, and the figures below are measurements only. ⛔ **Tier A and
+> Tier B have not been run on this document.** That is the outstanding work, not a formality.
+>
+> | | ⭐ `measured` 2026-08-19 |
+> |---|---|
+> | The run | **272 raw → 226 kept**, 46 dropped · `page_count` **124** · median **232** tokens · p25 **136** · min/max **40 / 542** · **6** over 512 · **0** under 30 · **0** missing heading · **0** missing page · **0** embedding gaps · version **7**, `is_current` |
+> | ⭐ **the new `ba_manual` profile** | 🆕 **built, and it is load-bearing.** Drop ledger by reason: **25** front-matter heading · **17** front matter (p1–p12) · **4** under-30-tokens. ⭐ **The 25 are the profile's own rule** — the manual's back matter is titled `DRAUGHT BEER GLOSSARY` and `INDEX`, which `book`'s anchored regex does not match, so on `profile: book` all of it would have been ingested |
+> | `Index(?![a-z])` | the copyright page credits *"Indexing: Doug Easton"*; the naive `Index` matched it. The negative lookahead is why that credit is not treated as back matter |
+> | `dropReferences` | **false** — this manual carries no per-chapter References lists, so the `book` rule would never have fired |
+> | Appendices A–D | ⭐ **deliberately kept** (ISBT gas spec, CO₂ charts, gas laws, cask ale). They are content, not back matter |
+> | ⭐ `text_repairs` | **`[]`, and correctly so** — the probe, broadened to `[-‐–—]$`, found **0** at-risk sites and `repairs_applied` is **0** |
+> | untab | **4** tabs in the whole PDF (Water 75,154 · Malt 147,910) and **0** in the stored corpus. ⚠️ **This book neither confirms nor challenges the untab edit** |
+> | Chunk count against the extrapolation | **226** against §5's **~250** — under, as every book since Water has been |
+>
+> ### ⛔ ⭐ The finding: **a third producer, and the glyph decoder is *not* closed after all**
+>
+> [`03-malt.md`](03-malt.md) §0.1 closed the glyph-decoder question on the argument that the
+> `+17` offset was *"a property of one PDF's font subset"*. ⭐ **That argument survives; the
+> conclusion does not.** *Draught* is **Adobe InDesign 15.1 / PDF Library 15.0** — a third
+> producer — and it ships **Private Use Area** codepoints where its display font puts a
+> **hyphen**:
+>
+> | codepoint | occurrences | what it actually is | what the corpus stores |
+> |---|---|---|---|
+> | ⭐ **U+F6BA** | **29** — in **21** chunks' `heading_path`, 8 in `raw_content` | the hyphen of the small-caps display font | ⛔ **nothing renders** — `DIRECTDRAW`, `LONGDRAW`, `OFFFLAVORS`, `CLOSEDREMOTE`, `SINGLEUSE`, `AIRCOOLED`, `GLYCOLCHILLED`, `10FOOT` |
+> | U+F6BB | 1 | a hyphen inside a table range | `25<F6BB>31` where the page reads **25-31** |
+> | U+F63A | 1 | near *"70% CO /30% N 2 blend"* | a dropped subscript |
+>
+> ⛔ **Why this one matters more than Yeast's did: 21 of the 29 sites are in `heading_path`,
+> which is the citation path.** A user asking about off-flavours is cited to a heading that
+> reads `OFFFLAVORS IN DRAUGHT BEER`, and the same word is spelled `off-flavors` correctly in
+> body text — so **the heading and the body of the same chunk disagree**, which is the corpus's
+> oldest documented failure mode. ⚠️ **Book 3's test — "a second Brewers Publications title with
+> the same broken font" — was the wrong test.** The right one is *"does any producer ship
+> unmapped PUA codepoints"*, and the answer at three books is **yes, two of five documents**.
+> ⭐ **A decode step is now justified by two independent sources**, which is the bar
+> [`02-yeast.md`](02-yeast.md) §0.3 itself set for shared-engine code.
+>
+> ⛔ **And two fixes that book 3 explicitly handed to book 4 were *not* made in it** — the run
+> happened without the plan that would have carried them:
+>
+> | Handed to book 4 by [`03-malt.md`](03-malt.md) | Status after the run |
+> |---|---|
+> | Fix the **epigraph-heading** defect while the cleaning node is open | ⛔ **not done.** ⚠️ The node *was* open — `ba_manual` was added to it — so this was the run to do it in. `measured`: *Draught* itself has **0** byline headings, so it added no new instances |
+> | Fix `hyphen-probe.sh`'s `[-‐–—]$` false negative in `scripts/` | ⛔ **not done in the script.** The broadened pattern was run **by hand** for book 4 (0 sites), so the script on disk still has the bug |
+> | `Log ingest summary`'s version **row id** in the promote message | ⛔ **not done** — and book 4's row reads *"version 7 promoted"* against `version` **1**, the fifth document to record it |
+>
+> ---
 >
 > ⛔ **What book 2 did *not* close — ⭐ two of the three are now closed by book 3:**
 >
@@ -404,7 +464,7 @@ three chunks about the mash. That is measurable. Wait for it.
 | **1** | **Water** — Palmer & Kaminski, 273 p | engine, `profile: book` | the D30 split itself, on the easiest possible file | ~90 min |
 | **2** | **Yeast** — White & Zainasheff, 325 p | engine, `profile: book` | nothing — should be near-free | ~40 min |
 | **3** | ✅ **Malt** — Mallett, 335 p | engine, `profile: book` | ⛔ ⭐ **the stated capability is falsified.** `measured` 2026-08-19: Malt is **5.9%** table chunks (27 of 458) against *Yeast*'s **8.0%** — the **least** table-dense book of the three. ⭐ **What it actually exercised is the untab path at double Water's scale** (147,910 tabs, **0** surviving) and the first source where **all three** `book`-profile rules fire. [`03-malt.md`](03-malt.md) §0 | ⭐ **run in 3 min 02 s** |
-| **4** | **Draught Beer Quality Manual**, 124 p | engine, **new** `profile: ba_manual` | two-column layout; first new cleaning profile | ~90 min |
+| **4** | ✅ **Draught Beer Quality Manual**, 124 p | engine, **new** `profile: ba_manual` — ✅ **built** | ⭐ ✅ **the capability holds — the first new cleaning profile since 0a, and it is load-bearing** (25 of 46 drops are its own rule). ⛔ **What it *also* exercised, unplanned: a third producer shipping unmapped PUA codepoints in headings** — the glyph question book 3 closed. [`04`](04-draught-launcher-params.md) | ⭐ **run 2026-08-19 — 226 chunks** |
 | ⭐ **4.5** | **The agent** — `tool-search-brewing-knowledge` + **WF4 `chat-agent`** + `mem.chat_turns` logging | ⛔ **not a source.** §1.3 items 6, 7, 8 | ⭐ **Tier C becomes runnable**, for the first time in the phase. The de-enumeration prompt edit (§7.1) and its `tier1_routing.py` re-run land here, where no ingest is happening. §4.2 | ~4 h |
 | **5** | **BA 2026** + **BJCP Study Guide** | new WF rows + engine | extra sources into the model book 0 built. §5 | ~3 h |
 | **6** | **Beer Fault List** — `beer_faults.json`, 21 rows | **new WF** | the structured path, on already-clean data | ~2 h |
@@ -530,7 +590,7 @@ Extrapolated from the one measured book (248 p → 447 chunks) and plan 06's pro
 | **1 — measured 2026-08-12** — Water | **382** *(projected ~490)* | **1,061** |
 | ⭐ **2 — measured 2026-08-19** — Yeast | **463** *(predicted 463; projected ~590)* | **1,524** |
 | ⭐ **3 — measured 2026-08-19** — Malt | ⛔ **340** *(predicted 340; projected ~600)* | ⭐ **1,864** |
-| **4** Draught manual | ~250 | ~2,114 |
+| ⭐ **4 — measured 2026-08-19** — Draught manual | ⭐ **226** *(projected ~250)* | ⭐ **2,090** |
 | **5** BA 2026 cards + Study Guide prose | ~100 · ~130 | ~2,344 |
 | **6–7** faults · hops | ~21 · ~110 | ~2,475 |
 | **8** pastry stouts | ~12 | ~2,487 |
@@ -1170,7 +1230,7 @@ and they are why the §10 eval baseline waits until the corpus is complete.
 | **1** | **Water** | ✅ [01](01-water.md) | ✅ **440 raw, measured 2026-08-12** | ✅ **built and run — 382 chunks, 0 gaps** | ✅ **all pass; 18 of 19 predictions exact** | ✅ **10 questions; Layer 2 fires on nothing** | ⬜ n/a — no WF4 |
 | **2** | **Yeast** | ✅ [02](02-yeast.md) | ✅ **526 raw, measured 2026-08-12** | ✅ **built and run — 463 chunks, 0 gaps** | ⭐ ✅ **A1–A7 recorded; 21 of 21 predicted numbers exact.** ⚠️ two predictions missed (A5 units, A6 over-count) · ⛔ **A3 not observed** | ✅ **10 questions; keep — 4 controls at rank 1; Layer 2 fires on nothing** | ⬜ n/a — no WF4 |
 | **3** | **Malt** | ✅ [03](03-malt.md) | ✅ **458 raw, measured 2026-08-19** | ✅ **built and run — 340 chunks, 0 gaps.** ⭐ **committed *before* the run — standing rule 4 kept for the first time.** ⚠️ a duplicate launcher exists | ⭐ ✅ **A1–A7 recorded; 30 of 30 predicted numbers exact, none falsified.** ⛔ **A3 not observed** | ✅ **11 questions; keep — 5 controls at rank 1; Layer 2 fires on nothing.** ⛔ **the epigraph defect retrieved on 3** | ⬜ n/a — no WF4 |
-| 4 | Draught manual | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ n/a — no WF4 |
+| **4** | **Draught manual** | ⚠️ ⛔ **no §0–§5 plan** — run from [`04`](04-draught-launcher-params.md), a parameters-and-checks note. **Standing rule 1 was not exercised** | ⚠️ **partial** — the source was probed (pages, producer, tabs, hyphen sites), the *chunking* was not | ✅ **built and run — 226 chunks, 0 gaps.** 🆕 **`ba_manual` profile added to `Clean + normalise`.** ⛔ **launcher `ingest-drought` is misspelled and not in git** | ⬜ **not run** | ⬜ **not run** | ⬜ n/a — no WF4 |
 | ⭐ **4.5** | **The agent** — search tool + WF4 + turn logging | ⬜ **§4.2 sets the timing; the build guide is [`archive/phase2/03b`](../archive/phase2/03b-wf4-build-guide.md)** | n/a | ⬜ | n/a | ⭐ **re-baseline after** | ⭐ **unblocks Tier C for 0a–4, retroactively** |
 | 5 | BA 2026 + Study Guide | ⬜ **needs D31** | ⬜ | ⬜ | ⬜ | ⬜ | ⭐ **the merge/conflict eval lands here** |
 | 6 | Beer faults | ⬜ | ✅ source JSON generated | ⬜ | ⬜ | ⬜ | ⬜ |
@@ -1202,9 +1262,10 @@ has stopped being cosmetic:**
 | ✅ ⭐ **Standing rule 4 — broken at book 1, broken again at book 2, KEPT at book 3** | book 1: the untab edit and the `ingest-water` launcher · book 2: the whole `ingest-yeast` launcher · ⭐ **book 3: `ingest-malt.json`** | ⭐ ✅ **closed.** `ingest-malt.json` was exported out of n8n and committed in `a9bcefb` **before any execution of that workflow existed**. Books 1 and 2 recovered the artefact after the fact; book 3 is the first to preserve the property the rule is for |
 | ⛔ **A3 — the dedup short-circuit** | run the launcher a second time; it must end at `Already ingested` in seconds | ⛔ **still never observed on a book launcher since book 0a.** ⚠️ Book 1's attempt (n8n executions 244/245) was launched **86 s before the first run committed**, so dedup found nothing and it ran the full path — finishing with status **`success`** having promoted nothing. **That is the engine's real behaviour on a duplicate concurrent run, and it is now on the record** |
 | ✅ ⭐ **Housekeeping — the orphan is GONE** | the orphaned `Clean + normalise1` node | ⭐ ✅ **closed 2026-08-19 at 10:58:46 UTC**, before book 3's run. `measured`: **26 nodes** live and tracked, no orphan in either, `Clean + normalise` unchanged at 8,229 characters — ⛔ **there is no longer a third divergent copy of the cleaning profile in tracked source.** ⚠️ **Why it took three books: no n8n CLI command edits a node** (`export`/`import`/`list`/`publish`/`unpublish`/`execute`/`audit` is the whole surface), so it needed a UI action |
-| ⛔ ⭐ **The epigraph-heading defect — now RETRIEVING, on three documents** | a chapter's epigraph byline becomes the `heading_path` of the chapter's opening prose | Water's `-J. Palmer` was a recorded cost. ⭐ `measured` at book 3: `-Bill Simpson` at **rank 3 on Q8** and **rank 6 on Q6**, `-William Littell Tizard…` at **rank 4 on Q10** — ⛔ **on questions Malt owns**, so the citation a user receives names the wrong person. ⛔ **No longer cosmetic. Fix at book 4**, which is already editing the cleaning node; repairing `heading_path` requires rebuilding `content` (plan 06 §4) |
+| ⛔ ⭐ **The epigraph-heading defect — now RETRIEVING, on three documents** | a chapter's epigraph byline becomes the `heading_path` of the chapter's opening prose | Water's `-J. Palmer` was a recorded cost. ⭐ `measured` at book 3: `-Bill Simpson` at **rank 3 on Q8** and **rank 6 on Q6**, `-William Littell Tizard…` at **rank 4 on Q10** — ⛔ **on questions Malt owns**, so the citation a user receives names the wrong person. ⛔ **No longer cosmetic.** ⛔ ⭐ **Book 4 was the run to fix it in and did not** — `ba_manual` was added to the cleaning node without touching it. *Draught* adds **0** new instances (it has no epigraph bylines), so the count stands at three documents. ⭐ **Re-handed to book 4.5**, which touches no ingest and can rebuild `content` alongside `heading_path` (plan 06 §4) without standing rule 2's second variable |
+| ⛔ ⭐ **NEW at book 4 — unmapped PUA codepoints, and 21 of 29 are in `heading_path`** | a producer's display font maps a hyphen to a **Private Use Area** codepoint with no `ToUnicode` entry | ⭐ `measured` on *Draught* (Adobe InDesign 15.1, the **third** producer): **U+F6BA ×29**, **U+F6BB ×1**, **U+F63A ×1**. The stored corpus therefore contains `OFFFLAVORS IN DRAUGHT BEER` as a heading while the same chunk's body reads `off-flavors` — ⛔ **heading and body of one chunk disagree**, and it is the citation the user sees. ⭐ **This reopens the glyph decoder that [`03-malt.md`](03-malt.md) §0.1 closed**: the argument (*"one font subset"*) was right, but the test (*"a second Brewers Publications title"*) was the wrong one. **Two independent sources now show it — the bar [`02-yeast.md`](02-yeast.md) §0.3 set for shared-engine code is met.** ⚠️ **A decode map is per-font, so build it as data, not as a `+17` offset** |
 | ⭐ ⛔ **A duplicate workflow, created at book 3** | **two** workflows are named `ingest-malt` | `hpW9P0n7fxXY9KdF` ran (executions 248/249) and is what `ingest-malt.json` tracks; `ingestMalt00001A` never ran. All 13 mapper fields were diffed and are identical. ⛔ **The unused one needs deleting and there is no `delete:workflow` in the n8n CLI** — same UI-only constraint as the orphaned node. ⚠️ **Worse than the orphan**: the next person to click Run has a 50% chance of picking the wrong artefact |
-| ⭐ ⛔ **A `scripts/` defect, found at book 3** | `hyphen-probe.sh` returns a **false negative** on en-dashed numeric ranges | Docling normalises `–` to `-` **after** joining the wrap; the script matches an ASCII `-` on the `pdftotext` output, where the character is still an en dash. `measured`: `0 at-risk site(s)` reported while `212220°F` and `5565°F` sit in kept text. ⛔ **The first silent failure of the draft in three books.** Fix: `[-‐–—]$`. **Book 4 is a two-column PDF and should fix it there** — [`03-malt.md`](03-malt.md) §5.6 |
+| ⭐ ⛔ **A `scripts/` defect, found at book 3** | `hyphen-probe.sh` returns a **false negative** on en-dashed numeric ranges | Docling normalises `–` to `-` **after** joining the wrap; the script matches an ASCII `-` on the `pdftotext` output, where the character is still an en dash. `measured`: `0 at-risk site(s)` reported while `212220°F` and `5565°F` sit in kept text. ⛔ **The first silent failure of the draft in three books.** Fix: `[-‐–—]$`. ⛔ ⭐ **Book 4 did not fix the script.** The broadened pattern was run **by hand** against *Draught* (**0** at-risk sites, so the book is unaffected), and `scripts/hyphen-probe.sh` on disk still carries the ASCII-only `-$`. ⭐ **It is a one-character-class edit and it is now three books old** — [`03-malt.md`](03-malt.md) §5.6 |
 | ⚠️ **A cosmetic engine defect, found at book 2** | `Log ingest summary`'s promote message reads *"version 5 promoted"* while `kb.document_versions.version` is **1** | it interpolates the **row id**, not the version number, and has done since book 0a. Nothing reads the string. ⛔ **Not fixed at book 3** — deleting an orphaned node is not "touching the engine", and book 3's verdict is mapper-only. ⭐ **Handed to book 4**, whose verdict is already *not* mapper-only |
 
 ⚠️ **A3 cannot be checked retroactively** — a dedup short-circuit writes nothing to the

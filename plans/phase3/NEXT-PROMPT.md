@@ -40,11 +40,20 @@ wrong before.
 > (`ingestMalt00001A`, never ran — the tracked JSON is the one that did; deleting it is a UI
 > action, same constraint that kept the orphan alive for three books).
 >
-> ⚠️ **This file is now stale as an instruction set.** Rewriting it for **book 4 — the Draught
-> Beer Quality Manual, 124 p**, the first source needing a new `ba_manual` cleaning profile, is
-> the remaining task. [`03-malt.md`](03-malt.md)'s *"What book 3 hands to book 4"* section is
-> the source material: nine numbered items, including the epigraph-heading fix, the
-> `hyphen-probe.sh` bug and the chunk-size band.
+> ⛔ ⭐ **Superseded by events, 2026-08-19: book 4 was run without being planned.** The Draught
+> manual is ingested — **226 chunks**, `ba_manual` built — driven by
+> [`04-draught-launcher-params.md`](04-draught-launcher-params.md), a parameters-and-checks note
+> rather than a §0–§5 plan. ⛔ **So the nine items [`03-malt.md`](03-malt.md) handed to book 4
+> were not carried**: the epigraph-heading fix, the `hyphen-probe.sh` bug and the chunk-size
+> band are all still open, and there was no predicted-number table to score, so **standing rule
+> 1 went unexercised on a book that has already run.**
+>
+> ⭐ **What this file should now be rewritten as**: the **book 4 closing** session — Tier A and
+> Tier B on the Draught manual, plus the **PUA-codepoint decoder** the run uncovered (README's
+> book 4 section: 29 sites, 21 of them in `heading_path`, on a third producer). ⚠️ **Note the
+> ordering constraint that creates**: a decode fix changes stored text, so it wants to land with
+> the epigraph fix in one shared-code pass at **book 4.5**, where no ingest is running — not
+> interleaved with book 5's.
 
 ---
 
@@ -289,9 +298,9 @@ runs — propose one design, argue the runner-up on the record.
 
 ## After this session
 
-Book 4 — the **Draught Beer Quality Manual**, 124 p — which is the first source needing a
-**new cleaning profile** (`ba_manual`, two-column layout) and therefore the first since book 0a
-whose verdict is *not* mapper-only. Then ⭐ **book 4.5, the agent**: WF4 +
+⭐ **Book 4 has since run** (226 chunks, `ba_manual` built) but is **not closed** — Tier A and
+Tier B were never executed on it, and it uncovered the PUA-codepoint defect. **Closing book 4
+comes first.** Then ⭐ **book 4.5, the agent**: WF4 +
 `tool-search-brewing-knowledge` + `mem.chat_turns` logging, which is what finally makes **Tier C
 runnable for books 0a–4 retroactively**. README §4.2 has the reasoning and the four reasons the
 seam sits there.
