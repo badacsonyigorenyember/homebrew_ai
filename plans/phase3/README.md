@@ -1,41 +1,51 @@
 # Phase 3 — the corpus, rebuilt one source at a time
 
-**Status:** 🟢 **0a, 0b and 1 built and Tier-B verified · 2 planned and probed · the agent
-scheduled at book 4.5 (§4.2)** ·
-**Written:** 2026-08-07 · **§6 contract revised 2026-08-12 · agent timing set 2026-08-12**
+**Status:** 🟢 **0a, 0b, 1 and 2 built and Tier-B verified · the agent scheduled at book 4.5
+(§4.2) · book 3 (Malt) is next to plan** ·
+**Written:** 2026-08-07 · **§6 contract revised 2026-08-12 · agent timing set 2026-08-12 ·
+book 2's record closed 2026-08-19**
 **Prereqs:** none for 0a. Books 0b–9 need 0a's schema and engine, both of which now exist.
 
-> ## 🟡 Where the corpus actually stands — measured 2026-08-12
+> ## 🟢 Where the corpus actually stands — measured 2026-08-19
 >
 > | | Measured |
 > |---|---|
-> | `kb.chunks` | **1,061** — *How to Brew* **447** · BJCP style cards **232** · **Water 382** |
-> | embedding gaps · dims · `is_current` versions | **0** · **1024** · **3** |
+> | `kb.chunks` | ⭐ **1,524** — **Yeast 463** (30.4%) · *How to Brew* **447** (29.3%) · **Water 382** (25.1%) · BJCP style cards **232** (15.2%) |
+> | embedding gaps · dims · `is_current` versions | **0** · **1024** (one value) · **4** |
+> | `page_count` per book | Yeast **305** · How to Brew **248** · Water **239** |
 > | `ref.styles` | **116** BJCP 2021 rows · 96 with vitals · 20 without · 30 entry instructions |
-> | n8n workflows | **4** — `wf1-ingest-book`, `ingest-how-to-brew`, `ingest-bjcp-styles`, `ingest_water` |
+> | n8n workflows | ⭐ **5** — `wf1-ingest-book`, `ingest-how-to-brew`, `ingest-bjcp-styles`, `ingest-water`, **`ingest-yeast`**. ⛔ **None is an agent or a tool** — Tier C still not runnable |
 >
-> ⭐ **Book 1 landed and every acceptance number hit — 18 of 19 exactly, not within
-> tolerance.** 440 raw → 382 kept, drop ledger 17/34/4/3 on the predicted page ranges,
-> median 342 tokens, 0 missing pages, 0 missing headings, 382/382 embedded. That is the
-> strongest evidence yet for §6's probe-then-plan rule, and for D30's engine split: a
-> 273-page book from a different publisher needed **zero** new nodes, **zero** new profiles
-> and **zero** schema changes.
+> ⭐ **Probe-then-plan has now been tested twice and it is getting *more* accurate, not less.**
+> Book 1: **18 of 19** acceptance numbers exact. ⭐ **Book 2: 21 of 21** — 526 raw → 463 kept,
+> drop ledger 27/21/15 by reason, median 313, `page_count` 305, `repairs_applied` 87, corpus
+> total 1,524, every one of them derived from a §5 probe before the run. That is the strongest
+> evidence yet for §6's probe-then-plan rule, and for D30's engine split: two books from two
+> other publishers needed **zero** new nodes, **zero** new profiles and **zero** schema
+> changes, and book 2 needed **zero shared-code edits** as well.
 >
-> **What is still open — all of it evidence or hygiene, none of it build:**
+> ⚠️ **Where the accuracy stops, stated so it is not over-read.** Book 2's two wrong
+> predictions were both *outside* the gate table and both were arithmetic rather than
+> pipeline: a `text_repairs` check that counted **sites** and asserted **rows**, and a glyph
+> residue counted on the wrong field. **A number derived from the probe by simulation held
+> every time; a number written by hand next to one did not.**
 >
-> | Open | Why it still matters |
-> |---|---|
-> | ✅ **Tier B — recorded 2026-08-12** | ⭐ **10 questions, and Layer 2 fires on nothing.** Q1 and Q3 return exactly their documented rank-1 chunks, unchanged by Water's 382 chunks · all 4 of book 1's positive controls at **rank 1** · **Water is 36% of the corpus and returns 0 of 6 on a style question**. The 25% corpus-share proxy crossed; the thing it proxies for did not happen. ⚠️ It is a **post-Water** baseline — no before/after exists for Q2, Q4, Q5 |
-> | ✅ **Standing rule 4 — restored 2026-08-12** | all four live workflows backed up to `backup/n8n-workflows-20260812-140306/`; `wf1-ingest-book.json` and `ingest-water.json` re-exported to `n8n/demo-data/workflows/`. ⚠️ **Re-export again after the `$5` edit and the orphan deletion** |
-> | ⚠️ **A5, the repair ledger — half wired** | the Query Parameters pass `$5`; the SQL still ignores it. **One line.** Book 1's repairs were reconstructible from the total; *How to Brew*'s five pairs would not be |
-> | 🟡 **Housekeeping — half done** | ✅ the four stale JSONs are cleared and `wf4-chat-agent.json` is preserved at `backup/wf4-chat-agent-systemprompt-v3.json` (system prompt v3 verified present). ⛔ **The orphaned `Clean + normalise1` node is still live** — a **third** divergent copy of the cleaning profile, since the live node has the untab fix and it does not |
->
-> ⭐ **New since the last revision — two things, both scheduling rather than build:**
+> ⭐ **New since the last revision — book 2 is built and its record is closed:**
 >
 > | | |
 > |---|---|
-> | ✅ **Book 2 is planned and probed** | [`02-yeast.md`](02-yeast.md) — **526 raw chunks measured 2026-08-12**, 463 predicted kept. ⭐ **Mapper-only: zero new nodes, zero new profiles, zero schema changes and — unlike book 1 — zero shared-code edits.** §4's *"should be near-free"* prediction holds a second time. ⚠️ But the mapper is doing work no previous book's did: *Yeast*'s display font has a broken `ToUnicode` map, so `dropHeading` and `dropReferences` match **0 of 262** headings and all 27 front/back-matter drops ride on `extra_drop_regex` |
+> | ⭐ ✅ **Book 2 built, run and closed** | [`02-yeast.md`](02-yeast.md) — ingested 2026-08-12, record closed 2026-08-19. **526 raw → 463 kept**, and ⭐ **every one of §4.0's twenty-one predicted numbers hit exactly** — the drop ledger by reason (27/21/15), median 313, `page_count` 305, `repairs_applied` 87, corpus total 1,524. Book 1 landed 18 of 19; **book 2 landed all of them.** ⭐ **Mapper-only: zero new nodes, zero new profiles, zero schema changes and — unlike book 1 — zero shared-code edits.** §4's *"should be near-free"* prediction holds a second time |
+> | ⭐ ✅ **The repair ledger records, per pair** | `kb.ingest_log`'s `clean` row carries `repairs` `54 / 17 / 10 / 6`, matching [`02-yeast.md`](02-yeast.md) §2.4 pair for pair. **`$5` is passed *and stored*.** The asymmetry is what makes it a real test — a total could not have produced those four numbers. ⚠️ **One observation on one book**; book 3 re-reads it rather than assuming it |
+> | ✅ **Tier B at four documents — Layer 2 fires on nothing, again** | **keep**: all five prior rank-1 chunks still top 3, **all four positive controls at rank 1**, Q2 and Q3 byte-identical to the post-Water baseline. ⭐ **Yeast is 30.4% of the corpus and returns 0 of 6 on the style question** — the second document to cross the 25% proxy without touching a question it does not own |
 > | ⭐ **The agent has a date: book 4.5** | §4.2 — `tool-search-brewing-knowledge` + WF4 + `mem.chat_turns` logging, built **after book 4 and before book 5**, which is where cross-source disagreement first exists. ⛔ **This is what closes the *"Tier C — not runnable"* line that every plan so far ends on** |
+>
+> ⛔ **Three things book 2 did *not* close, all of them hygiene and all of them repeats:**
+>
+> | Open | Why it still matters |
+> |---|---|
+> | ⛔ **A3 — the dedup short-circuit — has still never been observed on a book launcher since book 0a** | it writes nothing, so it cannot be checked after the fact. `measured`: `ingest-yeast` has exactly **one** execution. ⚠️ Book 1's attempt (executions 244/245) was launched **86 s before the first run committed**, so it ran the full path instead — and finished with status **`success`** having promoted nothing. **Run A3 as the last step of book 3's session** |
+> | ⛔ **Standing rule 4 broken again, at book 2** | `ingest-yeast.json` existed **only in n8n's database** from creation until 2026-08-19. Same rule, same failure, one book after this README recorded it as broken at book 1. It is exported now |
+> | ⛔ **The orphaned `Clean + normalise1` node is still live** | `measured` 2026-08-19: `wf1-ingest-book` is **27 nodes**, not 26, in both the live workflow and the tracked JSON. Still no connections, still **without** the untab fix — a **third divergent copy** of the cleaning profile |
 >
 > ✅ **Closed since the last revision:** D32b (the card format — variant B, by argument,
 > §5.5) and the A/B protocol itself, which §6's revision retires.
@@ -492,7 +502,7 @@ Extrapolated from the one measured book (248 p → 447 chunks) and plan 06's pro
 |---|---|---|
 | **0a+0b — measured 2026-08-12** — How to Brew **447** + BJCP cards **232** (variant B) | **679** | **679** |
 | **1 — measured 2026-08-12** — Water | **382** *(projected ~490)* | **1,061** |
-| **2 — predicted from a real probe** — Yeast | **463** *(projected ~590)* | **1,524** |
+| ⭐ **2 — measured 2026-08-19** — Yeast | **463** *(predicted 463; projected ~590)* | **1,524** |
 | **3** Malt | ~600 | ~2,124 |
 | **4** Draught manual | ~250 | ~2,374 |
 | **5** BA 2026 cards + Study Guide prose | ~100 · ~130 | ~2,604 |
@@ -505,6 +515,13 @@ extrapolation** — Water by 22%, Yeast by 22%. The reason is the same in both c
 carrying to book 3: the projection scaled *How to Brew*'s 1.80 kept chunks per page, and both
 later books sit near **1.40**. Page counts are a poor proxy for chunk counts across
 publishers — *Yeast* is 325 pages on a 3.5″ × 5.19″ trim.
+
+⭐ **`measured` 2026-08-19: Yeast landed at exactly the 463 its plan predicted, so the running
+total of 1,524 and the ~2,965 end state are unchanged.** ⚠️ **Book 3's row is still the naive
+projection.** `measured`, the three ingested books sit at **1.80 · 1.40 · 1.42** kept chunks per
+page; *Malt* is 335 pages, so **~470–600** is the honest band and **~600** is its top end, not
+its centre. Recorded rather than silently adjusted — the number that matters is the one book 3's
+own probe produces.
 
 **~2,950 chunks, not ~3,200.** Architecture §3.6 sized pgvector for 40–60k and called 500k
 comfortable, so **do not let corpus growth become an infrastructure conversation.** The
@@ -1118,7 +1135,7 @@ and they are why the §10 eval baseline waits until the corpus is complete.
 | 0a | Rebuild + How to Brew | ✅ [00a](00a-rebuild.md) | ✅ 447, re-measured | ✅ **engine + launcher, both committed** | 🟡 **A3 watchable, `$5` left** | ✅ **Q1 and Q3 hit their documented ranks** | ⬜ n/a — no WF4 |
 | 0b | Styles model | ✅ [00b](00b-styles.md) | ✅ re-measured 2026-08-12 | ✅ **22 nodes, committed** | ✅ **A0–A5b pass** | ✅ **covered by book 1's run** — Q10 returns 5 of 6 style cards | ⬜ n/a — no WF4 |
 | **1** | **Water** | ✅ [01](01-water.md) | ✅ **440 raw, measured 2026-08-12** | ✅ **built and run — 382 chunks, 0 gaps** | ✅ **all pass; 18 of 19 predictions exact** | ✅ **10 questions; Layer 2 fires on nothing** | ⬜ n/a — no WF4 |
-| **2** | **Yeast** | ✅ [02](02-yeast.md) | ✅ **526 raw, measured 2026-08-12** | ⬜ | ⬜ | ⬜ | ⬜ n/a — no WF4 |
+| **2** | **Yeast** | ✅ [02](02-yeast.md) | ✅ **526 raw, measured 2026-08-12** | ✅ **built and run — 463 chunks, 0 gaps** | ⭐ ✅ **A1–A7 recorded; 21 of 21 predicted numbers exact.** ⚠️ two predictions missed (A5 units, A6 over-count) · ⛔ **A3 not observed** | ✅ **10 questions; keep — 4 controls at rank 1; Layer 2 fires on nothing** | ⬜ n/a — no WF4 |
 | 3 | Malt | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ n/a — no WF4 |
 | 4 | Draught manual | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ n/a — no WF4 |
 | ⭐ **4.5** | **The agent** — search tool + WF4 + turn logging | ⬜ **§4.2 sets the timing; the build guide is [`archive/phase2/03b`](../archive/phase2/03b-wf4-build-guide.md)** | n/a | ⬜ | n/a | ⭐ **re-baseline after** | ⭐ **unblocks Tier C for 0a–4, retroactively** |
@@ -1141,20 +1158,33 @@ and they are why the §10 eval baseline waits until the corpus is complete.
 **Nothing is blocked by a decision.** D31 is the only open one and it is not needed until
 book 5.
 
-**Where things actually stand, 2026-08-12 — books 0a, 0b and 1 are built; the gap is
-evidence, not build:**
+**Where things actually stand, 2026-08-19 — books 0a, 0b, 1 and 2 are built and all four are
+Tier-B verified. What is left is hygiene, and it repeats:**
 
 | | What | Status |
 |---|---|---|
-| ⛔ **Tier B, all three books** | the 5 standing questions from [`02-phase1-retrieval-gate.md`](../archive/02-phase1-retrieval-gate.md), plus book 1's 4 positive controls and the Layer-2 retrieval-share check | ⛔ **never run, for any source.** This is now the largest hole in the record: three documents are in the corpus and **nothing** is known about how they compete. ⚠️ A pre-Water baseline is no longer takeable — Water is already in — so Q1 and Q3 act as the gate (they have documented expected results) and the rest becomes a post-Water baseline for books 2–9 |
-| ⛔ **A5 — the repair ledger** | node 26's `$5` | ⚠️ **half done.** The Query Parameters already pass five values; the SQL still reads `jsonb_build_object('stats', $2, 'drops', $3)` and ignores `$5`. **One line.** Book 1's repairs were reconstructible from the total, but *How to Brew*'s five pairs would not be — wire it before book 2 |
-| ⛔ **Standing rule 4 was broken at book 1** | the untab edit to `wf1-ingest-book` and the whole `ingest-water` launcher exist **only in n8n's database** | ⛔ export and commit both. The tracked `wf1-ingest-book.json` is stale: 27 nodes, no untab, no `$5` |
-| ⚠️ **Housekeeping** | the orphaned `Clean + normalise1` node; four stale JSONs in `n8n/demo-data/workflows/` | still open. ⛔ The orphan is now a **third** divergent copy of the cleaning profile, since the live node has the untab fix and it does not. Move `wf4-chat-agent.json` to `backup/` rather than deleting it — it is one of three surviving copies of system prompt v3 |
-| ✅ A3 · the A/B | — | A3 is watchable at any time (§4 Tier A). The A/B is **retired** — D32b closed by argument, §5.5 |
+| ✅ **Tier B, all four books** | the 5 standing questions from [`02-phase1-retrieval-gate.md`](../archive/02-phase1-retrieval-gate.md), the per-book positive controls, and the Layer-2 retrieval-share check | ✅ **run at 1,061 chunks (2026-08-12) and again at 1,524 (2026-08-19).** Both runs: **keep**, all positive controls at rank 1, **Layer 2 fires on nothing**. ⚠️ Still a **post-Water** baseline — Q2, Q4 and Q5 have no pre-Water prior and never will |
+| ✅ **A5 — the repair ledger** | node 26's `$5` | ✅ **done and proven.** Yeast's `clean` row carries four per-pair counts — `54 / 17 / 10 / 6` — matching a prediction made from the probe. ⚠️ **One observation**; book 3 re-reads it rather than assuming it |
+| ⛔ **Standing rule 4 was broken at book 1 — and again at book 2** | book 1: the untab edit and the `ingest-water` launcher · **book 2: the whole `ingest-yeast` launcher** | ⚠️ **all now exported.** `ingest-yeast.json` was written 2026-08-19, a week after its run — the artefact is recovered, the property the rule protects is not. ⛔ **Book 3 exports before running, or the rule is decorative** |
+| ⛔ **A3 — the dedup short-circuit** | run the launcher a second time; it must end at `Already ingested` in seconds | ⛔ **still never observed on a book launcher since book 0a.** ⚠️ Book 1's attempt (n8n executions 244/245) was launched **86 s before the first run committed**, so dedup found nothing and it ran the full path — finishing with status **`success`** having promoted nothing. **That is the engine's real behaviour on a duplicate concurrent run, and it is now on the record** |
+| ⚠️ **Housekeeping** | the orphaned `Clean + normalise1` node; stale JSONs in `n8n/demo-data/workflows/` | ⛔ **the orphan is still live** — `measured` 2026-08-19, `wf1-ingest-book` is **27 nodes** in both the live workflow and the tracked JSON, and the orphan still lacks the untab fix. A **third** divergent copy of the cleaning profile, unchanged since book 1 flagged it |
+| ⚠️ **A cosmetic engine defect, found at book 2** | `Log ingest summary`'s promote message reads *"version 5 promoted"* while `kb.document_versions.version` is **1** | it interpolates the **row id**, not the version number, and has done since book 0a. Nothing reads the string. ⛔ **Fix it in a run that is already touching the engine** — book 3 or 4.5 — not in a mapper-only book |
 
 ⚠️ **A3 cannot be checked retroactively** — a dedup short-circuit writes nothing to the
 database, so it must be watched live: run the launcher, confirm it ends at
-`Already ingested` in seconds with an unchanged `kb.chunks` fingerprint.
+`Already ingested` in seconds with an unchanged `kb.chunks` fingerprint. ⭐ **Run it as the
+*last* step of the ingest session**, after the log rows exist — book 1's attempt failed only
+because it was launched too early.
+
+**Book 2 is built and its record is closed.** [`02-yeast.md`](02-yeast.md) — the engine
+unchanged, an `ingest-yeast` launcher, `profile: book`, **463 chunks measured**. ⭐ **The
+mapper carried the whole book**: a broken `ToUnicode` map in *Yeast*'s display font makes
+`dropHeading` and `dropReferences` match **0 of 262** headings, so all 27 front- and
+back-matter drops ride on `extra_drop_regex`, and four `text_repairs` pairs decode chemistry
+(`α-amylase`, `β-amylase`) rather than hyphens. ⭐ **Standing rule 7 came out the other way
+here:** the hyphen probe drafted **one** pair, `["2,3900","2,3-900"]`, and it matches **nothing**
+in the Docling output — pasting it would have aborted the ingest, correctly. The final
+`text_repairs` contains **no hyphen pair at all**. See [`02-yeast.md`](02-yeast.md) §2.4, §5.6.
 
 **Book 1 is built.** [`01-water.md`](01-water.md) — the engine with an `ingest-water`
 launcher, `profile: book`, **382 chunks measured**. ⭐ **Standing rule 7's warning earned its

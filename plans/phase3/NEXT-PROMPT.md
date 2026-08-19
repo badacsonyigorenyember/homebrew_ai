@@ -1,210 +1,175 @@
 # Prompt for the next session
 
-> ## ⛔ SPENT — this prompt has been run. Do not paste it again.
->
-> **It asked for the book 2 (Yeast) plan, and [`02-yeast.md`](02-yeast.md) is written** —
-> probed 2026-08-12 against the live Docling service, 526 raw chunks measured, 463 predicted
-> kept, mapper-only. Re-running this prompt would re-probe a file that has already been probed.
->
-> ⚠️ **What is *not* done: Yeast has not been built or ingested.** The plan is the deliverable;
-> the build and the run are yours (README §6's revised division of work).
->
-> ⭐ **The next session's task depends on which of those two you do first**, and this file is
-> deliberately not guessing:
->
-> | If you have | The next prompt should ask for |
-> |---|---|
-> | **not yet run `ingest-yeast`** | nothing from Claude — build it from [`02-yeast.md`](02-yeast.md) §2 and run it |
-> | **run it, and want the record closed** | the measured column beside §4.0's predictions, Tier A + Tier B recorded in `02-yeast.md`, README §9's book 2 row ticked |
-> | **run it and recorded it** | the **book 3 (Malt)** plan, same contract — and §5.7's three carry-forward questions are already written at the end of `02-yeast.md` |
->
-> ⛔ **Rewrite this file before the next session, once you know which.** A stale NEXT-PROMPT is
-> how book 1 ended up re-deriving things that were already measured.
-
-**Everything below is the spent prompt, kept as the record of what book 2 was asked for.**
-
 Paste everything below the line into a fresh Claude Code session started in
 `/home/gorenyember/AI Homebrew Assistant`.
 
-Written 2026-08-12, after book 1 (Water) landed. Every number below was measured against the
-live stack on that date. **Re-verify rather than trusting it** — this file has been wrong
-before.
+Written 2026-08-19, after **book 2's record was closed**. Every number below was measured
+against the live stack on that date. **Re-verify rather than trusting it** — this file has been
+wrong before.
+
+> ⭐ **What changed since the last prompt:** book 2's record is closed. `02-yeast.md` §4 now
+> carries a measured column beside every prediction, all seven Tier A blocks, all ten Tier B
+> questions, and a scored exit checklist; README §9's book 2 row is ticked. **The corpus is at
+> 1,524 chunks across four documents and nothing is mid-flight.** This prompt is the **book 3
+> (Malt) plan** — a plan, not a run.
 
 ---
 
-Read `@plans/phase3/README.md` (the contract — note §6 was rewritten on 2026-08-12 and the
-skeleton is now six sections, not nine) and `@plans/phase3/01-water.md` (the worked example
-written under the new contract; its §2.2 mapper table and §5 evidence tables are the models
-to copy).
+Read `@plans/phase3/README.md` (the contract — **§6** is the six-section skeleton every plan
+follows, **§4** is the order and why, **§9** is the status board) and
+`@plans/phase3/02-yeast.md` (the most recent completed book, and the model for what a finished
+plan looks like — its §5 probe, its §4.0 gate table with a measured column beside every
+prediction, and its closing *"What book 2 unblocks"* section, which is **addressed to this
+plan**).
 
-**One thing:** write me the detailed plan for **book 2 — Yeast** at `plans/phase3/02-yeast.md`.
+**One thing:** write **`plans/phase3/03-malt.md`** — the book 3 plan for *Malt: A Practical
+Guide from Field to Brewhouse* (John Mallett), under §6's six-section contract.
 
-Follow README §6's skeleton exactly, in order: **§0 verdict · §1 prerequisites · §2 build ·
-§3 reset · §4 testing · §5 evidence**. §5 is written *first* and placed *last* — standing
-rule 1 is measure-then-plan, and every predicted number in §4 has to be a derivation from
-§5's probe output rather than a guess.
-
-Four standing rules matter most here:
-
-- **Rule 1, measure then plan.** §5 is a **real Docling probe** against the live service with
-  the engine's exact ten form fields. Raw chunk count, chunks/page, median/max/p25/p75
-  tokens, count under 30, count over 512, chunks with no `page_from`, chunks with no
-  headings, **the top 20 headings by frequency**, the front-matter page range, and three real
-  chunks verbatim.
-- **Rule 7, the hyphen probe.** Run `./scripts/hyphen-probe.sh` on the Yeast PDF, then
-  **check every candidate site against the Docling output**, not against `pdftotext`. Water
-  proved both failure directions: one candidate (`5.6-6.0`) was never fused at all — Docling
-  kept the hyphen where `pdftotext` predicted loss, and **a pair that matches nothing throws
-  and aborts the ingest**. Another (a bare `35` → `3-5`) matched **79 sites** including a
-  library code on the copyright page, and would have silently written 79 wrong numbers.
-  Anchor every pair in enough surrounding words to be unique, and count the matches before
-  writing it down.
-- **Rule 5.** Every number labelled `predicted` or `measured`. No unlabelled numbers.
-- **§3.1, expressions.** Write every n8n expression as `{{ … }}`, **never** `={{ … }}`. The
-  `=` belongs to the JSON export format; pasted into the UI's expression editor it becomes a
-  literal and the field silently evaluates wrong. The exception is when you are quoting an
-  exported JSON file — say which one you are looking at.
+⛔ **Do not ingest.** The plan ends at *"here is the launcher, here are the predicted numbers,
+here is the reset command."* Running it is mine.
 
 ## What is already true — verify, don't assume
 
-Measured 2026-08-12.
+Measured 2026-08-19 against the live stack.
 
-- **`kb.chunks` holds 1,061 rows**, three documents, **0 embedding gaps**:
+- **`kb.chunks` holds 1,524 rows**, four documents, **0 embedding gaps**, `is_current` = 4,
+  `dims` = 1024 (one value):
 
-  | slug | authority | doc_type | page_count | chunks |
-  |---|---|---|---|---|
-  | `how-to-brew-palmer` | `reference` | `book` | 248 | 447 |
-  | `water-comprehensive-guide` | `reference` | `book` | 239 | 382 |
-  | `bjcp-2021-beer-styles` | `guideline` | `style_guide` | — | 232 |
+  | slug | authority | page_count | chunks | share | min/median/max tok |
+  |---|---|---|---|---|---|
+  | `yeast-practical-guide` | `reference` | 305 | **463** | 30.4% | 30 / 313 / 512 |
+  | `how-to-brew-palmer` | `reference` | 248 | 447 | 29.3% | 30 / 291 / 524 |
+  | `water-comprehensive-guide` | `reference` | 239 | 382 | 25.1% | 31 / 342 / 513 |
+  | `bjcp-2021-beer-styles` | `guideline` | — | 232 | 15.2% | — |
 
-  ⚠️ `page_count` is `max(page_to)` over **kept** chunks, not the PDF's page count — Water is
-  a 273-page book showing 239 because the Index is dropped. Yeast is 325 pages; a
-  `page_count` of 325 would mean its back matter survived.
+- **n8n holds five workflows** — `wf1-ingest-book` (`NoNCV2mkQEppWP7O`), `ingest-how-to-brew`,
+  `ingest-water`, `ingest-bjcp-styles`, `ingest-yeast` (`UvDB7iJdXH262CNl`). ⛔ **None is an
+  agent and none is a tool**, so Tier C is still not runnable — README §4.2 schedules that at
+  **book 4.5**. Say so explicitly in §4's Tier C section rather than omitting it.
+- ⚠️ **`wf1-ingest-book` is 27 nodes, not 26** — in the live workflow *and* in the tracked JSON.
+  The 27th is the orphaned **`Clean + normalise1`**: no incoming connection, no outgoing
+  connection, and its `jsCode` is 4,259 characters against the live node's 8,229 — it **lacks
+  the untab fix**. A third divergent copy of the cleaning profile, flagged at book 1, flagged
+  again at book 2, still there.
+- ⭐ **`$5` works.** Yeast's `kb.ingest_log` `clean` row carries a four-entry `repairs` array
+  with per-pair counts `54 / 17 / 10 / 6`. **Treat it as proven-once, not settled** — book 3
+  reads the ledger back rather than assuming it.
+- ⛔ **A3 — the dedup short-circuit — has never been observed on a book launcher since book 0a.**
+  It writes nothing, so it cannot be checked after the fact.
 
-- **Four n8n workflows exist**, all exported and committed, all matching the live database:
+### The source file, measured 2026-08-19
 
-  | Workflow | id | Nodes |
-  |---|---|---|
-  | `wf1-ingest-book` — the engine | `NoNCV2mkQEppWP7O` | 26 live + **1 orphan, see §1** |
-  | `ingest-how-to-brew` | `BAe1fP1g7ZUsbIaq` | 2 |
-  | `ingest-water` | `ciWYDt5MhFseACiN` | 2 |
-  | `ingest-bjcp-styles` | `Ejf3ESE3SK1XBqe3` | 22 |
+`shared/rag-files/pending/malt-a-practical-guide-from-field-to-brewhouse-978-1-938469-12-1-1-938469-12-7-978-1-938469-16-9.pdf`
 
-- **The repair ledger works.** `Log ingest summary` now reads `$5` — the `clean` row builds
-  `jsonb_build_object('stats', $2::jsonb, 'drops', $3::jsonb, 'repairs', $5::jsonb)`. The
-  parameter had been passed and silently discarded by pg-promise for two books. **Yeast is the
-  first ingest whose repair ledger will actually be recorded** — check it in Tier A rather
-  than assuming, and treat it as a fresh capability, not a settled one.
-- **The engine untabs before it repairs.** `Clean + normalise` normalises `\t` → space in
-  `text`, `raw_text` and every heading, *above* the repair loop. This was Water's one shared
-  edit: 440/440 of its chunks were tab-delimited (50.5% of all whitespace) where How to Brew
-  had zero tabs in 447 chunks. **Measure Yeast's tab density in §5** — if it is another
-  tabbed file the code already handles it, and if it is not, that is worth one line saying so.
-  Consequence for you: `text_repairs` pairs are matched against *untabbed* text, so write them
-  with ordinary spaces even when the bytes on disk have tabs.
-- Postgres nodes use the **`Postgres account`** credential. `n8n_agent` is the read-only agent
-  role and **cannot see `kb`** — never pick it on a write node.
-- There is **still no WF4 and no search tool**, so Tier C is not runnable. That is a decision,
-  not a skip, and §4 must say so explicitly rather than omitting the tier.
+| | `measured` |
+|---|---|
+| SHA-256 | `c85d388f8ff828313d2d364625072530d7e4b00c8b0a0235903af22a76169579` — §3's reset command is keyed on this |
+| pages · title · author | **335** · *Malt: A Practical Guide from Field to Brewhouse* · **John Mallett** |
+| ⭐ producer | **calibre 3.32.0** — ⭐ **the same toolchain as *Water***, not Yeast's `Creo Normalizer JTP` |
+| page size | **612 × 792 pt (letter)** — a full-size trim, unlike Yeast's 3.5″ × 5.19″ |
 
-## What must be done first
+⭐ **That producer line is a real prediction to make and then check.** Yeast's whole mapper
+existed because a `Creo`-produced PDF shipped a broken `ToUnicode` map. *Malt* is calibre, like
+*Water*, whose `extra_drop_regex` was **empty**. **Predict in §0 whether Malt needs one, then
+let §5's probe falsify it.** Do not assume either way — `02-yeast.md` §0.3's decoder question
+turns on exactly this.
 
-Only three things, and none of them blocks the plan being *written*.
+## What to actually do
 
-1. ⚠️ **`wf1-ingest-book` still carries an orphaned `Clean + normalise1` node** — no
-   connections, and its code **lacks the untab fix**, so it is now a third divergent copy of
-   the cleaning profile sitting in tracked JSON. Harmless to execution, exactly the drift the
-   schema rules forbid. Delete it in the UI and re-export so the engine is 26 nodes as
-   documented.
-2. **A3 — watch the dedup short-circuit live.** ⚠️ **This cannot be checked retroactively**: a
-   short-circuit writes nothing, so the database cannot tell you it happened. Run
-   `ingest-water` a second time; it must end at `Already ingested — stop` in **seconds, not
-   minutes**, with an identical fingerprint:
+Write `03-malt.md` following README §6: **§0 verdict · §1 prerequisites · §2 build · §3 reset ·
+§4 testing · §5 evidence.** ⭐ **§5 is measured first and placed last** — every predicted number
+in §4 must be a derivation from it.
 
-   ```bash
-   docker exec supabase-db psql -U postgres -d postgres -Atc "select md5(string_agg(content_sha256, ',' order by chunk_index)), count(*) from kb.chunks;"
-   ```
+1. **Run the probe (§5) before writing anything else** — standing rule 1. Submit the file to the
+   **live** Docling service with the engine's exact ten form fields (`02-yeast.md` §5.0 records
+   them byte for byte). Measure: raw chunk count, chunks/page, median / max / p25 / p75 tokens,
+   count under 30 and over 512, chunks with no `page_from`, **top 20 headings by frequency**, the
+   front-matter page range, and 3 real chunks verbatim.
+2. **Run [`scripts/hyphen-probe.sh`](../../scripts/hyphen-probe.sh)** — standing rule 7 — and
+   ⛔ **check every drafted pair against the real Docling output before pasting it.** Both
+   previous books' drafts were wrong: Water's `["35","3-5"]` matched **79** places, and Yeast's
+   single draft matched **nothing**, which aborts the ingest by design.
+3. **README §4 gives Malt a new capability to exercise: *"table-dense body under
+   `table_mode=accurate`"*.** Measure how many chunks are tables and say whether that changes
+   anything, rather than repeating the phrase.
+4. **Answer the five questions `02-yeast.md`'s closing section hands over**, each in the section
+   where it belongs:
+   - **Is Malt's front matter set in a working font?** If a second book shows the glyph problem,
+     the shared-code decoder stops being a one-source workaround. (§0/§5)
+   - **Does the token floor take another dozen chunks?** Water lost 1, Yeast lost 15 (11 of them
+     `Materials` lists). ⭐ **This is Malt's to decide** — three books is a design question, and
+     `02-yeast.md` §4.4 names **merge-forward** as the fix to build. Argue it either way, but
+     decide. (§2/§4.4)
+   - ⭐ **Add a procedure-shaped positive control**, so the next token-floor sighting can be
+     judged. Yeast's ten questions never asked one, which is why its evidence was weak.
+   - ⭐ **State each Tier B question's owning document *before* the run.** Layer 2's rule is
+     *"≥ 3 of 6 from one document that does not own it"*, and five of Yeast's ten were resolved
+     by adjudicating ownership after seeing the results. Declaring it up front makes it a
+     prediction that can be wrong. (§4.2)
+   - ⭐ **Measure concentration on the (`heading_path`, `page_from`) pair, not on the heading
+     string.** `measured`: heading-only reads 4 of 6 on Yeast's flocculation question and would
+     have deleted three good answers; the pair metric reads **1** there and **4** on Water's Q8,
+     which is the case that actually mattered. ⛔ **Do not build `PARTITION BY d.id,
+     c.heading_path`.** (§4.2)
+5. **§3 is a reset command keyed on the SHA-256 above**, and it must work on a **partial** run.
+6. **§4 carries a gate table with a `Gate` column and a runtime estimate.** ⭐ **Use the measured
+   runtime, not the inherited one:** Yeast's whole run was **2 min 47 s** — 150 s of it the
+   `Wait 15s` Docling poll loop, **16 s** the embedding of 463 chunks. The *"~5–9 min to embed"*
+   figure carried from book 1 was wrong by an order of magnitude, and *"past 20 minutes"* is far
+   too loose a hung-run signal. **~6 minutes is the honest threshold.**
+7. **Corpus share:** Malt at ~500 chunks would be ~25% of ~2,024. ⭐ **Two documents have now
+   crossed the 25% proxy and neither touched a question it does not own.** Argue it in §4, do
+   not tune it (standing rule 6).
+8. ⛔ **Do not tick README §9's book 3 row beyond `Plan ✅` and `Probed ✅`.** Built, Tier A and
+   Tier B are the run's to claim, not the plan's.
 
-   Expect `1061`. If it instead runs a full Docling conversion, the dedup branch is broken and
-   **Yeast would duplicate rather than dedup** — stop and fix it before book 2.
-3. **The Tier B baseline is post-Water, and that is now permanent.** A pre-Water baseline is
-   no longer takeable. All 10 questions were measured on 2026-08-12 and are recorded in
-   `01-water.md`; both gates passed (Q1 → `10.4 Yeast Starters and Diacetyl Rests` p.98 at
-   rank 1; Q3 → `Bittering`/`Flavoring`/`Finishing` p.41 at ranks 1–3). Use that table as
-   book 2's before-baseline; do not re-derive it, and do not re-run it after Yeast is ingested
-   and call it a baseline.
+## Standing rules that matter here
 
-## What book 2 is, and is not
-
-**Is:** *Yeast — The Practical Guide to Beer Fermentation* (White & Zainasheff, **325 pages**,
-`measured` via `pdfinfo`), through the existing engine with a new **2-node `ingest-yeast`
-launcher**, `profile: book`, `authority: reference`, `doc_type: book`.
-
-- Container path: `/data/shared/rag-files/pending/yeast-the-practical-guide-to-beer-fermentation-0937381969_compress.pdf`
-  — n8n does not see the host path.
-- Host SHA-256, `measured` 2026-08-12:
-  `2f30d7e5d8a965df00dbd225f57c4d759dd8ab90f99974b0ffee9b39f54266a4`. This is the literal §3's
-  reset command is keyed on. **Re-verify it** with `sha256sum` before writing it into the plan.
-
-**Is not:** a new workflow, a new cleaning profile, or a schema change.
-
-⭐ **README §4 predicts book 2 costs "nothing — should be near-free."** That prediction is the
-point of running it. Water needed the 13-field mapper *plus* three lines of shared code, and
-that was argued loudly. **If Yeast needs anything outside the launcher's mapper, say so in §0
-in the strongest terms**, because two books in a row exceeding "one Set node" means the D30
-split does not hold — and you want to learn that on book 3 of 9, not book 8. Equally: if it
-genuinely is mapper-only, say *that* plainly. A near-free book is the evidence D30 was
-designed to produce, and it only counts if it is recorded.
-
-## The things most likely to go wrong
-
-- ⭐ **Yeast is the first source expected to legitimately win the standing questions**, and the
-  keep/roll-back rule was not written with that in mind. Q1 is diacetyl rests and Q4 is
-  pitching rate and rehydrating dry yeast — Yeast is *the* book on both, and displacing
-  Palmer's `10.4 Yeast Starters and Diacetyl Rests` from rank 1 would be the pipeline working,
-  not regressing. **Predict in §4, before the run, which of the five standing questions you
-  expect to move and to what** — so that a shift is legible as expected rather than argued
-  about afterwards. The rule itself is unchanged and still binds: out of top 6 on one is a
-  logged defect, on two or more is a reset.
-- **Overlap is medium on two axes**, per README §3.2: *off-flavours* (fault list × How to Brew
-  × Yeast × Draught manual) and *malt/yeast basics* (How to Brew × Yeast). Layer 1 keeps
-  topical overlap **unconditionally** — the 20-page answer and the 325-page answer are
-  different answers, and which is correct depends on the question. §2's overlap block should
-  state **expected overlap chunks dropped: 0** and say why.
-- **Layer 2 gets its first real test at four documents.** On Water it fired on **nothing** —
-  the most striking measurement being that Water is 36.0% of the corpus yet took **0 of 6
-  slots** on the style question. Run the check over all 10 questions and **record it even when
-  it fires nothing**; a recorded null is what makes the first real firing legible. Remember
-  Layer 3 is built **only** when Layer 2 fires, not when the corpus-share proxy does.
-- **Corpus share will cross 25% and that is expected.** Yeast at a predicted ~590 chunks
-  against a ~1,651 total is `predicted` ~36%. Argue it rather than tuning it (standing rule 6).
-- ⚠️ **Carry forward one finding from Water that Layer 3 would not fix.** Q8 spent **5 of 6
-  slots on a single heading on a single page**. The concentration is *intra*-document, so
-  Layer 3's `PARTITION BY d.id` is the wrong shape for it. Recorded, not acted on. If Yeast
-  reproduces the pattern on a second document, that promotes it from a curiosity to a design
-  question — so check for it rather than only running the Layer-2 query.
-- **The other Water defect worth watching:** bare attribution chunks (`-J. Palmer`) retrieved
-  at rank 4 on two questions. If Yeast has an equivalent — pull quotes, sidebar bylines,
-  "Chris White" attributions — a token floor may not catch them, and §2's drop rules should.
-- **`front_matter_max_page` and `extra_drop_regex` are per-book constants** and must come from
-  §5's probe, not from another book. Palmer's How to Brew is `6`; Water is **`18`**, because
-  Water's chunk 3 is a *table-of-contents line* promoted to a heading — which no regex can
-  distinguish from a real chapter heading, and which is the whole argument for a page rule
-  over a heading rule. Find Yeast's own number the same way.
-- **Back matter is the other end of the same problem.** Water dropped 34 chunks of Index and 4
-  of References. A 325-page book almost certainly has both plus an appendix — identify them in
-  §5 by heading, and predict the drop counts by page range so §4 can check them.
+- **Rule 1, measure then plan.** No §5, no plan. Plan 06's design turned on one
+  heading-frequency table nobody would have guessed, and books 1 and 2 landed **18 of 19** and
+  **21 of 21** acceptance numbers because every one was derived from a probe.
+- **Rule 5.** Every number labelled `predicted` or `measured`. An unlabelled number is a defect
+  in the plan. ⭐ **Book 2's two wrong predictions were both numbers written *by hand* next to
+  probe-derived ones** — a check that counted *sites* and asserted *rows*, and a residue counted
+  on the wrong field. Simulate the query you intend to run.
+- **Rule 4.** ⛔ **Export and commit the launcher JSON *before* the first run.** Broken at book
+  1 and again at book 2, where `ingest-yeast.json` existed only inside n8n's database for a
+  week. Write the export command into §2 so it is part of the build, not an afterthought.
+- **Rule 6.** A criterion that does not fit gets **argued, not tuned**.
+- **Rule 2.** One source per execution, one variable per run.
+- **§3.1, expressions.** Write every n8n expression as `{{ … }}`, **never** `={{ … }}`. The `=`
+  belongs to the JSON export format; pasted into the UI's expression editor it becomes a literal
+  and the field silently evaluates wrong. The exception is when quoting an exported JSON file —
+  say which one.
 
 ## How to work
 
 Verify claims against the live stack rather than trusting this prompt or the plan documents —
 both have been wrong before, including in ways that cost a re-ingest. `docker compose` runs
-from this checkout only, never a worktree. **Do not ingest or embed anything while I am
-chatting with the assistant** — embedding saturates the GPU; a Docling *probe* is fine, a full
-ingest is not. Do not run destructive SQL; write it in §3 and let me trigger it. Export and
-commit every workflow JSON **before** running it, not after.
+from this checkout only, never a worktree. **Do not ingest or embed anything while I am chatting
+with the assistant** — embedding saturates the GPU. ⚠️ A **Docling probe** is not an ingest and
+is fine; `ask.sh` embeds one short query per call and is fine. Do not run destructive SQL.
+Export and commit every workflow JSON **before** running it, not after.
 
-**What I do on my end:** build the whole workflow from §2, then run it. If something breaks, I
-will tell you. Don't write stop-and-check-before-embedding steps, and don't propose A/B or
-multi-variant runs — propose one design, argue the runner-up on the record, and make §3's
-reset command good enough that starting over is cheap.
+**What I do on my end:** if something breaks, I will tell you. Don't write
+stop-and-check-before-embedding steps, and don't propose A/B or multi-variant runs — propose
+one design, argue the runner-up on the record.
+
+## After this session
+
+The run itself, then the book 3 record closed the way book 2's was: a measured column beside
+every prediction, Tier A recorded inline, Tier B against the **post-Yeast** baseline in
+`02-yeast.md` §4.2 (not the post-Water one), and README §9 ticked.
+
+⚠️ **Three items are open and belong to whichever session touches the engine next** — most
+likely book 4 or book 4.5, since book 3 should again be mapper-only:
+
+1. **A3, live** — run the launcher a second time as the **last** step of the ingest session,
+   after the log rows exist. Book 1's attempt failed only because it was launched 86 s too early.
+2. **Delete the orphaned `Clean + normalise1` node** and re-export, so the engine is 26 nodes.
+3. **`Log ingest summary`'s promote message** interpolates the version **row id** (*"version 5
+   promoted"*) instead of the version number (**1**). Cosmetic, nothing reads it, wrong since
+   book 0a.
+
+⛔ **Rewrite this file before that session.** A stale NEXT-PROMPT is how book 1 ended up
+re-deriving things that were already measured.
