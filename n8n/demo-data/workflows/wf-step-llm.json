@@ -1,0 +1,310 @@
+{
+  "updatedAt": "2026-08-20T05:28:03.608Z",
+  "createdAt": "2026-08-19T18:56:01.828Z",
+  "id": "L0uI1b3FWMgUEszB",
+  "name": "wf-step-llm",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "run_id",
+              "type": "number"
+            },
+            {
+              "name": "seq",
+              "type": "number"
+            },
+            {
+              "name": "step_id"
+            },
+            {
+              "name": "profile"
+            },
+            {
+              "name": "prompt_name"
+            },
+            {
+              "name": "vars_json"
+            },
+            {
+              "name": "schema_json"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "20f96e52-f920-4841-95a2-00827bb9bd9e",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT model, options, body, sha256 FROM obs.f_step_config($1::text, $2::text);",
+        "options": {
+          "queryReplacement": "={{ [$json.profile, $json.prompt_name] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        208,
+        0
+      ],
+      "id": "1cec84df-d710-402c-a0c0-902d0bf8a536",
+      "name": "Load config",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "memWriterCred001",
+          "name": "Postgres — mem_writer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $input.first().json;\nconst inp = $('When Executed by Another Workflow').first().json;\n\nif (!cfg || !cfg.model) throw new Error(`No obs.profiles row for profile '${inp.profile}'`);\nif (!cfg.body)          throw new Error(`No ACTIVE obs.prompts row named '${inp.prompt_name}'`);\n\nconst vars = JSON.parse(inp.vars_json || '{}');\n\n// An unresolved placeholder reaching the model is silent nonsense, so fail loudly.\nconst body = cfg.body.replace(/\\{\\{(\\w+)\\}\\}/g, (_m, k) => {\n  if (!(k in vars)) throw new Error(`Prompt '${inp.prompt_name}' needs {{${k}}}, not supplied`);\n  return String(vars[k]);\n});\n\nconst schemaRaw = String(inp.schema_json || '').trim();\n\nconst payload = {\n  model: cfg.model,\n  messages: [{ role: 'user', content: body }],\n  options: typeof cfg.options === 'string' ? JSON.parse(cfg.options) : (cfg.options || {}),\n  stream: false,\n};\nif (schemaRaw) payload.format = JSON.parse(schemaRaw);\n\nreturn [{ json: {\n  payload,\n  model: cfg.model,\n  sha256: cfg.sha256,\n  started: Date.now(),\n  rendered_chars: body.length,\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "57717ed8-3faf-496c-aa4a-54885beb8e6c",
+      "name": "Render prompt"
+    },
+    {
+      "parameters": {
+        "url": "http://ollama:11434/api/ps",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        0
+      ],
+      "id": "5635bdaf-e6a2-45f9-8f87-86c227b855ad",
+      "name": "Check residency",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $('Render prompt').first().json.payload }}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        832,
+        0
+      ],
+      "id": "4cd893f9-80ee-4ca2-adfa-0b0b0b140da7",
+      "name": "Call Ollama",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "const res = $input.first().json;\nconst r   = $('Render prompt').first().json;\nconst inp = $('When Executed by Another Workflow').first().json;\n\nconst psRaw = $('Check residency').first().json;\nconst loadedModels = (psRaw?.models ?? []).map(m => m.name ?? m.model);\nconst wasLoaded = loadedModels.includes(r.model);\n\nconst text = res?.message?.content;\nif (typeof text !== 'string' || !text.trim()) {\n  throw new Error(`Ollama returned no content for step '${inp.step_id}': ${JSON.stringify(res).slice(0, 400)}`);\n}\n\nconst schemaRaw = String(inp.schema_json || '').trim();\nlet output = text, verdict = 'ok';\n\nif (schemaRaw) {\n  let parsed;\n  try {\n    parsed = JSON.parse(text);\n  } catch (e) {\n    throw new Error(`Step '${inp.step_id}' was asked for JSON and returned prose: ${text.slice(0, 300)}`);\n  }\n  const required = JSON.parse(schemaRaw).required ?? [];\n  const missing = required.filter(k => !(k in parsed));\n  if (missing.length) {\n    throw new Error(`Step '${inp.step_id}' output missing required key(s): ${missing.join(', ')}`);\n  }\n  output = parsed;\n  verdict = 'schema_ok';\n}\n\nreturn [{ json: {\n  run_id: inp.run_id,\n  seq: inp.seq,\n  step_id: inp.step_id,\n  profile: inp.profile,\n  model: r.model,\n  model_loaded: wasLoaded,\n  prompt_sha256: r.sha256,\n  output,\n  verdict,\n  tokens_in: res.prompt_eval_count ?? null,\n  tokens_out: res.eval_count ?? null,\n  latency_ms: Date.now() - r.started,\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "1cbdece0-de43-4d21-9515-84177efd2e04",
+      "name": "Validate output"
+    },
+    {
+      "parameters": {
+        "jsCode": "const v = $('Validate output').first().json;\nreturn [{ json: {\n  output: v.output,\n  prompt_sha256: v.prompt_sha256,\n  model: v.model,\n  model_loaded: v.model_loaded,\n  latency_ms: v.latency_ms,\n  tokens_in: v.tokens_in,\n  tokens_out: v.tokens_out,\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "e7465671-f1cc-4d55-b308-efb0078220ac",
+      "name": "Return"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT obs.f_log_step(\n  $1::bigint, $2::int, $3::text, 'llm',\n  $4::text, $5::text, $6::boolean, $7::char(64),\n  NULL::jsonb, $8::jsonb, $9::text,\n  $10::int, $11::int, $12::int\n) AS step_row;",
+        "options": {
+          "queryReplacement": "={{ [ $json.run_id, $json.seq, $json.step_id, $json.profile, $json.model, $json.model_loaded, $json.prompt_sha256, JSON.stringify($json.output), $json.verdict, $json.tokens_in, $json.tokens_out, $json.latency_ms ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "logstep0000000000000000000000001",
+      "name": "Log step",
+      "credentials": {
+        "postgres": {
+          "id": "memWriterCred001",
+          "name": "Postgres — mem_writer"
+        }
+      },
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Load config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load config": {
+      "main": [
+        [
+          {
+            "node": "Render prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render prompt": {
+      "main": [
+        [
+          {
+            "node": "Check residency",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check residency": {
+      "main": [
+        [
+          {
+            "node": "Call Ollama",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Ollama": {
+      "main": [
+        [
+          {
+            "node": "Validate output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate output": {
+      "main": [
+        [
+          {
+            "node": "Log step",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log step": {
+      "main": [
+        [
+          {
+            "node": "Return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "run_id": 12,
+          "seq": 1,
+          "step_id": "smoke",
+          "profile": "compose",
+          "prompt_name": "brainstorm.pairing/compose",
+          "vars_json": "{\"question\":\"hi\",\"grounded\":\"none\",\"suggested\":\"none\",\"sources\":\"none\"}",
+          "schema_json": ""
+        }
+      }
+    ]
+  },
+  "versionId": "b45c890f-4477-4e8f-a7d3-83af352dc6f3",
+  "activeVersionId": "b45c890f-4477-4e8f-a7d3-83af352dc6f3",
+  "versionCounter": 46,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-08-19T18:56:01.828Z",
+      "createdAt": "2026-08-19T18:56:01.828Z",
+      "role": "workflow:owner",
+      "workflowId": "L0uI1b3FWMgUEszB",
+      "projectId": "cIpOMqhSXz7mHAJj",
+      "project": {
+        "updatedAt": "2026-07-23T14:53:00.343Z",
+        "createdAt": "2026-07-23T14:06:58.898Z",
+        "id": "cIpOMqhSXz7mHAJj",
+        "name": "János Tóth <janos.toth.2000@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "392cafdf-bd25-4c0b-8d4a-e40c58c63156"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

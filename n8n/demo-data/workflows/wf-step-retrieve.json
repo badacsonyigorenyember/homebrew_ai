@@ -1,0 +1,224 @@
+{
+  "updatedAt": "2026-08-20T05:14:27.122Z",
+  "createdAt": "2026-08-19T18:36:02.461Z",
+  "id": "cCt9O4NyNPyegHBq",
+  "name": "wf-step-retrieve",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            },
+            {
+              "name": "top_k",
+              "type": "number"
+            },
+            {
+              "name": "mode"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a4101c88-485b-4637-a8d2-5e5bc0782a5b",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const i = $input.first().json;\n\nconst query = String(i.query ?? '').trim();\nif (!query) throw new Error('wf-step-retrieve called with an empty query');\n\n// kb.documents.doc_type allows book|style_guide|article|datasheet|note.\n// Anything else means the caller guessed, so drop it to '' (= whole corpus).\nconst allowed = ['book', 'style_guide'];\nconst dt = String(i.doc_type ?? '').trim().toLowerCase();\n\nconst k = Number(i.top_k);\n\n// ⛔ `mode` MUST be carried through — `Return rows` reads it from this node, not\n// from the trigger. Dropping it here silently forces the text shape, and every\n// capability that asked for `rows` gets an empty array.\nconst mode = String(i.mode ?? 'text').trim().toLowerCase() === 'rows' ? 'rows' : 'text';\n\nreturn [{ json: {\n  query,\n  mode,\n  doc_type: allowed.includes(dt) ? dt : '',\n  top_k: Number.isFinite(k) && k > 0 ? Math.min(Math.round(k), 8) : 6,\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "25193fc8-6164-4612-8ed5-0d5412a0e883",
+      "name": "Normalise input"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/embed",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"model\": \"bge-m3\", \"input\": $json.query, \"keep_alive\": -1 } }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "961dd4e1-313b-4364-8de9-e8b4f1b081fc",
+      "name": "Embed query"
+    },
+    {
+      "parameters": {
+        "jsCode": "const src  = $('Normalise input').first().json;\nconst mode = String(src.mode ?? 'text').toLowerCase() === 'rows' ? 'rows' : 'text';\n\n// Always Output Data is ON upstream, so a zero-row search arrives as one empty\n// item. Filtering on chunk_id is what turns that back into \"no results\".\nconst raw = $input.all().map(i => i.json).filter(r => r.chunk_id != null);\n\nconst rows = raw.map(r => ({\n  chunk_id: Number(r.chunk_id),\n  doc_title: r.doc_title,\n  heading: Array.isArray(r.heading_path)\n    ? r.heading_path.join(' > ')\n    : String(r.heading_path ?? ''),\n  page: r.page_from ?? null,\n  text: String(r.raw_content).replace(/\\s+/g, ' ').trim(),\n}));\n\n// Structured shape — for capabilities. Empty is a valid answer, not an error;\n// the caller decides whether zero results is fatal.\nif (mode === 'rows') {\n  return [{ json: { query: src.query, count: rows.length, rows } }];\n}\n\n// Text shape — for the model. ONE item, ONE key.\nif (!rows.length) {\n  return [{ json: { response: `No passages in the library matched \"${src.query}\".` } }];\n}\n\nconst body = rows.map((x, n) =>\n  `[S${n + 1}] ${x.doc_title} · ${x.heading}${x.page ? ` · p.${x.page}` : ''}\\n${x.text}`\n).join('\\n\\n');\n\nreturn [{ json: {\n  response: `${rows.length} passages from the library for \"${src.query}\":\\n\\n${body}`,\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "7d4c4704-2c3e-46eb-8d16-2dc2beb75a66",
+      "name": "Return rows"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT chunk_id, doc_title, heading_path, page_from, raw_content\nFROM nlq.search_knowledge(\n  $1::text,\n  $2::vector,\n  $3::int,\n  40,\n  50,\n  'bge-m3',\n  NULLIF($4::text, '')\n);",
+        "options": {
+          "queryReplacement": "={{ [$json.query, $json.embedding, $json.top_k, $json.doc_type] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        832,
+        0
+      ],
+      "id": "d4b1e463-1fca-458d-a31c-9c090c99bbf8",
+      "name": "Search knowledge",
+      "credentials": {
+        "postgres": {
+          "id": "6vilCQCI30RUdvfd",
+          "name": "n8n_agent"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $('Normalise input').first().json;\nconst emb = $json.embeddings?.[0];\n\nif (!Array.isArray(emb) || emb.length !== 1024) {\n  throw new Error(`Expected a 1024-dim embedding, got ${emb?.length} — is bge-m3 loaded?`);\n}\n\n// pgvector literal, cast with $2::vector downstream. A JS array would arrive as a\n// Postgres array, not a vector.\nreturn [{ json: { ...src, embedding: '[' + emb.join(',') + ']' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "851e43ce-e7cf-4eae-ab36-422aa45ef867",
+      "name": "Build vector"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Normalise input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalise input": {
+      "main": [
+        [
+          {
+            "node": "Embed query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embed query": {
+      "main": [
+        [
+          {
+            "node": "Build vector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search knowledge": {
+      "main": [
+        [
+          {
+            "node": "Return rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build vector": {
+      "main": [
+        [
+          {
+            "node": "Search knowledge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "query": "what temperature and how long for a diacetyl rest",
+          "top_k": 6
+        }
+      }
+    ]
+  },
+  "versionId": "e561a6dc-6053-4172-9871-231553105929",
+  "activeVersionId": "e561a6dc-6053-4172-9871-231553105929",
+  "versionCounter": 41,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-08-19T18:36:02.461Z",
+      "createdAt": "2026-08-19T18:36:02.461Z",
+      "role": "workflow:owner",
+      "workflowId": "cCt9O4NyNPyegHBq",
+      "projectId": "cIpOMqhSXz7mHAJj",
+      "project": {
+        "updatedAt": "2026-07-23T14:53:00.343Z",
+        "createdAt": "2026-07-23T14:06:58.898Z",
+        "id": "cIpOMqhSXz7mHAJj",
+        "name": "János Tóth <janos.toth.2000@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "392cafdf-bd25-4c0b-8d4a-e40c58c63156"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

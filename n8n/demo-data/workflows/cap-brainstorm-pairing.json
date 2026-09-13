@@ -1,0 +1,835 @@
+{
+  "updatedAt": "2026-08-20T05:56:41.067Z",
+  "createdAt": "2026-08-19T18:54:58.659Z",
+  "id": "W0eGcc8mM2BmKkNA",
+  "name": "cap-brainstorm-pairing",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "question"
+            }
+          ]
+        }
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.2,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "L0uI1b3FWMgUEszB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/L0uI1b3FWMgUEszB",
+          "cachedResultName": "wf-step-llm"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "seq": 1,
+            "step_id": "parse",
+            "profile": "extract",
+            "prompt_name": "brainstorm.pairing/parse",
+            "vars_json": "={{ JSON.stringify({ question: $('When Executed by Another Workflow').first().json.question }) }}",
+            "schema_json": "={{ JSON.stringify({ type:\"object\", properties:{ anchor_ingredient:{type:\"string\"}, style_context:{type:\"string\"}, direction:{type:\"string\", enum:[\"pairing\",\"substitution\",\"usage\",\"general\"]} }, required:[\"anchor_ingredient\",\"style_context\",\"direction\"] }) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "seq",
+              "displayName": "seq",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "step_id",
+              "displayName": "step_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "profile",
+              "displayName": "profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "prompt_name",
+              "displayName": "prompt_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "vars_json",
+              "displayName": "vars_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "schema_json",
+              "displayName": "schema_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        688,
+        352
+      ],
+      "id": "9eccba57-645c-488a-b570-09dd43453eaa",
+      "name": "Step 1 · parse"
+    },
+    {
+      "parameters": {
+        "jsCode": "// run_id is threaded forward as a value, never re-derived (D14).\nconst p = $input.first().json.output ?? {};\nreturn [{ json: {\n  run_id:   $('Start run').first().json.run_id,\n  question: $('When Executed by Another Workflow').first().json.question,\n  anchor:   String(p.anchor_ingredient ?? '').trim() || 'brewing',\n  style:    String(p.style_context ?? '').trim(),\n  direction: String(p.direction ?? 'general'),\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        352
+      ],
+      "id": "22cc677c-89e4-4849-9973-5a70ce22dafc",
+      "name": "Unpack parse"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "cCt9O4NyNPyegHBq",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/cCt9O4NyNPyegHBq",
+          "cachedResultName": "wf-step-retrieve"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "top_k": 6,
+            "query": "={{ $json.anchor }}",
+            "mode": "rows"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "top_k",
+              "displayName": "top_k",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "mode",
+              "displayName": "mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1104,
+        352
+      ],
+      "id": "42e8e3c9-5b58-4a4b-837a-4fa2684f1ea1",
+      "name": "Step 2a · retrieve anchor"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "cCt9O4NyNPyegHBq",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/cCt9O4NyNPyegHBq",
+          "cachedResultName": "wf-step-retrieve"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "top_k": 6,
+            "query": "={{ $('Unpack parse').first().json.style || $('Unpack parse').first().json.anchor }}",
+            "mode": "rows"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "top_k",
+              "displayName": "top_k",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "mode",
+              "displayName": "mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1312,
+        352
+      ],
+      "id": "22cfbada-648a-458b-8d68-614acfd5ed2b",
+      "name": "Step 2b · retrieve technique"
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = $('Unpack parse').first().json;\nconst a = $('Step 2a · retrieve anchor').first().json.rows ?? [];\nconst b = $input.first().json.rows ?? [];\n\n// Deduplicate by chunk_id, then relabel S1..Sn across BOTH retrievals. Each call\n// numbers from S1 independently, so using their labels would collide.\nconst seen = new Map();\nfor (const r of [...a, ...b]) if (!seen.has(r.chunk_id)) seen.set(r.chunk_id, r);\nconst rows = [...seen.values()];\n\nif (!rows.length) throw new Error(`No passages found for \"${base.anchor}\"`);\n\nconst idmap = {};\nconst passages = rows.map((r, n) => {\n  const label = `S${n + 1}`;\n  idmap[r.chunk_id] = { label, doc_title: r.doc_title, page: r.page };\n  return `[${label}] (chunk_id ${r.chunk_id}) ${r.doc_title} · ${r.heading}${r.page ? ` · p.${r.page}` : ''}\\n${r.text}`;\n}).join('\\n\\n');\n\n// ⛔ Coverage gate. nlq.search_knowledge returns a pure RRF score — 1/(rrf_k + rank) —\n// so it is a function of rank alone and says NOTHING about relevance: an unrelated\n// chunk scores exactly what a perfect hit scores. Retrieval therefore always returns\n// six passages, even for an anchor the corpus has never heard of, and the propose\n// step will dutifully invent something adjacent from them.\n// The only honest signal available is lexical: did anything we retrieved actually\n// mention the thing that was asked about?\nconst needle = String(base.anchor ?? '').trim().toLowerCase();\nconst hay = rows.map(r => `${r.doc_title} ${r.heading} ${r.text}`).join(' ').toLowerCase();\nconst anchor_covered = needle.length > 2 && hay.includes(needle);\n\nreturn [{ json: { ...base, passages, idmap, anchor_covered,\n                  chunk_ids: rows.map(r => r.chunk_id) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        352
+      ],
+      "id": "cd699f37-4c15-4e84-9fdd-722f3648e268",
+      "name": "Build pack"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "L0uI1b3FWMgUEszB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/L0uI1b3FWMgUEszB",
+          "cachedResultName": "wf-step-llm"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "seq": 3,
+            "step_id": "propose",
+            "profile": "creative",
+            "prompt_name": "brainstorm.pairing/propose",
+            "vars_json": "={{ JSON.stringify({ question: $json.question, anchor: $json.anchor, style_context: $json.style || 'none given', passages: $json.passages }) }}",
+            "schema_json": "={{ JSON.stringify(({\n  type: \"object\",\n  properties: {\n    candidates: {\n      type: \"array\",\n      maxItems: 6,\n      items: {\n        type: \"object\",\n        properties: {\n          candidate: { type: \"string\" },\n          why: { type: \"string\" },\n          cites: {\n            type: \"array\",\n            items: { type: \"string\" }\n          }\n        },\n        required: [\"candidate\", \"why\", \"cites\"]\n      }\n    }\n  },\n  required: [\"candidates\"]\n})) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "seq",
+              "displayName": "seq",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "step_id",
+              "displayName": "step_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "profile",
+              "displayName": "profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "prompt_name",
+              "displayName": "prompt_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "vars_json",
+              "displayName": "vars_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "schema_json",
+              "displayName": "schema_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1830,
+        240
+      ],
+      "id": "305efeb9-baf3-4810-bf0c-8ae88a3b86bb",
+      "name": "Step 3 · propose"
+    },
+    {
+      "parameters": {
+        "jsCode": "// The point of this capability: a candidate is either cited or labelled as a\n// suggestion. Never silently mixed, and never carrying an invented chunk_id.\nconst pack = $('Build pack').first().json;\nconst cands = $input.first().json.output?.candidates ?? [];\n\n// A 12B routinely cites the [S1] label it was shown instead of the chunk_id\n// printed beside it. Both were in the passages, so both are real evidence —\n// resolve chunk_id first, fall back to the label. Anything else is invented.\nconst byLabel = {};\nfor (const [cid, v] of Object.entries(pack.idmap)) byLabel[v.label] = v;\n\nfunction resolve(c) {\n  const key = String(c).trim().replace(/^\\[|\\]$/g, '');\n  if (pack.idmap[key]) return pack.idmap[key].label;\n  const asLabel = /^S/i.test(key) ? key.toUpperCase() : `S${key}`;\n  return byLabel[asLabel] ? asLabel : null;\n}\n\nconst grounded = [], suggested = [];\n\nfor (const c of cands) {\n  const labels = [...new Set((c.cites ?? []).map(resolve).filter(Boolean))];\n\n  const line = `${c.candidate} — ${c.why}`;\n  if (labels.length) grounded.push(`${line} ${labels.map(l => `[${l}]`).join('')}`);\n  else suggested.push(line);\n}\n\n// Zero candidates is no longer an error: the propose prompt is explicitly allowed\n// to return an empty list rather than pad. compose turns 'none'/'none' into a plain\n// statement that the library does not cover it.\nconst sources = Object.values(pack.idmap)\n  .filter(v => grounded.some(g => g.includes(`[${v.label}]`)))\n  .map(v => `[${v.label}] ${v.doc_title}${v.page ? `, p.${v.page}` : ''}`)\n  .join('\\n');\n\nreturn [{ json: {\n  run_id: pack.run_id,\n  question: pack.question,\n  grounded:  grounded.length  ? grounded.join('\\n')  : 'none',\n  suggested: suggested.length ? suggested.join('\\n') : 'none',\n  sources,\n  n_grounded: grounded.length,\n  n_suggested: suggested.length,\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2010,
+        240
+      ],
+      "id": "abe0fb52-9cec-4892-89a8-da0fd47a0671",
+      "name": "Step 4 · ground"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "L0uI1b3FWMgUEszB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/L0uI1b3FWMgUEszB",
+          "cachedResultName": "wf-step-llm"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "seq": 5,
+            "step_id": "compose",
+            "profile": "compose",
+            "prompt_name": "brainstorm.pairing/compose",
+            "vars_json": "={{ JSON.stringify({ question: $json.question, grounded: $json.grounded, suggested: $json.suggested, sources: $json.sources || 'none' }) }}",
+            "schema_json": ""
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "seq",
+              "displayName": "seq",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "step_id",
+              "displayName": "step_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "profile",
+              "displayName": "profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "prompt_name",
+              "displayName": "prompt_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "vars_json",
+              "displayName": "vars_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "schema_json",
+              "displayName": "schema_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2184,
+        240
+      ],
+      "id": "92429700-002d-40c1-b253-164a73520c9d",
+      "name": "Step 5 · compose"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT obs.f_finish_run($1::bigint, $2::text, $3::jsonb);",
+        "options": {
+          "queryReplacement": "={{ [ $json.run_id, $json.status, $json.spent ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2392,
+        352
+      ],
+      "id": "dbcd9b16-9b35-4df1-9a65-267ab3311a09",
+      "name": "Finish run",
+      "credentials": {
+        "postgres": {
+          "id": "memWriterCred001",
+          "name": "Postgres — mem_writer"
+        }
+      },
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Only one branch of `Anchor covered?` ran, so ask which before reading it —\n// $('node').first() on a node that never executed throws.\nconst src = $('Wrap answer').isExecuted\n  ? $('Wrap answer').first().json\n  : $('Not in library').first().json;\n\n// One item, one key — the toolWorkflow node hands the last output to the model.\nreturn [{ json: { response: String(src.answer ?? '').trim() } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2600,
+        352
+      ],
+      "id": "91e5f2a6-c2cc-4cb2-a0a8-0ea5f0a1dc08",
+      "name": "Return"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT obs.f_start_run($1::text, NULL::int, 'brainstorm.pairing', $2::jsonb)::int AS run_id;",
+        "options": {
+          "queryReplacement": "={{ [ 'cap', JSON.stringify({max_steps: 8, max_wall_ms: 300000}) ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        480,
+        352
+      ],
+      "id": "0a554108-9d91-40a3-b667-d74fc36e9e8a",
+      "name": "Start run",
+      "credentials": {
+        "postgres": {
+          "id": "memWriterCred001",
+          "name": "Postgres — mem_writer"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "anchor-covered",
+              "leftValue": "={{ $json.anchor_covered }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1660,
+        352
+      ],
+      "id": "anchorcovered0000000000000000001",
+      "name": "Anchor covered?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// The corpus never mentions this anchor, so there is no answer to give and no\n// grounded candidate to build one from. Say that, in one sentence, and stop —\n// the alternative is the propose step manufacturing adjacent filler from six\n// passages that happen to rank highest without being about anything relevant.\nconst p = $input.first().json;\nreturn [{ json: {\n  run_id: p.run_id,\n  status: 'refused',\n  spent:  JSON.stringify({ reason: 'anchor_not_in_corpus', anchor: p.anchor }),\n  answer: `Your library has nothing on ${p.anchor}. I can't answer this from the books you've ingested, and I'm not going to answer it from my own memory.`,\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1830,
+        520
+      ],
+      "id": "notinlibrary00000000000000000001",
+      "name": "Not in library"
+    },
+    {
+      "parameters": {
+        "jsCode": "const g = $('Step 4 · ground').first().json;\nreturn [{ json: {\n  run_id: g.run_id,\n  status: 'ok',\n  spent:  JSON.stringify({ grounded: g.n_grounded, suggested: g.n_suggested }),\n  answer: String($input.first().json.output ?? '').trim()\n            || `${g.grounded}\\n\\nSources:\\n${g.sources}`,\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2358,
+        240
+      ],
+      "id": "wrapanswer000000000000000000001",
+      "name": "Wrap answer"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Start run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 1 · parse": {
+      "main": [
+        [
+          {
+            "node": "Unpack parse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unpack parse": {
+      "main": [
+        [
+          {
+            "node": "Step 2a · retrieve anchor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 2a · retrieve anchor": {
+      "main": [
+        [
+          {
+            "node": "Step 2b · retrieve technique",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 2b · retrieve technique": {
+      "main": [
+        [
+          {
+            "node": "Build pack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build pack": {
+      "main": [
+        [
+          {
+            "node": "Anchor covered?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 3 · propose": {
+      "main": [
+        [
+          {
+            "node": "Step 4 · ground",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 4 · ground": {
+      "main": [
+        [
+          {
+            "node": "Step 5 · compose",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 5 · compose": {
+      "main": [
+        [
+          {
+            "node": "Wrap answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish run": {
+      "main": [
+        [
+          {
+            "node": "Return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start run": {
+      "main": [
+        [
+          {
+            "node": "Step 1 · parse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anchor covered?": {
+      "main": [
+        [
+          {
+            "node": "Step 3 · propose",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Not in library",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wrap answer": {
+      "main": [
+        [
+          {
+            "node": "Finish run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Not in library": {
+      "main": [
+        [
+          {
+            "node": "Finish run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "question": "what hops would work with Nelson Sauvin in a hazy pale ale"
+        }
+      }
+    ]
+  },
+  "versionId": "125467cc-1031-47d0-b028-820bff6f9bfb",
+  "activeVersionId": "125467cc-1031-47d0-b028-820bff6f9bfb",
+  "versionCounter": 73,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-08-19T18:54:58.659Z",
+      "createdAt": "2026-08-19T18:54:58.659Z",
+      "role": "workflow:owner",
+      "workflowId": "W0eGcc8mM2BmKkNA",
+      "projectId": "cIpOMqhSXz7mHAJj",
+      "project": {
+        "updatedAt": "2026-07-23T14:53:00.343Z",
+        "createdAt": "2026-07-23T14:06:58.898Z",
+        "id": "cIpOMqhSXz7mHAJj",
+        "name": "János Tóth <janos.toth.2000@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "392cafdf-bd25-4c0b-8d4a-e40c58c63156"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}
