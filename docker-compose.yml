@@ -172,7 +172,8 @@ services:
         # db/init/*.sql file silently never runs until its name is added here.
         # 15_ref.sql must precede 20_brew.sql: brew.recipes.style_id -> ref.styles.
         for f in /db-init/00_extensions.sql /db-init/10_kb.sql /db-init/15_ref.sql \
-                 /db-init/20_brew.sql /db-init/30_mem.sql /db-init/40_nlq.sql; do
+                 /db-init/20_brew.sql /db-init/30_mem.sql /db-init/40_nlq.sql \
+                 /db-init/60_obs.sql; do
           echo ">> $$f"
           psql -v ON_ERROR_STOP=1 -f "$$f"
         done
