@@ -3,7 +3,7 @@
   "createdAt": "2026-08-19T18:54:58.659Z",
   "id": "W0eGcc8mM2BmKkNA",
   "name": "cap-brainstorm-pairing",
-  "description": null,
+  "description": "The pairing/ideas capability behind chat-agent's brainstorm_pairing tool. Three wf-step-llm calls — parse, propose, compose — around two wf-step-retrieve calls (the anchor ingredient, and its style/technique context), with a pure-code grounding step between propose and compose. The coverage gate after Build pack is the point of the workflow: if the anchor is not in the corpus it refuses outright via `Not in library` rather than composing filler, and any candidate the model cannot tie to a real chunk_id is emitted under \"Not from your library — my own suggestions:\" instead of being cited. Run rows are written to obs.runs.",
   "active": true,
   "isArchived": false,
   "nodes": [

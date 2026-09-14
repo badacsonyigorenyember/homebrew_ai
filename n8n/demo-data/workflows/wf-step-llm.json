@@ -3,7 +3,7 @@
   "createdAt": "2026-08-19T18:56:01.828Z",
   "id": "L0uI1b3FWMgUEszB",
   "name": "wf-step-llm",
-  "description": null,
+  "description": "Shared LLM step: every model call in the project goes through here, so no prompt text lives in a node. Loads the named obs.prompts row and obs.profiles decode profile via obs.f_step_config, substitutes {{vars}} and throws on any placeholder the caller did not supply, calls Ollama, and enforces the requested JSON schema before returning. Records prompt_sha256, model residency, token counts and latency to obs.steps.",
   "active": true,
   "isArchived": false,
   "nodes": [

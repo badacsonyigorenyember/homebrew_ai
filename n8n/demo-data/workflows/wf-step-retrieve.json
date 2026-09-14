@@ -3,7 +3,7 @@
   "createdAt": "2026-08-19T18:36:02.461Z",
   "id": "cCt9O4NyNPyegHBq",
   "name": "wf-step-retrieve",
-  "description": null,
+  "description": "Shared retrieval step: one query in, ranked passages out. Embeds the query with bge-m3, then calls nlq.search_knowledge (hybrid, RRF) and logs the hit list to obs.retrievals. Returns one of two shapes depending on the `mode` input — `text` gives the model a single [S1]..[Sn] labelled block, `rows` gives a capability the structured rows with chunk_id. Called by chat-agent's search_brewing_knowledge tool and by cap-brainstorm-pairing steps 2a and 2b.",
   "active": true,
   "isArchived": false,
   "nodes": [
@@ -38,7 +38,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const i = $input.first().json;\n\nconst query = String(i.query ?? '').trim();\nif (!query) throw new Error('wf-step-retrieve called with an empty query');\n\n// kb.documents.doc_type allows book|style_guide|article|datasheet|note.\n// Anything else means the caller guessed, so drop it to '' (= whole corpus).\nconst allowed = ['book', 'style_guide'];\nconst dt = String(i.doc_type ?? '').trim().toLowerCase();\n\nconst k = Number(i.top_k);\n\n// ⛔ `mode` MUST be carried through — `Return rows` reads it from this node, not\n// from the trigger. Dropping it here silently forces the text shape, and every\n// capability that asked for `rows` gets an empty array.\nconst mode = String(i.mode ?? 'text').trim().toLowerCase() === 'rows' ? 'rows' : 'text';\n\nreturn [{ json: {\n  query,\n  mode,\n  // Carried for the retrieval trace only; never used in the search itself.\n  session_id: String(i.session_id ?? '').trim(),\n  doc_type: allowed.includes(dt) ? dt : '',\n  top_k: Number.isFinite(k) && k > 0 ? Math.min(Math.round(k), 8) : 6,\n}}];"
+        "jsCode": "const i = $input.first().json;\n\nconst query = String(i.query ?? '').trim();\nif (!query) throw new Error('wf-step-retrieve called with an empty query');\n\n// kb.documents.doc_type allows book|style_guide|article|datasheet|note.\n// Anything else means the caller guessed, so drop it to '' (= whole corpus).\n// `note` stays out on purpose: kb.documents has 0 rows of it (measured 2026-09-14).\nconst allowed = ['book', 'style_guide', 'article', 'datasheet'];\nconst dt = String(i.doc_type ?? '').trim().toLowerCase();\n\nconst k = Number(i.top_k);\n\n// ⛔ `mode` MUST be carried through — `Return rows` reads it from this node, not\n// from the trigger. Dropping it here silently forces the text shape, and every\n// capability that asked for `rows` gets an empty array.\nconst mode = String(i.mode ?? 'text').trim().toLowerCase() === 'rows' ? 'rows' : 'text';\n\nreturn [{ json: {\n  query,\n  mode,\n  // Carried for the retrieval trace only; never used in the search itself.\n  session_id: String(i.session_id ?? '').trim(),\n  doc_type: allowed.includes(dt) ? dt : '',\n  top_k: Number.isFinite(k) && k > 0 ? Math.min(Math.round(k), 8) : 6,\n}}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -47,7 +47,8 @@
         0
       ],
       "id": "25193fc8-6164-4612-8ed5-0d5412a0e883",
-      "name": "Normalise input"
+      "name": "Normalise input",
+      "notes": "The only validation point on the retrieval path. ⛔ `mode` MUST be carried through here: `Return rows` reads it from THIS node, not from the trigger, so dropping it silently forces the text shape and every capability that asked for `rows` gets an empty array. doc_type is fail-open — an unrecognised value becomes '' and NULLIF turns that into a whole-corpus search, so a typo costs scope, not an error. top_k is clamped to 1..8, default 6."
     },
     {
       "parameters": {
@@ -80,7 +81,8 @@
         0
       ],
       "id": "7d4c4704-2c3e-46eb-8d16-2dc2beb75a66",
-      "name": "Return rows"
+      "name": "Return rows",
+      "notes": "Two output shapes from one node, chosen by `mode`. `rows` returns the structured rows for a capability, where zero results is a valid answer and the caller decides if that is fatal; `text` returns ONE item with ONE `response` key, because the toolWorkflow node hands the model only the last output — this is where the [S1]..[Sn] labels the system prompt cites are actually minted, and the page suffix is null-safe for page-less sources. The chunk_id filter is load-bearing: Always Output Data is ON upstream, so a zero-row search arrives as one empty item rather than none."
     },
     {
       "parameters": {
