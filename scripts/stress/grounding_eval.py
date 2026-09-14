@@ -99,8 +99,17 @@ def ask(session_id, question, timeout=420):
 
 
 def check(case, sid, res):
-    """Return (verdict, notes[]). Verdict is one of PASS / WARN / FAIL."""
+    """Return (verdict, notes[]). Verdict is one of PASS / WARN / FAIL / ERROR."""
     notes = []
+
+    # ⛔ A request that never reached the agent is NOT a failed refusal.
+    # Scored 2026-09-14: importing chat-agent dropped its webhook registration,
+    # every `uncovered` case 404'd in 0.0s, and this function — which read only
+    # the database — found no turn, concluded "NO REFUSAL", and reported 4 FAILs
+    # against an agent that had not been asked anything. A transport failure and
+    # a refusal regression must never score the same.
+    if not res.get("ok"):
+        return "ERROR", [f"NOT ASKED — transport failure, agent never reached: {res.get('error')}"]
 
     turn = sql(f"""select coalesce(array_length(chunk_ids,1),0), coalesce(latency_ms,-1),
                           coalesce(left(content,4000),'')
@@ -160,7 +169,7 @@ def main():
     cases = [c for c in CASES if c["id"].startswith(args.only)] if args.only else CASES
     print(f"{len(cases)} cases against {WEBHOOK}\n")
 
-    out, tally = [], {"PASS": 0, "WARN": 0, "FAIL": 0}
+    out, tally = [], {"PASS": 0, "WARN": 0, "FAIL": 0, "ERROR": 0}
     for c in cases:
         sid = f"ge-{c['id']}-{uuid.uuid4().hex[:8]}"
         res = ask(sid, c["q"])
@@ -171,14 +180,19 @@ def main():
               + ("  <- " + "; ".join(notes) if notes else ""))
 
     print(f"\n  PASS {tally['PASS']}  WARN {tally['WARN']}  FAIL {tally['FAIL']}"
-          f"   of {len(cases)}")
-    cov = [o for o in out if o["kind"] == "uncovered"]
+          f"  ERROR {tally['ERROR']}   of {len(cases)}")
+    if tally["ERROR"]:
+        print("  ⛔ ERROR means the request never reached the agent — the run is INVALID,"
+              "\n     not a set of failures. Check that chat-agent's webhook is registered:"
+              "\n       curl -s -o /dev/null -w '%{http_code}\\n' -X POST $WEBHOOK -d '{}'"
+              "\n     A 404 means an import/publish dropped it; `docker restart n8n` re-registers.")
+    cov = [o for o in out if o["kind"] == "uncovered" and o["verdict"] != "ERROR"]
     if cov:
         print(f"  refusal latency: {[o['s'] for o in cov]}")
     if args.json:
         Path(args.json).write_text(json.dumps(out, indent=1))
         print(f"  wrote {args.json}")
-    return 0 if not tally["FAIL"] else 1
+    return 0 if not (tally["FAIL"] or tally["ERROR"]) else 1
 
 
 if __name__ == "__main__":

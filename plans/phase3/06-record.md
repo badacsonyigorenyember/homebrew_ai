@@ -313,6 +313,23 @@ failure" claim.**
 
 ## §7 — Operational notes for the next editor
 
+0. ⛔⛔ **The one that cost real time: re-publishing does not restore `chat-agent`'s webhook.**
+   After importing the four agent workflows and re-publishing them, the DB said `active = t`
+   but the running n8n had dropped the route — every POST to the chat webhook returned
+   `404 "… is not registered"` in ~2 ms. **`docker restart n8n` fixes it.**
+
+   ⛔ **This silently invalidated a whole eval run.** `grounding_eval.py` reported
+   *"NO REFUSAL — answered an anchor the corpus lacks"* on all four `uncovered` cases. The
+   agent had never been asked: the requests 404'd, no `mem.chat_turns` row was written, and
+   `check()` — which read only the database — could not tell "never asked" from "answered
+   wrongly". **A refusal regression and a transport failure scored identically.**
+
+   ⭐ **Fixed in the script, not just noted.** `check()` now returns a distinct `ERROR`
+   verdict when `res["ok"]` is false, the summary prints the webhook probe command, and the
+   exit code is non-zero for `ERROR` as well as `FAIL`. ⚠️ The tell was in the output all
+   along and is worth remembering: **four consecutive failures at exactly `0.0s`.** A real
+   refusal takes ~10 s.
+
 1. ⛔ **`n8n import:workflow` DEACTIVATES an active workflow.** All four agent workflows had to
    be re-published afterwards. Check `active` before and after every import.
 2. ⚠️ `update:workflow --active=true` still works but is **deprecated** in favour of

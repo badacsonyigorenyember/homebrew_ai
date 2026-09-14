@@ -196,6 +196,23 @@ touch the corpus.
   (`publish:workflow --id=…`; `update:workflow --active=true` works but is deprecated). Check
   `active` before and after every import — all four agent workflows were silently deactivated
   this way on 2026-09-14.
+- ⛔⛔ **…and re-publishing does NOT restore `chat-agent`'s webhook registration.** `measured`
+  2026-09-14: after import + re-publish the DB said `active = t`, but the running n8n had
+  dropped the route and every POST returned
+  `404 "The requested webhook … is not registered"` in ~2 ms. **`docker restart n8n` fixes
+  it.** ⚠️ This is the upstream "webhook registration breaks after a write" hazard, confirmed
+  here for the first time. ⛔ **It silently invalidates any eval that drives the chat webhook**
+  — `grounding_eval.py` scored 4 FAILs against an agent it had never actually reached. Always
+  probe the webhook before trusting a chat-driven test run:
+
+```bash
+curl -s -o /dev/null -w '%{http_code} %{time_total}\n' --max-time 8 \
+  -X POST http://localhost:5678/webhook/<id>/chat \
+  -H 'Content-Type: application/json' \
+  -d '{"sessionId":"probe","action":"sendMessage","chatInput":"ping"}'
+# 200 after several seconds = registered and streaming.
+# 404 in ~0.00s          = NOT registered; restart n8n.
+```
 - ⛔ **`n8n execute --id=…` cannot run the ingest launchers**: it fails with *"Workflow is not
   active and cannot be executed"* because this n8n gates `executeWorkflow` on a **published**
   version and `wf1-ingest-book` has none. Use MCP `execute_workflow` with
