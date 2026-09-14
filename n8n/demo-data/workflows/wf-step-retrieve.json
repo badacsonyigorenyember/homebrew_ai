@@ -20,6 +20,9 @@
             },
             {
               "name": "mode"
+            },
+            {
+              "name": "session_id"
             }
           ]
         }
@@ -35,7 +38,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const i = $input.first().json;\n\nconst query = String(i.query ?? '').trim();\nif (!query) throw new Error('wf-step-retrieve called with an empty query');\n\n// kb.documents.doc_type allows book|style_guide|article|datasheet|note.\n// Anything else means the caller guessed, so drop it to '' (= whole corpus).\nconst allowed = ['book', 'style_guide'];\nconst dt = String(i.doc_type ?? '').trim().toLowerCase();\n\nconst k = Number(i.top_k);\n\n// ⛔ `mode` MUST be carried through — `Return rows` reads it from this node, not\n// from the trigger. Dropping it here silently forces the text shape, and every\n// capability that asked for `rows` gets an empty array.\nconst mode = String(i.mode ?? 'text').trim().toLowerCase() === 'rows' ? 'rows' : 'text';\n\nreturn [{ json: {\n  query,\n  mode,\n  doc_type: allowed.includes(dt) ? dt : '',\n  top_k: Number.isFinite(k) && k > 0 ? Math.min(Math.round(k), 8) : 6,\n}}];"
+        "jsCode": "const i = $input.first().json;\n\nconst query = String(i.query ?? '').trim();\nif (!query) throw new Error('wf-step-retrieve called with an empty query');\n\n// kb.documents.doc_type allows book|style_guide|article|datasheet|note.\n// Anything else means the caller guessed, so drop it to '' (= whole corpus).\nconst allowed = ['book', 'style_guide'];\nconst dt = String(i.doc_type ?? '').trim().toLowerCase();\n\nconst k = Number(i.top_k);\n\n// ⛔ `mode` MUST be carried through — `Return rows` reads it from this node, not\n// from the trigger. Dropping it here silently forces the text shape, and every\n// capability that asked for `rows` gets an empty array.\nconst mode = String(i.mode ?? 'text').trim().toLowerCase() === 'rows' ? 'rows' : 'text';\n\nreturn [{ json: {\n  query,\n  mode,\n  // Carried for the retrieval trace only; never used in the search itself.\n  session_id: String(i.session_id ?? '').trim(),\n  doc_type: allowed.includes(dt) ? dt : '',\n  top_k: Number.isFinite(k) && k > 0 ? Math.min(Math.round(k), 8) : 6,\n}}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -68,7 +71,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const src  = $('Normalise input').first().json;\nconst mode = String(src.mode ?? 'text').toLowerCase() === 'rows' ? 'rows' : 'text';\n\n// Always Output Data is ON upstream, so a zero-row search arrives as one empty\n// item. Filtering on chunk_id is what turns that back into \"no results\".\nconst raw = $input.all().map(i => i.json).filter(r => r.chunk_id != null);\n\nconst rows = raw.map(r => ({\n  chunk_id: Number(r.chunk_id),\n  doc_title: r.doc_title,\n  heading: Array.isArray(r.heading_path)\n    ? r.heading_path.join(' > ')\n    : String(r.heading_path ?? ''),\n  page: r.page_from ?? null,\n  text: String(r.raw_content).replace(/\\s+/g, ' ').trim(),\n}));\n\n// Structured shape — for capabilities. Empty is a valid answer, not an error;\n// the caller decides whether zero results is fatal.\nif (mode === 'rows') {\n  return [{ json: { query: src.query, count: rows.length, rows } }];\n}\n\n// Text shape — for the model. ONE item, ONE key.\nif (!rows.length) {\n  return [{ json: { response: `No passages in the library matched \"${src.query}\".` } }];\n}\n\nconst body = rows.map((x, n) =>\n  `[S${n + 1}] ${x.doc_title} · ${x.heading}${x.page ? ` · p.${x.page}` : ''}\\n${x.text}`\n).join('\\n\\n');\n\nreturn [{ json: {\n  response: `${rows.length} passages from the library for \"${src.query}\":\\n\\n${body}`,\n}}];"
+        "jsCode": "const src  = $('Normalise input').first().json;\nconst mode = String(src.mode ?? 'text').toLowerCase() === 'rows' ? 'rows' : 'text';\n\n// Always Output Data is ON upstream, so a zero-row search arrives as one empty\n// item. Filtering on chunk_id is what turns that back into \"no results\".\nconst raw = $('Search knowledge').all().map(i => i.json).filter(r => r.chunk_id != null);\n\nconst rows = raw.map(r => ({\n  chunk_id: Number(r.chunk_id),\n  doc_title: r.doc_title,\n  heading: Array.isArray(r.heading_path)\n    ? r.heading_path.join(' > ')\n    : String(r.heading_path ?? ''),\n  page: r.page_from ?? null,\n  text: String(r.raw_content).replace(/\\s+/g, ' ').trim(),\n}));\n\n// Structured shape — for capabilities. Empty is a valid answer, not an error;\n// the caller decides whether zero results is fatal.\nif (mode === 'rows') {\n  return [{ json: { query: src.query, count: rows.length, rows } }];\n}\n\n// Text shape — for the model. ONE item, ONE key.\nif (!rows.length) {\n  return [{ json: { response: `No passages in the library matched \"${src.query}\".` } }];\n}\n\nconst body = rows.map((x, n) =>\n  `[S${n + 1}] ${x.doc_title} · ${x.heading}${x.page ? ` · p.${x.page}` : ''}\\n${x.text}`\n).join('\\n\\n');\n\nreturn [{ json: {\n  response: `${rows.length} passages from the library for \"${src.query}\":\\n\\n${body}`,\n}}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -115,6 +118,32 @@
       ],
       "id": "851e43ce-e7cf-4eae-ab36-422aa45ef867",
       "name": "Build vector"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT obs.f_log_retrieval($1::text, $2::text, $3::bigint[], $4::int, $5::text) AS retrieval_id;",
+        "options": {
+          "queryReplacement": "={{ [$('Normalise input').first().json.session_id, $('Normalise input').first().json.query, '{' + $('Search knowledge').all().map(i => i.json.chunk_id).filter(v => v !== null && v !== undefined).join(',') + '}', $('Normalise input').first().json.top_k, $('Normalise input').first().json.mode] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "c1f0a7d2-3b44-4e91-9a10-7f2c5e8d1b60",
+      "name": "Log retrieval",
+      "credentials": {
+        "postgres": {
+          "id": "memWriterCred001",
+          "name": "Postgres — mem_writer"
+        }
+      },
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
     }
   ],
   "connections": {
@@ -155,7 +184,7 @@
       "main": [
         [
           {
-            "node": "Return rows",
+            "node": "Log retrieval",
             "type": "main",
             "index": 0
           }
@@ -167,6 +196,17 @@
         [
           {
             "node": "Search knowledge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log retrieval": {
+      "main": [
+        [
+          {
+            "node": "Return rows",
             "type": "main",
             "index": 0
           }

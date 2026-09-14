@@ -273,3 +273,60 @@ Rules:
 - Direct and technical. This brewer is experienced.
 $body$, true, 'v1 initial')
 ON CONFLICT (name, version) DO NOTHING;
+
+-- =============================================================================
+-- Retrieval trace — the fix for the empty mem.chat_turns.chunk_ids column.
+-- `Prep turn` cannot recover the ids: the tool hands the model mode 'text', and
+-- that string carries no chunk_id by design — putting them there would roughly
+-- double the retrieval token budget and bury the [S..] labels the citation
+-- contract depends on. So the retriever records its own trace instead, keyed by
+-- session, and `Log turn` joins it. This also captures retrievals made inside a
+-- capability, which `Prep turn` can never see.
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS obs.retrievals (
+  id         bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  session_id text,
+  query      text NOT NULL,
+  chunk_ids  bigint[] NOT NULL DEFAULT '{}',
+  top_k      int,
+  mode       text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- `Log turn` reads the newest trace for a session, so this is the access path.
+CREATE INDEX IF NOT EXISTS retrievals_session_created_idx
+  ON obs.retrievals (session_id, created_at DESC);
+
+CREATE OR REPLACE FUNCTION obs.f_log_retrieval(
+  p_session_id text, p_query text, p_chunk_ids bigint[], p_top_k int, p_mode text)
+RETURNS bigint
+LANGUAGE sql SECURITY DEFINER SET search_path = obs, public AS $fn$
+  INSERT INTO obs.retrievals (session_id, query, chunk_ids, top_k, mode)
+  VALUES (nullif(p_session_id, ''), p_query,
+          coalesce(p_chunk_ids, '{}'::bigint[]), p_top_k, p_mode)
+  RETURNING id
+$fn$;
+
+REVOKE ALL ON FUNCTION obs.f_log_retrieval(text, text, bigint[], int, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION obs.f_log_retrieval(text, text, bigint[], int, text) TO mem_writer;
+
+-- `Log turn` runs as mem_writer, which holds no table privileges anywhere in obs.
+-- Same SECURITY DEFINER pattern as the rest of this file: the join it needs is a
+-- function, not a grant. p_since bounds the lookup to the turn that is being
+-- logged, so a later turn never inherits an earlier turn's chunk_ids.
+CREATE OR REPLACE FUNCTION obs.f_session_chunk_ids(
+  p_session_id text, p_since timestamptz)
+RETURNS bigint[]
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = obs, public AS $fn$
+  SELECT coalesce(
+    (SELECT r.chunk_ids
+       FROM obs.retrievals r
+      WHERE r.session_id = p_session_id
+        AND r.created_at >= p_since
+      ORDER BY r.created_at DESC
+      LIMIT 1),
+    '{}'::bigint[])
+$fn$;
+
+REVOKE ALL ON FUNCTION obs.f_session_chunk_ids(text, timestamptz) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION obs.f_session_chunk_ids(text, timestamptz) TO mem_writer;
