@@ -68,3 +68,30 @@ COMMENT ON TABLE ref.styles IS
 -- NOTE (books 6 and 7): ref.faults and ref.hops land here, not in ad-hoc homes.
 -- Deliberately not stubbed -- an empty table with a guessed shape is worse than
 -- no table, and both plans run their own probe first.
+
+-- =============================================================================
+-- Book 6 — the beer fault list. 21 rows, one per off-flavour.
+-- =============================================================================
+-- ⛔ THERE IS NO `cause` COLUMN, AND THAT IS DELIBERATE. The source is the BJCP
+-- two-column table — Characteristic and Possible Solutions — so the mapping is
+-- off-flavour -> remedy, with causes implicit. The corpus doc calls it an
+-- "off-flavor -> cause -> remedy mapping"; it is not one. ⛔ Nothing may infer
+-- the causes into this table: that is exactly the fabricated-content failure the
+-- closed-book design exists to prevent. Causes for the major faults are genuinely
+-- covered by Yeast and How to Brew and must come from there, attributed.
+CREATE TABLE IF NOT EXISTS ref.faults (
+  id          bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  name        text NOT NULL UNIQUE,
+  descriptors text[] NOT NULL DEFAULT '{}',
+  solutions   text NOT NULL,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS faults_name_trgm_idx
+  ON ref.faults USING gin (name gin_trgm_ops);
+
+COMMENT ON TABLE ref.faults IS
+  'Beer off-flavours: sensory descriptors and remedies, one row per fault. '
+  'The narrative cards in kb.chunks are generated from these rows so the two '
+  'cannot drift, the same contract as ref.styles (D32). NO cause column — the '
+  'source has none and causes must never be inferred.';

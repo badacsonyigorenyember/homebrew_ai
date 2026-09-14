@@ -1,0 +1,666 @@
+[
+  {
+    "updatedAt": "2026-08-12T08:44:48.323Z",
+    "createdAt": "2026-08-12T07:45:11.956Z",
+    "id": "ingestBeerFaults",
+    "name": "ingest-beer-faults",
+    "description": "Book 6: load the BJCP beer fault list into ref.faults as rows, then generate one card per fault into kb.chunks and embed it. 21 rows, structured path, already-clean source.",
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "51e1045e-eec1-4711-81ad-3659bdbb654c",
+        "name": "When clicking ‘Execute workflow’"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "bf-slug",
+                "name": "slug",
+                "value": "beer-fault-list",
+                "type": "string"
+              },
+              {
+                "id": "bf-title",
+                "name": "title",
+                "value": "Beer Fault List",
+                "type": "string"
+              },
+              {
+                "id": "bf-doc_type",
+                "name": "doc_type",
+                "value": "datasheet",
+                "type": "string"
+              },
+              {
+                "id": "bf-authority",
+                "name": "authority",
+                "value": "guideline",
+                "type": "string"
+              },
+              {
+                "id": "bf-language",
+                "name": "language",
+                "value": "en",
+                "type": "string"
+              },
+              {
+                "id": "bf-file_path",
+                "name": "file_path",
+                "value": "/data/shared/rag-files/pending/beer_faults.json",
+                "type": "string"
+              },
+              {
+                "id": "bf-expected_count",
+                "name": "expected_count",
+                "value": 21,
+                "type": "number"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          208,
+          0
+        ],
+        "id": "c0db4d9f-1334-4a84-952f-d5d7c42e6958",
+        "name": "Doc variant"
+      },
+      {
+        "parameters": {
+          "fileSelector": "={{ $('Doc variant').first().json.file_path }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.readWriteFile",
+        "typeVersion": 1.1,
+        "position": [
+          416,
+          0
+        ],
+        "id": "07878c7b-37d3-4f48-9fb1-6f6c78095c90",
+        "name": "Read beer_faults.json"
+      },
+      {
+        "parameters": {
+          "binaryData": true,
+          "dataPropertyName": "file_sha256"
+        },
+        "type": "n8n-nodes-base.crypto",
+        "typeVersion": 2,
+        "position": [
+          624,
+          0
+        ],
+        "id": "610ed1df-aa7c-4c56-8238-ac49f94b5483",
+        "name": "Crypto"
+      },
+      {
+        "parameters": {
+          "fileSelector": "={{ $('Doc variant').first().json.file_path }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.readWriteFile",
+        "typeVersion": 1.1,
+        "position": [
+          864,
+          0
+        ],
+        "id": "7e6924f6-e970-4f30-9836-16f8f7d5e19a",
+        "name": "Read beer_faults.json for parsing"
+      },
+      {
+        "parameters": {
+          "operation": "fromJson",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.extractFromFile",
+        "typeVersion": 1.1,
+        "position": [
+          1072,
+          0
+        ],
+        "id": "e603db1f-d058-42c1-b8e6-8be2e8602825",
+        "name": "Extract from File"
+      },
+      {
+        "parameters": {
+          "jsCode": "const raw = $input.first().json.data ?? $input.first().json;\nconst doc = typeof raw === 'string' ? JSON.parse(raw) : raw;\nconst faults = doc.faults;\nif (!Array.isArray(faults) || !faults.length) throw new Error('No faults parsed');\n\nconst EXPECTED = Number($('Doc variant').first().json.expected_count);\nif (faults.length !== EXPECTED)\n  throw new Error(`Expected ${EXPECTED} faults, got ${faults.length} — re-probe before ingesting`);\n\n// The file states its own count; if the two disagree the transcription is torn.\nconst declared = Number(doc.source?.fault_count);\nif (Number.isFinite(declared) && declared !== faults.length)\n  throw new Error(`source.fault_count says ${declared} but the list has ${faults.length}`);\n\n// ⛔ THE GUARD THAT MATTERS. The BJCP source is two columns — Characteristic and\n// Possible Solutions — so there is no cause data anywhere in it. If a future\n// regeneration of this file adds a `cause`, it was INFERRED, and inferring causes\n// is precisely the fabricated-content failure the closed-book design prevents.\n// Refuse the run rather than let invented causation into the corpus.\nconst ALLOWED = new Set(['name', 'descriptors', 'solutions']);\nconst rows = faults.map((f, i) => {\n  for (const k of Object.keys(f))\n    if (!ALLOWED.has(k))\n      throw new Error(`Fault ${i} (\"${f.name ?? '?'}\") has unexpected field \"${k}\". `\n        + `If this is a cause, it was inferred — the source has none. Refusing.`);\n\n  const name = String(f.name ?? '').trim();\n  const solutions = String(f.solutions ?? '').trim();\n  if (!name) throw new Error(`Fault ${i} has no name`);\n  if (!solutions) throw new Error(`Fault \"${name}\" has no solutions`);\n  const descriptors = Array.isArray(f.descriptors)\n    ? f.descriptors.map(d => String(d).trim()).filter(Boolean) : [];\n  if (!descriptors.length) throw new Error(`Fault \"${name}\" has no descriptors`);\n  return { name, descriptors, solutions };\n});\n\nconst dup = rows.map(r => r.name).filter((v, i, a) => a.indexOf(v) !== i);\nif (dup.length) throw new Error(`Duplicate fault name(s): ${dup.join(', ')}`);\n\nreturn [{ json: { rows, stats: {\n  faults: rows.length,\n  descriptors: rows.reduce((n, r) => n + r.descriptors.length, 0),\n  solution_words: rows.reduce((n, r) => n + r.solutions.split(/\\s+/).length, 0),\n} } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1280,
+          0
+        ],
+        "id": "4a0c66ee-ce9e-4e56-8a33-81fa6289a98f",
+        "name": "Parse + validate faults"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH d AS (\n  INSERT INTO kb.documents (slug, title, doc_type, language, authority)\n  VALUES ($2, $3, $4, $5, $6)\n  ON CONFLICT (slug) DO UPDATE SET\n    title = EXCLUDED.title, doc_type = EXCLUDED.doc_type,\n    language = EXCLUDED.language, authority = EXCLUDED.authority\n  RETURNING id\n)\nINSERT INTO kb.document_versions\n  (document_id, version, source_filename, file_sha256, chunker_config, is_current)\nSELECT d.id,\n       COALESCE((SELECT max(v.version) FROM kb.document_versions v\n                 WHERE v.document_id = d.id), 0) + 1,\n       'beer_faults.json', $1,\n       jsonb_build_object('source','structured','generator','fault-card',\n                          'origin','BJCP Beer Fault List, transcribed to beer_faults.json',\n                          'note','off-flavour -> remedy only; the source has no cause column'),\n       false\nFROM d\nON CONFLICT (file_sha256) DO UPDATE\n  SET chunker_config = EXCLUDED.chunker_config\nRETURNING id AS version_id;",
+          "options": {
+            "queryReplacement": "={{ (() => { const p = $('Doc variant').first().json; return [ $('Crypto').first().json.file_sha256, p.slug, p.title, p.doc_type, p.language, p.authority]; })() }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2112,
+          0
+        ],
+        "id": "9280e7e2-d58f-4e5d-a36c-b90187afdf7e",
+        "name": "Ensure KB doc + version",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH demoted AS (\n  UPDATE kb.document_versions SET is_current = false\n  WHERE id = $1 RETURNING id\n)\nDELETE FROM kb.chunks\nWHERE version_id = (SELECT id FROM demoted)\nRETURNING chunk_index;",
+          "options": {
+            "queryReplacement": "={{ [$json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2320,
+          0
+        ],
+        "id": "df6f3eca-0777-44d0-9bba-5119b303855e",
+        "name": "Demote + clear old chunks",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT c.id, c.content\nFROM kb.chunks c\nWHERE c.version_id = $1\n  AND NOT EXISTS (SELECT 1 FROM kb.chunk_embeddings e\n                  WHERE e.chunk_id = c.id AND e.model = 'bge-m3')\nORDER BY c.chunk_index;",
+          "options": {
+            "queryReplacement": "={{ [$('Ensure KB doc + version').first().json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2736,
+          0
+        ],
+        "id": "bb95a079-5632-4e02-a563-64867d396825",
+        "name": "Select chunks needing embeddings",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "batchSize": 32,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          2944,
+          0
+        ],
+        "id": "497f609d-7002-4633-8c57-6e1e7667cb47",
+        "name": "Loop Over Items"
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\nreturn [{ json: {\n  ids:    items.map(i => i.json.id),\n  inputs: items.map(i => i.json.content),\n}}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3152,
+          208
+        ],
+        "id": "518d1590-2702-4e8a-844a-9f31104e320c",
+        "name": "Assemble embed input"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://ollama:11434/api/embed",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { \"model\": \"bge-m3\", \"input\": $json.inputs, \"keep_alive\": -1 } }}",
+          "options": {
+            "timeout": 120000
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          3360,
+          208
+        ],
+        "id": "0ea881d0-ada1-4828-9c91-55f9dfda2b4f",
+        "name": "Ollama embed",
+        "retryOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "const src = $('Assemble embed input').first().json;\nconst emb = $json.embeddings;\nif (!Array.isArray(emb) || emb.length !== src.ids.length)\n  throw new Error(`Embedding count ${emb?.length} != inputs ${src.ids.length}`);\nif (emb[0].length !== 1024)\n  throw new Error(`Expected 1024 dims, got ${emb[0].length} — schema mismatch`);\nreturn src.ids.map((id, i) => ({\n  json: { chunk_id: id, embedding: '[' + emb[i].join(',') + ']' },\n}));"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3568,
+          208
+        ],
+        "id": "6fb56c47-c382-4b21-9fcf-7a80c65e017f",
+        "name": "Zip ids + embeddings"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO kb.chunk_embeddings (chunk_id, model, embedding)\nVALUES ($1, 'bge-m3', $2::vector)\nON CONFLICT (chunk_id, model) DO UPDATE\n  SET embedding = EXCLUDED.embedding, created_at = now()\nRETURNING chunk_id, (xmax = 0) AS inserted;",
+          "options": {
+            "queryReplacement": "={{ [$json.chunk_id, $json.embedding] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          3776,
+          208
+        ],
+        "id": "1806e2ea-9b40-4b85-b150-d28d6a9d2e61",
+        "name": "Insert embeddings",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT * FROM kb.promote_version($1);",
+          "options": {
+            "queryReplacement": "={{ [$('Ensure KB doc + version').first().json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          3152,
+          -96
+        ],
+        "id": "305a5900-82d5-49ca-8809-74ed3cd40e41",
+        "name": "Promote version",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const r = $json;\nif (r.missing > 0) throw new Error(`${r.missing} of ${r.total} cards have no embedding — not promoted`);\nif (!r.is_current) throw new Error(`Version ${r.version_id} did not become current`);\nreturn [{ json: r }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3360,
+          -96
+        ],
+        "id": "f119e241-e52c-467d-80e7-af9b0f3f81ad",
+        "name": "Assert promoted"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO kb.ingest_log (version_id, stage, level, message, detail)\nVALUES ($1::bigint, 'parse', 'info',\n        format('loaded %s beer faults: %s descriptors, %s words of remedy text',\n               $2::jsonb->>'faults', $2::jsonb->>'descriptors', $2::jsonb->>'solution_words'),\n        jsonb_build_object('stats', $2::jsonb,\n                           'note','off-flavour -> remedy only; no causes inferred'))\nRETURNING id;",
+          "options": {
+            "queryReplacement": "={{ [$('Ensure KB doc + version').first().json.version_id, JSON.stringify($('Parse + validate faults').first().json.stats)] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          3568,
+          -96
+        ],
+        "id": "ad5ceedc-1364-4046-bd62-2a0aa1adc824",
+        "name": "Log run summary",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO ref.faults (name, descriptors, solutions)\nSELECT x.name,\n       ARRAY(SELECT jsonb_array_elements_text(x.descriptors)),\n       x.solutions\nFROM jsonb_to_recordset($1::jsonb) AS x(name text, descriptors jsonb, solutions text)\nON CONFLICT (name) DO UPDATE SET\n  descriptors = EXCLUDED.descriptors,\n  solutions   = EXCLUDED.solutions\nRETURNING id;",
+          "options": {
+            "queryReplacement": "={{ [JSON.stringify($('Parse + validate faults').first().json.rows)] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1300,
+          0
+        ],
+        "id": "7360b3e3-d653-423f-8f4a-8b184b74296d",
+        "name": "Upsert fault rows",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "-- One card per fault, generated FROM ref.faults so row and card cannot drift.\n-- ⛔ No cause line: the source has none (see the table comment).\nWITH parts AS (\n  SELECT f.name,\n         concat_ws(E'\\n',\n           format('%s — beer fault', f.name),\n           'Perceived as: ' || array_to_string(f.descriptors, ', '),\n           'Possible solutions: ' || f.solutions\n         ) AS body\n  FROM ref.faults f\n)\nINSERT INTO kb.chunks\n  (version_id, chunk_index, content, raw_content, heading_path,\n   page_from, page_to, token_count, content_sha256)\nSELECT $1::bigint,\n       (row_number() OVER (ORDER BY name) - 1)::int,\n       array_to_string(ARRAY['Beer Faults', name], ' > ') || E'\\n' || body,\n       body,\n       ARRAY['Beer Faults', name],\n       NULL::int, NULL::int, NULL::int,\n       encode(sha256(convert_to(body, 'UTF8')), 'hex')\nFROM parts\nON CONFLICT (version_id, chunk_index) DO UPDATE SET\n  content        = EXCLUDED.content,\n  raw_content    = EXCLUDED.raw_content,\n  heading_path   = EXCLUDED.heading_path,\n  content_sha256 = EXCLUDED.content_sha256;",
+          "options": {
+            "queryReplacement": "={{ [$('Ensure KB doc + version').first().json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1500,
+          0
+        ],
+        "id": "15afe4ca-0092-44e5-9704-832d2c99ec52",
+        "name": "Generate fault cards",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "When clicking ‘Execute workflow’": {
+        "main": [
+          [
+            {
+              "node": "Doc variant",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Crypto": {
+        "main": [
+          [
+            {
+              "node": "Read beer_faults.json for parsing",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract from File": {
+        "main": [
+          [
+            {
+              "node": "Parse + validate faults",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ensure KB doc + version": {
+        "main": [
+          [
+            {
+              "node": "Demote + clear old chunks",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loop Over Items": {
+        "main": [
+          [
+            {
+              "node": "Promote version",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Assemble embed input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assemble embed input": {
+        "main": [
+          [
+            {
+              "node": "Ollama embed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ollama embed": {
+        "main": [
+          [
+            {
+              "node": "Zip ids + embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Zip ids + embeddings": {
+        "main": [
+          [
+            {
+              "node": "Insert embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert embeddings": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Promote version": {
+        "main": [
+          [
+            {
+              "node": "Assert promoted",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assert promoted": {
+        "main": [
+          [
+            {
+              "node": "Log run summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Doc variant": {
+        "main": [
+          [
+            {
+              "node": "Read beer_faults.json",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Select chunks needing embeddings": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read beer_faults.json": {
+        "main": [
+          [
+            {
+              "node": "Crypto",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read beer_faults.json for parsing": {
+        "main": [
+          [
+            {
+              "node": "Extract from File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse + validate faults": {
+        "main": [
+          [
+            {
+              "node": "Upsert fault rows",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert fault rows": {
+        "main": [
+          [
+            {
+              "node": "Ensure KB doc + version",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Demote + clear old chunks": {
+        "main": [
+          [
+            {
+              "node": "Generate fault cards",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate fault cards": {
+        "main": [
+          [
+            {
+              "node": "Select chunks needing embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "nodeGroups": [],
+    "pinData": {},
+    "versionId": "7c94323d-fb81-4d3c-910c-3e49ee62fd0b",
+    "activeVersionId": null,
+    "versionCounter": 102,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-08-12T07:45:11.956Z",
+        "createdAt": "2026-08-12T07:45:11.956Z",
+        "role": "workflow:owner",
+        "workflowId": "Ejf3ESE3SK1XBqe3",
+        "projectId": "cIpOMqhSXz7mHAJj",
+        "project": {
+          "updatedAt": "2026-07-23T14:53:00.343Z",
+          "createdAt": "2026-07-23T14:06:58.898Z",
+          "id": "cIpOMqhSXz7mHAJj",
+          "name": "János Tóth <janos.toth.2000@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "392cafdf-bd25-4c0b-8d4a-e40c58c63156"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]
