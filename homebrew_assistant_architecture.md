@@ -459,6 +459,19 @@ pending/Stout-Style-Guide.pdf
 - **Embedding reuse:** `content_sha256` on chunks means re-ingesting a book where you fixed one typo re-embeds one chunk, not 3,000.
 - **Crash safety:** a half-built version has `is_current = false` and is invisible. Cleanup is `DELETE FROM kb.document_versions WHERE NOT is_current AND ingested_at < now() - interval '1 day' AND id NOT IN (SELECT ...)` — or just leave it.
 
+#### Schema changes: `db/init` is the mechanism, **not** Supabase migrations — added 2026-09-13
+
+The same idempotency rule applies one level up, to the schema itself. **`db/init/*.sql` is the only place schema changes are authored**, every file is written to be safely re-runnable, and `db-init` applies them on every stack start.
+
+⛔ **Do not use `apply_migration`.** The Supabase MCP server and the Supabase plugin's skills both assume a `supabase/migrations/` directory and a migration history table. This project has neither, and the mismatch fails silently in the worst possible direction: DDL applied that way lives only in the database volume, is absent from `db/init`, and disappears at the next `docker compose down -v` or on any fresh checkout — with nothing in git recording that it ever existed. `execute_sql` for reads and `get_advisors` for checks are the useful halves of that server; the migration half is not for this stack.
+
+⚠️ **Existing on disk is not enough.** `db-init` iterates a **hardcoded list** in `docker-compose.yml`, so adding `db/init/70_whatever.sql` without adding it to that list means it never applies and the next `db-init` run reports success. This has already come up twice — once per new schema file added since the rebuild (`15_ref.sql`, `60_obs.sql`). Two consequences:
+
+- adding a file is a **two-file change** — the `.sql` and the compose list — and they belong in the same commit;
+- before concluding an object is missing, **check the catalog**, not the directory listing. A file present on disk proves nothing about what was applied.
+
+The trade accepted here: no migration history, no `down` path, and re-running is a full re-apply rather than a delta. That is affordable because every file is idempotent and the corpus is reproducible from `shared/rag-files/` — and it is the same argument D33 made when the database was purged and rebuilt from `db/init` in an evening.
+
 ### 3.8 Image reference mapping — ⛔ NOT IMPLEMENTABLE AS WRITTEN
 
 > **Probed and decided 2026-08-01 (`plans/01-wf1-ingest-document.md` §3, Option A):
@@ -598,7 +611,7 @@ Seven workflows plus a family of tool sub-workflows. Every one is separately act
 | **Output** | `kb.document_versions` + `kb.chunks` + `kb.chunk_embeddings` rows |
 | **Services** | Docling Serve, Ollama (`bge-m3`), Supabase Postgres |
 | **Depends on** | `kb` schema |
-| **Tracked at** | `n8n/demo-data/workflows/wf1-howtobrew.json` — **edit the file, then import**; do not edit in the browser |
+| **Tracked at** | `n8n/demo-data/workflows/wf1-ingest-book.json` — ⚠️ **superseded by D39.** The original instruction here was *"edit the file, then import; do not edit in the browser"*; `measured` 2026-09-13, all 11 workflows were in fact authored in the UI. What holds is the part that was load-bearing: **export and commit after every change** (standing rule 4) |
 | **Build guide** | `plans/01a-wf1-build-guide.md` — node-by-node, with the full SQL |
 
 **Pattern:** Manual Trigger → Read/Write Files (hash pass) → Crypto (SHA-256) → Postgres (dedup lookup) → IF → Read/Write Files (**re-read — Crypto consumes the binary it hashes**) → HTTP Request (Docling `/v1/chunk/hybrid/file/async`) → Wait 15 s / poll loop with a 160-iteration guard → Code (assert finished) → HTTP Request (fetch result) → Code (clean + normalise) → Postgres (ensure doc + version, `is_current=false`) → Postgres (insert chunks, batched) → Postgres (embedding reuse by `content_sha256`) → Postgres (select chunks needing embeddings) → **Loop Over Items (batch 32)** → HTTP Request (Ollama `/api/embed`) → Code (zip ids + vectors, assert 1024 dims) → Postgres (insert vectors) → *(done)* Postgres `kb.promote_version($1)` → Code (assert promoted).
@@ -1280,6 +1293,25 @@ ALTER ROLE n8n_agent SET statement_timeout = '10s';
 **Layer 3: no SQL-shaped tool.** There is no `run_query` tool, no Postgres node with an AI-filled `query` field. The model chooses *which function* and *what arguments*; it never composes SQL. This is what architecture rule 3 means in practice, and it's the layer that actually matters — the other two are defence in depth.
 
 **Writes** (the learning layer) use a **separate credential** with `EXECUTE` on `mem.f_save_memory` only. Read tools physically cannot write; the write tool physically cannot read your batches.
+
+#### The standing check — added 2026-09-13
+
+Three layers were asserted for a year with no recurring verification. There are now two, and they are cheap enough to run every time the schema changes:
+
+| Layer | Check |
+|---|---|
+| 1 — role grants | `docker exec -e PGPASSWORD=… supabase-db psql -h 127.0.0.1 -U n8n_agent -d postgres -c 'SELECT * FROM brew.batches;'` → must be `ERROR: permission denied for schema brew`. ⚠️ Use `-h 127.0.0.1`; over the socket it fails on peer auth and looks like the same pass |
+| 2 — `SECURITY DEFINER` hygiene | `get_advisors(type: "security")` on the `supabase-local` MCP server, or the `pg_proc` query below |
+
+```sql
+SELECT n.nspname||'.'||p.proname, p.prosecdef, coalesce(array_to_string(p.proconfig,','),'(none)')
+FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname IN ('kb','ref','brew','mem','nlq','obs') ORDER BY 1;
+```
+
+✅ `measured` 2026-09-13: **all seven `SECURITY DEFINER` functions set `search_path`** — `nlq.search_knowledge`, `nlq.find_batches`, `mem.f_save_memory`, `obs.f_start_run`, `obs.f_log_step`, `obs.f_finish_run`, `obs.f_step_config`. The Layer 2 rule above has never been violated.
+
+⚠️ **Read the advisor's `function_search_path_mutable` warning with that distinction in hand.** It flags four functions — `kb.promote_version`, `brew.f_abv`, `brew.f_dry_hop_rate_g_per_l`, `obs.f_prompt_hash` — and **none of them is `SECURITY DEFINER`** (`prosecdef = false`), so none is the privilege-escalation hole this section warns about. They run with the caller's rights; a mutable `search_path` there is a correctness risk (an attacker-controlled schema earlier in the path could shadow an operator or table), not an escalation. Worth fixing — `ALTER FUNCTION … SET search_path = …` in the owning `db/init` file — but do not let the advisor's severity colour rewrite what Layer 2 says.
 
 ### 8.5 End-to-end trace
 
@@ -1988,6 +2020,11 @@ Re-embedding 40k chunks is hours. Changing dimension is a schema migration.
 Retrieval quality decays invisibly as the corpus grows — nothing errors, answers just get vaguer, and there's no alarm to notice it.
 → **Mitigate:** `mem.chat_turns.chunk_ids` plus a weekly eval run (§10.3) is the only real defence. Treat a slow decline in hit-rate@5 over successive eval runs as a signal to re-tune chunking or `rrf_k`, not noise.
 
+**R6 — `public.n8n_chat_histories` is a second, unguarded door into the app database.** *Likelihood: certain — it is the current state. Impact: medium.* **Added 2026-09-13, `measured`.**
+n8n's Postgres Chat Memory (D6) writes its blob to `public` in the **app** database. `measured`: **42 rows**, `relrowsecurity = false`, **0** policies, and `anon` holds the full DML set — `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`. `PGRST_DB_SCHEMAS=public,storage,graphql_public`, so PostgREST serves it through Kong on `:8000`, and a request carrying only the `ANON_KEY` returns real rows (`HTTP 200`, `session_id` and message content) with no authentication beyond a key that is by design public.
+**Why this is a risk and not a lint finding:** §8.4's three layers all guard the *agent's* path. This is a different path entirely — anything that can reach `:8000` reads and deletes conversation history without passing any of them. It is also a §3.1 placement question: chat memory is n8n's own state, and §12 #11 says n8n metadata does not live in the app database.
+→ **Mitigate:** the blast radius is exactly `public` — `measured`: `kb` is **not** exposed (`HTTP 404`), so the corpus and `brew` are unreachable this way. Cheapest fix first: `REVOKE ALL ON public.n8n_chat_histories FROM anon, authenticated`, which costs nothing because no client of this stack uses PostgREST. Then either enable RLS with a deny-all policy, or move the table out of `public` so it stops being served at all. Re-check with `get_advisors` (§8.4).
+
 ### 13.2 Open decisions — with my recommendation
 
 | # | Decision | Recommendation | Rationale | Decide by |
@@ -2006,6 +2043,7 @@ Retrieval quality decays invisibly as the corpus grows — nothing errors, answe
 | **D11** | Docling `table_mode` | **`accurate`** | Brewing books are table-dense; `fast` destroys the highest-value content | Phase 1 |
 | **D12** | Ingestion scheduling | **Nightly + chat-recency guard** | Prevents GPU contention with chat | Phase 1 |
 | **D25** | **Truth-side tool surface — shape, and how batch data gets in** | ⏸ **Open — deliberately deferred 2026-08-02.** No recommendation yet; this is a discussion, not a pending rubber-stamp | `nlq.find_batches` exists and works, but nothing populates `brew.batches` — no WF3, no UI, no entry path. A query tool over a table nobody can fill is not a feature. The schema in §3.3 has also never been exercised by real data. Deciding the tool shape before deciding the data-entry path would be deciding the wrong thing first | **Before Phase 3's truth-side work.** Phase 2 ships one tool and is not blocked |
+| ⭐ **D39** | **How workflows are written — there are now three paths, and the docs describe one** | **UI authors. Git is the source of truth. The MCP server reads, validates and makes surgical edits. The public REST API is not used.** ⛔ **No programmatic write until the `$input` probe is settled — on both paths** | `measured` 2026-09-13: all **11** workflows are `availableInMCP: true` and `canExecute: true`, with `workflow:update` and `workflow:delete` in scope — the whole instance is writable from here, which is new. The MCP path is preferred over REST for edits because it is the only one that can `validate_workflow` **before** writing, and because §5's *"edit the file, then import"* has never once been how a workflow was actually built — all 11 were authored in the UI, so that instruction has been dead prose for four books. What must not change is the **export-and-commit** step (standing rule 4): a write path that makes editing easy makes drift easier too, and n8n's database is still not a backup | **Before the first programmatic edit.** Nothing is blocked on it today |
 
 **Proposed Decisions-log entries** (commit these; D2/D3/D4 close three of your four open items — D5 closes the fourth):
 

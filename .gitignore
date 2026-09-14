@@ -37,6 +37,7 @@ n8n/demo-data/.imported
 # Tooling / local settings
 # =============================================================================
 .claude/settings.local.json
+.claude/worktrees/
 
 # Python
 __pycache__/
