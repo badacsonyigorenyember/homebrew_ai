@@ -50,6 +50,9 @@ NUMERIC = {"total_oils", "myrcene", "alpha", "humulene", "beta",
 # own split from where its own Origin label starts.
 SPLIT_COL_FALLBACK = 58
 
+# Ranges the source damaged beyond deterministic repair. Reported, never guessed.
+UNRESOLVED = []
+
 
 def clean(s):
     s = unicodedata.normalize("NFKC", s or "")
@@ -127,7 +130,13 @@ def parse_card(lines, split_at=None):
         pair = [(l, k) for l, k in SPEC_PAIRS if l in cells]
         if not pair:
             continue
-        for j in range(i + 1, min(i + 4, len(right))):   # value may sit 1-3 lines below
+        # ⛔ Stop at the NEXT label. A label whose value is blank in the source —
+        # Elixir has no Humulene and no Caryophyllene — would otherwise adopt the
+        # value belonging to the row below it, which is how Mistral acquired a
+        # humulene range of 9.5-1.8 from two different rows.
+        for j in range(i + 1, len(right)):
+            if any(lab in right[j] for lab in LABELS):
+                break
             if not right[j].strip():
                 continue
             lv, rv = two_cells(right[j])
@@ -186,6 +195,14 @@ def parse_card(lines, split_at=None):
            "hop_type": clean(spec.get("hop_type")) or None}
     for k in NUMERIC:
         lo, hi = parse_range(spec.get(k))
+        # ⛔ An inverted range means the source lost a decimal comma — Krush's
+        # total oils reads "05-3,0" where it should read "0,5-3,0". The plausible
+        # value is obvious to a brewer and is STILL not recorded: inferring it is
+        # the same move as inferring a fault's cause. NULL it and report it.
+        if lo is not None and hi is not None and lo > hi:
+            UNRESOLVED.append((clean(name) if (name := row.get("name")) else "?",
+                               f"{k}={spec.get(k)!r}"))
+            lo = hi = None
         row[f"{k}_min"], row[f"{k}_max"] = lo, hi
     for k in ("beer_types", "flavour", "alternatives"):
         v = clean(text.get(k))
@@ -235,6 +252,10 @@ def main():
     hops = extract(Path(a.txt).read_text())
     Path(a.out).write_text(json.dumps(hops, indent=1, ensure_ascii=False))
     filled = lambda k: sum(1 for h in hops if h.get(k) not in (None, [], ""))
+    if UNRESOLVED:
+        print(f"  ⛔ {len(UNRESOLVED)} range(s) inverted in the SOURCE — nulled, not guessed:")
+        for nm, d in UNRESOLVED:
+            print(f"       {nm}: {d}")
     print(f"  {len(hops)} hops -> {a.out}")
     for k in ("origin", "hop_type", "description", "alpha_min", "total_oils_min",
               "myrcene_min", "beer_types", "flavour", "alternatives"):
