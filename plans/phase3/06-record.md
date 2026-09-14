@@ -288,10 +288,49 @@ All 39 nodes across the four agent workflows had `notes: null` and all four work
 plan. `Build vector` is flagged as borderline and **left blank rather than padded**, per
 README §6's second half.
 
-### C5 — measured, not edited
+### C5 — ⭐ measured, and the measurement settled it
 
-Both `propose`-prompt issues are "measure, then decide". `obs.prompts` still holds 3 active rows
-and `obs.profiles` 4 profiles. ⛔ **No prompt edited on the way past.**
+Both `propose`-prompt issues were "measure, then decide". **The measurement was taken, and it
+says: change nothing.**
+
+Plan 06 C5.1 asked whether `ref.hops`'s 72 varieties now let the grounded path answer hop
+questions that used to fall to the suggestion path. `measured` 2026-09-14 from `obs.runs.spent`
+over the closeout runs:
+
+| run | `spent` |
+|---|---|
+| 32 | `{"grounded": 2, "suggested": 0}` |
+| 33 | `{"grounded": 5, "suggested": 0}` |
+| 35 | `{"grounded": 4, "suggested": 0}` |
+
+⭐ **`suggested` is 0 everywhere, and `grounded` dominates.** Before this plan it was
+`{"grounded": 0, "suggested": 1}`. ✅ **That is the corpus improving, exactly as C5.1 predicted,
+so the `propose` prompt needs no change** — and C5.2 falls with it. ⛔ **No prompt edited on
+the way past.** `obs.prompts` still holds 3 active rows and `obs.profiles` 4 profiles.
+
+⚠️ **Consequence for Step C2's `S03`, stated honestly: it did not do what it was added to do.**
+`S03` was written to provoke the labelled-suggestion path deliberately. It did not fire —
+because Sabro is in `ref.hops`, so the capability *grounds* it rather than suggesting. **The
+labelled-suggestion path is now hard to provoke at all**, which is the corpus being good rather
+than a defect. Anyone wanting to test that path needs an anchor that is *partially* covered —
+named in the corpus but with no pairing guidance — and the corpus may no longer contain one.
+
+### ⭐ The gates, final
+
+| Gate | Result |
+|---|---|
+| **Grounding eval** | ✅ **PASS 10 · WARN 3 · FAIL 0 · ERROR 0** of 13. ⭐ **All four `uncovered` cases refuse**, including on the *new* anchors — the coverage gate logs `reason: "anchor_not_in_corpus"` for Talus, Cryo Pop, kveik and Phantasm |
+| **Tier 2 end-to-end** | ✅ ⛔ **`cited_unbacked` = 0** — *"no fabricated citations found"* across 20 executions. The four refusals show `tool: yes, psg 0, cites []`: the tool ran, returned nothing, and the model cited nothing |
+| **Context budget** | ✅ 6 passages × 479 median ≈ **2,874** + a 7,308-char system prompt, against `numCtx` **12288** — comfortable |
+
+⚠️ **The 3 WARNs are pre-existing and not caused by this plan.** They are the `suggested` cases
+recording no `chunk_ids` on the chat turn, because the capability returns composed text rather
+than retrieval rows, so `obs.f_session_chunk_ids` has nothing to join. Noted, not fixed.
+
+⭐ **Refusal latency — the plan's "~10 s" claim holds, but only at the right layer.** `obs.runs`
+measures the capability at **12.0 s** (9.9–12.9). The eval measures the whole chat round-trip at
+**29.6–36.8 s**. Both are correct; they measure different things. ⛔ **Do not compare one to the
+other** — that is how the 1,397 s `failed` average got into the record in the first place.
 
 ### C6 — latency, and a correction to the plan's SQL
 
