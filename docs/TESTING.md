@@ -408,54 +408,67 @@ I am brewing an Irish stout. What water profile should I target,
 which yeast, and what off-flavour should I watch for?
 ```
 
-**Exact measured result, 2026-09-14 (after the multi-part prompt rule)** — it now searches
-with **short single-topic queries**. Two runs of the identical question, so you can see the
-variance for yourself:
+**Exact measured result, 2026-09-14.** The agent makes **one** tool call.
+`wf-step-retrieve-multi` splits the question and runs **one search per part**:
 
-| Run | What the assistant searched for | Hits |
+| # | What was searched | Hits |
 |---|---|---|
-| 1 | `Irish stout water profile` · `Irish stout yeast strain` | 8 · 8 |
-| 2 | `Irish stout water profile` | 8 |
+| 1 | `Irish stout water profile` | 8 |
+| 2 | `Irish stout yeast strain` | 8 |
+| 3 | `common beer faults and off-flavors` | 8 |
 
-Both answered water and yeast correctly. Neither searched for off-flavours — see observation
-2 below.
+⭐ **Those passages spanned 7 books** — `byo-stout-style-guide`, `beer-fault-list`,
+`yeast-practical-guide`, `how-to-brew-palmer`, `bjcp-2021-beer-styles`, `ba-2026-beer-styles`,
+`byo-pastry-stouts`.
 
-⭐ The water figures live in **one** chunk — `byo-stout-style-guide` p.44
-`IRISH STOUT > Step by Step`. A short query puts it at **rank 1**; the older combined query
-(`Irish Stout water profile yeast and common faults`) pushed it to **rank 8**, out of the
-results, and the whole question was then refused. That is why the prompt now forbids folding
-several topics into one query — see the cheat sheet row "Refuses a multi-part question".
+**The answer it produced** (abridged):
 
-**The answer run 2 produced:**
+> **Water Profile** — Calcium 70 ppm, Magnesium 10 ppm, Sodium 15 ppm, Sulfate 75 ppm,
+> Chloride 50 ppm **[S1]**
+> **Yeast Selection** — Wyeast 1084 (Irish Ale) or White Labs WLP004 (Irish Ale)
+> **[S7, S8, S9, S11]**
+> **Off-flavours to Watch For** — Vinegary **[S16]**, Vegetal **[S17]**, Sour/Acidic
+> **[S18]**, Estery **[S19]**, Grassy **[S20]**, Spicy (Phenolic) **[S21]**, Musty **[S22]**,
+> Solvent/Fusel **[S23]**
 
-> For an Irish stout, you should target the following water profile: Calcium - 70 ppm,
-> Magnesium - 10 ppm, Sodium - 15 ppm, Sulfate - 75 ppm, and Chloride 50 ppm **[S1]**.
-> Recommended yeast strains for this style include Wyeast 1084 (Irish Ale) or White Labs
-> WLP004 (Irish Ale) **[S7, S8]**.
+**Pass condition:** all three parts answered, each carrying its own `[S…]`, and the
+off-flavour citations resolving to **Beer Fault List** rather than to a stout recipe page.
 
-**Pass condition:** the water figures and a named yeast strain both appear, each carrying its
-own `[S…]` citation, and `books >= 2` from §3.1. `measured`: **4 books**.
+⭐ **Why the split is not left to the model.** The number of searches is decided in
+`wf-step-retrieve-multi`, from the **raw user message**, before the agent sees anything. That
+is deliberate: when the agent chose its own queries it folded all three parts into one
+(`Irish Stout water profile yeast and common faults`), which matched no chunk in the keyword
+arm and pushed the passage holding the water figures from rank 3 to rank 8 — out of the
+results — and the whole question was then refused.
 
-⚠️ **Three honest observations, so you know what "normal but imperfect" looks like:**
+### 3.3.1 Reading the searches when it goes wrong
 
-1. ⛔ **The turn records only the last search's book** — the §3.1 trap. Count from
-   `obs.retrievals`, never from `mem.chat_turns.chunk_ids`.
-2. ⛔ **The off-flavour part is the unreliable one, and it is an OPEN DEFECT.** Across two
-   runs on the same question the third part came back two different ways: once answered from
-   the model's own knowledge and **miscited to [S1]**, a passage that never mentions
-   diacetyl or acetaldehyde; once honestly declined with *"The library does not cover
-   specific off-flavours for Irish stout"* — which is **false**, `beer-fault-list` covers 21
-   faults. The model is not reliably issuing the third search. Neither shape is correct;
-   the refusal shape is the safer of the two.
-3. ⚠️ **Search count varies run to run** (1 or 2 observed for a 3-part question). The prompt
-   asks for one per part; compliance is not guaranteed. Asking the three parts as **three
-   separate questions** is still the reliable way to get all three answered from the
-   dedicated books.
+The per-part queries in `obs.retrievals` are the most informative thing in this document.
 
-⭐ **Watch for the miscitation shape specifically.** §2.3 will **not** catch it: it checks
-that cited chunks *exist*, and a miscited label points at a real chunk. The only way to see
-it is to read the cited passage — `select raw_content from kb.chunks where id = …` — and
-check it actually states the claim.
+| What you see | What it means |
+|---|---|
+| 3 searches for a 3-part question | ✅ Working as designed |
+| **1 search** for a clearly multi-part question | ⚠️ The decompose step failed and fell back to a single query. Harmless in itself — this is the designed degradation — but the answer will be shallower |
+| A fault query carrying a style name (`Irish stout off-flavours…`) | ⛔ Retrieval will return the **style guide**, not `beer-fault-list`, and the off-flavour part gets falsely refused. `measured`: the fault list is written style-agnostically, so anchoring a style to it is actively harmful |
+| An off-flavour claim citing a **recipe page** | ⛔ Miscitation — see the warning below |
+
+⛔ **`wf-step-retrieve-multi` must be `active`.** This n8n gates sub-workflow calls on it: if
+it is inactive, the tool returns the *string* `"Workflow is not active and cannot be
+executed."` to the model as its result, the model retries, and the run dies with
+`Max iterations (5) reached` — with no execution row for the sub-workflow and the real cause
+buried in the tool output. **`n8n import:workflow` deactivates it**, so re-activate after
+every import:
+
+```bash
+docker exec n8n n8n update:workflow --id=rTq4Mk9BzXw2LvHd --active=true
+docker restart n8n
+```
+
+⭐ **Watch for the miscitation shape.** §2.3 will **not** catch it: it checks that cited
+chunks *exist*, and a miscited label points at a real chunk. Before the per-part split
+existed, this question once produced off-flavours cited to `[S1]` — the p.44 water/steps
+passage, which mentions no fault at all. If a part's claims cite a passage from a different
+part's search, read the passage: `select raw_content from kb.chunks where id = …`.
 
 ### 3.4 Test case C — the two style guides disagreeing
 
@@ -471,6 +484,19 @@ with the two attributed separately rather than blended into one set of numbers.
 ⭐ This is the hardest retrieval case in the corpus, because the two sources cover the same
 subject in near-identical language. **Pass condition:** both guides appear and are named.
 If only one appears, retrieval is collapsing near-duplicate sources.
+
+**Exact measured result, 2026-09-14** — 51 s. The per-part split (§3.3) treats "what do X
+and Y say" as **two** topics and searches each guide on its own:
+
+| # | What was searched | Hits |
+|---|---|---|
+| 1 | `BJCP Irish Stout guidelines` | 8 |
+| 2 | `Brewers Association Irish Stout guidelines` | 8 |
+
+The answer came back under two headings — **BJCP 2021 (15B Irish Stout)** cited `[S1]` and
+**Brewers Association 2026 (Classic Irish-Style Dry Stout)** cited `[S13]` — with separate
+vital statistics for each (BJCP OG 1.036-1.044, IBU 25-45; BA OG 1.038-1.048, IBU 30-40).
+Giving each guide its own search is what stops the two collapsing into one set of numbers.
 
 ### 3.5 Test case D — a recipe, from the newest book
 
@@ -546,7 +572,8 @@ answered from `hop-variety-handbook`.
 | Bare `Ingredients` in a citation | Stout guide lost its recipe names | §3.5 |
 | Takes 5 minutes | Normal for a multi-part question | Check `status = running` (§2.1) |
 | Answer cites 2 books but the log says 1 | Known logging limit — only the last search is stored | Count from `obs.retrievals` (§3.1) |
-| Refuses a multi-part question it should know | It folded every part into one long query, and the passage holding the figures fell out of the top hits | §3.3 — ask the parts separately |
+| Refuses one part of a multi-part question | That part's search was never run, or ran with a style name attached to a fault query | §3.3.1 — read the per-part queries in `obs.retrievals` |
+| Multi-part question dies on `Max iterations (5) reached` | `wf-step-retrieve-multi` is inactive; the error reached the model as a tool *result* | §3.3.1 — re-activate and restart |
 | One part of a multi-part answer cites a passage that does not mention it | Miscitation — the third part was answered from memory. §2.3 does NOT catch this | §3.3 — read the cited chunk |
 | `Ollama returned no content` | Known model quirk | Re-ask (§2.6) |
 

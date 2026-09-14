@@ -155,8 +155,16 @@ steps; the four `ingest-*` launchers call `wf1-ingest-book`. The contract:
 - After a synchronous `executeWorkflow`, item pairing breaks: use
   `.first().json`, never `.item.json`. ⚠️ unverified here, but consistent with
   `cap-brainstorm-pairing` using `$input.first()` after every step call.
-- `active: false` does not prevent a workflow being called — it only disables its
-  own triggers. Handy for utility sub-workflows.
+- ⛔ `active: false` **does** prevent a workflow being called here. ❌ **false here** —
+  upstream says it only disables a workflow's own triggers, but this instance gates
+  `executeWorkflow` on it: a sub-workflow call to an inactive workflow returns
+  `"Workflow is not active and cannot be executed."` and never creates an execution row.
+  Called from an AI Agent tool it is worse than a plain failure — the tool hands that string
+  back to the model as its *result*, the model retries, and the run dies on
+  `Max iterations (5) reached` with the real cause buried in the tool output.
+  `measured` 2026-09-14 on `wf-step-retrieve-multi`. Every sub-workflow here is
+  `active: true`; keep it that way, and re-activate after every `import:workflow`
+  (the import deactivates it, exactly as it does for a top-level workflow).
 - MCP visibility is a *separate* per-workflow gate: `settings.availableInMCP`.
   Only `cap-brainstorm-pairing`(live), `chat-agent`, and `wf-step-retrieve` have
   it on; the other nine cannot be read or edited over MCP.

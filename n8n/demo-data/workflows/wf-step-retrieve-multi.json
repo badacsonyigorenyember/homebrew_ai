@@ -1,0 +1,237 @@
+{
+  "id": "rTq4Mk9BzXw2LvHd",
+  "name": "wf-step-retrieve-multi",
+  "description": "Splits a multi-part brewing question into one short single-topic search per part, runs wf-step-retrieve for each, and merges the passages. The number of searches is decided here, not by the agent.",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "question"
+            },
+            {
+              "name": "query"
+            },
+            {
+              "name": "top_k",
+              "type": "number"
+            },
+            {
+              "name": "session_id"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "54ddc4b7-8ff0-4505-a686-64afcb066d06",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inp = $input.first().json;\n\nconst question = String(inp.question ?? '').trim();\nconst query    = String(inp.query ?? '').trim();\n\n// `question` is the raw user message, wired straight from the chat trigger, so it\n// is the one input the model cannot shape. `query` is the agent's own\n// reformulation and is only ever a fallback — decomposing the agent's already\n// collapsed phrasing is what this workflow exists to stop relying on.\nconst subject = question || query;\nif (!subject) throw new Error('wf-step-retrieve-multi called with neither question nor query');\n\nconst payload = {\n  model: 'gemma4:12b',\n  messages: [{ role: 'user', content: \"You split a homebrewing question into the separate things it asks for.\\n\\nReturn one short search query per distinct topic, in the order they were asked. Each query must be four to six words, name its own topic, and stand alone without the others.\\n\\nRules:\\n- A question that asks for one thing returns exactly ONE query. Do not invent extra topics.\\n- Never return more than three.\\n- Repeat the beer style or ingredient name in queries about recipes, water, yeast or grain bills. Those live in style-specific passages.\\n- Off-flavours, faults and \\\"what should I watch for\\\" are their own topic, and are the ONE exception: do NOT attach a style name to them. Fault descriptions are written style-agnostically, so naming the style retrieves the style guide instead of the fault list. Use plain wording like \\\"common beer faults and off-flavors\\\".\\n- Do not answer the question. Return queries only.\\n\\nExample question: I am brewing an Irish stout. What water profile should I target, which yeast, and what off-flavour should I watch for?\\nExample queries: [\\\"Irish stout water profile\\\", \\\"Irish stout yeast strain\\\", \\\"common beer faults and off-flavors\\\"]\\n\\nExample question: What causes diacetyl and how do I get rid of it?\\nExample queries: [\\\"diacetyl cause and prevention\\\"]\\n\\nQuestion: \" + subject }],\n  // Splitting a question has one right answer; sampling only adds variance.\n  options: { temperature: 0, num_predict: 200 },\n  stream: false,\n  // `think: false` is load-bearing, not a tweak. gemma4 otherwise spends the\n  // whole budget in its `thinking` field and returns empty content — the §2.6\n  // quirk, reproduced here every time. `measured`: 1.0 s with it, 11.1 s without.\n  think: false,\n  // Structured output: the parse in `Plan parts` must not depend on the model\n  // deciding to emit clean JSON.\n  format: {\n    type: 'object',\n    properties: { queries: { type: 'array', items: { type: 'string' } } },\n    required: ['queries'],\n  },\n};\n\nreturn [{ json: { payload, subject } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "e476310e-b145-442a-a018-20d245d6a0ac",
+      "name": "Build decompose prompt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        440,
+        0
+      ],
+      "id": "dba9adca-30d0-4b78-830c-5d2a18d00afd",
+      "name": "Decompose question"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inp = $('When Executed by Another Workflow').first().json;\n\n// Ollama's /api/chat puts the structured answer in message.content as a string.\nlet parts = [];\ntry {\n  const parsed = JSON.parse($json.message?.content ?? '');\n  if (Array.isArray(parsed.queries)) parts = parsed.queries;\n} catch (e) {\n  // Deliberately swallowed: a malformed split must degrade to a single search,\n  // not fail the tool. The fallback below is the whole recovery path.\n}\n\nparts = parts.map(s => String(s ?? '').trim()).filter(Boolean).slice(0, 3);\n\nif (!parts.length) {\n  const fb = String(inp.query ?? inp.question ?? '').trim();\n  if (!fb) throw new Error('wf-step-retrieve-multi: decomposition empty and no fallback query');\n  parts = [fb];\n}\n\nconst k = Number(inp.top_k);\nconst top_k = Number.isFinite(k) && k > 0 ? Math.min(Math.round(k), 8) : 8;\nconst session_id = String(inp.session_id ?? '').trim();\n\n// One item per part. `Search part` runs once per item, so this is the fan-out:\n// the number of searches is fixed here, not left to the agent to comply with.\nreturn parts.map(q => ({ json: { query: q, top_k, mode: 'rows', session_id } }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "9b03c0a4-4580-4763-8d04-a5ec5a992db3",
+      "name": "Plan parts"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "cCt9O4NyNPyegHBq",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/cCt9O4NyNPyegHBq",
+          "cachedResultName": "wf-step-retrieve"
+        },
+        "mode": "each",
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "top_k": "={{ $json.top_k }}",
+            "query": "={{ $json.query }}",
+            "mode": "rows",
+            "session_id": "={{ $json.session_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "top_k",
+              "displayName": "top_k",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "mode",
+              "displayName": "mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        880,
+        0
+      ],
+      "id": "83113689-3992-4be2-bb71-eb947ced7ed8",
+      "name": "Search part"
+    },
+    {
+      "parameters": {
+        "jsCode": "const planned = $('Plan parts').all().map(i => i.json.query);\n\n// One input item per part, each carrying that part's rows. Deduped by chunk_id:\n// parts of one question overlap (an Irish stout recipe chunk answers both the\n// water and the yeast part), and the same passage listed twice under two labels\n// is what invites a miscitation.\nconst seen = new Set();\nconst rows = [];\nfor (const item of $input.all()) {\n  for (const r of (item.json.rows ?? [])) {\n    if (seen.has(r.chunk_id)) continue;\n    seen.add(r.chunk_id);\n    rows.push(r);\n  }\n}\n\nconst asked = planned.map(q => `\"${q}\"`).join(', ');\n\n// Text shape — for the model. ONE item, ONE key. Mirrors `Return rows` in\n// wf-step-retrieve; the agent must not be able to tell which tool it called.\nif (!rows.length) {\n  return [{ json: { response: `No passages in the library matched ${asked}.` } }];\n}\n\nconst body = rows.map((x, n) =>\n  `[S${n + 1}] ${x.doc_title} · ${x.heading}${x.page ? ` · p.${x.page}` : ''}\\n${x.text}`\n).join('\\n\\n');\n\n// Naming the searches back to the model is what lets it see that a part was\n// searched and genuinely not found, rather than silently skipping it.\nreturn [{ json: {\n  response: `${rows.length} passages from the library, searched as ${asked}:\\n\\n${body}`,\n}}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        0
+      ],
+      "id": "2a5f3fe0-721d-4aeb-9676-adcfd7480cd5",
+      "name": "Merge passages"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Build decompose prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build decompose prompt": {
+      "main": [
+        [
+          {
+            "node": "Decompose question",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decompose question": {
+      "main": [
+        [
+          {
+            "node": "Plan parts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan parts": {
+      "main": [
+        [
+          {
+            "node": "Search part",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search part": {
+      "main": [
+        [
+          {
+            "node": "Merge passages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "tags": []
+}

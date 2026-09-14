@@ -213,6 +213,15 @@ curl -s -o /dev/null -w '%{http_code} %{time_total}\n' --max-time 8 \
 # 200 after several seconds = registered and streaming.
 # 404 in ~0.00s          = NOT registered; restart n8n.
 ```
+- ⛔ **An inactive workflow cannot be called as a sub-workflow either.** The same gate that
+  blocks `n8n execute` also blocks `executeWorkflow`: the call returns the string
+  *"Workflow is not active and cannot be executed."* and creates **no execution row**. From an
+  AI Agent tool this is worse than a plain failure — that string is handed to the model as the
+  tool's *result*, the model retries, and the run dies on `Max iterations (5) reached` with the
+  real cause buried in the tool output. `measured` 2026-09-14 on `wf-step-retrieve-multi`.
+  Since `import:workflow` deactivates, **every sub-workflow import needs a re-activate plus
+  `docker restart n8n`**. The `n8n-workflows` skill previously carried upstream's opposite
+  claim; it is now tagged ❌ false here.
 - ⛔ **`n8n execute --id=…` cannot run the ingest launchers**: it fails with *"Workflow is not
   active and cannot be executed"* because this n8n gates `executeWorkflow` on a **published**
   version and `wf1-ingest-book` has none. Use MCP `execute_workflow` with
