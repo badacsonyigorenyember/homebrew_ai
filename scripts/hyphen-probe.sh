@@ -47,7 +47,7 @@ lines = sys.stdin.read().split("\n")
 sites = []
 for i in range(len(lines) - 1):
     left, right = lines[i].rstrip(), lines[i + 1].lstrip()
-    m = re.search(r"(\S*?[\d.,]+)-$", left)
+    m = re.search(r"(\S*?[\d.,]+)[-\u2010\u2011\u2012\u2013\u2014]$", left)  # incl. en/em dash + non-breaking hyphen (book 3 false negative)
     if not (m and re.match(r"[\d.]", right)):
         continue
     head = m.group(1)                      # "45", "1.006", "$20"
