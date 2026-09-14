@@ -36,10 +36,17 @@ def load_deployed_config():
     """Read model, options, system prompt and tool description out of the live n8n DB."""
     raw = subprocess.run(
         ["docker", "exec", N8N_DB_CONTAINER, "psql", "-U", "root", "-d", "n8n", "-tAc",
-         f"select nodes from workflow_entity where name='{WORKFLOW}';"],
+         f"select nodes from workflow_entity"
+         f" where name='{WORKFLOW}' and \"isArchived\" = false;"],
         capture_output=True, text=True, check=True).stdout.strip()
     if not raw:
         sys.exit(f"Workflow '{WORKFLOW}' not found in the n8n database.")
+    # Archiving a workflow leaves its row in place, so the filter above is not enough:
+    # two live workflows sharing a name return two JSON documents and json.loads dies
+    # with 'Extra data'. Name the fault instead.
+    if len(raw.splitlines()) > 1:
+        sys.exit(f"{len(raw.splitlines())} live workflows are named '{WORKFLOW}'. "
+                 "Delete the duplicates — archiving does not remove the row.")
     nodes = json.loads(raw)
 
     def find(suffix):
@@ -48,7 +55,17 @@ def load_deployed_config():
             sys.exit(f"No '{suffix}' node in '{WORKFLOW}'. Has it been renamed?")
         return hits[0]
 
-    agent, llm, tool = find(".agent"), find(".lmChatOllama"), find(".toolWorkflow")
+    agent, llm = find(".agent"), find(".lmChatOllama")
+
+    # Phase 2 could only ever measure one tool. Two are bound now, so declare
+    # both — a routing score taken against a single tool is not the score the
+    # deployed agent gets. The model-visible arguments are exactly those the
+    # node fills from $fromAI(); top_k, mode and session_id are set statically
+    # and the model never sees them.
+    tools = [n for n in nodes if n["type"].endswith("toolWorkflow")]
+    if not tools:
+        sys.exit(f"No '.toolWorkflow' node in '{WORKFLOW}'. Has it been renamed?")
+    tool = tools[0]
     opts = llm.get("parameters", {}).get("options", {})
     sysmsg = agent["parameters"]["options"].get("systemMessage", "")
     # The System Message is stored as an n8n expression; strip the leading '=' and
@@ -65,7 +82,22 @@ def load_deployed_config():
         # The tool name the model actually sees is the NODE name, sanitised.
         "tool_name": re.sub(r"[^A-Za-z0-9_-]", "_", tool["name"]),
         "tool_desc": tool["parameters"].get("description", ""),
+        "tools": [_declare(t) for t in tools],
     }
+
+
+def _declare(node):
+    """Build one OpenAI-style function declaration from a toolWorkflow node."""
+    vals = (node["parameters"].get("workflowInputs") or {}).get("value") or {}
+    props = {k: {"type": "string"} for k, v in vals.items()
+             if isinstance(v, str) and "$fromAI(" in v}
+    if not props:
+        props = {"query": {"type": "string"}}
+    return {"type": "function", "function": {
+        "name": re.sub(r"[^A-Za-z0-9_-]", "_", node["name"]),
+        "description": node["parameters"].get("description", ""),
+        "parameters": {"type": "object", "properties": props,
+                       "required": sorted(props)}}}
 
 
 def ask(cfg, question, temperature):
@@ -74,11 +106,7 @@ def ask(cfg, question, temperature):
         "options": {"temperature": temperature, "num_ctx": cfg["num_ctx"]},
         "messages": [{"role": "system", "content": cfg["system"]},
                      {"role": "user", "content": question}],
-        "tools": [{"type": "function", "function": {
-            "name": cfg["tool_name"], "description": cfg["tool_desc"],
-            "parameters": {"type": "object",
-                           "properties": {"query": {"type": "string"}},
-                           "required": ["query"]}}}],
+        "tools": cfg["tools"],
     }
     t0 = time.time()
     req = urllib.request.Request(OLLAMA, data=json.dumps(body).encode(),
@@ -89,6 +117,7 @@ def ask(cfg, question, temperature):
     tcs = msg.get("tool_calls") or []
     return {
         "called": bool(tcs),
+        "tool": tcs[0]["function"]["name"] if tcs else None,
         "args": tcs[0]["function"]["arguments"] if tcs else None,
         "content": msg.get("content") or "",
         "ms": int((time.time() - t0) * 1000),
@@ -99,6 +128,10 @@ REFUSAL = re.compile(r"don'?t have a tool|no record|do not have access|not in th
                      re.I)
 # An [S1] marker is only legitimate if a tool actually ran.
 CITATION = re.compile(r"\[S\d+\]")
+# Asking the user to narrow a one-word question is a legitimate no-tool response;
+# it is not the same as answering from memory.
+CLARIFY = re.compile(r"please specify|could you clarify|which .{0,30}\?|what specific",
+                     re.I)
 
 
 def score(case, res):
@@ -120,8 +153,19 @@ def score(case, res):
     if case.get("forbid") and re.search(case["forbid"], res["content"]):
         bad.append("leaked forbidden content")
 
+    # A missing tool call is not one failure mode but two, and they are not
+    # equally bad: refusing to answer is safe-but-unhelpful, while answering the
+    # brewing question anyway is an unsourced fabrication. The score cannot tell
+    # them apart — measured 2026-09-14, prompt v2 scored exactly what v3 scored
+    # while answering "mash pH?" with a bare "5.2-5.8" and no tool call. Report
+    # the distinction separately rather than folding it into the total.
+    if want is not False and not res["called"] and res["content"].strip():
+        if not REFUSAL.search(res["content"]) and not CLARIFY.search(res["content"]):
+            bad.append("ANSWERED FROM MEMORY")
+
     if res["called"]:
-        q = (res["args"] or {}).get("query")
+        a = res["args"] or {}
+        q = a.get("query") or a.get("question")
         if not isinstance(q, str) or not q.strip():
             bad.append("empty/missing query arg")
         elif len(q) > 200:
@@ -146,6 +190,7 @@ def main():
         keep = set(args.cats.split(","))
         cases = [c for c in cases if c["cat"] in keep]
 
+    print(f"tools={[t['function']['name'] for t in cfg['tools']]}")
     print(f"model={cfg['model']}  num_ctx={cfg['num_ctx']}  temp={temp}  "
           f"tool={cfg['tool_name']}  system_prompt={len(cfg['system'])} chars")
     if cfg["num_ctx"] > 32768:
@@ -162,7 +207,7 @@ def main():
             passes += ok
             reasons += why
             results.append({"id": c["id"], "cat": c["cat"], "ok": ok, "why": why,
-                            "called": r["called"], "args": r["args"],
+                            "called": r["called"], "tool": r["tool"], "args": r["args"],
                             "content": r["content"][:400], "ms": r["ms"]})
         rate = passes / args.reps
         cat_stats[c["cat"]][0] += passes
@@ -171,6 +216,13 @@ def main():
         uniq = sorted(set(reasons))
         print(f"  {c['id']:4} {c['cat']:12} {passes}/{args.reps} {flag:6} {c['q'][:44]:46}"
               + ("  <- " + "; ".join(uniq) if uniq else ""))
+
+    picks = defaultdict(int)
+    for r in results:
+        picks[r["tool"] or "(no tool)"] += 1
+    print("\n--- tool selection (the number two bound tools make measurable) ---")
+    for name, n in sorted(picks.items(), key=lambda kv: -kv[1]):
+        print(f"  {name:28} {n:3}/{len(results)}")
 
     print("\n--- by category ---")
     for cat, (p, t) in sorted(cat_stats.items()):
