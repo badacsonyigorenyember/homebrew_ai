@@ -1,0 +1,632 @@
+[
+  {
+    "updatedAt": "2026-08-12T08:44:48.323Z",
+    "createdAt": "2026-08-12T07:45:11.956Z",
+    "id": "ingestStudyGuide1",
+    "name": "ingest-study-guide",
+    "description": "Book 5 path 2b: the BJCP Beer Style Study Guide scoped to option B — only History and Techniques passages reach kb.chunks. Every other labelled field restates an already-populated ref.styles column and is dropped (plan 05 §2b).",
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "209095bb-12dd-45b8-a9ef-a14a286f8cf9",
+        "name": "When clicking ‘Execute workflow’"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "cd37dcc3-8fe4-4473-a42c-4b106252be33",
+                "name": "slug",
+                "value": "bjcp-style-study-guide",
+                "type": "string"
+              },
+              {
+                "id": "16f28fb5-8c3b-4461-af77-569861a659c9",
+                "name": "title",
+                "value": "BJCP Beer Style Study Guide",
+                "type": "string"
+              },
+              {
+                "id": "0baa9cf7-3add-40bd-9f6c-ab7847872a63",
+                "name": "doc_type",
+                "value": "style_guide",
+                "type": "string"
+              },
+              {
+                "id": "f48086eb-0402-4b73-8742-207b7c8bf798",
+                "name": "authority",
+                "value": "guideline",
+                "type": "string"
+              },
+              {
+                "id": "3d35eba1-7aa0-4f65-923b-6d99b0fe33f4",
+                "name": "language",
+                "value": "en",
+                "type": "string"
+              },
+              {
+                "id": "0241d82a-8972-4b06-8217-bf80ee7ea7dc",
+                "name": "file_path",
+                "value": "/data/shared/rag-files/pending/sg_passages.json",
+                "type": "string"
+              },
+              {
+                "id": "ba-expected-count",
+                "name": "expected_count",
+                "value": 82,
+                "type": "number"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          208,
+          0
+        ],
+        "id": "07dfdecc-8cc6-429d-89c0-d0012354d8d1",
+        "name": "Doc variant"
+      },
+      {
+        "parameters": {
+          "fileSelector": "={{ $('Doc variant').first().json.file_path }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.readWriteFile",
+        "typeVersion": 1.1,
+        "position": [
+          416,
+          0
+        ],
+        "id": "cb7c9d21-52be-4a41-a8f9-842673520c89",
+        "name": "Read sg_passages.json"
+      },
+      {
+        "parameters": {
+          "binaryData": true,
+          "dataPropertyName": "file_sha256"
+        },
+        "type": "n8n-nodes-base.crypto",
+        "typeVersion": 2,
+        "position": [
+          624,
+          0
+        ],
+        "id": "c3ed2ca7-a74f-420d-bb28-9529c4993fb3",
+        "name": "Crypto"
+      },
+      {
+        "parameters": {
+          "fileSelector": "={{ $('Doc variant').first().json.file_path }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.readWriteFile",
+        "typeVersion": 1.1,
+        "position": [
+          864,
+          0
+        ],
+        "id": "0e05bc36-aad2-472f-b984-d4ec42fa051b",
+        "name": "Read sg_passages.json for parsing"
+      },
+      {
+        "parameters": {
+          "operation": "fromJson",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.extractFromFile",
+        "typeVersion": 1.1,
+        "position": [
+          1072,
+          0
+        ],
+        "id": "91201bb2-46f7-412b-9c00-7915be0a27c3",
+        "name": "Extract from File"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Option B's drop list is the whole point of this ingest, so it is ASSERTED here\n// rather than trusted from the extractor. A passage that still carries a dropped\n// field's label means the field filter leaked and the run must not continue —\n// that is how the Study Guide would quietly re-import the ~365 vital-stat sites\n// and the Commercial Examples that plan 05 §2b excluded.\nconst raw = $input.first().json.data ?? $input.first().json;\nconst passages = typeof raw === 'string' ? JSON.parse(raw) : raw;\nif (!Array.isArray(passages) || !passages.length) throw new Error('No passages parsed');\n\nconst EXPECTED = Number($('Doc variant').first().json.expected_count);\nif (passages.length !== EXPECTED)\n  throw new Error(`Expected ${EXPECTED} passages, got ${passages.length} — re-probe before ingesting`);\n\nconst ALLOWED = new Set(['History', 'Techniques']);\nconst BANNED = /Commercial\\s+Examples:|Ingredients:|Overall\\s+Impression:|Vital\\s+Statistics:/;\n\nconst rows = passages.map((p, i) => {\n  if (!ALLOWED.has(p.field))\n    throw new Error(`Passage ${i} has field \"${p.field}\" — only History and Techniques are in scope`);\n  const text = String(p.text ?? '').trim();\n  if (text.split(/\\s+/).length < 8) throw new Error(`Passage ${i} (${p.name}) is a stub`);\n  if (BANNED.test(text))\n    throw new Error(`Passage ${i} (${p.name}/${p.field}) contains a DROPPED field label — the filter leaked`);\n  const style = `${p.code} ${p.name}`.trim();\n  return { ord: i, style, field: p.field, text };\n});\n\nconst byField = {};\nfor (const r of rows) byField[r.field] = (byField[r.field] ?? 0) + 1;\nconst words = rows.reduce((n, r) => n + r.text.split(/\\s+/).length, 0);\n\nreturn [{ json: { rows, stats: {\n  passages: rows.length, history: byField.History ?? 0,\n  techniques: byField.Techniques ?? 0, words,\n  styles: new Set(rows.map(r => r.style)).size } } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1280,
+          0
+        ],
+        "id": "73d477c9-be47-49f6-8967-f61be705b565",
+        "name": "Parse + validate passages"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH d AS (\n  INSERT INTO kb.documents (slug, title, doc_type, language, authority)\n  VALUES ($2, $3, $4, $5, $6)\n  ON CONFLICT (slug) DO UPDATE SET\n    title = EXCLUDED.title, doc_type = EXCLUDED.doc_type,\n    language = EXCLUDED.language, authority = EXCLUDED.authority\n  RETURNING id\n)\nINSERT INTO kb.document_versions\n  (document_id, version, source_filename, file_sha256, chunker_config, is_current)\nSELECT d.id,\n       COALESCE((SELECT max(v.version) FROM kb.document_versions v\n                 WHERE v.document_id = d.id), 0) + 1,\n       'sg_passages.json', $1,\n       jsonb_build_object('source','structured','generator','sg-passage',\n                          'extractor','scripts/ingest/sg_extract.py',\n                          'scope','option B: History + Techniques only',\n                          'dropped', jsonb_build_array('Overall Impression','Comments',\n                                       'Ingredients','Commercial Examples','sensory tables')),\n       false\nFROM d\nON CONFLICT (file_sha256) DO UPDATE\n  SET chunker_config = EXCLUDED.chunker_config\nRETURNING id AS version_id;",
+          "options": {
+            "queryReplacement": "={{ [$('Crypto').first().json.sha256, $('Doc variant').first().json.slug, $('Doc variant').first().json.title, $('Doc variant').first().json.doc_type, $('Doc variant').first().json.language, $('Doc variant').first().json.authority] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2112,
+          0
+        ],
+        "id": "3c1d67ee-3bf8-4d3b-a600-0d792534ef3d",
+        "name": "Ensure KB doc + version",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH demoted AS (\n  UPDATE kb.document_versions SET is_current = false\n  WHERE id = $1 RETURNING id\n)\nDELETE FROM kb.chunks\nWHERE version_id = (SELECT id FROM demoted)\nRETURNING chunk_index;",
+          "options": {
+            "queryReplacement": "={{ [$json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2320,
+          0
+        ],
+        "id": "8725d29c-5b7a-4a87-95b9-30b11e4f38d7",
+        "name": "Demote + clear old chunks",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT c.id, c.content\nFROM kb.chunks c\nWHERE c.version_id = $1\n  AND NOT EXISTS (SELECT 1 FROM kb.chunk_embeddings e\n                  WHERE e.chunk_id = c.id AND e.model = 'bge-m3')\nORDER BY c.chunk_index;",
+          "options": {
+            "queryReplacement": "={{ [$('Ensure KB doc + version').first().json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2736,
+          0
+        ],
+        "id": "da22b96c-a426-4460-a913-a059180b2fa7",
+        "name": "Select chunks needing embeddings",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "batchSize": 32,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          2944,
+          0
+        ],
+        "id": "89a9309e-852e-479a-a972-6205c1926e95",
+        "name": "Loop Over Items"
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\nreturn [{ json: {\n  ids:    items.map(i => i.json.id),\n  inputs: items.map(i => i.json.content),\n}}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3152,
+          208
+        ],
+        "id": "9e0b77a8-dce7-4417-9ef9-56599074d255",
+        "name": "Assemble embed input"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://ollama:11434/api/embed",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { \"model\": \"bge-m3\", \"input\": $json.inputs, \"keep_alive\": -1 } }}",
+          "options": {
+            "timeout": 120000
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          3360,
+          208
+        ],
+        "id": "92dfe742-7d17-44cc-a184-bb7419b95804",
+        "name": "Ollama embed",
+        "retryOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "const src = $('Assemble embed input').first().json;\nconst emb = $json.embeddings;\nif (!Array.isArray(emb) || emb.length !== src.ids.length)\n  throw new Error(`Embedding count ${emb?.length} != inputs ${src.ids.length}`);\nif (emb[0].length !== 1024)\n  throw new Error(`Expected 1024 dims, got ${emb[0].length} — schema mismatch`);\nreturn src.ids.map((id, i) => ({\n  json: { chunk_id: id, embedding: '[' + emb[i].join(',') + ']' },\n}));"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3568,
+          208
+        ],
+        "id": "1758e05d-83a6-4112-9486-e00431a867d9",
+        "name": "Zip ids + embeddings"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO kb.chunk_embeddings (chunk_id, model, embedding)\nVALUES ($1, 'bge-m3', $2::vector)\nON CONFLICT (chunk_id, model) DO UPDATE\n  SET embedding = EXCLUDED.embedding, created_at = now()\nRETURNING chunk_id, (xmax = 0) AS inserted;",
+          "options": {
+            "queryReplacement": "={{ [$json.chunk_id, $json.embedding] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          3776,
+          208
+        ],
+        "id": "a84861cb-a7e0-492a-b220-9cf426969eb5",
+        "name": "Insert embeddings",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT * FROM kb.promote_version($1);",
+          "options": {
+            "queryReplacement": "={{ [$('Ensure KB doc + version').first().json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          3152,
+          -96
+        ],
+        "id": "650522da-a0d0-4e20-baf5-0b4098afc4e9",
+        "name": "Promote version",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const r = $json;\nif (r.missing > 0) throw new Error(`${r.missing} of ${r.total} cards have no embedding — not promoted`);\nif (!r.is_current) throw new Error(`Version ${r.version_id} did not become current`);\nreturn [{ json: r }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3360,
+          -96
+        ],
+        "id": "313f322c-1977-489d-a897-4bc5957ffc07",
+        "name": "Assert promoted"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO kb.ingest_log (version_id, stage, level, message, detail)\nVALUES\n  ($1::bigint, 'parse',\n   CASE WHEN ($2::jsonb->>'warnings')::int > 0 THEN 'warn' ELSE 'info' END,\n   format('parsed %s styles for variant %s: %s with vitals, %s without, %s entry instructions, %s notes folded',\n          $2::jsonb->>'styles', $3::text, $2::jsonb->>'with_vitals',\n          $2::jsonb->>'without_vitals', $2::jsonb->>'with_entry',\n          $2::jsonb->>'folded_fields'),\n   jsonb_build_object('stats', $2::jsonb, 'variant', $3::text,\n                      'notes', $4::jsonb)),\n  ($1::bigint, 'promote',\n   CASE WHEN ($5::jsonb->>'missing')::int > 0 THEN 'error' ELSE 'info' END,\n   format('version %s promoted: %s cards, %s missing embeddings',\n          $5::jsonb->>'version_id', $5::jsonb->>'total', $5::jsonb->>'missing'),\n   $5::jsonb)\nRETURNING id, stage, level, message;",
+          "options": {
+            "queryReplacement": "={{ [ $('Ensure KB doc + version').first().json.version_id, JSON.stringify($('Parse + validate styles').first().json.stats), $('Card variant').first().json.variant, JSON.stringify($('Parse + validate styles').first().json.notes), JSON.stringify($json) ] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          3568,
+          -96
+        ],
+        "id": "48ad02b3-c030-4833-a9bb-6cdca6591fdc",
+        "name": "Log run summary",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO kb.chunks\n  (version_id, chunk_index, content, raw_content, heading_path,\n   page_from, page_to, token_count, content_sha256)\nSELECT $1::bigint,\n       x.ord::int,\n       array_to_string(ARRAY['BJCP Study Guide', x.style, x.field], ' > ') || E'\\n' || x.text,\n       x.text,\n       ARRAY['BJCP Study Guide', x.style, x.field],\n       NULL::int, NULL::int, NULL::int,\n       encode(sha256(convert_to(x.text, 'UTF8')), 'hex')\nFROM jsonb_to_recordset($2::jsonb) AS x(ord int, style text, field text, text text)\nON CONFLICT (version_id, chunk_index) DO UPDATE SET\n  content        = EXCLUDED.content,\n  raw_content    = EXCLUDED.raw_content,\n  heading_path   = EXCLUDED.heading_path,\n  content_sha256 = EXCLUDED.content_sha256;",
+          "options": {
+            "queryReplacement": "={{ [$('Ensure KB doc + version').first().json.version_id, JSON.stringify($('Parse + validate passages').first().json.rows)] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1500,
+          0
+        ],
+        "id": "e2f730a7-7745-4d8f-9b87-9a450e762066",
+        "name": "Insert passages",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "When clicking ‘Execute workflow’": {
+        "main": [
+          [
+            {
+              "node": "Doc variant",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Crypto": {
+        "main": [
+          [
+            {
+              "node": "Read sg_passages.json for parsing",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract from File": {
+        "main": [
+          [
+            {
+              "node": "Parse + validate passages",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ensure KB doc + version": {
+        "main": [
+          [
+            {
+              "node": "Demote + clear old chunks",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loop Over Items": {
+        "main": [
+          [
+            {
+              "node": "Promote version",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Assemble embed input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assemble embed input": {
+        "main": [
+          [
+            {
+              "node": "Ollama embed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ollama embed": {
+        "main": [
+          [
+            {
+              "node": "Zip ids + embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Zip ids + embeddings": {
+        "main": [
+          [
+            {
+              "node": "Insert embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert embeddings": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Promote version": {
+        "main": [
+          [
+            {
+              "node": "Assert promoted",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assert promoted": {
+        "main": [
+          [
+            {
+              "node": "Log run summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Doc variant": {
+        "main": [
+          [
+            {
+              "node": "Read sg_passages.json",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read sg_passages.json": {
+        "main": [
+          [
+            {
+              "node": "Crypto",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read sg_passages.json for parsing": {
+        "main": [
+          [
+            {
+              "node": "Extract from File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse + validate passages": {
+        "main": [
+          [
+            {
+              "node": "Ensure KB doc + version",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Demote + clear old chunks": {
+        "main": [
+          [
+            {
+              "node": "Insert passages",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert passages": {
+        "main": [
+          [
+            {
+              "node": "Select chunks needing embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Select chunks needing embeddings": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "nodeGroups": [],
+    "pinData": {},
+    "versionId": "7c94323d-fb81-4d3c-910c-3e49ee62fd0b",
+    "activeVersionId": null,
+    "versionCounter": 102,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-08-12T07:45:11.956Z",
+        "createdAt": "2026-08-12T07:45:11.956Z",
+        "role": "workflow:owner",
+        "workflowId": "Ejf3ESE3SK1XBqe3",
+        "projectId": "cIpOMqhSXz7mHAJj",
+        "project": {
+          "updatedAt": "2026-07-23T14:53:00.343Z",
+          "createdAt": "2026-07-23T14:06:58.898Z",
+          "id": "cIpOMqhSXz7mHAJj",
+          "name": "János Tóth <janos.toth.2000@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "392cafdf-bd25-4c0b-8d4a-e40c58c63156"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]
