@@ -159,7 +159,7 @@ def score(case, res):
     # them apart — measured 2026-09-14, prompt v2 scored exactly what v3 scored
     # while answering "mash pH?" with a bare "5.2-5.8" and no tool call. Report
     # the distinction separately rather than folding it into the total.
-    if want is not False and not res["called"] and res["content"].strip():
+    if want is True and not res["called"] and res["content"].strip():
         if not REFUSAL.search(res["content"]) and not CLARIFY.search(res["content"]):
             bad.append("ANSWERED FROM MEMORY")
 
