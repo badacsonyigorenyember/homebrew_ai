@@ -263,6 +263,26 @@ docker exec supabase-db psql -U supabase_admin -d postgres -c \
 ⭐ **A refusal takes ~12 seconds; a real answer takes 30–200 s.** A fast "no" is the system
 working correctly and cheaply, not giving up.
 
+⛔ **This check only works for `brainstorm_pairing` refusals.** `obs.runs` is written by the
+pairing capability alone — `measured` 2026-09-14, every row in it is `capability =
+brainstorm.pairing` (session_id hardcoded to `cap`) or a `smoke` test. A **library** question
+that gets refused — "the library does not cover X" from `search_brewing_knowledge` — leaves
+**no `obs.runs` row at all**. That absence is expected and is not a second fault.
+
+To verify a library-question refusal, use `obs.retrievals` (§2.2) and `mem.chat_turns`
+instead:
+
+```bash
+SID='my-test-1'
+docker exec supabase-db psql -U supabase_admin -d postgres -c "
+select r.id, left(r.query,55) query, array_length(r.chunk_ids,1) hits
+from obs.retrievals r where r.session_id = '$SID' order by r.id;"
+```
+
+`hits = 6` with a refusal in the answer means it searched and the passages genuinely did not
+contain the answer — **or** that the query it chose was too broad to retrieve them. §3.3
+covers how to tell those apart.
+
 ⚠️ **Refusals are only correct for things genuinely absent.** These four are verified absent
 and should always be refused: **Talus · Cryo Pop · kveik · Phantasm**.
 These are *present* and must **not** be refused: **Nelson Sauvin · Sabro · Citra · Cascade**.
@@ -388,37 +408,54 @@ I am brewing an Irish stout. What water profile should I target,
 which yeast, and what off-flavour should I watch for?
 ```
 
-**Exact measured result, 2026-09-14** — 62 s, and it ran **two** searches of its own devising:
+**Exact measured result, 2026-09-14 (after the multi-part prompt rule)** — it now searches
+with **short single-topic queries**. Two runs of the identical question, so you can see the
+variance for yourself:
 
-| # | What the assistant searched for | Hits |
+| Run | What the assistant searched for | Hits |
 |---|---|---|
-| 1 | `Irish stout water profile and yeast selection` | 6 |
-| 2 | `common beer faults and off-flavors` | 6 |
+| 1 | `Irish stout water profile` · `Irish stout yeast strain` | 8 · 8 |
+| 2 | `Irish stout water profile` | 8 |
 
-⭐ **Those 12 chunks spanned 5 books**: `byo-stout-style-guide`, `beer-fault-list`,
-`how-to-brew-palmer`, `bjcp-2021-beer-styles`, `ba-2026-beer-styles`.
+Both answered water and yeast correctly. Neither searched for off-flavours — see observation
+2 below.
 
-**The answer it produced:**
+⭐ The water figures live in **one** chunk — `byo-stout-style-guide` p.44
+`IRISH STOUT > Step by Step`. A short query puts it at **rank 1**; the older combined query
+(`Irish Stout water profile yeast and common faults`) pushed it to **rank 8**, out of the
+results, and the whole question was then refused. That is why the prompt now forbids folding
+several topics into one query — see the cheat sheet row "Refuses a multi-part question".
 
-> For an Irish stout, target a water profile of Calcium 70 ppm, Magnesium 10 ppm,
-> Sodium 15 ppm, Sulfate 75 ppm, and Chloride 50 ppm **[S3]**. Recommended yeast strains
-> include Wyeast 1084 (Irish Ale) or White Labs WLP004 (Irish Ale) **[S4]**. Potential
-> off-flavors to watch for include Vinegary, Vegetal, Sour/Acidic, Estery, Grassy, and
-> Spicy (Phenolic) **[S1-S6]**.
+**The answer run 2 produced:**
 
-**Pass condition:** all three parts answered, each carrying its own `[S…]` citation, and
-`books >= 2` from §3.1.
+> For an Irish stout, you should target the following water profile: Calcium - 70 ppm,
+> Magnesium - 10 ppm, Sodium - 15 ppm, Sulfate - 75 ppm, and Chloride 50 ppm **[S1]**.
+> Recommended yeast strains for this style include Wyeast 1084 (Irish Ale) or White Labs
+> WLP004 (Irish Ale) **[S7, S8]**.
 
-⚠️ **Two honest observations from this run**, so you know what "normal but imperfect" looks
-like:
+**Pass condition:** the water figures and a named yeast strain both appear, each carrying its
+own `[S…]` citation, and `books >= 2` from §3.1. `measured`: **4 books**.
 
-1. ⛔ **The turn recorded only 1 book** (`beer-fault-list`) even though 5 were searched —
-   the §3.1 trap, seen live. The answer is better than its own log suggests.
-2. ⚠️ **It split the work into 2 searches, not 3** — water and yeast were combined into one
-   query. The water and yeast answers both came from the *stout guide* rather than from
-   *Water* and *Yeast*, the dedicated volumes. The answer is correct and cited, but it is
-   shallower than the library could support. Asking the three parts as **three separate
-   questions** gets deeper answers from the dedicated books.
+⚠️ **Three honest observations, so you know what "normal but imperfect" looks like:**
+
+1. ⛔ **The turn records only the last search's book** — the §3.1 trap. Count from
+   `obs.retrievals`, never from `mem.chat_turns.chunk_ids`.
+2. ⛔ **The off-flavour part is the unreliable one, and it is an OPEN DEFECT.** Across two
+   runs on the same question the third part came back two different ways: once answered from
+   the model's own knowledge and **miscited to [S1]**, a passage that never mentions
+   diacetyl or acetaldehyde; once honestly declined with *"The library does not cover
+   specific off-flavours for Irish stout"* — which is **false**, `beer-fault-list` covers 21
+   faults. The model is not reliably issuing the third search. Neither shape is correct;
+   the refusal shape is the safer of the two.
+3. ⚠️ **Search count varies run to run** (1 or 2 observed for a 3-part question). The prompt
+   asks for one per part; compliance is not guaranteed. Asking the three parts as **three
+   separate questions** is still the reliable way to get all three answered from the
+   dedicated books.
+
+⭐ **Watch for the miscitation shape specifically.** §2.3 will **not** catch it: it checks
+that cited chunks *exist*, and a miscited label points at a real chunk. The only way to see
+it is to read the cited passage — `select raw_content from kb.chunks where id = …` — and
+check it actually states the claim.
 
 ### 3.4 Test case C — the two style guides disagreeing
 
@@ -509,6 +546,8 @@ answered from `hop-variety-handbook`.
 | Bare `Ingredients` in a citation | Stout guide lost its recipe names | §3.5 |
 | Takes 5 minutes | Normal for a multi-part question | Check `status = running` (§2.1) |
 | Answer cites 2 books but the log says 1 | Known logging limit — only the last search is stored | Count from `obs.retrievals` (§3.1) |
+| Refuses a multi-part question it should know | It folded every part into one long query, and the passage holding the figures fell out of the top hits | §3.3 — ask the parts separately |
+| One part of a multi-part answer cites a passage that does not mention it | Miscitation — the third part was answered from memory. §2.3 does NOT catch this | §3.3 — read the cited chunk |
 | `Ollama returned no content` | Known model quirk | Re-ask (§2.6) |
 
 ### The four-command health sweep
