@@ -152,7 +152,7 @@
           "operation": "executeQuery",
           "query": "WITH d AS (\n  INSERT INTO kb.documents (slug, title, doc_type, language, authority)\n  VALUES ($2, $3, $4, $5, $6)\n  ON CONFLICT (slug) DO UPDATE SET\n    title = EXCLUDED.title, doc_type = EXCLUDED.doc_type,\n    language = EXCLUDED.language, authority = EXCLUDED.authority\n  RETURNING id\n)\nINSERT INTO kb.document_versions\n  (document_id, version, source_filename, file_sha256, chunker_config, is_current)\nSELECT d.id,\n       COALESCE((SELECT max(v.version) FROM kb.document_versions v\n                 WHERE v.document_id = d.id), 0) + 1,\n       'sg_passages.json', $1,\n       jsonb_build_object('source','structured','generator','sg-passage',\n                          'extractor','scripts/ingest/sg_extract.py',\n                          'scope','option B: History + Techniques only',\n                          'dropped', jsonb_build_array('Overall Impression','Comments',\n                                       'Ingredients','Commercial Examples','sensory tables')),\n       false\nFROM d\nON CONFLICT (file_sha256) DO UPDATE\n  SET chunker_config = EXCLUDED.chunker_config\nRETURNING id AS version_id;",
           "options": {
-            "queryReplacement": "={{ [$('Crypto').first().json.sha256, $('Doc variant').first().json.slug, $('Doc variant').first().json.title, $('Doc variant').first().json.doc_type, $('Doc variant').first().json.language, $('Doc variant').first().json.authority] }}"
+            "queryReplacement": "={{ (() => { const p = $('Doc variant').first().json; return [ $('Crypto').first().json.file_sha256, p.slug, p.title, p.doc_type, p.language, p.authority]; })() }}"
           }
         },
         "type": "n8n-nodes-base.postgres",
@@ -339,9 +339,9 @@
       {
         "parameters": {
           "operation": "executeQuery",
-          "query": "INSERT INTO kb.ingest_log (version_id, stage, level, message, detail)\nVALUES\n  ($1::bigint, 'parse',\n   CASE WHEN ($2::jsonb->>'warnings')::int > 0 THEN 'warn' ELSE 'info' END,\n   format('parsed %s styles for variant %s: %s with vitals, %s without, %s entry instructions, %s notes folded',\n          $2::jsonb->>'styles', $3::text, $2::jsonb->>'with_vitals',\n          $2::jsonb->>'without_vitals', $2::jsonb->>'with_entry',\n          $2::jsonb->>'folded_fields'),\n   jsonb_build_object('stats', $2::jsonb, 'variant', $3::text,\n                      'notes', $4::jsonb)),\n  ($1::bigint, 'promote',\n   CASE WHEN ($5::jsonb->>'missing')::int > 0 THEN 'error' ELSE 'info' END,\n   format('version %s promoted: %s cards, %s missing embeddings',\n          $5::jsonb->>'version_id', $5::jsonb->>'total', $5::jsonb->>'missing'),\n   $5::jsonb)\nRETURNING id, stage, level, message;",
+          "query": "INSERT INTO kb.ingest_log (version_id, stage, level, message, detail)\nVALUES\n  ($1::bigint, 'parse', 'info',\n   format('scoped %s passages from the Study Guide: %s History, %s Techniques, %s words across %s styles',\n          $2::jsonb->>'passages', $2::jsonb->>'history', $2::jsonb->>'techniques',\n          $2::jsonb->>'words', $2::jsonb->>'styles'),\n   jsonb_build_object('stats', $2::jsonb,\n                      'scope', 'option B: History + Techniques only',\n                      'dropped', jsonb_build_array('Overall Impression','Comments',\n                                   'Ingredients','Commercial Examples','sensory tables')))\nRETURNING id;",
           "options": {
-            "queryReplacement": "={{ [ $('Ensure KB doc + version').first().json.version_id, JSON.stringify($('Parse + validate styles').first().json.stats), $('Card variant').first().json.variant, JSON.stringify($('Parse + validate styles').first().json.notes), JSON.stringify($json) ] }}"
+            "queryReplacement": "={{ [$('Ensure KB doc + version').first().json.version_id, JSON.stringify($('Parse + validate passages').first().json.stats)] }}"
           }
         },
         "type": "n8n-nodes-base.postgres",

@@ -1,6 +1,6 @@
 # Book 5 — BA 2026 + the BJCP Beer Style Study Guide
 
-**Written:** 2026-09-14 · **Status:** ⬜ **probed, planned and scoped — not run** · **Unblocked by:**
+**Written:** 2026-09-14 · **Status:** ✅ ⭐ **BOTH SOURCES RUN 2026-09-14** — BA 2026 169 rows / 169 cards, Study Guide 82 chunks, 0 embedding gaps · **Unblocked by:**
 D31, ratified 2026-09-14 ([`../agent/03-record.md`](../agent/03-record.md) §5) · **§2b decided
 2026-09-14: option B**
 
@@ -225,13 +225,37 @@ rows by the same `INSERT … SELECT`, so they cannot be orphaned.
 §4.1's warning about reworking styles at book 5 applies to *adding* to them too: the top-6
 competition changes.
 
-⭐ **The question this book exists to answer**, and it cannot be asked before it runs:
+⭐ **The question this book exists to answer**, and it could not be asked before it ran:
 
 > *"BJCP 15B and BA's Irish-Style Dry Stout state different numbers. Does the agent surface
 > **both, attributed**, or silently average them?"*
 
-That is Layer 4, it is the merge/conflict eval §4.2 deferred to book 5, and it is the first
-point in the project where the cases can be written from **real** disagreements.
+### ✅ ⭐ `measured` 2026-09-14 — **it surfaces both, attributed. It does not average.**
+
+The disagreement is real and was confirmed in `ref.styles` before the question was asked:
+
+| | OG | IBU | ABV |
+|---|---|---|---|
+| **BJCP 15B** Irish Stout | 1.036–1.044 | 25–45 | 3.80–5.00 |
+| **BA 2026** Classic Irish-Style Dry Stout | 1.038–1.048 | 30–40 | 4.10–5.30 |
+
+Asked *"What are the target numbers for an Irish Stout — OG, IBU and ABV?"*, the live agent
+returned **both rows, under separate headings, each carrying its own `[S…]`**, and a Sources
+block naming the two guides separately. ⭐ **Every number it printed matches the database
+exactly.** It also volunteered BA's Export-Style Stout as a third, distinct entry rather than
+folding it in.
+
+| | ⭐ `measured` |
+|---|---|
+| citations | **6**, ⭐ **0 unresolved** — 4.7's grounding gate holds on book 5 |
+| distinct sources cited | ⭐ **2** — `ba-2026-beer-styles` **and** `bjcp-2021-beer-styles` |
+| latency | **27.8 s** — the retrieval path, not the 126 s capability path |
+
+⭐ **This is D31 Layer 4 and requirement §5.5 — *"where sources disagree, present both rather
+than averaging them"* — working in production for the first time**, and it is the payoff for
+building the agent at 4.5 rather than after book 5 (§4.2). ⚠️ **One question, not a suite:**
+the merge/conflict eval proper is still owed, and this is its first passing case, not its
+completion.
 
 ### Tier C — ⭐ **runnable for the first time**
 
@@ -246,6 +270,38 @@ already written in each plan's §4.
 
 ⚠️ **Deliberately left open — these are the numbers the next session must commit to *before*
 the engine runs**, per standing rule 1 and the A1-style discipline books 1–4 used:
+
+### ⭐ `measured` 2026-09-14 — against the predictions below
+
+| | `predicted` | ⭐ `measured` | |
+|---|---|---|---|
+| BA rows | **169** | ⭐ **169** | ✅ **exact** |
+| BA cards | **169**, one per style | ⭐ **169**, 0 `Context` cards | ✅ **exact** |
+| Study Guide chunks | **25 – 40** | ⛔ ⭐ **82** | ⛔ **falsified — see below** |
+| Corpus after | ~2,290 | ⭐ **2,341** | ⚠️ off by the same 42 |
+| BA embedding gaps | 0 | **0** | ✅ |
+| Study Guide embedding gaps | 0 | **0** | ✅ |
+| A10 dropped-field labels | 0 | ⭐ **0** | ✅ **the filter held** |
+| A11 History / Techniques | 69 / 16 | ⭐ **67 / 15** | ⚠️ −2 / −1, the sub-8-word stubs |
+
+⛔ ⭐ **A9 is falsified, and the fault is in the prediction's METHOD, not the data.**
+25–40 came from dividing 5,900 kept words by the corpus's observed 180–250 words per chunk —
+⭐ **but `Insert passages` maps one passage to one chunk**, and the passages average **72
+words**. The prediction estimated a *merged* chunking that this path never performs.
+
+⚠️ **That matters more than the number.** A9 was written as *"if it lands >60, the field
+filter leaked"* — ⛔ **it landed at 82 and the filter did not leak.** A10 is **0**, and the
+parse node asserts the ban independently before any insert. ⭐ **A badly-constructed assertion
+does not just miss; it points at the wrong cause.** The lesson is the one §2.1 of the agent
+record already drew: an assertion written against an imagined data shape is worse than none.
+
+⚠️ **A11's −2/−1** is the extractor's `len(body.split()) < 8` stub filter, working as intended.
+
+⭐ **D31 Layer 2, re-measured after the load:** largest corpus share is Yeast at **19.8%**
+(was 22.2% — the corpus grew), against a 25% threshold. ⛔ **Layer 3 stays unbuilt**, which is
+the ratified policy working rather than being skipped.
+
+---
 
 | | `predicted` | basis |
 |---|---|---|
