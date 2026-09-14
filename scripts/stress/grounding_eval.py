@@ -22,7 +22,7 @@ The set deliberately runs in both directions:
               successful run to date.
 
 Usage:
-  ./grounding_eval.py                 # all 12
+  ./grounding_eval.py                 # all 13
   ./grounding_eval.py --only U        # just the refusal cases (fast)
   ./grounding_eval.py --json out.json
 """
@@ -32,9 +32,25 @@ from pathlib import Path
 WEBHOOK = "http://localhost:5678/webhook/fc5648d9-d7e3-4bbc-b771-8bd35b9e4db5/chat"
 DB = ("docker", "exec", "supabase-db", "psql", "-U", "supabase_admin", "-d", "postgres", "-tAc")
 
-# anchor coverage confirmed against kb.chunks 2026-09-14:
-# diacetyl 80 · alkalinity 181 · mash pH 109 · Cascade 15 · Citra 5 · Irish Stout 8
-# Nelson Sauvin 0 · Sabro 0 · kveik 0 · Phantasm 0
+# ⛔ Do NOT trust this list as prose — RE-RUN IT. The corpus grows, and an anchor
+# that was uncovered when this file was written silently becomes covered, which
+# turns a refusal test into a test that the assistant refuses something it knows.
+# That is exactly what happened on 2026-09-14: book 7 put Nelson Sauvin and Sabro
+# into ref.hops, and the two `uncovered` cases below had been asserting they were
+# absent. Both were replaced. Regenerate the counts with:
+#
+#   for t in Talus "Cryo Pop" kveik Phantasm Sabro "Nelson Sauvin"; do
+#     printf "%-14s %s\n" "$t" "$(docker exec supabase-db psql -U supabase_admin \
+#       -d postgres -tAc "select (select count(*) from kb.chunks where raw_content
+#       ilike '%$t%' or array_to_string(heading_path,' ') ilike '%$t%')
+#       + (select count(*) from ref.hops where name ilike '%$t%')")"
+#   done
+#
+# measured 2026-09-14, AFTER books 8 and 9 landed (corpus 2,678 chunks):
+#   covered   — diacetyl 80 · alkalinity 181 · mash pH 109 · Cascade 15 · Citra 5
+#               · Irish Stout 8 · Nelson Sauvin 3 · Sabro 4
+#   uncovered — Talus 0 · Cryo Pop 0 · kveik 0 · Phantasm 0  (checked across
+#               kb.chunks, ref.hops, ref.styles AND ref.faults)
 CASES = [
     # --- covered: expect an answer built from real chunks -------------------
     dict(id="G01", kind="covered", q="What causes diacetyl and how do I get rid of it?"),
@@ -46,9 +62,16 @@ CASES = [
     # --- covered anchor, open-ended: the 'suggested' probe -------------------
     dict(id="S01", kind="suggested", q="What could I do with a bag of Citra?"),
     dict(id="S02", kind="suggested", q="What hops would work with Cascade in a pale ale?"),
+    # S03 exists because the labelled-suggestion path (spent grounded:0 suggested:1)
+    # had only ever been OBSERVED, never provoked on purpose. Sabro is the right
+    # anchor for it precisely because book 7 made it covered: ref.hops knows the
+    # variety, so the capability runs, but the library holds no pairing guidance
+    # for it — which is the exact condition that should produce a labelled
+    # suggestion rather than a grounded answer or a refusal.
+    dict(id="S03", kind="suggested", q="What would pair well with Sabro in a stout?"),
     # --- uncovered: expect D38's hard refusal, fast, no propose --------------
-    dict(id="U01", kind="uncovered", q="What hops go with Nelson Sauvin?"),
-    dict(id="U02", kind="uncovered", q="What could I brew with Sabro?"),
+    dict(id="U01", kind="uncovered", q="What hops go with Talus?"),
+    dict(id="U02", kind="uncovered", q="What could I brew with Cryo Pop?"),
     dict(id="U03", kind="uncovered", q="What should I try next with kveik?"),
     dict(id="U04", kind="uncovered", q="What would pair well with Phantasm powder?"),
 ]
