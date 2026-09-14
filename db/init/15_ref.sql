@@ -95,3 +95,64 @@ COMMENT ON TABLE ref.faults IS
   'The narrative cards in kb.chunks are generated from these rows so the two '
   'cannot drift, the same contract as ref.styles (D32). NO cause column — the '
   'source has none and causes must never be inferred.';
+
+-- =============================================================================
+-- Book 7 — the hop variety handbook. 72 varieties, one row each.
+-- =============================================================================
+-- Every numeric spec is a RANGE, and both ends are nullable on purpose:
+--   `8-14,5`  -> 8.0 .. 14.5   (the source is European; the comma is a DECIMAL
+--                               point, never a thousands or list separator)
+--   `<47`     -> NULL .. 47.0  ⛔ an open-ended UPPER bound. The minimum does
+--                               not exist and must not be recorded as 0 — the
+--                               mirror of BA 2026's `30+` in ref.styles.
+CREATE TABLE IF NOT EXISTS ref.hops (
+  id                bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  name              text NOT NULL UNIQUE,
+  origin            text,
+  hop_type          text,
+  description       text,
+  alpha_min         numeric, alpha_max         numeric,
+  beta_min          numeric, beta_max          numeric,
+  cohumulone_min    numeric, cohumulone_max    numeric,
+  total_oils_min    numeric, total_oils_max    numeric,
+  myrcene_min       numeric, myrcene_max       numeric,
+  humulene_min      numeric, humulene_max      numeric,
+  caryophyllene_min numeric, caryophyllene_max numeric,
+  farnesene_min     numeric, farnesene_max     numeric,
+  beer_types        text[] NOT NULL DEFAULT '{}',
+  flavour           text[] NOT NULL DEFAULT '{}',
+  alternatives      text[] NOT NULL DEFAULT '{}',
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT hops_ranges_ordered CHECK (
+    (alpha_min         IS NULL OR alpha_max         IS NULL OR alpha_min         <= alpha_max) AND
+    (beta_min          IS NULL OR beta_max          IS NULL OR beta_min          <= beta_max) AND
+    (cohumulone_min    IS NULL OR cohumulone_max    IS NULL OR cohumulone_min    <= cohumulone_max) AND
+    (total_oils_min    IS NULL OR total_oils_max    IS NULL OR total_oils_min    <= total_oils_max) AND
+    (myrcene_min       IS NULL OR myrcene_max       IS NULL OR myrcene_min       <= myrcene_max) AND
+    (humulene_min      IS NULL OR humulene_max      IS NULL OR humulene_min      <= humulene_max) AND
+    (caryophyllene_min IS NULL OR caryophyllene_max IS NULL OR caryophyllene_min <= caryophyllene_max) AND
+    (farnesene_min     IS NULL OR farnesene_max     IS NULL OR farnesene_min     <= farnesene_max))
+);
+
+CREATE INDEX IF NOT EXISTS hops_name_trgm_idx
+  ON ref.hops USING gin (name gin_trgm_ops);
+
+COMMENT ON TABLE ref.hops IS
+  'Hop varieties: origin, type, oil and acid ranges, and the handbook prose. '
+  'The narrative cards in kb.chunks are generated from these rows so the two '
+  'cannot drift, the same contract as ref.styles and ref.faults (D32). A NULL '
+  'range end is an open bound from the source, not missing data.';
+
+-- Render one spec range for a card. An open bound must READ as open: "<47" is
+-- "up to 47", never "0-47" and never a bare "47" that would be taken as exact.
+CREATE OR REPLACE FUNCTION ref.f_range_text(lo numeric, hi numeric, unit text DEFAULT '%')
+RETURNS text
+LANGUAGE sql IMMUTABLE SET search_path = ref, public AS $fn$
+  SELECT CASE
+    WHEN lo IS NULL AND hi IS NULL THEN NULL
+    WHEN lo IS NULL               THEN 'up to ' || trim_scale(hi) || unit
+    WHEN hi IS NULL               THEN trim_scale(lo) || unit || ' or more'
+    WHEN lo = hi                  THEN trim_scale(lo) || unit
+    ELSE trim_scale(lo) || '-' || trim_scale(hi) || unit
+  END
+$fn$;
