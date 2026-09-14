@@ -1,6 +1,6 @@
 # Plan 01 — building the agent architecture in n8n, node by node
 
-**Written:** 2026-08-19 · **Status:** ⬜ not started · **Covers:** phases **4.5, 4.6 and 4.7** of
+**Written:** 2026-08-19 · **Status:** ✅ ⭐ **built 2026-08-20, gated and recorded 2026-09-14** — see [`03-record.md`](03-record.md) · **Covers:** phases **4.5, 4.6 and 4.7** of
 [`00-orchestrator-architecture.md`](00-orchestrator-architecture.md) §8 — the chat agent, the step
 engine, and the first capability.
 
