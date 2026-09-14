@@ -1,7 +1,8 @@
 # Book 5 — BA 2026 + the BJCP Beer Style Study Guide
 
-**Written:** 2026-09-14 · **Status:** ⬜ **probed and planned, not run** · **Unblocked by:**
-D31, ratified 2026-09-14 ([`../agent/03-record.md`](../agent/03-record.md) §5)
+**Written:** 2026-09-14 · **Status:** ⬜ **probed, planned and scoped — not run** · **Unblocked by:**
+D31, ratified 2026-09-14 ([`../agent/03-record.md`](../agent/03-record.md) §5) · **§2b decided
+2026-09-14: option B**
 
 Follows [`README.md`](README.md) §6's plan contract. ⛔ **Nothing here has been ingested.**
 Standing rule 3: this plan exists to be approved before an engine run, not after.
@@ -113,16 +114,74 @@ only; vital-statistics tables dropped as duplicates of the cards."* The probe sa
 instruction is right in principle and **under-specified in practice**, because the Guide's
 non-table content is itself substantially field-shaped.
 
-Three options, with the evidence for each:
+### ✅ ⭐ **Decided 2026-09-14: option B** — ingest only the genuinely causal prose
 
-| | Option | ⭐ Verdict |
-|---|---|---|
-| **A** | **Ingest wholesale through the engine** | ⛔ **No.** ~365 vital-stat sites restating the cards is defect (b) at scale, on the source D31 was written for |
-| **B** | ⭐ **Ingest only the genuinely causal prose** — history, the *why* passages (the Paulaner/Salvator origin passage is the type specimen) — and drop tables, `Ingredients:` and `Commercial Examples:` | ⭐ **recommended**, and it is what §5.2 actually means. ⚠️ **Cost: likely far fewer than the ~130 chunks §4.3 projects** — possibly **under 60** |
-| **C** | **Defer the Guide; run BA 2026 alone** | ⭐ **The honest fallback** if B's extraction proves fiddly. BA is the source book 5 exists for — it is what makes disagreement measurable, which is §4.2's reason the agent was built at 4.5 |
+⭐ **The decision was taken against a direct text comparison, not against the line-shape
+heuristic in §0**, which was only ever an upper bound. The Guide turns out to be **field
+labelled**, not free prose, which makes the scoping exact rather than a judgement call:
 
-⛔ **Do not pick A because it is the least work.** It is the one option D31 was ratified to
-prevent.
+| field | n | total words | median | |
+|---|---|---|---|---|
+| ⭐ **`History:`** | **69** | **5,289** | 66 | ✅ **KEEP** |
+| ⭐ **`Techniques:`** | **16** | **847** | 56 | ✅ **KEEP** |
+| `Overall Impression:` | 71 | 1,732 | 18 | ⛔ drop |
+| `Comments:` | 70 | 4,849 | 65 | ⛔ drop |
+| `Ingredients:` | 70 | 5,917 | 67 | ⛔ drop |
+| `Commercial Examples:` | 68 | 13,769 | 205 | ⛔ drop |
+| the sensory grids | — | — | — | ⛔ drop |
+
+⚠️ **The drop-column word counts are unreliable upward** — the crude label-to-next-label split
+lets `Commercial Examples:` swallow the following style's tables, which is why its median is
+205 against everyone else's ~66. ⭐ **The two KEEP rows are bounded by a following label and
+are trustworthy**, which is the only part the prediction rests on.
+
+#### ⭐ Why the drops are drops: every one is already a column, fully populated
+
+`measured` 2026-09-14 against `ref.styles` where `guide='BJCP'`:
+
+```
+rows 116 · overall_impression 116 · comments 116 · history 116
+          · characteristic_ingredients 116 · commercial_examples 115 · style_comparison 116
+```
+
+⛔ **The Study Guide is a BJCP publication about BJCP 2021 styles, so four of its five labelled
+fields restate rows the database already holds** — and those rows are already rendered into
+the 232 cards competing in every retrieval. That is defect (b) exactly.
+
+#### ⭐ Why `History:` is a keep and not a drop — the test that decided it
+
+Both sources have a history for Doppelbock. **They are not the same text:**
+
+| | |
+|---|---|
+| `ref.styles.history` (from `styles.json`) | *"…Breweries adopted beer names ending in '-ator' after a 19th century court ruling that no one but Paulaner was allowed to use the name Salvator."* |
+| ⭐ **Study Guide** | the **etymology** of *Salvator* — "Savior", with a wink at the beer's sustaining qualities — the brewery's secularisation, the copyright, whether competitors were paying tribute or trading on popularity, ⭐ **who coined "doppelbock" and when** (Munich consumers, 18th century), and the Christmas/Easter brewing tradition |
+
+⭐ **That is expansion, not restatement**, and it is the *why* D31's Layer 1 explicitly protects.
+**`History:` is the source's genuine unique value, and it is the only field of its five that is.**
+
+#### ⛔ ⭐ A field the plan never anticipated: `Techniques:`
+
+*"Double or even triple decoction mash is traditional, starting with a protein rest, ultimately
+raising the mash temperature to the high end of starch conversion temperatures…"*
+
+⭐ **`ref.styles` has no column for this and nothing else in the corpus carries it** — it is
+causal process content keyed to a style. ⚠️ **But it appears only 16 times, not ~70**, so it is
+a minority field and must not be described as a systematic gain.
+
+#### ⚠️ One honest wrinkle in the drop list
+
+`Comments:` is **partial** overlap, not total. The Guide shares the DB row's opening but adds
+material the DB lacks — the Starkbier tax category and the 16 °P threshold, for Doppelbock.
+⛔ **It is still dropped.** Layer 1's rule is about a *second prose representation of the same
+row*, and a near-duplicate chunk that competes in every top-6 is not worth one extra clause.
+⭐ **Recorded rather than silently discarded** (standing rule 6) — if a later retrieval-share
+measurement shows the gap costs answers, this is the row to revisit.
+
+⛔ **Option A was rejected** — ~365 vital-stat sites restating the cards is defect (b) at scale,
+on the very source D31 was written for. **Option C (defer the Guide) is no longer needed:** the
+scoping is exact because the source is labelled, so B's extraction is a field filter, not a
+judgement pass.
 
 ---
 
@@ -155,6 +214,10 @@ rows by the same `INSERT … SELECT`, so they cannot be orphaned.
 | **A5** | **0** rows with `has_vitals = true` and any null vital |
 | **A6** | ⭐ **0 `ﬂ`/`ﬁ` codepoints** anywhere in `ref.styles` or the generated cards |
 | **A7** | 0 embedding gaps |
+| ⭐ **A8** | ⭐ **169 BA cards, not 338** — `count(*) = 169` for the BA document, and ⛔ **0 cards whose `heading_path` ends in `Context`** |
+| ⭐ **A9** | Study Guide lands **25–40** chunks. ⛔ **If it lands >60, the field filter leaked** — the most likely culprit is `Commercial Examples:` running on into the next style's tables, which is exactly what inflated its word count in the probe |
+| ⭐ **A10** | ⛔ **0 Study Guide chunks containing `Commercial Examples:`, `Ingredients:` or `Overall Impression:`** — the direct test that option B's drop list was applied |
+| ⭐ **A11** | **69** chunks trace to a `History:` section and **16** to `Techniques:`, ±merging |
 
 ### Tier B — retrieval, the re-baseline
 
@@ -184,11 +247,35 @@ already written in each plan's §4.
 ⚠️ **Deliberately left open — these are the numbers the next session must commit to *before*
 the engine runs**, per standing rule 1 and the A1-style discipline books 1–4 used:
 
-| | `predicted` |
-|---|---|
-| BA rows | **169** (from the probe; the one number already measured) |
-| BA cards in `kb.chunks` | 169 × variant-B card count — ⬜ **decide 1 or 2 per style first** |
-| Study Guide chunks | ⬜ **cannot be predicted until §2b's option is chosen** |
-| Corpus after | ⬜ — ⚠️ **note that §4.3's ~2,344 running total already assumes ~100 BA cards, not 169** |
+| | `predicted` | basis |
+|---|---|---|
+| **BA rows** | ⭐ **169** | the probe's `Original Gravity` entry count, exact |
+| ⭐ **BA cards in `kb.chunks`** | ⭐ **169 — ONE card per style, not two** | see below |
+| **Study Guide chunks** | ⭐ **25 – 40** | 6,136 kept words ÷ the corpus's observed 180–250 words per chunk |
+| **Corpus after** | ⭐ **~2,290** (2,090 + 169 + ~32) | ⚠️ **§4.3's ~2,344 assumed ~100 BA cards and ~130 Guide chunks. Both were wrong, in opposite directions, and they nearly cancel** |
 
-⛔ **Do not start the run until §2b is decided and these rows are filled in.**
+### ⭐ Why BA gets one card per style and BJCP gets two
+
+BJCP uses **variant B** — `measured`: every style has a `… > Sensory` and a `… > Context`
+card, 116 × 2 = 232. ⭐ **Variant B splits *disjoint* fields**, which is the whole reason §5.2
+calls splitting legitimate and duplicating a defect.
+
+⛔ **BA 2026 has no context half.** Its entry is `Color`, `Clarity`, `Perceived Malt Aroma &
+Flavor`, `Perceived Hop Aroma & Flavor`, `Perceived bitterness`, `Fermentation
+Characteristics`, `Body`, `Additional notes` — ⭐ **sensory almost end to end**. There is no
+history, no style comparison, no entry instructions. A BA "Context" card would carry
+`Additional notes` alone, and frequently nothing at all.
+
+⭐ **A near-empty second card is not a split, it is 169 low-content chunks competing in every
+top-6** — the same defect as duplication, arrived at from the other side. **One card per BA
+style.** ⚠️ **This is a deliberate divergence from BJCP's shape, justified by the source's
+field inventory and not by convenience** — and it costs nothing in consistency, because
+§5.5's card-format A/B ⛔ **was never run**, so variant B was itself chosen without
+measurement.
+
+⛔ **Still to settle before the engine runs** — neither blocks planning, both block the run:
+
+| | |
+|---|---|
+| **BA `code`** | BA publishes no style codes. A code must be **synthesised and stable**, because `(guide, guide_year, code)` is the key and a reshuffle on re-import would orphan cards. ⭐ **Propose: a slug of the style name** |
+| **The ligature normalisation** | 214 `ﬂ`/`ﬁ` sites belong in the **shared** cleaning code with *Draught*'s PUA map, not in a BA-only rule — ⚠️ **which makes it the text pass's variable, not book 5's** (standing rule 2) |
