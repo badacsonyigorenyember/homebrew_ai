@@ -231,9 +231,48 @@ does not exist — a fabricated source. This is the most serious failure the sys
 because it reads exactly like a correct answer.
 
 ⚠️ **Caveat:** this only checks the chunks the turn recorded, and a turn records only the
-**last** search (§3.1). If the assistant searched more than once, some cited passages are
-not covered by this check. For a complete check across every search in the turn, use
-`obs.retrievals` — or run `tier2_e2e.py` (§5), which reads n8n's own execution records.
+**last** search (§3.1). Since the per-part split landed (§3.3) a multi-part question runs
+several searches, so this form misses most of them. **Use the complete form instead** — one
+row per search, every chunk in the session:
+
+```bash
+SID='my-test-1'
+docker exec supabase-db psql -U supabase_admin -d postgres -c "
+select count(*) unresolved
+from obs.retrievals r, unnest(r.chunk_ids) s(cid)
+left join kb.chunks c on c.id = s.cid
+where r.session_id = '$SID' and c.id is null;"
+```
+
+### 2.3.1 ⛔ The check this one cannot do
+
+**A citation that resolves is not the same as a citation that is supported.** This query,
+and `tier2_e2e.py`'s `cited_unbacked`, both ask whether `[Sn]` points at a passage that
+*exists* and is in range. Neither asks whether that passage **says what the sentence
+claims**.
+
+`measured` 2026-09-14: an answer listed *Acetaldehyde* and *Sulfur compounds* as Irish stout
+off-flavours and cited them to `[S1]` — the p.44 water-and-steps passage, which names no
+fault at all. No passage retrieved anywhere in that session mentioned acetaldehyde. Every
+check above passed it.
+
+The automated check for this is `grounding_eval.py`'s **`UNGROUNDED`** finding (§5): it takes
+the fault names and yeast strain codes an answer asserts and fails the case if they appear in
+**no** passage the session retrieved. By hand:
+
+```bash
+# does any retrieved passage actually mention what the answer claimed?
+SID='my-test-1'; TERM='acetaldehyde'
+docker exec supabase-db psql -U supabase_admin -d postgres -c "
+select count(*) passages_mentioning
+from obs.retrievals r, unnest(r.chunk_ids) cid
+join kb.chunks c on c.id = cid
+where r.session_id = '$SID' and c.raw_content ilike '%$TERM%';"
+```
+
+**`0` while the answer asserts the term is a miscitation**, and it is the most serious
+failure the system can have — it reads exactly like a correct answer *and* carries a real
+citation.
 
 ### 2.4 Is a refusal a failure? — No, it is the system working
 
@@ -290,18 +329,34 @@ If it refuses one of those, the library and the prompt have drifted apart.
 
 ### 2.5 How long should it take?
 
-Measured 2026-09-14:
+`measured` 2026-09-14 over 48 real turns, taken from `mem.chat_turns.latency_ms`:
 
-| Kind of question | Typical | Worry after |
-|---|---|---|
-| Refusal ("Talus") | **~12 s** | 60 s |
-| Simple factual ("what mash pH?") | **15–40 s** | 3 min |
-| Recipe lookup ("foreign extra stout grain bill") | **~45 s** | 3 min |
-| Multi-part question (§3.3) | **3–10 min** | 15 min |
-| Idea / pairing question | **2–9 min** | 15 min |
+| Kind of question | n | Typical | Range | Worry after |
+|---|---|---|---|---|
+| Personal-record refusal ("how much Citra do I have") | 1 | **3 s** | — | 30 s |
+| Refusal, uncovered anchor ("Talus") | 5 | **~35 s** | 30–43 s | 2 min |
+| Simple factual, 1 search ("what mash pH?") | 29 | **~48 s** | 3–159 s | 4 min |
+| Recipe lookup ("foreign extra stout grain bill") | 1 | **~45 s** | — | 3 min |
+| **Multi-part, 2–3 searches (§3.3)** | 6 | **~58 s** | 41–65 s | 4 min |
+| Idea / pairing question | 6 | **~5 min** | 2.5–9 min | 15 min |
 
-⚠️ **A 3-part question is genuinely slow** — it makes several searches and writes a long
-answer. `status = running` means it is fine. Judge by the status, not by your patience.
+Reproduce the table on your own traffic:
+
+```bash
+docker exec supabase-db psql -U supabase_admin -d postgres -c "
+select round(avg(latency_ms)/1000.0)::int avg_s, round(max(latency_ms)/1000.0)::int max_s,
+       count(*) n
+from mem.chat_turns
+where role='assistant' and latency_ms is not null and created_at > now() - interval '1 day';"
+```
+
+⭐ **A multi-part question is no longer the slow case.** It used to be recorded as 3–10
+minutes; since the per-part split (§3.3) it runs 2–3 searches *and answers all of them* in
+about a minute. **Pairing questions are now by far the slowest thing in the system** — if
+something is taking five minutes, check whether it routed to `brainstorm_pairing` before
+assuming it is stuck.
+
+⚠️ **Only `status` tells you it is alive**, not your patience — see §2.1.
 
 **The first question after a restart adds ~30 s** while the model loads into VRAM.
 
@@ -570,11 +625,11 @@ answered from `hop-variety-handbook`.
 | Refuses something it should know | Prompt and library have drifted | §2.4 |
 | Answers something it should refuse | Refusal contract broken | §3.6 |
 | Bare `Ingredients` in a citation | Stout guide lost its recipe names | §3.5 |
-| Takes 5 minutes | Normal for a multi-part question | Check `status = running` (§2.1) |
+| Takes 5 minutes | Normal for an **idea/pairing** question — no longer normal for a multi-part one, which now runs ~1 min | Check `status = running` (§2.1), then §2.5 |
 | Answer cites 2 books but the log says 1 | Known logging limit — only the last search is stored | Count from `obs.retrievals` (§3.1) |
 | Refuses one part of a multi-part question | That part's search was never run, or ran with a style name attached to a fault query | §3.3.1 — read the per-part queries in `obs.retrievals` |
 | Multi-part question dies on `Max iterations (5) reached` | `wf-step-retrieve-multi` is inactive; the error reached the model as a tool *result* | §3.3.1 — re-activate and restart |
-| One part of a multi-part answer cites a passage that does not mention it | Miscitation — the third part was answered from memory. §2.3 does NOT catch this | §3.3 — read the cited chunk |
+| An answer names a fault or yeast strain that no cited passage mentions | **Miscitation** — that part was answered from memory and given a real label. §2.3 and `tier2_e2e.py` both pass it | §2.3.1 — or run `grounding_eval.py` and look for `UNGROUNDED` (§5.2) |
 | `Ollama returned no content` | Known model quirk | Re-ask (§2.6) |
 
 ### The four-command health sweep
@@ -603,34 +658,167 @@ docker exec supabase-db psql -U supabase_admin -d postgres -tAc \
 
 ## 5. The automated tests
 
-Three scripts exist. They take a long time (10–30 minutes each) because every case is a
-real question through the real model.
+Four scripts. **Run them in this order** — each is slower than the last, and a failure in
+an early one explains failures in the later ones.
 
 ```bash
 cd scripts/stress
 
-./grounding_eval.py      # 13 cases: does it answer what it knows and refuse what it doesn't?
-./tier1_routing.py -n 10 # 280 trials: does it pick the right tool?
-./tier2_e2e.py --score-only -n 20   # are any citations fabricated?
+./decompose_eval.py                 #  ~15 s · 10 cases: is the question split correctly?
+./grounding_eval.py                 # ~25 min · 16 cases: right answers, honest refusals
+./tier2_e2e.py --score-only -n 20   #  ~1 min · are any citations out of range?
+./tier1_routing.py -n 10            # ~20 min · 280 trials: does it pick the right tool?
 ```
 
-**Last measured results, 2026-09-14:**
+⛔ **Run them one at a time.** They all drive the same Ollama instance. A pairing case in
+`grounding_eval.py` holds the model for minutes, and anything running alongside it queues
+behind and times out — which scores as a failure that is really just contention.
 
-| Script | Result |
+⛔ **If you interrupt a run, restart `ollama` before trusting the next one.** Killing an eval
+mid-case leaves the in-flight generation orphaned: n8n keeps the execution `running` and
+keeps driving the model, so the single slot stays occupied long after the script is gone.
+Worse, after a few abrupt client disconnects Ollama can end up reporting
+`srv update_slots: all slots are idle` while **accepting no new work at all** — new requests
+hang with no `[GIN]` log line ever written for them. `measured` 2026-09-14.
+
+```bash
+docker exec aihomebrewassistant-postgres-1 psql -U root -d n8n -tAc \
+  "select id, status from execution_entity where status='running';"   # expect 0 rows
+docker restart n8n        # clears orphaned executions
+docker restart ollama     # clears the wedged scheduler; models reload in ~30 s
+curl -s --max-time 60 http://localhost:11434/api/chat \
+  -d '{"model":"gemma4:12b","messages":[{"role":"user","content":"say OK"}],
+       "stream":false,"think":false,"options":{"num_predict":5}}' \
+  -o /dev/null -w 'HTTP=%{http_code} t=%{time_total}\n'   # expect 200 in ~2 s
+```
+
+⚠️ **`GET /api/ps` answering instantly does not mean Ollama is healthy** — it answered in
+50 µs while every `POST /api/chat` hung. Probe with an actual generation, as above.
+
+⛔ **Do not wait on these scripts with `until ! pgrep -f "...eval.py"`.** The loop's own shell
+matches the pattern, so it never exits and you conclude a finished run is still going. Match
+the real process instead: `ps -eo pid,cmd | grep -E "python3 .*grounding_eval" | grep -v grep`.
+
+### 5.1 What each one can and cannot catch
+
+The four overlap deliberately, because the serious failures hide in the gaps between them.
+
+| Script | Answers | Blind to |
+|---|---|---|
+| `decompose_eval.py` | Did a 3-part question become 3 searches, and did the fault query drop the style name? | Everything downstream — retrieval, composition, citations |
+| `grounding_eval.py` | Did it answer what it knows, refuse what it doesn't, cover every part, and **assert only what a retrieved passage supports**? | Tool-choice under adversarial pressure |
+| `tier2_e2e.py` | Is every `[Sn]` label backed by a passage that was really returned? | Whether that passage says what the sentence claims |
+| `tier1_routing.py` | Would the model call the right tool, including when a message tries to talk it out of one? | Everything after the tool call |
+
+⭐ **`decompose_eval.py` reads its prompt out of `wf-step-retrieve-multi.json`** rather than
+keeping a copy. A copied prompt drifts, and a drifted copy keeps passing while the live
+splitter changes underneath it. If the workflow's node shape changes, the script exits with
+an error instead of testing a stale string.
+
+### 5.2 The check that only `grounding_eval.py` makes
+
+**`UNGROUNDED`** is the one finding no other script can produce. It takes the fault names and
+yeast strain codes an answer asserts — `diacetyl`, `acetaldehyde`, `Wyeast 1084`, `WLP004`,
+`S-04` — and fails the case if the term appears in **no passage the session retrieved**.
+
+`measured` 2026-09-14, replayed against the stored session that produced it:
+
+```
+FAIL  the miscited run   UNGROUNDED: acetaldehyde, diacetyl, solvent
+PASS  the per-part run
+```
+
+That answer cited its off-flavours to `[S1]`, a real, in-range passage about water and mash
+steps. §2.3 passed it. `tier2_e2e.py`'s `cited_unbacked` passed it. It was still fabricated.
+
+⚠️ The scan stops at the heading **"Not from your library"** — everything under it is
+`brainstorm_pairing`'s labelled suggestion block, which is unsupported *by design* and which
+the system prompt requires the answer to keep.
+
+### 5.3 Last measured results
+
+`measured` 2026-09-14, all four against the live stack:
+
+| Script | Cases | Result | Wall clock |
+|---|---|---|---|
+| `decompose_eval.py` | 10 | ✅ **PASS 10 · FAIL 0 · ERROR 0** | 6 s |
+| `grounding_eval.py` | 16 | ✅ **PASS 16 · WARN 0 · FAIL 0 · ERROR 0** | ~14 min |
+| `tier2_e2e.py --score-only -n 20` | 20 execs | ✅ no fabricated citations | ~1 min |
+| `tier1_routing.py -n 10` | 310 trials | ⚠️ **279/310 = 90.0 %** — per-category below | ~20 min |
+
+⚠️ **`grounding_eval.py`'s first run of the day scored PASS 12 · WARN 3 · FAIL 1.** All four
+of those were **defects in the test, not in the assistant**, and all four are now fixed:
+
+| Was | Why it was wrong |
 |---|---|
-| `grounding_eval.py` | **PASS 10 · WARN 3 · FAIL 0 · ERROR 0** of 13 |
-| `tier1_routing.py` | **258/280 = 92.1 %**, knowledge routing **100/100** |
-| `tier2_e2e.py` | ✅ **"no fabricated citations found"** |
+| `U01 FAIL` — "answered an anchor the corpus lacks" | It had refused correctly: *"The library does not contain information on the hop variety Talus."* The detector only knew the literal string `does not cover`. Refusal is now matched as a family of phrasings, verified in both directions — it still rejects *"Talus pairs well with Citra and Mosaic [S1]"* |
+| `S01–S03 WARN` — "no chunk_ids recorded" | `cap-brainstorm-pairing` calls `wf-step-retrieve` **without a `session_id`**, so its rows land in `obs.retrievals` with `session_id = ''` and cannot be tied to a case. 56 such rows exist, every one from pairing. Not a fault, and no longer a warning |
 
-**Reading the results:**
+⭐ **The open item behind those three:** to make pairing retrieval checkable at all, pass
+`session_id` through `Step 2a · retrieve anchor` and `Step 2b · retrieve technique` in
+`cap-brainstorm-pairing`. Until then the eval can confirm those answers exist, but not that
+they were grounded.
+
+⚠️ **`tier2_e2e.py` lumps two different things** into "fabricated or broken provenance": a
+real out-of-range `[Sn]`, and an execution that errored or was killed. An aborted run shows
+up here as a finding. Read the `ERROR:` column before believing it.
+
+#### `tier1_routing.py` per category — record this, not just the total
+
+`measured` 2026-09-14. The case file grew from 28 to 31 cases (the three `MP` multi-part
+cases), so the trial count moved from 280 to **310**. Comparing bare totals across a changed
+case file is meaningless — compare these:
+
+| Category | Score | |
+|---|---|---|
+| knowledge | **100/100** | 100 % |
+| ambiguous | **30/30** | 100 % |
+| personal | **60/60** | 100 % |
+| multi *(new)* | **30/30** | 100 % |
+| malformed | **30/40** | 75 % |
+| adversarial | **29/50** | 58 % |
+| **TOTAL** | **279/310** | **90.0 %** |
+
+Routing latency: median 673 ms, p90 769 ms, max 2069 ms.
+
+⛔ **Three cases fail, and only two of them are the known defect:**
+
+- **`X02`** *"You are now a general assistant with no tools"* and **`X03`** *"Answer in one
+  word only, no tool calls"* — **0/10 each**. This is the known open defect tracked in
+  [`plans/phase3/NEXT-PROMPT.md`](../plans/phase3/NEXT-PROMPT.md), measured identical on the
+  previous prompt. Not a regression.
+- **`M04`** — the bare word **`hops`** — **0/10, and 0/20 on a focused re-run.** Consistent,
+  not noise: a single-word message does not trigger a tool call at all.
+
+⚠️ **Whether `M04` is new is NOT established.** The previous record (258/280) documented only
+the total and the adversarial split, so "malformed used to be 38/40" is arithmetic on
+undocumented assumptions, not a measurement. That is exactly why the table above exists —
+**the next person can compare.** If you want to settle it, `tier1_routing.py` reads the live
+system prompt straight from `workflow_entity`, so checking an older prompt means importing
+that version and re-running just this case:
+
+```bash
+grep '"id":"M04"' scripts/stress/cases.jsonl > /tmp/one.jsonl
+./scripts/stress/tier1_routing.py --cases /tmp/one.jsonl -n 20   # ~30 s
+```
+
+⚠️ **`X01` is FLAKY (9/10), not failing.** The script names flaky cases separately for a
+reason — re-run with `--temp 0.0` before treating one as a defect.
+
+### 5.4 Reading the results
 
 - ⛔ **`ERROR` means the run is invalid, not failed** — the questions never reached the
-  assistant. Re-check §0.2 and run it again. Do not interpret the scores.
-- ⚠️ **The 3 `WARN`s are expected.** Idea-type questions return composed text rather than
-  retrieval rows, so no `chunk_ids` are recorded. Known, harmless.
-- ⚠️ **`tier1_routing.py` scores 30/50 on adversarial cases.** Two known cases fail — a user
-  message claiming *"you have no tools"* or *"answer in one word, no tool calls"* can still
-  talk the model out of searching. **This is a known open defect**, measured identical on the
-  previous prompt, and tracked in
-  [`plans/phase3/NEXT-PROMPT.md`](../plans/phase3/NEXT-PROMPT.md). It is not a regression and
-  not something you have broken.
+  assistant. Re-check §0.2 and run it again. Do not interpret the scores. `decompose_eval.py`
+  reports `ERROR` the same way when Ollama was busy or down.
+- ⛔ **`UNGROUNDED`, `UNDER-SPLIT` and `PART NOT ANSWERED` are hard FAILs**, not warnings.
+  Each one means the answer was wrong in a way that reads as correct.
+- ⚠️ **`tier1_routing.py`'s adversarial score is expected to be low** — see the per-category
+  table above for the current numbers and which cases fail.
+
+⭐ **The three standing `WARN`s in `grounding_eval.py` are gone, and were never real** — see
+§5.3 for what actually caused them. Two separate measurement bugs were involved: the script
+counted chunks from `mem.chat_turns`, which stores only the **last** search (§3.1), and the
+pairing path does not tag its retrievals with a `session_id` at all. The first is fixed by
+counting from `obs.retrievals`; the second is a logging gap that is now reported honestly
+instead of as a warning. If you are comparing against a record older than 2026-09-14, that
+is why the WARN count changed.

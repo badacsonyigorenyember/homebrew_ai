@@ -26,3 +26,6 @@
 {"id":"M02","cat":"malformed","q":"mash ph???","tool":true,"note":"terse"}
 {"id":"M03","cat":"malformed","q":"Mit jelent a diacetil a sorben?","tool":true,"note":"Hungarian - must still search and answer in English"}
 {"id":"M04","cat":"malformed","q":"hops","tool":true,"note":"single word"}
+{"id":"MP01","cat":"multi","q":"I am brewing an Irish stout. What water profile should I target, which yeast, and what off-flavour should I watch for?","tool":true,"note":"3 parts - wf-step-retrieve-multi must run 3 searches; off-flavour part must cite the fault list, not a recipe page"}
+{"id":"MP02","cat":"multi","q":"What do the BJCP and the Brewers Association each say about Irish Stout?","tool":true,"note":"2 parts - one search per guide, attributed separately"}
+{"id":"MP03","cat":"multi","q":"When do I add aroma hops, and what fermentation temperature should I hold?","tool":true,"note":"2 unrelated parts, no shared style anchor"}
