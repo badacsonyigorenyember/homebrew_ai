@@ -591,10 +591,10 @@ Extrapolated from the one measured book (248 p → 447 chunks) and plan 06's pro
 | ⭐ **2 — measured 2026-08-19** — Yeast | **463** *(predicted 463; projected ~590)* | **1,524** |
 | ⭐ **3 — measured 2026-08-19** — Malt | ⛔ **340** *(predicted 340; projected ~600)* | ⭐ **1,864** |
 | ⭐ **4 — measured 2026-08-19** — Draught manual | ⭐ **226** *(projected ~250)* | ⭐ **2,090** |
-| **5** BA 2026 cards + Study Guide prose | ~100 · ~130 | ~2,344 |
-| **6–7** faults · hops | ~21 · ~110 | ~2,475 |
-| **8** pastry stouts | ~12 | ~2,487 |
-| **9** stout guide | 218 | ⭐ **~2,705** |
+| ⭐ **5 — measured 2026-09-14** — BA 2026 cards + Study Guide prose | **169 · 82** *(projected ~100 · ~130)* | **2,341** |
+| ⭐ **6–7 — measured 2026-09-14** — faults · hops | **21 · 72** *(projected ~21 · ~110)* | **2,434** |
+| ⭐ **8 — measured 2026-09-14** — pastry stouts | **15** *(projected ~12)* | **2,449** |
+| ⭐ **9 — measured 2026-09-14** — stout guide | ⛔ **229** *(projected 218 — the archive's figure predates the 900-token cap)* | ⭐ **2,678** |
 
 ⭐ **The first three rows are no longer projections, and both books came in *under* the
 extrapolation** — Water by 22%, Yeast by 22%. The reason is the same in both cases and worth
@@ -1235,8 +1235,8 @@ and they are why the §10 eval baseline waits until the corpus is complete.
 | **5** | **BA 2026 + Study Guide** | ✅ ⭐ [`05`](05-style-sources.md) | ✅ **BA 169 entries · SG 87% table-shaped** | ✅ ⭐ **both run 2026-09-14 — BA 169 rows/169 cards, SG 82 chunks, 0 gaps.** ⭐ **committed before the run** | ✅ **A1–A11; 169 exact.** ⛔ **A9 falsified — my method, not the data** | ✅ ⭐ **the merge works: BJCP 15B and BA Dry Stout returned BOTH, attributed, 0 unresolved citations** | ⬜ |
 | **6** | **Beer faults** | ✅ **spec in §1.1 + §4** | ✅ **21 faults, `name`/`descriptors[]`/`solutions`** | ✅ ⭐ **run 2026-09-14 — `ref.faults` 21 rows, 21 cards, 0 gaps.** ⭐ **committed before the run** | ✅ **A1–A9 all pass against explicit expected values.** ⛔ **no `cause` column, no card mentions one** | ⬜ | ⬜ |
 | **7** | **Hop handbook** | ✅ **[`hops_extract.py`](../../scripts/ingest/hops_extract.py)** | ✅ ⭐ **72 varieties, 36 pages × 2 cards, 10 specs each** | ✅ ⭐ **run 2026-09-14 — `ref.hops` 72 rows, 72 cards, 0 gaps.** ⭐ **committed before the run** | ✅ **A1–A10 pass.** ⛔ **2 source-inverted ranges nulled, not guessed** | ⬜ | ⬜ |
-| 8 | Pastry stouts | ⬜ | ✅ file reviewed | ⬜ | ⬜ | ⬜ | ⬜ |
-| 9 | Stout guide | ✅ [plan 06](../archive/06-stout-guide-ingest.md) | ✅ 679 chunks | ⬜ | ⬜ | ⬜ | ⬜ |
+| **8** | **Pastry stouts** | ✅ ⭐ [`06`](06-corpus-completion-and-rag-closeout.md) · ⭐ **record: [`06-record`](06-record.md)** | ✅ **15 chunks, `md` accepted — the first non-PDF source** | ✅ ⭐ **run 2026-09-14 — 15 chunks, 0 gaps, engine unchanged.** ⭐ **committed before the run** | ✅ ⭐ **15 of 15 predicted numbers exact** | ✅ **keep — holds ranks 1-3 on its own question, displaces nothing** | ✅ **covered by book 9's end-to-end run** |
+| **9** | **Stout guide** | ✅ ⭐ [`06`](06-corpus-completion-and-rag-closeout.md) + [archive/06](../archive/06-stout-guide-ingest.md) · ⭐ **record: [`06-record`](06-record.md)** | ✅ ⭐ **re-probed 2026-09-14 — 679 raw, EXACTLY the five-week-old figure** | ✅ ⭐ **run 2026-09-14 — 229 chunks, 0 gaps.** 🆕 **`byo_magazine` profile added to `Clean + normalise`.** ⭐ **committed before the run** | ✅ ⭐ **all predictions hit; 229 simulated, 229 delivered.** ⛔ **plan's 218/2,667 were pre-cap — corrected to 229/2,678** | ✅ **KEEP — 5 of 7 standing questions byte-identical; no prior rank-1 displaced** | ✅ ⭐ **answered end to end, 4 named recipes, 6 of 6 citations resolve, 0 unresolved** |
 
 **Decisions wanted before planning starts**
 

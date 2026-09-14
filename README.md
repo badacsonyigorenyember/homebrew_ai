@@ -19,16 +19,16 @@ Three other documents matter more than this one once the stack is up:
 
 ---
 
-## Where this actually is — `measured` 2026-09-13
+## Where this actually is — `measured` 2026-09-14
 
 This repository is well past Phase 0. What is live:
 
 | | Measured |
 |---|---|
-| Corpus | **2,090** chunks across **6** documents, **2,090** embeddings, **0** gaps, all 1024-dim |
-| Reference data | `ref.styles` — **116** BJCP 2021 rows |
-| n8n workflows | **11**, all exported to `n8n/demo-data/workflows/` — one engine (`wf1-ingest-book`), six launchers, and the four-workflow agent layer |
-| The agent | `chat-agent` + `wf-step-retrieve` + `wf-step-llm` + `cap-brainstorm-pairing`, **active**, **22** logged turns in `mem.chat_turns`, **21** runs in `obs.runs` |
+| Corpus | ⭐ **2,678** chunks across **12** documents, **2,678** embeddings, **0** gaps, all 1024-dim — **the corpus is complete, 11 of 11 sources** |
+| Reference data | `ref.styles` — **285** rows (116 BJCP 2021 + 169 BA 2026) · `ref.hops` — **72** varieties · `ref.faults` — **21** faults |
+| n8n workflows | **17**, all exported to `n8n/demo-data/workflows/` — one engine (`wf1-ingest-book`), twelve launchers, and the four-workflow agent layer |
+| The agent | `chat-agent` + `wf-step-retrieve` + `wf-step-llm` + `cap-brainstorm-pairing`, **active**, answering end to end with resolving citations |
 | Truth side | `brew.*` schema exists, **0** batches — no entry path yet (architecture §13.2 D25) |
 
 | Phase (architecture §11) | Status |
@@ -36,7 +36,7 @@ This repository is well past Phase 0. What is live:
 | 0 — schema and demolition | ✅ complete |
 | 1 — one document end to end | ✅ complete |
 | 2 — minimal agent | 🟢 built and answering |
-| **3a — the corpus** ([`plans/phase3/`](plans/phase3/README.md)) | 🟢 **6 of 11 sources ingested** — books 0a, 0b, 1, 2, 3, 4 |
+| **3a — the corpus** ([`plans/phase3/`](plans/phase3/README.md)) | ✅ ⭐ **complete — 11 of 11 sources ingested**, books 0a–9 |
 | 3b — full tool set and NLQ | ⬜ not started |
 | 4 — learning layer · 5 — optional | ⬜ not started |
 

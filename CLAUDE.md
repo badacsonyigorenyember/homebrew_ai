@@ -178,13 +178,29 @@ touch the corpus.
   `search_path`, verified 2026-09-13. Worth fixing in the owning `db/init` file; not a
   reason to rewrite §8.4.
 - `vector`, `pg_trgm`, and `unaccent` are installed in the `public` schema.
-- **Untested, and it is two questions, not one:** whether (a) an n8n REST `PUT` or (b) the
-  MCP server's SDK `update_workflow` strips the `$input` prefix from Code node `jsCode`.
-  They are different write paths and may answer differently. 14 Code nodes rely on `$input`,
-  including two on the live retrieval path in `wf-step-retrieve`. Settle both before the
-  first programmatic workflow edit — test procedure in
-  `.claude/skills/n8n-workflows/reference/api-and-mcp-writeback.md`. The write-path decision
-  itself is architecture §13.2 **D39**.
+- ✅ **SETTLED 2026-09-14 for the MCP path: `$input` SURVIVES.** Probed on a throwaway
+  workflow and verified against `workflow_entity.nodes` directly, not the tool's read-back:
+  `create_workflow_from_code` preserves it, and so do all three update shapes
+  (`setNodeParameter`, `updateNodeParameters` with `replace`, `setNodePosition`). Upstream's
+  stripping claim does not reproduce here. ⚠️ **The REST `PUT` path is still untested** — the
+  only key in `user_api_keys` has `aud: mcp-server-api`, not `public-api`, so it 401s as
+  `X-N8N-API-KEY`. The two paths are independent; this result does **not** transfer. Architecture
+  §13.2 **D39**.
+- ⛔ **`settings.availableInMCP` gates MCP read-detail and write, per workflow — and the
+  skill's reference doc had it wrong in both directions.** `measured` 2026-09-14: **9 of 15**
+  true. ⛔ **`chat-agent` and `wf-step-retrieve` — the live retrieval path — are `false`**, so
+  they must be edited via tracked JSON + `n8n import:workflow`. `wf1-ingest-book` **is** true.
+  Discovery is ungated: `search_workflows` returns every workflow regardless, and the scopes it
+  reports are misleading. Workflows MCP creates are `true` automatically.
+- ⛔ **`n8n import:workflow` DEACTIVATES an active workflow.** Re-publish afterwards
+  (`publish:workflow --id=…`; `update:workflow --active=true` works but is deprecated). Check
+  `active` before and after every import — all four agent workflows were silently deactivated
+  this way on 2026-09-14.
+- ⛔ **`n8n execute --id=…` cannot run the ingest launchers**: it fails with *"Workflow is not
+  active and cannot be executed"* because this n8n gates `executeWorkflow` on a **published**
+  version and `wf1-ingest-book` has none. Use MCP `execute_workflow` with
+  `executionMode: "manual"`, which is what the UI does — this is why every book so far was run
+  from the UI.
 - **Archiving a workflow is not deleting it.** The row stays in `workflow_entity`, so a
   query filtering by `name` still sees it. This is what killed `scripts/stress/tier1_routing.py`
   on 2026-09-13; that script now filters `isArchived`. There is **no `delete:workflow` in the
