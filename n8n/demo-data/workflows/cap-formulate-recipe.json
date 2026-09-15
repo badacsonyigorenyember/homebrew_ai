@@ -1,0 +1,759 @@
+{
+  "id": "capFormulateRec1",
+  "name": "cap-formulate-recipe",
+  "description": "Formulates a brewing recipe for a target style, volume and ABV: parses the brief, retrieves technique from the library, proposes a grain bill and hop schedule from the brew.ingredients catalogue, then computes OG/FG/ABV/IBU/SRM in SQL and saves it. The model never does the arithmetic.",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "question"
+            },
+            {
+              "name": "session_id"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9c8dd2e3-0356-4d95-8400-44a8bfaa40a5",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT obs.f_start_run($1::text, NULL::int, 'formulate.recipe', $2::jsonb)::int AS run_id;",
+        "options": {
+          "queryReplacement": "={{ [ 'cap', JSON.stringify({max_steps: 8, max_wall_ms: 600000}) ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        220,
+        0
+      ],
+      "id": "91515b80-a5b4-4877-ad26-880de7b73ec3",
+      "name": "Start run",
+      "credentials": {
+        "postgres": {
+          "id": "memWriterCred001",
+          "name": "Postgres — mem_writer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "L0uI1b3FWMgUEszB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/L0uI1b3FWMgUEszB",
+          "cachedResultName": "wf-step-llm"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "seq": 1,
+            "step_id": "parse",
+            "profile": "extract",
+            "prompt_name": "formulate.recipe/parse",
+            "vars_json": "={{ JSON.stringify({ question: $('When Executed by Another Workflow').first().json.question }) }}",
+            "schema_json": "={{ JSON.stringify({ type:\"object\", properties:{ style:{type:\"string\"}, batch_size_l:{type:\"number\"}, target_abv_pct:{type:\"number\"}, descriptors:{type:\"array\",items:{type:\"string\"} }, must_include:{type:\"array\",items:{type:\"string\"} }, avoid:{type:\"array\",items:{type:\"string\"} } }, required:[\"style\",\"batch_size_l\",\"target_abv_pct\",\"descriptors\",\"must_include\",\"avoid\"] }) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "seq",
+              "displayName": "seq",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "step_id",
+              "displayName": "step_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "profile",
+              "displayName": "profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "prompt_name",
+              "displayName": "prompt_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "vars_json",
+              "displayName": "vars_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "schema_json",
+              "displayName": "schema_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        440,
+        0
+      ],
+      "id": "5720c771-6273-472b-b1ff-52233e230681",
+      "name": "Step 1 · parse",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
+    },
+    {
+      "parameters": {
+        "jsCode": "// run_id is threaded forward as a value, never re-derived (D14).\nconst p   = $input.first().json.output ?? {};\nconst inp = $('When Executed by Another Workflow').first().json;\nconst arr = v => Array.isArray(v) ? v.map(s => String(s).trim()).filter(Boolean) : [];\n\nconst batch = Number(p.batch_size_l);\nreturn [{ json: {\n  run_id:         $('Start run').first().json.run_id,\n  question:       String(inp.question ?? ''),\n  session_id:     String(inp.session_id ?? '').trim(),\n  style:          String(p.style ?? '').trim() || 'beer',\n  batch_size_l:   Number.isFinite(batch) && batch > 0 ? Math.min(batch, 1000) : 20,\n  target_abv_pct: Number(p.target_abv_pct) > 0 ? Number(p.target_abv_pct) : 0,\n  descriptors:    arr(p.descriptors),\n  must_include:   arr(p.must_include),\n  avoid:          arr(p.avoid),\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "67630083-2669-4e0f-b2d1-76f688495414",
+      "name": "Unpack brief"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "cCt9O4NyNPyegHBq",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/cCt9O4NyNPyegHBq",
+          "cachedResultName": "wf-step-retrieve"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ [$json.style, ...$json.descriptors, ...$json.must_include].join(' ') }}",
+            "top_k": 5,
+            "mode": "rows",
+            "session_id": "={{ $json.session_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "top_k",
+              "displayName": "top_k",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "mode",
+              "displayName": "mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        880,
+        0
+      ],
+      "id": "5ae22779-fc98-49e9-ad28-80a1612b21db",
+      "name": "Step 2 · retrieve",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1000
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM brew.f_catalogue();",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1100,
+        0
+      ],
+      "id": "b7c31050-7e65-405c-9c1b-0e9460f19e71",
+      "name": "Load catalogue",
+      "credentials": {
+        "postgres": {
+          "id": "memWriterCred001",
+          "name": "Postgres — mem_writer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const brief = $('Unpack brief').first().json;\nconst rows  = $('Step 2 · retrieve').first().json.rows ?? [];\nconst cat   = $input.all().map(i => i.json);\n\nif (!cat.length) throw new Error('brew.f_catalogue returned no ingredients');\n\nconst idmap = {};\nconst passages = rows.map((r, n) => {\n  const label = `S${n + 1}`;\n  idmap[r.chunk_id] = { label, doc_title: r.doc_title, page: r.page };\n  return `[${label}] ${r.doc_title} · ${r.heading}${r.page ? ` · p.${r.page}` : ''}\\n${r.text}`;\n}).join('\\n\\n');\n\n// The catalogue is the biggest thing in the prompt, so it carries only the\n// columns the model actually chooses on. names[] is kept for `compose`, which\n// must print ingredient names it never has to look up itself.\nconst names = {}, kinds = {}, roles = {};\nfor (const c of cat) {\n  names[c.id] = c.supplier ? `${c.supplier} ${c.name}` : c.name;\n  kinds[c.id] = c.kind;\n  roles[c.id] = c.role;\n}\n\n// Grouped by role, not one flat list. role comes from brew.f_catalogue, derived\n// in SQL from published colour -- so \"Bohemian Dark Malt\" at 6.5 L sits under\n// BASE and cannot be picked as a roast malt because of what it is called.\nconst SECTIONS = [\n  ['base',    'BASE MALTS - id | name | ppg | degL'],\n  ['caramel', 'CARAMEL & CRYSTAL MALTS (10-199 degL) - id | name | ppg | degL'],\n  ['roast',   'ROAST MALTS (>=200 degL) - THE ONLY MALTS THAT MAKE A BEER DARK - id | name | ppg | degL'],\n  ['adjunct', 'SUGARS & ADJUNCTS - id | name | ppg | degL'],\n  ['hop',     'HOPS - id | name | alpha %'],\n];\nconst catalogue = SECTIONS.map(([role, heading]) => {\n  const rows = cat.filter(c => c.role === role).map(c =>\n    role === 'hop'\n      ? `${c.id} | ${names[c.id]} | ${c.alpha_acid_pct ?? '-'}`\n      : `${c.id} | ${names[c.id]} | ${c.potential_ppg ?? '-'} | ${c.color_lovibond ?? '-'}`);\n  return rows.length ? `${heading}\\n${rows.join('\\n')}` : null;\n}).filter(Boolean).join('\\n\\n');\n\nreturn [{ json: { ...brief, catalogue, passages, idmap, names, kinds, roles,\n                  chunk_ids: rows.map(r => r.chunk_id) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        0
+      ],
+      "id": "5fe7ae13-dbaf-4478-a3e4-6251f6b5168a",
+      "name": "Build propose pack"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "L0uI1b3FWMgUEszB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/L0uI1b3FWMgUEszB",
+          "cachedResultName": "wf-step-llm"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "seq": 3,
+            "step_id": "propose",
+            "profile": "formulate",
+            "prompt_name": "formulate.recipe/propose",
+            "vars_json": "={{ JSON.stringify({ question: $json.question, spec: JSON.stringify({ style: $json.style, batch_size_l: $json.batch_size_l, target_abv_pct: $json.target_abv_pct, descriptors: $json.descriptors, must_include: $json.must_include, avoid: $json.avoid }), catalogue: $json.catalogue, passages: $json.passages || 'none' }) }}",
+            "schema_json": "={{ JSON.stringify({ type:\"object\", properties:{ items:{type:\"array\", items:{type:\"object\", properties:{ ingredient_id:{type:\"number\"}, stage:{type:\"string\"}, qty_g:{type:\"number\"}, timing_min:{type:\"number\"}, notes:{type:\"string\"} }, required:[\"ingredient_id\",\"stage\",\"qty_g\"] } }, mash_temp_c:{type:\"number\"}, attenuation:{type:\"number\"}, not_available:{type:\"array\",items:{type:\"string\"} }, rationale:{type:\"string\"} }, required:[\"items\",\"mash_temp_c\",\"attenuation\"] }) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "seq",
+              "displayName": "seq",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "step_id",
+              "displayName": "step_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "profile",
+              "displayName": "profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "prompt_name",
+              "displayName": "prompt_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "vars_json",
+              "displayName": "vars_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "schema_json",
+              "displayName": "schema_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1540,
+        0
+      ],
+      "id": "e7eeec16-58fe-41df-8c62-f6dcb6010bea",
+      "name": "Step 3 · propose",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
+    },
+    {
+      "parameters": {
+        "jsCode": "const pack = $('Build propose pack').first().json;\nconst out  = $input.first().json.output ?? {};\n\nconst STAGES = new Set(['mash','boil','whirlpool','dryhop','fermenter','packaging']);\nconst known   = new Set(Object.keys(pack.names).map(Number));\nconst catKind = pack.kinds;\n\n// A hallucinated ingredient_id would fail the FK inside f_save_recipe anyway;\n// dropping it here means the rest of the recipe still gets built, and the drop\n// is reported rather than silently swallowed.\nconst kept = [], dropped = [], assumed = [];\nfor (const it of (out.items ?? [])) {\n  const id  = Number(it.ingredient_id);\n  const qty = Math.round(Number(it.qty_g));\n  const stage = String(it.stage ?? 'mash');\n  if (!known.has(id))            { dropped.push(`unknown ingredient_id ${it.ingredient_id}`); continue; }\n  if (!STAGES.has(stage))        { dropped.push(`${pack.names[id]}: bad stage ${stage}`); continue; }\n  if (!Number.isFinite(qty) || qty <= 0) { dropped.push(`${pack.names[id]}: bad qty`); continue; }\n  const row = { ingredient_id: id, stage, qty_g: qty };\n  const t = Number(it.timing_min);\n  if (Number.isFinite(t) && t >= 0) row.timing_min = Math.round(t);\n  if (it.notes) row.notes = String(it.notes).slice(0, 120);\n\n  // A boil hop with no stated time computes to IBU 0, because Tinseth's\n  // boil-time factor is zero at t=0 -- so 30 g of Fuggles would silently\n  // contribute nothing. Hops in the kettle DO bitter; assume a standard 60 min\n  // bittering addition and say so, rather than report a bitterness we know is\n  // wrong. Measured on run 61, which produced exactly this.\n  if (row.timing_min == null && stage === 'boil' && catKind[id] === 'hop') {\n    row.timing_min = 60;\n    row.notes = (row.notes ? row.notes + ' ' : '') + '(boil time not specified; assumed 60 min)';\n    assumed.push(`${pack.names[id]}: no boil time given, assumed 60 min`);\n  }\n  kept.push(row);\n}\nif (!kept.length) throw new Error('propose returned no usable items: ' + dropped.join('; '));\n\nconst att = Number(out.attenuation);\nconst mash = Number(out.mash_temp_c);\nconst gaps = [...(Array.isArray(out.not_available) ? out.not_available : []), ...dropped, ...assumed];\n\nreturn [{ json: {\n  ...pack,\n  items:        kept,\n  dropped,\n  assumed,\n  gaps,\n  rationale:    String(out.rationale ?? ''),\n  mash_temp_c:  Number.isFinite(mash) && mash > 30 && mash < 80 ? Math.round(mash) : 67,\n  attenuation:  Number.isFinite(att) && att > 0.4 && att < 0.95 ? att : 0.75,\n  // A 30% boil-off allowance; only used to gravity-correct hop utilisation.\n  boil_volume_l: Math.round(pack.batch_size_l * 1.3 * 10) / 10,\n  recipe_name:  [pack.style, pack.must_include.slice(0, 2).join(' & ')]\n                  .filter(Boolean).join(' · ').slice(0, 80),\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        0
+      ],
+      "id": "49aa07bd-2d1e-4542-9217-9fe5acdb2902",
+      "name": "Validate proposal"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT brew.f_fit_to_abv($1::numeric, $2::jsonb, $3::numeric, 0.72, $4::numeric, $5::numeric) AS fit;",
+        "options": {
+          "queryReplacement": "={{ [ $json.batch_size_l, JSON.stringify($json.items), $json.target_abv_pct, $json.attenuation, $json.boil_volume_l ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1980,
+        0
+      ],
+      "id": "84502e4b-ffbf-4839-9b35-3b467f4479ee",
+      "name": "Fit to target",
+      "credentials": {
+        "postgres": {
+          "id": "memWriterCred001",
+          "name": "Postgres — mem_writer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT brew.f_save_recipe($1::text, $2::numeric, $3::jsonb, NULL::bigint, 0.72, $4::numeric, $5::numeric, $6::jsonb, $7::text) AS saved;",
+        "options": {
+          "queryReplacement": "={{ [ $('Validate proposal').first().json.recipe_name, $('Validate proposal').first().json.batch_size_l, JSON.stringify($json.fit.items), $('Validate proposal').first().json.attenuation, $('Validate proposal').first().json.boil_volume_l, JSON.stringify({ mash_temp_c: $('Validate proposal').first().json.mash_temp_c }), $('Validate proposal').first().json.question ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2200,
+        0
+      ],
+      "id": "0cd198e7-f2d4-4405-9d36-31deedee698f",
+      "name": "Save recipe",
+      "credentials": {
+        "postgres": {
+          "id": "memWriterCred001",
+          "name": "Postgres — mem_writer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const v     = $('Validate proposal').first().json;\nconst fit   = $('Fit to target').first().json.fit;\nconst saved = $input.first().json.saved;\n\n// The recipe lines are built from the SAVED items, not the proposed ones: the\n// grist was scaled to hit the target, so the proposed grams are stale.\nconst lines = fit.items.map(it => {\n  const t = it.timing_min != null ? `, ${it.timing_min} min` : '';\n  const n = it.notes ? ` — ${it.notes}` : '';\n  return `${v.names[it.ingredient_id]} · ${it.stage}${t} · ${it.qty_g} g${n}`;\n}).join('\\n');\n\nconst c = saved.computed;\nconst computed = [\n  `OG ${c.og}`, `FG ${c.fg}`, `ABV ${c.abv_pct}%`,\n  `IBU ${c.ibu}`, `EBC ${c.ebc}`, `SRM ${c.srm}`,\n  `batch ${c.batch_size_l} L`, `mash ${v.mash_temp_c} °C`,\n].join(' · ');\n\nconst sources = Object.values(v.idmap)\n  .map(s => `[${s.label}] ${s.doc_title}${s.page ? `, p.${s.page}` : ''}`).join('\\n');\n\nreturn [{ json: {\n  run_id: v.run_id,\n  question: v.question,\n  recipe: lines,\n  computed,\n  sources: sources || 'none',\n  gaps: v.gaps.length ? v.gaps.join('; ') : 'none',\n  recipe_id: saved.recipe_id,\n  version: saved.version,\n  scale_factor: fit.scale_factor,\n  spent: JSON.stringify({ recipe_id: saved.recipe_id, version: saved.version,\n                          items: saved.items, scale_factor: fit.scale_factor }),\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2420,
+        0
+      ],
+      "id": "b5e622e7-3a40-48d7-8d41-c5befddf3bd1",
+      "name": "Build compose vars"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "L0uI1b3FWMgUEszB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/L0uI1b3FWMgUEszB",
+          "cachedResultName": "wf-step-llm"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "seq": 5,
+            "step_id": "compose",
+            "profile": "compose",
+            "prompt_name": "formulate.recipe/compose",
+            "vars_json": "={{ JSON.stringify({ question: $json.question, recipe: $json.recipe, computed: $json.computed, sources: $json.sources, gaps: $json.gaps }) }}",
+            "schema_json": ""
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "seq",
+              "displayName": "seq",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "step_id",
+              "displayName": "step_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "profile",
+              "displayName": "profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "prompt_name",
+              "displayName": "prompt_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "vars_json",
+              "displayName": "vars_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "schema_json",
+              "displayName": "schema_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2640,
+        0
+      ],
+      "id": "884ab711-4b53-415d-947e-77356f97e4d0",
+      "name": "Step 4 · compose"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT obs.f_finish_run($1::bigint, $2::text, $3::jsonb);",
+        "options": {
+          "queryReplacement": "={{ [ $('Build compose vars').first().json.run_id, 'ok', $('Build compose vars').first().json.spent ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2860,
+        0
+      ],
+      "id": "dfb1b633-9465-46b3-8d0a-75428f3cdddf",
+      "name": "Finish run",
+      "credentials": {
+        "postgres": {
+          "id": "memWriterCred001",
+          "name": "Postgres — mem_writer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// One item, one key — the toolWorkflow node hands the last output to the model.\nconst c = $('Build compose vars').first().json;\nconst text = String($('Step 4 · compose').first().json.output ?? '').trim()\n             || `${c.recipe}\\n\\n${c.computed}`;\nreturn [{ json: { response: `${text}\\n\\n(saved as recipe #${c.recipe_id} v${c.version})` } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3080,
+        0
+      ],
+      "id": "c2268da1-bc57-44ed-b688-4d3bb97065d7",
+      "name": "Return"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Start run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start run": {
+      "main": [
+        [
+          {
+            "node": "Step 1 · parse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 1 · parse": {
+      "main": [
+        [
+          {
+            "node": "Unpack brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unpack brief": {
+      "main": [
+        [
+          {
+            "node": "Step 2 · retrieve",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 2 · retrieve": {
+      "main": [
+        [
+          {
+            "node": "Load catalogue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load catalogue": {
+      "main": [
+        [
+          {
+            "node": "Build propose pack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build propose pack": {
+      "main": [
+        [
+          {
+            "node": "Step 3 · propose",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 3 · propose": {
+      "main": [
+        [
+          {
+            "node": "Validate proposal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate proposal": {
+      "main": [
+        [
+          {
+            "node": "Fit to target",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fit to target": {
+      "main": [
+        [
+          {
+            "node": "Save recipe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save recipe": {
+      "main": [
+        [
+          {
+            "node": "Build compose vars",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build compose vars": {
+      "main": [
+        [
+          {
+            "node": "Step 4 · compose",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 4 · compose": {
+      "main": [
+        [
+          {
+            "node": "Finish run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish run": {
+      "main": [
+        [
+          {
+            "node": "Return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {},
+  "pinData": {},
+  "tags": []
+}
