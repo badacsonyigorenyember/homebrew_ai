@@ -210,16 +210,40 @@ pair_gap AS (
     JOIN kb.document_versions v ON v.id = c.version_id AND v.is_current
     WHERE c.fts @@ phraseto_tsquery('english', a.w || ' ' || b.w))
 ),
+novel_cap AS (
+  -- Novel terms the asker Capitalised. Same reasoning as rare_w: product names
+  -- are capitalised, typos are not. This is the only evidence of domain
+  -- membership available when the query is too short to carry known words.
+  SELECT DISTINCT n.l
+  FROM novel n
+  JOIN surface s ON s.raw ~ '^[A-Z]'
+               AND n.l = ANY(tsvector_to_array(to_tsvector('english', s.w)))
+),
 agg AS (
   SELECT (SELECT count(*) FROM lex)    AS n_lex,
          (SELECT count(*) FROM absent) AS n_absent,
          (SELECT coalesce(array_agg(l ORDER BY l), '{}'::text[]) FROM absent) AS absent_arr,
          (SELECT coalesce(array_agg(l ORDER BY l), '{}'::text[]) FROM novel)  AS novel_arr,
+         (SELECT coalesce(array_agg(l ORDER BY l), '{}'::text[]) FROM novel_cap) AS novel_cap_arr,
          (SELECT coalesce(array_agg(phrase ORDER BY phrase), '{}'::text[]) FROM pair_gap) AS pair_arr
 )
 SELECT CASE
-         WHEN (n_lex - n_absent) < p_min_known THEN '{}'::text[]
-         ELSE novel_arr || pair_arr
+         WHEN (n_lex - n_absent) >= p_min_known THEN novel_arr || pair_arr
+         -- ⛔ p_min_known is unsatisfiable on a short query, and the agent's
+         -- rewrite is routinely short. "What hops go with Talus?" reached the
+         -- retriever as the single word `Talus`: 1 lexeme, 0 known, suppressed --
+         -- the guard killing the exact case the detector exists for. Measured
+         -- 2026-09-15 end to end, and it is the same lesson as the ratio before
+         -- it: this function sees the REWRITE, never the user's sentence.
+         --
+         -- Below p_min_known + 2 lexemes there is no room to prove domain
+         -- membership by counting, so capitalisation decides instead, and ONLY
+         -- the capitalised novel terms are returned. That is what separates
+         -- `Talus` (fires) from M01's "the ibo of altbier" (a lowercase typo,
+         -- still suppressed) -- the count guard cannot tell those apart.
+         WHEN n_lex < p_min_known + 2 AND cardinality(novel_cap_arr) > 0
+           THEN novel_cap_arr || pair_arr
+         ELSE '{}'::text[]
        END,
        absent_arr,
        n_lex::int,

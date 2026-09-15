@@ -211,6 +211,61 @@ services:
       }' > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
 
   # ===========================================================================
+  # webarm — search + fetch + chunk + embed + rank, behind one HTTP call (§3.4)
+  # Lives outside n8n for the same reason the retrieval SQL does: it is a fetch
+  # loop wrapped around a docling poll loop, which n8n expresses badly.
+  # ===========================================================================
+  webarm:
+    build: ./services/webarm
+    hostname: webarm
+    container_name: webarm
+    networks: ['demo']
+    restart: unless-stopped
+    # Published for probing only; n8n reaches it as http://webarm:5055.
+    ports:
+      - 5055:5055
+    environment:
+      - SEARXNG_URL=http://searxng:8080
+      - DOCLING_URL=http://docling:5001
+      - OLLAMA_URL=http://ollama:11434
+    depends_on:
+      searxng:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen('http://127.0.0.1:5055/healthz',timeout=5)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================================================
+  # SearXNG — search backend for the web arm of retrieval (§3.4)
+  # Not profile-gated: it is CPU-only and tiny, and the retrieval fallback needs
+  # it under every profile.
+  # ===========================================================================
+  searxng:
+    image: searxng/searxng:latest
+    hostname: searxng
+    container_name: searxng
+    networks: ['demo']
+    restart: unless-stopped
+    # Published for probing only. n8n reaches it as http://searxng:8080 on `demo`.
+    ports:
+      - 8081:8080
+    environment:
+      - SEARXNG_BASE_URL=http://searxng:8080/
+      - SEARXNG_SECRET=${SEARXNG_SECRET}
+    volumes:
+      # ⚠️ Read-WRITE on purpose: the image's entrypoint rewrites the
+      # `ultrasecretkey` placeholder in place from SEARXNG_SECRET. A :ro mount
+      # makes the container fail at start with a sed permission error.
+      - ./searxng/settings.yml:/etc/searxng/settings.yml
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- 'http://127.0.0.1:8080/healthz' >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================================================
   # Ollama — profile-gated (cpu | gpu-nvidia | gpu-amd)
   # ===========================================================================
   ollama-cpu:

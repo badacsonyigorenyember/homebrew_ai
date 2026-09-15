@@ -604,6 +604,71 @@ rather than simply stale.
 | Inventory / batches / recipes | **SQL only** | Vector search on a count is a category error |
 | Agent memory | Vector, but in `mem.memory_embeddings` | Separate index so a preference can never outrank a book on a knowledge question |
 
+### 3.4.1 The web arm — what the library cannot contain
+
+⭐ **Built 2026-09-15.** The corpus is 7 books, 3 style guides and 2 datasheets, all
+fixed editions. Its structural failure mode is anything newer than its newest edition:
+a hop released in 2020, a yeast style, a product datasheet. `nlq.corpus_vocabulary_gap`
+detects exactly that, and the web arm answers it.
+
+```mermaid
+flowchart LR
+  Q["retrieve step"] --> S["nlq.search_knowledge<br/>+ corpus_vocabulary_gap"]
+  S -->|"gap = {}"| R["library passages only"]
+  S -->|"gap = {talus}"| W["webarm:5055"]
+  W --> X["SearXNG → fetch → docling<br/>→ bge-m3 → rank"]
+  X --> R2["library passages<br/>+ [W1..] web passages"]
+```
+
+⛔ **The trigger is the gap, never the model.** §7.1's tool budget is 6–7 and every
+added tool degrades selection for the others; a `search_the_web` peer tool would also
+be non-disjoint from `search_brewing_knowledge` and invite the model to reach for the
+web on questions Palmer answers better. A deterministic gate costs no tool slot and
+cannot make that mistake.
+
+⛔ **`webarm` is a container, not a dozen n8n nodes**, for the reason §3.4 is a SQL
+function: it is a fetch loop wrapped around a docling poll loop. In n8n that is nested
+`splitInBatches` and untestable; as a service it is one HTTP node and a script that
+runs standalone.
+
+**Quality decisions, each measured 2026-09-15:**
+
+| Rule | Why |
+|---|---|
+| Drop chunks under 25 words | Mirrors the ingest profiles' `minTokens: 30`. A 2-character chunk (`"Ok"`) scored **0.73** against *"What could I brew with Cryo Pop?"* |
+| One passage per page | Same reason kb has `p_per_doc`. Without it the top 3 for Cryo Pop were 2 chunks of one forum thread; with it, 3 distinct sources |
+| Rank by bge-m3 cosine | The same embedding as the corpus, so web and library passages are scored in one representation |
+
+⛔ **A site that challenges the fetch is skipped, never defeated.** BeerMaverick sits
+behind a Cloudflare managed challenge — even `/robots.txt` returns *"Enable JavaScript
+and cookies to continue"*. The arm treats a challenge page as a refusal and takes the
+next result. Solving it is out of scope and would not survive contact with the JS
+challenge anyway.
+
+⚠️ **`p_min_known` had to grow a short-query path, and the cause is the same one that
+killed the ratio before it: this function sees the agent's REWRITE, not the user's
+sentence.** *"What hops go with Talus?"* reached the retriever as the single word
+`Talus` — 1 lexeme, 0 known, suppressed by the very guard the detector needs. Below
+`p_min_known + 2` lexemes there is no room to prove domain membership by counting, so
+capitalisation decides instead, and only capitalised novel terms are returned. That is
+what separates `Talus` (fires) from M01's *"the ibo of altbier"* (a lowercase typo,
+still suppressed). `measured`: 0 of 31 `cases.jsonl` false positives preserved.
+
+⚠️ **A lowercase product name is still invisible**, as the original detector documented.
+`kveik` alone does not fire. Loosening this was tried and rejected on measurement:
+allowing lowercase single novel terms re-breaks M01's `ibo`.
+
+⛔ **`[W1]` is a different marker from `[S1]` by design**, and the retrieve step tells
+the model so in the tool result. Web passages carry none of the library's editorial
+vetting; an answer that blurs the two is the failure the whole citation scheme exists
+to prevent.
+
+⚠️ **Open.** `cap-brainstorm-pairing` consumes the web passages only on its
+*not-in-library* branch. When `proceed` is true but nothing is grounded, it still
+answers from the model's own memory under a "Not from your library" heading rather than
+from the web passages it now has — `measured` 2026-09-15 on *"What hops go with
+Talus?"*. That path is a deeper change inside the capability and is not built.
+
 ### 3.5 BJCP: the case that is neither pure knowledge nor pure truth
 
 Style guides are structured data wearing prose clothing. Handle both ways:

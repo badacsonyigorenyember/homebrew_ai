@@ -72,12 +72,12 @@
     },
     {
       "parameters": {
-        "jsCode": "const src  = $('Normalise input').first().json;\nconst mode = String(src.mode ?? 'text').toLowerCase() === 'rows' ? 'rows' : 'text';\n\n// Always Output Data is ON upstream, so a zero-row search arrives as one empty\n// item. Filtering on chunk_id is what turns that back into \"no results\".\nconst raw = $('Search knowledge').all().map(i => i.json).filter(r => r.chunk_id != null);\n\n// Words in the question the corpus vocabulary has never seen, after the\n// typo/locale and off-domain guards (nlq.corpus_vocabulary_gap). One value per\n// call, repeated on every row by the search query.\n//\n// ⛔ Deliberately NOT added to the `text` shape. The model gaining a new fact it\n// cannot act on -- there is no web tool yet -- can only make it hedge, and that\n// is a grounding regression bought for nothing. Until something consumes the\n// flag it is for capabilities and for obs.retrievals.gap_terms, which is the\n// evidence that decides whether the consumer is worth building.\nconst gap = $('Search knowledge').first().json.gap_terms ?? [];\n\nconst rows = raw.map(r => ({\n  chunk_id: Number(r.chunk_id),\n  doc_title: r.doc_title,\n  heading: Array.isArray(r.heading_path)\n    ? r.heading_path.join(' > ')\n    : String(r.heading_path ?? ''),\n  page: r.page_from ?? null,\n  text: String(r.raw_content).replace(/\\s+/g, ' ').trim(),\n}));\n\n// Structured shape — for capabilities. Empty is a valid answer, not an error;\n// the caller decides whether zero results is fatal.\nif (mode === 'rows') {\n  return [{ json: { query: src.query, count: rows.length, gap, rows } }];\n}\n\n// Text shape — for the model. ONE item, ONE key.\nif (!rows.length) {\n  return [{ json: { response: `No passages in the library matched \"${src.query}\".` } }];\n}\n\nconst body = rows.map((x, n) =>\n  `[S${n + 1}] ${x.doc_title} · ${x.heading}${x.page ? ` · p.${x.page}` : ''}\\n${x.text}`\n).join('\\n\\n');\n\nreturn [{ json: {\n  response: `${rows.length} passages from the library for \"${src.query}\":\\n\\n${body}`,\n}}];"
+        "jsCode": "const src  = $('Normalise input').first().json;\nconst mode = String(src.mode ?? 'text').toLowerCase() === 'rows' ? 'rows' : 'text';\n\n// Always Output Data is ON upstream, so a zero-row search arrives as one empty\n// item. Filtering on chunk_id is what turns that back into \"no results\".\nconst raw = $('Search knowledge').all().map(i => i.json).filter(r => r.chunk_id != null);\n\n// Words in the question the corpus vocabulary has never seen, after the\n// typo/locale and off-domain guards (nlq.corpus_vocabulary_gap). One value per\n// call, repeated on every row by the search query.\n//\n// ⭐ It now HAS a consumer: `Gap?` routes a non-empty gap to the web arm, which\n// is why it reaches the `text` shape below. The old note here said the opposite,\n// and it was right at the time -- a fact the model cannot act on only makes it\n// hedge. It can act on this one now.\nconst gap = $('Search knowledge').first().json.gap_terms ?? [];\n\n// ⛔ `Web arm` only runs on the true branch, so referencing it on the false\n// branch THROWS rather than returning empty. try/catch is load-bearing.\n// onError:continueRegularOutput also means a failed call arrives as an item\n// carrying `error` and no `rows` -- treat that exactly like no web results.\nlet web = [];\nlet webError = null;\ntry {\n  const w = $('Web arm').first().json ?? {};\n  web = Array.isArray(w.rows) ? w.rows : [];\n  webError = w.error ?? null;\n} catch (e) { /* gate was false: no web arm on this path */ }\n\nconst rows = raw.map(r => ({\n  chunk_id: Number(r.chunk_id),\n  doc_title: r.doc_title,\n  heading: Array.isArray(r.heading_path)\n    ? r.heading_path.join(' > ')\n    : String(r.heading_path ?? ''),\n  page: r.page_from ?? null,\n  text: String(r.raw_content).replace(/\\s+/g, ' ').trim(),\n}));\n\n// Structured shape — for capabilities. Empty is a valid answer, not an error;\n// the caller decides whether zero results is fatal.\nif (mode === 'rows') {\n  return [{ json: { query: src.query, count: rows.length, gap, web, rows } }];\n}\n\n// Text shape — for the model. ONE item, ONE key.\nif (!rows.length && !web.length) {\n  return [{ json: { response: `No passages in the library matched \"${src.query}\".` } }];\n}\n\nconst libraryBlock = rows.length\n  ? `${rows.length} passages from the library for \"${src.query}\":\\n\\n` +\n    rows.map((x, n) =>\n      `[S${n + 1}] ${x.doc_title} · ${x.heading}${x.page ? ` · p.${x.page}` : ''}\\n${x.text}`\n    ).join('\\n\\n')\n  : `No passages in the library matched \"${src.query}\".`;\n\nif (!web.length) {\n  // A gap fired but the web returned nothing usable (every candidate refused the\n  // fetch, or the arm errored). Say so plainly rather than silently look covered.\n  const why = gap.length\n    ? `\\n\\nThe library does not cover ${gap.map(t => `\"${t}\"`).join(', ')}, and no usable web source was reachable${webError ? ' (web search failed)' : ''}.`\n    : '';\n  return [{ json: { response: libraryBlock + why } }];\n}\n\n// ⛔ [W..] is deliberately a DIFFERENT marker from [S..], and the framing below\n// is an instruction the model reads, not decoration. Web passages are not in the\n// library, carry none of its editorial vetting, and must never be presented as\n// though they were: an answer that blurs the two is the failure this whole\n// citation scheme exists to prevent.\nconst webBlock = web.map((x, n) =>\n  `[W${n + 1}] ${x.url}${x.heading ? ` · ${x.heading}` : ''}\\n${x.text}`\n).join('\\n\\n');\n\nconst gapNote = gap.length\n  ? `Your library has never seen ${gap.map(t => `\"${t}\"`).join(', ')}, so these came from the web.`\n  : 'These came from the web, not your library.';\n\nreturn [{ json: {\n  response: `${libraryBlock}\\n\\n---\\n${gapNote}\\n` +\n    `Cite them as [W1], [W2] — NOT as [S1] — and tell the reader plainly that ` +\n    `this part is from the web and is not in their library.\\n\\n${webBlock}`,\n}}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1040,
+        1664,
         0
       ],
       "id": "7d4c4704-2c3e-46eb-8d16-2dc2beb75a66",
@@ -146,6 +146,62 @@
       "executeOnce": true,
       "alwaysOutputData": true,
       "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "corpus-has-never-seen-these-words",
+              "leftValue": "={{ ($('Search knowledge').first().json.gap_terms ?? []).length > 0 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "gap-gate-web-arm",
+      "name": "Gap?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://webarm:5055/search",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ query: $('Normalise input').first().json.query, top_k: 3 }) }}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1456,
+        -128
+      ],
+      "id": "web-arm-call",
+      "name": "Web arm",
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
     }
   ],
   "connections": {
@@ -205,6 +261,35 @@
       ]
     },
     "Log retrieval": {
+      "main": [
+        [
+          {
+            "node": "Gap?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gap?": {
+      "main": [
+        [
+          {
+            "node": "Web arm",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web arm": {
       "main": [
         [
           {

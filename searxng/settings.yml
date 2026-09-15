@@ -1,0 +1,38 @@
+# =============================================================================
+# SearXNG — the web arm's search backend (architecture §3.4, step 4)
+#
+# Self-hosted on purpose: every other moving part in this stack (Ollama, Docling,
+# Supabase) runs locally, and a search backend with an API key would be the only
+# component that bills per query and stops working offline.
+#
+# ⚠️ `search.formats` MUST list `json`. SearXNG serves HTML only by default and
+# returns 403 for format=json without this — the failure looks like a broken
+# request, not a missing setting.
+# =============================================================================
+use_default_settings: true
+
+general:
+  instance_name: "homebrew-assistant"
+  # No public instance, no reason to advertise metrics.
+  enable_metrics: false
+
+server:
+  # Replaced at container start from SEARXNG_SECRET (the image's entrypoint seds
+  # this literal), which is why the bind mount is read-write.
+  secret_key: "ultrasecretkey"
+  # ⚠️ Off deliberately. The limiter is bot detection for public instances; it
+  # rejects any request without browser headers, which is every request n8n makes.
+  # Safe here because the container is not published outside the compose network.
+  limiter: false
+  image_proxy: false
+
+search:
+  formats:
+    - html
+    - json
+  safe_search: 0
+  # The agent's rewrite is already English; autocomplete costs a round trip.
+  autocomplete: ""
+
+ui:
+  static_use_hash: true

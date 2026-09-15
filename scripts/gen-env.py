@@ -67,6 +67,11 @@ N8N_ENCRYPTION_KEY={secrets.token_hex(24)}
 N8N_USER_MANAGEMENT_JWT_SECRET={secrets.token_hex(24)}
 N8N_DEFAULT_BINARY_DATA_MODE=filesystem
 
+# --- SearXNG (web arm of retrieval, §3.4) ------------------------------------
+# The image's entrypoint seds this over the `ultrasecretkey` placeholder in
+# searxng/settings.yml at container start.
+SEARXNG_SECRET={secrets.token_hex(32)}
+
 # --- Ollama / models (architecture §4) --------------------------------------
 # Verify these tags exist on ollama.com/library before first pull (§4.3).
 OLLAMA_CHAT_MODEL=gemma4:12b-it-q8_0
