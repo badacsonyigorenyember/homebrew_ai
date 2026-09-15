@@ -251,22 +251,15 @@ GRANT EXECUTE ON FUNCTION brew.f_save_recipe(text, numeric, jsonb, bigint, numer
 GRANT USAGE ON SCHEMA brew TO mem_writer;
 
 -- ---------------------------------------------------------------------------
--- brew.f_catalogue  ·  what the model is allowed to choose from
---
--- SECURITY DEFINER for the same reason as f_save_recipe: the calling role holds
--- no SELECT on brew.* and must not gain one. This exposes the CATALOGUE only --
--- rows seeded from ref.* published data -- never batches, inventory or
--- measurements. Compact on purpose: it goes into a prompt.
+-- brew.f_catalogue is defined once, further down -- see "v2, now returns a
+-- ROLE". A superseded 7-column definition used to sit here, and because it ran
+-- BEFORE the 8-column one it made this whole file non-idempotent: on a fresh
+-- database it was harmlessly replaced, but on any restart the 8-column function
+-- already existed and CREATE OR REPLACE failed with "cannot change return type
+-- of existing function". db-init runs with ON_ERROR_STOP=1 and this hardcoded
+-- file list, so that error halted the run HERE and silently skipped every
+-- later file -- 62_obs_recipe_prompts.sql and 63_model_switch.sql included.
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION brew.f_catalogue(p_kind text DEFAULT NULL)
-RETURNS TABLE (id bigint, kind text, name text, supplier text,
-               potential_ppg numeric, color_lovibond numeric, alpha_acid_pct numeric)
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = brew, public AS $fn$
-  SELECT i.id, i.kind, i.name, i.supplier, i.potential_ppg, i.color_lovibond, i.alpha_acid_pct
-  FROM brew.ingredients i
-  WHERE p_kind IS NULL OR i.kind = p_kind
-  ORDER BY i.kind, coalesce(i.color_lovibond, 0), i.name
-$fn$;
 
 -- ---------------------------------------------------------------------------
 -- brew.f_fit_recipe  ·  hit the target gravity without asking the model to
@@ -404,11 +397,24 @@ GRANT EXECUTE ON FUNCTION brew.f_fit_to_abv(numeric, jsonb, numeric, numeric, nu
 -- malt cannot land in 'roast' because of what it is called.
 --
 --   base    < 10 L   pale and lightly kilned; Munich and Vienna live here too
---   caramel 10-199   crystal, caramel, the lighter chocolates
+--   caramel 10-199   crystal and caramel
 --   roast   >= 200   chocolate, black, CARAFA, roasted barley
+--               ...  OR named for a roasted family AND at least 100 L
 --
 -- The 200 boundary is not arbitrary: in this catalogue nothing sits between
 -- 151.2 and 207.8, so the gap is where the corpus itself separates them.
+--
+-- ⛔ But colour alone got one row wrong, and a model found it. Viking "Chocolate
+-- Light Malt" is 150.5 L -- 296 EBC -- and colour alone files it under the
+-- header "CARAMEL & CRYSTAL MALTS (10-199 degL)", which is simply false: it is
+-- a roasted malt. qwen3.5:9b used it as one (measured, recipe 13), correctly,
+-- and scored 5.1% roast instead of 12.8% because the bucket lied to it.
+--
+-- So the name IS consulted now -- but only to PROMOTE into 'roast', only for
+-- named roasted families, and only above 100 L. That colour floor is what keeps
+-- the original bug fixed: "Floor-Malted Bohemian Dark Malt" at 6.5 L cannot
+-- reach it, and "dark" is deliberately absent from the pattern. The name can
+-- never pull a malt down out of 'roast', and it can never act on its own.
 -- ---------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS brew.f_catalogue(text);
 
@@ -422,6 +428,9 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = brew, public AS $fn$
              CASE
                WHEN i.color_lovibond IS NULL     THEN 'base'
                WHEN i.color_lovibond >= 200      THEN 'roast'
+               WHEN i.color_lovibond >= 100
+                AND i.name ~* '(chocolate|black|roast|carafa|patent)'
+                                                 THEN 'roast'
                WHEN i.color_lovibond >= 10       THEN 'caramel'
                ELSE 'base'
              END

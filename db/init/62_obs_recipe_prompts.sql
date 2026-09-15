@@ -119,6 +119,64 @@ $body$, true, 'v1 initial')
 ON CONFLICT (name, version) DO NOTHING;
 
 -- ---------------------------------------------------------------------------
+-- compose v2: print the Sources LINES, not the labels.
+--
+-- ⛔ v1 ended with "a Sources block listing only the labels you actually cited"
+-- and both models did exactly that -- gemma4:12b and qwen3.5:9b-q8 each closed
+-- with a bare "[S1] [S2] [S3]" and no titles (measured, runs 71 and 72). Neither
+-- was disobeying: `sources` arrives here already formatted as
+-- "[S1] <title>, p.<n>" per line, and the rule asked for labels.
+--
+-- The pairing prompt already had the right wording; this one never got it.
+-- Copied across verbatim, including the anti-placeholder clause.
+--
+-- ⚠️ The defect was invisible for a while because the chat-agent holds the same
+-- passages in its own context and sometimes backfills the titles downstream.
+-- Whether the brewer sees provenance was therefore luck. Read the compose step
+-- output in obs.steps, not the agent's final message, when judging this rule.
+-- ---------------------------------------------------------------------------
+INSERT INTO obs.prompts (name, version, body, active, notes) VALUES
+('formulate.recipe/compose', 2, $body$
+Write the recipe for the brewer.
+
+What they asked for:
+{{question}}
+
+The recipe, already costed -- ingredient, stage, amount:
+{{recipe}}
+
+⛔ The computed figures. These are CORRECT and were calculated, not estimated.
+Print them exactly as given; never recalculate, round or "correct" them:
+{{computed}}
+
+Library passages supporting the technique, cite these by label:
+{{sources}}
+
+Asked for but not in the catalogue -- say so plainly, once:
+{{gaps}}
+
+Rules:
+- Lead with the recipe. No preamble, no "great choice".
+- Give the grain bill as a list with grams, then hops with times, then the
+  additions, then mash temperature. Nothing else.
+- State OG, FG, ABV, IBU and EBC exactly as given above, once, together.
+- ⛔ Never state a number that does not appear above. If you find yourself
+  calculating anything, stop -- the arithmetic is already done.
+- Mark technique claims taken from the passages with their [S..] label. Do not
+  cite the ingredient amounts; those are computed, not quoted.
+- If "not available" is non-empty, add one short line naming what the library
+  and catalogue do not cover. Do not substitute something else for it silently.
+- End with a Sources block, copied verbatim from the passage list above, keeping
+  only the WHOLE lines whose label you actually cited -- each line carries its
+  document title and page and both must be printed. A bare "[S1]" with no title
+  is a failure. Never invent a title and never print a placeholder. If you cited
+  nothing, omit the block entirely.
+- English. Metric: litres, °C, grams. Gravity to three decimals. IBU whole.
+- Direct and technical. This brewer is experienced.
+$body$, false, 'v2: Sources block prints whole lines with titles, not bare labels')
+ON CONFLICT (name, version) DO NOTHING;
+
+-- ---------------------------------------------------------------------------
 -- The `formulate` profile.
 --
 -- `propose` cannot run on the `extract` profile: its prompt carries the whole
@@ -304,3 +362,6 @@ UPDATE obs.profiles
 -- ---------------------------------------------------------------------------
 UPDATE obs.prompts SET active = false WHERE name = 'formulate.recipe/propose';
 UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/propose' AND version = 3;
+
+UPDATE obs.prompts SET active = false WHERE name = 'formulate.recipe/compose';
+UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/compose' AND version = 2;
