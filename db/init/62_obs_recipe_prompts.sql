@@ -432,6 +432,85 @@ UPDATE obs.profiles
  WHERE name = 'formulate';
 
 -- ---------------------------------------------------------------------------
+-- propose v4 — a slot for the verifier to answer into.
+--
+-- The computed figures are now checked against the brief before the recipe is
+-- accepted (`Check bands` in cap-formulate-recipe), and a miss re-runs THIS step
+-- once with the miss named in numbers. That correction has to reach the model
+-- somewhere, and it cannot be smuggled into {{question}} or {{spec}} -- those are
+-- what the brewer said, and overwriting them would falsify what obs.steps
+-- records as the request.
+--
+-- So v4 is v3 with one empty placeholder, and nothing else changes: byte for
+-- byte the same instructions, the same colour floor, the same binding `avoid`.
+-- The first attempt supplies correction: '' and renders exactly v3; only a
+-- second attempt fills it, with the sentences `Check bands` built from
+-- ref.f_style_bands and brew.f_compute_recipe -- numbers, and the catalogue
+-- section to move, never "try again".
+--
+-- ⛔ The slot is UNCONDITIONAL because wf-step-llm's `Render prompt` throws on a
+-- placeholder it was not given. Both callers must pass `correction`; the first
+-- one passes nothing.
+-- ---------------------------------------------------------------------------
+INSERT INTO obs.prompts (name, version, body, active, notes) VALUES
+('formulate.recipe/propose', 4, $body$
+You are formulating a grain bill and hop schedule for an experienced homebrewer.
+
+Their request:
+{{question}}
+
+The brief:
+{{spec}}
+
+Passages from the brewer's library -- use these for TECHNIQUE decisions (mash
+temperature, when to add an adjunct, what builds body in this style):
+{{passages}}
+
+The ONLY ingredients you may use, grouped by what they do:
+{{catalogue}}
+
+Choose the ingredients and their PROPORTIONS. Output JSON only.
+
+⛔ Every ingredient_id MUST appear in the lists above, copied exactly. Never
+invent an id and never use an ingredient that is not listed -- if the brewer
+asked for something absent, leave it out and name it in "not_available".
+
+⛔ Do NOT state a gravity, ABV, IBU, colour or efficiency anywhere. Those are
+computed from your choices after you answer. Your amounts set PROPORTIONS only;
+the mashed grain is scaled afterwards to hit the target strength.
+
+⛔ COLOUR COMES FROM THE "ROAST MALTS" LIST AND NOWHERE ELSE. A malt with "dark"
+or "brown" in its name is not a roast malt -- the lists already sort that out,
+so trust the heading, not the name. For a stout or porter take 8-15% of the
+grain bill from ROAST MALTS specifically; below 8% it is a brown ale wearing the
+wrong name, above 15% it turns acrid. Caramel malts add sweetness and body, not
+darkness. A pale style takes none.
+
+⛔ THE "avoid" LIST IN THE BRIEF IS BINDING. If it names hops or bitterness, the
+bittering addition is 10-15 min and no more than 10 g per 10 L of batch -- NOT
+60 min. A late, small addition gives balance without bitterness. Honour every
+other entry in "avoid" the same way.
+
+{{correction}}
+
+Fields:
+- items: array of {ingredient_id, stage, qty_g, timing_min, notes}
+  - stage: one of "mash", "boil", "whirlpool", "dryhop", "fermenter", "packaging".
+  - qty_g: grams. Whole numbers.
+  - timing_min: REQUIRED for every hop and every boil addition -- minutes before
+    the end of the boil. Normally 60; see the avoid rule above.
+  - notes: at most 12 words saying what that ingredient is doing.
+  - Base malt is normally 70-85% of the grain. Sugars and lactose go in at
+    "boil" late, never in the mash.
+  - Always include exactly one hop. Even a sweet stout needs a little balance.
+- mash_temp_c: a single number. Higher leaves more unfermentable body.
+- attenuation: apparent attenuation as a decimal (0.72 = 72%). Lower finishes sweeter.
+- not_available: array of things the brewer asked for that are not in the lists.
+- rationale: one sentence, at most 30 words, on the shape of the grist.
+$body$, false, 'v4: {{correction}} slot for the verifier gate; v3 otherwise verbatim')
+ON CONFLICT (name, version) DO NOTHING;
+
+-- ---------------------------------------------------------------------------
 -- Which propose version is live.
 --
 -- prompts_one_active_idx allows exactly one ACTIVE row per name, so activating
@@ -441,7 +520,7 @@ UPDATE obs.profiles
 -- version number here to roll forward or back.
 -- ---------------------------------------------------------------------------
 UPDATE obs.prompts SET active = false WHERE name = 'formulate.recipe/propose';
-UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/propose' AND version = 3;
+UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/propose' AND version = 4;
 
 UPDATE obs.prompts SET active = false WHERE name = 'formulate.recipe/compose';
 UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/compose' AND version = 3;

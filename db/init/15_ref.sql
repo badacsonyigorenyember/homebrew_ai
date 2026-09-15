@@ -156,3 +156,78 @@ LANGUAGE sql IMMUTABLE SET search_path = ref, public AS $fn$
     ELSE trim_scale(lo) || '-' || trim_scale(hi) || unit
   END
 $fn$;
+
+-- ---------------------------------------------------------------------------
+-- ref.f_style_bands  ·  the published band a computed recipe is checked against
+--
+-- cap-formulate-recipe verifies its computed OG/ABV/SRM before accepting a
+-- recipe, and the band it checks against has to come from somewhere defensible:
+-- a gate that invents a target refuses beers the brewer never asked to have
+-- refused. So the only source is what a guide actually publishes about the style
+-- the brewer named -- these columns, nothing else.
+--
+-- The brewer's words are not a style code. `formulate.recipe/parse` returns the
+-- style "in the brewer's words" -- "pastry stout", "dry irish stout" -- so match
+-- on the HEAD NOUN (the last word; English beer-style names are head-final), then
+-- keep only the rows sharing the MOST of the remaining words. "pastry stout"
+-- resolves to BA "Dessert Stout or Pastry Beer" alone; a bare "stout" keeps all
+-- sixteen and gets the widest band of the set. Ambiguity widens the band, never
+-- narrows it, so an uncertain match cannot manufacture a constraint.
+--
+-- ⛔ A NULL end is an OPEN end, never a zero. has_vitals keeps out the 20 BJCP
+-- styles that define no vitals at all, but BA writes "40+" as srm_max NULL and
+-- two rows carry no srm_min, and both must read as "no bound on that side".
+--
+-- ⛔ An srm_max of 40 or more is returned as NO ceiling. Above roughly SRM 30 a
+-- beer is opaque and the difference stops being visible -- 29_brew_formulate.sql
+-- says the same about Morey past 50. Of the sixteen stout rows here seven name no
+-- ceiling and eight name exactly 40: the guides themselves stop distinguishing
+-- there. `measured`: 29 runs of the same pastry-stout request landed SRM 35.1-43.3
+-- twenty-six times, so a literal 40 would reject five beers that are simply black.
+--
+-- Returns NULL when the style names nothing. The caller must then let the recipe
+-- through rather than guess.
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION ref.f_style_bands(p_style text)
+RETURNS jsonb
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ref, public AS $fn$
+  WITH w AS (
+    SELECT array_remove(regexp_split_to_array(
+             regexp_replace(lower(btrim(coalesce(p_style, ''))), '[^a-z0-9]+', ' ', 'g'),
+             ' '), '') AS words
+  ),
+  h AS (SELECT words, words[array_length(words, 1)] AS head FROM w),
+  m AS (
+    SELECT s.name, s.srm_min, s.srm_max, s.abv_min, s.abv_max,
+           (SELECT count(*) FROM unnest(h.words) x
+             WHERE length(x) >= 3 AND s.name ILIKE '%' || x || '%') AS hits
+    FROM ref.styles s, h
+    -- 'beer' is the sentinel `Unpack brief` substitutes when parse named no
+    -- style; as a head noun it matches "Fruit Beer", "Spice Beer" and the pastry
+    -- row alike, which is not a style, it is a shrug. No style named, no band.
+    WHERE h.head IS NOT NULL AND h.head <> 'beer'
+      AND s.has_vitals
+      AND s.name ILIKE '%' || h.head || '%'
+  ),
+  best AS (SELECT * FROM m WHERE hits = (SELECT max(hits) FROM m))
+  SELECT CASE WHEN count(*) = 0 THEN NULL ELSE jsonb_build_object(
+    'styles',  (SELECT jsonb_agg(DISTINCT name) FROM best),
+    'srm_min', CASE WHEN bool_or(srm_min IS NULL) THEN NULL ELSE min(srm_min) END,
+    'srm_max', CASE WHEN bool_or(srm_max IS NULL) OR max(srm_max) >= 40
+                    THEN NULL ELSE max(srm_max) END,
+    'abv_min', CASE WHEN bool_or(abv_min IS NULL) THEN NULL ELSE min(abv_min) END,
+    'abv_max', CASE WHEN bool_or(abv_max IS NULL) THEN NULL ELSE max(abv_max) END
+  ) END
+  FROM best
+$fn$;
+
+COMMENT ON FUNCTION ref.f_style_bands(text) IS
+  'The published SRM and ABV band for a style named in the brewer''s own words, '
+  'as the envelope of the ref.styles rows that best match those words. NULL when '
+  'nothing matches -- a caller must let the recipe through rather than invent a '
+  'band. An open end from the guide stays open, and so does any srm_max of 40+.';
+
+-- SECURITY DEFINER, so mem_writer reads the band without holding SELECT on
+-- ref.styles -- the contract 29_brew_formulate.sql already uses for brew.
+GRANT USAGE ON SCHEMA ref TO mem_writer;
+GRANT EXECUTE ON FUNCTION ref.f_style_bands(text) TO mem_writer;

@@ -246,13 +246,36 @@
     {
       "parameters": {
         "operation": "executeQuery",
+        "query": "SELECT coalesce(ref.f_style_bands($1::text), '{}'::jsonb) AS bands;",
+        "options": {
+          "queryReplacement": "={{ [ $('Unpack brief').first().json.style ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1100,
+        0
+      ],
+      "id": "3f1c9a52-0b47-4e6d-9a11-6c2f0d7e4a10",
+      "name": "Style bands",
+      "credentials": {
+        "postgres": {
+          "id": "memWriterCred001",
+          "name": "Postgres — mem_writer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
         "query": "SELECT * FROM brew.f_catalogue();",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1100,
+        1320,
         0
       ],
       "id": "b7c31050-7e65-405c-9c1b-0e9460f19e71",
@@ -271,7 +294,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1320,
+        1540,
         0
       ],
       "id": "5fe7ae13-dbaf-4478-a3e4-6251f6b5168a",
@@ -294,7 +317,7 @@
             "step_id": "propose",
             "profile": "formulate",
             "prompt_name": "formulate.recipe/propose",
-            "vars_json": "={{ JSON.stringify({ question: $json.question, spec: JSON.stringify({ style: $json.style, batch_size_l: $json.batch_size_l, target_abv_pct: $json.target_abv_pct, descriptors: $json.descriptors, must_include: $json.must_include, avoid: $json.avoid }), catalogue: $json.catalogue, passages: $json.passages || 'none' }) }}",
+            "vars_json": "={{ JSON.stringify({ question: $json.question, spec: JSON.stringify({ style: $json.style, batch_size_l: $json.batch_size_l, target_abv_pct: $json.target_abv_pct, descriptors: $json.descriptors, must_include: $json.must_include, avoid: $json.avoid }), catalogue: $json.catalogue, passages: $json.passages || 'none', correction: '' }) }}",
             "schema_json": "={{ JSON.stringify({ type:\"object\", properties:{ items:{type:\"array\", items:{type:\"object\", properties:{ ingredient_id:{type:\"number\"}, stage:{type:\"string\"}, qty_g:{type:\"number\"}, timing_min:{type:\"number\"}, notes:{type:\"string\"} }, required:[\"ingredient_id\",\"stage\",\"qty_g\"] } }, mash_temp_c:{type:\"number\"}, attenuation:{type:\"number\"}, not_available:{type:\"array\",items:{type:\"string\"} }, rationale:{type:\"string\"} }, required:[\"items\",\"mash_temp_c\",\"attenuation\"] }) }}"
           },
           "matchingColumns": [],
@@ -373,7 +396,7 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        1540,
+        1760,
         0
       ],
       "id": "e7eeec16-58fe-41df-8c62-f6dcb6010bea",
@@ -389,7 +412,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1760,
+        1980,
         0
       ],
       "id": "49aa07bd-2d1e-4542-9217-9fe5acdb2902",
@@ -406,7 +429,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1980,
+        2200,
         0
       ],
       "id": "84502e4b-ffbf-4839-9b35-3b467f4479ee",
@@ -420,6 +443,53 @@
     },
     {
       "parameters": {
+        "jsCode": "// ⛔ Nothing between the arithmetic and the brewer ever checked the computed\n// figures against the brief, so a recipe that is plainly wrong was saved and\n// presented as finished. All four measured, all four handed over as stouts:\n// recipe 3 and recipe 5 at SRM 7.0 with no roast malt in the grist at all,\n// recipe 10 at SRM 12.8, recipe 16 at SRM 20.2 three times identically. Every\n// number needed to catch them was already sitting in `fit.computed`.\n//\n// The check is arithmetic, never a model. brew.f_compute_recipe exists because\n// judgement about numbers belongs in SQL (§7.4), and a model marking its own\n// homework would hand it straight back. The bands are what BJCP and BA publish\n// (ref.f_style_bands) and the ABV the brewer actually asked for. Nothing here\n// invents a target: no band, no opinion, and the recipe goes through.\nconst v     = $('Validate proposal').first().json;\nconst fit   = $input.first().json.fit;\nconst c     = fit.computed;\nconst bands = $('Style bands').first().json.bands ?? {};   // {} = style matched nothing\nconst style = (bands.styles ?? []).join(' / ');\n\n// Every miss is written twice on purpose: once for the model, imperative and\n// naming the catalogue section it has to move, and once for the brewer, who is\n// owed the number rather than the instruction.\nconst misses = [];\n\n// ABV — the brewer's own figure is the band. brew.f_fit_to_abv bisects straight\n// onto it, so ±0.5% is ten times the fitter's own resolution and a miss means\n// the target was UNREACHABLE: the grist could not scale far enough, or the\n// unfermentables already overshot it. The published range is used only when the\n// brewer named no strength at all, which `Unpack brief` records as 0.\nconst tgt   = Number(v.target_abv_pct);\nconst abvLo = tgt > 0 ? tgt - 0.5 : (bands.abv_min ?? null);\nconst abvHi = tgt > 0 ? tgt + 0.5 : (bands.abv_max ?? null);\nconst want  = tgt > 0 ? `${tgt}%` : `${abvLo}-${abvHi}%`;\nif (abvLo != null && c.abv_pct < abvLo) misses.push({\n  model:  `The previous attempt computed ABV ${c.abv_pct}%, against a target of ${want}. Cut the lactose and the caramel malts -- they raise a gravity the yeast cannot reach -- and let the base malt carry the strength.`,\n  brewer: `strength came out at ${c.abv_pct}% ABV against a target of ${want}; the unfermentable additions may be crowding out the base malt`,\n});\nelse if (abvHi != null && c.abv_pct > abvHi) misses.push({\n  model:  `The previous attempt computed ABV ${c.abv_pct}%, against a target of ${want}. Cut the sugars and the lactose; those are never scaled to hit the target, so they are carrying too much of the gravity.`,\n  brewer: `strength came out at ${c.abv_pct}% ABV against a target of ${want}; the sugar and lactose additions are carrying too much of the gravity`,\n});\n\n// SRM — the published band only. The brewer never states a colour, and a colour\n// target invented here would refuse beers nobody asked to have refused.\nif (bands.srm_min != null && c.srm < bands.srm_min) misses.push({\n  model:  `The previous attempt computed SRM ${c.srm}. A ${style} is SRM ${bands.srm_min} or darker. Take more of the grain bill from the ROAST MALTS section -- caramel malts add sweetness, not colour.`,\n  brewer: `colour came out at SRM ${c.srm} against SRM ${bands.srm_min} or darker for a ${style}; the grist may need more roast malt`,\n});\nelse if (bands.srm_max != null && c.srm > bands.srm_max) misses.push({\n  model:  `The previous attempt computed SRM ${c.srm}. A ${style} is SRM ${bands.srm_max} or paler. Take less of the grain bill from the ROAST MALTS section, and none at all if the style calls for none.`,\n  brewer: `colour came out at SRM ${c.srm} against SRM ${bands.srm_max} or paler for a ${style}; the grist may have too much roast malt`,\n});\n\n// ⛔ EXACTLY ONE retry, and the flag is `isExecuted` rather than a counter: it is\n// a plain lookup in this run's node data, so the second pass through here cannot\n// fail to see it and loop the model forever. A second miss is REPORTED, never\n// retried again — looping until a 12B passes turns one bad recipe into an\n// unbounded run, and obs.runs budgets steps for a reason.\nconst retried = $('Step 3b · re-propose').isExecuted;\nconst retry   = misses.length > 0 && !retried;\n\nreturn [{ json: { ...v, fit, gate: {\n  attempt:  retried ? 2 : 1,\n  bands,\n  computed: { abv_pct: c.abv_pct, srm: c.srm, ibu: c.ibu },\n  retry,\n  // Only a miss that SURVIVED the retry is the brewer's business; one the retry\n  // fixed is obs.steps' business.\n  unresolved: retry ? [] : misses.map(m => m.brewer),\n  correction: retry\n    ? '⛔ THIS IS A SECOND ATTEMPT. Your last grain bill was computed and came out wrong:\\n'\n      + misses.map(m => m.model).join('\\n')\n      + '\\nFix exactly that, and keep the rest of the grist you already chose.'\n    : '',\n}}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2420,
+        0
+      ],
+      "id": "8d40b7c6-52ae-4f38-b0d9-1e5a9c3b7f22",
+      "name": "Check bands"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "out-of-band-and-not-yet-retried",
+              "leftValue": "={{ $json.gate.retry }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2640,
+        0
+      ],
+      "id": "c6b2e910-77d4-4f0b-8a63-2ef1d4c95b88",
+      "name": "Retry propose?"
+    },
+    {
+      "parameters": {
         "operation": "executeQuery",
         "query": "SELECT brew.f_save_recipe($1::text, $2::numeric, $3::jsonb, NULL::bigint, 0.72, $4::numeric, $5::numeric, $6::jsonb, $7::text) AS saved;",
         "options": {
@@ -429,7 +499,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        2200,
+        2860,
         0
       ],
       "id": "0cd198e7-f2d4-4405-9d36-31deedee698f",
@@ -443,12 +513,12 @@
     },
     {
       "parameters": {
-        "jsCode": "const v     = $('Validate proposal').first().json;\nconst fit   = $('Fit to target').first().json.fit;\nconst saved = $input.first().json.saved;\n\n// The recipe lines are built from the SAVED items, not the proposed ones: the\n// grist was scaled to hit the target, so the proposed grams are stale.\nconst lines = fit.items.map(it => {\n  const t = it.timing_min != null ? `, ${it.timing_min} min` : '';\n  const n = it.notes ? ` — ${it.notes}` : '';\n  return `${v.names[it.ingredient_id]} · ${it.stage}${t} · ${it.qty_g} g${n}`;\n}).join('\\n');\n\nconst c = saved.computed;\nconst computed = [\n  `OG ${c.og}`, `FG ${c.fg}`, `ABV ${c.abv_pct}%`,\n  `IBU ${c.ibu}`, `EBC ${c.ebc}`, `SRM ${c.srm}`,\n  `batch ${c.batch_size_l} L`, `mash ${v.mash_temp_c} °C`,\n].join(' · ');\n\nconst sources = Object.values(v.idmap)\n  .map(s => `[${s.label}] ${s.doc_title}${s.page ? `, p.${s.page}` : ''}`).join('\\n');\n\nreturn [{ json: {\n  run_id: v.run_id,\n  question: v.question,\n  recipe: lines,\n  computed,\n  sources: sources || 'none',\n  gaps: v.gaps.length ? v.gaps.join('; ') : 'none',\n  recipe_id: saved.recipe_id,\n  version: saved.version,\n  scale_factor: fit.scale_factor,\n  spent: JSON.stringify({ recipe_id: saved.recipe_id, version: saved.version,\n                          items: saved.items, scale_factor: fit.scale_factor }),\n}}];"
+        "jsCode": "const v     = $('Validate proposal').first().json;\nconst fit   = $('Fit to target').first().json.fit;\nconst saved = $input.first().json.saved;\n// ⛔ A verifier miss that survived the retry is NOT routed through `compose`.\n// This model drops lines it was told to print -- the mandatory Sources heading\n// went missing in 3 of 5 measured runs -- and a recipe that missed its band has\n// to say so every time. `Return` appends it verbatim instead.\nconst gate  = $('Check bands').first().json.gate;\n\n// The recipe lines are built from the SAVED items, not the proposed ones: the\n// grist was scaled to hit the target, so the proposed grams are stale.\nconst lines = fit.items.map(it => {\n  const t = it.timing_min != null ? `, ${it.timing_min} min` : '';\n  const n = it.notes ? ` — ${it.notes}` : '';\n  return `${v.names[it.ingredient_id]} · ${it.stage}${t} · ${it.qty_g} g${n}`;\n}).join('\\n');\n\nconst c = saved.computed;\nconst computed = [\n  `OG ${c.og}`, `FG ${c.fg}`, `ABV ${c.abv_pct}%`,\n  `IBU ${c.ibu}`, `EBC ${c.ebc}`, `SRM ${c.srm}`,\n  `batch ${c.batch_size_l} L`, `mash ${v.mash_temp_c} °C`,\n].join(' · ');\n\nconst sources = Object.values(v.idmap)\n  .map(s => `[${s.label}] ${s.doc_title}${s.page ? `, p.${s.page}` : ''}`).join('\\n');\n\nreturn [{ json: {\n  run_id: v.run_id,\n  question: v.question,\n  recipe: lines,\n  computed,\n  sources: sources || 'none',\n  gaps: v.gaps.length ? v.gaps.join('; ') : 'none',\n  recipe_id: saved.recipe_id,\n  version: saved.version,\n  scale_factor: fit.scale_factor,\n  unresolved: gate.unresolved,\n  spent: JSON.stringify({ recipe_id: saved.recipe_id, version: saved.version,\n                          items: saved.items, scale_factor: fit.scale_factor,\n                          gate: { attempt: gate.attempt, unresolved: gate.unresolved } }),\n}}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2420,
+        3080,
         0
       ],
       "id": "b5e622e7-3a40-48d7-8d41-c5befddf3bd1",
@@ -550,7 +620,7 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        2640,
+        3300,
         0
       ],
       "id": "884ab711-4b53-415d-947e-77356f97e4d0",
@@ -567,7 +637,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        2860,
+        3520,
         0
       ],
       "id": "dfb1b633-9465-46b3-8d0a-75428f3cdddf",
@@ -581,16 +651,121 @@
     },
     {
       "parameters": {
-        "jsCode": "// One item, one key — the toolWorkflow node hands the last output to the model.\nconst c = $('Build compose vars').first().json;\nconst text = String($('Step 4 · compose').first().json.output ?? '').trim()\n             || `${c.recipe}\\n\\n${c.computed}`;\nreturn [{ json: { response: `${text}\\n\\n(saved as recipe #${c.recipe_id} v${c.version})` } }];"
+        "jsCode": "// One item, one key — the toolWorkflow node hands the last output to the model.\nconst c = $('Build compose vars').first().json;\nconst text = String($('Step 4 · compose').first().json.output ?? '').trim()\n             || `${c.recipe}\\n\\n${c.computed}`;\n// ⛔ Deterministic, not composed: a recipe that still missed its band after the\n// one retry says so in the answer itself, in these words, every time.\nconst miss = c.unresolved.length\n  ? `\\n\\n⚠️ This recipe did not land inside the published band for the style: ${c.unresolved.join('; ')}.`\n  : '';\nreturn [{ json: { response: `${text}${miss}\\n\\n(saved as recipe #${c.recipe_id} v${c.version})` } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3080,
+        3740,
         0
       ],
       "id": "c2268da1-bc57-44ed-b688-4d3bb97065d7",
       "name": "Return"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "L0uI1b3FWMgUEszB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/L0uI1b3FWMgUEszB",
+          "cachedResultName": "wf-step-llm"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "seq": 4,
+            "step_id": "propose",
+            "profile": "formulate",
+            "prompt_name": "formulate.recipe/propose",
+            "vars_json": "={{ JSON.stringify({ question: $json.question, spec: JSON.stringify({ style: $json.style, batch_size_l: $json.batch_size_l, target_abv_pct: $json.target_abv_pct, descriptors: $json.descriptors, must_include: $json.must_include, avoid: $json.avoid }), catalogue: $json.catalogue, passages: $json.passages || 'none', correction: $json.gate.correction }) }}",
+            "schema_json": "={{ JSON.stringify({ type:\"object\", properties:{ items:{type:\"array\", items:{type:\"object\", properties:{ ingredient_id:{type:\"number\"}, stage:{type:\"string\"}, qty_g:{type:\"number\"}, timing_min:{type:\"number\"}, notes:{type:\"string\"} }, required:[\"ingredient_id\",\"stage\",\"qty_g\"] } }, mash_temp_c:{type:\"number\"}, attenuation:{type:\"number\"}, not_available:{type:\"array\",items:{type:\"string\"} }, rationale:{type:\"string\"} }, required:[\"items\",\"mash_temp_c\",\"attenuation\"] }) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "seq",
+              "displayName": "seq",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "step_id",
+              "displayName": "step_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "profile",
+              "displayName": "profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "prompt_name",
+              "displayName": "prompt_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "vars_json",
+              "displayName": "vars_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "schema_json",
+              "displayName": "schema_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2860,
+        -200
+      ],
+      "id": "a01f6d23-9c85-4e77-bb40-5d3e8f10c7a4",
+      "name": "Step 3b · re-propose",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     }
   ],
   "connections": {
@@ -642,7 +817,7 @@
       "main": [
         [
           {
-            "node": "Load catalogue",
+            "node": "Style bands",
             "type": "main",
             "index": 0
           }
@@ -697,7 +872,7 @@
       "main": [
         [
           {
-            "node": "Save recipe",
+            "node": "Check bands",
             "type": "main",
             "index": 0
           }
@@ -742,6 +917,57 @@
         [
           {
             "node": "Return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Style bands": {
+      "main": [
+        [
+          {
+            "node": "Load catalogue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check bands": {
+      "main": [
+        [
+          {
+            "node": "Retry propose?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry propose?": {
+      "main": [
+        [
+          {
+            "node": "Step 3b · re-propose",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save recipe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 3b · re-propose": {
+      "main": [
+        [
+          {
+            "node": "Validate proposal",
             "type": "main",
             "index": 0
           }
