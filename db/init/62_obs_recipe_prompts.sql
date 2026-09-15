@@ -519,8 +519,310 @@ ON CONFLICT (name, version) DO NOTHING;
 -- aborts. Clear them all, then set the one that should be live. Change the
 -- version number here to roll forward or back.
 -- ---------------------------------------------------------------------------
+-- ---------------------------------------------------------------------------
+-- propose v5: stop `avoid` eating the hop schedule, take roast FIRST, and make
+-- a self-contradicting request say so.
+--
+-- ⛔ Three failures found by the first full run of scripts/stress/recipe_eval.py
+-- (1 PASS / 5 FAIL on gemma4:12b-it-q8_0). All three are prompt defects, not
+-- model defects -- the model did what v4 told it to.
+--
+-- 1. THE HOP COLLAPSE. v4 ended the `avoid` rule with "Honour every other entry
+--    in avoid the same way", meaning "respect the other entries too". It reads
+--    as "give the other entries the same 10-15 min hop treatment", and that is
+--    how it was followed. R03 avoid ["roast character"] -> one hop at 10 min,
+--    IBU 6 against a band of 20-40. R05 avoid ["roasted barley", "astringent
+--    bite"] -> one hop at 10 min, IBU 16 against 40-80. NEITHER request said a
+--    word about hops. The two cases whose `avoid` was empty (R01, R02) both got
+--    a 60 min charge and both landed in band. "Always include exactly one hop"
+--    then removed any way back: one hop cannot bitter and flavour at once.
+--
+-- 2. THE ROAST SQUEEZE. v4 asked for base 70-85% AND roast 8-15% AND gave
+--    caramel no ceiling. Those do not fit: R04 filled base to 76.5% and caramel
+--    to 17.3%, leaving 6.2% for roast against a floor of 8. The model satisfied
+--    the constraints in the order they were written. So the order is stated now,
+--    and the base figure is advisory where the roast fraction is binding.
+--
+-- 3. THE DENIED CONTRADICTION. R06 asks for a jet-black stout "using absolutely
+--    no roasted or dark malts". v4 had no way to say "that cannot be done", so
+--    it put 1104 g of Black Malt -- 22.5% of the grist -- into the beer and
+--    wrote "provides the jet-black color and roast without using roasted or
+--    dark malts". Committing the contradiction and denying it in the same
+--    sentence is worse than either failure alone. `not_available` is the wrong
+--    channel: that field is for ingredients the CATALOGUE lacks. New field.
+-- ---------------------------------------------------------------------------
+INSERT INTO obs.prompts (name, version, body, active, notes) VALUES
+('formulate.recipe/propose', 5, $body$
+You are formulating a grain bill and hop schedule for an experienced homebrewer.
+
+Their request:
+{{question}}
+
+The brief:
+{{spec}}
+
+Passages from the brewer's library -- use these for TECHNIQUE decisions (mash
+temperature, when to add an adjunct, what builds body in this style):
+{{passages}}
+
+The ONLY ingredients you may use, grouped by what they do:
+{{catalogue}}
+
+Choose the ingredients and their PROPORTIONS. Output JSON only.
+
+⛔ Every ingredient_id MUST appear in the lists above, copied exactly. Never
+invent an id and never use an ingredient that is not listed -- if the brewer
+asked for something absent, leave it out and name it in "not_available".
+
+⛔ Do NOT state a gravity, ABV, IBU, colour or efficiency anywhere. Those are
+computed from your choices after you answer. Your amounts set PROPORTIONS only;
+the mashed grain is scaled afterwards to hit the target strength.
+
+⛔ BUILD THE GRAIN BILL IN THIS ORDER. Take the ROAST MALTS fraction FIRST, then
+caramel, then fill whatever remains with base malt. Doing it the other way round
+leaves nothing for the roast malts and produces a pale beer wearing a dark name.
+  1. ROAST MALTS -- for a stout or porter, 8-15% of the grain bill. This is
+     BINDING. Below 8% it is a brown ale wearing the wrong name; above 15% it
+     turns acrid. A pale style takes none.
+  2. CARAMEL malts -- sweetness and body, never colour. Keep them under 20%.
+  3. BASE malt -- the remainder. Around 70-85% in a pale beer, and lower in a
+     dark one. This is the figure that gives way, not the roast fraction.
+Colour comes from the ROAST MALTS list and nowhere else. A malt with "dark" or
+"brown" in its name is not a roast malt -- the lists already sort that out, so
+trust the heading, not the name.
+
+⛔ THE "avoid" LIST IS BINDING, BUT EACH ENTRY CONSTRAINS ONLY WHAT IT NAMES.
+An entry about roast, colour or astringency constrains the ROAST MALTS. An entry
+naming an ingredient means leave that ingredient out. An entry about malt must
+NOT change the hop schedule. Read each entry for what it says and nothing more.
+
+⛔ HOPS. Give the beer a 60 min bittering addition. That is what creates
+bitterness -- a 10 or 15 min addition creates almost none, and a stout with no
+60 min charge finishes flabby. You may add a SECOND hop late (10-20 min) for
+flavour where the style wants it.
+  THE ONE EXCEPTION: if "avoid" names HOPS or BITTERNESS specifically -- and only
+  then -- there is no 60 min addition at all. Use a single 10-15 min hop, at most
+  10 g per 10 L of batch. Nothing else in "avoid" triggers this.
+
+⛔ IF THE REQUEST CONTRADICTS ITSELF, SAY SO IN "conflicts". Some briefs cannot
+be satisfied: a beer cannot be jet-black while using no roasted or dark malts,
+because colour of that depth comes only from roast malts. Name the conflict in
+plain words, then build the closest honest beer you can and let "conflicts"
+carry the caveat. ⛔ Never satisfy one half and describe it as satisfying both.
+Putting black malt into a beer specified to have none, and calling it "without
+roasted or dark malts", is the worst answer available to you.
+
+{{correction}}
+
+Fields:
+- items: array of {ingredient_id, stage, qty_g, timing_min, notes}
+  - stage: one of "mash", "boil", "whirlpool", "dryhop", "fermenter", "packaging".
+  - qty_g: grams. Whole numbers.
+  - timing_min: REQUIRED for every hop and every boil addition -- minutes before
+    the end of the boil. 60 for the bittering charge; see the hop rule above.
+  - notes: at most 12 words saying what that ingredient is doing.
+  - Sugars and lactose go in at "boil" late, never in the mash.
+  - Always include at least one hop. Even a sweet stout needs a little balance.
+- mash_temp_c: a single number. Higher leaves more unfermentable body.
+- attenuation: apparent attenuation as a decimal (0.72 = 72%). Lower finishes sweeter.
+- not_available: array of things the brewer asked for that are not in the lists.
+- conflicts: array of plain sentences, each naming one way the request cannot be
+  satisfied as written. Empty array if the request is coherent.
+- rationale: one sentence, at most 30 words, on the shape of the grist.
+$body$, false, 'v5: avoid scoped to what it names; 60 min bittering default; roast taken first; conflicts field')
+ON CONFLICT (name, version) DO NOTHING;
+
+
+-- ---------------------------------------------------------------------------
+-- propose v6: size the bittering charge, and make 15% roast a real ceiling.
+--
+-- ⛔ v5 fixed the hop collapse and overshot it. Measured on the same six cases:
+-- IBU went from 6/16 (too low) to 35/44/126 (too high). v5 said "give the beer
+-- a 60 min bittering addition" and never said HOW MUCH, so the model guessed,
+-- and it guessed without reference to either batch volume or alpha acid. R05 put
+-- 25 g of Magnum at 12.5% alpha into a FIVE litre batch -- 5 g/L of a high-alpha
+-- hop, IBU 126 against a band of 40-80. R02, a Helles that had passed under v4,
+-- took 35 g of Perle at 7% in 20 L and went to IBU 35 against 12-28.
+-- The rule now carries arithmetic: grams per litre, times volume, divided by
+-- alpha. A worked example of the exact measured failure is included, because
+-- "scale by batch size" on its own did not survive contact with a 5 L recipe.
+--
+-- ⛔ Also: taking the roast fraction FIRST (v5's fix for R04, which worked --
+-- 6.2% -> 13.3% and the case passes) moved the failure to the other end. R01
+-- reached 19.2% and R05 20.0%, both past the 15% ceiling, because the gate's
+-- correction says "more roast" and v5 gave the ceiling no authority against it.
+-- The ceiling now explicitly outranks a correction, and points at the real fix:
+-- a darker malt, not more of a paler one.
+-- ---------------------------------------------------------------------------
+INSERT INTO obs.prompts (name, version, body, active, notes) VALUES
+('formulate.recipe/propose', 6, $body$
+You are formulating a grain bill and hop schedule for an experienced homebrewer.
+
+Their request:
+{{question}}
+
+The brief:
+{{spec}}
+
+Passages from the brewer's library -- use these for TECHNIQUE decisions (mash
+temperature, when to add an adjunct, what builds body in this style):
+{{passages}}
+
+The ONLY ingredients you may use, grouped by what they do:
+{{catalogue}}
+
+Choose the ingredients and their PROPORTIONS. Output JSON only.
+
+⛔ Every ingredient_id MUST appear in the lists above, copied exactly. Never
+invent an id and never use an ingredient that is not listed -- if the brewer
+asked for something absent, leave it out and name it in "not_available".
+
+⛔ Do NOT state a gravity, ABV, IBU, colour or efficiency anywhere. Those are
+computed from your choices after you answer. Your amounts set PROPORTIONS only;
+the mashed grain is scaled afterwards to hit the target strength.
+
+⛔ BUILD THE GRAIN BILL IN THIS ORDER. Take the ROAST MALTS fraction FIRST, then
+caramel, then fill whatever remains with base malt. Doing it the other way round
+leaves nothing for the roast malts and produces a pale beer wearing a dark name.
+  1. ROAST MALTS -- for a stout or porter, 8-15% of the grain bill. BOTH ENDS
+     ARE BINDING. Below 8% it is a brown ale wearing the wrong name; above 15%
+     it turns acrid and thin, and 15% is a ceiling you never cross -- not even
+     when a correction below tells you the beer came out too pale. If you are
+     already at 15% and still short of colour, move to a DARKER roast malt from
+     the list rather than adding more of the one you have. A pale style takes
+     none.
+  2. CARAMEL malts -- sweetness and body, never colour. Keep them under 20%.
+  3. BASE malt -- the remainder. Around 70-85% in a pale beer, and lower in a
+     dark one. This is the figure that gives way, not the roast fraction.
+Colour comes from the ROAST MALTS list and nowhere else. A malt with "dark" or
+"brown" in its name is not a roast malt -- the lists already sort that out, so
+trust the heading, not the name.
+
+⛔ THE "avoid" LIST IS BINDING, BUT EACH ENTRY CONSTRAINS ONLY WHAT IT NAMES.
+An entry about roast, colour or astringency constrains the ROAST MALTS. An entry
+naming an ingredient means leave that ingredient out. An entry about malt must
+NOT change the hop schedule. Read each entry for what it says and nothing more.
+
+⛔ HOPS. Give the beer a 60 min bittering addition -- that is what creates
+bitterness, a 10 or 15 min addition creates almost none. You may add a SECOND
+hop late (10-20 min) for flavour where the style wants it.
+
+⛔ SIZE THE BITTERING CHARGE BY BATCH VOLUME AND BY ALPHA. Both, every time.
+  - Start from 0.5 g per LITRE of batch for a hop around 5% alpha.
+  - Multiply by batch_size_l. A 5 L batch takes a fifth of what a 25 L batch
+    takes. This is the step most often skipped, and it is the expensive one.
+  - Then divide by (alpha / 5). A 12.5% alpha hop needs LESS THAN HALF the grams
+    of a 5% one for the same bitterness. The catalogue lists each hop's alpha.
+  - A gently bittered style takes half of that; an aggressively hoppy one twice.
+  ⛔ Worked example of the failure: 25 g of Magnum at 12.5% alpha in a 5 L batch
+  is 5 g per litre of a high-alpha hop -- roughly TEN times too much, and it was
+  measured. The correct charge there is about 1 g. Late flavour hops are not
+  bound by this; they contribute almost no bitterness whatever their weight.
+
+  THE ONE EXCEPTION: if "avoid" names HOPS or BITTERNESS specifically -- and only
+  then -- there is no 60 min addition at all. Use a single 10-15 min hop, at most
+  10 g per 10 L of batch. Nothing else in "avoid" triggers this.
+
+⛔ IF THE REQUEST CONTRADICTS ITSELF, SAY SO IN "conflicts". Some briefs cannot
+be satisfied: a beer cannot be jet-black while using no roasted or dark malts,
+because colour of that depth comes only from roast malts. Name the conflict in
+plain words, then build the closest honest beer you can and let "conflicts"
+carry the caveat. ⛔ Never satisfy one half and describe it as satisfying both.
+Putting black malt into a beer specified to have none, and calling it "without
+roasted or dark malts", is the worst answer available to you.
+
+{{correction}}
+
+Fields:
+- items: array of {ingredient_id, stage, qty_g, timing_min, notes}
+  - stage: one of "mash", "boil", "whirlpool", "dryhop", "fermenter", "packaging".
+  - qty_g: grams. Whole numbers.
+  - timing_min: REQUIRED for every hop and every boil addition -- minutes before
+    the end of the boil. 60 for the bittering charge; see the hop rule above.
+  - notes: at most 12 words saying what that ingredient is doing.
+  - Sugars and lactose go in at "boil" late, never in the mash.
+  - Always include at least one hop. Even a sweet stout needs a little balance.
+- mash_temp_c: a single number. Higher leaves more unfermentable body.
+- attenuation: apparent attenuation as a decimal (0.72 = 72%). Lower finishes sweeter.
+- not_available: array of things the brewer asked for that are not in the lists.
+- conflicts: array of plain sentences, each naming one way the request cannot be
+  satisfied as written. Empty array if the request is coherent.
+- rationale: one sentence, at most 30 words, on the shape of the grist.
+$body$, false, 'v6: bittering charge sized by volume and alpha; 15% roast ceiling outranks a correction')
+ON CONFLICT (name, version) DO NOTHING;
+
+
 UPDATE obs.prompts SET active = false WHERE name = 'formulate.recipe/propose';
-UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/propose' AND version = 4;
+UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/propose' AND version = 6;
+
+-- ---------------------------------------------------------------------------
+-- compose v4: carry a contradiction through to the brewer.
+--
+-- propose v5 gained a "conflicts" field, and `Validate proposal` merges it into
+-- the same `gaps` channel that already carried missing ingredients. v3's header
+-- called that channel "Asked for but not in the catalogue", which is now only
+-- half of what arrives on it, and v3's rule let the line be dropped. R06
+-- measured what that costs: the answer described a beer built from 22.5% black
+-- malt as using "no roasted or dark malts". The contradiction line is mandatory.
+-- ---------------------------------------------------------------------------
+INSERT INTO obs.prompts (name, version, body, active, notes) VALUES
+('formulate.recipe/compose', 4, $body$
+Write the recipe for the brewer.
+
+What they asked for:
+{{question}}
+
+The recipe, already costed -- ingredient, stage, amount:
+{{recipe}}
+
+⛔ The computed figures. These are CORRECT and were calculated, not estimated.
+Print them exactly as given; never recalculate, round or "correct" them:
+{{computed}}
+
+Library passages supporting the technique, cite these by label:
+{{sources}}
+
+Problems the brewer must be told about -- anything the catalogue does not
+cover, and any way the request contradicts itself:
+{{gaps}}
+
+Rules:
+- Lead with the recipe. No preamble, no "great choice".
+- Give the grain bill as a list with grams, then hops with times, then the
+  additions, then mash temperature.
+- Then exactly ONE line, at most 25 words, on the technique that makes this beer
+  what the brewer asked for, taken from the passages and carrying its [S..]
+  label. One line -- not two, not a paragraph. Nothing else follows it but the
+  figures and the Sources block.
+- State OG, FG, ABV, IBU and EBC exactly as given above, once, together.
+- ⛔ Never state a number that does not appear above. If you find yourself
+  calculating anything, stop -- the arithmetic is already done.
+- Mark technique claims taken from the passages with their [S..] label. Do not
+  cite the ingredient amounts; those are computed, not quoted.
+- If the problems list is non-empty, add one short line naming each problem.
+  Do not substitute something else for a missing ingredient silently.
+- ⛔ If a problem says the request CONTRADICTS ITSELF, that line is not optional
+  and it is not softened. Say which two things cannot both be true, in the
+  brewer's own terms, before the figures. A recipe that quietly does the
+  opposite of what was asked and does not say so is the worst answer available.
+- ⛔ If the problems list reads "none", that line MUST NOT appear at all.
+  "none" is a sentinel meaning there is nothing to report -- never print it, and
+  never print the word "none" on a line of its own anywhere in the answer.
+- ⛔ End with a Sources block. It is MANDATORY whenever the passage list above
+  has lines in it, and it does NOT depend on what you cited. Print the literal
+  heading
+  Sources:
+  on its own line, then the passage lines copied verbatim -- each carries its
+  document title and page and both must be printed. Keep the lines whose label
+  you cited; if you cited none, print them all. A list with no heading is a
+  failure, and so is a bare "[S1]" with no title. Never invent a title and never
+  print a placeholder.
+- ⛔ If the passage list reads "none", omit the Sources block entirely.
+- English. Metric: litres, °C, grams. Gravity to three decimals. IBU whole.
+- Direct and technical. This brewer is experienced.
+$body$, false, 'v4: gaps channel also carries contradictions, and the contradiction line is mandatory')
+ON CONFLICT (name, version) DO NOTHING;
+
 
 UPDATE obs.prompts SET active = false WHERE name = 'formulate.recipe/compose';
-UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/compose' AND version = 3;
+UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/compose' AND version = 4;

@@ -50,6 +50,27 @@
 -- were narrow (roast 6.7-7.0% against a floor of 8.0) and the colour was fine
 -- (SRM 37-39), so the beers are dark and drinkable -- they just do not hold the
 -- prompted band. Revert is one line: set model back to 'gemma4:12b'.
+-- num_ctx raised 12288 -> 16384 2026-09-15. Measured headroom first, not after:
+-- across runs 78+ the binding step `propose` peaked at 7083 tokens of 12288
+-- (58%), compose at 1295 and parse at 444. The 12245-token peak in the history
+-- is run 32, a compose runaway from before num_predict capped that profile --
+-- not a prompt that failed to fit.
+--
+-- Raised anyway for two reasons. Retrieval top_k goes 5 -> 8 in the same change,
+-- which adds roughly 1000-1500 tokens to every propose prompt; and the catalogue
+-- block grows permanently with every maltster datasheet ingested -- 150 rows is
+-- about 1275 tokens today and it only goes up. 16384 keeps the same ~40% margin
+-- after both.
+--
+-- It is nearly free on this model: gemma4 uses sliding-window attention, so the
+-- KV cache measured 480 MiB for a 12288 context (1536 cells, 40 layers) rather
+-- than scaling linearly, against 3.2 GiB of free VRAM with the 13 GB model and
+-- bge-m3 both resident at 100% GPU.
+--
+-- ⛔ Every profile moves together, always. Ollama keys its runner on num_ctx, so
+-- one profile left behind evicts and reloads a 13 GB model between two steps of
+-- the same recipe. That is the 261-reload fault; it is far more expensive here
+-- than it was at 7.6 GB.
 UPDATE obs.profiles
    SET model   = 'gemma4:12b-it-q8_0',
-       options = options || '{"num_ctx": 12288}'::jsonb;
+       options = options || '{"num_ctx": 16384}'::jsonb;
