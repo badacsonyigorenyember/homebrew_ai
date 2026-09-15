@@ -15,7 +15,8 @@ It is correspondingly slow — budget a couple of minutes per covered case.
 
 The set deliberately runs in four directions:
   covered   — anchors the corpus holds; expect an answer with resolvable [S..]
-  uncovered — anchors it does not; expect D38's refusal, fast, with no propose
+  uncovered — anchors it does not; since the web arm (§3.4.1) expect a WEB-LABELLED
+              answer, or a refusal when no source was reachable. Never [S..].
   suggested — a covered anchor with an open question, to find out whether the
               "Not from your library" path fires at all. It has never fired in
               production: obs.runs.spent has read {"suggested": 0} on every
@@ -147,6 +148,13 @@ REFUSAL = re.compile(
     r"|don'?t\s+have\s+a\s+tool",
     re.I)
 
+# [W..] is the web arm's marker and is deliberately distinct from [S..] (§3.4.1).
+# Both halves are required: a bare [W1] with no words saying where it came from
+# still leaves the brewer unable to tell web material from their own books.
+WEB_LABEL = re.compile(r"\[W\d+\]")
+LIB_LABEL = re.compile(r"\[S\d+\]")
+WEB_SAID  = re.compile(r"from the web|not in your library|web source|on the web", re.I)
+
 GROUNDED_PATTERNS = [
     r"\bWyeast\s+\d{3,4}\b",
     r"\bWLP\s?\d{3,4}\b",
@@ -258,10 +266,36 @@ def check(case, sid, res):
     status, spent = (runs.split("|", 1) + [""])[:2] if runs else ("", "")
 
     if case["kind"] == "uncovered":
-        # D38: refuse rather than manufacture something adjacent.
-        refused = ("refused" in status) or bool(REFUSAL.search(content))
-        if not refused:
-            notes.append("NO REFUSAL — answered an anchor the corpus lacks")
+        # ⭐ Rewritten 2026-09-15 for the web arm (§3.4.1). D38's refusal used to be
+        # the ONLY correct answer here; it is now the fallback. When
+        # nlq.corpus_vocabulary_gap fires, the retrieve step searches the web and
+        # the right answer is a web-labelled one. Scoring these as refusals would
+        # fail the feature for working.
+        refused   = ("refused" in status) or bool(REFUSAL.search(content))
+        web_cited = bool(WEB_LABEL.search(content))
+        web_named = bool(WEB_SAID.search(content))
+        lib_cited = bool(LIB_LABEL.search(content))
+
+        if web_cited and web_named:
+            refused = True                      # answered correctly, from the web
+            notes.append("answered from the web, labelled")
+        elif refused:
+            # Still legitimate: every candidate page may have refused the fetch —
+            # BeerMaverick's Cloudflare challenge is the known example.
+            notes.append("refused (no usable web source reached)")
+        else:
+            notes.append("NEITHER a web-labelled answer NOR a refusal")
+
+        # ⛔ The hard fail the web arm makes possible, and the reason this branch
+        # cannot simply accept any non-empty answer. `measured` 2026-09-15,
+        # execution 1545: asked "What hops go with Talus?" the propose step read
+        # the handbook's `Hallertau Taurus` entry, decided Talus WAS Taurus, and
+        # returned Magnum/Hallertau Tradition/Herkules cited to [S1] — a confident,
+        # library-cited answer about a different hop. An [S..] label on an anchor
+        # the library has never seen is always wrong, however plausible it reads.
+        if lib_cited:
+            refused = False
+            notes.append("CITED [S..] FOR AN ANCHOR THE LIBRARY LACKS")
         # ⚠️ nchunks is session-scoped, and cap-brainstorm-pairing calls
         # wf-step-retrieve WITHOUT a session_id — its rows land in obs.retrievals
         # with session_id = ''. So for a pairing-routed case this reads 0 even

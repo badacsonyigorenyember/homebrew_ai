@@ -158,7 +158,8 @@
           "value": {
             "top_k": 6,
             "query": "={{ $json.anchor }}",
-            "mode": "rows"
+            "mode": "rows",
+            "web_query": "={{ $json.question }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -183,6 +184,16 @@
             {
               "id": "mode",
               "displayName": "mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "web_query",
+              "displayName": "web_query",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -221,7 +232,8 @@
           "value": {
             "top_k": 6,
             "query": "={{ $('Unpack parse').first().json.style || $('Unpack parse').first().json.anchor }}",
-            "mode": "rows"
+            "mode": "rows",
+            "web_query": "={{ $('Unpack parse').first().json.question }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -254,6 +266,16 @@
               "canBeUsedToMatch": true,
               "type": "string",
               "removed": false
+            },
+            {
+              "id": "web_query",
+              "displayName": "web_query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
             }
           ],
           "attemptToConvertTypes": false,
@@ -274,7 +296,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const base = $('Unpack parse').first().json;\nconst a = $('Step 2a · retrieve anchor').first().json.rows ?? [];\nconst b = $input.first().json.rows ?? [];\n\n// Deduplicate by chunk_id, then relabel S1..Sn across BOTH retrievals. Each call\n// numbers from S1 independently, so using their labels would collide.\nconst seen = new Map();\nfor (const r of [...a, ...b]) if (!seen.has(r.chunk_id)) seen.set(r.chunk_id, r);\nconst rows = [...seen.values()];\n\nif (!rows.length) throw new Error(`No passages found for \"${base.anchor}\"`);\n\nconst idmap = {};\nconst passages = rows.map((r, n) => {\n  const label = `S${n + 1}`;\n  idmap[r.chunk_id] = { label, doc_title: r.doc_title, page: r.page };\n  return `[${label}] (chunk_id ${r.chunk_id}) ${r.doc_title} · ${r.heading}${r.page ? ` · p.${r.page}` : ''}\\n${r.text}`;\n}).join('\\n\\n');\n\n// ⛔ Coverage gate. nlq.search_knowledge returns a pure RRF score — 1/(rrf_k + rank) —\n// so it is a function of rank alone and says NOTHING about relevance: an unrelated\n// chunk scores exactly what a perfect hit scores. Retrieval therefore always returns\n// six passages, even for an anchor the corpus has never heard of, and the propose\n// step will dutifully invent something adjacent from them.\n// The only honest signal available is lexical: did anything we retrieved actually\n// mention the thing that was asked about?\nconst needle = String(base.anchor ?? '').trim().toLowerCase();\nconst hay = rows.map(r => `${r.doc_title} ${r.heading} ${r.text}`).join(' ').toLowerCase();\nconst anchor_covered = needle.length > 2 && hay.includes(needle);\n\n// A question names one anchor ingredient, but it usually sits in a style the corpus\n// does cover. Gating on the anchor alone throws the covered half away: \"vanilla and\n// poppy seeds in a pastry stout\" refused on \"poppy seeds\" (0 chunks) while \"pastry\n// stout\" had 15. Proceed when either is covered — `propose` already returns an\n// unsupported candidate with cites: [], which `compose` prints under \"Not from your\n// library\". Refuse only when neither the anchor nor the style is in the corpus.\nconst style = String(base.style ?? '').trim().toLowerCase();\nconst style_covered = style.length > 2 && hay.includes(style);\nconst proceed = anchor_covered || style_covered;\n\nreturn [{ json: { ...base, passages, idmap, anchor_covered, style_covered, proceed,\n                  chunk_ids: rows.map(r => r.chunk_id) } }];"
+        "jsCode": "const base = $('Unpack parse').first().json;\nconst a = $('Step 2a · retrieve anchor').first().json.rows ?? [];\nconst b = $input.first().json.rows ?? [];\n\n// Deduplicate by chunk_id, then relabel S1..Sn across BOTH retrievals. Each call\n// numbers from S1 independently, so using their labels would collide.\nconst seen = new Map();\nfor (const r of [...a, ...b]) if (!seen.has(r.chunk_id)) seen.set(r.chunk_id, r);\nconst rows = [...seen.values()];\n\n// ⚠️ NOT an error when the web arm has passages: a gap question can legitimately\n// retrieve nothing from the library. The web block is assembled below, and\n// `proceed` accounts for it.\nconst noLibrary = !rows.length;\n\nconst idmap = {};\nconst passages = rows.map((r, n) => {\n  const label = `S${n + 1}`;\n  idmap[r.chunk_id] = { label, doc_title: r.doc_title, page: r.page };\n  return `[${label}] (chunk_id ${r.chunk_id}) ${r.doc_title} · ${r.heading}${r.page ? ` · p.${r.page}` : ''}\\n${r.text}`;\n}).join('\\n\\n');\n\n// ⛔ Coverage gate. nlq.search_knowledge returns a pure RRF score — 1/(rrf_k + rank) —\n// so it is a function of rank alone and says NOTHING about relevance: an unrelated\n// chunk scores exactly what a perfect hit scores. Retrieval therefore always returns\n// six passages, even for an anchor the corpus has never heard of, and the propose\n// step will dutifully invent something adjacent from them.\n// The only honest signal available is lexical: did anything we retrieved actually\n// mention the thing that was asked about?\nconst needle = String(base.anchor ?? '').trim().toLowerCase();\nconst hay = rows.map(r => `${r.doc_title} ${r.heading} ${r.text}`).join(' ').toLowerCase();\nconst anchor_covered = needle.length > 2 && hay.includes(needle);\n\n// A question names one anchor ingredient, but it usually sits in a style the corpus\n// does cover. Gating on the anchor alone throws the covered half away: \"vanilla and\n// poppy seeds in a pastry stout\" refused on \"poppy seeds\" (0 chunks) while \"pastry\n// stout\" had 15. Proceed when either is covered — `propose` already returns an\n// unsupported candidate with cites: [], which `compose` prints under \"Not from your\n// library\". Refuse only when neither the anchor nor the style is in the corpus.\nconst style = String(base.style ?? '').trim().toLowerCase();\nconst style_covered = style.length > 2 && hay.includes(style);\n// ⭐ Web passages, when nlq.corpus_vocabulary_gap fired on either retrieval. They\n// are labelled [W..] and go into the SAME pack, because `propose` can only cite\n// what it was shown: before this it was handed library passages only and answered\n// an uncovered anchor from its own memory instead -- measured 2026-09-15 on\n// \"What hops go with Talus?\", which produced four invented pairings under the\n// \"Not from your library\" heading while the web arm's passages sat unused.\nconst webRows = [];\nconst webSeen = new Set();\nfor (const src of [$('Step 2a · retrieve anchor').first().json, $input.first().json]) {\n  for (const w of (src.web ?? [])) {\n    if (!w || webSeen.has(w.url)) continue;   // one passage per source\n    webSeen.add(w.url);\n    webRows.push(w);\n  }\n}\n\n// ⛔ Keyed by LABEL, not chunk_id: a web passage has no chunk_id, and `Step 4 ·\n// ground` resolves pack.idmap[key] first, so 'W1' lands here directly.\nconst webPassages = webRows.map((w, n) => {\n  const label = `W${n + 1}`;\n  idmap[label] = { label, doc_title: w.url, page: null, web: true };\n  return `[${label}] (from the WEB, not the library) ${w.url}${w.heading ? ` · ${w.heading}` : ''}\\n${w.text}`;\n}).join('\\n\\n');\n\n// ⛔ When the ANCHOR is uncovered, propose sees the web passages ONLY.\n//\n// Handing it both is what produced the worst answer this capability has given:\n// asked \"What hops go with Talus?\" it read the handbook's `Hallertau Taurus`\n// entry, decided Talus WAS Taurus -- \"listed as an alternative for the Hallertau\n// Taurus (Talus) variety\" -- and returned Magnum, Hallertau Tradition and\n// Herkules cited to [S1]. Confident, library-cited, and about a different hop.\n// measured 2026-09-15, execution 1545.\n//\n// The library rows are here only because nlq.search_knowledge always returns\n// p_limit rows; by definition none of them mentions the anchor, so for a question\n// ABOUT the anchor they are the \"adjacent filler\" the coverage gate above exists\n// to keep out. A gap fired, so the anchor is genuinely novel -- there is nothing\n// to lose by dropping them and, measurably, invention to lose.\n//\n// ⚠️ Narrow on purpose: this only applies when webRows is non-empty, i.e. when a\n// gap fired. The \"vanilla and poppy seeds in a pastry stout\" case -- uncovered\n// anchor, covered style, no gap -- keeps its library passages exactly as before.\nconst allPassages = (webRows.length && !anchor_covered)\n  ? webPassages\n  : [passages, webPassages].filter(Boolean).join('\\n\\n');\n\n// Web coverage is coverage: refusing while holding usable web passages is the one\n// outcome worse than either answering or refusing cleanly.\nconst proceed = anchor_covered || style_covered || webRows.length > 0;\n\nreturn [{ json: { ...base, passages: allPassages, idmap, anchor_covered,\n                  style_covered, proceed, n_web: webRows.length,\n                  chunk_ids: rows.map(r => r.chunk_id) } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -392,7 +414,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// The point of this capability: a candidate is either cited or labelled as a\n// suggestion. Never silently mixed, and never carrying an invented chunk_id.\nconst pack = $('Build pack').first().json;\nconst cands = $input.first().json.output?.candidates ?? [];\n\n// A 12B routinely cites the [S1] label it was shown instead of the chunk_id\n// printed beside it. Both were in the passages, so both are real evidence —\n// resolve chunk_id first, fall back to the label. Anything else is invented.\nconst byLabel = {};\nfor (const [cid, v] of Object.entries(pack.idmap)) byLabel[v.label] = v;\n\nfunction resolve(c) {\n  const key = String(c).trim().replace(/^\\[|\\]$/g, '');\n  if (pack.idmap[key]) return pack.idmap[key].label;\n  const asLabel = /^S/i.test(key) ? key.toUpperCase() : `S${key}`;\n  return byLabel[asLabel] ? asLabel : null;\n}\n\nconst grounded = [], suggested = [];\n\nfor (const c of cands) {\n  const labels = [...new Set((c.cites ?? []).map(resolve).filter(Boolean))];\n\n  const line = `${c.candidate} — ${c.why}`;\n  if (labels.length) grounded.push(`${line} ${labels.map(l => `[${l}]`).join('')}`);\n  else suggested.push(line);\n}\n\n// Zero candidates is no longer an error: the propose prompt is explicitly allowed\n// to return an empty list rather than pad. compose turns 'none'/'none' into a plain\n// statement that the library does not cover it.\nconst sources = Object.values(pack.idmap)\n  .filter(v => grounded.some(g => g.includes(`[${v.label}]`)))\n  .map(v => `[${v.label}] ${v.doc_title}${v.page ? `, p.${v.page}` : ''}`)\n  .join('\\n');\n\nreturn [{ json: {\n  run_id: pack.run_id,\n  question: pack.question,\n  grounded:  grounded.length  ? grounded.join('\\n')  : 'none',\n  suggested: suggested.length ? suggested.join('\\n') : 'none',\n  sources,\n  n_grounded: grounded.length,\n  n_suggested: suggested.length,\n}}];"
+        "jsCode": "// The point of this capability: a candidate is either cited or labelled as a\n// suggestion. Never silently mixed, and never carrying an invented chunk_id.\nconst pack = $('Build pack').first().json;\nconst cands = $input.first().json.output?.candidates ?? [];\n\n// A 12B routinely cites the [S1] label it was shown instead of the chunk_id\n// printed beside it. Both were in the passages, so both are real evidence —\n// resolve chunk_id first, fall back to the label. Anything else is invented.\nconst byLabel = {};\nfor (const [cid, v] of Object.entries(pack.idmap)) byLabel[v.label] = v;\n\nfunction resolve(c) {\n  const key = String(c).trim().replace(/^\\[|\\]$/g, '');\n  if (pack.idmap[key]) return pack.idmap[key].label;\n  const asLabel = /^S/i.test(key) ? key.toUpperCase() : `S${key}`;\n  return byLabel[asLabel] ? asLabel : null;\n}\n\nconst grounded = [], suggested = [], web = [];\n\nfor (const c of cands) {\n  const labels = [...new Set((c.cites ?? []).map(resolve).filter(Boolean))];\n\n  const line = `${c.candidate} — ${c.why}`;\n  if (!labels.length) { suggested.push(line); continue; }\n\n  // ⛔ A candidate supported ONLY by [W..] is not library-backed and must never be\n  // composed as though it were. One [S..] label is enough to call it grounded --\n  // the library carried it -- but zero means the web carried it alone.\n  const cited = `${line} ${labels.map(l => `[${l}]`).join('')}`;\n  if (labels.some(l => !/^W/.test(l))) grounded.push(cited);\n  else web.push(cited);\n}\n\n// Zero candidates is no longer an error: the propose prompt is explicitly allowed\n// to return an empty list rather than pad. compose turns 'none'/'none' into a plain\n// statement that the library does not cover it.\nconst sources = Object.values(pack.idmap)\n  .filter(v => [...grounded, ...web].some(g => g.includes(`[${v.label}]`)))\n  .map(v => `[${v.label}] ${v.doc_title}${v.page ? `, p.${v.page}` : ''}`)\n  .join('\\n');\n\nreturn [{ json: {\n  run_id: pack.run_id,\n  question: pack.question,\n  grounded:  grounded.length  ? grounded.join('\\n')  : 'none',\n  suggested: suggested.length ? suggested.join('\\n') : 'none',\n  web:       web.length       ? web.join('\\n')       : 'none',\n  sources,\n  n_grounded: grounded.length,\n  n_web: web.length,\n  n_suggested: suggested.length,\n}}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -420,7 +442,7 @@
             "step_id": "compose",
             "profile": "compose",
             "prompt_name": "brainstorm.pairing/compose",
-            "vars_json": "={{ JSON.stringify({ question: $json.question, grounded: $json.grounded, suggested: $json.suggested, sources: $json.sources || 'none' }) }}",
+            "vars_json": "={{ JSON.stringify({ question: $json.question, grounded: $json.grounded, suggested: $json.suggested, web: $json.web || 'none', sources: $json.sources || 'none' }) }}",
             "schema_json": ""
           },
           "matchingColumns": [],

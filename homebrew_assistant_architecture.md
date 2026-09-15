@@ -663,11 +663,26 @@ the model so in the tool result. Web passages carry none of the library's editor
 vetting; an answer that blurs the two is the failure the whole citation scheme exists
 to prevent.
 
-⚠️ **Open.** `cap-brainstorm-pairing` consumes the web passages only on its
-*not-in-library* branch. When `proceed` is true but nothing is grounded, it still
-answers from the model's own memory under a "Not from your library" heading rather than
-from the web passages it now has — `measured` 2026-09-15 on *"What hops go with
-Talus?"*. That path is a deeper change inside the capability and is not built.
+⭐ **The pairing path is wired too** — `Build pack` puts the web passages in the pack
+`propose` cites from, `Step 4 · ground` keeps web-only candidates in their own bucket,
+and `compose` v2 prints them under **"From the web — not in your library:"**. Four
+defects had to be fixed to get there, and none was visible short of an end-to-end run:
+
+| Defect | What it did |
+|---|---|
+| `proceed` false on an uncovered anchor | The gap fired and pairing refused before the web arm's passages were ever read. Web coverage is now coverage |
+| ⛔ Both packs shown to `propose` | It read the handbook's `Hallertau Taurus`, decided Talus **was** Taurus, and returned Magnum/Hallertau Tradition/Herkules cited to **[S1]** — confident, library-cited, about a different hop (`measured`, execution 1545). An uncovered anchor now shows `propose` the web passages **only** |
+| Web arm searched the bare anchor | `Talus` alone returns Wikipedia on the **ankle bone** and on **scree slopes**. The corpus wants the anchor; the web wants the question. Hence the optional `web_query`, falling back to `query` |
+| ⛔ Undeclared sub-workflow input | `web_query` never arrived until it was added to the `executeWorkflowTrigger` schema. n8n **drops** an undeclared field silently — no error, just an empty string |
+
+⚠️ **`chat-agent`'s system prompt was stripping `[W..]`.** Compose emitted the labels and
+a URL Sources block; the agent rewrote the tool result and dropped both, because its
+prompt only knew `[S..]`. It now carries three rules: `[W..]` is never renumbered as
+`[S..]`, the "From the web" heading survives, and URL source lines are copied verbatim.
+⚠️ The prompt grew 10128 → 11115 chars, and `tier1_routing.py` reads it live — so that
+eval's baseline moves for reasons unrelated to routing.
+
+
 
 ### 3.5 BJCP: the case that is neither pure knowledge nor pure truth
 

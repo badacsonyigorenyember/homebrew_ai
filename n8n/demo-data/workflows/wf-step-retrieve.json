@@ -23,6 +23,9 @@
             },
             {
               "name": "session_id"
+            },
+            {
+              "name": "web_query"
             }
           ]
         }
@@ -38,7 +41,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const i = $input.first().json;\n\nconst query = String(i.query ?? '').trim();\nif (!query) throw new Error('wf-step-retrieve called with an empty query');\n\n// kb.documents.doc_type allows book|style_guide|article|datasheet|note.\n// Anything else means the caller guessed, so drop it to '' (= whole corpus).\n// `note` stays out on purpose: kb.documents has 0 rows of it (measured 2026-09-14).\nconst allowed = ['book', 'style_guide', 'article', 'datasheet'];\nconst dt = String(i.doc_type ?? '').trim().toLowerCase();\n\nconst k = Number(i.top_k);\n\n// ⛔ `mode` MUST be carried through — `Return rows` reads it from this node, not\n// from the trigger. Dropping it here silently forces the text shape, and every\n// capability that asked for `rows` gets an empty array.\nconst mode = String(i.mode ?? 'text').trim().toLowerCase() === 'rows' ? 'rows' : 'text';\n\nreturn [{ json: {\n  query,\n  mode,\n  // Carried for the retrieval trace only; never used in the search itself.\n  session_id: String(i.session_id ?? '').trim(),\n  doc_type: allowed.includes(dt) ? dt : '',\n  top_k: Number.isFinite(k) && k > 0 ? Math.min(Math.round(k), 8) : 6,\n}}];"
+        "jsCode": "const i = $input.first().json;\n\nconst query = String(i.query ?? '').trim();\nif (!query) throw new Error('wf-step-retrieve called with an empty query');\n\n// kb.documents.doc_type allows book|style_guide|article|datasheet|note.\n// Anything else means the caller guessed, so drop it to '' (= whole corpus).\n// `note` stays out on purpose: kb.documents has 0 rows of it (measured 2026-09-14).\nconst allowed = ['book', 'style_guide', 'article', 'datasheet'];\nconst dt = String(i.doc_type ?? '').trim().toLowerCase();\n\nconst k = Number(i.top_k);\n\n// ⛔ `mode` MUST be carried through — `Return rows` reads it from this node, not\n// from the trigger. Dropping it here silently forces the text shape, and every\n// capability that asked for `rows` gets an empty array.\nconst mode = String(i.mode ?? 'text').trim().toLowerCase() === 'rows' ? 'rows' : 'text';\n\n// ⛔ The web arm searches THIS, not `query`. They are different questions when the\n// caller rewrote for retrieval: cap-brainstorm-pairing searches the corpus for the\n// bare anchor (\"Talus\"), which is right for a vector search over chunks and wrong\n// for a web search -- it returns pages ABOUT Talus when the brewer asked what goes\n// WITH it. measured 2026-09-15: with query=anchor the pairing propose step\n// correctly returned zero candidates, because nothing it was shown answered the\n// question. Falls back to `query` so every existing caller is unaffected.\nconst web_query = String(i.web_query ?? '').trim() || query;\n\nreturn [{ json: {\n  query,\n  web_query,\n  mode,\n  // Carried for the retrieval trace only; never used in the search itself.\n  session_id: String(i.session_id ?? '').trim(),\n  doc_type: allowed.includes(dt) ? dt : '',\n  top_k: Number.isFinite(k) && k > 0 ? Math.min(Math.round(k), 8) : 6,\n}}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -187,7 +190,7 @@
         "url": "http://webarm:5055/search",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ query: $('Normalise input').first().json.query, top_k: 3 }) }}",
+        "jsonBody": "={{ JSON.stringify({ query: $('Normalise input').first().json.web_query, top_k: 3 }) }}",
         "options": {
           "timeout": 90000
         }

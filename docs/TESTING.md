@@ -881,6 +881,42 @@ candidate, but it was not isolated. Settling it means running `tier1_routing.py`
 `gemma4:12b`, and the script reads the model from the live workflow — so that costs an
 `import:workflow`, a re-publish, and a `docker restart n8n`.
 
+#### `measured` 2026-09-15 — after the web arm (§3.4.1)
+
+| Script | Cases | Result |
+|---|---|---|
+| `grounding_eval.py` | 16 | ✅ **PASS 16 · WARN 0 · FAIL 0 · ERROR 0** |
+
+⭐ **The `uncovered` contract changed, and the old one would now fail the feature for
+working.** U01–U04 used to require D38's refusal. Since the web arm they require a
+**web-labelled answer** — both a `[W..]` marker AND words saying it came from the web —
+with a refusal still accepted, because a run where every candidate page refused the
+fetch is a real outcome (BeerMaverick's Cloudflare challenge is the standing example).
+
+| Case | 2026-09-15 |
+|---|---|
+| `U01` Talus | answered from the web, labelled · 66.4 s |
+| `U02` Cryo Pop | answered from the web, labelled · 51.4 s |
+| `U03` kveik | ⚠️ **refused — no usable web source reached** · 19.6 s |
+| `U04` Phantasm powder | answered from the web, labelled · 76.2 s |
+
+⚠️ **`U03` is the documented lowercase limitation, not a flake.** The agent rewrites
+that question to the bare word `kveik`; `nlq.corpus_vocabulary_gap`'s short-query path
+needs a Capitalised novel term, so no gap fires and no web search happens. Loosening it
+to accept lowercase single novel terms was tried and rejected on measurement — it
+re-breaks M01's `ibo` typo. Expect this case to flip between "web" and "refused" with
+how the rewrite capitalises.
+
+⛔ **New hard fail: `[S..]` cited for an anchor the library lacks.** Added because the
+web arm makes it reachable — `measured` execution 1545, the Hallertau Taurus answer
+(§3.4.1). Without this check the eval would have passed it: it refused nothing, cited a
+real chunk, and read perfectly.
+
+⚠️ **`tier1_routing.py` was not re-run.** `chat-agent`'s system prompt gained the `[W..]`
+rules and grew ~1000 chars, and that script reads the prompt live — so its score moves
+for a reason that has nothing to do with routing. It needs a fresh baseline, not a
+comparison.
+
 ⚠️ **`grounding_eval.py`'s first run of the day scored PASS 12 · WARN 3 · FAIL 1.** All four
 of those were **defects in the test, not in the assistant**, and all four are now fixed:
 

@@ -275,6 +275,120 @@ $body$, true, 'v1 initial')
 ON CONFLICT (name, version) DO NOTHING;
 
 -- =============================================================================
+-- v2 — the web arm (§3.4.1). `propose` may now be handed [W..] passages that came
+-- from the web rather than the library, and `compose` gets them as their own
+-- bucket so it cannot present them as library-backed.
+--
+-- Why a bucket and not just a label: compose's v1 contract is "Supported by their
+-- library — cite each of these", and putting a web passage in that list makes
+-- every downstream sentence a lie about provenance. The separation is the point.
+-- =============================================================================
+INSERT INTO obs.prompts (name, version, body, active, notes) VALUES
+('brainstorm.pairing/propose', 2, $body$
+You are an experienced brewer helping a peer think out loud. Suggest options; do not
+write a recipe and do not state any number as fact.
+
+The question asked:
+{{question}}
+
+Anchor: {{anchor}}
+Style context: {{style_context}}
+
+Passages from the brewer's library:
+{{passages}}
+
+⚠️ Some passages may be marked "(from the WEB, not the library)" and labelled [W1],
+[W2], ... The brewer's library does not contain them. Cite them exactly as you cite
+library passages — they are real evidence you were shown — but never describe them as
+coming from the brewer's books.
+
+Propose up to 6 candidates that directly answer the question asked.
+
+⛔ Every candidate must be the SAME KIND OF THING the question asks for. If the question
+asks which hops, every candidate must be a named hop variety. If it asks which malts,
+every candidate must be a named malt. A technique, a piece of equipment or a general
+principle is NOT an answer to "which hops" — leave it out.
+
+⛔ Do not pad. Returning one candidate that answers the question is correct. Returning
+an empty list is correct when the passages contain no answer of the right kind. Never
+add a candidate merely to reach a count, and never substitute adjacent advice for an
+answer you do not have.
+
+For each candidate:
+- candidate: the ingredient, technique or pairing, named plainly.
+- why: at most 40 words. Say what it does, not that it is popular.
+- cites: an array of the passage labels ("S1", "W1", ...) that support the claim in
+  "why". Use the label exactly as it appears in square brackets above. Never write a
+  chunk_id here, and never write a label that does not appear above.
+
+If you believe in a candidate that nothing above supports, still return it with cites: [].
+An honest empty list is correct; an invented label is not.
+
+Output JSON only.
+$body$, false, 'v2 — [W..] web passages are citable'),
+
+('brainstorm.pairing/compose', 2, $body$
+Write the answer for the brewer.
+
+Their question:
+{{question}}
+
+Supported by their library — cite each of these with its label:
+{{grounded}}
+
+Found on the web, NOT in their library — cite each of these with its [W..] label:
+{{web}}
+
+Your own suggestions, supported by neither:
+{{suggested}}
+
+Source list — the ONLY document titles and URLs you may print:
+{{sources}}
+
+Rules:
+- Lead with the answer. No preamble, no "great question".
+- ⛔ Write ONLY from the three lists above. You may rephrase them; you may not add to
+  them. Every candidate you mention must appear in one of the lists verbatim in
+  substance. Adding an ingredient, technique or tip of your own is a failure, even a
+  correct one.
+- ⛔ Answer only what was asked. Do not append adjacent advice, background, caveats
+  or "you might also consider" material. If the question asks which hops, do not
+  discuss equipment, process or malt unless the listed candidates are about those.
+- Mark every claim from a supported candidate with its [S..] label inline.
+- ⛔ Web candidates are marked with [W..] labels. Keep those labels exactly — never
+  renumber a [W..] as an [S..] — and say in plain words that this part came from the
+  web and is not in the brewer's library. Put them under a section headed exactly:
+  "From the web — not in your library:"
+- ⛔ If the web list reads "none", that section MUST NOT appear at all.
+- Put unsupported suggestions under a final section headed exactly:
+  "Not from your library — my own suggestions:"
+  Never mix them with cited claims.
+- ⛔ If the unsupported list reads "none", that section MUST NOT appear at all. Do not
+  create it, and do not populate it from your own knowledge.
+- ⛔ If all three lists read "none", write exactly one sentence saying the brewer's
+  library does not cover this, and stop. Add nothing else.
+- End with a Sources block, copied verbatim from the source list above, keeping
+  only the lines whose label you actually cited. Never invent a document title
+  and never print a placeholder such as <document>. If you cited nothing, omit
+  the Sources block entirely.
+- English. Metric: litres, °C, g/L. Gravity to three decimals. IBU whole numbers.
+- Quote ranges as the source states them. Never average a range.
+- Direct and technical. This brewer is experienced.
+$body$, false, 'v2 — web bucket, [W..] never renumbered as [S..]')
+ON CONFLICT (name, version) DO NOTHING;
+
+-- ⛔ Two statements, not one: prompts_one_active_idx is a partial unique index on
+-- (name) WHERE active, and a single UPDATE flipping both rows trips it on the
+-- transient double-active state -- the same trap kb.promote_version documents.
+UPDATE obs.prompts SET active = false
+ WHERE name IN ('brainstorm.pairing/propose', 'brainstorm.pairing/compose')
+   AND version <> 2 AND active;
+UPDATE obs.prompts SET active = true
+ WHERE name IN ('brainstorm.pairing/propose', 'brainstorm.pairing/compose')
+   AND version = 2 AND NOT active;
+
+
+-- =============================================================================
 -- Retrieval trace — the fix for the empty mem.chat_turns.chunk_ids column.
 -- `Prep turn` cannot recover the ids: the tool hands the model mode 'text', and
 -- that string carries no chunk_id by design — putting them there would roughly
