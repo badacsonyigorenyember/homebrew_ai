@@ -126,7 +126,10 @@
         352
       ],
       "id": "9eccba57-645c-488a-b570-09dd43453eaa",
-      "name": "Step 1 · parse"
+      "name": "Step 1 · parse",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     },
     {
       "parameters": {
@@ -271,7 +274,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const base = $('Unpack parse').first().json;\nconst a = $('Step 2a · retrieve anchor').first().json.rows ?? [];\nconst b = $input.first().json.rows ?? [];\n\n// Deduplicate by chunk_id, then relabel S1..Sn across BOTH retrievals. Each call\n// numbers from S1 independently, so using their labels would collide.\nconst seen = new Map();\nfor (const r of [...a, ...b]) if (!seen.has(r.chunk_id)) seen.set(r.chunk_id, r);\nconst rows = [...seen.values()];\n\nif (!rows.length) throw new Error(`No passages found for \"${base.anchor}\"`);\n\nconst idmap = {};\nconst passages = rows.map((r, n) => {\n  const label = `S${n + 1}`;\n  idmap[r.chunk_id] = { label, doc_title: r.doc_title, page: r.page };\n  return `[${label}] (chunk_id ${r.chunk_id}) ${r.doc_title} · ${r.heading}${r.page ? ` · p.${r.page}` : ''}\\n${r.text}`;\n}).join('\\n\\n');\n\n// ⛔ Coverage gate. nlq.search_knowledge returns a pure RRF score — 1/(rrf_k + rank) —\n// so it is a function of rank alone and says NOTHING about relevance: an unrelated\n// chunk scores exactly what a perfect hit scores. Retrieval therefore always returns\n// six passages, even for an anchor the corpus has never heard of, and the propose\n// step will dutifully invent something adjacent from them.\n// The only honest signal available is lexical: did anything we retrieved actually\n// mention the thing that was asked about?\nconst needle = String(base.anchor ?? '').trim().toLowerCase();\nconst hay = rows.map(r => `${r.doc_title} ${r.heading} ${r.text}`).join(' ').toLowerCase();\nconst anchor_covered = needle.length > 2 && hay.includes(needle);\n\nreturn [{ json: { ...base, passages, idmap, anchor_covered,\n                  chunk_ids: rows.map(r => r.chunk_id) } }];"
+        "jsCode": "const base = $('Unpack parse').first().json;\nconst a = $('Step 2a · retrieve anchor').first().json.rows ?? [];\nconst b = $input.first().json.rows ?? [];\n\n// Deduplicate by chunk_id, then relabel S1..Sn across BOTH retrievals. Each call\n// numbers from S1 independently, so using their labels would collide.\nconst seen = new Map();\nfor (const r of [...a, ...b]) if (!seen.has(r.chunk_id)) seen.set(r.chunk_id, r);\nconst rows = [...seen.values()];\n\nif (!rows.length) throw new Error(`No passages found for \"${base.anchor}\"`);\n\nconst idmap = {};\nconst passages = rows.map((r, n) => {\n  const label = `S${n + 1}`;\n  idmap[r.chunk_id] = { label, doc_title: r.doc_title, page: r.page };\n  return `[${label}] (chunk_id ${r.chunk_id}) ${r.doc_title} · ${r.heading}${r.page ? ` · p.${r.page}` : ''}\\n${r.text}`;\n}).join('\\n\\n');\n\n// ⛔ Coverage gate. nlq.search_knowledge returns a pure RRF score — 1/(rrf_k + rank) —\n// so it is a function of rank alone and says NOTHING about relevance: an unrelated\n// chunk scores exactly what a perfect hit scores. Retrieval therefore always returns\n// six passages, even for an anchor the corpus has never heard of, and the propose\n// step will dutifully invent something adjacent from them.\n// The only honest signal available is lexical: did anything we retrieved actually\n// mention the thing that was asked about?\nconst needle = String(base.anchor ?? '').trim().toLowerCase();\nconst hay = rows.map(r => `${r.doc_title} ${r.heading} ${r.text}`).join(' ').toLowerCase();\nconst anchor_covered = needle.length > 2 && hay.includes(needle);\n\n// A question names one anchor ingredient, but it usually sits in a style the corpus\n// does cover. Gating on the anchor alone throws the covered half away: \"vanilla and\n// poppy seeds in a pastry stout\" refused on \"poppy seeds\" (0 chunks) while \"pastry\n// stout\" had 15. Proceed when either is covered — `propose` already returns an\n// unsupported candidate with cites: [], which `compose` prints under \"Not from your\n// library\". Refuse only when neither the anchor nor the style is in the corpus.\nconst style = String(base.style ?? '').trim().toLowerCase();\nconst style_covered = style.length > 2 && hay.includes(style);\nconst proceed = anchor_covered || style_covered;\n\nreturn [{ json: { ...base, passages, idmap, anchor_covered, style_covered, proceed,\n                  chunk_ids: rows.map(r => r.chunk_id) } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -382,7 +385,10 @@
         240
       ],
       "id": "305efeb9-baf3-4810-bf0c-8ae88a3b86bb",
-      "name": "Step 3 · propose"
+      "name": "Step 3 · propose",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     },
     {
       "parameters": {
@@ -572,8 +578,8 @@
           },
           "conditions": [
             {
-              "id": "anchor-covered",
-              "leftValue": "={{ $json.anchor_covered }}",
+              "id": "anchor-or-style-covered",
+              "leftValue": "={{ $json.proceed }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",

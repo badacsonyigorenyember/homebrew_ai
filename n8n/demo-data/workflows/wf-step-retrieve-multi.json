@@ -55,7 +55,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ $json.payload }}",
         "options": {
-          "timeout": 120000
+          "timeout": 20000
         }
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -65,7 +65,11 @@
         0
       ],
       "id": "dba9adca-30d0-4b78-830c-5d2a18d00afd",
-      "name": "Decompose question"
+      "name": "Decompose question",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1000,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -151,7 +155,8 @@
         0
       ],
       "id": "83113689-3992-4be2-bb71-eb947ced7ed8",
-      "name": "Search part"
+      "name": "Search part",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
