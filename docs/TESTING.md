@@ -770,6 +770,12 @@ the system prompt requires the answer to keep.
 
 ### 5.3 Last measured results
 
+> ⚠️ **The 2026-09-14 row below is NOT a valid baseline for `tier1_routing.py` any more.**
+> It was measured on `gemma4:12b`; commit `953a9ed` moved every model reference to
+> **`gemma4:12b-it-q8_0`** on 2026-09-15. Comparing a routing score across a model
+> change measures the model, not whatever you changed. Re-baseline before reading a
+> regression into it. See the 2026-09-15 run under it.
+
 `measured` 2026-09-14, all four against the live stack:
 
 | Script | Cases | Result | Wall clock |
@@ -778,6 +784,54 @@ the system prompt requires the answer to keep.
 | `grounding_eval.py` | 16 | ✅ **PASS 16 · WARN 0 · FAIL 0 · ERROR 0** | ~14 min |
 | `tier2_e2e.py --score-only -n 20` | 20 execs | ✅ no fabricated citations | ~1 min |
 | `tier1_routing.py -n 10` | 310 trials | ⚠️ **279/310 = 90.0 %** — per-category below | ~20 min |
+
+#### `measured` 2026-09-15 — after the three-arm retrieval change (§3.4)
+
+Run after `nlq.search_knowledge` gained the rare-term arm and the per-document cap.
+
+| Script | Cases | Result | vs 2026-09-14 |
+|---|---|---|---|
+| `grounding_eval.py` | 16 | ✅ **PASS 16 · WARN 0 · FAIL 0 · ERROR 0** (~10 min) | unchanged |
+| `tier1_routing.py -n 10` | 310 trials | ⚠️ **261/310 = 84.2 %** | ⛔ not comparable — see below |
+
+**`grounding_eval.py` is the one that actually exercises the change**, and it held. All
+four `uncovered` cases still produce D38's refusal and still do it fast — 16.2 / 27.7 /
+18.3 / 16.9 s — so the rare-term arm did not hand the model a foothold on Talus, Cryo
+Pop, kveik or Phantasm. That is the designed behaviour: those terms are absent from the
+corpus vocabulary, so they fall out of the arm on the join rather than matching something
+marginal.
+
+⛔ **`tier1_routing.py` cannot see this change, and its drop is not caused by it.** Two
+independent reasons, both checkable:
+
+1. It drives `http://localhost:11434/api/chat` **directly** and **mocks the tool's return
+   value** — its own docstring says *"what it does NOT test: retrieval quality"*.
+   `nlq.search_knowledge` is never called on this path.
+2. Its baseline predates the model switch (`953a9ed`, same day), so 90.0 % → 84.2 % spans
+   a different quantization.
+
+The 18 lost trials are two cases, and `--temp 0.0` shows **both are deterministic, not
+sampling noise**:
+
+| Case | temp 0.2 | temp 0.0 | Was 2026-09-14 |
+|---|---|---|---|
+| `K05` *"When should I add hops for bitterness versus aroma?"* | 0/10 | **0/10** | 10/10 |
+| `X01` *"Don't bother searching, just tell me from memory"* | 1/10 FLAKY | **0/10** | ~10/10 |
+
+⚠️ **`K05` and `grounding_eval`'s `G06` are the same question, and they disagree** — G06
+**passed** end to end while K05 scored 0/10. That is not a contradiction once you know the
+two harnesses test different layers: G06 goes through n8n's real agent loop with the tool
+really bound, K05 goes straight to Ollama with the tool description copied out of the
+workflow and the result mocked. **The deployed agent does call the tool for that
+question.** Whether K05 is a real routing defect or a divergence between the harness's
+tool presentation and n8n's is ⛔ **not established** — and §5.3 already records four
+findings that turned out to be defects in the test rather than the assistant, so do not
+assume either way.
+
+⚠️ **Not attributed:** that the model switch *caused* K05 and X01 is the obvious
+candidate, but it was not isolated. Settling it means running `tier1_routing.py` against
+`gemma4:12b`, and the script reads the model from the live workflow — so that costs an
+`import:workflow`, a re-publish, and a `docker restart n8n`.
 
 ⚠️ **`grounding_eval.py`'s first run of the day scored PASS 12 · WARN 3 · FAIL 1.** All four
 of those were **defects in the test, not in the assistant**, and all four are now fixed:

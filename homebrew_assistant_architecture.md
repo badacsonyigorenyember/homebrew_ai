@@ -338,7 +338,24 @@ Add `f_ibu_tinseth`, `f_srm_morey`, `f_gravity_temp_correct` the same way. These
 
 ### 3.4 Hybrid retrieval function (the thing that must not live in n8n)
 
+> ⭐ **Three arms since 2026-09-15, not two, plus a per-document cap.** The section
+> below is the live definition, spliced from [`db/init/40_nlq.sql`](db/init/40_nlq.sql).
+> What changed and why is under the code.
+
 ```sql
+CREATE MATERIALIZED VIEW IF NOT EXISTS nlq.corpus_lexemes AS
+SELECT s.word,
+       s.ndoc,
+       (s.ndoc::real / GREATEST(t.total, 1)) AS ndoc_frac
+FROM ts_stat($q$
+       SELECT c.fts FROM kb.chunks c
+       JOIN kb.document_versions v ON v.id = c.version_id AND v.is_current
+     $q$) s
+CROSS JOIN (
+  SELECT count(*)::real AS total FROM kb.chunks c
+  JOIN kb.document_versions v ON v.id = c.version_id AND v.is_current
+) t;
+
 CREATE OR REPLACE FUNCTION nlq.search_knowledge(
   p_query_text  text,
   p_query_embed vector(1024),
@@ -346,19 +363,49 @@ CREATE OR REPLACE FUNCTION nlq.search_knowledge(
   p_candidates  int  DEFAULT 40,
   p_rrf_k       int  DEFAULT 50,
   p_model       text DEFAULT 'bge-m3',
-  p_doc_type    text DEFAULT NULL
+  p_doc_type    text DEFAULT NULL,
+  -- A query term is "discriminating" if it occurs in at most this fraction of
+  -- chunks. 0.02 = 54 of 2678 today: 'kolsch' (6), 'gypsum' (20) survive it.
+  p_rare_max_df real DEFAULT 0.02,
+  -- At most this many passages from any one document, so a single chatty source
+  -- cannot take the whole context budget. Short results are backfilled below.
+  p_per_doc     int  DEFAULT 3
 ) RETURNS TABLE (
   chunk_id bigint, doc_slug text, doc_title text, heading_path text[],
   page_from int, page_to int, raw_content text, image_refs text[],
-  image_dir text, score real
+  -- authority is for the passage header the model reads ("Palmer suggests X;
+  -- Angry Chair's practice is Y, which is opinion"). It is NOT a ranking input
+  -- and must never become one (D31 Layer 4).
+  image_dir text, authority text, score real
 ) LANGUAGE sql STABLE SECURITY DEFINER SET search_path = kb, public AS $$
-WITH kw AS (
+WITH rare_q AS (
+  -- Only lexemes the corpus actually knows survive the join, so a term absent
+  -- from the vocabulary drops out rather than matching nothing expensively.
+  -- quote_literal, not bare concatenation: a lexeme carrying an apostrophe would
+  -- otherwise break the ::tsquery parse.
+  SELECT string_agg(quote_literal(cl.word), ' | ')::tsquery AS q
+  FROM unnest(tsvector_to_array(to_tsvector('english', p_query_text))) AS l
+  JOIN nlq.corpus_lexemes cl ON cl.word = l
+  WHERE cl.ndoc_frac <= p_rare_max_df
+),
+kw AS (
   SELECT c.id, row_number() OVER (
            ORDER BY ts_rank_cd(c.fts, websearch_to_tsquery('english', p_query_text)) DESC) AS rk
   FROM kb.chunks c
   JOIN kb.document_versions v ON v.id = c.version_id AND v.is_current
   JOIN kb.documents d ON d.id = v.document_id
   WHERE c.fts @@ websearch_to_tsquery('english', p_query_text)
+    AND (p_doc_type IS NULL OR d.doc_type = p_doc_type)
+  LIMIT p_candidates
+),
+rare AS (
+  SELECT c.id, row_number() OVER (
+           ORDER BY ts_rank_cd(c.fts, (SELECT q FROM rare_q)) DESC) AS rk
+  FROM kb.chunks c
+  JOIN kb.document_versions v ON v.id = c.version_id AND v.is_current
+  JOIN kb.documents d ON d.id = v.document_id
+  WHERE (SELECT q FROM rare_q) IS NOT NULL
+    AND c.fts @@ (SELECT q FROM rare_q)
     AND (p_doc_type IS NULL OR d.doc_type = p_doc_type)
   LIMIT p_candidates
 ),
@@ -374,28 +421,96 @@ vec AS (
   LIMIT p_candidates
 ),
 fused AS (
-  SELECT COALESCE(kw.id, vec.id) AS id,
-         COALESCE(1.0/(p_rrf_k + kw.rk), 0) + COALESCE(1.0/(p_rrf_k + vec.rk), 0) AS score
-  FROM kw FULL OUTER JOIN vec ON kw.id = vec.id
+  SELECT a.id, sum(1.0/(p_rrf_k + a.rk)) AS score
+  FROM (
+    SELECT id, rk FROM kw
+    UNION ALL SELECT id, rk FROM rare
+    UNION ALL SELECT id, rk FROM vec
+  ) a
+  GROUP BY a.id
+),
+ranked AS (
+  SELECT f.id, f.score,
+         row_number() OVER (PARTITION BY d.id ORDER BY f.score DESC) AS rn_doc
+  FROM fused f
+  JOIN kb.chunks c ON c.id = f.id
+  JOIN kb.document_versions v ON v.id = c.version_id
+  JOIN kb.documents d ON d.id = v.document_id
 )
 SELECT c.id, d.slug, d.title, c.heading_path, c.page_from, c.page_to,
-       c.raw_content, c.image_refs, v.image_dir, f.score::real
-FROM fused f
-JOIN kb.chunks c ON c.id = f.id
+       c.raw_content, c.image_refs, v.image_dir, d.authority, r.score::real
+FROM ranked r
+JOIN kb.chunks c ON c.id = r.id
 JOIN kb.document_versions v ON v.id = c.version_id
 JOIN kb.documents d ON d.id = v.document_id
-ORDER BY f.score DESC
+-- Sorting on the cap rather than filtering on it: everything inside the cap comes
+-- first by score, then the best of the overflow backfills. A question whose answer
+-- genuinely lives in one book still returns p_limit passages instead of p_per_doc.
+ORDER BY (r.rn_doc > p_per_doc), r.score DESC
 LIMIT p_limit;
 $$;
 ```
 
-Over-fetch 40 from each arm, fuse, return 6. Over-fetching gives RRF more signal than pulling 6 from each — this is consistently reported as the single cheapest retrieval improvement available.
+⛔ **The keyword arm was silently dead on most natural-language questions, and that
+is why there are three arms.** `websearch_to_tsquery` **ANDs** every content term, so
+a rare word only matches when every common word in the sentence matches the same
+chunk. `measured` 2026-09-15 over 2678 current chunks — **3 of 7** realistic questions
+returned **zero** keyword hits, among them *"what is the ideal fermentation temperature
+for Kolsch"*, which is the exact example the table below cites to justify having a
+keyword arm at all. When the arm returns nothing, RRF degenerates to pure vector search
+and nobody is told; its signature is a top fused score of exactly `1/(p_rrf_k+1)` —
+`0.01961` at the default `p_rrf_k`, and that number is a free diagnostic.
+
+⛔ **OR-ing the terms is NOT the fix, and was rejected on measurement.** It matches
+~1340 of 2678 chunks, and `ts_rank_cd` then ranks by common-word density: the Kölsch
+query came back with six good fermentation-temperature chunks, **none of them about
+Kölsch** — the rare term drowned. Only *discriminating* terms belong in a keyword arm;
+the common ones are already the vector arm's job. Hence `nlq.corpus_lexemes` and the
+`p_rare_max_df` cutoff (0.02 = 54 of 2678 chunks today). `measured` after the change:
+`'kolsch'` → the two BJCP Kölsch entries at the top; *"how much gypsum should I add for
+a hoppy pale ale"*, previously 0 keyword hits, → Palmer's *"Choose a salt to use to add
+the needed calcium. Let's use gypsum"*.
+
+⚠️ **A chunk matched by both keyword arms scores twice.** Intended — it is strong on
+keywords by two independent measures — but it is the first knob to turn if eval shows
+keyword results crowding out the vector arm.
+
+⭐ **`p_per_doc` exists because one chatty document was taking the whole context
+budget.** `measured` 2026-09-15, before the cap: *"what temperature should I mash an
+Irish stout at"* returned **6 of 6 chunks from `byo-stout-style-guide`**, four of them
+recipe stat blocks (`OG = 1.040 FG = 1.010 IBU = 38…`) that never state a mash
+temperature, while `how-to-brew-palmer` and `yeast-practical-guide` — 910 chunks of
+actual mash guidance — contributed nothing. After the cap the same query draws on three
+documents and surfaces *"target mash temperature is 152–154 °F (67–68 °C)"*.
+
+**The cap is a sort key, not a filter** — `ORDER BY (rn_doc > p_per_doc), score DESC`.
+Filtering on it would silently return `p_per_doc` passages instead of `p_limit` whenever
+an answer genuinely lives in one book; sorting on it puts everything inside the cap
+first by score and backfills with the best of the overflow. `measured`: `top_k = 8` with
+a cap of 3 returns **8 rows across 4 documents**.
+
+⚠️ **`nlq.corpus_lexemes` is not refreshed by WF1.** A stale view degrades gracefully —
+a term it has never seen is simply not treated as rare, so it drops out of the rare arm —
+but terms introduced by a newly ingested book stay invisible to that arm until
+`REFRESH MATERIALIZED VIEW CONCURRENTLY nlq.corpus_lexemes` runs.
+
+Over-fetch `p_candidates` (40) from **each** arm, fuse with RRF, cap per document, return
+`p_limit`. Over-fetching gives RRF more signal than pulling `p_limit` from each — this is
+consistently reported as the single cheapest retrieval improvement available. Cost of the
+whole function after the change: **10.6 ms** at `top_k = 8`.
+
+⭐ **The two added parameters are trailing and defaulted, so the call site did not
+change.** `wf-step-retrieve` passes **7 positional arguments** and still does — no
+workflow edit, therefore none of the `import:workflow` → deactivation → webhook
+re-registration hazard. Both the 7-arg and 9-arg signatures are dropped before the
+create: leaving the old form behind would make every 7-argument call **ambiguous**
+rather than simply stale.
 
 **Search mode per domain:**
 
 | Domain | Mode | Why |
 |---|---|---|
-| Book/PDF chunks | **Hybrid RRF** | Vector misses exact terms ("Kolsch", "diacetyl rest", "60 IBU"); FTS misses paraphrase |
+| Book/PDF chunks | **Hybrid RRF, 3 arms** | Vector misses exact terms ("Kolsch", "diacetyl rest", "60 IBU"); FTS misses paraphrase. ⚠️ The strict-AND arm misses the exact terms too, which is what the rare-term arm is for |
 | BJCP style cards | Hybrid RRF, `doc_type='style_guide'` filter | Same, plus a cheap namespace filter |
 | Sensory notes | **FTS + array containment only** | Truth data. `descriptors @> '{bitter}'` is exact and auditable |
 | Inventory / batches / recipes | **SQL only** | Vector search on a count is a category error |
