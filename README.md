@@ -52,7 +52,7 @@ Container names as they appear in `docker ps`, under the `gpu-amd` profile:
 | `supabase-kong` | `kong` | 8000 | Studio UI, REST, and the `/mcp` route |
 | `n8n` | `n8n` | 5678 | Orchestration & glue only |
 | `aihomebrewassistant-postgres-1` | `postgres` | — | n8n metadata only (never app data) |
-| `ollama` | `ollama-gpu-amd` | 11434 | `gemma4:12b` (chat) + `bge-m3` (embed) |
+| `ollama` | `ollama-gpu-amd` | 11434 | `gemma4:12b-it-q8_0` (chat) + `bge-m3` (embed) |
 | `docling` | `docling-gpu-amd` | 5001 | PDF → structured doc + `HybridChunker` |
 | `static-files` | `static-files` | 8080 | Serves extracted images (`IMAGE_BASE_URL`) |
 | — | `db-init` (one-shot) | — | Applies a **hardcoded list** of `db/init/*.sql`, then exits |
@@ -106,7 +106,7 @@ Run it from **this checkout only, never from a worktree** — a worktree has no
 `.env`, and the changed project name collides on container names.
 
 First run pulls several GB (Supabase images, `ollama/ollama:rocm`, Docling, and
-the models `bge-m3` + `gemma4:12b`). The `db-init` container waits for Postgres,
+the models `bge-m3` + `gemma4:12b-it-q8_0`). The `db-init` container waits for Postgres,
 applies the schema, and exits `0`.
 
 ### 3. Verify the embedder — the dimension gate
@@ -207,10 +207,14 @@ backup/                     n8n exports taken before destructive changes
   — empty output means every live workflow has a tracked export.
 - **Archiving a workflow is not deleting it.** The row stays in `workflow_entity`, so
   duplicate names still break anything that queries by name.
-- **Model tags.** `gemma4:12b` and `bge-m3` are set in `.env`
-  (`OLLAMA_CHAT_MODEL` / `OLLAMA_EMBED_MODEL`). Tags drift — check
-  `ollama.com/library` and edit `.env` if a pull 404s. `qwen3:14b` is the documented
-  chat fallback (§4.3).
+- **Model tags.** `gemma4:12b-it-q8_0` and `bge-m3` are set in `.env`
+  (`OLLAMA_CHAT_MODEL` / `OLLAMA_EMBED_MODEL`), but `.env` only decides **what gets
+  pulled**. ⛔ **The model each pipeline step runs on is set in
+  `db/init/63_model_switch.sql`**, because `60_obs.sql` seeds `obs.profiles` with
+  `ON CONFLICT DO UPDATE` and reasserts its own value on every stack start — editing
+  those rows by hand does not survive `docker compose up`. Change it in that one file.
+  Tags drift — check `ollama.com/library` and edit `.env` if a pull 404s. `qwen3:14b`
+  is the documented chat fallback (§4.3).
 - **ROCm / gfx1201.** If the card isn't auto-detected, uncomment
   `HSA_OVERRIDE_GFX_VERSION` on `ollama-gpu-amd`. Pin a known-good image digest
   rather than `:rocm` once you have one (§13.1 R1).

@@ -52,8 +52,15 @@ run `n8n import:workflow`, assume it is broken until this probe says otherwise.
 curl -s http://localhost:11434/api/ps | python3 -m json.tool | grep -E '"name"|context_length'
 ```
 
-**Expect:** `gemma4:12b` and `context_length: 12288`. If the list is empty the first
+**Expect:** `gemma4:12b-it-q8_0` (13.4 GB resident). If the list is empty the first
 question will be slow (~30 s extra) while the model loads — not a fault.
+
+⚠️ **`context_length` is currently two different numbers, and that is unresolved.** Every
+`obs.profiles` row is at **16384** (`db/init/63_model_switch.sql`), but `chat-agent`'s AI
+Agent node still asks for **12288**. Ollama keys its loaded runner on the context size, so
+whichever ran last is what `/api/ps` shows — `measured` 2026-09-15, it showed 12288 after a
+chat turn while the capability steps were running at 16384. Read it as "which path ran
+last", not as a fault, until the split is closed. See architecture §4.3.
 
 ---
 
@@ -658,8 +665,9 @@ docker exec supabase-db psql -U supabase_admin -d postgres -tAc \
 
 ## 5. The automated tests
 
-Four scripts. **Run them in this order** — each is slower than the last, and a failure in
-an early one explains failures in the later ones.
+Five scripts. The first four test the **retrieval and chat path**; run them in this order —
+a failure in an early one explains failures in the later ones. The fifth tests a different
+path entirely and is independent of them.
 
 ```bash
 cd scripts/stress
@@ -668,6 +676,30 @@ cd scripts/stress
 ./grounding_eval.py                 # ~25 min · 16 cases: right answers, honest refusals
 ./tier2_e2e.py --score-only -n 20   #  ~1 min · are any citations out of range?
 ./tier1_routing.py -n 10            # ~20 min · 280 trials: does it pick the right tool?
+
+./recipe_eval.py                    # ~10 min ·  6 cases: does `formulate.recipe` hold?
+```
+
+⭐ **`recipe_eval.py` scores the SAVED RECIPE, in SQL — never the answer text.** The model
+writes the prose, so scoring the prose asks it to mark its own homework, and its
+characteristic failure is describing a beer it did not produce — *"a deep black stout"* over
+a recipe whose OG and SRM say otherwise. Every number comes from `brew.recipes` /
+`brew.recipe_items` through the same functions §7.4 makes authoritative: `brew.f_abv`,
+`target_ibu`, `target_srm`, and a roast fraction over `brew.f_catalogue()`. R06 is the one
+exception, marked so in `recipe_cases.jsonl`: it asks for a jet-black stout with no roasted
+or dark malts, which is impossible, and what is being measured is whether the **answer**
+names the conflict. A recipe check cannot see that, so R06 gets a text check and no number
+check.
+
+⛔ **It reads the model from `obs.steps`, not from config.** A previous A/B compared two
+models that were both running the *same* `propose` model — only the `chat-agent` node had
+been switched, the capability's own LLM node had not — and the identical outputs were the
+only clue anything was wrong. `obs.steps.model` on the `propose` step is the model that
+actually formulated the beer.
+
+```bash
+./recipe_eval.py --only R04       # just one case
+./recipe_eval.py --json out.json  # machine-readable
 ```
 
 ⛔ **Run them one at a time.** They all drive the same Ollama instance. A pairing case in
@@ -687,7 +719,7 @@ docker exec aihomebrewassistant-postgres-1 psql -U root -d n8n -tAc \
 docker restart n8n        # clears orphaned executions
 docker restart ollama     # clears the wedged scheduler; models reload in ~30 s
 curl -s --max-time 60 http://localhost:11434/api/chat \
-  -d '{"model":"gemma4:12b","messages":[{"role":"user","content":"say OK"}],
+  -d '{"model":"gemma4:12b-it-q8_0","messages":[{"role":"user","content":"say OK"}],
        "stream":false,"think":false,"options":{"num_predict":5}}' \
   -o /dev/null -w 'HTTP=%{http_code} t=%{time_total}\n'   # expect 200 in ~2 s
 ```
@@ -701,7 +733,7 @@ the real process instead: `ps -eo pid,cmd | grep -E "python3 .*grounding_eval" |
 
 ### 5.1 What each one can and cannot catch
 
-The four overlap deliberately, because the serious failures hide in the gaps between them.
+They overlap deliberately, because the serious failures hide in the gaps between them.
 
 | Script | Answers | Blind to |
 |---|---|---|
@@ -709,6 +741,7 @@ The four overlap deliberately, because the serious failures hide in the gaps bet
 | `grounding_eval.py` | Did it answer what it knows, refuse what it doesn't, cover every part, and **assert only what a retrieved passage supports**? | Tool-choice under adversarial pressure |
 | `tier2_e2e.py` | Is every `[Sn]` label backed by a passage that was really returned? | Whether that passage says what the sentence claims |
 | `tier1_routing.py` | Would the model call the right tool, including when a message tries to talk it out of one? | Everything after the tool call |
+| `recipe_eval.py` | Is the **saved recipe** a beer the brief asked for — ABV, IBU, colour, roast fraction, forbidden ingredients? | The prose (by design, except R06), retrieval quality, and whether the sources cited are the ones that informed the grain bill |
 
 ⭐ **`decompose_eval.py` reads its prompt out of `wf-step-retrieve-multi.json`** rather than
 keeping a copy. A copied prompt drifts, and a drifted copy keeps passing while the live
@@ -804,6 +837,37 @@ grep '"id":"M04"' scripts/stress/cases.jsonl > /tmp/one.jsonl
 
 ⚠️ **`X01` is FLAKY (9/10), not failing.** The script names flaky cases separately for a
 reason — re-run with `--temp 0.0` before treating one as a defect.
+
+#### `recipe_eval.py` — `measured` 2026-09-15
+
+A different date and a different pipeline from the four above, so it gets its own record
+rather than a row in their table.
+
+| Run | Result | What changed |
+|---|---|---|
+| baseline | **1 PASS / 6** | first run of the suite; five of the six cases had never been run against any model |
+| after prompt tuning | **2 PASS / 6** | `propose` v5→v6, `compose` v4, roast ceiling clamped in `Validate proposal` |
+| after `brew.f_fit_ibu` | ✅ **5 PASS / 6** | bitterness fitted in SQL instead of asked for a fourth time |
+
+Every IBU failure closed on the last step: **R01 143 → 38 · R02 39 → 24 · R05 31 → 46.**
+
+⛔ **The one remaining failure is R04, and it is deliberately not fixed.** It lands at SRM
+61.4 against a case ceiling of 60 — a **2.3 % miss**, with large run-to-run variance behind
+it: the same case has computed 35.0, 56.7, 63.7, 60.3 and 61.4. With the roast fraction now
+clamped at 15 %, the swing comes from **which** roast malt the model picks — Chocolate Light
+at 150 °L against CARAFA Type 3 at 528 °L is a 3.5× colour difference at an identical
+proportion. That is malt *selection*, not proportion, and clamping it would take away a
+choice worth leaving with the model.
+
+⭐ **R01 passes while the gate still reports an unresolved colour miss** — SRM 35.4 against a
+published floor of 40 for a Classic Irish-Style Dry Stout, unreachable inside the 15 % roast
+ceiling. The system declines to force it and tells the brewer instead. **That is the gate
+working, not failing** — do not read the reported miss as a failed case.
+
+⚠️ **Three of the six cases were tuned against.** `propose` v6 and the `Validate proposal`
+clamp were both written with these failures in hand, so 5/6 is a fitted score, not a held-out
+one. It measures that the known failure modes are closed; it does not establish that the
+pipeline generalises to a seventh case.
 
 ### 5.4 Reading the results
 

@@ -550,6 +550,17 @@ That margin is the whole design. It is why I'm not recommending a 24B–27B mode
 | **Reranker** | *none in v1* | — | See §4.4 |
 | **Small utility** | *none in v1* | — | See §4.5 |
 
+⭐ **Current tag: `gemma4:12b-it-q8_0`** (13.4 GB resident, 100 % GPU), switched 2026-09-15 —
+**see D40, which records that it was switched *against* the measurement.** The reasoning in
+this section is unchanged and still correct: same 11.9B weights, different precision.
+
+⛔ **`.env` does not decide this.** `OLLAMA_CHAT_MODEL` only controls what gets *pulled*.
+The model each pipeline step actually runs on lives in **`db/init/63_model_switch.sql`**,
+because `60_obs.sql` seeds `obs.profiles` with `ON CONFLICT DO UPDATE` and reasserts its own
+value on every stack start — editing those rows by hand does not survive `docker compose up`.
+Two other places name a chat model independently: `chat-agent`'s AI Agent node and
+`wf-step-retrieve-multi`'s decompose node.
+
 ### 4.3 Comparison of the candidates you named
 
 | Model | Dim / Size | Verdict |
@@ -1056,11 +1067,40 @@ flowchart LR
 | "Why did my batch N taste Z" | **Both** — SQL for the facts, RAG for the mechanism |
 | "Suggest a recipe from what I have" | **Both + math** — inventory SQL, style SQL, technique RAG |
 
+⭐ **The last row is built — `cap-formulate-recipe`, 2026-09-15 — and "+ math" turned out to
+be the load-bearing half.** The capability runs `parse` → retrieve → `propose` → compute →
+gate → `compose`. The model proposes a grain bill and a hop schedule in JSON; **every number
+that reaches the brewer is computed in SQL afterwards**, by `brew.f_compute_recipe` over
+`brew.f_catalogue`, with `brew.f_abv`, `brew.f_fit_to_abv`, `brew.f_fit_ibu` and
+`ref.f_style_bands` doing the arithmetic and the style check. The model never reports a
+number it calculated itself.
+
+⛔ **That split is not tidiness, it is the result of three failed attempts to ask.** The 15 %
+roast ceiling was stated in two prompt versions — one of them called it *"a ceiling you never
+cross, not even when a correction tells you the beer came out too pale"* — and the next run
+crossed it in 3 of 6 cases, at 21.8 %, 17.6 % and 16.0 %. Bitterness was told to the model
+three separate ways and never held: run-to-run variance on **one unchanged case** ran
+126 → 49 → 31 IBU. Both stopped being the model's job and became a clamp and a fit in SQL,
+after which roast landed at 15.0/15.0/15.0 with zero violations and every IBU failure closed.
+**A number the model cannot hold is not a wording problem.** `measured` 2026-09-15 —
+`scripts/stress/recipe_eval.py`, 1 → 2 → 5 PASS of 6; see [`docs/TESTING.md`](docs/TESTING.md) §5.
+
+⭐ **Every correction is told to the brewer in plain words, never applied silently** — *"the
+hop charge as proposed computed to 143 IBU, outside the published band for the style; every
+hop was scaled by 0.266 to bring it in"* — on the same channel as the roast trim and the
+missing-ingredient gaps. And when a target is unreachable, the gate says so rather than
+forcing it: R01 reports SRM 35.4 against a published floor of 40 for a dry stout,
+unreachable inside the 15 % roast ceiling, and declines. That is the gate working.
+
 Encode the failure mode explicitly in the system prompt: *if a question is about the user's own brewing and no tool returned data, say so — never fill the gap from the books.* Hallucinated inventory is the single worst failure this system can produce, because it is confident, plausible, and silently wrong.
 
 ### 7.5 Context budget
 
 `gemma4:12b` advertises 256K context. You cannot afford it — KV cache at 256K would dwarf the model. Run `num_ctx: 12288`.
+
+⭐ **Raised to `num_ctx: 16384` on every `obs.profiles` row, 2026-09-15** (`db/init/63_model_switch.sql`). Headroom was measured **first**, not after: across runs 78+ the binding step `propose` peaked at **7083 of 12288** (58 %), `compose` at 1295 and `parse` at 444. The 12245-token peak in the history is run 32, a `compose` runaway from before `num_predict` capped that profile — not a prompt that failed to fit. It was raised anyway because retrieval `top_k` went **5 → 8** in the same change (~1000–1500 more tokens per `propose` prompt) and the catalogue block grows permanently with every maltster datasheet ingested — 150 rows is ~1275 tokens today and only goes up. 16384 keeps the same ~40 % margin after both. It is nearly free on this model: gemma4 uses sliding-window attention, so the KV cache measured **480 MiB** at a 12288 context rather than scaling linearly, against 3.2 GiB free with the 13 GB model and `bge-m3` both resident at 100 % GPU.
+
+⚠️ **The two paths disagree, and this is open.** `chat-agent`'s AI Agent node still asks for **12288** while every profile is at **16384**. Ollama keys its loaded runner on the context size, so a split like this evicts and reloads a 13 GB model between the agent turn and the capability step it calls — the fault `63_model_switch.sql` warns about in its own header (*"every profile moves together, always"*). `measured` 2026-09-15: `/api/ps` showed the runner resident at 12288 while the capability steps were configured for 16384. ⛔ **Not yet measured as a cost** — 21 of 211 LLM steps in a 6-hour window were cold loads, but three model swaps happened in that same window, so those cold loads cannot be attributed to the split. Close the split or measure it; do not assume either way.
 
 | Component | Tokens |
 |---|---|
@@ -1646,7 +1686,25 @@ Deprecate: ✅ the demo workflow — gone.
 
 ⚠️ **What this no longer measures.** Tool *selection* between two disjoint tools was the original point of this phase; with one tool there is nothing to select. That criterion moves to whichever phase introduces the second tool. The property Phase 2 still tests is the more fundamental one — architecture rule 2 holds even when the truth side is *missing entirely*, which is the harder case for the model, not the easier one. A system that invents batch data when it has no batch tool would also have invented it with one.
 
-### Phase 3 — Full tool set and NLQ *(1–2 weeks)* — ⬜ not started
+### Phase 3 — Full tool set and NLQ *(1–2 weeks)* — 🟡 **part built, knowledge-side only**
+
+⭐ **Status corrected 2026-09-15.** This section read *"⬜ not started"* while two capabilities
+and the whole brewing-math layer had shipped. What is actually built, and what is not:
+
+| Phase 3 item | State |
+|---|---|
+| Brewing math functions | ✅ **Built.** `brew.f_abv`, `f_compute_recipe`, `f_catalogue`, `f_fit_to_abv`, `f_fit_ibu`, `f_fit_recipe`, `f_save_recipe`, `f_dry_hop_rate_g_per_l`, `f_kg_to_lb`, `f_l_to_gal`; `ref.f_style_bands`, `f_range_text` |
+| `cap-formulate-recipe` | ✅ **Built 2026-09-15.** §7.4, D41. Scored by `scripts/stress/recipe_eval.py` — **5 PASS / 6** |
+| `cap-brainstorm-pairing` | ✅ Built. 🟡 Does **not** pass a `session_id` to `wf-step-retrieve`, so its retrievals cannot be tied to a case ([`docs/TESTING.md`](docs/TESTING.md) §5.3) |
+| Multi-search decomposition | ✅ `wf-step-retrieve-multi`, with `decompose_eval.py` over it |
+| Remaining `nlq` functions + tools (7 total) | ⬜ **Not started.** Only `nlq.search_knowledge` and `nlq.find_batches` exist — ⏸ still **blocked on D25** |
+| WF3 batch import | ⬜ Not started — ⏸ **blocked on D25**, which is the reason D25 exists |
+| WF6 + the 60-question eval set | 🟡 **Substituted, not built as specified.** Five stress scripts cover routing, decomposition, grounding, citations and recipes instead ([`docs/TESTING.md`](docs/TESTING.md) §5). The §10.2 exit gates below have **not** been measured against a single 60-question set |
+
+⛔ **The exit criteria below are therefore not met and not measured.** Tool accuracy is at
+**90.0 %** against a ≥ 0.90 gate (`tier1_routing.py`, 279/310, `measured` 2026-09-14) — at the
+line, not past it — and *truth correctness* cannot be measured at all while nothing populates
+`brew.batches`.
 
 **Goal:** every intent class answerable, with measurement.
 
@@ -2032,7 +2090,7 @@ n8n's Postgres Chat Memory (D6) writes its blob to `public` in the **app** datab
 | **D1** | Answer language (Setup/Project said HU, brief said EN) | **✅ Resolved: English only** | No cross-lingual requirement; simplifies D2/D4 to English-only criteria | **Closed** |
 | **D2** | Embedding model + dimension *(open item in your log)* | **`bge-m3`, 1024 dim** | Strong English retrieval, 8k ctx, dimension-compatible with `qwen3-embedding` for A/B | Phase 0 — **blocks everything** |
 | **D3** | pgvector-only vs + Qdrant *(open item)* | **pgvector only; delete Qdrant** | §3.6, with four exit criteria that won't fire at your scale | Phase 0 |
-| **D4** | Chat LLM *(open item)* | **`gemma4:12b`**, fallback `qwen3:14b` | Apache 2.0, native tool calling, best reasoning-per-GB, leaves VRAM for a resident embedder | Phase 2 |
+| **D4** | Chat LLM *(open item)* | **`gemma4:12b`**, fallback `qwen3:14b` — ⚠️ **tag refined by D40: `gemma4:12b-it-q8_0`.** The model family choice below is unchanged and still holds; only the quantisation moved | Apache 2.0, native tool calling, best reasoning-per-GB, leaves VRAM for a resident embedder | Phase 2 |
 | **D5** | Chat UI long-term *(open item)* | ~~`chat.html` + `@n8n/chat`~~ → **superseded by D29: the n8n built-in chat panel** | Open WebUI stays dropped either way. `chat.html` bought a standalone URL that a single user does not need; the built-in panel already streams, so it satisfies the Phase 2 criterion with zero build | **Closed 2026-08-07** |
 | **D29** | Chat UI, settled | **n8n built-in chat panel. `chat.html` deferred, not deleted** | User decision 2026-08-07. Closes *"`chat.html` not wired"* and *"streaming not visually confirmed"*. Cost: no standalone URL — chat happens in the n8n editor. Does **not** close `mem.chat_turns` logging, which is UI-independent | **Closed** |
 | **D6** | Chat memory backend | **n8n Postgres Chat Memory → Supabase**, plus your own `mem.chat_turns` | Agent memory and analytics are different jobs; n8n's blob serves the first, your table the second | Phase 2 |
@@ -2044,6 +2102,8 @@ n8n's Postgres Chat Memory (D6) writes its blob to `public` in the **app** datab
 | **D12** | Ingestion scheduling | **Nightly + chat-recency guard** | Prevents GPU contention with chat | Phase 1 |
 | **D25** | **Truth-side tool surface — shape, and how batch data gets in** | ⏸ **Open — deliberately deferred 2026-08-02.** No recommendation yet; this is a discussion, not a pending rubber-stamp | `nlq.find_batches` exists and works, but nothing populates `brew.batches` — no WF3, no UI, no entry path. A query tool over a table nobody can fill is not a feature. The schema in §3.3 has also never been exercised by real data. Deciding the tool shape before deciding the data-entry path would be deciding the wrong thing first | **Before Phase 3's truth-side work.** Phase 2 ships one tool and is not blocked |
 | ⭐ **D39** | **How workflows are written — there are now three paths, and the docs describe one** | **UI authors. Git is the source of truth. The MCP server reads, validates and makes surgical edits. The public REST API is not used.** ⛔ **No programmatic write until the `$input` probe is settled — on both paths** | `measured` 2026-09-13: all **11** workflows are `availableInMCP: true` and `canExecute: true`, with `workflow:update` and `workflow:delete` in scope — the whole instance is writable from here, which is new. The MCP path is preferred over REST for edits because it is the only one that can `validate_workflow` **before** writing, and because §5's *"edit the file, then import"* has never once been how a workflow was actually built — all 11 were authored in the UI, so that instruction has been dead prose for four books. What must not change is the **export-and-commit** step (standing rule 4): a write path that makes editing easy makes drift easier too, and n8n's database is still not a backup | **Before the first programmatic edit.** Nothing is blocked on it today |
+| ⭐ **D40** | **Chat model tag — Q4_K_M or Q8_0** | **`gemma4:12b-it-q8_0`. Switched 2026-09-15 by explicit request, *against* the measurement below — recorded as a deliberate choice, not an oversight** | Same 11.9B weights at two precisions, measured head to head on the pastry-stout case: **Q4_K_M 5 PASS / 0 FAIL**, roast 8.1–9.5 %, `propose` ~12 s · **Q8_0 0 PASS / 3 FAIL**, roast 6.7–7.0 %, `propose` ~15.4 s. Q8 is **not** spilling to CPU — 13 GB, 25/25 layers, 100 % GPU at `num_ctx` 12288 with 3.2 GiB free — it simply sat below the prompted 8 % roast floor every time while Q4 sat just above it every time. Colour was comparable (SRM 37–39 both): both brew a dark beer, only Q4 holds the band. ⚠️ **One case, n=3 against n=5, and the misses are narrow.** Suggestive, not settled — widen with `recipe_eval.py` before treating *"more bits is worse"* as anything general. The result stands and has not been retracted. **Revert is one line** in `db/init/63_model_switch.sql` | **Closed 2026-09-15.** Reopen if `recipe_eval.py` widens the Q4/Q8 gap |
+| ⭐ **D41** | **Where brewing arithmetic lives — in the prompt, or in SQL** | **In SQL. The model proposes ingredients; it never reports a number it calculated itself** | Asking failed three times, measurably. The 15 % roast ceiling was stated in two prompt versions (one called it *"a ceiling you never cross"*) and the next run crossed it in **3 of 6 cases** at 21.8 / 17.6 / 16.0 %. Bitterness was specified three different ways — including explicit grams-per-litre arithmetic with a worked example — and run-to-run variance on one unchanged case ran **126 → 49 → 31 IBU**. Clamping roast in `Validate proposal` gave 15.0/15.0/15.0 with zero violations; `brew.f_fit_ibu` closed **every** IBU failure (R01 143→38, R02 39→24, R05 31→46). This is the same move `brew.f_catalogue` already made when malt classification kept going wrong. ⛔ **`f_fit_ibu` is one multiplication, not a bisection** — Tinseth IBU is linear in hop mass for a fixed schedule, gravity and volume, which is why it is not shaped like `f_fit_to_abv`, which does have to bisect. All hops scale together: the ratio between bittering and flavour is a judgement worth keeping, only the level was wrong | **Closed 2026-09-15.** §7.4 |
 
 **Proposed Decisions-log entries** (commit these; D2/D3/D4 close three of your four open items — D5 closes the fourth):
 
