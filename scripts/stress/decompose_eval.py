@@ -67,7 +67,7 @@ def load_prompt():
         sys.exit("decompose_eval: could not find the prompt literal in the Code node "
                  "— the `content: \"...\" + subject` shape changed")
     model = re.search(r"model: '([^']+)'", code)
-    return json.loads(m.group(1)), (model.group(1) if model else "gemma4:12b")
+    return json.loads(m.group(1)), (model.group(1) if model else "gemma4:12b-it-q8_0")
 
 
 def decompose(prompt, model, question, timeout=180):

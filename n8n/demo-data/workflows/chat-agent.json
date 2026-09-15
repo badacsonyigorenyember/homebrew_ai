@@ -3,7 +3,7 @@
   "createdAt": "2026-08-19T18:16:11.191Z",
   "id": "h2lN0E6u0J5x0MSC",
   "name": "chat-agent",
-  "description": "The homebrewer-facing chat agent (WF4). A public chat trigger feeds a gemma4:12b agent with Postgres chat memory (6 turns) and exactly two sub-workflow tools: search_brewing_knowledge -> wf-step-retrieve for questions with a correct answer, and brainstorm_pairing -> cap-brainstorm-pairing for idea questions. The system prompt on the AI Agent node is the D38 refusal contract and the only place the library's scope is described. Every turn is written to mem.chat_turns by the Mark t0 -> Prep turn -> Log turn tail.",
+  "description": "The homebrewer-facing chat agent (WF4). A public chat trigger feeds a gemma4:12b-it-q8_0 agent with Postgres chat memory (6 turns) and exactly two sub-workflow tools: search_brewing_knowledge -> wf-step-retrieve for questions with a correct answer, and brainstorm_pairing -> cap-brainstorm-pairing for idea questions. The system prompt on the AI Agent node is the D38 refusal contract and the only place the library's scope is described. Every turn is written to mem.chat_turns by the Mark t0 -> Prep turn -> Log turn tail.",
   "active": true,
   "isArchived": false,
   "nodes": [
@@ -51,7 +51,7 @@
           "keepAlive": "-1m",
           "numCtx": 12288
         },
-        "model": "gemma4:12b"
+        "model": "gemma4:12b-it-q8_0"
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
@@ -199,7 +199,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const a  = $input.first().json;\nconst tr = $('When chat message received').first().json;\nconst t0 = Number($('Mark t0').first().json.t0);\n\nconst steps = a.intermediateSteps ?? [];\n\nconst toolCalls = steps.map(s => ({\n  tool:  s.action?.tool ?? null,\n  input: s.action?.toolInput ?? null,\n}));\n\n// The model's harmony framing leaks into the answer roughly one turn in eleven —\n// a stored answer starting 'thought<channel|>' is what a later mem reader would\n// take for the assistant's own words. Strip it on the way to STORAGE only; never\n// strip the model's output path, which would hide the leak instead of fixing it.\nfunction stripChannel(s) {\n  return String(s ?? '')\n    .replace(/<\\|?\\/?(?:channel|start|end|message|final|analysis)\\|?>/gi, '')\n    .replace(/^\\s*thought\\s*/i, '')\n    .trim();\n}\n\nreturn [{ json: {\n  session_id: String(tr.sessionId ?? 'unknown'),\n  user_text:  String(tr.chatInput ?? ''),\n  content:    stripChannel(a.output),\n  tool_calls: JSON.stringify(toolCalls),\n  // chunk_ids are NOT recovered here any more. The tool hands the model\n  // mode 'text', which carries no chunk_id by design, so the regex that used to\n  // sit here could never match — 0 of 22 turns. `Log turn` joins obs.retrievals\n  // instead, and t0_iso bounds that join to this turn.\n  t0_iso:     new Date(t0).toISOString(),\n  latency_ms: Date.now() - t0,\n  model:      'gemma4:12b',\n}}];"
+        "jsCode": "const a  = $input.first().json;\nconst tr = $('When chat message received').first().json;\nconst t0 = Number($('Mark t0').first().json.t0);\n\nconst steps = a.intermediateSteps ?? [];\n\nconst toolCalls = steps.map(s => ({\n  tool:  s.action?.tool ?? null,\n  input: s.action?.toolInput ?? null,\n}));\n\n// The model's harmony framing leaks into the answer roughly one turn in eleven —\n// a stored answer starting 'thought<channel|>' is what a later mem reader would\n// take for the assistant's own words. Strip it on the way to STORAGE only; never\n// strip the model's output path, which would hide the leak instead of fixing it.\nfunction stripChannel(s) {\n  return String(s ?? '')\n    .replace(/<\\|?\\/?(?:channel|start|end|message|final|analysis)\\|?>/gi, '')\n    .replace(/^\\s*thought\\s*/i, '')\n    .trim();\n}\n\nreturn [{ json: {\n  session_id: String(tr.sessionId ?? 'unknown'),\n  user_text:  String(tr.chatInput ?? ''),\n  content:    stripChannel(a.output),\n  tool_calls: JSON.stringify(toolCalls),\n  // chunk_ids are NOT recovered here any more. The tool hands the model\n  // mode 'text', which carries no chunk_id by design, so the regex that used to\n  // sit here could never match — 0 of 22 turns. `Log turn` joins obs.retrievals\n  // instead, and t0_iso bounds that join to this turn.\n  t0_iso:     new Date(t0).toISOString(),\n  latency_ms: Date.now() - t0,\n  // Kept in step with the Ollama Chat Model node above and obs.profiles\n  // (db/init/63_model_switch.sql). A stale literal here silently mislabels\n  // every logged turn with a model that did not run it.\n  model:      'gemma4:12b-it-q8_0',\n}}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,

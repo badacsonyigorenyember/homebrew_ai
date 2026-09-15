@@ -5,7 +5,7 @@
 # Differences from the self-hosted-ai-starter-kit this is based on:
 #   - Qdrant removed          (architecture §3.6 — pgvector only)
 #   - Open WebUI removed       (architecture D5 — chat.html is the interface)
-#   - Ollama pulls gemma4:12b + bge-m3, NOT llama3.2 (architecture §4)
+#   - Ollama pulls gemma4:12b-it-q8_0 + bge-m3, NOT llama3.2 (architecture §4)
 #   - Ollama pinned/keep-alive so chat + embedder stay resident (§4.5)
 #   - db-init service applies the kb/ref/brew/mem/nlq schema to Supabase Postgres
 #   - n8n demo-data import removed (fresh build — no demo workflow, §12 #6)
@@ -74,7 +74,7 @@ x-init-ollama: &init-ollama
   # Pull the embedder first (blocks §Start-tomorrow dim check), then the chat model.
   command:
     - "-c"
-    - "sleep 3; ollama pull ${OLLAMA_EMBED_MODEL:-bge-m3}; ollama pull ${OLLAMA_CHAT_MODEL:-gemma4:12b}"
+    - "sleep 3; ollama pull ${OLLAMA_EMBED_MODEL:-bge-m3}; ollama pull ${OLLAMA_CHAT_MODEL:-gemma4:12b-it-q8_0}"
 
 x-docling: &service-docling
   image: ghcr.io/docling-project/docling-serve:main
@@ -176,7 +176,7 @@ services:
                  /db-init/28_brew_derived_sugars.sql /db-init/29_brew_formulate.sql \
                  /db-init/30_mem.sql \
                  /db-init/40_nlq.sql /db-init/60_obs.sql \
-                 /db-init/62_obs_recipe_prompts.sql; do
+                 /db-init/62_obs_recipe_prompts.sql /db-init/63_model_switch.sql; do
           echo ">> $$f"
           psql -v ON_ERROR_STOP=1 -f "$$f"
         done

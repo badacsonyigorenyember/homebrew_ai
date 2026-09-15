@@ -74,7 +74,7 @@ def load_deployed_config():
     sysmsg = re.sub(r"\{\{[^}]*\$now[^}]*\}\}", time.strftime("%Y-%m-%d"), sysmsg)
 
     return {
-        "model": llm["parameters"].get("model", "gemma4:12b"),
+        "model": llm["parameters"].get("model", "gemma4:12b-it-q8_0"),
         "num_ctx": int(opts.get("numCtx", 2048)),
         "temperature": float(opts.get("temperature", 0.7)),
         "think": bool(opts.get("think", False)),

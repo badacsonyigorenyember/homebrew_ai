@@ -69,7 +69,7 @@ N8N_DEFAULT_BINARY_DATA_MODE=filesystem
 
 # --- Ollama / models (architecture §4) --------------------------------------
 # Verify these tags exist on ollama.com/library before first pull (§4.3).
-OLLAMA_CHAT_MODEL=gemma4:12b
+OLLAMA_CHAT_MODEL=gemma4:12b-it-q8_0
 OLLAMA_EMBED_MODEL=bge-m3
 OLLAMA_HOST=ollama:11434
 

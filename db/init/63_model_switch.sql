@@ -1,0 +1,55 @@
+-- =============================================================================
+-- 63_model_switch.sql  ·  Which chat model every step runs on
+--
+-- 60_obs.sql seeds obs.profiles with ON CONFLICT DO UPDATE, so it reasserts
+-- gemma4:12b on every stack start -- editing the rows by hand does not survive
+-- `docker compose up`. This file runs AFTER it and is the one place the model
+-- is chosen. Change the two values below; nothing else names a chat model
+-- except wf-step-retrieve-multi's decompose node and .env's OLLAMA_CHAT_MODEL.
+--
+-- ⛔ num_ctx is unified on purpose. Ollama keys its loaded runner on the context
+-- size, so a profile at 8192 next to profiles at 12288 forces a full model
+-- reload between parse and propose on EVERY run. That cost ~15-30 s with a
+-- 7.6 GB model; with a 25 GB model that does not fit in 16 GB of VRAM it is far
+-- worse. One context size, one resident runner.
+--
+-- Embeddings are NOT touched: bge-m3 is a different job and lives in .env.
+-- Idempotent.
+-- =============================================================================
+
+-- Reverted to gemma4:12b 2026-09-15. nemotron-3.5-lightning:30b was measured
+-- head to head on the same request and lost on the job that matters: 1.2% roast
+-- malt against a required 8-15%, SRM 12.8 for a stout that needs 30+, and wheat
+-- malt as 77% of the grist. gemma4:12b passed the same case three times running
+-- (recipes 7, 8, 9). It was also 16x slower on `propose` -- 232.7 s against
+-- 14.5 s -- because 25 GB does not fit in 16 GB of VRAM and ran 46% on CPU.
+-- It composed a better Sources block; that is a prompt problem, not a model one.
+-- qwen3.5:9b-q8 was tried 2026-09-15 on BFCL V4 tool calling (0.661, rank #9,
+-- above IBM Granite 4.2 30B; gemma4:12b is not on that board) -- 8.95B at Q8_0,
+-- 10 GB, via `ollama cp` from the unsloth GGUF. Then MEASURED on the pastry
+-- stout case: 1 PASS / 3 FAIL (recipes 13, 16, 17, 18). It took Chocolate Light
+-- (150 degL) as its ONLY dark malt and landed at SRM 20.2 three times
+-- identically -- a brown ale. It satisfied the stated 8-15% roast rule and
+-- missed the beer. A benchmark shortlists a model; it does not decide it.
+--
+-- gemma4:12b-it-q8_0 was then measured against this Q4_K_M tag on the same case.
+-- Same 11.9B weights at different precision, so this isolates quantisation:
+--   gemma4:12b         Q4_K_M  5 PASS / 0 FAIL  roast 8.1-9.5%  propose ~12 s
+--   gemma4:12b-it-q8_0 Q8_0    0 PASS / 3 FAIL  roast 6.7-7.0%  propose ~15.4 s
+-- Q8 fits comfortably -- 13 GB, 100% GPU, 25/25 layers at num_ctx 12288, 3.2 GiB
+-- still free -- so this is NOT a spill to CPU. It simply sat below the prompted
+-- 8% roast floor every time while Q4 sat just above it every time. Colour was
+-- comparable (SRM 37-39 both): both brew a dark beer, only Q4 holds the band.
+-- ⚠️ One case, n=3 against n=5, and the Q8 misses are narrow (6.7 vs a floor of
+-- 8.0). Suggestive, not settled. Widen with scripts/stress/recipe_cases.jsonl
+-- before treating "more bits is worse" as anything beyond a local result.
+--
+-- SWITCHED TO gemma4:12b-it-q8_0 2026-09-15 BY EXPLICIT REQUEST, against the
+-- measurement directly above. Recorded as a deliberate choice, not an oversight:
+-- the 0 PASS / 3 FAIL result stands and has not been retracted. The Q8 misses
+-- were narrow (roast 6.7-7.0% against a floor of 8.0) and the colour was fine
+-- (SRM 37-39), so the beers are dark and drinkable -- they just do not hold the
+-- prompted band. Revert is one line: set model back to 'gemma4:12b'.
+UPDATE obs.profiles
+   SET model   = 'gemma4:12b-it-q8_0',
+       options = options || '{"num_ctx": 12288}'::jsonb;
