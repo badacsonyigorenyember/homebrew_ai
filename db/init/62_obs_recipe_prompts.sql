@@ -329,6 +329,86 @@ Fields:
 $body$, false, 'v3: role-bucketed catalogue; avoid list binding on hop timing')
 ON CONFLICT (name, version) DO NOTHING;
 
+-- ---------------------------------------------------------------------------
+-- compose v3 — the Sources HEADING, the "none" sentinel, and one line to cite.
+--
+-- Three defects measured over 8 runs (gemma4:12b-it-q8_0 vs gemma4:12b), read
+-- from obs.steps at step_id 'compose', not from the agent's final message:
+--
+--   * ⛔ The literal word "Sources" was absent in 3 of 5 Q8 runs (0 of 3 on Q4).
+--     The source LINES were emitted with titles and pages -- v2's fix held --
+--     but with no heading above them. The chat-agent reformats compose's output
+--     and silently discards trailing unheaded lines, so the brewer saw no
+--     provenance at all. The heading is the load-bearing part, not the lines.
+--   * ⛔ `Build compose vars` passes gaps: 'none' when there are no gaps, and the
+--     model printed a bare line reading "none" in the middle of the recipe --
+--     5 of 5 Q8 runs, 0 of 3 Q4. `sources` carries the same sentinel and can
+--     leak the same way.
+--   * The root cause of the first: v2 asked for [S..] labels on technique claims
+--     while also closing the body with "Nothing else". A model obeying both
+--     writes no technique prose, so it has nothing to attach a label to, so it
+--     cites nothing -- and v2 then told it to omit the block entirely. What came
+--     out was the list with its heading stripped: the worst of both rules.
+--
+-- Hence: the block is unconditional on having cited, and the body gains exactly
+-- ONE technique line so a label has something to sit on. Bounded at 25 words on
+-- purpose -- this is a recipe, not an essay. The "none" suppression is the
+-- construction brainstorm.pairing/compose already uses (60_obs.sql), applied to
+-- both sentinels. Every other v2 rule is carried over unchanged.
+-- ---------------------------------------------------------------------------
+INSERT INTO obs.prompts (name, version, body, active, notes) VALUES
+('formulate.recipe/compose', 3, $body$
+Write the recipe for the brewer.
+
+What they asked for:
+{{question}}
+
+The recipe, already costed -- ingredient, stage, amount:
+{{recipe}}
+
+⛔ The computed figures. These are CORRECT and were calculated, not estimated.
+Print them exactly as given; never recalculate, round or "correct" them:
+{{computed}}
+
+Library passages supporting the technique, cite these by label:
+{{sources}}
+
+Asked for but not in the catalogue -- say so plainly, once:
+{{gaps}}
+
+Rules:
+- Lead with the recipe. No preamble, no "great choice".
+- Give the grain bill as a list with grams, then hops with times, then the
+  additions, then mash temperature.
+- Then exactly ONE line, at most 25 words, on the technique that makes this beer
+  what the brewer asked for, taken from the passages and carrying its [S..]
+  label. One line -- not two, not a paragraph. Nothing else follows it but the
+  figures and the Sources block.
+- State OG, FG, ABV, IBU and EBC exactly as given above, once, together.
+- ⛔ Never state a number that does not appear above. If you find yourself
+  calculating anything, stop -- the arithmetic is already done.
+- Mark technique claims taken from the passages with their [S..] label. Do not
+  cite the ingredient amounts; those are computed, not quoted.
+- If "not available" is non-empty, add one short line naming what the library
+  and catalogue do not cover. Do not substitute something else for it silently.
+- ⛔ If the "not available" list reads "none", that line MUST NOT appear at all.
+  "none" is a sentinel meaning there is nothing to report -- never print it, and
+  never print the word "none" on a line of its own anywhere in the answer.
+- ⛔ End with a Sources block. It is MANDATORY whenever the passage list above
+  has lines in it, and it does NOT depend on what you cited. Print the literal
+  heading
+  Sources:
+  on its own line, then the passage lines copied verbatim -- each carries its
+  document title and page and both must be printed. Keep the lines whose label
+  you cited; if you cited none, print them all. A list with no heading is a
+  failure, and so is a bare "[S1]" with no title. Never invent a title and never
+  print a placeholder.
+- ⛔ If the passage list reads "none", omit the Sources block entirely.
+- English. Metric: litres, °C, grams. Gravity to three decimals. IBU whole.
+- Direct and technical. This brewer is experienced.
+$body$, false, 'v3: Sources heading mandatory; "none" sentinel suppressed; one technique line to carry [S..]')
+ON CONFLICT (name, version) DO NOTHING;
+
 
 -- ---------------------------------------------------------------------------
 -- Generation caps.
@@ -364,4 +444,4 @@ UPDATE obs.prompts SET active = false WHERE name = 'formulate.recipe/propose';
 UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/propose' AND version = 3;
 
 UPDATE obs.prompts SET active = false WHERE name = 'formulate.recipe/compose';
-UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/compose' AND version = 2;
+UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/compose' AND version = 3;
