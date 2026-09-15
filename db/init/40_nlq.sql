@@ -49,6 +49,184 @@ CREATE UNIQUE INDEX IF NOT EXISTS corpus_lexemes_word_idx ON nlq.corpus_lexemes 
 --   REFRESH MATERIALIZED VIEW CONCURRENTLY nlq.corpus_lexemes;
 REFRESH MATERIALIZED VIEW nlq.corpus_lexemes;
 
+-- WF1 calls this as its last step, so a newly ingested book's terms are visible
+-- to the rare arm and to corpus_vocabulary_gap immediately (§3.4.1).
+--
+-- ⛔ It is a function because the ingest credential CANNOT refresh the view
+-- directly. REFRESH requires ownership, db-init creates the view as
+-- `supabase_admin`, and ingest connects as `postgres` -- which is not a superuser
+-- in this stack. measured 2026-09-15: a direct REFRESH as `postgres` fails with
+-- "must be owner of materialized view corpus_lexemes". SECURITY DEFINER is the
+-- same answer this schema already gives everywhere else: the privilege is a
+-- function, not a grant.
+--
+-- CONCURRENTLY so a refresh never blocks a live retrieval -- corpus_lexemes_word_idx
+-- is UNIQUE, which is what CONCURRENTLY requires. ⚠️ It is NOT valid in an explicit
+-- transaction block, but plpgsql's implicit one is fine; measured 2026-09-15.
+CREATE OR REPLACE FUNCTION nlq.f_refresh_corpus_lexemes()
+RETURNS bigint
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = nlq, public AS $fn$
+DECLARE n bigint;
+BEGIN
+  REFRESH MATERIALIZED VIEW CONCURRENTLY nlq.corpus_lexemes;
+  SELECT count(*) INTO n FROM nlq.corpus_lexemes;
+  RETURN n;
+END
+$fn$;
+
+REVOKE ALL ON FUNCTION nlq.f_refresh_corpus_lexemes() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION nlq.f_refresh_corpus_lexemes() TO postgres;
+
+-- ⚠️ The stale-view note above cuts the OTHER way for the detector below. For the
+-- rare arm, an unseen term is simply not rare and drops out -- harmless. For a gap
+-- detector, an unseen term reads as "the corpus does not cover this", so a stale
+-- view manufactures gaps for exactly the book you just ingested. Until the REFRESH
+-- is wired into WF1, every gap measured right after an ingest is suspect.
+
+-- Corpus vocabulary gap ------------------------------------------------------
+-- Answers "does this question use a word the library has never seen", which is
+-- the only honest version of "the corpus cannot answer this". It is NOT the same
+-- as "the search returned nothing": nlq.search_knowledge can never return zero
+-- rows, because the vector arm has no relevance predicate -- it is
+-- `ORDER BY embedding <=> query LIMIT p_candidates`, unconditional. measured
+-- 2026-09-15: "the current retail price of a Nintendo Switch 2 in Hungary"
+-- returned 6 malt-colour table rows, "timing belt on a 2011 Volkswagen Passat"
+-- returned 6 draught-line chunks. There is no empty state to detect.
+--
+-- ⛔ Raw absence alone is far too noisy to act on. measured 2026-09-15 over the
+-- 31 cases in scripts/stress/cases.jsonl: it fired 5 times and was wrong all 5 --
+-- M01 {ibo} (a typo for IBU), M03 {diacetil,jelent,mit,sorben} (the question is
+-- Hungarian), MP01 {off-flavour} (British spelling; the corpus is American),
+-- X01 {memori}, X04 {print}. Zero true gaps in that set. Two guards fix it:
+--
+--   p_near_sim  -- a close trigram neighbour in the vocabulary means a typo, a
+--                  stem or a locale spelling, not a gap. 'off-flavour'->'off-flavor'
+--                  0.667, 'memori'->'memor' 0.625, 'print'->'printout' 0.500,
+--                  'diacetil'->'diacetyl' 0.500.
+--   p_min_known -- the question must use at least this many words the corpus DOES
+--                  know, or it is off-domain or not English rather than a coverage
+--                  gap. Hungarian M03 knows 0 of 4; "the ibo of altbier" knows 1.
+--
+-- ⛔ p_min_known is a COUNT, and was a ratio for exactly one end-to-end run. A
+-- ratio measured well on cases.jsonl and then failed in production, because this
+-- function does not see the user's question -- it sees the agent's rewrite of it.
+-- measured 2026-09-15 through the live chat webhook: "What fermentation
+-- temperature does Voss Kveik like?" reached the retriever as "Voss Kveik
+-- fermentation temperature", 2 unknown of 4 = 0.50, and the ratio guard suppressed
+-- a TRUE gap. The same question with three filler words in front scores 0.40 and
+-- fires. Stripping filler is what a good rewrite DOES, so the ratio was measuring
+-- the rewriter, not the corpus. A count of known words cannot move that way.
+--
+-- ⚠️ Both defaults were fitted to those cases plus five hand-written probes --
+-- 15 terms in total. They are arguments, not constants, because the honest
+-- threshold comes from logged traffic (obs.retrievals.gap_terms), not from this
+-- sample. Neither guard separates alone: trigram alone keeps 'ibo' (0.333) while
+-- 'lotus', a TRUE gap, scores HIGHER at 0.429; p_min_known alone keeps
+-- 'off-flavour'. Only the pair does.
+--
+-- After both: 0 of 31 eval cases fire, and the true gaps survive in BOTH the
+-- natural-language and the agent-rewritten form -- {lotus}, {kveik,voss} -- while
+-- "Weyermann Barke Pilsner malt" and "Kolsch", both covered, stay silent.
+--
+-- ⚠️ A single lexeme is not always the unit of a gap. "Cryo Pop" is a hop the
+-- corpus does not have, but 'cryo' (4 chunks) and 'pop' (7) both occur in it
+-- separately, so word-level absence cannot see it -- measured 2026-09-15 against
+-- grounding_eval.py's own U01-U04 `uncovered` cases, where it caught Talus, kveik
+-- and Phantasm but missed Cryo Pop, 3 of 4. Hence the second arm below: adjacent
+-- pairs of RARE words whose phrase never occurs. Restricting it to rare words is
+-- what keeps it quiet -- product names are built from rare words, while
+-- "fermentation temperature" is two common ones and never reaches the check.
+-- measured over cases.jsonl plus the U-cases: it fires on "cryo pop" and nothing
+-- else, including "diacetyl rest", "Irish Stout" and "Voss Kveik".
+--
+-- ⚠️ Known limit, by design: this is a RETRIEVAL signal, not a DOMAIN signal.
+-- "timing belt on a 2011 Volkswagen Passat" still reports {volkswagen}. Deciding
+-- a question is not about brewing is the agent's job, not this function's.
+--
+-- Only the verdict is worth storing: obs.retrievals already keeps `query`, so the
+-- raw absence set is recomputable offline at any threshold.
+-- Return type changed when p_max_ratio became p_min_known; CREATE OR REPLACE
+-- cannot do that, and the old shape must not survive as an overload.
+DROP FUNCTION IF EXISTS nlq.corpus_vocabulary_gap(text, real, real);
+DROP FUNCTION IF EXISTS nlq.corpus_vocabulary_gap(text, real, int);
+DROP FUNCTION IF EXISTS nlq.corpus_vocabulary_gap(text, real, int, real);
+
+CREATE OR REPLACE FUNCTION nlq.corpus_vocabulary_gap(
+  p_query_text  text,
+  p_near_sim    real DEFAULT 0.5,
+  p_min_known   int  DEFAULT 2,
+  -- Matches search_knowledge's p_rare_max_df on purpose: the same notion of
+  -- "discriminating" decides which pairs are worth a phrase check.
+  p_rare_max_df real DEFAULT 0.02
+) RETURNS TABLE (gap_terms text[], absent_terms text[], lex_count int, known_count int)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = nlq, public AS $fn$
+WITH lex AS (
+  -- to_tsvector already drops English stopwords. The `~ '[a-z]'` test drops
+  -- purely numeric lexemes: a bare year or gravity reading says nothing about
+  -- whether the corpus covers a topic. (It is a no-op on cases.jsonl -- no case
+  -- produces a numeric gap -- but '2011' in the Passat probe is a live example.)
+  SELECT l FROM unnest(tsvector_to_array(to_tsvector('english', p_query_text))) AS l
+  WHERE l ~ '[a-z]'
+),
+absent AS (
+  SELECT l FROM lex
+  WHERE NOT EXISTS (SELECT 1 FROM nlq.corpus_lexemes cl WHERE cl.word = l)
+),
+novel AS (
+  -- No index: 15368 lexemes against the 0-2 absent terms a question typically
+  -- has is a trivial scan, and `%` would silently apply the session's
+  -- pg_trgm.similarity_threshold instead of p_near_sim.
+  SELECT a.l FROM absent a
+  WHERE NOT EXISTS (
+    SELECT 1 FROM nlq.corpus_lexemes cl
+    WHERE similarity(cl.word, a.l) >= p_near_sim)
+),
+-- Surface words in order, so adjacency is the question's, not the tsvector's,
+-- and the ORIGINAL case survives -- see the Capitalised test below.
+surface AS (
+  SELECT m[1] AS raw, lower(m[1]) AS w, ord
+  FROM regexp_matches(p_query_text, '[A-Za-z][A-Za-z0-9-]+', 'g') WITH ORDINALITY AS r(m, ord)
+),
+rare_w AS (
+  -- Capitalised, because this arm exists for product names and they are
+  -- capitalised by convention. Without the test the arm also fires on ordinary
+  -- rare-word adjacency: measured 2026-09-15, X01's "Don't bother searching"
+  -- yielded {"bother searching"}, the only false positive the pair arm ever
+  -- produced over cases.jsonl. ⚠️ The cost is real and accepted: a product name
+  -- typed in lower case ("cryo pop") is invisible to this arm, and the word arm
+  -- cannot see it either, so that question reports no gap at all.
+  SELECT s.ord, s.w FROM surface s
+  WHERE s.raw ~ '^[A-Z]'
+    AND EXISTS (
+    SELECT 1 FROM nlq.corpus_lexemes cl
+    WHERE cl.word = ANY(tsvector_to_array(to_tsvector('english', s.w)))
+      AND cl.ndoc_frac <= p_rare_max_df)
+),
+pair_gap AS (
+  SELECT a.w || ' ' || b.w AS phrase
+  FROM rare_w a JOIN rare_w b ON b.ord = a.ord + 1
+  WHERE NOT EXISTS (
+    SELECT 1 FROM kb.chunks c
+    JOIN kb.document_versions v ON v.id = c.version_id AND v.is_current
+    WHERE c.fts @@ phraseto_tsquery('english', a.w || ' ' || b.w))
+),
+agg AS (
+  SELECT (SELECT count(*) FROM lex)    AS n_lex,
+         (SELECT count(*) FROM absent) AS n_absent,
+         (SELECT coalesce(array_agg(l ORDER BY l), '{}'::text[]) FROM absent) AS absent_arr,
+         (SELECT coalesce(array_agg(l ORDER BY l), '{}'::text[]) FROM novel)  AS novel_arr,
+         (SELECT coalesce(array_agg(phrase ORDER BY phrase), '{}'::text[]) FROM pair_gap) AS pair_arr
+)
+SELECT CASE
+         WHEN (n_lex - n_absent) < p_min_known THEN '{}'::text[]
+         ELSE novel_arr || pair_arr
+       END,
+       absent_arr,
+       n_lex::int,
+       (n_lex - n_absent)::int
+FROM agg;
+$fn$;
+
 -- Hybrid retrieval over the book/PDF corpus: FTS + vector, fused with RRF (§3.4).
 -- Over-fetch p_candidates from each arm, fuse, return p_limit.
 --

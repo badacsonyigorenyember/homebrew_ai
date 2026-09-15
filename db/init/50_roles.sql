@@ -32,6 +32,14 @@ GRANT EXECUTE  ON ALL FUNCTIONS IN SCHEMA nlq TO agent_ro;
 ALTER DEFAULT PRIVILEGES IN SCHEMA nlq GRANT SELECT  ON TABLES    TO agent_ro;
 ALTER DEFAULT PRIVILEGES IN SCHEMA nlq GRANT EXECUTE ON FUNCTIONS TO agent_ro;
 
+-- ...with one exception, and it has to be revoked HERE rather than beside the
+-- function, because the blanket GRANT above would hand it straight back.
+-- nlq.f_refresh_corpus_lexemes() is the ingest path's, not the agent's: it is
+-- SECURITY DEFINER over a supabase_admin-owned materialized view, so it is the
+-- one thing in nlq that writes. `default_transaction_read_only` would stop the
+-- agent calling it anyway — this is Layer 1 not relying on Layer 2.
+REVOKE ALL ON FUNCTION nlq.f_refresh_corpus_lexemes() FROM agent_ro;
+
 -- 4) The login role n8n uses for read tools -----------------------------------
 SELECT 'CREATE ROLE n8n_agent LOGIN'
 WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'n8n_agent')\gexec

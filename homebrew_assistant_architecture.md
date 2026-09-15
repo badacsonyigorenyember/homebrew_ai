@@ -489,10 +489,98 @@ an answer genuinely lives in one book; sorting on it puts everything inside the 
 first by score and backfills with the best of the overflow. `measured`: `top_k = 8` with
 a cap of 3 returns **8 rows across 4 documents**.
 
-⚠️ **`nlq.corpus_lexemes` is not refreshed by WF1.** A stale view degrades gracefully —
-a term it has never seen is simply not treated as rare, so it drops out of the rare arm —
-but terms introduced by a newly ingested book stay invisible to that arm until
-`REFRESH MATERIALIZED VIEW CONCURRENTLY nlq.corpus_lexemes` runs.
+⭐ **WF1 refreshes `nlq.corpus_lexemes` as its last step, since 2026-09-15.** It did not
+before, and a stale view had opposite consequences for the two consumers: for the rare arm
+an unseen term is merely not rare and drops out — harmless — but for the §3.4.1 gap
+detector an unseen term reads as *"the corpus does not cover this"*, so staleness
+manufactured gaps for exactly the book you had just ingested. That made it a defect rather
+than a note, and closing it is a precondition for anything acting on the flag.
+
+⛔ **It is `nlq.f_refresh_corpus_lexemes()`, not a bare `REFRESH`, because the ingest
+credential cannot refresh the view.** `REFRESH` requires ownership, `db-init` creates the
+view as `supabase_admin`, and ingest connects as `postgres` — which is **not** a superuser
+in this stack. `measured` 2026-09-15: a direct `REFRESH` as `postgres` fails with *"must be
+owner of materialized view corpus_lexemes"*. `SECURITY DEFINER` is the answer this schema
+already gives everywhere else — the privilege is a function, not a grant. `CONCURRENTLY`
+so a refresh never blocks a live retrieval; `corpus_lexemes_word_idx` is UNIQUE, which is
+what that requires, and it is valid inside plpgsql's implicit transaction though not an
+explicit one.
+
+⚠️ **50_roles.sql revokes it from `agent_ro`**, and that revoke has to live there rather
+than beside the function, because `GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA nlq` would
+hand it straight back. It is the one thing in `nlq` that writes.
+
+#### 3.4.1 Vocabulary gap — the honest version of "the corpus cannot answer this"
+
+⛔ **`nlq.search_knowledge` can never return zero rows, so "no results" is not an
+available signal.** The vector arm has no relevance predicate — it is
+`ORDER BY embedding <=> query LIMIT p_candidates`, unconditional — so it always returns
+`p_limit` rows while the corpus is non-empty. `measured` 2026-09-15: *"the current retail
+price of a Nintendo Switch 2 in Hungary"* returned six malt-colour table rows and
+*"timing belt on a 2011 Volkswagen Passat"* returned six draught-line chunks. Any design
+that plans to fall back when retrieval "finds nothing" is planning around a state that
+does not exist.
+
+`nlq.corpus_vocabulary_gap(query)` answers the question that **is** answerable: *does this
+question use words the library has never seen?* Two arms:
+
+| Arm | Catches | Example |
+|---|---|---|
+| **word** — lexeme absent from `nlq.corpus_lexemes` | new varieties, strains, products | `Talus`, `kveik`, `Phantasm`, `Lotus` |
+| **pair** — adjacent *Capitalised rare* words whose phrase never occurs | multi-word product names | `Cryo Pop` — 'cryo' (4 chunks) and 'pop' (7) both exist alone |
+
+⛔ **Raw absence alone is far too noisy to act on**, which is why two guards sit in front
+of it. `measured` over the 31 cases in `scripts/stress/cases.jsonl`, unguarded absence
+fired **5 times and was wrong all 5**: `{ibo}` (a typo for IBU), `{diacetil,jelent,mit,sorben}`
+(the question is Hungarian), `{off-flavour}` (British spelling; the corpus is American),
+`{memori}`, `{print}`. Zero true gaps in that set.
+
+- `p_near_sim` (0.5) — a close trigram neighbour in the vocabulary means a typo, a stem or
+  a locale spelling, not a gap: `off-flavour`→`off-flavor` 0.667, `memori`→`memor` 0.625.
+- `p_min_known` (2) — the question must use at least two words the corpus *does* know, or
+  it is off-domain or not English rather than a coverage gap. Hungarian M03 knows 0 of 4.
+
+⛔ **`p_min_known` is a count, and it was a ratio for exactly one end-to-end run.** A ratio
+scored perfectly on `cases.jsonl` and then failed live, because **this function never sees
+the user's question — it sees the agent's rewrite of it.** `measured` through the chat
+webhook: *"What fermentation temperature does Voss Kveik like?"* reached the retriever as
+**"Voss Kveik fermentation temperature"**, 2 unknown of 4 = 0.50, and the ratio guard
+suppressed a true gap. The same question with three filler words in front scores 0.40 and
+fires. Stripping filler is what a good rewrite *does*, so the ratio was measuring the
+rewriter, not the corpus.
+
+⚠️ **The thresholds were fitted to ~15 hand-picked terms and are arguments, not
+constants.** The honest values come from logged traffic. Neither guard separates alone:
+trigram alone keeps `ibo` (0.333) while `lotus`, a **true** gap, scores *higher* at 0.429;
+`p_min_known` alone keeps `off-flavour`. Only the pair does.
+
+`measured` 2026-09-15, after both guards — the ground truth is `grounding_eval.py`'s own
+`uncovered` cases, which exist independently of this work:
+
+| Set | Fires | Detail |
+|---|---|---|
+| `cases.jsonl` | **0 of 31** | silent |
+| `grounding_eval.py` U01–U04 (**known gaps**) | **4 of 4** | `talus` · `cryo pop` · `kveik` · `phantasm` |
+| Covered probes (Kölsch, Weyermann Barke Pilsner, diacetyl rest) | **0 of 4** | silent |
+| Gap probes, incl. agent-rewritten forms | **3 of 3** | `lotus` · `kveik,voss` |
+
+Cost: **3.0 ms**. `grounding_eval.py` held at **PASS 16 · WARN 0 · FAIL 0 · ERROR 0**.
+
+⚠️ **Two limits, both by design and both measured:**
+
+1. **It is a retrieval signal, not a domain signal.** *"timing belt on a 2011 Volkswagen
+   Passat"* still reports `{volkswagen}`. Deciding a question is not about brewing is the
+   agent's job. Anything consuming this flag needs its own domain check.
+2. **The pair arm requires capitalisation.** `cryo pop` typed in lower case is invisible to
+   both arms. Without the test the arm also fired on ordinary rare-word adjacency — X01's
+   *"Don't bother searching"* yielded `{"bother searching"}`, its only false positive.
+
+⭐ **Consumed by nothing yet — logged to `obs.retrievals.gap_terms` and returned only in
+`rows` mode.** It is deliberately kept out of the `text` shape the model reads: a model
+gaining a fact it cannot act on — there is no web tool — can only hedge, and that is a
+grounding regression bought for nothing. The log is the evidence that decides whether the
+consumer is worth building, and because `obs.retrievals` already stores `query`, any
+future threshold can be replayed over it offline.
 
 Over-fetch `p_candidates` (40) from **each** arm, fuse with RRF, cap per document, return
 `p_limit`. Over-fetching gives RRF more signal than pulling `p_limit` from each — this is

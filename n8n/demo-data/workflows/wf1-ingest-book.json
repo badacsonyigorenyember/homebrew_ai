@@ -581,6 +581,29 @@
             "name": "Postgres account"
           }
         }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "-- Last step, so a newly ingested book's terms are visible to search_knowledge's\n-- rare arm and to nlq.corpus_vocabulary_gap immediately. Without it a stale view\n-- makes the gap detector report the book you just ingested as uncovered (§3.4.1).\n--\n-- A function, not a bare REFRESH: REFRESH needs ownership, the view is owned by\n-- supabase_admin, and this node connects as `postgres` -- which is not a superuser\n-- here. A direct REFRESH fails with \"must be owner of materialized view\".\n--\n-- The data-modifying CTE runs to completion whether or not the final SELECT reads\n-- it, and `r` is referenced twice so it is materialised and the refresh happens once.\nWITH r AS (SELECT nlq.f_refresh_corpus_lexemes() AS lexemes),\nins AS (\n  INSERT INTO kb.ingest_log (version_id, stage, level, message, detail)\n  SELECT $1::bigint, 'lexemes', 'info',\n         format('nlq.corpus_lexemes refreshed: %s lexemes', r.lexemes),\n         jsonb_build_object('lexemes', r.lexemes)\n  FROM r RETURNING 1\n)\nSELECT r.lexemes FROM r;",
+          "options": {
+            "queryReplacement": "={{ [$('Ensure doc + version').first().json.version_id] }}"
+          }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          4704,
+          -256
+        ],
+        "id": "54d73518-cde0-4e3b-9272-03c3c6f5fdd5",
+        "name": "Refresh corpus lexemes",
+        "credentials": {
+          "postgres": {
+            "id": "fDjeFLjBj3r9berH",
+            "name": "Postgres account"
+          }
+        }
       }
     ],
     "connections": {
@@ -863,6 +886,17 @@
           [
             {
               "node": "Zip ids + embeddings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Log ingest summary": {
+        "main": [
+          [
+            {
+              "node": "Refresh corpus lexemes",
               "type": "main",
               "index": 0
             }

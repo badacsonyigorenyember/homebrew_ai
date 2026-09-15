@@ -290,25 +290,45 @@ CREATE TABLE IF NOT EXISTS obs.retrievals (
   chunk_ids  bigint[] NOT NULL DEFAULT '{}',
   top_k      int,
   mode       text,
+  -- Words in the question that the corpus vocabulary has never seen, after the
+  -- typo/locale and off-domain guards in nlq.corpus_vocabulary_gap. Logged, and
+  -- for now ONLY logged: it is the evidence that decides whether a web-search
+  -- fallback is worth building, and the thresholds that produced it were fitted
+  -- to 15 hand-picked terms. `query` is stored beside it, so any future threshold
+  -- can be replayed over this table offline.
+  gap_terms  text[] NOT NULL DEFAULT '{}',
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- The table predates gap_terms in every already-running volume, and this file is
+-- re-applied rather than migrated.
+ALTER TABLE obs.retrievals
+  ADD COLUMN IF NOT EXISTS gap_terms text[] NOT NULL DEFAULT '{}';
 
 -- `Log turn` reads the newest trace for a session, so this is the access path.
 CREATE INDEX IF NOT EXISTS retrievals_session_created_idx
   ON obs.retrievals (session_id, created_at DESC);
 
+-- p_gap_terms is trailing and defaulted so the argument stays optional, but the
+-- 5-arg form MUST go: leaving it behind would make every 5-argument call
+-- ambiguous against the defaulted 6-arg one. Same reasoning as the two DROPs in
+-- front of nlq.search_knowledge.
+DROP FUNCTION IF EXISTS obs.f_log_retrieval(text, text, bigint[], int, text);
+
 CREATE OR REPLACE FUNCTION obs.f_log_retrieval(
-  p_session_id text, p_query text, p_chunk_ids bigint[], p_top_k int, p_mode text)
+  p_session_id text, p_query text, p_chunk_ids bigint[], p_top_k int, p_mode text,
+  p_gap_terms text[] DEFAULT '{}')
 RETURNS bigint
 LANGUAGE sql SECURITY DEFINER SET search_path = obs, public AS $fn$
-  INSERT INTO obs.retrievals (session_id, query, chunk_ids, top_k, mode)
+  INSERT INTO obs.retrievals (session_id, query, chunk_ids, top_k, mode, gap_terms)
   VALUES (nullif(p_session_id, ''), p_query,
-          coalesce(p_chunk_ids, '{}'::bigint[]), p_top_k, p_mode)
+          coalesce(p_chunk_ids, '{}'::bigint[]), p_top_k, p_mode,
+          coalesce(p_gap_terms, '{}'::text[]))
   RETURNING id
 $fn$;
 
-REVOKE ALL ON FUNCTION obs.f_log_retrieval(text, text, bigint[], int, text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION obs.f_log_retrieval(text, text, bigint[], int, text) TO mem_writer;
+REVOKE ALL ON FUNCTION obs.f_log_retrieval(text, text, bigint[], int, text, text[]) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION obs.f_log_retrieval(text, text, bigint[], int, text, text[]) TO mem_writer;
 
 -- `Log turn` runs as mem_writer, which holds no table privileges anywhere in obs.
 -- Same SECURITY DEFINER pattern as the rest of this file: the join it needs is a

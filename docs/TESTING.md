@@ -785,6 +785,54 @@ the system prompt requires the answer to keep.
 | `tier2_e2e.py --score-only -n 20` | 20 execs | ✅ no fabricated citations | ~1 min |
 | `tier1_routing.py -n 10` | 310 trials | ⚠️ **279/310 = 90.0 %** — per-category below | ~20 min |
 
+#### `measured` 2026-09-15 — after the vocabulary-gap detector (§3.4.1)
+
+`nlq.corpus_vocabulary_gap` is logged to `obs.retrievals.gap_terms` and returned in
+`rows` mode only; nothing consumes it yet and the `text` shape the model reads is
+unchanged. `grounding_eval.py` therefore should not move, and did not:
+
+| Script | Cases | Result | vs earlier 2026-09-15 |
+|---|---|---|---|
+| `grounding_eval.py` | 16 | ✅ **PASS 16 · WARN 0 · FAIL 0 · ERROR 0** | unchanged |
+
+Refusal latency 21.0 / 26.6 / 15.6 / 17.1 s — still fast.
+
+**The detector's own check** — the ground truth is `grounding_eval.py`'s four `uncovered`
+cases, which predate this work:
+
+| Set | Should fire? | Fires | Detail |
+|---|---|---|---|
+| `scripts/stress/cases.jsonl` | no | **0 of 31** | silent |
+| `grounding_eval.py` U01–U04 | **yes** | **4 of 4** | `talus` · `cryo pop` · `kveik` · `phantasm` |
+| Covered probes — Kölsch, Weyermann Barke Pilsner, diacetyl rest | no | **0 of 4** | silent |
+| Gap probes incl. agent-rewritten forms | **yes** | **3 of 3** | `lotus` · `kveik,voss` |
+
+Reproduce any row with:
+
+```bash
+docker exec supabase-db psql -U supabase_admin -d postgres -c "SELECT * FROM nlq.corpus_vocabulary_gap('What could I brew with Cryo Pop?')"
+```
+
+⛔ **Do not test this function only through SQL.** Its first version passed every SQL
+check and then failed live, because it does not see the user's question — it sees the
+agent's rewrite. *"What fermentation temperature does Voss Kveik like?"* arrives as
+*"Voss Kveik fermentation temperature"*, and the guard that was a ratio suppressed the
+gap. The end-to-end check is the one that matters:
+
+```bash
+curl -s -o /dev/null --max-time 120 -X POST http://localhost:5678/webhook/<id>/chat -H 'Content-Type: application/json' -d '{"sessionId":"gap-probe","action":"sendMessage","chatInput":"What could I brew with Cryo Pop?"}'
+```
+
+then read what the retriever actually received:
+
+```bash
+docker exec supabase-db psql -U supabase_admin -d postgres -c "SELECT query, gap_terms FROM obs.retrievals ORDER BY created_at DESC LIMIT 5"
+```
+
+`measured`: the agent rewrote that question to **`Cryo Pop`**, and the detector fired
+`{"cryo pop"}`. ⚠️ The capitalisation in the rewrite is load-bearing — the pair arm only
+looks at Capitalised adjacent rare words (§3.4.1).
+
 #### `measured` 2026-09-15 — after the three-arm retrieval change (§3.4)
 
 Run after `nlq.search_knowledge` gained the rare-term arm and the per-document cap.
