@@ -198,7 +198,7 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ref, public AS $fn$
   ),
   h AS (SELECT words, words[array_length(words, 1)] AS head FROM w),
   m AS (
-    SELECT s.name, s.srm_min, s.srm_max, s.abv_min, s.abv_max,
+    SELECT s.name, s.srm_min, s.srm_max, s.abv_min, s.abv_max, s.ibu_min, s.ibu_max,
            (SELECT count(*) FROM unnest(h.words) x
              WHERE length(x) >= 3 AND s.name ILIKE '%' || x || '%') AS hits
     FROM ref.styles s, h
@@ -216,13 +216,18 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ref, public AS $fn$
     'srm_max', CASE WHEN bool_or(srm_max IS NULL) OR max(srm_max) >= 40
                     THEN NULL ELSE max(srm_max) END,
     'abv_min', CASE WHEN bool_or(abv_min IS NULL) THEN NULL ELSE min(abv_min) END,
-    'abv_max', CASE WHEN bool_or(abv_max IS NULL) THEN NULL ELSE max(abv_max) END
+    'abv_max', CASE WHEN bool_or(abv_max IS NULL) THEN NULL ELSE max(abv_max) END,
+    -- IBU, unlike SRM, has no open-ended-guide problem: every row that has
+    -- vitals states both ends. The envelope rule is the same -- an ambiguous
+    -- style widens the band, it never narrows it.
+    'ibu_min', CASE WHEN bool_or(ibu_min IS NULL) THEN NULL ELSE min(ibu_min) END,
+    'ibu_max', CASE WHEN bool_or(ibu_max IS NULL) THEN NULL ELSE max(ibu_max) END
   ) END
   FROM best
 $fn$;
 
 COMMENT ON FUNCTION ref.f_style_bands(text) IS
-  'The published SRM and ABV band for a style named in the brewer''s own words, '
+  'The published SRM, ABV and IBU band for a style named in the brewer''s own words, '
   'as the envelope of the ref.styles rows that best match those words. NULL when '
   'nothing matches -- a caller must let the recipe through rather than invent a '
   'band. An open end from the guide stays open, and so does any srm_max of 40+.';

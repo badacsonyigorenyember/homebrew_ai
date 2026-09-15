@@ -443,3 +443,87 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = brew, public AS $fn$
 $fn$;
 
 GRANT EXECUTE ON FUNCTION brew.f_catalogue(text) TO mem_writer;
+
+-- ---------------------------------------------------------------------------
+-- brew.f_fit_ibu  ·  put the bitterness inside the band without asking again
+--
+-- ⛔ Why this is arithmetic and not a prompt. Bitterness was told to the model
+-- three ways across propose v4, v5 and v6 and never held: IBU 6 and 16 (no
+-- bittering charge at all), then 35/44/126 (a charge with no reference to batch
+-- volume or alpha acid), then 143/39/31 after the rule was given the explicit
+-- arithmetic -- grams per litre, times volume, divided by alpha -- with a worked
+-- example of the exact failure. Run-to-run variance on one unchanged case ran
+-- 126 -> 49 -> 31. The 15% roast ceiling had already gone the same way and was
+-- fixed the same way, in `Validate proposal`. A number the model cannot hold is
+-- not a wording problem.
+--
+-- Tinseth IBU is LINEAR in hop mass for a fixed schedule, gravity and volume:
+-- every addition contributes util(t, OG) * alpha * mass * 1000 / V. So hitting a
+-- target needs one multiplication, not a bisection and not a second LLM call --
+-- scale every hop by target/current and the new IBU is exactly the target. That
+-- is why this is not shaped like f_fit_to_abv, which does have to bisect.
+--
+-- Scaling ALL hops rather than just the bittering charge keeps the ratio the
+-- model chose between bittering and flavour, which is a judgement worth keeping;
+-- only the overall level was wrong.
+--
+-- Aims just INSIDE the bound (5%), never at the midpoint: the brewer asked for a
+-- beer, not for the centre of a style guide, and landing exactly on a bound
+-- risks rounding straight back out of it.
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION brew.f_fit_ibu(
+  p_batch_size_l numeric,
+  p_fit          jsonb,
+  p_ibu_lo       numeric,
+  p_ibu_hi       numeric,
+  p_efficiency   numeric DEFAULT 0.72,
+  p_attenuation  numeric DEFAULT 0.75,
+  p_boil_volume_l numeric DEFAULT NULL
+) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = brew, public AS $fn$
+DECLARE
+  v_cur    numeric := (p_fit->'computed'->>'ibu')::numeric;
+  v_target numeric;
+  v_k      numeric;
+  v_items  jsonb;
+BEGIN
+  IF v_cur IS NULL OR (p_ibu_lo IS NULL AND p_ibu_hi IS NULL) THEN
+    RETURN p_fit || jsonb_build_object('ibu_fit', NULL);
+  END IF;
+
+  IF    p_ibu_lo IS NOT NULL AND v_cur < p_ibu_lo THEN v_target := p_ibu_lo * 1.05;
+  ELSIF p_ibu_hi IS NOT NULL AND v_cur > p_ibu_hi THEN v_target := p_ibu_hi * 0.95;
+  ELSE  RETURN p_fit || jsonb_build_object('ibu_fit', NULL);
+  END IF;
+
+  -- IBU 0 means no hop is bittering at all -- a missing boil time, not a level
+  -- that can be scaled. Nothing times zero reaches the band, so say so and let
+  -- the recipe through rather than dividing by zero or silently inventing a hop.
+  IF v_cur <= 0 THEN
+    RETURN p_fit || jsonb_build_object('ibu_fit',
+      jsonb_build_object('scaled', false, 'from', v_cur, 'to', v_cur,
+                         'reason', 'no addition contributes bitterness; check the boil times'));
+  END IF;
+
+  v_k := v_target / v_cur;
+
+  SELECT jsonb_agg(
+           CASE WHEN i.kind = 'hop'
+                THEN it || jsonb_build_object('qty_g', greatest(1, round((it->>'qty_g')::numeric * v_k)))
+                ELSE it END
+           ORDER BY ord)
+    INTO v_items
+    FROM jsonb_array_elements(p_fit->'items') WITH ORDINALITY AS e(it, ord)
+    LEFT JOIN brew.ingredients i ON i.id = (e.it->>'ingredient_id')::bigint;
+
+  RETURN jsonb_build_object(
+    'items',    v_items,
+    'computed', brew.f_compute_recipe(p_batch_size_l, v_items, p_efficiency,
+                                      p_attenuation, p_boil_volume_l),
+    'scale_factor', p_fit->'scale_factor',
+    'ibu_fit',  jsonb_build_object('scaled', true, 'from', v_cur,
+                                   'to', v_target, 'factor', round(v_k, 3)));
+END;
+$fn$;
+
+GRANT EXECUTE ON FUNCTION brew.f_fit_ibu(numeric, jsonb, numeric, numeric, numeric, numeric, numeric) TO mem_writer;

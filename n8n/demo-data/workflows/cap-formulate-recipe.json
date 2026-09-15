@@ -513,7 +513,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const v     = $('Validate proposal').first().json;\nconst fit   = $('Fit to target').first().json.fit;\nconst saved = $input.first().json.saved;\n// ⛔ A verifier miss that survived the retry is NOT routed through `compose`.\n// This model drops lines it was told to print -- the mandatory Sources heading\n// went missing in 3 of 5 measured runs -- and a recipe that missed its band has\n// to say so every time. `Return` appends it verbatim instead.\nconst gate  = $('Check bands').first().json.gate;\n\n// The recipe lines are built from the SAVED items, not the proposed ones: the\n// grist was scaled to hit the target, so the proposed grams are stale.\nconst lines = fit.items.map(it => {\n  const t = it.timing_min != null ? `, ${it.timing_min} min` : '';\n  const n = it.notes ? ` — ${it.notes}` : '';\n  return `${v.names[it.ingredient_id]} · ${it.stage}${t} · ${it.qty_g} g${n}`;\n}).join('\\n');\n\nconst c = saved.computed;\nconst computed = [\n  `OG ${c.og}`, `FG ${c.fg}`, `ABV ${c.abv_pct}%`,\n  `IBU ${c.ibu}`, `EBC ${c.ebc}`, `SRM ${c.srm}`,\n  `batch ${c.batch_size_l} L`, `mash ${v.mash_temp_c} °C`,\n].join(' · ');\n\nconst sources = Object.values(v.idmap)\n  .map(s => `[${s.label}] ${s.doc_title}${s.page ? `, p.${s.page}` : ''}`).join('\\n');\n\nreturn [{ json: {\n  run_id: v.run_id,\n  question: v.question,\n  recipe: lines,\n  computed,\n  sources: sources || 'none',\n  gaps: v.gaps.length ? v.gaps.join('; ') : 'none',\n  recipe_id: saved.recipe_id,\n  version: saved.version,\n  scale_factor: fit.scale_factor,\n  unresolved: gate.unresolved,\n  spent: JSON.stringify({ recipe_id: saved.recipe_id, version: saved.version,\n                          items: saved.items, scale_factor: fit.scale_factor,\n                          gate: { attempt: gate.attempt, unresolved: gate.unresolved } }),\n}}];"
+        "jsCode": "const v     = $('Validate proposal').first().json;\nconst fit   = $('Fit hops').first().json.fit;   // post-IBU-fit; 'Fit to target' is one step stale\nconst saved = $input.first().json.saved;\n// ⛔ A verifier miss that survived the retry is NOT routed through `compose`.\n// This model drops lines it was told to print -- the mandatory Sources heading\n// went missing in 3 of 5 measured runs -- and a recipe that missed its band has\n// to say so every time. `Return` appends it verbatim instead.\nconst gate  = $('Check bands').first().json.gate;\n\n// The recipe lines are built from the SAVED items, not the proposed ones: the\n// grist was scaled to hit the target, so the proposed grams are stale.\nconst lines = fit.items.map(it => {\n  const t = it.timing_min != null ? `, ${it.timing_min} min` : '';\n  const n = it.notes ? ` — ${it.notes}` : '';\n  return `${v.names[it.ingredient_id]} · ${it.stage}${t} · ${it.qty_g} g${n}`;\n}).join('\\n');\n\nconst c = saved.computed;\nconst computed = [\n  `OG ${c.og}`, `FG ${c.fg}`, `ABV ${c.abv_pct}%`,\n  `IBU ${c.ibu}`, `EBC ${c.ebc}`, `SRM ${c.srm}`,\n  `batch ${c.batch_size_l} L`, `mash ${v.mash_temp_c} °C`,\n].join(' · ');\n\nconst sources = Object.values(v.idmap)\n  .map(s => `[${s.label}] ${s.doc_title}${s.page ? `, p.${s.page}` : ''}`).join('\\n');\n\nreturn [{ json: {\n  run_id: v.run_id,\n  question: v.question,\n  recipe: lines,\n  computed,\n  sources: sources || 'none',\n  gaps: (() => {\n    const g = [...v.gaps];\n    const f = fit.ibu_fit;\n    if (f && f.scaled) g.push(`the hop charge as proposed computed to ${Math.round(f.from)} IBU, outside the published band for the style; every hop was scaled by ${f.factor} to bring it in`);\n    else if (f && !f.scaled && f.reason) g.push(f.reason);\n    return g.length ? g.join('; ') : 'none';\n  })(),\n  recipe_id: saved.recipe_id,\n  version: saved.version,\n  scale_factor: fit.scale_factor,\n  unresolved: gate.unresolved,\n  spent: JSON.stringify({ recipe_id: saved.recipe_id, version: saved.version,\n                          items: saved.items, scale_factor: fit.scale_factor,\n                          gate: { attempt: gate.attempt, unresolved: gate.unresolved } }),\n}}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -766,6 +766,30 @@
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 1000
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT brew.f_fit_ibu($1::numeric, $2::jsonb, $3::numeric, $4::numeric, 0.72, $5::numeric, $6::numeric) AS fit;",
+        "options": {
+          "queryReplacement": "={{ (() => { const b = $('Style bands').first().json.bands || {}; const v = $('Validate proposal').first().json; const noHops = (v.avoid || []).some(a => /hop|bitter/i.test(String(a))); const lo = noHops ? null : (b.ibu_min ?? null); const hi = noHops ? (b.ibu_min ?? null) : (b.ibu_max ?? null); return [ v.batch_size_l, JSON.stringify($json.fit), lo, hi, v.attenuation, v.boil_volume_l ]; })() }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2310,
+        0
+      ],
+      "id": "eaaba18e-2ffe-4aa5-81c9-ecf6a63c4dc8",
+      "name": "Fit hops",
+      "notes": "Scales every hop so the computed IBU lands inside the published band. ⛔ THE `avoid` INTERACTION IS RESOLVED HERE, and it is the reason IBU was left out of the gate when the gate was built: a brewer who asks for very little bitterness wants to sit BELOW the published floor, so enforcing that floor would fight a brief the prompt already honours. When `avoid` names hops or bitterness the floor is dropped entirely and the published ibu_min becomes the CEILING instead -- 'at or under the bottom of the style'. Otherwise the published band applies as written. No band, no change.",
+      "credentials": {
+        "postgres": {
+          "id": "memWriterCred001",
+          "name": "Postgres — mem_writer"
+        }
+      }
     }
   ],
   "connections": {
@@ -872,7 +896,7 @@
       "main": [
         [
           {
-            "node": "Check bands",
+            "node": "Fit hops",
             "type": "main",
             "index": 0
           }
@@ -968,6 +992,17 @@
         [
           {
             "node": "Validate proposal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fit hops": {
+      "main": [
+        [
+          {
+            "node": "Check bands",
             "type": "main",
             "index": 0
           }
