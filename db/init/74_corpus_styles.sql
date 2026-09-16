@@ -51,10 +51,15 @@ CREATE TABLE IF NOT EXISTS corpus.styles (
     (ref_style_id IS NOT NULL AND match_method IS NOT NULL))
 );
 
-CREATE INDEX IF NOT EXISTS corpus_styles_key_idx ON corpus.styles (style_key);
 CREATE INDEX IF NOT EXISTS corpus_styles_ref_idx ON corpus.styles (ref_style_id);
-CREATE INDEX IF NOT EXISTS corpus_styles_trgm_idx
-  ON corpus.styles USING gin (style_key gin_trgm_ops);
+
+-- ⚠️ NO INDEX ON style_key. The column stays -- it is the documented fold and
+-- costs nothing over 181 rows -- but nothing reads it: f_rebuild_styles matches
+-- on unaccent(style_raw) because unaccent() is STABLE and cannot live in a
+-- generated column, and f_cohort_ids uses recipe_search.style_key, a different
+-- table. An index on a column no query names can never be chosen.
+DROP INDEX IF EXISTS corpus.corpus_styles_key_idx;
+DROP INDEX IF EXISTS corpus.corpus_styles_trgm_idx;
 
 COMMENT ON TABLE corpus.styles IS
   'One row per distinct style string in the corpus (181), with its observed '

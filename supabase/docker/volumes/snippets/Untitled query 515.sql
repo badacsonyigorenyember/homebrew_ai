@@ -1,1 +1,1 @@
-SELECT obs.f_start_run('test', NULL, 'smoke', '{}'::jsonb)::int AS run_id;
+select * from corpus.miscs where name_raw ILIKE '%poppy%'

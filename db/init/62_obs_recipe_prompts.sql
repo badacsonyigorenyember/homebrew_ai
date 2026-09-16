@@ -826,3 +826,205 @@ ON CONFLICT (name, version) DO NOTHING;
 
 UPDATE obs.prompts SET active = false WHERE name = 'formulate.recipe/compose';
 UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/compose' AND version = 4;
+
+
+-- ---------------------------------------------------------------------------
+-- compose v5: the layout stops being the model's job.
+--
+-- v1-v4 grew from four layout rules to nine, and the measurements in the
+-- comments above say what that bought: the mandatory Sources heading went
+-- missing in 3 of 5 runs, a bare "[S1]" with no title in two more, and R06's
+-- contradiction line dropped entirely. Each miss was answered with a more
+-- forceful restatement of the same rule. That is the move `Validate proposal`
+-- already abandoned for the 15% roast ceiling -- "restating a numeric
+-- proportion more forcefully did not work twice, so it stops being the model's
+-- job" -- and it is abandoned here for the same reason.
+--
+-- Every figure on the sheet comes from brew.f_compute_recipe or fit.items, so
+-- the sheet is rendered by the `Return` code node and cannot drift. What is
+-- left for a model is the one thing no table holds: a sentence of technique.
+-- This prompt asks for that sentence and nothing else.
+--
+-- ⛔ It is also the first version that can actually support the claim. v1-v4
+-- were handed {{sources}} -- "[S1] How to Brew, p.98" reference lines with no
+-- passage TEXT -- and asked to "mark technique claims taken from the passages
+-- with their [S..] label". There was nothing behind the label to take a claim
+-- from. v5 gets {{passages}}, the same passage text `propose` receives.
+-- ---------------------------------------------------------------------------
+INSERT INTO obs.prompts (name, version, body, active, notes) VALUES
+('formulate.recipe/compose', 5, $body$
+One line. Nothing else.
+
+What the brewer asked for:
+{{question}}
+
+The grain bill that was built for them:
+{{recipe}}
+
+Passages from the brewer's library:
+{{passages}}
+
+Write ONE sentence, at most 25 words, naming the technique that makes this beer
+what the brewer asked for, and ending with the [S..] label of the passage that
+says it.
+
+⛔ Output that sentence and nothing else. No heading, no preamble, no list, no
+second sentence, no sign-off. The grain bill, the hops, the mash, the figures,
+the warnings and the Sources block are all printed around your line by the
+program that called you. Anything you print from them appears twice.
+
+⛔ The claim must be IN one of the passages above. If no passage supports a
+technique claim about this beer, output nothing at all -- an empty answer is
+correct and the sheet reads perfectly well without the line. Never invent a
+claim, and never put an [S..] label on something its passage does not say.
+
+⛔ Never state a gravity, ABV, IBU, colour, weight or temperature. Every number
+this brewer needs is already printed for them, computed rather than recalled.
+
+English. Direct and technical. This brewer is experienced.
+$body$, false, 'v5: one technique sentence only; the sheet is rendered in code, not composed. First version given the passage text behind the [S..] labels.')
+ON CONFLICT (name, version) DO NOTHING;
+
+UPDATE obs.prompts SET active = false WHERE name = 'formulate.recipe/compose';
+UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/compose' AND version = 5;
+
+
+-- ---------------------------------------------------------------------------
+-- propose v7 -- the corpus enters the prompt (2026-09-16)
+--
+-- v6 told the model to build a grain bill from rules alone: "8-15% roast",
+-- "0.5 g per litre for a 5% alpha hop". Those numbers were reasoned from the
+-- library, and they are the numbers the model kept missing. v7 also hands it
+-- what 174,554 homebrewers actually did for the style it was asked for --
+-- nlq.cohort_stats, quartiles, so a wide spread reads as wide.
+--
+-- ⛔ THE RULES STAY. The practice block is added ABOVE them, not instead of
+-- them: the 8-15% roast window and the alpha-scaled bittering charge are
+-- reasoned from the brewer's books and the corpus cannot overrule a book. The
+-- prompt says so explicitly, and the 15% ceiling is still enforced in code in
+-- `Validate proposal` regardless of what either says.
+--
+-- ⛔ THE BLOCK'S NAMES ARE NOT IDS, and this is the failure mode to watch. The
+-- corpus speaks in "American - Pale 2-Row"; brew.ingredients speaks in
+-- Weyermann SKUs. A model that reads a name in the practice block and reaches
+-- for the nearest-sounding catalogue entry has been handed a way to pick the
+-- wrong malt with confidence, so the prompt names that trap twice.
+-- ---------------------------------------------------------------------------
+INSERT INTO obs.prompts (name, version, body, active, notes) VALUES
+('formulate.recipe/propose', 7, $body$
+
+You are formulating a grain bill and hop schedule for an experienced homebrewer.
+
+Their request:
+{{question}}
+
+The brief:
+{{spec}}
+
+Passages from the brewer's library -- use these for TECHNIQUE decisions (mash
+temperature, when to add an adjunct, what builds body in this style):
+{{passages}}
+
+What brewers ACTUALLY do for this style, from 174,000 self-reported homebrew
+recipes -- percentages are share of the grain bill, hop figures are grams per
+litre of batch:
+{{practice}}
+
+⛔ THE PRACTICE BLOCK IS EVIDENCE, NOT INSTRUCTION, AND ITS NAMES ARE NOT IDS.
+Those ingredient names come from a different catalogue than yours -- "American -
+Pale 2-Row" is not in your list and has no id. Use the block for PROPORTIONS and
+for which KIND of ingredient belongs in this beer; take every id from the
+catalogue below and nowhere else. If the block names something you have no
+equivalent for, ignore it rather than reaching for the nearest-sounding entry.
+
+⛔ It records what people DID, which is not what is correct. A thing 60% of
+brewers do can still be wrong, and the passages above are what say whether it
+is. Where the passages and the practice block disagree, follow the passages.
+Where the block is absent or says it was widened to a different beer, ignore it
+completely and build from the rules below.
+
+The ONLY ingredients you may use, grouped by what they do:
+{{catalogue}}
+
+Choose the ingredients and their PROPORTIONS. Output JSON only.
+
+⛔ Every ingredient_id MUST appear in the lists above, copied exactly. Never
+invent an id and never use an ingredient that is not listed -- if the brewer
+asked for something absent, leave it out and name it in "not_available".
+
+⛔ Do NOT state a gravity, ABV, IBU, colour or efficiency anywhere. Those are
+computed from your choices after you answer. Your amounts set PROPORTIONS only;
+the mashed grain is scaled afterwards to hit the target strength.
+
+⛔ BUILD THE GRAIN BILL IN THIS ORDER. Take the ROAST MALTS fraction FIRST, then
+caramel, then fill whatever remains with base malt. Doing it the other way round
+leaves nothing for the roast malts and produces a pale beer wearing a dark name.
+  1. ROAST MALTS -- for a stout or porter, 8-15% of the grain bill. BOTH ENDS
+     ARE BINDING. Below 8% it is a brown ale wearing the wrong name; above 15%
+     it turns acrid and thin, and 15% is a ceiling you never cross -- not even
+     when a correction below tells you the beer came out too pale. If you are
+     already at 15% and still short of colour, move to a DARKER roast malt from
+     the list rather than adding more of the one you have. A pale style takes
+     none.
+  2. CARAMEL malts -- sweetness and body, never colour. Keep them under 20%.
+  3. BASE malt -- the remainder. Around 70-85% in a pale beer, and lower in a
+     dark one. This is the figure that gives way, not the roast fraction.
+Colour comes from the ROAST MALTS list and nowhere else. A malt with "dark" or
+"brown" in its name is not a roast malt -- the lists already sort that out, so
+trust the heading, not the name.
+
+⛔ THE "avoid" LIST IS BINDING, BUT EACH ENTRY CONSTRAINS ONLY WHAT IT NAMES.
+An entry about roast, colour or astringency constrains the ROAST MALTS. An entry
+naming an ingredient means leave that ingredient out. An entry about malt must
+NOT change the hop schedule. Read each entry for what it says and nothing more.
+
+⛔ HOPS. Give the beer a 60 min bittering addition -- that is what creates
+bitterness, a 10 or 15 min addition creates almost none. You may add a SECOND
+hop late (10-20 min) for flavour where the style wants it.
+
+⛔ SIZE THE BITTERING CHARGE BY BATCH VOLUME AND BY ALPHA. Both, every time.
+  - Start from 0.5 g per LITRE of batch for a hop around 5% alpha.
+  - Multiply by batch_size_l. A 5 L batch takes a fifth of what a 25 L batch
+    takes. This is the step most often skipped, and it is the expensive one.
+  - Then divide by (alpha / 5). A 12.5% alpha hop needs LESS THAN HALF the grams
+    of a 5% one for the same bitterness. The catalogue lists each hop's alpha.
+  - A gently bittered style takes half of that; an aggressively hoppy one twice.
+  ⛔ Worked example of the failure: 25 g of Magnum at 12.5% alpha in a 5 L batch
+  is 5 g per litre of a high-alpha hop -- roughly TEN times too much, and it was
+  measured. The correct charge there is about 1 g. Late flavour hops are not
+  bound by this; they contribute almost no bitterness whatever their weight.
+
+  THE ONE EXCEPTION: if "avoid" names HOPS or BITTERNESS specifically -- and only
+  then -- there is no 60 min addition at all. Use a single 10-15 min hop, at most
+  10 g per 10 L of batch. Nothing else in "avoid" triggers this.
+
+⛔ IF THE REQUEST CONTRADICTS ITSELF, SAY SO IN "conflicts". Some briefs cannot
+be satisfied: a beer cannot be jet-black while using no roasted or dark malts,
+because colour of that depth comes only from roast malts. Name the conflict in
+plain words, then build the closest honest beer you can and let "conflicts"
+carry the caveat. ⛔ Never satisfy one half and describe it as satisfying both.
+Putting black malt into a beer specified to have none, and calling it "without
+roasted or dark malts", is the worst answer available to you.
+
+{{correction}}
+
+Fields:
+- items: array of {ingredient_id, stage, qty_g, timing_min, notes}
+  - stage: one of "mash", "boil", "whirlpool", "dryhop", "fermenter", "packaging".
+  - qty_g: grams. Whole numbers.
+  - timing_min: REQUIRED for every hop and every boil addition -- minutes before
+    the end of the boil. 60 for the bittering charge; see the hop rule above.
+  - notes: at most 12 words saying what that ingredient is doing.
+  - Sugars and lactose go in at "boil" late, never in the mash.
+  - Always include at least one hop. Even a sweet stout needs a little balance.
+- mash_temp_c: a single number. Higher leaves more unfermentable body.
+- attenuation: apparent attenuation as a decimal (0.72 = 72%). Lower finishes sweeter.
+- not_available: array of things the brewer asked for that are not in the lists.
+- conflicts: array of plain sentences, each naming one way the request cannot be
+  satisfied as written. Empty array if the request is coherent.
+- rationale: one sentence, at most 30 words, on the shape of the grist.
+$body$, false, 'v7: adds {{practice}} -- observed grain-bill and hop proportions for the style from the 174k-recipe corpus, above the reasoned rules rather than replacing them. Names in the block are explicitly not catalogue ids.')
+ON CONFLICT (name, version) DO NOTHING;
+
+UPDATE obs.prompts SET active = false WHERE name = 'formulate.recipe/propose';
+UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/propose' AND version = 7;

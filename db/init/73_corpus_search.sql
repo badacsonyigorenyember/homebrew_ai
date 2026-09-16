@@ -34,15 +34,11 @@
 -- one scale -- they are reported side by side, per unit. A quartile over the
 -- mixture would be a number about nothing.
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION corpus.f_parse_amount(p_raw text)
-RETURNS TABLE (value numeric, unit text)
-LANGUAGE sql IMMUTABLE SET search_path = corpus, public AS $fn$
-  SELECT CASE WHEN m[1] ~ '^[0-9]+(\.[0-9]+)?$' THEN m[1]::numeric END,
-         nullif(lower(btrim(m[2])), '')
-  FROM regexp_match(btrim(coalesce(p_raw, '')), '^([0-9]+(?:\.[0-9]+)?)\s*(.*)$') AS m
-$fn$;
+-- (corpus.f_parse_amount, a set-returning version of the two scalars below,
+--  lived here until the parse moved into STORED generated columns. It had no
+--  callers left and is dropped at the end of this file.)
 
--- Scalar, IMMUTABLE halves of corpus.f_parse_amount, so the parse can be a
+-- Scalar and IMMUTABLE, so the parse can be a
 -- STORED generated column instead of a per-row LATERAL call. 141,857 misc rows
 -- were being re-parsed on every query that touched them.
 CREATE OR REPLACE FUNCTION corpus.f_amount_value(p_raw text) RETURNS numeric
@@ -407,8 +403,25 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = corpus, nlq, public AS $f
   FROM agg a ORDER BY a.cnt DESC LIMIT p_top
 $fn$;
 
+-- mem_writer is the credential cap-formulate-recipe runs its SQL on, and its
+-- `Style bands` node now fetches the observed cohort beside the published band.
+-- Same contract 15_ref.sql already uses for ref.f_style_bands: EXECUTE on the
+-- SECURITY DEFINER function, never SELECT on corpus.* underneath it.
+--
+-- ⚠️ USAGE on a schema plus Postgres's default PUBLIC EXECUTE on functions means
+-- mem_writer can reach the other nlq functions too. That is a widening, and it
+-- is accepted rather than overlooked: nlq is read-only views and STABLE
+-- functions over kb/brew, mem_writer already holds ref and brew, and the role
+-- Layer 1 actually constrains is n8n_agent, which is untouched here.
 DO $grant$
 BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'mem_writer') THEN
+    GRANT USAGE ON SCHEMA nlq TO mem_writer;
+    GRANT EXECUTE ON FUNCTION nlq.find_cohort(text, text[], numeric, numeric, numeric, numeric, int) TO mem_writer;
+    GRANT EXECUTE ON FUNCTION nlq.cohort_stats(text, text[], numeric, numeric, numeric, numeric, int, int) TO mem_writer;
+    GRANT EXECUTE ON FUNCTION nlq.f_resolve_ingredient(text) TO mem_writer;
+    GRANT EXECUTE ON FUNCTION nlq.f_cohort_ids(text, text[], numeric, numeric, numeric, numeric, int) TO mem_writer;
+  END IF;
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'agent_ro') THEN
     GRANT EXECUTE ON FUNCTION nlq.f_resolve_ingredient(text) TO agent_ro;
     GRANT EXECUTE ON FUNCTION nlq.f_cohort_ids(text, text[], numeric, numeric, numeric, numeric, int) TO agent_ro;
@@ -417,3 +430,8 @@ BEGIN
     GRANT EXECUTE ON FUNCTION nlq.ingredient_usage(text, int) TO agent_ro;
   END IF;
 END $grant$;
+
+-- Dead since the amount parse became a STORED generated column: the
+-- set-returning form had no callers and every query reads recipe_misc's
+-- amount_value / amount_unit directly.
+DROP FUNCTION IF EXISTS corpus.f_parse_amount(text);

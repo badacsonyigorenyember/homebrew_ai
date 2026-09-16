@@ -166,6 +166,10 @@ def psql(sql, stdin=None):
 
 
 def load(tmp):
+    # corpus.recipes.style_raw references corpus.styles, which is rebuilt from the
+    # recipes AFTER they land -- so the constraint cannot be in place during the
+    # COPY or any style new to this load fails the FK. f_rebuild_styles re-adds it.
+    psql("ALTER TABLE corpus.recipes DROP CONSTRAINT IF EXISTS recipes_style_fk;")
     psql("TRUNCATE corpus.recipes CASCADE;")
     print("copying recipes ...", flush=True)
     with open(os.path.join(tmp, "recipes.csv"), "rb") as fh:
@@ -189,10 +193,21 @@ def load(tmp):
              f"JOIN corpus.recipes r ON r.source_ref = s.source_ref;")
         psql(f"DROP TABLE {stage};")
 
-    # Dimensions are derived from the facts, and they own the fact-table FKs --
-    # so this must run after the last COPY, never before it.
+    # ⛔ ALL THREE REBUILDS, IN THIS ORDER. Everything derived from the facts is
+    # rebuilt here because nothing keeps it in sync on its own -- there is no
+    # trigger, by design, since a 1.4M-row load would be crippled by one.
+    #   dims    derives the ingredient dimensions and owns the fact-table FKs
+    #   search  TRUNCATEs and refills corpus.recipe_search -- and note it is
+    #           CASCADE-wiped by the TRUNCATE above, so skipping it leaves every
+    #           cohort query matching nothing at all
+    #   styles  reads recipe_search (so it must follow it) and re-adds the
+    #           recipes.style_raw FK dropped at the top
     print("rebuilding dimensions ...", flush=True)
     print(psql("SELECT * FROM corpus.f_rebuild_dims();"))
+    print("rebuilding search index ...", flush=True)
+    print(psql("SELECT corpus.f_rebuild_search();") + " rows")
+    print("rebuilding styles + ref bridge ...", flush=True)
+    print(psql("SELECT * FROM corpus.f_rebuild_styles();"))
 
 
 if __name__ == "__main__":

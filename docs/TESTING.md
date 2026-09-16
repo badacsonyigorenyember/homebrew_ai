@@ -680,10 +680,14 @@ cd scripts/stress
 ./recipe_eval.py                    # ~10 min ·  6 cases: does `formulate.recipe` hold?
 ```
 
-⭐ **`recipe_eval.py` scores the SAVED RECIPE, in SQL — never the answer text.** The model
-writes the prose, so scoring the prose asks it to mark its own homework, and its
-characteristic failure is describing a beer it did not produce — *"a deep black stout"* over
-a recipe whose OG and SRM say otherwise. Every number comes from `brew.recipes` /
+⭐ **`recipe_eval.py` scores the SAVED RECIPE, in SQL — never the answer text.** Scoring the
+prose asks the model to mark its own homework, and its characteristic failure is describing
+a beer it did not produce — *"a deep black stout"* over a recipe whose OG and SRM say
+otherwise. ⚠️ **Since 2026-09-15 the model no longer writes the prose** — the sheet is
+rendered by the `Return` code node (§7.4, D42) and `compose` v5 contributes one sentence of
+technique. That closes the *"describing a beer it did not produce"* failure for every figure
+on the sheet, and it does not change what this script measures: the recipe was always the
+thing worth scoring. Every number comes from `brew.recipes` /
 `brew.recipe_items` through the same functions §7.4 makes authoritative: `brew.f_abv`,
 `target_ibu`, `target_srm`, and a roast fraction over `brew.f_catalogue()`. R06 is the one
 exception, marked so in `recipe_cases.jsonl`: it asks for a jet-black stout with no roasted
