@@ -177,7 +177,8 @@ services:
                  /db-init/30_mem.sql \
                  /db-init/40_nlq.sql /db-init/60_obs.sql \
                  /db-init/62_obs_recipe_prompts.sql /db-init/63_model_switch.sql \
-                 /db-init/70_corpus.sql /db-init/71_corpus_dims.sql; do
+                 /db-init/70_corpus.sql /db-init/71_corpus_dims.sql \
+                 /db-init/72_nlq_corpus.sql; do
           echo ">> $$f"
           psql -v ON_ERROR_STOP=1 -f "$$f"
         done

@@ -1,0 +1,127 @@
+{
+  "id": "wfStepPractice1",
+  "name": "wf-step-practice",
+  "active": true,
+  "isArchived": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "pinData": {},
+  "tags": [],
+  "meta": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Normalise input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalise input": {
+      "main": [
+        [
+          {
+            "node": "Common practice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Common practice": {
+      "main": [
+        [
+          {
+            "node": "Return practice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "style"
+            },
+            {
+              "name": "top_k",
+              "type": "number"
+            },
+            {
+              "name": "session_id"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "prac-trigger-0001",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const i = $input.first().json;\n\nconst style = String(i.style ?? '').trim();\nif (!style) throw new Error('wf-step-practice called with an empty style');\n\n// nlq.common_practice returns at most ~30 rows at top_k 8, which is roughly 400\n// tokens. The agent runs at num_ctx 16384 with `propose` already peaking near\n// 7000, so this stays small on purpose -- top_k is clamped, not trusted.\nconst k = Number(i.top_k);\nconst top_k = Number.isFinite(k) ? Math.min(Math.max(Math.trunc(k), 3), 12) : 8;\n\nreturn [{ json: { style, top_k, session_id: String(i.session_id ?? '') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "prac-normalise-001",
+      "name": "Normalise input"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Observed practice for a style named in the brewer's own words.\n-- Returns ZERO rows below 30 matching recipes; that is the honest answer and\n-- `Return practice` reports it as one, so Always Output Data must stay ON.\nSELECT section, item, pct_of_recipes, typical\nFROM nlq.common_practice($1::text, $2::int);",
+        "options": {
+          "queryReplacement": "={{ [$json.style, $json.top_k] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        440,
+        0
+      ],
+      "id": "prac-query-000001",
+      "name": "Common practice",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "6vilCQCI30RUdvfd",
+          "name": "n8n_agent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $('Normalise input').first().json;\n\n// Always Output Data is ON upstream, so \"no matching style\" arrives as one\n// empty item rather than zero items. Filtering on `item` turns it back into\n// the real answer: nothing.\nconst rows = $('Common practice').all().map(r => r.json).filter(r => r.item != null);\n\nif (rows.length === 0) {\n  return [{ json: { practice:\n    `The recipe corpus has no usable sample for \"${src.style}\" — fewer than 30 matching ` +\n    `recipes, so there is no common practice to report. Say so plainly; do not estimate one.` } }];\n}\n\nconst bySection = new Map();\nfor (const r of rows) {\n  if (!bySection.has(r.section)) bySection.set(r.section, []);\n  bySection.get(r.section).push(r);\n}\n\nconst overview = bySection.get('overview') ?? [];\nconst header = overview.find(r => r.item === 'recipes in corpus')?.typical ?? 'recipes';\nconst vitals = overview.filter(r => r.item !== 'recipes in corpus')\n                       .map(r => `${r.item.replace('typical ', '')} ${r.typical}`)\n                       .join(' · ');\n\nconst out = [];\n// ⛔ The provenance line is not decoration. This is self-reported homebrew data\n// with no publisher; an answer that presents it as guidance is the exact\n// fabricated-authority failure the closed-book design exists to prevent. The\n// model is told what this is on every single call.\nout.push(`WHAT BREWERS ACTUALLY DO — \"${src.style}\"`);\nout.push(`Source: ${header} self-reported by homebrewers on a public recipe site.`);\nout.push(`This is OBSERVED PRACTICE, not published guidance. Attribute it as \"what brewers`);\nout.push(`commonly do\" — never as what a book, the BJCP or a style guideline says.`);\nif (vitals) out.push(`\\nTypical outcome: ${vitals}`);\n\nconst titles = {\n  'grain bill': 'GRAIN BILL',\n  'hops': 'HOPS',\n  'yeast': 'YEAST',\n  'other additions': 'WATER SALTS, FININGS AND OTHER ADDITIONS',\n};\nfor (const [key, title] of Object.entries(titles)) {\n  const rs = bySection.get(key);\n  if (!rs || rs.length === 0) continue;\n  out.push(`\\n${title}  (share of recipes · typical amount)`);\n  for (const r of rs) {\n    const pct = r.pct_of_recipes == null ? '' : `${r.pct_of_recipes}% of recipes`;\n    out.push(`  ${r.item} — ${pct}, ${r.typical}`);\n  }\n}\n\nreturn [{ json: { practice: out.join('\\n'), style: src.style, rows: rows.length } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "prac-return-00001",
+      "name": "Return practice"
+    }
+  ]
+}
