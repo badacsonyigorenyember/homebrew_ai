@@ -69,6 +69,13 @@ BEGIN
     FROM jsonb_array_elements(p_items) it
     JOIN brew.ingredients i ON i.id = (it->>'ingredient_id')::bigint
     WHERE i.kind IN ('fermentable','adjunct')
+      -- ⛔ qty_g is GRAMS, and the arithmetic below converts it to pounds. An
+      -- item measured in 'each' or 'ml' would be read as that many grams: two
+      -- vanilla beans would enter the mash as 2 g of sugar. Items carry a unit
+      -- since the catalogue gained countable rows, so anything not weighed in
+      -- grams is excluded from gravity and colour rather than misread.
+      -- Absent unit means grams -- every row written before the column existed.
+      AND coalesce(it->>'unit', 'g') = 'g'
   LOOP
     CONTINUE WHEN r.potential_ppg IS NULL OR r.qty_g IS NULL;
 
@@ -112,6 +119,7 @@ BEGIN
     FROM jsonb_array_elements(p_items) it
     JOIN brew.ingredients i ON i.id = (it->>'ingredient_id')::bigint
     WHERE i.kind = 'hop'
+      AND coalesce(it->>'unit', 'g') = 'g'   -- same reason as the pass above
   LOOP
     CONTINUE WHEN r.alpha_acid_pct IS NULL OR r.qty_g IS NULL;
     -- Dry hops and packaging additions contribute no measurable IBU.
@@ -165,6 +173,15 @@ COMMENT ON FUNCTION brew.f_compute_recipe(numeric, jsonb, numeric, numeric, nume
 -- Re-saving a name creates a new VERSION rather than overwriting: recipes are
 -- iterated on, and the row a batch was brewed from must not change under it.
 -- ---------------------------------------------------------------------------
+-- ⛔ THE 9-ARGUMENT FORM IS DROPPED, NOT OVERLOADED. Adding p_additions with a
+-- DEFAULT would leave both signatures resolvable, and the n8n node casts every
+-- argument explicitly -- so the old one would keep winning and additions would
+-- silently never be written. The DROP is a no-op on the second run, so this
+-- file stays idempotent, which the note further down explains is load-bearing:
+-- db-init runs ON_ERROR_STOP=1 and one error here skips every later file.
+DROP FUNCTION IF EXISTS brew.f_save_recipe(text, numeric, jsonb, bigint, numeric,
+                                           numeric, numeric, jsonb, text);
+
 CREATE OR REPLACE FUNCTION brew.f_save_recipe(
   p_name           text,
   p_batch_size_l   numeric,
@@ -174,7 +191,8 @@ CREATE OR REPLACE FUNCTION brew.f_save_recipe(
   p_attenuation    numeric DEFAULT 0.75,
   p_boil_volume_l  numeric DEFAULT NULL,
   p_mash_profile   jsonb   DEFAULT NULL,
-  p_notes          text    DEFAULT NULL
+  p_notes          text    DEFAULT NULL,
+  p_additions      jsonb   DEFAULT '[]'::jsonb
 ) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = brew, public AS $fn$
 DECLARE
@@ -210,11 +228,13 @@ BEGIN
 
   INSERT INTO brew.recipes (name, version, parent_recipe_id, style_id, batch_size_l,
                             target_og, target_fg, target_ibu, target_srm,
-                            mash_profile, notes)
+                            mash_profile, notes, additions)
   VALUES (p_name, v_version, v_parent, p_style_id, p_batch_size_l,
           (v_calc->>'og')::numeric, (v_calc->>'fg')::numeric,
           (v_calc->>'ibu')::int,    (v_calc->>'srm')::numeric,
-          p_mash_profile, p_notes)
+          p_mash_profile, p_notes,
+          CASE WHEN jsonb_typeof(p_additions) = 'array'
+               THEN p_additions ELSE '[]'::jsonb END)
   RETURNING id INTO v_id;
 
   FOR it IN SELECT * FROM jsonb_array_elements(p_items) LOOP
@@ -224,7 +244,12 @@ BEGIN
             (it->>'ingredient_id')::bigint,
             coalesce(it->>'stage', 'mash'),
             (it->>'qty_g')::numeric,
-            'g',
+            -- ⛔ WAS HARDCODED 'g'. brew.recipe_items.unit is free text with no
+            -- CHECK, and hardcoding it meant "2 vanilla beans" and "200 ml rum"
+            -- were not expressible at all -- which is half of why a flavouring
+            -- had to be smuggled in under a malt's id. The caller whitelists
+            -- g / ml / each; grams stays the default for every existing caller.
+            coalesce(nullif(it->>'unit', ''), 'g'),
             (it->>'timing_min')::int,
             it->>'notes');
     v_items := v_items + 1;
@@ -236,7 +261,7 @@ BEGIN
 END;
 $fn$;
 
-COMMENT ON FUNCTION brew.f_save_recipe(text, numeric, jsonb, bigint, numeric, numeric, numeric, jsonb, text) IS
+COMMENT ON FUNCTION brew.f_save_recipe(text, numeric, jsonb, bigint, numeric, numeric, numeric, jsonb, text, jsonb) IS
   'The only write surface for brew.recipes / brew.recipe_items. SECURITY DEFINER '
   'so the caller needs no table grants and still cannot read the brewer''s '
   'batches. Targets are computed by brew.f_compute_recipe, never supplied by the '
@@ -247,7 +272,7 @@ COMMENT ON FUNCTION brew.f_save_recipe(text, numeric, jsonb, bigint, numeric, nu
 -- holds no SELECT on any brew table. A dedicated brew_writer role would be
 -- tidier naming, but would need a new password and n8n credential; the security
 -- property is identical either way.
-GRANT EXECUTE ON FUNCTION brew.f_save_recipe(text, numeric, jsonb, bigint, numeric, numeric, numeric, jsonb, text) TO mem_writer;
+GRANT EXECUTE ON FUNCTION brew.f_save_recipe(text, numeric, jsonb, bigint, numeric, numeric, numeric, jsonb, text, jsonb) TO mem_writer;
 GRANT USAGE ON SCHEMA brew TO mem_writer;
 
 -- ---------------------------------------------------------------------------
@@ -311,7 +336,11 @@ BEGIN
   v_factor := round(v_needed / v_ferm, 4);
 
   SELECT jsonb_agg(
-           CASE WHEN i.kind = 'fermentable'
+           -- ⛔ The unit test MUST match f_compute_recipe's. An item excluded
+           -- from the gravity arithmetic for its unit but scaled here would
+           -- have its quantity multiplied while contributing nothing, so the
+           -- bisection above would never converge on it.
+           CASE WHEN i.kind = 'fermentable' AND coalesce(it->>'unit', 'g') = 'g'
                 THEN it || jsonb_build_object('qty_g', round((it->>'qty_g')::numeric * v_factor))
                 ELSE it END
            ORDER BY ord)
@@ -508,7 +537,7 @@ BEGIN
   v_k := v_target / v_cur;
 
   SELECT jsonb_agg(
-           CASE WHEN i.kind = 'hop'
+           CASE WHEN i.kind = 'hop' AND coalesce(it->>'unit', 'g') = 'g'
                 THEN it || jsonb_build_object('qty_g', greatest(1, round((it->>'qty_g')::numeric * v_k)))
                 ELSE it END
            ORDER BY ord)

@@ -49,6 +49,30 @@ CREATE TABLE IF NOT EXISTS brew.recipes (
   UNIQUE (name, version)
 );
 
+-- ⭐ additions -- the slot for an ingredient the catalogue cannot simulate.
+--
+-- brew.recipe_items.ingredient_id is a FK, so an ingredient with no catalogue
+-- row cannot be a recipe item; and there is no honest potential_ppg for a
+-- vanilla bean, so 27_brew_catalogue.sql forbids inventing one to get it a row.
+-- Between those two rules a flavouring the brewer explicitly asked for had
+-- NOWHERE TO GO, and `measured` 2026-09-16 that is not a neutral gap: given a
+-- schema with no legal way to say "absent", the model put 731 g of Weyermann
+-- malt in the fermenter labelled "Macerated poppy seeds and vanilla in rum" and
+-- the sheet reported ABV 9.0% against a true 7.8%.
+--
+-- ⛔ This column is NOT part of the gravity equation and must never become one.
+-- Each element is {name, qty, unit, stage, timing_days, method, cites} -- a line
+-- on the sheet with a stated method and a citation, which is what the brewer
+-- actually needs from a flavouring. brew.f_compute_recipe never reads it.
+ALTER TABLE brew.recipes
+  ADD COLUMN IF NOT EXISTS additions jsonb NOT NULL DEFAULT '[]'::jsonb;
+
+COMMENT ON COLUMN brew.recipes.additions IS
+  'Ingredients the brewer asked for that have no catalogue row and no honest '
+  'potential_ppg -- flavourings, spices, spirits. A line on the sheet with a '
+  'method and a citation, never a term in the gravity equation: '
+  'brew.f_compute_recipe does not read this column.';
+
 CREATE TABLE IF NOT EXISTS brew.recipe_items (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   recipe_id bigint NOT NULL REFERENCES brew.recipes(id) ON DELETE CASCADE,
