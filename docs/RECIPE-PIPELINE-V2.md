@@ -1050,3 +1050,36 @@ guard had to be written after the block shipped, not before.
 - **The 25-case set has not been run end to end.** Individual cases have. There is
   no committed baseline, so §5 Phase 0 step 3 is not satisfied and every "no
   worse than baseline" gate below it is currently unenforceable.
+
+### 11.7 ⛔ db-init did not survive a fresh database, and now does
+
+Adding two files to `docker-compose.yml`'s hardcoded list is only safe if the
+list still runs. It was tested against an empty database rather than assumed,
+and the run **failed at `29_brew_formulate.sql`**:
+
+```
+ERROR:  function brew.f_catalogue(text) does not exist
+```
+
+`29_` granted `brew.f_catalogue` about a hundred lines **above** the function's
+own definition. A GRANT naming a function that does not exist is an error, not a
+no-op, so under `ON_ERROR_STOP=1` the file aborted and db-init silently skipped
+every later file — which on this list now includes `31_`, `32_`, `33_` and `35_`,
+i.e. the entire catalogue and the entire evidence layer.
+
+⚠️ **Pre-existing, and invisible for the same reason it survived.** The GRANT is
+duplicated correctly beside the definition, and every restart after the first
+found the function already there. It is the same trap the file's own header
+describes, from the other direction. Fixed, and the full 22-file list now runs
+clean end to end on an empty database.
+
+⛔ **A second ordering fault is documented and deliberately NOT fixed.** Roles are
+created in `50_roles.sql`, which runs *after* the loop, while 16 grant sites
+across `15_`, `29_` and `60_` grant to `mem_writer` with no guard. `measured`: an
+unguarded GRANT to a missing role is an `ERROR`, so a brand-new **cluster** dies
+at `15_ref.sql` line 237. It has never bitten this machine because the roles
+already exist. The fix is to create the roles before the loop — `50_` cannot
+simply move, because it also does `GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA nlq`,
+which has to follow every file that defines one. That is security-sensitive
+role management and belongs in its own commit with its own fresh-cluster test,
+not bundled into a feature landing. Noted in `docker-compose.yml` beside the list.

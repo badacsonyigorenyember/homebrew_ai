@@ -356,7 +356,15 @@ BEGIN
 END;
 $fn$;
 
-GRANT EXECUTE ON FUNCTION brew.f_catalogue(text) TO mem_writer;
+-- ⛔ brew.f_catalogue IS NOT GRANTED HERE. It is DEFINED about a hundred lines
+-- below, and a GRANT naming a function that does not exist yet is an ERROR, not
+-- a no-op -- so on a FRESH database this line aborted the file under
+-- ON_ERROR_STOP=1 and silently skipped every later one in db-init's list, which
+-- is the same failure the comment at the top of this section describes. It
+-- survived because a second, correct GRANT sits beside the definition and every
+-- restart after the first found the function already there. `measured`
+-- 2026-09-16 against an empty database: "function brew.f_catalogue(text) does
+-- not exist", at this line.
 GRANT EXECUTE ON FUNCTION brew.f_fit_recipe(numeric, jsonb, numeric, numeric, numeric, numeric) TO mem_writer;
 GRANT EXECUTE ON FUNCTION brew.f_compute_recipe(numeric, jsonb, numeric, numeric, numeric) TO mem_writer;
 
@@ -445,8 +453,6 @@ GRANT EXECUTE ON FUNCTION brew.f_fit_to_abv(numeric, jsonb, numeric, numeric, nu
 -- reach it, and "dark" is deliberately absent from the pattern. The name can
 -- never pull a malt down out of 'roast', and it can never act on its own.
 -- ---------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS brew.f_catalogue(text);
-
 -- ⛔ DROPPED BEFORE CREATE, and the comment 200 lines up says why: CREATE OR
 -- REPLACE cannot change a return type, and the failure is not local. db-init
 -- runs ON_ERROR_STOP=1 over a hardcoded list, so "cannot change return type of

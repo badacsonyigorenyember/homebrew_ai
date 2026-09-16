@@ -192,6 +192,25 @@ services:
           echo ">> $$f"
           psql -v ON_ERROR_STOP=1 -f "$$f"
         done
+        # ⚠️ ROLES ARE CREATED *AFTER* EVERYTHING THAT GRANTS TO THEM, and on a
+        # FRESH CLUSTER that aborts the run. `measured` 2026-09-16: an unguarded
+        # GRANT naming a role that does not exist is an ERROR, not a no-op, and
+        # 15_ref.sql line 237 grants to mem_writer -- so with ON_ERROR_STOP=1 a
+        # brand-new cluster dies there and every later file is skipped. 16 such
+        # grant sites exist across 15_, 29_ and 60_; 73_ and 35_ instead guard
+        # theirs behind IF EXISTS (SELECT 1 FROM pg_roles ...), which survives but
+        # silently skips, leaving the formulate path without EXECUTE until the
+        # second stack start.
+        #
+        # It has never bitten this machine because the roles already exist and
+        # every restart re-runs the list with them in place.
+        #
+        # ⛔ NOT FIXED HERE ON PURPOSE. The fix is to create the roles before the
+        # loop and keep only the blanket grants in 50_roles.sql -- 50_ cannot
+        # simply move earlier, because it does GRANT EXECUTE ON ALL FUNCTIONS IN
+        # SCHEMA nlq, which must follow 40_/72_/73_/35_. That is a change to
+        # security-sensitive role management and deserves its own commit and its
+        # own fresh-cluster test, not a ride along with a feature.
         echo ">> /db-init/50_roles.sql"
         psql -v ON_ERROR_STOP=1 \
              -v agent_pw="$$AGENT_DB_PASSWORD" \
