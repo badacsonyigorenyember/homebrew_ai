@@ -23,7 +23,7 @@ WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'agent_ro')\gexec
 
 -- 2) Lock down the private schemas: the agent must never see kb/brew/ref/mem ---
 --    ref is reference data, but it is still reached only through nlq (D32).
-REVOKE ALL ON SCHEMA kb, brew, ref, mem FROM PUBLIC;
+REVOKE ALL ON SCHEMA kb, brew, ref, mem, corpus FROM PUBLIC;
 
 -- 3) The only surface the agent may touch -------------------------------------
 GRANT USAGE  ON SCHEMA nlq TO agent_ro;

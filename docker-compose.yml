@@ -176,7 +176,8 @@ services:
                  /db-init/28_brew_derived_sugars.sql /db-init/29_brew_formulate.sql \
                  /db-init/30_mem.sql \
                  /db-init/40_nlq.sql /db-init/60_obs.sql \
-                 /db-init/62_obs_recipe_prompts.sql /db-init/63_model_switch.sql; do
+                 /db-init/62_obs_recipe_prompts.sql /db-init/63_model_switch.sql \
+                 /db-init/70_corpus.sql /db-init/71_corpus_dims.sql; do
           echo ">> $$f"
           psql -v ON_ERROR_STOP=1 -f "$$f"
         done
