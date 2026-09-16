@@ -185,13 +185,27 @@ ON CONFLICT (name, version) DO NOTHING;
 -- structured output stopped with done_reason "length", and the truncated JSON
 -- failed validation.
 --
--- num_ctx matches `creative`/`compose` at 12288 ON PURPOSE: Ollama keys its
--- loaded runner on the context size, so reusing 12288 means no model reload
--- between steps. Temperature stays near zero -- this step emits a schema, not prose.
+-- num_ctx matches every other profile ON PURPOSE: Ollama keys its loaded runner
+-- on the context size, so one profile left behind forces a reload between two
+-- steps of the same recipe. Temperature stays near zero -- this step emits a
+-- schema, not prose.
+--
+-- ⛔ RAISED 12288 -> 16384 2026-09-16, AND THIS LINE IS WHY IT KEPT REVERTING.
+-- The ON CONFLICT below is DO UPDATE, so applying this file on its own rewrites
+-- the live row back to whatever is written here. db-init hides that -- 63_
+-- runs afterwards and sets 16384 -- but anyone applying just this file to load a
+-- new prompt silently reverts the context size, and it is not a quiet failure:
+-- `propose` must emit closed JSON, 63_ deliberately leaves num_predict OFF for
+-- exactly that reason, and num_ctx is therefore the ONLY bound on generation.
+-- With the v10 prompt at ~11k tokens, 12288 left ~1.2k to generate in and the
+-- model was cut off mid-object -- `measured` on run 187, which died with
+-- "Step 'propose' was asked for JSON and returned prose" because the JSON simply
+-- stopped. A truncated grist that still parses is the worse version of the same
+-- fault: run 186 proposed a grain bill so small the fitter scaled it 40x.
 -- ---------------------------------------------------------------------------
 INSERT INTO obs.profiles (name, model, options, notes) VALUES
 ('formulate', 'gemma4:12b',
- '{"num_ctx": 12288, "keep_alive": "30m", "temperature": 0.1}'::jsonb,
+ '{"num_ctx": 16384, "keep_alive": "30m", "temperature": 0.1}'::jsonb,
  'recipe grist/hop selection: large prompt, structured output')
 ON CONFLICT (name) DO UPDATE
   SET model = EXCLUDED.model, options = EXCLUDED.options, notes = EXCLUDED.notes;
@@ -1397,3 +1411,211 @@ ON CONFLICT (name, version) DO NOTHING;
 
 UPDATE obs.prompts SET active = false WHERE name = 'formulate.recipe/propose';
 UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/propose' AND version = 9;
+
+
+-- ---------------------------------------------------------------------------
+-- ⭐ propose v10: the amounts get an evidence basis instead of being invented.
+--
+-- §10.2 measured the one flaw left in the Stage E slot: qty and unit came back
+-- NULL on all six seeds, because nothing in the prompt told the model what two
+-- vanilla beans looks like. v8 made them required, which forced a number; this
+-- version gives the number a source. 35_nlq_evidence.sql supplies both blocks.
+--
+--   {{ingredient_practice}}  nlq.ingredient_practice -- stage distribution and
+--     amount quantiles for the terms the brewer actually named, from 141,857
+--     real additions. ⛔ PER UNIT, never converted: vanilla arrives as each, oz,
+--     tsp, g, tbsp and lb, and those are not one substance measured six ways.
+--     73_corpus_search.sql states the rule; the prompt now restates it, because
+--     a model handed "2.00 each" and "2.00 oz" side by side will otherwise try
+--     to reconcile them.
+--
+--   {{exemplars}}  nlq.find_exemplars -- two or three WHOLE corpus recipes for
+--     this beer, grain bill with percentages, hops with times, yeast and misc
+--     with stages. ⛔ Past a plausibility gate, which is not optional: corpus
+--     recipe 280784 is a genuine 9.34% vanilla-lactose stout that records
+--     IBU 0.00 beside two 60-minute boil hops. `measured` 2026-09-16 on a sweet
+--     stout cohort: 12 of 173 matches discarded, 280784 among them.
+--
+-- ⛔ Still evidence, still not authority -- the same rung discipline the
+-- {{practice}} block already carries. The corpus says what is POPULAR. The
+-- library passages say what is CORRECT, and where they disagree the passages
+-- win. Neither block is ever citable as [S..].
+--
+-- ⚠️ Cost: propose tokens_in was 8556 before the catalogue grew and 11390 after.
+-- These blocks add more. §5 Phase 3's stated budget is 12k and §9.3 withdrew the
+-- catalogue narrowing that was meant to pay for it, so the budget is the thing
+-- to watch here, not the wording.
+-- ---------------------------------------------------------------------------
+INSERT INTO obs.prompts (name, version, body, active, notes) VALUES
+('formulate.recipe/propose', 10, $body$
+
+You are formulating a grain bill and hop schedule for an experienced homebrewer.
+
+Their request:
+{{question}}
+
+The brief:
+{{spec}}
+
+Passages from the brewer's library -- use these for TECHNIQUE decisions (mash
+temperature, when to add an adjunct, what builds body in this style):
+{{passages}}
+
+What brewers ACTUALLY do for this style, from 174,000 self-reported homebrew
+recipes -- percentages are share of the grain bill, hop figures are grams per
+litre of batch:
+{{practice}}
+
+Whole recipes from that corpus for this beer, past a plausibility check:
+{{exemplars}}
+
+How brewers use the specific ingredients this brewer named -- which stage, and
+how much, from 141,857 real additions:
+{{ingredient_practice}}
+
+⛔ THE AMOUNTS ABOVE ARE THE BASIS FOR YOUR AMOUNTS. When you place one of those
+ingredients, use the typical figure and its unit unless the brief argues for
+otherwise. ⛔ NEVER CONVERT BETWEEN UNITS. "2 each" means two beans and "2 oz"
+means two ounces; they are not the same measurement of the same thing, and the
+block reports each unit separately for exactly that reason. If your ingredient
+is listed in "each", give it in "each".
+
+⛔ THE PRACTICE BLOCK IS EVIDENCE, NOT INSTRUCTION, AND ITS NAMES ARE NOT IDS.
+Those ingredient names come from a different catalogue than yours -- "American -
+Pale 2-Row" is not in your list and has no id. Use the block for PROPORTIONS and
+for which KIND of ingredient belongs in this beer; take every id from the
+catalogue below and nowhere else. If the block names something you have no
+equivalent for, ignore it rather than reaching for the nearest-sounding entry.
+
+⛔ It records what people DID, which is not what is correct. A thing 60% of
+brewers do can still be wrong, and the passages above are what say whether it
+is. Where the passages and the practice block disagree, follow the passages.
+Where the block is absent or says it was widened to a different beer, ignore it
+completely and build from the rules below.
+
+The ONLY ingredients you may use, grouped by what they do:
+{{catalogue}}
+
+Choose the ingredients and their PROPORTIONS. Output JSON only.
+
+⛔ Every ingredient_id MUST appear in the lists above, copied exactly. Never
+invent an id and never use an ingredient that is not listed.
+
+⭐ AN INGREDIENT THE BREWER ASKED FOR THAT HAS NO CATALOGUE ID GOES IN
+"uncatalogued_additions" -- by its real name, with the amount, the unit, the
+stage and the method for using it. NEVER put it in "items" under some other
+ingredient's id. A malt is not a substitute for a spice.
+
+That list is a real part of the recipe and it is printed on the brewer's sheet.
+It is where vanilla beans, coffee, spices, oak, fruit and spirits belong when
+the catalogue has no row for them. Give the amount a brewer would actually use
+-- two vanilla beans, 200 ml of rum -- and say in "method" how it is prepared
+and added, because that is the part the brewer cannot look up from a weight.
+
+⛔ Do NOT state a gravity, ABV, IBU, colour or efficiency anywhere. Those are
+computed from your choices after you answer. Your amounts set PROPORTIONS only;
+the mashed grain is scaled afterwards to hit the target strength.
+
+⛔ BUILD THE GRAIN BILL IN THIS ORDER. Take the ROAST MALTS fraction FIRST, then
+caramel, then fill whatever remains with base malt. Doing it the other way round
+leaves nothing for the roast malts and produces a pale beer wearing a dark name.
+  1. ROAST MALTS -- for a stout or porter, 8-15% of the grain bill. BOTH ENDS
+     ARE BINDING. Below 8% it is a brown ale wearing the wrong name; above 15%
+     it turns acrid and thin, and 15% is a ceiling you never cross -- not even
+     when a correction below tells you the beer came out too pale. If you are
+     already at 15% and still short of colour, move to a DARKER roast malt from
+     the list rather than adding more of the one you have. A pale style takes
+     none.
+  2. CARAMEL malts -- sweetness and body, never colour. Keep them under 20%.
+  3. BASE malt -- the remainder. Around 70-85% in a pale beer, and lower in a
+     dark one. This is the figure that gives way, not the roast fraction.
+Colour comes from the ROAST MALTS list and nowhere else. A malt with "dark" or
+"brown" in its name is not a roast malt -- the lists already sort that out, so
+trust the heading, not the name.
+
+⛔ THE "avoid" LIST IS BINDING, BUT EACH ENTRY CONSTRAINS ONLY WHAT IT NAMES.
+An entry about roast, colour or astringency constrains the ROAST MALTS. An entry
+naming an ingredient means leave that ingredient out. An entry about malt must
+NOT change the hop schedule. Read each entry for what it says and nothing more.
+
+⛔ PICK EXACTLY ONE YEAST, from the YEAST list, and stage it at "fermenter"
+with qty_g 1 and unit "each". Choose it for the STYLE: a lager strain for a
+lager, a saison or Belgian strain for those, a clean ale strain otherwise. The
+attenuation figure beside each strain is what the beer will actually finish at,
+so pick a low one for a sweet beer and a high one for a dry one. ⛔ Never two.
+⛔ The number you put in "attenuation" is IGNORED once you pick a strain -- the
+strain's own figure is used -- so choose the strain that finishes where you want
+the beer to finish rather than trying to state the number yourself.
+
+⛔ FLAVOURINGS, SPICES, OAK AND FRUIT HAVE IDS NOW. If one of the lists above
+has what the brewer asked for, use its id in "items" with a unit: "each" for
+things that are counted, "g" for things that are weighed. Only something in NO
+list goes in "uncatalogued_additions".
+
+⛔ WATER SALTS: leave them out entirely unless the brewer asked about water.
+
+⛔ HOPS. Give the beer a 60 min bittering addition -- that is what creates
+bitterness, a 10 or 15 min addition creates almost none. You may add a SECOND
+hop late (10-20 min) for flavour where the style wants it.
+
+⛔ SIZE THE BITTERING CHARGE BY BATCH VOLUME AND BY ALPHA. Both, every time.
+  - Start from 0.5 g per LITRE of batch for a hop around 5% alpha.
+  - Multiply by batch_size_l. A 5 L batch takes a fifth of what a 25 L batch
+    takes. This is the step most often skipped, and it is the expensive one.
+  - Then divide by (alpha / 5). A 12.5% alpha hop needs LESS THAN HALF the grams
+    of a 5% one for the same bitterness. The catalogue lists each hop's alpha.
+  - A gently bittered style takes half of that; an aggressively hoppy one twice.
+  ⛔ Worked example of the failure: 25 g of Magnum at 12.5% alpha in a 5 L batch
+  is 5 g per litre of a high-alpha hop -- roughly TEN times too much, and it was
+  measured. The correct charge there is about 1 g. Late flavour hops are not
+  bound by this; they contribute almost no bitterness whatever their weight.
+
+  THE ONE EXCEPTION: if "avoid" names HOPS or BITTERNESS specifically -- and only
+  then -- there is no 60 min addition at all. Use a single 10-15 min hop, at most
+  10 g per 10 L of batch. Nothing else in "avoid" triggers this.
+
+⛔ IF THE REQUEST CONTRADICTS ITSELF, SAY SO IN "conflicts". Some briefs cannot
+be satisfied: a beer cannot be jet-black while using no roasted or dark malts,
+because colour of that depth comes only from roast malts. Name the conflict in
+plain words, then build the closest honest beer you can and let "conflicts"
+carry the caveat. ⛔ Never satisfy one half and describe it as satisfying both.
+Putting black malt into a beer specified to have none, and calling it "without
+roasted or dark malts", is the worst answer available to you.
+
+{{correction}}
+
+Fields:
+- items: array of {ingredient_id, stage, qty_g, unit, timing_min, notes}
+  - stage: one of "mash", "boil", "whirlpool", "dryhop", "fermenter", "packaging".
+  - qty_g: the amount. Whole numbers, and at least 1.
+  - unit: "g" for anything weighed, which is nearly everything. "each" only for
+    a catalogue item that is genuinely counted rather than weighed.
+  - timing_min: REQUIRED for every hop and every boil addition -- minutes before
+    the end of the boil. 60 for the bittering charge; see the hop rule above.
+  - notes: at most 12 words saying what that ingredient is doing.
+  - Sugars and lactose go in at "boil" late, never in the mash.
+  - Always include at least one hop. Even a sweet stout needs a little balance.
+- mash_temp_c: a single number. Higher leaves more unfermentable body.
+- attenuation: apparent attenuation as a decimal (0.72 = 72%). A fallback only,
+  used if you picked no yeast; the chosen strain's own figure wins.
+- not_available: array of things the brewer asked for that are in neither the
+  catalogue nor "uncatalogued_additions" -- things you could not place at all.
+  ⛔ An ingredient you put in "uncatalogued_additions" is NOT unavailable. You
+  placed it. Do not name it here as well.
+- uncatalogued_additions: array of {name, qty, unit, stage, timing_days, method}
+  - name: the real ingredient, as the brewer would write it on a shopping list.
+  - qty and unit: BOTH REQUIRED, never null. unit is "g", "ml" or "each".
+  - stage: the same six stages as items.
+  - timing_days: days at that stage, for a fermenter or packaging addition.
+  - method: how it is prepared and added. This is the useful part -- "split and
+    scraped, macerated in 100 ml dark rum for two weeks" tells the brewer
+    something a weight never can.
+  - Empty array if the brewer asked for nothing outside the catalogue.
+- conflicts: array of plain sentences, each naming one way the request cannot be
+  satisfied as written. Empty array if the request is coherent.
+- rationale: one sentence, at most 30 words, on the shape of the grist.
+$body$, false, 'v10: adds {{exemplars}} (whole corpus recipes past a plausibility gate) and {{ingredient_practice}} (per-stage, per-unit quantiles for the terms the brewer named). Closes §10.2''s remaining flaw -- qty and unit were required but had no evidence basis. Units are reported per unit and the prompt forbids converting between them.')
+ON CONFLICT (name, version) DO NOTHING;
+
+UPDATE obs.prompts SET active = false WHERE name = 'formulate.recipe/propose';
+UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/propose' AND version = 10;

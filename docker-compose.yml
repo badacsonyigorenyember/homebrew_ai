@@ -188,7 +188,7 @@ services:
                  /db-init/62_obs_recipe_prompts.sql /db-init/63_model_switch.sql \
                  /db-init/70_corpus.sql /db-init/71_corpus_dims.sql \
                  /db-init/72_nlq_corpus.sql /db-init/73_corpus_search.sql /db-init/74_corpus_styles.sql \
-                 /db-init/33_brew_yeast.sql; do
+                 /db-init/33_brew_yeast.sql /db-init/35_nlq_evidence.sql; do
           echo ">> $$f"
           psql -v ON_ERROR_STOP=1 -f "$$f"
         done
