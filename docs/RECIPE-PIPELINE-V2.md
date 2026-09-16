@@ -906,3 +906,147 @@ each`) so the number has a basis instead of being invented.
 | 9 | Self-directed retrieval, one round | ~1 day | the brewer's step 3/4 |
 
 Items 1–4 are two days of work and fix every defect this investigation found.
+
+---
+
+## 11. Implementation ledger — built and measured 2026-09-16
+
+Everything above this line is the plan as written *before* any of it was built.
+This section is what actually happened, and it is kept separate so the two can be
+compared rather than quietly reconciled. Where a measurement contradicts §1–§10,
+the contradiction is recorded here and the original text is left standing.
+
+### 11.1 §10.4 order of work — status
+
+| # | change | status |
+|---|---|---|
+| 1 | Stage E slot + constrained decoding | ✅ shipped, `propose` v8 |
+| 2 | Eval set 6 → 25 cases, new scorer keys | ✅ shipped |
+| 3 | F1/F2/F3 code guards | ✅ shipped, **plus F4 and F5 the plan did not foresee** |
+| 4 | `num_ctx`, consume `.web`/`.gap`, `web_query` | ✅ shipped |
+| 5 | `misc` + sugar catalogue rows, unit support | ✅ shipped, `31_`/`32_` |
+| 6 | C4 practice, C3 exemplars, B resolve | ✅ shipped, `35_`; ⚠️ **C5 not done** |
+| 7 | Best-of-N = 5 with the deterministic scorer | ⬜ **not built** |
+| 8 | Yeast catalogue | ✅ shipped, `33_`, 120 strains |
+| 9 | Self-directed retrieval, one round | ⬜ **not built** |
+
+Also not built, and each is a real gap rather than an oversight worth hiding:
+
+- **C5 — decomposed retrieval.** §5 Phase 3 step 15 says switch the formulate
+  path to `wf-step-retrieve-multi`. It still uses the single flat query.
+- **Stage B's hard stop.** §3 routes `unknown` to *"tell the brewer, before
+  building"*, and §5 Phase 3 makes it a verify criterion. Unknown terms are
+  reported at the top of the sheet instead and the recipe is still built. That is
+  weaker than specified. ⚠️ It may also be *better* — `unknown` in practice means
+  a typo or a non-ingredient, and refusing to build a stout because one word did
+  not resolve is a worse trade than building it and saying so. Worth deciding on
+  purpose rather than by omission.
+- **Stage A's `process` field** (all-grain / BIAB / extract).
+- **Web-arm domain allow-list** (§3 C6's second half). The `web_query` half
+  shipped and is doing the work: `measured` on recipe #92, gap `{poppi}` returned
+  homebrewtalk and the UK homebrew forum, against the `vanillamart.com` Christmas
+  cake the unsteered query produced.
+- **Stage G**, and §9.6 ②'s retry-outcome logging.
+
+### 11.2 ⭐ §10.2 replicated on the live stack
+
+The slot is the largest result in this document and it holds outside the probe.
+`measured` on recipe #91, the §1.4 brief end to end:
+
+```
+vanilla     2 each · boil        split and scraped
+poppy seeds 50 g   · boil        crushed, macerated in rum
+rum         200 ml · fermenter   used to macerate the others
+```
+
+Each by its real name, each with a method, no malt in the fermenter, ABV 8.07%
+against a target of 8%. Eval case R07 scores `no_substitution` PASS.
+
+### 11.3 ⚠️ §1.1 and §1.5 are now stale, and §1.5 was misdiagnosed
+
+`brew.ingredients` is **302 rows**, not 150: fermentable 81, hop 72, adjunct 9,
+misc 14, water_agent 6, yeast 120. Any later reading of §1.1 should start here.
+
+⛔ **§1.5's `num_ctx` diagnosis was wrong, and the real cause is worse.** The
+split is not "the chat node is the profile that was left behind". It is that
+`62_obs_recipe_prompts.sql` SEEDS the `formulate` profile under
+`ON CONFLICT (name) DO UPDATE`, and db-init only lands on the unified value
+because `63_model_switch.sql` runs afterwards. Apply `62_` on its own — which
+loading any new prompt version does — and the row silently reverts.
+
+That is not a quiet failure. `63_` deliberately leaves `num_predict` OFF because
+`propose` must emit closed JSON, so `num_ctx` is the *only* bound on generation.
+At ~12k of prompt, 12288 left ~1.2k to generate in: run 187 died with *"asked for
+JSON and returned prose"* because the JSON simply stopped, and run 186 is the
+worse version of the same fault — a grist truncated so badly the fitter scaled it
+**40×**. Fixed in `62_`'s seed.
+
+⚠️ **A second, still-open drift sits underneath it.** `formulate` runs
+`gemma4:12b` while the other four profiles run `gemma4:12b-it-q8_0` — genuinely
+different models, 7.6 GB against 12 GB. `63_` sets all five to Q8 and `62_` seeds
+`formulate` back to Q4, so **the two files disagree and whichever ran last wins.**
+This reads as someone acting on D40 and is not: D40's own note says a real revert
+would have been made in `63_`. Left unresolved on purpose — see §11.6.
+
+### 11.4 ⛔ The prompt budget is breached, and §9.3 removed the planned answer
+
+§5 Phase 3's verify is *"prompt total stays under 12k tokens"*. Live `propose`
+`tokens_in` is **12,172–14,335**. Measured breakdown, sweet-stout brief with 8
+library passages:
+
+```
+passages              3,956 tok   37.4%
+catalogue             3,105 tok   29.3%   ← of which YEAST is 1,415 (120 strains)
+rules + scaffold      2,344 tok   22.1%
+exemplars               530 tok    5.0%
+cohort practice         494 tok    4.7%
+ingredient practice     107 tok    1.0%
+```
+
+§6 Risk 6 predicted this and named `f_catalogue_for_style` as the mitigation —
+which §9.3 then withdrew on measurement. So the plan has no remaining answer, and
+none has been invented here.
+
+⭐ **The obvious candidate is the yeast list: 1,415 tokens for 120 strains, of
+which the model picks exactly one, while `{{practice}}` already names the style's
+top strains with their attenuation.** ⚠️ **This is deliberately NOT done.** §9.3
+measured catalogue narrowing and found it *worse* — 4/6 clean against 5/6 — and
+the story it killed ("fewer options, fewer bad picks") is the same story that
+would justify this. §9.3 tested malts and hops, whose *proportions* the model must
+reason about, and yeast is a single pick, so its conclusion does not obviously
+transfer either way. **That is an argument for measuring it, not for assuming it.**
+Anyone taking this on should run the 25-case set with the yeast list full and
+style-filtered before changing anything.
+
+### 11.5 Faults the build found that the investigation did not
+
+All four are the same shape: a fact the pipeline could compute, asked of the
+model instead — §1.4's table, extended.
+
+| fault | what happened | where it ended up |
+|---|---|---|
+| **F4** hop in the mash | 100 g and 1,974 g of hops staged `mash` on recipes 93/94/95, and **none before the C3 block existed** — the corpus records first-wort hopping as stage `Mash` and the model imitates its exemplars. Tinseth scores it 0 IBU, so the sheet told the brewer to buy hops that do nothing | dropped and reported in `Validate proposal` |
+| **F5** named ingredient simply missing | R07 asked for lactose *"for body"* and shipped none — not in items, not in additions, not in `not_available`. Stage B had resolved it to id 109 before the call | `propose` v11 states the routing; F5 reports any survivor |
+| **F1 false positive** | The guard dropped the *genuine* catalogued vanilla because an addition shared its name — it fired the moment the catalogue gained a vanilla row | compares against the item's own catalogue name first |
+| **yeast declined** | Helles picked W-34/70; the same prompt on a sweet stout picked nothing, twice, and FG went back to a model-invented number | picked in code from `nlq.cohort_stats` when the model declines |
+
+⚠️ **F4 is the one worth remembering.** It is the first measured case of an
+evidence block *causing* a fault: better inputs made the model imitate something
+the arithmetic does not model. Adding evidence is not automatically safe, and the
+guard had to be written after the block shipped, not before.
+
+### 11.6 Still open, and genuinely needing a decision
+
+- **§7 Q1 — yeast provenance.** Built as option (a), the plan's own
+  recommendation: seeded from `corpus.yeasts` with
+  `attrs.provenance = 'corpus_selfreported'`. Acted on, **not decided.**
+  Spot-checks hold: US-05 81%, S-04 75%, WLP002 66.5%, W-34/70 83%.
+- **§7 Q3 and Q4** are untouched. Q4 — a formulation text in `kb` — is still the
+  highest-value non-code action, and §1.5's "no *Designing Great Beers*" stands.
+- **D40's model split**, §11.3. Resolve it either by adding
+  `WHERE name <> 'formulate'` to `63_`'s UPDATE, or by re-running the Q4/Q8
+  comparison now that the case file is 25 cases rather than the single case D40
+  rests on.
+- **The 25-case set has not been run end to end.** Individual cases have. There is
+  no committed baseline, so §5 Phase 0 step 3 is not satisfied and every "no
+  worse than baseline" gate below it is currently unenforceable.
