@@ -1083,3 +1083,67 @@ simply move, because it also does `GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA nlq`
 which has to follow every file that defines one. That is security-sensitive
 role management and belongs in its own commit with its own fresh-cluster test,
 not bundled into a feature landing. Noted in `docker-compose.yml` beside the list.
+
+### 11.8 First measured baseline — R01–R09, 2026-09-16
+
+§5 Phase 0 step 3 asks for a committed baseline. This is the first one. It is
+**nine of twenty-five cases**, not the full set, and it is labelled as such
+because a partial baseline quoted later as a full one is exactly how the six-case
+set came to stand behind claims it could not support.
+
+```
+R01 floor          PASS   abv 4.23  ibu 38  srm 38.3  roast 15.0   (retried)
+R02 control        PASS   abv 5.03  ibu 15  srm  4.9  roast  0.0
+R03 two-way        FAIL   abv 5.56  ibu 38  srm 38.7  roast 15.0   roast outside [5,12]
+R04 three-way      PASS   abv 8.04  ibu 11  srm 58.8  roast 15.0
+R05 exclusion      PASS   abv 11.05 ibu 48  srm 69.1  roast 15.0
+R06 contradiction  PASS   flags the conflict          (retried, band miss reported)
+R07 substitution   PASS   abv 6.03  ibu 38  srm 46.8  no_substitution ✓  2 additions
+R08 flavouring     PASS   abv 5.68  ibu 38  srm 46.2  no_substitution ✓  1 addition
+R09 flavouring     FAIL   the capability errored; no recipe
+
+PASS 7  FAIL 2  ERROR 0   suite 838 s   propose retried on 2 of 9
+```
+
+⭐ R02 is the load-bearing one: roast 0.0%, SRM 4.9 on a Munich Helles. The stout
+cases are not gameable by always reaching for roast malt, and the catalogue
+growing by 140 rows did not break style generality.
+
+**⛔ Finding 1 — the roast ceiling is doing all the work, and that makes some
+bands unreachable.** Five of the six dark cases land at **exactly 15.0%**. That
+is `Validate proposal` clamping, every time, which means the prompt's stated
+"8–15%" range is not being followed at all — the model proposes above the ceiling
+and code trims it back. It passes wherever the case allows 15 (R01, R04, R05) and
+fails where it does not: **R03 wants 5–12% for a "restrained roast" oatmeal
+stout, and a ceiling-only clamp can never bring roast DOWN to 12.**
+
+⚠️ Whether this is a regression is **not knowable** — there was no baseline before
+this one, which is the whole reason Phase 0 exists. §9.3 measured a 12.4–15.3
+spread on the v7 prompt, but on one case and possibly measured pre-clamp, so it
+does not settle it. Two honest options, and they are different claims: either
+R03's band is wrong for the style, or the pipeline needs a style-aware roast
+*target* rather than a bare ceiling. ⛔ Do not "fix" this by lowering the clamp —
+that would break R01, R04 and R05, which need 15.
+
+**⛔ Finding 2 — R09 is generation degeneration, not prompt size.** The run took
+**248 s** and died on *"Step 'propose' was asked for JSON and returned prose"*
+with the JSON stopping mid-object after `"unit": "g",`. The obvious suspect was
+the token budget, and it is measured wrong: reconstructing R09's exact prompt
+gives **10,144 tokens against a 16,384 context — 6,240 tokens of headroom.** The
+model had ample room and looped anyway, emitting `items` until the context ran
+out. Successful runs emit 496–612 tokens.
+
+⚠️ **This is §9.1's non-convergence, in the JSON output rather than the thinking
+trace**, and it exposes a cost `63_model_switch.sql` did not account for. That
+file deliberately removes `num_predict` for `formulate`, reasoning that a cap
+guarantees `propose` cannot close its JSON. True, and incomplete: with no cap, a
+degenerate run does not recover — it produces the same truncated JSON, four
+minutes later, and takes the whole run down with it. A cap does not cause that
+failure; it bounds what the failure costs.
+
+⛔ **Not changed on one observation.** Overriding a documented ⛔ decision needs
+more than n=1, and the run-64 measurement behind it (`num_predict` 1600 stopping
+propose mid-object) was taken on an older prompt and schema that cannot be
+compared to today's 496–612 tokens out. The next person should establish the rate
+across the full 25 first; if it is not a one-off, `num_predict` at ~3× the
+observed maximum is the obvious candidate, and it should be measured, not argued.
