@@ -171,14 +171,24 @@ services:
         # NOTE: this list is the execution order and it does NOT glob. A new
         # db/init/*.sql file silently never runs until its name is added here.
         # 15_ref.sql must precede 20_brew.sql: brew.recipes.style_id -> ref.styles.
+        #
+        # ⛔ THE FILENAME NUMBER IS NOT THE ORDER, AND TWO FILES RUN OUT OF IT.
+        # 33_brew_yeast.sql seeds from corpus.yeasts, created by 71_corpus_dims,
+        # and 35_nlq_evidence.sql needs 73_'s f_resolve_ingredient and 74_'s
+        # style fold -- so both run at the END despite sorting as 33 and 35.
+        # Slotted numerically they fail with "relation does not exist", and under
+        # ON_ERROR_STOP=1 that halts the run and silently skips every later file,
+        # which is the exact failure 29_brew_formulate.sql documents.
         for f in /db-init/00_extensions.sql /db-init/10_kb.sql /db-init/15_ref.sql \
                  /db-init/20_brew.sql /db-init/26_ref_malts.sql /db-init/27_brew_catalogue.sql \
                  /db-init/28_brew_derived_sugars.sql /db-init/29_brew_formulate.sql \
                  /db-init/30_mem.sql \
+                 /db-init/31_brew_misc.sql /db-init/32_brew_sugars.sql \
                  /db-init/40_nlq.sql /db-init/60_obs.sql \
                  /db-init/62_obs_recipe_prompts.sql /db-init/63_model_switch.sql \
                  /db-init/70_corpus.sql /db-init/71_corpus_dims.sql \
-                 /db-init/72_nlq_corpus.sql /db-init/73_corpus_search.sql /db-init/74_corpus_styles.sql; do
+                 /db-init/72_nlq_corpus.sql /db-init/73_corpus_search.sql /db-init/74_corpus_styles.sql \
+                 /db-init/33_brew_yeast.sql; do
           echo ">> $$f"
           psql -v ON_ERROR_STOP=1 -f "$$f"
         done

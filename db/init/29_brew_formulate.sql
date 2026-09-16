@@ -447,9 +447,20 @@ GRANT EXECUTE ON FUNCTION brew.f_fit_to_abv(numeric, jsonb, numeric, numeric, nu
 -- ---------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS brew.f_catalogue(text);
 
+-- ⛔ DROPPED BEFORE CREATE, and the comment 200 lines up says why: CREATE OR
+-- REPLACE cannot change a return type, and the failure is not local. db-init
+-- runs ON_ERROR_STOP=1 over a hardcoded list, so "cannot change return type of
+-- existing function" halts the run HERE and silently skips every later file.
+-- This file has already cost that once. The DROP is a no-op after the first run.
+--
+-- ⚠️ Both callers survive the added column: `Load catalogue` does SELECT *, and
+-- recipe_eval.py names the columns it wants. Appending is safe; reordering is not.
+DROP FUNCTION IF EXISTS brew.f_catalogue(text);
+
 CREATE OR REPLACE FUNCTION brew.f_catalogue(p_kind text DEFAULT NULL)
 RETURNS TABLE (id bigint, kind text, role text, name text, supplier text,
-               potential_ppg numeric, color_lovibond numeric, alpha_acid_pct numeric)
+               potential_ppg numeric, color_lovibond numeric, alpha_acid_pct numeric,
+               attenuation_pct numeric)
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = brew, public AS $fn$
   SELECT i.id, i.kind,
          CASE i.kind
@@ -465,7 +476,15 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = brew, public AS $fn$
              END
            ELSE i.kind
          END AS role,
-         i.name, i.supplier, i.potential_ppg, i.color_lovibond, i.alpha_acid_pct
+         i.name, i.supplier, i.potential_ppg, i.color_lovibond, i.alpha_acid_pct,
+         -- Exactly the shape alpha_acid_pct already has: a spec that means
+         -- something for one kind and is NULL for every other. Without it a
+         -- yeast row reaches the prompt as a bare name, and the whole point of
+         -- catalogued yeast is that attenuation stops being a guess -- it is
+         -- what turns FG into a computed number.
+         -- ⚠️ 33_brew_yeast.sql writes the same figure to attenuation_min and
+         -- _max deliberately, to read as a point estimate rather than a range.
+         i.attenuation_min AS attenuation_pct
   FROM brew.ingredients i
   WHERE p_kind IS NULL OR i.kind = p_kind
   ORDER BY 3, coalesce(i.color_lovibond, 0), i.name
