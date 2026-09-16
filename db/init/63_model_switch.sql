@@ -74,3 +74,35 @@
 UPDATE obs.profiles
    SET model   = 'gemma4:12b-it-q8_0',
        options = options || '{"num_ctx": 16384}'::jsonb;
+
+-- ---------------------------------------------------------------------------
+-- ⚠️ DRIFT FOUND 2026-09-16, AND THIS FILE IS THE THING THAT WILL UNDO IT.
+--
+-- The UPDATE above moves EVERY profile to gemma4:12b-it-q8_0. The live database
+-- does not match it: `formulate` was running gemma4:12b -- a genuinely different
+-- model, ID 4eb23ef187e2 at 7.6 GB against 41c402fdddc2 at 12 GB, not a tag for
+-- the same weights -- while the other four ran q8_0.
+--
+-- That is almost certainly D40 being acted on rather than an accident: D40
+-- measured Q4_K_M at 5 PASS / 0 FAIL against Q8_0 at 0 PASS / 3 FAIL on the
+-- pastry-stout case, and records the switch to Q8 as an explicit request for the
+-- CHAT model specifically. Leaving `formulate` on Q4 is what that measurement
+-- argues for. But the revert was made in the database and never brought back
+-- here, so db-init silently flips it back on the next stack start.
+--
+-- ⛔ NOT RESOLVED HERE, because which model formulates is D40's decision and not
+-- a tidy-up. Either add a WHERE name <> 'formulate' to the UPDATE above, or
+-- re-run the Q4/Q8 comparison with scripts/stress/recipe_eval.py now that the
+-- case file is 25 cases rather than the 1 that D40 rests on.
+--
+-- ⚠️ The num_ctx half IS resolved: `formulate` was left at 12288 while the rest
+-- sat at 16384, and `propose` has already peaked at 9365 tokens_in -- under 3k
+-- of headroom for generation, before the exemplar and practice blocks land. The
+-- live row was raised to 16384, which is what this file already intended.
+--
+-- ⚠️ And note what unifying num_ctx can and cannot buy while two MODELS are in
+-- play: Ollama keys its runner on both. 12 GB + 7.6 GB does not fit in 16 GB of
+-- VRAM, so a chat turn followed by a `propose` step reloads whatever num_ctx
+-- says. The 16384 change aligns chat with compose/extract/creative/critique --
+-- real, and worth having -- but "one resident runner" needs one model.
+-- ---------------------------------------------------------------------------

@@ -49,7 +49,7 @@
         "options": {
           "temperature": 0.2,
           "keepAlive": "-1m",
-          "numCtx": 12288
+          "numCtx": 16384
         },
         "model": "gemma4:12b-it-q8_0"
       },
