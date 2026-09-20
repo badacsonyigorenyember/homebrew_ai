@@ -96,6 +96,10 @@ COMMENT ON COLUMN corpus.bf_fermentables.ferm_type IS
 COMMENT ON COLUMN corpus.bf_hops.timing_min IS
   'The source''s own number, unconverted -- its UNIT depends on use_stage: '
   'minutes for Boil/Whirlpool/Aroma/First Wort/Mash, but DAYS for Dry Hop '
-  '("5 days" -> 5). trend.f_rebuild() therefore excludes Dry Hop rows from the '
-  'style_hop timing aggregate; averaging both units together produced a '
-  'meaningless figure (Citra in American IPA read 8.0).';
+  '("5 days" -> 5). The source also appends a temperature to the Dry Hop '
+  'label ("Dry Hop at 20 °C", ~260 rows), so trend.f_rebuild() excludes Dry '
+  'Hop rows from the style_hop timing aggregate with a PREFIX match '
+  '(use_stage NOT LIKE ''Dry Hop%''), not equality -- an equality test let '
+  'those temperature-qualified day counts silently through as if they were '
+  'boil minutes. Averaging either past this into the boil-minute average '
+  'produced a meaningless figure (Citra in American IPA read 8.0).';

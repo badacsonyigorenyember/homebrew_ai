@@ -260,16 +260,20 @@ BEGIN
     -- use_stage: minutes for Boil/Whirlpool/etc, DAYS for Dry Hop (see the
     -- column comment on corpus.bf_hops.timing_min). Averaging both units
     -- together produced a meaningless figure (Citra in American IPA read
-    -- 8.0). Dry Hop rows are excluded below. A bare <> also drops NULL
-    -- use_stage rows -- chosen deliberately, not just accepted: an unstated
-    -- stage means the unit is unknown too, and a row that MIGHT be a
-    -- dry-hop day count cannot be averaged in as if it were boil minutes.
-    -- `measured` 2026-09-20: 0 rows in the loaded corpus have a NULL
-    -- use_stage, so this choice has no effect on the current numbers.
+    -- 8.0). Dry Hop rows are excluded below via a PREFIX match, not
+    -- equality: the source appends a temperature to the stage label ("Dry
+    -- Hop at 20 °C", "Dry Hop at 68 °F", ~260 rows), so `<> 'Dry Hop'` let
+    -- those day-count rows silently through as if they were boil minutes
+    -- (RULING 19). A bare NOT LIKE also drops NULL use_stage rows --
+    -- chosen deliberately, not just accepted: an unstated stage means the
+    -- unit is unknown too, and a row that MIGHT be a dry-hop day count
+    -- cannot be averaged in as if it were boil minutes. `measured`
+    -- 2026-09-20: 0 rows in the loaded corpus have a NULL use_stage, so
+    -- this choice has no effect on the current numbers.
     SELECT r.ref_style_id, h.ref_hop_id,
            100.0 * sum(h.amount_g)
              / nullif(sum(sum(h.amount_g)) OVER (PARTITION BY r.id), 0) AS share,
-           avg(h.timing_min) FILTER (WHERE h.use_stage <> 'Dry Hop') AS tmin
+           avg(h.timing_min) FILTER (WHERE h.use_stage NOT LIKE 'Dry Hop%') AS tmin
     FROM corpus.bf_recipes r
     JOIN corpus.bf_hops h ON h.recipe_id = r.id
     WHERE r.ref_style_id IS NOT NULL AND h.ref_hop_id IS NOT NULL
