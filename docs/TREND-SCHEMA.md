@@ -146,7 +146,29 @@ Past ~500 the interval keeps shrinking but accuracy does not: the residual error
 is systematic (self-reported, one community, pre-2020). Precision beyond that is
 precision that cannot honestly be quoted.
 
-### 1.5 Ingredient resolution against the existing refs
+### 1.5 ⛔ Corpus ppg and colour figures are site defaults, not measurements
+
+`measured` 2026-09-20. The corpus *is* brewersfriend, so a per-ingredient spec
+repeated across thousands of recipe rows is one row of that site's ingredient
+database copied forward — not thousands of brewers agreeing.
+
+| ingredient | top ppg | share of rows | n rows | |
+|---|---|---|---|---|
+| flaked oats | 33.0 | **99.3%** | 24,087 | site default |
+| lactose | 41.0 | **98.9%** | 4,761 | site default |
+| acidulated | 27.0 | **97.5%** | 9,792 | site default |
+| corn sugar | 46.0 | 72.5% | 7,867 | genuine spread (two defaults over time) |
+
+⚠ **Effective n for these figures is 1.** Any argument of the form "the corpus
+says X across 9,792 rows" is invalid and this document must not make it. The
+corpus is good evidence about *what brewers chose* — which ingredients, in what
+proportion — and near-worthless as evidence about *ingredient specifications*,
+because the brewer never typed those.
+
+This is why `spec_source` distinguishes `corpus_default` from a real publisher,
+and why corroboration by the corpus counts as one vote, not thousands.
+
+### 1.6 Ingredient resolution against the existing refs
 
 `measured` 2026-09-19 at `views>1000`:
 
@@ -176,7 +198,7 @@ Two European maltsters against an American homebrew corpus. Top unresolved:
 Briess or Crisp row, and `27_brew_catalogue.sql` forbids inventing specs to fill
 the gap. **Product-level resolution is therefore abandoned in favour of type.**
 
-### 1.6 The malt-type taxonomy resolves 98.7%
+### 1.7 The malt-type taxonomy resolves 98.7%
 
 ~30 rules over name + the °L the recipe itself states. `measured` 2026-09-19,
 146,343 fermentable rows at `views>500`:
@@ -198,8 +220,8 @@ carried by the recipe row.
 |---|---|---|
 | D1 | Corpus filter is `views > 500` | §1.3 — keeps 114 trendable styles vs 55 |
 | D2 | Script-block language filter only, never ASCII | 45 CJK/Cyrillic rows at `views>1000`; a strict ASCII filter would drop 364, mostly English (*Kölsch*, *Crème Brûlée*, *Jalapeño*) |
-| D3 | Fermentables resolve to **type**, not product | §1.5 — `ref.malts` cannot represent the corpus |
-| D4 | Hops resolve to `ref.hops` product | §1.5 — 92.5% works |
+| D3 | Fermentables resolve to **type**, not product | §1.6 — `ref.malts` cannot represent the corpus |
+| D4 | Hops resolve to `ref.hops` product | §1.6 — 92.5% works |
 | D5 | Misc and yeast stored as raw rows | user request; no taxonomy attempted |
 | D6 | Trends split four ways: shape / composition / choice+amount / affinity | §1.1 — a flat list is unusable |
 | D7 | Pair strength is **lift**, not co-occurrence | §1.2 |
@@ -240,7 +262,7 @@ ALTER TABLE ref.fermentables ADD COLUMN fermentability_pct numeric(5,2);
 -- indistinguishable from a published spec. Same discipline as
 -- corpus.styles.match_method.
 ALTER TABLE ref.fermentables ADD COLUMN spec_source text
-  CHECK (spec_source IN ('maltster','user_reference','corpus_consensus','manual'));
+  CHECK (spec_source IN ('maltster','user_reference','corpus_default','manual'));
 ALTER TABLE ref.fermentables ADD COLUMN spec_note text;
 ```
 
@@ -250,18 +272,19 @@ published figure. New commodity rows use the min/max pair.
 ### 3.2 New rows
 
 Supplied by the user 2026-09-20, `spec_source = 'user_reference'`. Cross-checked
-against corpus consensus — the corpus figure is recorded in `spec_note` wherever
-it differs, so the disagreement stays visible and reversible.
+against the brewersfriend default, which counts as **one** vote and not thousands
+(§1.5). Where it differs, that figure is recorded in `spec_note` so the
+disagreement stays visible and reversible.
 
 **Flaked adjuncts and acidulated**
 
-| name | ppg min–max | °L | corpus mode (n) |
+| name | ppg min–max | °L | bf default (n) |
 |---|---|---|---|
 | Flaked Oats | 32–33 | 2.2 | 33.0 (23,952) ✓ |
 | Flaked Barley | 32 | 2.2 | 32.0 (6,100) ✓ |
 | Flaked Wheat | 34–36 | 1.6–2.0 | 34.0 (9,290) ✓ |
 | Flaked Corn / Maize | 37–40 | 0.5–1.0 | 40.0 (4,600) ✓ |
-| Acidulated Malt | 33–35 | 1.7–3.0 | **27.0 (9,792)** ⚠ |
+| Acidulated Malt | 33–35 | 1.7–3.0 | 27.0 — see §3.4 ⚠ |
 
 Acidulated usage rate is 1–5% of grist (lowers mash pH via lactic acid); this
 belongs in the taxonomy's sanity envelope (§4), not in this table.
@@ -279,13 +302,13 @@ belongs in the taxonomy's sanity envelope (§4), not in this table.
 
 **Sugars** — the only rows carrying `fermentability_pct`.
 
-| name | ppg | ferm % | °L | corpus mode (n) |
+| name | ppg | ferm % | °L | bf default (n) |
 |---|---|---|---|---|
 | Table Sugar (sucrose) | ~46 | 95–100 | 0–1 | 46.0 (8) ✓ |
 | Dextrose / Corn Sugar | 42–46 | 100 | 0–1 | 46.0 (7,867) ✓ |
 | Brown / Demerara / Turbinado | ~46 | 95–100 | 2–15+ | — |
 | Dark Candi Sugar | 35–36 | 90–100 | 20–80+ | 38.0 (6,333) ~ |
-| **Lactose** | **~46** | **0** | 0–1 | **41.0 (4,761)** ⚠ |
+| **Lactose** | **35–41** | **0** | 0–1 | 41.0 — see §3.3 |
 | Honey | 30–36 | 90–95 | 1–3 | 37.0 (11,700) ⚠ |
 
 Corpus honey colour returns 25 °L, which is nonsense — the corpus is unreliable
@@ -302,21 +325,55 @@ on that field and the supplied 1–3 °L stands.
 | Malt Extract Dark | 35–44 | 30+ |
 | Wheat Malt Extract | 35–44 | 2–3 |
 
-### 3.3 ⚠ Two unresolved disagreements
+### 3.3 Lactose — settled as a range
 
-Both were flagged before the user said *"go for it"*, and neither was explicitly
-settled. The supplied values are loaded; the corpus consensus is recorded in
-`spec_note`. **Flip either with a one-row UPDATE — no reload.**
+Three figures existed:
 
-- **Acidulated: 33–35 vs corpus 27.0 across 9,792 rows.** A ~25% gap that biases
-  OG for every recipe using it. Both are defensible — Weyermann's dbfg supports
-  the higher figure, most brewing calculators ship 27. They measure different
-  things (lab extract vs practical yield).
-- **Lactose: 46 vs corpus 41.0 across 4,761 rows.** Matters more than the size
-  suggests: lactose is 0% fermentable, so its points land entirely on FG. A 12%
-  ppg error is a 12% error in the finishing gravity of every milk stout.
+| source | ppg | °L |
+|---|---|---|
+| user, initial | ~46 | 0–1 |
+| **brewersfriend.com** | **41** | **1** |
+| **Brewfather** | **35** (1.035) | **0 EBC** |
 
----
+The corpus's 41.0 is not independent evidence — it *is* brewersfriend's default
+(§1.5), so this is two sources, not three-thousand-and-two.
+
+It also barely matters. Lactose is 0% fermentable, so its points land entirely on
+FG, but the gap between 35 and 41 is small at real dosing — `measured` via
+`brew.f_compute_recipe`'s own arithmetic:
+
+```
+ 250 g lactose in 20 L  ->  diff = 0.63 pts on FG
+ 500 g lactose in 20 L  ->  diff = 1.25 pts on FG     <- typical milk stout
+1000 g lactose in 20 L  ->  diff = 2.50 pts on FG
+```
+
+At typical dosing the two sources disagree by roughly one hydrometer tick.
+
+**Resolution: store `potential_ppg_min = 35`, `potential_ppg_max = 41`**, both
+publishers named in `spec_note`, `spec_source = 'manual'`. This is precisely what
+the min/max columns in §3.1 exist for: a genuine published disagreement is a
+range, not a coin toss. Colour 1 °L (Brewfather's 0 EBC and brewersfriend's 1 °L
+are the same claim — colourless).
+
+### 3.4 ⚠ Acidulated is still open
+
+| source | ppg |
+|---|---|
+| user | 33–35 |
+| brewersfriend default | 27.0 |
+
+Still a ~25% gap, and unlike lactose it is **not** cushioned: acidulated is a
+mashed grain at 1–5% of grist, so the error goes into OG directly.
+
+⚠ The evidence changed after §1.5. The earlier framing — "27.0 across 9,792
+rows" — was wrong; that is one site default, not a consensus, and it no longer
+outweighs the supplied figure. Both remain defensible on their merits
+(Weyermann's dbfg supports the higher number; most brewing calculators ship 27),
+because they measure different things — lab extract versus practical yield.
+
+**Default if unanswered: load 33–35, record 27.0 in `spec_note`.** Flips with a
+one-row UPDATE.
 
 ## 4. The malt-type taxonomy
 
@@ -606,8 +663,8 @@ all three block it.
 
 | # | Question | Default if unanswered |
 |---|---|---|
-| O1 | Acidulated ppg: 33–35 or corpus 27.0? | supplied value loaded, corpus in `spec_note` |
-| O2 | Lactose ppg: 46 or corpus 41.0? | supplied value loaded, corpus in `spec_note` |
+| O1 | Acidulated ppg: 33–35, or brewersfriend's 27.0? §3.4 | 33–35 loaded, 27.0 in `spec_note` |
+| O2 | ~~Lactose ppg~~ — **settled §3.3**: range 35–41 | closed |
 | O3 | Rice table transcription from Hungarian correct? | confirm before loading |
 | O4 | Flaked oats: single `33.0` or range `32–33`? | range, per §3.1 |
 | O5 | Repoint or drop the three broken `nlq` functions? | repoint |
@@ -620,12 +677,13 @@ The design is implemented correctly when all of these hold:
 
 1. `ref.fermentables` exists, `ref.malts` does not, and the 77 original rows are
    unchanged.
-2. Every §3.2 row is present with a non-NULL `spec_source`.
+2. Every §3.2 row is present with a non-NULL `spec_source`, and no row
+   carries `spec_source = 'corpus_default'` as its sole basis.
 3. `corpus.fermentable_types` has 22 rows, each with a `substitute_id` and a
    `substitute_basis`; no row asserts a flavour equivalence without a citation.
 4. The loader classifies **>= 98%** of `bf_fermentables` rows to a type
-   (baseline §1.6: 98.7%) and resolves **>= 92%** of `bf_hops` rows to
-   `ref.hops` (baseline §1.5: 92.5%).
+   (baseline §1.7: 98.7%) and resolves **>= 92%** of `bf_hops` rows to
+   `ref.hops` (baseline §1.6: 92.5%).
 5. For every style in `trend.style_grist_template`, `sum(role_pct_p50)` is
    within 100 ± 5.
 6. `select max(hop_variety_count_p50) from trend.style_profile` is <= 6.
