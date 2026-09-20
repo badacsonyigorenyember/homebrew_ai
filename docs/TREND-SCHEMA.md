@@ -228,6 +228,7 @@ carried by the recipe row.
 | D8 | Every trend row carries `n_with`; nothing reports below 30 | §1.4 |
 | D9 | Trends are snapshotted, never mutated in place | user: *"not 1 by 1 recipes"* |
 | D10 | `ref.malts` -> `ref.fermentables` | it must hold sugars, extracts, flaked adjuncts — none of which are malts |
+| D12 | **Backward compatibility with the existing `nlq` surface is NOT a requirement** | user 2026-09-20: *"do not worry about what is used in the pipeline and what not. We are currently reworking things."* `trend.*` is designed for what it should be, not to preserve `common_practice`/`ingredient_practice` signatures |
 | D11 | **brewersfriend is the source of record for now; Brewfather is the migration target** | user 2026-09-20, in two steps: *"I would like to go for a brewfather line"*, then *"for now, go with the brewersfriend values, not the brewfather. Later on, we could adjust the recipes."* Phased deliberately — see §3.7 |
 
 ---
@@ -823,39 +824,45 @@ Twenty hops is unreachable: the budget is spent at step 1.
 
 ## 8. What else this work must touch
 
-### 8.1 ⛔ The three broken `nlq` functions are the integration point, not cleanup
+### 8.1 The three broken `nlq` functions — not a design constraint
 
-An earlier draft of this document filed these under "cleanup". That was wrong.
-`measured` 2026-09-20 — all three are referenced by **live, active** workflows:
+`nlq.common_practice`, `nlq.ingredient_practice` and `nlq.f_corpus_styles` fail
+today, because they reference `corpus.recipe_misc` and `corpus.recipe_yeasts`
+(dropped) and a `corpus.recipes` reshaped to BeerJSON:
 
-| workflow | active | nodes referencing a broken function |
-|---|---|---|
-| `wf-step-practice` | ✅ | Normalise input, Common practice |
-| `cap-formulate-recipe` | ✅ | Style bands, Build propose pack, **Step 3 · propose**, **Step 3b · re-propose** |
-| `chat-agent` | ✅ | AI Agent (exposed to the model as a tool) |
-
-Seven nodes across three active workflows, and `cap-formulate-recipe`'s Step 3 is
-the **core recipe generation path** — precisely what the trend schema exists to
-feed.
-
-So this is not a tidy-up that follows the build. `trend.*` is the *replacement*
-for what `common_practice` and `ingredient_practice` were computing, and
-repointing them is the second half of the project rather than an afterthought.
-
-⚠ Dropping them breaks live recipe formulation. Repointing them is the real work.
-
-⚠⚠ **And the rewrite is hazardous.** Per `CLAUDE.md`: `chat-agent` has
-`settings.availableInMCP = false`, so it must be edited as tracked JSON plus
-`n8n import:workflow` — which **deactivates** the workflow, requires a
-re-publish, and still leaves the webhook unregistered until `docker restart n8n`.
-Probe the webhook before trusting any eval that follows.
-
-The function bodies fail today because they reference `corpus.recipe_misc` and
-`corpus.recipe_yeasts` (dropped) and a `corpus.recipes` reshaped to BeerJSON:
 ```
 postgres=# select nlq.common_practice('stout');
 ERROR:  column c.style_raw does not exist
 ```
+
+`measured` 2026-09-20, they are referenced by seven nodes across three workflows
+— `wf-step-practice`, `cap-formulate-recipe` (including Step 3 · propose and
+Step 3b · re-propose) and `chat-agent`.
+
+⚠ **Per D12 this does not constrain the schema.** An earlier draft treated these
+signatures as something `trend.*` had to preserve, and then as "the integration
+point". Both readings are withdrawn: the pipeline is being reworked, so `trend.*`
+is designed for what the generator in §7 actually needs, and the old functions are
+replaced rather than repointed.
+
+What remains true is **operational**, and will bite during that rework:
+
+⚠ `chat-agent` has `settings.availableInMCP = false`, so it can only be edited as
+tracked JSON plus `n8n import:workflow` — which **deactivates** the workflow,
+requires a re-publish, and *still* leaves the webhook unregistered until
+`docker restart n8n`. Probe the webhook before trusting any eval that follows:
+
+```bash
+curl -s -o /dev/null -w '%{http_code} %{time_total}\n' --max-time 8 \
+  -X POST http://localhost:5678/webhook/<id>/chat \
+  -H 'Content-Type: application/json' \
+  -d '{"sessionId":"probe","action":"sendMessage","chatInput":"ping"}'
+```
+
+⚠ An inactive workflow also cannot be called as a sub-workflow: `executeWorkflow`
+returns the *string* "Workflow is not active and cannot be executed" as the tool's
+result, which the model then retries until `Max iterations (5) reached`, burying
+the real cause.
 
 ### 8.2 Housekeeping
 1. ✅ **`recipes_full.txt` (180 MB) was untracked in the repo root.** Gitignored
@@ -874,7 +881,7 @@ ERROR:  column c.style_raw does not exist
 | O2 | ~~Lactose ppg~~ — **settled §3.3**: 41, per D11 | closed |
 | O3 | ~~Rice~~ — **settled §3.2**: two rows, `Rice` 35.5 and `Flaked Rice` 40 | closed |
 | O4 | ~~Flaked oats single vs range~~ — superseded by O6 | closed |
-| O5 | Repoint the three `nlq` functions at `trend.*`, or drop them? §8.1 | **repoint** — dropping breaks 7 nodes in 3 active workflows |
+| O5 | ~~Repoint or drop the `nlq` functions~~ — **moot under D12**, §8.1 | closed |
 | O6 | ~~Flaked oats~~ — **settled §3.6**: 33 ppg, 2 °L | closed |
 | O7 | ~~Acidulated Brewfather lookup~~ — no longer blocking; wanted for `spec_note` | deferred to §3.7 |
 | O8 | ~~Sugars and extracts~~ — **settled §3.8** from the live catalogue | closed |
@@ -899,6 +906,7 @@ The design is implemented correctly when all of these hold:
 6. `select max(hop_variety_count_p50) from trend.style_profile` is <= 6.
    *(American IPA measured 3; any style claiming more than 6 is a bug.)*
 7. No `trend.style_hop_pair` row has `support < 30` — enforced by CHECK.
-8. `select nlq.common_practice('stout')` returns rows, or the function is gone.
+8. The `nlq` surface exposes whatever the reworked pipeline needs; the three
+   broken functions are gone rather than left failing (D12).
 9. A full rebuild produces a new `trend.snapshot` row and leaves the previous
    snapshot's rows byte-identical.
