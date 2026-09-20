@@ -228,6 +228,7 @@ carried by the recipe row.
 | D8 | Every trend row carries `n_with`; nothing reports below 30 | §1.4 |
 | D9 | Trends are snapshotted, never mutated in place | user: *"not 1 by 1 recipes"* |
 | D10 | `ref.malts` -> `ref.fermentables` | it must hold sugars, extracts, flaked adjuncts — none of which are malts |
+| D11 | **Brewfather is the preferred publisher where sources disagree** | user 2026-09-20: *"I would like to go for a brewfather line"*. It is the software they actually brew with, and §3.5 shows its figures are already in the database and checkable |
 
 ---
 
@@ -262,7 +263,7 @@ ALTER TABLE ref.fermentables ADD COLUMN fermentability_pct numeric(5,2);
 -- indistinguishable from a published spec. Same discipline as
 -- corpus.styles.match_method.
 ALTER TABLE ref.fermentables ADD COLUMN spec_source text
-  CHECK (spec_source IN ('maltster','user_reference','corpus_default','manual'));
+  CHECK (spec_source IN ('brewfather','maltster','user_reference','corpus_default','manual'));
 ALTER TABLE ref.fermentables ADD COLUMN spec_note text;
 ```
 
@@ -289,16 +290,17 @@ disagreement stays visible and reversible.
 Acidulated usage rate is 1–5% of grist (lowers mash pH via lactic acid); this
 belongs in the taxonomy's sanity envelope (§4), not in this table.
 
-**Rice** — transcribed from a partly Hungarian source; confirm before loading.
+**Rice** — one row, per D11. The six-variety table drafted earlier is dropped at
+the user's instruction.
 
-| name | ppg | °L | note |
+| name | ppg | °L | source |
 |---|---|---|---|
-| Flaked Rice | 32–40 | 0.5–1.0 | pre-gelatinised, straight into mash |
-| Raw White Rice | 38–41 | 0.5–1.0 | requires cereal mash |
-| Rice Grits | 40–41 | 0.5–1.0 | requires cereal mash |
-| Rice Syrup Solids | 37–40 | 1.0 | boil addition, fully soluble |
-| Brown Rice Syrup | 44 | 2.0–4.0 | gluten-free; minimal colour |
-| Malted Rice | 20–21 | 1.0–2.0 | low diastatic power; roasted versions 100+ °L |
+| Rice Flakes | 32 | 1 (2 EBC) | Brewfather (1.032 sg) |
+
+brewersfriend gives 35.5 ppg / 1 °L, and the 2020 corpus default was 40.0 — three
+figures, one publisher preferred. Colour is not in dispute: 2 EBC and 1 °L are the
+same claim. ⚠ The corpus's 40.0 against brewersfriend's current 35.5 is direct
+evidence that these site defaults drift over time, reinforcing §1.5.
 
 **Sugars** — the only rows carrying `fermentability_pct`.
 
@@ -308,7 +310,7 @@ belongs in the taxonomy's sanity envelope (§4), not in this table.
 | Dextrose / Corn Sugar | 42–46 | 100 | 0–1 | 46.0 (7,867) ✓ |
 | Brown / Demerara / Turbinado | ~46 | 95–100 | 2–15+ | — |
 | Dark Candi Sugar | 35–36 | 90–100 | 20–80+ | 38.0 (6,333) ~ |
-| **Lactose** | **35–41** | **0** | 0–1 | 41.0 — see §3.3 |
+| **Lactose** | **35** | **0** | 1 | Brewfather; see §3.3 |
 | Honey | 30–36 | 90–95 | 1–3 | 37.0 (11,700) ⚠ |
 
 Corpus honey colour returns 25 °L, which is nonsense — the corpus is unreliable
@@ -325,7 +327,7 @@ on that field and the supplied 1–3 °L stands.
 | Malt Extract Dark | 35–44 | 30+ |
 | Wheat Malt Extract | 35–44 | 2–3 |
 
-### 3.3 Lactose — settled as a range
+### 3.3 Lactose — settled by D11
 
 Three figures existed:
 
@@ -350,10 +352,10 @@ FG, but the gap between 35 and 41 is small at real dosing — `measured` via
 
 At typical dosing the two sources disagree by roughly one hydrometer tick.
 
-**Resolution: store `potential_ppg_min = 35`, `potential_ppg_max = 41`**, both
-publishers named in `spec_note`, `spec_source = 'manual'`. This is precisely what
-the min/max columns in §3.1 exist for: a genuine published disagreement is a
-range, not a coin toss. Colour 1 °L (Brewfather's 0 EBC and brewersfriend's 1 °L
+**Resolution: 35 ppg, `spec_source = 'brewfather'`.** D11 settles it — an earlier
+draft of this document stored 35–41 as a range, which was correct before the
+sourcing policy existed and is now simply the Brewfather figure. brewersfriend's
+41 goes in `spec_note`. Colour 1 °L (Brewfather's 0 EBC and brewersfriend's 1 °L
 are the same claim — colourless).
 
 ### 3.4 ⚠ Acidulated is still open
@@ -372,8 +374,52 @@ outweighs the supplied figure. Both remain defensible on their merits
 (Weyermann's dbfg supports the higher number; most brewing calculators ship 27),
 because they measure different things — lab extract versus practical yield.
 
+⚠ **D11 cannot settle this one from here** — acidulated is not among the 25
+fermentables in §3.5, so Brewfather's figure is unknown to this document. It is a
+single lookup in the user's own Brewfather.
+
 **Default if unanswered: load 33–35, record 27.0 in `spec_note`.** Flips with a
 one-row UPDATE.
+
+### 3.5 Brewfather's own figures are already in this database
+
+`75_corpus_recipes.sql` loaded 10 Brewfather BeerJSON exports, and
+`corpus.recipe_fermentables` carries `yield_potential_value` (as sg) and
+`color_value` (as SRM) per row — Brewfather's catalogue values, not the brewer's.
+25 rows, `measured` 2026-09-20:
+
+```
+Oats, Flaked        (generic)   1.0368 sg   1 SRM      -> 36.8 ppg
+Maris Otter         Crisp       1.038  sg   2.79 SRM   -> 38.0 ppg
+Carapils            Briess      1.0336 sg   1.5 SRM    -> 33.6 ppg
+Caramunich II       Weyermann   1.0348 sg   63 SRM     -> 34.8 ppg
+Pilsen Malt         BestMalz    1.0381 sg   1.78 SRM   -> 38.1 ppg
+```
+
+Conversion: `ppg = (sg - 1) * 1000`. Colour is SRM, so `°L` is the same number.
+
+This is a real D11-compliant source that needs no external lookup, and it should
+be preferred over anything transcribed by hand. It covers only 25 fermentables,
+so it supplements §3.2 rather than replacing it.
+
+### 3.6 ⚠ Flaked oats conflicts with D11
+
+| source | ppg | °L |
+|---|---|---|
+| user, 2026-09-20 | 32–33 | 2.2 |
+| brewersfriend 2020 default | 33.0 | 2.2 |
+| **Brewfather** (§3.5) | **36.8** | **1.0** |
+
+A 12% gap on ppg and a different colour. D11 says Brewfather wins, which would
+overwrite a figure the user supplied explicitly and which the corpus corroborated.
+
+⚠ **Not applied unilaterally.** Two readings are defensible: D11 is a blanket
+policy and 36.8 stands, or the user's explicit per-row instruction outranks a
+later general policy. This is O6.
+
+Worth noting the corpus contains *both* conventions under different names —
+`Flaked Oats` at 33.0 (23,922 rows) and `Oats, Flaked` at 37.0 (124 rows) — so the
+disagreement is real in the wild, not a transcription error.
 
 ## 4. The malt-type taxonomy
 
@@ -663,11 +709,13 @@ all three block it.
 
 | # | Question | Default if unanswered |
 |---|---|---|
-| O1 | Acidulated ppg: 33–35, or brewersfriend's 27.0? §3.4 | 33–35 loaded, 27.0 in `spec_note` |
-| O2 | ~~Lactose ppg~~ — **settled §3.3**: range 35–41 | closed |
-| O3 | Rice table transcription from Hungarian correct? | confirm before loading |
-| O4 | Flaked oats: single `33.0` or range `32–33`? | range, per §3.1 |
+| O1 | Acidulated ppg: 33–35, or brewersfriend's 27.0? §3.4 — resolved by O7 | 33–35 loaded, 27.0 in `spec_note` |
+| O2 | ~~Lactose ppg~~ — **settled §3.3**: 35, per D11 | closed |
+| O3 | ~~Rice transcription~~ — **settled §3.2**: one row, Brewfather 32 ppg | closed |
+| O4 | ~~Flaked oats single vs range~~ — superseded by O6 | closed |
 | O5 | Repoint or drop the three broken `nlq` functions? | repoint |
+| O6 | Flaked oats: D11's 36.8, or the supplied 32–33? §3.6 | **blocked — needs a decision** |
+| O7 | Acidulated: what does Brewfather say? §3.4 | one lookup in the user's Brewfather |
 
 ---
 
