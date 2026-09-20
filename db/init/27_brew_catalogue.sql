@@ -24,7 +24,7 @@ SELECT 'fermentable', m.name, m.maltster, m.potential_ppg, m.color_lovibond,
                           'colour_ebc_min', m.colour_ebc_min,
                           'colour_ebc_max', m.colour_ebc_max,
                           'source_doc', m.source_doc)
-FROM ref.malts m
+FROM ref.fermentables m
 WHERE m.potential_ppg IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM brew.ingredients i
                   WHERE i.kind = 'fermentable' AND i.name = m.name

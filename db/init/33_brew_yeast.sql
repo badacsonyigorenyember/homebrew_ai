@@ -49,7 +49,7 @@
 -- one whose origin is stated. Every row here carries
 -- attrs.provenance = 'corpus_selfreported' plus the exact corpus string and the
 -- recipe count it was measured over, so no consumer can mistake it for the
--- maltster/handbook contract that ref.malts and ref.hops hold. This is the same
+-- maltster/handbook contract that ref.fermentables and ref.hops hold. This is the same
 -- move 28_brew_derived_sugars.sql makes for lactose: the number is not a
 -- citation, and the row says so in a machine-readable field.
 --

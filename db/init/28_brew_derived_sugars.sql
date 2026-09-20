@@ -4,7 +4,7 @@
 -- ⛔ Read this before adding anything here.
 --
 -- Every other row in brew.ingredients traces to a published datasheet: malts to
--- ref.malts (maltster spec sheets), hops to ref.hops (Hop Variety Handbook). The
+-- ref.fermentables (maltster spec sheets), hops to ref.hops (Hop Variety Handbook). The
 -- rows in THIS file do not, and the file is separate so that can never be
 -- mistaken. Maltsters do not publish specs for lactose -- it is a dairy
 -- commodity, not a malt product -- and the homebrew aggregators that do quote a

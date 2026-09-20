@@ -285,7 +285,7 @@ WHERE NOT EXISTS (SELECT 1 FROM brew.ingredients i
 -- quietly trimmed.
 --
 -- These are corpus_selfreported and NOT published: no maltster datasheet for a
--- flaked cereal is in ref.malts (checked 2026-09-16 -- ref.malts has exactly one
+-- flaked cereal is in ref.fermentables (checked 2026-09-16 -- ref.fermentables has exactly one
 -- row matching /flake|oat|maize|rice|corn/, Viking "Oat Malt", which is malted
 -- oats and a different ingredient). If a flaked-cereal datasheet is ever
 -- ingested, these rows should be superseded by ref.* rows through 27_'s path.

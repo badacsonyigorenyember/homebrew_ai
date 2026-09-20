@@ -186,7 +186,7 @@ services:
         # All seven files are still on disk, unmodified, so restoring the corpus
         # is a matter of putting the names back.
         for f in /db-init/00_extensions.sql /db-init/10_kb.sql /db-init/15_ref.sql \
-                 /db-init/20_brew.sql /db-init/26_ref_malts.sql /db-init/27_brew_catalogue.sql \
+                 /db-init/20_brew.sql /db-init/26_ref_fermentables.sql /db-init/27_brew_catalogue.sql \
                  /db-init/28_brew_derived_sugars.sql /db-init/29_brew_formulate.sql \
                  /db-init/30_mem.sql \
                  /db-init/31_brew_misc.sql /db-init/32_brew_sugars.sql \
