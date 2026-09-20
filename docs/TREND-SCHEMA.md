@@ -365,8 +365,21 @@ are the same claim — colourless).
 | user | 33–35 |
 | brewersfriend default | 27.0 |
 
-Still a ~25% gap, and unlike lactose it is **not** cushioned: acidulated is a
-mashed grain at 1–5% of grist, so the error goes into OG directly.
+Still a ~25% gap, but ⚠ **an earlier draft of this document called it "not
+cushioned", which was wrong.** Acidulated is capped at 1–5% of grist by its own
+usage rate, and that dose limit cushions it more than lactose's full
+fermentability gap does. `measured` 2026-09-20 through `f_compute_recipe`'s
+arithmetic:
+
+```
+1% of a 5 kg grist ( 50 g)  ->  diff = 0.11 pts on OG
+3% of a 5 kg grist (150 g)  ->  diff = 0.32 pts on OG   <- typical
+5% of a 5 kg grist (250 g)  ->  diff = 0.53 pts on OG   <- maximum dose
+```
+
+At its *maximum* dose the two figures differ by half a gravity point — less than
+half of lactose's 1.25, and far below hydrometer resolution. This is a
+low-stakes decision and should not block anything.
 
 ⚠ The evidence changed after §1.5. The earlier framing — "27.0 across 9,792
 rows" — was wrong; that is one site default, not a consensus, and it no longer
@@ -412,6 +425,18 @@ so it supplements §3.2 rather than replacing it.
 
 A 12% gap on ppg and a different colour. D11 says Brewfather wins, which would
 overwrite a figure the user supplied explicitly and which the corpus corroborated.
+
+The arithmetic barely matters — `measured` 2026-09-20:
+
+```
+oats at  5% of 5 kg grist  ->  diff = 0.29 pts on OG
+oats at 10% of 5 kg grist  ->  diff = 0.57 pts on OG   <- typical oatmeal stout
+oats at 20% of 5 kg grist  ->  diff = 1.14 pts on OG
+```
+
+⚠ **This is therefore a question about precedence, not about oats.** Whatever is
+decided here sets whether D11 overrides an explicit per-row instruction, and that
+rule will be applied many more times than this one row will.
 
 ⚠ **Not applied unilaterally.** Two readings are defensible: D11 is a blanket
 policy and 36.8 stands, or the user's explicit per-row instruction outranks a
@@ -683,23 +708,46 @@ Twenty hops is unreachable: the budget is spent at step 1.
 
 ---
 
-## 8. Cleanup this work must do
+## 8. What else this work must touch
 
-Three pre-existing problems sit in the path. None were caused by this design;
-all three block it.
+### 8.1 ⛔ The three broken `nlq` functions are the integration point, not cleanup
 
-1. ⛔ **`nlq.common_practice`, `nlq.ingredient_practice` and `nlq.f_corpus_styles`
-   are broken right now.** `measured` 2026-09-19:
-   ```
-   postgres=# select nlq.common_practice('stout');
-   ERROR:  column c.style_raw does not exist
-   ```
-   They reference `corpus.recipe_misc` and `corpus.recipe_yeasts` (dropped) and a
-   `corpus.recipes` that has been reshaped to BeerJSON. Repoint at `trend.*` or
-   drop; leaving them is worse than either.
-2. ⚠ **`recipes_full.txt` (180 MB) is untracked in the repo root.** Must be
-   gitignored before anything commits it.
-3. ⚠ **`db-init`'s file list does not glob.** Every new `.sql` here must be added
+An earlier draft of this document filed these under "cleanup". That was wrong.
+`measured` 2026-09-20 — all three are referenced by **live, active** workflows:
+
+| workflow | active | nodes referencing a broken function |
+|---|---|---|
+| `wf-step-practice` | ✅ | Normalise input, Common practice |
+| `cap-formulate-recipe` | ✅ | Style bands, Build propose pack, **Step 3 · propose**, **Step 3b · re-propose** |
+| `chat-agent` | ✅ | AI Agent (exposed to the model as a tool) |
+
+Seven nodes across three active workflows, and `cap-formulate-recipe`'s Step 3 is
+the **core recipe generation path** — precisely what the trend schema exists to
+feed.
+
+So this is not a tidy-up that follows the build. `trend.*` is the *replacement*
+for what `common_practice` and `ingredient_practice` were computing, and
+repointing them is the second half of the project rather than an afterthought.
+
+⚠ Dropping them breaks live recipe formulation. Repointing them is the real work.
+
+⚠⚠ **And the rewrite is hazardous.** Per `CLAUDE.md`: `chat-agent` has
+`settings.availableInMCP = false`, so it must be edited as tracked JSON plus
+`n8n import:workflow` — which **deactivates** the workflow, requires a
+re-publish, and still leaves the webhook unregistered until `docker restart n8n`.
+Probe the webhook before trusting any eval that follows.
+
+The function bodies fail today because they reference `corpus.recipe_misc` and
+`corpus.recipe_yeasts` (dropped) and a `corpus.recipes` reshaped to BeerJSON:
+```
+postgres=# select nlq.common_practice('stout');
+ERROR:  column c.style_raw does not exist
+```
+
+### 8.2 Housekeeping
+1. ✅ **`recipes_full.txt` (180 MB) was untracked in the repo root.** Gitignored
+   2026-09-20.
+2. ⚠ **`db-init`'s file list does not glob.** Every new `.sql` here must be added
    to `docker-compose.yml` or it silently never runs. The five dropped corpus
    files (`70`–`74`) are still on disk and stay dropped.
 
@@ -709,12 +757,12 @@ all three block it.
 
 | # | Question | Default if unanswered |
 |---|---|---|
-| O1 | Acidulated ppg: 33–35, or brewersfriend's 27.0? §3.4 — resolved by O7 | 33–35 loaded, 27.0 in `spec_note` |
+| O1 | Acidulated ppg: 33–35, or brewersfriend's 27.0? §3.4 — resolved by O7 | 33–35 loaded. **Low stakes: 0.32 pts on OG at typical dose** |
 | O2 | ~~Lactose ppg~~ — **settled §3.3**: 35, per D11 | closed |
 | O3 | ~~Rice transcription~~ — **settled §3.2**: one row, Brewfather 32 ppg | closed |
 | O4 | ~~Flaked oats single vs range~~ — superseded by O6 | closed |
-| O5 | Repoint or drop the three broken `nlq` functions? | repoint |
-| O6 | Flaked oats: D11's 36.8, or the supplied 32–33? §3.6 | **blocked — needs a decision** |
+| O5 | Repoint the three `nlq` functions at `trend.*`, or drop them? §8.1 | **repoint** — dropping breaks 7 nodes in 3 active workflows |
+| O6 | Flaked oats: D11's 36.8, or the supplied 32–33? §3.6 | **needs a decision — but as policy precedent, not arithmetic: 0.57 pts on OG at 10% of grist** |
 | O7 | Acidulated: what does Brewfather say? §3.4 | one lookup in the user's Brewfather |
 
 ---
