@@ -263,7 +263,7 @@ ALTER TABLE ref.fermentables ADD COLUMN fermentability_pct numeric(5,2);
 -- indistinguishable from a published spec. Same discipline as
 -- corpus.styles.match_method.
 ALTER TABLE ref.fermentables ADD COLUMN spec_source text
-  CHECK (spec_source IN ('brewfather','maltster','user_reference','corpus_default','manual'));
+  CHECK (spec_source IN ('brewersfriend','brewfather','maltster','user_reference','corpus_default','manual'));
 ALTER TABLE ref.fermentables ADD COLUMN spec_note text;
 ```
 
@@ -272,65 +272,103 @@ published figure. New commodity rows use the min/max pair.
 
 ### 3.2 New rows
 
-Supplied by the user 2026-09-20. Under D11 the four rows that had competing
-figures now take brewersfriend's, `spec_source = 'corpus_default'`; the rest stand
-as supplied, `spec_source = 'user_reference'`. The Brewfather figure is recorded in
-`spec_note` wherever it differs, so §3.7's migration is a set of UPDATEs and not a
-re-derivation.
+Under D11 every row below is **today's brewersfriend catalogue value**, read from
+<https://www.brewersfriend.com/fermentables/> on 2026-09-20 (1,515 fermentables).
+`spec_source = 'brewersfriend'`. The Brewfather figure goes in `spec_note` wherever
+it differs, so §3.7's migration is a set of UPDATEs and not a re-derivation.
 
-⚠ §1.5 still holds: a brewersfriend figure is **one** vote, not thousands. D11
-chooses it for coherence with the user's existing recipes, not because the corpus
-corroborates it.
+⚠ This supersedes the 2020 corpus defaults used in earlier drafts. Where the two
+differ the live catalogue wins, because D11 selects the publisher, not the
+snapshot. The `Recipes` count beside each row is brewersfriend's own usage figure
+and is recorded only to show which row is the canonical one when names collide.
 
 **Flaked adjuncts and acidulated**
 
-| name | ppg min–max | °L | bf default (n) |
-|---|---|---|---|
-| Flaked Oats | **33** | **2** | 33.0 (23,952) ✓ |
-| Flaked Barley | 32 | 2.2 | 32.0 (6,100) ✓ |
-| Flaked Wheat | 34–36 | 1.6–2.0 | 34.0 (9,290) ✓ |
-| Flaked Corn / Maize | 37–40 | 0.5–1.0 | 40.0 (4,600) ✓ |
-| Acidulated Malt | **27** | **3** | 27.0 (9,792) ✓ |
+| name | ppg | °L | bf type | bf recipes |
+|---|---|---|---|---|
+| Flaked Oats | **33** | **2** | Raw | 212,976 |
+| Flaked Barley | **32** | **2** | Raw | 57,103 |
+| Flaked Wheat | **34** | **2** | Raw | 78,964 |
+| Flaked Corn | **40** | **1** | Raw | 48,986 |
+| Flaked Rye | **36** | **3** | Raw | 13,481 |
+| Acidulated Malt | **27** | **3** | Acidulated malt | 88,177 |
+| Oat Malt | **28** | **2** | Base malt | 12,649 |
+
+`Flaked Maize` is a separate, near-unused row (37 ppg, 177 recipes); `Flaked Corn`
+is the canonical one. Oat Malt is included because §3.5 showed the malted/flaked
+distinction matters and `ref.fermentables` had only Viking's 27.7.
 
 Acidulated usage rate is 1–5% of grist (lowers mash pH via lactic acid); this
 belongs in the taxonomy's sanity envelope (§4), not in this table.
 
-**Rice** — one row. The six-variety table drafted earlier is dropped at the
-user's instruction.
+**Rice** — the six-variety table drafted earlier is dropped at the user's
+instruction. brewersfriend carries these as **two distinct fermentables**:
 
-| name | ppg | °L | source |
-|---|---|---|---|
-| Rice Flakes | **35.5** | **1** | brewersfriend (D11) |
+| name | ppg | °L | bf type | bf recipes |
+|---|---|---|---|---|
+| Rice | **35.5** | **1** | Raw | 1,614 |
+| Flaked Rice | **40** | **1** | Raw | 18,384 |
 
-Brewfather gives 32 (1.032 sg) / 2 EBC and goes in `spec_note`. The 2020 corpus
-default was 40.0. ⚠ That the corpus says 40.0 where brewersfriend now says 35.5 is
-direct evidence these site defaults drift, reinforcing §1.5 — and it means D11
-selects *today's* brewersfriend, not the corpus snapshot.
+⚠ **An earlier draft of this document got this wrong twice.** It recorded a single
+"Rice Flakes" row at 35.5, and then cited the gap between that and the corpus's
+40.0 as evidence that site defaults drift. They are not the same ingredient: 35.5
+is `Rice`, 40 is `Flaked Rice`, and the corpus's 40.0 was `Flaked Rice` all along.
+Nothing drifted. The drift argument is withdrawn.
+
+Both rows load. Brewfather's 32 (1.032 sg) / 2 EBC goes in `Flaked Rice`'s
+`spec_note`, since that is the row it corresponds to.
+
+Rice Syrup Solids (37 ppg, 1 °L) and Brown Rice Syrup — Gluten Free (44 ppg, 2 °L)
+also exist and match the figures supplied earlier; both load as sugars.
 
 **Sugars** — the only rows carrying `fermentability_pct`.
 
-| name | ppg | ferm % | °L | bf default (n) |
+| name | ppg | ferm % | °L | bf recipes |
 |---|---|---|---|---|
-| Table Sugar (sucrose) | ~46 | 95–100 | 0–1 | 46.0 (8) ✓ |
-| Dextrose / Corn Sugar | 42–46 | 100 | 0–1 | 46.0 (7,867) ✓ |
-| Brown / Demerara / Turbinado | ~46 | 95–100 | 2–15+ | — |
-| Dark Candi Sugar | 35–36 | 90–100 | 20–80+ | 38.0 (6,333) ~ |
-| **Lactose** | **41** | **0** | 1 | 41.0 (4,761) — D11, see §3.3 |
-| Honey | 30–36 | 90–95 | 1–3 | 37.0 (11,700) ⚠ |
+| Cane Sugar | **46** | 95–100 | **0** | 59,084 |
+| Corn Sugar — Dextrose | **42** | 100 | **1** | 81,672 |
+| Brown Sugar | **45** | 95–100 | **15** | 29,012 |
+| Belgian Candi Sugar — Clear/Blond (0L) | **38** | 90–100 | **0** | 16,363 |
+| Belgian Candi Sugar — Amber/Brown (60L) | **38** | 90–100 | **60** | 6,090 |
+| Belgian Candi Sugar — Dark (275L) | **38** | 90–100 | **275** | 5,648 |
+| Belgian Candi Syrup — D-90 | **32** | 90–100 | **90** | 3,008 |
+| **Lactose (Milk Sugar)** | **41** | **0** | **1** | 45,660 |
+| Honey | **35** | 90–95 | **2** | 42,679 |
+| Rice Syrup Solids | **37** | 100 | **1** | 2,788 |
+| Brown Rice Syrup — Gluten Free | **44** | 100 | **2** | 1,035 |
 
-Corpus honey colour returns 25 °L, which is nonsense — the corpus is unreliable
-on that field and the supplied 1–3 °L stands.
+⚠ Candi **sugar** is 38 and candi **syrup** is 32 — a real distinction in the
+catalogue, not a duplicate. The supplied 35–36 matched neither.
+
+`fermentability_pct` is the one field brewersfriend does **not** publish, so those
+values remain `user_reference` while ppg and colour become `brewersfriend`. A row
+may therefore carry two sources; `spec_note` records which field came from where.
 
 **Extracts**
 
-| name | ppg | °L |
-|---|---|---|
-| DME Pilsner / Extra Light | 43–45 | 2–3.5 |
-| DME Light / Pale | 43–45 | 4–6 |
-| LME Light / Pale | 35–37 | 4–8 |
-| Malt Extract Amber | 35–44 | 10–15 |
-| Malt Extract Dark | 35–44 | 30+ |
-| Wheat Malt Extract | 35–44 | 2–3 |
+| name | ppg | °L | bf recipes |
+|---|---|---|---|
+| Dry Malt Extract — Pilsen | **42** | **2** | 17,520 |
+| Dry Malt Extract — Extra Light | **42** | **3** | 16,987 |
+| Dry Malt Extract — Light | **42** | **4** | 56,148 |
+| Dry Malt Extract — Munich | **42** | **8** | 2,259 |
+| Dry Malt Extract — Amber | **42** | **10** | 15,492 |
+| Dry Malt Extract — Dark | **44** | **30** | 8,657 |
+| Dry Malt Extract — Wheat | **42** | **3** | 15,302 |
+| Liquid Malt Extract — Pilsen | **35** | **2** | 13,820 |
+| Liquid Malt Extract — Extra Light | **37** | **3** | 8,417 |
+| Liquid Malt Extract — Light | **35** | **4** | 40,961 |
+| Liquid Malt Extract — Munich | **35** | **8** | 6,479 |
+| Liquid Malt Extract — Amber | **35** | **10** | 16,407 |
+| Liquid Malt Extract — Dark | **35** | **30** | 8,697 |
+| Liquid Malt Extract — Wheat | **35** | **3** | 9,676 |
+
+⚠ The supplied ranges were wrong in a structured way worth noting: DME is a flat
+**42** across almost every grade (44 for Dark), not 43–45, and LME is a flat
+**35** (37 for Extra Light), not 35–37 with grade-dependent spread. Colour, not
+ppg, is what varies across grades. Branded rows go higher — Briess DME sits at
+43–45 — so the supplied figures look like Briess values generalised to the
+category.
 
 ### 3.3 Lactose — settled by D11 (brewersfriend)
 
@@ -357,7 +395,7 @@ FG, but the gap between 35 and 41 is small at real dosing — `measured` via
 
 At typical dosing the two sources disagree by roughly one hydrometer tick.
 
-**Resolution: 41 ppg, `spec_source = 'corpus_default'`.** This row has now been
+**Resolution: 41 ppg, `spec_source = 'brewersfriend'`.** This row has now been
 settled three times — 35–41 as a range, then 35 under the first reading of D11,
 now 41 under its phased form. The churn is itself the argument for §3.7: a
 `spec_note` carrying the alternative makes each flip a one-row UPDATE instead of
@@ -368,7 +406,7 @@ colourless), and the practical gap remains ~1.25 pts on FG at typical dosing.
 
 ### 3.4 Acidulated — settled by D11
 
-**27 ppg, 3 °L, `spec_source = 'corpus_default'`.** The user's earlier 33–35 /
+**27 ppg, 3 °L, `spec_source = 'brewersfriend'`.** The user's earlier 33–35 /
 1.7–3.0 goes in `spec_note`.
 
 ⚠ An earlier draft called this "not cushioned", which was wrong. Acidulated is
@@ -409,7 +447,7 @@ migration cheap when it happens.
 
 ### 3.6 Flaked oats — settled by D11
 
-**33 ppg, 2 °L, `spec_source = 'corpus_default'`.** Brewfather's 36.8 / 1.0 goes
+**33 ppg, 2 °L, `spec_source = 'brewersfriend'`.** Brewfather's 36.8 / 1.0 goes
 in `spec_note`.
 
 The precedence question this row raised — does a blanket sourcing policy override
@@ -434,7 +472,7 @@ What makes the later switch cheap, and must therefore be built now:
    is a one-row UPDATE, never a re-derivation. §3.3 was re-settled three times in
    one day; this is not hypothetical.
 2. **`spec_source` distinguishes the lines**, so `WHERE spec_source =
-   'corpus_default'` enumerates exactly what the migration must revisit.
+   'brewersfriend'` enumerates exactly what the migration must revisit.
 3. ⛔ **Specs are *not* copied into `trend.*`.** Trend rows reference
    `ferm_type`, and types reference `ref.fermentables`. A spec change must never
    require a trend rebuild — if it does, the indirection in §4 has been
@@ -443,67 +481,85 @@ What makes the later switch cheap, and must therefore be built now:
 ⚠ The migration also changes *names*, not only numbers (§3.6), so it is a mapping
 exercise and not a numeric sweep. It needs its own spec when the time comes.
 
-### 3.8 ⚠ The sugars and extracts were never reconciled
+### 3.8 Sugars and extracts — resolved from the live catalogue
 
-D11 was applied to the four rows that had a *stated* Brewfather/brewersfriend
-conflict — oats, acidulated, lactose, rice. The sugar and extract ranges in §3.2
-came from general reference, not from either publisher, so applying D11 to them
-would be extending an instruction the user did not give.
+O8 is closed. Read from <https://www.brewersfriend.com/fermentables/> on
+2026-09-20; every §3.2 row is now a catalogue value rather than a general-reference
+range. What the reconciliation changed:
 
-Where the supplied range and the 2020 corpus default actually disagree:
-
-| row | supplied | corpus default (n) | |
+| row | supplied | brewersfriend | |
 |---|---|---|---|
-| Dark Candi Sugar | 35–36 | **38.0** (6,333) | outside range |
-| DME (all light grades) | 43–45 | **42.0** (17,731) | outside range |
-| Honey | 30–36 | **37.0** (11,700) | outside range |
-| Dextrose / Corn Sugar | 42–46 | 46.0 (7,867) | ✓ contained |
-| LME Light / Pale | 35–37 | 35.0 (14,460) | ✓ contained |
-| Table Sugar | ~46 | 46.0 (8) | ✓ contained |
-| Flaked Barley | 32 | 32.0 (6,100) | ✓ |
-| Flaked Wheat | 34–36 | 34.0 (9,290) | ✓ contained |
-| Flaked Corn | 37–40 | 40.0 (4,600) | ✓ contained |
+| Dark candi sugar | 35–36 | **38** | supplied matched neither sugar (38) nor syrup (32) |
+| DME, all light grades | 43–45 | **42** | flat across grades; 44 only for Dark |
+| LME light | 35–37 | **35** | flat; 37 only for Extra Light |
+| Honey | 30–36 | **35** | ✓ inside the supplied range |
+| Cane sugar | ~46 | **46** | ✓ |
+| Corn sugar / dextrose | 42–46 | **42** | ✓ contained |
+| Rice syrup solids | 37–40 | **37** | ✓ contained |
+| Brown rice syrup | 44 | **44** | ✓ exact |
+| Flaked barley | 32 | **32** | ✓ exact |
+| Flaked wheat | 34–36 | **34** | ✓ contained |
+| Flaked corn | 37–40 | **40** | ✓ contained |
+| Acidulated | 27 | **27** | ✓ exact |
+| Lactose | 41 | **41** | ✓ exact |
+| Flaked oats | 33 | **33** | ✓ exact |
 
-Three genuine mismatches, all small. ⚠ And the corpus figure is the **2020**
-default, which rice proved can drift — brewersfriend now says 35.5 there where the
-corpus says 40.0. So these nine rows cannot be settled from the corpus alone; they
-need today's brewersfriend if exactness matters.
+⚠ The DME/LME finding is structural, not a rounding difference: **colour varies
+across grades, ppg does not.** The supplied 43–45 / 35–37 spreads look like Briess
+figures (which do sit at 43–45) generalised to the generic category. Anything else
+in this document that assumed grade-dependent extract should be re-read.
 
-**Default if unanswered: leave them as supplied.** Nothing downstream is sensitive
-at this magnitude, and §3.7's `spec_note` discipline makes each one a one-row
-UPDATE later.
+Only `fermentability_pct` remains un-sourced from brewersfriend — the catalogue
+does not publish it — so those values stay `user_reference`.
 
-## 4. The malt-type taxonomy### 3.8 ⚠ The sugars and extracts were never reconciled
+## 4. The malt-type taxonomy## 4. The malt-type taxonomy### 3.8 Sugars and extracts — resolved from the live catalogue
 
-D11 was applied to the four rows that had a *stated* Brewfather/brewersfriend
-conflict — oats, acidulated, lactose, rice. The sugar and extract ranges in §3.2
-came from general reference, not from either publisher, so applying D11 to them
-would be extending an instruction the user did not give.
+O8 is closed. Read from <https://www.brewersfriend.com/fermentables/> on
+2026-09-20; every §3.2 row is now a catalogue value rather than a general-reference
+range. What the reconciliation changed:
 
-Where the supplied range and the 2020 corpus default actually disagree:
-
-| row | supplied | corpus default (n) | |
+| row | supplied | brewersfriend | |
 |---|---|---|---|
-| Dark Candi Sugar | 35–36 | **38.0** (6,333) | outside range |
-| DME (all light grades) | 43–45 | **42.0** (17,731) | outside range |
-| Honey | 30–36 | **37.0** (11,700) | outside range |
-| Dextrose / Corn Sugar | 42–46 | 46.0 (7,867) | ✓ contained |
-| LME Light / Pale | 35–37 | 35.0 (14,460) | ✓ contained |
-| Table Sugar | ~46 | 46.0 (8) | ✓ contained |
-| Flaked Barley | 32 | 32.0 (6,100) | ✓ |
-| Flaked Wheat | 34–36 | 34.0 (9,290) | ✓ contained |
-| Flaked Corn | 37–40 | 40.0 (4,600) | ✓ contained |
+| Dark candi sugar | 35–36 | **38** | supplied matched neither sugar (38) nor syrup (32) |
+| DME, all light grades | 43–45 | **42** | flat across grades; 44 only for Dark |
+| LME light | 35–37 | **35** | flat; 37 only for Extra Light |
+| Honey | 30–36 | **35** | ✓ inside the supplied range |
+| Cane sugar | ~46 | **46** | ✓ |
+| Corn sugar / dextrose | 42–46 | **42** | ✓ contained |
+| Rice syrup solids | 37–40 | **37** | ✓ contained |
+| Brown rice syrup | 44 | **44** | ✓ exact |
+| Flaked barley | 32 | **32** | ✓ exact |
+| Flaked wheat | 34–36 | **34** | ✓ contained |
+| Flaked corn | 37–40 | **40** | ✓ contained |
+| Acidulated | 27 | **27** | ✓ exact |
+| Lactose | 41 | **41** | ✓ exact |
+| Flaked oats | 33 | **33** | ✓ exact |
 
-Three genuine mismatches, all small. ⚠ And the corpus figure is the **2020**
-default, which rice proved can drift — brewersfriend now says 35.5 there where the
-corpus says 40.0. So these nine rows cannot be settled from the corpus alone; they
-need today's brewersfriend if exactness matters.
+⚠ The DME/LME finding is structural, not a rounding difference: **colour varies
+across grades, ppg does not.** The supplied 43–45 / 35–37 spreads look like Briess
+figures (which do sit at 43–45) generalised to the generic category. Anything else
+in this document that assumed grade-dependent extract should be re-read.
 
-**Default if unanswered: leave them as supplied.** Nothing downstream is sensitive
-at this magnitude, and §3.7's `spec_note` discipline makes each one a one-row
-UPDATE later.
+Only `fermentability_pct` remains un-sourced from brewersfriend — the catalogue
+does not publish it — so those values stay `user_reference`.
 
-## 4. The malt-type taxonomy
+## 4. The malt-type taxonomy## 4. The malt-type taxonomy
+
+⚠ **brewersfriend publishes its own type vocabulary**, `measured` 2026-09-20 over
+all 1,515 catalogue rows:
+
+```
+Base malt 545 · Crystal malt 294 · Roasted malt 192 · Specialty malt 149
+Fruit 71 · Extract 66 · Raw 65 · Sugar 56 · Gluten-free malt 26
+Smoked malt 14 · Honey 9 · Acidulated malt 8 · Puree 8 · Other 7 · Juice 5
+```
+
+Fifteen types against this document's twenty-two, and they agree on structure: the
+split this schema needs beyond theirs is **colour banding inside Crystal** (294
+rows in one bucket is useless for a trend) and separating Munich/Vienna out of
+Base. Their vocabulary is worth adopting as the `role` layer, with the extra
+resolution layered under it — it is published, stable, and already tags every row
+the loader will see.
 
 `corpus.fermentable_types`, ~22 seeded rows. Each type carries the role it fills,
 a sanity envelope, and a **substitute** pointing into `ref.fermentables` so a
@@ -816,12 +872,12 @@ ERROR:  column c.style_raw does not exist
 |---|---|---|
 | O1 | ~~Acidulated ppg~~ — **settled §3.4**: 27 ppg, 3 °L | closed |
 | O2 | ~~Lactose ppg~~ — **settled §3.3**: 41, per D11 | closed |
-| O3 | ~~Rice~~ — **settled §3.2**: one row, 35.5 ppg / 1 °L | closed |
+| O3 | ~~Rice~~ — **settled §3.2**: two rows, `Rice` 35.5 and `Flaked Rice` 40 | closed |
 | O4 | ~~Flaked oats single vs range~~ — superseded by O6 | closed |
 | O5 | Repoint the three `nlq` functions at `trend.*`, or drop them? §8.1 | **repoint** — dropping breaks 7 nodes in 3 active workflows |
 | O6 | ~~Flaked oats~~ — **settled §3.6**: 33 ppg, 2 °L | closed |
 | O7 | ~~Acidulated Brewfather lookup~~ — no longer blocking; wanted for `spec_note` | deferred to §3.7 |
-| O8 | Do the **sugars and extracts** also switch to brewersfriend? §3.8 | **open** — the ranges supplied were never brewersfriend figures |
+| O8 | ~~Sugars and extracts~~ — **settled §3.8** from the live catalogue | closed |
 
 ---
 
