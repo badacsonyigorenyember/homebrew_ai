@@ -1,0 +1,636 @@
+# Trend schema — style-level brewing practice, and the traps in storing it
+
+Written 2026-09-20, against the stack as it ran that day. Every number in §1 was
+measured on this machine against the brewersfriend corpus, not estimated. The
+measurements come first so the design can be argued with.
+
+Goal, in the user's words: *"a table which would be used, and calculated by
+bigger patches. That table could store the BJCP style ref, and all the specs we
+gathered. Most common fermentables, percent they are used, common hop types, hop
+pairings, etc."*
+
+And the constraint that shapes the whole design, also theirs: *"we could see the
+majority recipes are using 2-3 types of hops at max in 1 recipe, but all the
+recipes are using 20ish. We don't want to run into this that the AI recipe
+creation would suggest to use 20 type of hops in 1 recipe."*
+
+---
+
+## 0. TL;DR
+
+A trend table that stores *"ingredient -> how often, how much"* **cannot
+reconstruct a legal recipe**, no matter how accurate each row is. Marginal
+frequency is not joint composition. This is measurable in two places, not one:
+
+- **Hops.** American IPA has 713 distinct hop varieties. The top 12 presence
+  rates sum to **230%**. The median recipe uses **3**.
+- **Grist.** The 9 most common malt types' median grist percentages sum to
+  **190%**. A grist must sum to 100%. The median recipe uses **4** fermentables.
+
+The fix is to split trends into four kinds of fact that are never mixed —
+**shape** (how many), **composition** (role shares that sum to 100), **choice +
+amount** (conditional on presence), and **affinity** (lift, not co-occurrence) —
+and to force the generator to read *shape first*, as a budget, before it ever
+opens a popularity list.
+
+Everything else here — the `ref.malts` -> `ref.fermentables` rename, the malt-type
+taxonomy, the filtered corpus load — exists to make those four tables buildable
+from data that is honest about where it came from.
+
+---
+
+## 1. What I measured
+
+All figures from `recipes_full.txt` (brewersfriend, 179,455 recipes, CC0,
+scraped pre-July-2020), filtered to `views > 500` unless stated.
+
+### 1.1 The cardinality trap, both halves
+
+`measured` 2026-09-19, American IPA, n=5,513 at `views>500`:
+
+```
+distinct HOPS per recipe : p25=2  median=3  p75=4  p95=6  max=12
+FERMENTABLES per recipe  : p25=3  median=4  p75=5  p95=6  max=11
+distinct hop varieties across the style: 713
+
+top hops by presence rate:
+  Citra 35%, Cascade 32%, Centennial 27%, Amarillo 25%, Simcoe 24%,
+  Columbus 19%, Chinook 18%, Mosaic 17%, Magnum 11%, Galaxy 8%, ...
+  >>> sum of top-12 presence rates = 230%
+```
+
+The same trap on the grist side, same style:
+
+```
+malt type          present   median % of grist
+base_pale              76%              81.5%
+crystal_medium         35%               5.3%
+wheat                  28%               8.0%
+crystal_light          27%               5.9%
+dextrine               23%               4.3%
+sugar                  22%               6.0%
+munich                 22%               8.3%
+oats                   14%               9.1%
+base_pilsner           14%              61.3%
+  >>> naive sum of those 9 medians = 190% of grist
+```
+
+Neither number is wrong. Each row is a correct conditional median. They simply
+cannot be added, and a schema that presents them in one flat list invites exactly
+that addition.
+
+Cardinality varies by style and must therefore be stored per style, not assumed:
+
+| style | median hops | median fermentables | varieties in style |
+|---|---|---|---|
+| American IPA | 3 | 4 | 713 |
+| American Pale Ale | 2 | 3 | 496 |
+| Saison | 2 | 4 | 290 |
+| Irish Stout | 1 | 4 | 32 |
+
+### 1.2 Lift separates real pairings from "both are popular"
+
+`measured` 2026-09-19, American IPA, pairs with support >= 40:
+
+| pair | support | lift | |
+|---|---|---|---|
+| Cascade + Willamette | 111 | 2.06x | real affinity |
+| Amarillo + Simcoe | 587 | 1.72x | real affinity |
+| Centennial + Mosaic | 137 | 0.53x | avoided |
+| **Cascade + Mosaic** | **147** | **0.49x** | **avoided** |
+
+Cascade+Mosaic co-occurs *more often* than Ahtanum+Chinook (147 vs 62), yet
+brewers avoid combining them. Raw co-occurrence says "common pair"; lift says
+"don't". That negative signal is unobtainable from counts alone and is what stops
+the generator assembling a plausible-looking but incoherent hop bill.
+
+`lift = P(A and B) / (P(A) * P(B))`. Stored only where `support >= 30`.
+
+### 1.3 The view filter, and what it costs
+
+| views > | recipes | styles reaching n>=50 |
+|---|---|---|
+| 0 | 179,288 | 162 |
+| 250 | 71,074 | 138 |
+| **500** | **36,271** | **114** |
+| 1000 | 11,253 | 55 |
+| 2000 | 3,872 | 16 |
+
+`>1000` was the original request. It drops 107 of 162 trendable styles — Black
+IPA (42), Red IPA (41), Best Bitter (32), Märzen (24), International Pale Lager
+(45) all fall under the bar. **`>500` chosen**: still a 5x quality cut, keeps
+roughly twice the styles.
+
+### 1.4 Sample size — where the n>=30 gate comes from
+
+`measured` 2026-09-19, bootstrap, 400 resamples per cell. Irish Stout /
+roasted barley (truth: present in 70.1%, median 9.7% of grist):
+
+| sample n | median grist | presence rate |
+|---|---|---|
+| 10 | ±2.9pp | ±25pp |
+| 30 | ±1.5pp | ±15pp |
+| 50 | ±1.0pp | ±12pp |
+| 200 | ±0.5pp | ±5.2pp |
+
+Two conclusions that the schema encodes:
+
+1. **Amounts converge far faster than prevalence.** ~50 recipes gives a usable
+   grist percentage; a claim about *how common* something is needs ~200.
+2. **The gate is hits, not style size.** Munich appears in 23% of American IPAs,
+   so a style sample of 50 yields ~11 usable rows and ±51% relative error —
+   five times worse than roasted barley at the same style-n. Every trend row
+   therefore stores `n_with`, and nothing reports a number below 30.
+
+Past ~500 the interval keeps shrinking but accuracy does not: the residual error
+is systematic (self-reported, one community, pre-2020). Precision beyond that is
+precision that cannot honestly be quoted.
+
+### 1.5 Ingredient resolution against the existing refs
+
+`measured` 2026-09-19 at `views>1000`:
+
+**Hops -> `ref.hops` (268 rows): 92.5% of recipe-rows resolve.**
+
+| | strings | rows |
+|---|---|---|
+| exact | 265 | 64.0% |
+| via `alternatives[]` | 50 | 20.4% |
+| fuzzy (0.87 cutoff) | 90 | 8.1% |
+| unresolved | | 7.5% |
+
+The `alternatives` column carries a fifth of the resolution unaided. The
+unresolved tail is ~15 strings, hand-fixable: *Kent Goldings* -> East Kent
+Golding, *Columbus (Tomahawk)* -> CTZ, *Ekuanot* (renamed from Equinox),
+*Hallertau Hersbrucker*, *Domestic Hallertau*.
+
+**Fermentables -> `ref.malts` (77 rows): 21.5%.** Structural, not algorithmic:
+
+```
+ref.malts = Weyermann (44) + Viking Malt (33)
+```
+
+Two European maltsters against an American homebrew corpus. Top unresolved:
+*American - Pale 2-Row* (3,313), *Maris Otter* (1,609), *Flaked Oats* (1,212),
+*Carapils* (1,187), *Caramel/Crystal 60L* (946). No fuzzy matcher invents a
+Briess or Crisp row, and `27_brew_catalogue.sql` forbids inventing specs to fill
+the gap. **Product-level resolution is therefore abandoned in favour of type.**
+
+### 1.6 The malt-type taxonomy resolves 98.7%
+
+~30 rules over name + the °L the recipe itself states. `measured` 2026-09-19,
+146,343 fermentable rows at `views>500`:
+
+| | rows | share |
+|---|---|---|
+| classified | 144,414 | **98.7%** |
+| unclassified | 1,929 | 1.3% |
+
+The 1.3% is mostly fruit (Cherry, Mango, Raspberry), which belongs in misc, not
+the grist. Nothing is invented: every classification reads a value already
+carried by the recipe row.
+
+---
+
+## 2. Decisions taken
+
+| # | Decision | Rationale |
+|---|---|---|
+| D1 | Corpus filter is `views > 500` | §1.3 — keeps 114 trendable styles vs 55 |
+| D2 | Script-block language filter only, never ASCII | 45 CJK/Cyrillic rows at `views>1000`; a strict ASCII filter would drop 364, mostly English (*Kölsch*, *Crème Brûlée*, *Jalapeño*) |
+| D3 | Fermentables resolve to **type**, not product | §1.5 — `ref.malts` cannot represent the corpus |
+| D4 | Hops resolve to `ref.hops` product | §1.5 — 92.5% works |
+| D5 | Misc and yeast stored as raw rows | user request; no taxonomy attempted |
+| D6 | Trends split four ways: shape / composition / choice+amount / affinity | §1.1 — a flat list is unusable |
+| D7 | Pair strength is **lift**, not co-occurrence | §1.2 |
+| D8 | Every trend row carries `n_with`; nothing reports below 30 | §1.4 |
+| D9 | Trends are snapshotted, never mutated in place | user: *"not 1 by 1 recipes"* |
+| D10 | `ref.malts` -> `ref.fermentables` | it must hold sugars, extracts, flaked adjuncts — none of which are malts |
+
+---
+
+## 3. `ref.fermentables`
+
+### 3.1 Rename and column changes
+
+`ref.malts` becomes `ref.fermentables`. This is not cosmetic: the table now has
+to hold sugar (6% of corpus grist rows), lactose, DME/LME, and flaked adjuncts.
+
+```sql
+ALTER TABLE ref.malts RENAME TO fermentables;
+
+-- maltster is NOT NULL with UNIQUE (maltster, name). Flaked oats has no
+-- maltster. Generic commodity fermentables take NULL.
+ALTER TABLE ref.fermentables ALTER COLUMN maltster DROP NOT NULL;
+
+-- ⛔ potential_ppg was numeric(5,1) -- ONE value. Almost every commodity
+-- fermentable is published as a RANGE (33-35, 34-36, 43-45). Storing the
+-- midpoint discards information that was deliberately supplied.
+ALTER TABLE ref.fermentables ADD COLUMN potential_ppg_min numeric(5,1);
+ALTER TABLE ref.fermentables ADD COLUMN potential_ppg_max numeric(5,1);
+
+-- Fermentability. brew.ingredients already carries this as a BOOLEAN in
+-- attrs->>'fermentable', read by 29_brew_formulate.sql:88 ("This is why a
+-- lactose stout finishes high"). A boolean cannot hold "honey is 92%".
+-- Stored here as reference data; the boolean stays derived from it, so the
+-- calculator does not change.
+ALTER TABLE ref.fermentables ADD COLUMN fermentability_pct numeric(5,2);
+
+-- Where the numbers came from. Never let a colour-derived guess be
+-- indistinguishable from a published spec. Same discipline as
+-- corpus.styles.match_method.
+ALTER TABLE ref.fermentables ADD COLUMN spec_source text
+  CHECK (spec_source IN ('maltster','user_reference','corpus_consensus','manual'));
+ALTER TABLE ref.fermentables ADD COLUMN spec_note text;
+```
+
+The existing `potential_ppg` stays for the 77 maltster rows that have a single
+published figure. New commodity rows use the min/max pair.
+
+### 3.2 New rows
+
+Supplied by the user 2026-09-20, `spec_source = 'user_reference'`. Cross-checked
+against corpus consensus — the corpus figure is recorded in `spec_note` wherever
+it differs, so the disagreement stays visible and reversible.
+
+**Flaked adjuncts and acidulated**
+
+| name | ppg min–max | °L | corpus mode (n) |
+|---|---|---|---|
+| Flaked Oats | 32–33 | 2.2 | 33.0 (23,952) ✓ |
+| Flaked Barley | 32 | 2.2 | 32.0 (6,100) ✓ |
+| Flaked Wheat | 34–36 | 1.6–2.0 | 34.0 (9,290) ✓ |
+| Flaked Corn / Maize | 37–40 | 0.5–1.0 | 40.0 (4,600) ✓ |
+| Acidulated Malt | 33–35 | 1.7–3.0 | **27.0 (9,792)** ⚠ |
+
+Acidulated usage rate is 1–5% of grist (lowers mash pH via lactic acid); this
+belongs in the taxonomy's sanity envelope (§4), not in this table.
+
+**Rice** — transcribed from a partly Hungarian source; confirm before loading.
+
+| name | ppg | °L | note |
+|---|---|---|---|
+| Flaked Rice | 32–40 | 0.5–1.0 | pre-gelatinised, straight into mash |
+| Raw White Rice | 38–41 | 0.5–1.0 | requires cereal mash |
+| Rice Grits | 40–41 | 0.5–1.0 | requires cereal mash |
+| Rice Syrup Solids | 37–40 | 1.0 | boil addition, fully soluble |
+| Brown Rice Syrup | 44 | 2.0–4.0 | gluten-free; minimal colour |
+| Malted Rice | 20–21 | 1.0–2.0 | low diastatic power; roasted versions 100+ °L |
+
+**Sugars** — the only rows carrying `fermentability_pct`.
+
+| name | ppg | ferm % | °L | corpus mode (n) |
+|---|---|---|---|---|
+| Table Sugar (sucrose) | ~46 | 95–100 | 0–1 | 46.0 (8) ✓ |
+| Dextrose / Corn Sugar | 42–46 | 100 | 0–1 | 46.0 (7,867) ✓ |
+| Brown / Demerara / Turbinado | ~46 | 95–100 | 2–15+ | — |
+| Dark Candi Sugar | 35–36 | 90–100 | 20–80+ | 38.0 (6,333) ~ |
+| **Lactose** | **~46** | **0** | 0–1 | **41.0 (4,761)** ⚠ |
+| Honey | 30–36 | 90–95 | 1–3 | 37.0 (11,700) ⚠ |
+
+Corpus honey colour returns 25 °L, which is nonsense — the corpus is unreliable
+on that field and the supplied 1–3 °L stands.
+
+**Extracts**
+
+| name | ppg | °L |
+|---|---|---|
+| DME Pilsner / Extra Light | 43–45 | 2–3.5 |
+| DME Light / Pale | 43–45 | 4–6 |
+| LME Light / Pale | 35–37 | 4–8 |
+| Malt Extract Amber | 35–44 | 10–15 |
+| Malt Extract Dark | 35–44 | 30+ |
+| Wheat Malt Extract | 35–44 | 2–3 |
+
+### 3.3 ⚠ Two unresolved disagreements
+
+Both were flagged before the user said *"go for it"*, and neither was explicitly
+settled. The supplied values are loaded; the corpus consensus is recorded in
+`spec_note`. **Flip either with a one-row UPDATE — no reload.**
+
+- **Acidulated: 33–35 vs corpus 27.0 across 9,792 rows.** A ~25% gap that biases
+  OG for every recipe using it. Both are defensible — Weyermann's dbfg supports
+  the higher figure, most brewing calculators ship 27. They measure different
+  things (lab extract vs practical yield).
+- **Lactose: 46 vs corpus 41.0 across 4,761 rows.** Matters more than the size
+  suggests: lactose is 0% fermentable, so its points land entirely on FG. A 12%
+  ppg error is a 12% error in the finishing gravity of every milk stout.
+
+---
+
+## 4. The malt-type taxonomy
+
+`corpus.fermentable_types`, ~22 seeded rows. Each type carries the role it fills,
+a sanity envelope, and a **substitute** pointing into `ref.fermentables` so a
+generated recipe can be expressed in malts that are actually purchasable.
+
+```sql
+CREATE TABLE corpus.fermentable_types (
+  type_key        text PRIMARY KEY,   -- 'crystal_medium'
+  role            text NOT NULL       -- base|character|colour|adjunct|sugar|extract
+                  CHECK (role IN ('base','character','colour','adjunct','sugar','extract')),
+  lov_min         numeric(6,1),       -- the classifier's colour band
+  lov_max         numeric(6,1),
+  typical_pct_min numeric(5,2),       -- sanity envelope, NOT a trend
+  typical_pct_max numeric(5,2),
+  substitute_id   bigint REFERENCES ref.fermentables(id),
+  substitute_basis text CHECK (substitute_basis IN ('exact','colour_ppg','sourced','manual')),
+  substitute_note text
+);
+```
+
+`substitute_basis` is the point of the table. A colour-derived stand-in must
+never read as a published equivalence.
+
+### 4.1 The substitution map
+
+16 of 22 types resolve cleanly into the existing 77 rows:
+
+| type | substitute | basis |
+|---|---|---|
+| base_pilsner | Weyermann Pilsner Malt (1.8 °L) | exact |
+| base_pale | Weyermann Pale Ale Malt (2.9 °L) | colour_ppg |
+| vienna | Weyermann Vienna Malt (3.2) | exact |
+| munich | Weyermann Munich Malt Type 1 (6.1) | exact |
+| wheat | Weyermann Wheat Malt pale (1.9) | exact |
+| rye | Weyermann Rye Malt pale (3.1) | exact |
+| dextrine | Weyermann CARAFOAM® (2.1) | exact |
+| crystal_light | Weyermann CARAHELL® (9.9) | colour_ppg |
+| crystal_medium | Weyermann CARAAMBER® (26.9) | colour_ppg |
+| crystal_dark | Weyermann CARABOHEMIAN® (74.0) | colour_ppg |
+| crystal_extra_dark | Weyermann CARAAROMA® (151.2) | colour_ppg |
+| chocolate | Viking Chocolate Light (150.5) | colour_ppg |
+| black | Viking Black Malt (525.2) | colour_ppg |
+| roast_barley | Viking / Weyermann Roasted Barley | exact |
+| kilned_specialty | Weyermann Melanoidin Malt (26.9) | colour_ppg |
+| smoked | Weyermann Beech Smoked Barley (2.8) | exact |
+
+The remaining 6 — oats, acidulated, adjunct_starch, sugar, sugar_lactose,
+extract — point at the §3.2 rows.
+
+⚠ **Flavour equivalence is not asserted anywhere.** Colour and ppg are measured;
+flavour is not. A `substitute_basis = 'sourced'` row requires a citation in
+`substitute_note`. A cell stays NULL rather than carrying an uncited claim.
+
+---
+
+## 5. The filtered corpus load
+
+Eight tables, prefixed `bf_` because **`corpus.recipes` is already taken** by the
+BeerJSON tables from `75_corpus_recipes.sql` (10 Brewfather exports, live). Two
+unrelated corpora cannot share a name.
+
+```
+corpus.bf_recipes       36,271  views>500, script-clean
+                                + views, style_raw, ref_style_id bridge
+corpus.bf_fermentables 146,343  ferm_type FK + pct_of_grist
+                                + the ppg/°L the recipe stated, raw name kept
+corpus.bf_hops         141,179  ref_hop_id FK (92.5%), raw name kept
+corpus.bf_miscs          all    raw rows (D5)
+corpus.bf_yeasts         all    raw rows (D5)
+```
+
+Raw strings are kept on every child row. An unresolved string is honest; a
+fabricated resolution is not — the rule `70_corpus.sql` established and this
+schema inherits.
+
+⛔ **Never vectorised.** These rows are unvalidated, self-reported and carry no
+publisher. Embedding them into `kb.*` would hand retrieval 36,000 documents that
+look like knowledge and are not. The `kb.chunks` knowledge-only rule covers this
+schema for the same reason it covers `brew.*`.
+
+### 5.1 Style folding
+
+`style_raw` bridges to `ref.styles` exactly as `74_corpus_styles.sql` did —
+`match_method` in `('exact','manual')`, NULL where no link is established.
+
+This recovers counts the raw strings split: `Imperial IPA` (345) + `Double IPA`
+(77), `Weizen/Weissbier` (182) + `Weissbier` (65), `Dry Stout` + `Irish Stout`.
+Some of the §1.3 casualties come back for free.
+
+---
+
+## 6. The trend schema
+
+One schema, `trend`. Four kinds of fact, never mixed.
+
+```sql
+-- =========================================================
+-- SNAPSHOT — D9. Rebuilds write a NEW snapshot; nothing
+-- mutates in place, so a finalised patch stays finalised
+-- and two patches can be diffed.
+-- =========================================================
+CREATE TABLE trend.snapshot (
+  id            bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  built_at      timestamptz NOT NULL DEFAULT now(),
+  corpus_filter text NOT NULL,        -- 'views>500 script-clean'
+  n_recipes     int  NOT NULL,
+  is_current    boolean NOT NULL DEFAULT false,
+  notes         text
+);
+CREATE UNIQUE INDEX trend_snapshot_one_current
+  ON trend.snapshot (is_current) WHERE is_current;
+
+-- =========================================================
+-- SHAPE — read FIRST, as a budget, before any ingredient.
+-- This table is what makes 20 hops unreachable.
+-- =========================================================
+CREATE TABLE trend.style_profile (
+  snapshot_id   bigint NOT NULL REFERENCES trend.snapshot(id) ON DELETE CASCADE,
+  ref_style_id  bigint NOT NULL REFERENCES ref.styles(id),
+  n_recipes     int NOT NULL,
+
+  ferm_count_p25        numeric(4,1),
+  ferm_count_p50        numeric(4,1),
+  ferm_count_p75        numeric(4,1),
+
+  hop_variety_count_p25 numeric(4,1),
+  hop_variety_count_p50 numeric(4,1),   -- <<< the guard
+  hop_variety_count_p75 numeric(4,1),
+  hop_addition_count_p50 numeric(4,1),  -- 3 varieties can be 6 additions
+
+  og_p25 numeric(6,4), og_p50 numeric(6,4), og_p75 numeric(6,4),
+  fg_p25 numeric(6,4), fg_p50 numeric(6,4), fg_p75 numeric(6,4),
+  abv_p25 numeric(5,2), abv_p50 numeric(5,2), abv_p75 numeric(5,2),
+  ibu_p25 numeric(6,2), ibu_p50 numeric(6,2), ibu_p75 numeric(6,2),
+  srm_p25 numeric(6,2), srm_p50 numeric(6,2), srm_p75 numeric(6,2),
+
+  PRIMARY KEY (snapshot_id, ref_style_id)
+);
+
+-- =========================================================
+-- COMPOSITION — roles are mutually exclusive and exhaustive,
+-- so role_pct sums to ~100 BY CONSTRUCTION. This is the
+-- answer to the 190%-grist problem in §1.1.
+-- =========================================================
+CREATE TABLE trend.style_grist_template (
+  snapshot_id  bigint NOT NULL REFERENCES trend.snapshot(id) ON DELETE CASCADE,
+  ref_style_id bigint NOT NULL REFERENCES ref.styles(id),
+  role         text   NOT NULL,   -- base|character|colour|adjunct|sugar
+
+  slots_p25    numeric(4,1),      -- how many DISTINCT types of this role
+  slots_p50    numeric(4,1),
+  slots_p75    numeric(4,1),
+
+  role_pct_p25 numeric(5,2),      -- share of grist taken by the whole role
+  role_pct_p50 numeric(5,2),
+  role_pct_p75 numeric(5,2),
+
+  n_with       int NOT NULL,
+  PRIMARY KEY (snapshot_id, ref_style_id, role)
+);
+
+-- =========================================================
+-- CHOICE + AMOUNT — every amount is CONDITIONAL ON PRESENCE.
+-- A row here can never be summed with its siblings.
+-- =========================================================
+CREATE TABLE trend.style_fermentable (
+  snapshot_id   bigint NOT NULL REFERENCES trend.snapshot(id) ON DELETE CASCADE,
+  ref_style_id  bigint NOT NULL REFERENCES ref.styles(id),
+  ferm_type     text   NOT NULL REFERENCES corpus.fermentable_types(type_key),
+  role          text   NOT NULL,
+
+  n_with         int NOT NULL,          -- D8: the gate
+  presence_rate  numeric(5,4) NOT NULL,
+  rank_in_role   int,
+
+  pct_of_grist_p25 numeric(5,2),        -- GIVEN present
+  pct_of_grist_p50 numeric(5,2),
+  pct_of_grist_p75 numeric(5,2),
+
+  PRIMARY KEY (snapshot_id, ref_style_id, ferm_type)
+);
+
+CREATE TABLE trend.style_hop (
+  snapshot_id   bigint NOT NULL REFERENCES trend.snapshot(id) ON DELETE CASCADE,
+  ref_style_id  bigint NOT NULL REFERENCES ref.styles(id),
+  ref_hop_id    bigint NOT NULL REFERENCES ref.hops(id),
+
+  n_with        int NOT NULL,
+  presence_rate numeric(5,4) NOT NULL,
+  rank          int,
+
+  share_of_hop_mass_p25 numeric(5,2),   -- GIVEN present
+  share_of_hop_mass_p50 numeric(5,2),
+  share_of_hop_mass_p75 numeric(5,2),
+
+  pct_bittering numeric(5,4),           -- how this hop is USED in this style
+  pct_flavour   numeric(5,4),
+  pct_aroma     numeric(5,4),
+  pct_dryhop    numeric(5,4),
+  timing_min_p50 numeric(6,1),
+
+  PRIMARY KEY (snapshot_id, ref_style_id, ref_hop_id)
+);
+
+-- =========================================================
+-- AFFINITY — lift, not co-occurrence (§1.2). Negative lift
+-- is the useful half: it is the only signal that says
+-- "these are both popular and brewers still avoid them".
+-- =========================================================
+CREATE TABLE trend.style_hop_pair (
+  snapshot_id  bigint NOT NULL REFERENCES trend.snapshot(id) ON DELETE CASCADE,
+  ref_style_id bigint NOT NULL REFERENCES ref.styles(id),
+  hop_a_id     bigint NOT NULL REFERENCES ref.hops(id),
+  hop_b_id     bigint NOT NULL REFERENCES ref.hops(id),
+
+  support      int NOT NULL,            -- recipes containing both; >= 30 only
+  lift         numeric(6,3) NOT NULL,
+  confidence   numeric(5,4),            -- P(B|A)
+
+  PRIMARY KEY (snapshot_id, ref_style_id, hop_a_id, hop_b_id),
+  CONSTRAINT hop_pair_ordered CHECK (hop_a_id < hop_b_id),
+  CONSTRAINT hop_pair_supported CHECK (support >= 30)
+);
+```
+
+Reads go through views pinned to `is_current`, so callers never name a snapshot
+id.
+
+### 6.1 The n>=30 gate is structural, not advisory
+
+`trend.style_hop_pair` enforces `support >= 30` as a CHECK constraint — a row
+below the gate cannot exist. For the other tables the gate is a reporting rule,
+because the *count itself* is worth storing even when the number is not: "only
+8 recipes, no reliable figure" is a more useful answer than silence, and is
+exactly what `ref.styles.has_vitals` established as the house pattern.
+
+---
+
+## 7. How the generator reads it
+
+The order is the design. Shape is consumed as a budget *before* any popularity
+list is opened, which is what makes the failure mode unreachable.
+
+1. `trend.style_profile` -> **budget: 4 fermentables, 3 hop varieties.**
+2. `trend.style_grist_template` -> base 80% / crystal 8% / colour 5% / adjunct 7%;
+   base slots = 1, crystal slots = 1.
+3. For each role, draw `slots_p50` types from `trend.style_fermentable` weighted
+   by `presence_rate`; allocate the role's `role_pct` across its slots;
+   **normalise to exactly 100%**.
+4. Draw `hop_variety_count_p50` hops from `trend.style_hop` by `presence_rate`;
+   consult `trend.style_hop_pair` to prefer `lift > 1` and reject `lift < 1`.
+5. Map each `ferm_type` to a purchasable row via
+   `corpus.fermentable_types.substitute_id`.
+6. Hand to `brew.f_compute_recipe` -> OG/FG/ABV/IBU/SRM. The model never does
+   the arithmetic (architecture §7.4).
+7. Check against `ref.styles` min/max; iterate.
+
+Twenty hops is unreachable: the budget is spent at step 1.
+
+---
+
+## 8. Cleanup this work must do
+
+Three pre-existing problems sit in the path. None were caused by this design;
+all three block it.
+
+1. ⛔ **`nlq.common_practice`, `nlq.ingredient_practice` and `nlq.f_corpus_styles`
+   are broken right now.** `measured` 2026-09-19:
+   ```
+   postgres=# select nlq.common_practice('stout');
+   ERROR:  column c.style_raw does not exist
+   ```
+   They reference `corpus.recipe_misc` and `corpus.recipe_yeasts` (dropped) and a
+   `corpus.recipes` that has been reshaped to BeerJSON. Repoint at `trend.*` or
+   drop; leaving them is worse than either.
+2. ⚠ **`recipes_full.txt` (180 MB) is untracked in the repo root.** Must be
+   gitignored before anything commits it.
+3. ⚠ **`db-init`'s file list does not glob.** Every new `.sql` here must be added
+   to `docker-compose.yml` or it silently never runs. The five dropped corpus
+   files (`70`–`74`) are still on disk and stay dropped.
+
+---
+
+## 9. Open decisions
+
+| # | Question | Default if unanswered |
+|---|---|---|
+| O1 | Acidulated ppg: 33–35 or corpus 27.0? | supplied value loaded, corpus in `spec_note` |
+| O2 | Lactose ppg: 46 or corpus 41.0? | supplied value loaded, corpus in `spec_note` |
+| O3 | Rice table transcription from Hungarian correct? | confirm before loading |
+| O4 | Flaked oats: single `33.0` or range `32–33`? | range, per §3.1 |
+| O5 | Repoint or drop the three broken `nlq` functions? | repoint |
+
+---
+
+## 10. Verification
+
+The design is implemented correctly when all of these hold:
+
+1. `ref.fermentables` exists, `ref.malts` does not, and the 77 original rows are
+   unchanged.
+2. Every §3.2 row is present with a non-NULL `spec_source`.
+3. `corpus.fermentable_types` has 22 rows, each with a `substitute_id` and a
+   `substitute_basis`; no row asserts a flavour equivalence without a citation.
+4. The loader classifies **>= 98%** of `bf_fermentables` rows to a type
+   (baseline §1.6: 98.7%) and resolves **>= 92%** of `bf_hops` rows to
+   `ref.hops` (baseline §1.5: 92.5%).
+5. For every style in `trend.style_grist_template`, `sum(role_pct_p50)` is
+   within 100 ± 5.
+6. `select max(hop_variety_count_p50) from trend.style_profile` is <= 6.
+   *(American IPA measured 3; any style claiming more than 6 is a bug.)*
+7. No `trend.style_hop_pair` row has `support < 30` — enforced by CHECK.
+8. `select nlq.common_practice('stout')` returns rows, or the function is gone.
+9. A full rebuild produces a new `trend.snapshot` row and leaves the previous
+   snapshot's rows byte-identical.

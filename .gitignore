@@ -65,3 +65,6 @@ desktop.ini
 *.swp
 *.swo
 *~
+
+# Corpus source data — 180 MB brewersfriend scrape, never committed (docs/TREND-SCHEMA.md §8)
+recipes_full.txt
