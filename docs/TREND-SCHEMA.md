@@ -901,8 +901,18 @@ The design is implemented correctly when all of these hold:
 4. The loader classifies **>= 98%** of `bf_fermentables` rows to a type
    (baseline §1.7: 98.7%) and resolves **>= 92%** of `bf_hops` rows to
    `ref.hops` (baseline §1.6: 92.5%).
-5. For every style in `trend.style_grist_template`, `sum(role_pct_p50)` is
-   within 100 ± 5.
+5. ~~For every style in `trend.style_grist_template`, `sum(role_pct_p50)` is
+   within 100 ± 5.~~ — **superseded, RULING 12, 2026-09-20**: no style's
+   `sum(role_pct_p50)` may exceed 100; undershoot is expected and is
+   normalised away by the generator per §7 step 3 ("normalise to exactly
+   100%"), so no consumer depends on the stored sum reaching 100. `measured`
+   2026-09-20 after Ruling 11's zero-fill fix, 73 styles: **0 exceeding 100**,
+   24 within the original ±5 band, min 78.50 / median 92.40 / max 99.35. The
+   original wording is kept above, struck through, because it is what the
+   design was checked against before the corpus showed medians of
+   mostly-absent roles don't add to 100 — the ceiling half of the criterion is
+   what actually catches the double-counting failure in §0, and that half
+   still holds exactly.
 6. `select max(hop_variety_count_p50) from trend.style_profile` is <= 6.
    *(American IPA measured 3; any style claiming more than 6 is a bug.)*
 7. No `trend.style_hop_pair` row has `support < 30` — enforced by CHECK.
