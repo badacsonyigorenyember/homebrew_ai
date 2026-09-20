@@ -7,7 +7,9 @@
 -- re-runs harmlessly on every stack start.
 --
 -- FILTERED, not complete (D1/D2, TREND-SCHEMA.md 1.3): views > 500 leaves 36,271
--- recipes and 114 styles reaching n>=50, against 55 styles at views>1000.
+-- recipes and 114 styles reaching n>=50, against 55 styles at views>1000. That
+-- 36,271 is the views>500 count alone; net of the script filter and the
+-- duplicate-url dedup in bf_load.py, the loaded corpus is 35,620 recipes.
 -- Script-block language filter only -- a strict ASCII filter would drop Kölsch,
 -- Crème Brûlée and Jalapeño to clean 45 CJK rows.
 --
