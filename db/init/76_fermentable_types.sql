@@ -36,7 +36,9 @@ CREATE TABLE IF NOT EXISTS corpus.fermentable_types (
 COMMENT ON TABLE corpus.fermentable_types IS
   'The 22-type vocabulary the corpus loader classifies into, each with a '
   'purchasable stand-in from ref.fermentables. role is exhaustive and mutually '
-  'exclusive, which is what lets trend.style_grist_template sum to 100%.';
+  'exclusive, which is what trend.style_grist_template groups by -- its role '
+  'shares are <=100, undershoot expected (see that table''s build in '
+  '78_trend.sql), not a sum to exactly 100%.';
 
 INSERT INTO corpus.fermentable_types
   (type_key, role, lov_min, lov_max, typical_pct_min, typical_pct_max) VALUES
@@ -63,6 +65,14 @@ INSERT INTO corpus.fermentable_types
   ('sugar_lactose',     'sugar',       0,    2,   0,  10),
   ('extract',           'extract',     2,   30,   0, 100)
 ON CONFLICT (type_key) DO NOTHING;
+
+-- ⚠ KNOWN IMPRECISION: `Rice Hulls` (1,082 corpus rows) classifies as
+-- `adjunct_starch` via the "rice" keyword in bf_load.py's classify(), but it
+-- is a zero-extract filter aid, not a fermentable -- it contributes 0 to
+-- gravity while still counting toward adjunct_starch's grist share, which
+-- slightly inflates the adjunct role in trend.style_grist_template. Left
+-- uncorrected: this taxonomy has no filter-aid type, and adding a 23rd type
+-- for one ingredient is worse than the imprecision it would fix.
 
 -- ---------------------------------------------------------------------------
 -- The substitution map. Matched on name, so it survives identity churn in

@@ -183,8 +183,12 @@ services:
         #                        database; a FRESH one loses ~120 yeast entries.
         #   35_nlq_evidence.sql  needed 73_'s f_resolve_ingredient and 74_'s
         #                        style fold, and read four dropped tables.
-        # All seven files are still on disk, unmodified, so restoring the corpus
-        # is a matter of putting the names back.
+        # All seven files are still on disk, unmodified, but restoring the corpus
+        # is no longer just a matter of putting the names back: this branch
+        # renamed ref.malts to ref.fermentables, and 71_corpus_dims.sql:56
+        # still references ref.malts(id) in corpus.fermentables.ref_malt_id --
+        # that FK would need updating (or the rename reverting) before any of
+        # these five files would apply again.
         for f in /db-init/00_extensions.sql /db-init/10_kb.sql /db-init/15_ref.sql \
                  /db-init/20_brew.sql /db-init/26_ref_fermentables.sql /db-init/27_brew_catalogue.sql \
                  /db-init/28_brew_derived_sugars.sql /db-init/29_brew_formulate.sql \

@@ -71,6 +71,27 @@ CREATE TABLE IF NOT EXISTS trend.style_fermentable (
   PRIMARY KEY (snapshot_id, ref_style_id, ferm_type)
 );
 
+-- RULING (final review): spec §6 also declares `rank` here and
+-- `rank_in_role` on style_fermentable, plus four usage fractions on
+-- style_hop -- `pct_bittering` / `pct_flavour` / `pct_aroma` / `pct_dryhop`.
+-- None of the seven is implemented. Two different reasons, not one omission:
+--   rank / rank_in_role   Deliberately NOT duplicated. Both are a plain
+--                         ORDER BY presence_rate DESC away from a reader who
+--                         already has this table -- storing a derived
+--                         ordinal alongside the value it orders by is the
+--                         kind of redundancy this schema otherwise refuses
+--                         to carry (see the four-kinds-of-fact header above).
+--   the four pct_* columns Deferred to the D12 generator rework, not
+--                         dropped. Their only consumer is the generator
+--                         (TREND-SCHEMA.md §7), which is explicitly out of
+--                         this plan's scope -- so there is no reader for
+--                         them yet. More to the point, they cannot be
+--                         computed HONESTLY today: "bittering vs flavour vs
+--                         aroma vs dry-hop" is exactly the use_stage split
+--                         whose timing UNIT defect is fixed above (Dry Hop
+--                         is days, everything else is minutes), and a usage
+--                         fraction built on top of that confusion would be
+--                         wrong in the same way timing_min_p50 was.
 CREATE TABLE IF NOT EXISTS trend.style_hop (
   snapshot_id  bigint NOT NULL REFERENCES trend.snapshot(id) ON DELETE CASCADE,
   ref_style_id bigint NOT NULL REFERENCES ref.styles(id),
@@ -220,6 +241,13 @@ BEGIN
     ON sn.ref_style_id = x.ref_style_id
   GROUP BY x.ref_style_id, x.ferm_type, x.role HAVING count(*) >= p_min_n;
 
+  -- ⚠ share_of_hop_mass_* is computed below AFTER unresolved hops
+  -- (h.ref_hop_id IS NULL) are excluded from the WHERE clause, so it is a
+  -- share of a recipe's RESOLVED hop mass, not its total hop mass. For the
+  -- ~12% of recipes carrying at least one unresolved hop, that inflates
+  -- every resolved hop's share in that recipe. Not corrected here -- doing
+  -- so would mean estimating an unresolved addition's mass, which is a
+  -- fabrication this schema otherwise refuses to make.
   INSERT INTO trend.style_hop
   SELECT v_snap, x.ref_style_id, x.ref_hop_id, count(*),
     round(count(*)::numeric / max(sn.n), 4),
@@ -228,10 +256,20 @@ BEGIN
     percentile_cont(0.75) WITHIN GROUP (ORDER BY x.share),
     percentile_cont(0.50) WITHIN GROUP (ORDER BY x.tmin)
   FROM (
+    -- timing_min is the source's own number, and its UNIT depends on
+    -- use_stage: minutes for Boil/Whirlpool/etc, DAYS for Dry Hop (see the
+    -- column comment on corpus.bf_hops.timing_min). Averaging both units
+    -- together produced a meaningless figure (Citra in American IPA read
+    -- 8.0). Dry Hop rows are excluded below. A bare <> also drops NULL
+    -- use_stage rows -- chosen deliberately, not just accepted: an unstated
+    -- stage means the unit is unknown too, and a row that MIGHT be a
+    -- dry-hop day count cannot be averaged in as if it were boil minutes.
+    -- `measured` 2026-09-20: 0 rows in the loaded corpus have a NULL
+    -- use_stage, so this choice has no effect on the current numbers.
     SELECT r.ref_style_id, h.ref_hop_id,
            100.0 * sum(h.amount_g)
              / nullif(sum(sum(h.amount_g)) OVER (PARTITION BY r.id), 0) AS share,
-           avg(h.timing_min) AS tmin
+           avg(h.timing_min) FILTER (WHERE h.use_stage <> 'Dry Hop') AS tmin
     FROM corpus.bf_recipes r
     JOIN corpus.bf_hops h ON h.recipe_id = r.id
     WHERE r.ref_style_id IS NOT NULL AND h.ref_hop_id IS NOT NULL

@@ -51,8 +51,9 @@ def classify(name, lov):
 
     if h("lactose"):                                            return "sugar_lactose"
     if h("dextrose", "corn sugar", "sucrose", "table sugar", "cane sugar",
-          "candi", "honey", "molasses", "maple", "treacle", "invert",
+          "candi", "molasses", "maple", "treacle", "invert",
           "turbinado", "demerara", "brown sugar", "agave"):      return "sugar"
+    if h("honey") and not h("malt"):                             return "sugar"
     if h("extract") and h("dry malt", "dme", "liquid malt", "lme", "malt extract"):
         return "extract"
     if h("acidulated", "acid malt", "sauermalz"):                return "acidulated"
@@ -128,28 +129,23 @@ def psql(sql, stdin=None):
 
 
 def hop_index():
-    """name -> ref.hops.id, including the alternatives[] column.
+    """name -> ref.hops.id, built from canonical ref.hops.name values only.
 
-    Two passes over the same rows: canonical names first, then alternatives[]
-    -- an alternative must never shadow another hop's own canonical name.
-    `measured` 2026-09-19: exact 64.0% of rows, alternatives a further 20.4%.
+    `ref.hops.alternatives` means SUBSTITUTES ("hops you could brew with
+    instead"), not alternative spellings, so it must never be indexed by name
+    here -- doing so previously answered "give me X" with "something you could
+    use instead of X" (`measured` 2026-09-20: 2,803 confidently-wrong rows,
+    worst case Hallertau Mittelfruh x1,944 -> Hallertauer Gold, when ref.hops
+    has no Mittelfruh row at all).
     """
     idx = {}
-    rows = psql("SELECT id, name, array_to_string(alternatives,'|') "
-                "FROM ref.hops ORDER BY id")
-    parsed = []
+    rows = psql("SELECT id, name FROM ref.hops ORDER BY id")
     for line in rows.splitlines():
         parts = [p.strip() for p in line.split("|")]
         if len(parts) < 2 or not parts[0].isdigit():
             continue
-        hid, name, alts = parts[0], parts[1], parts[2:]
-        parsed.append((hid, name, alts))
-    for hid, name, alts in parsed:
+        hid, name = parts[0], parts[1]
         idx.setdefault(norm_hop(name), hid)
-    for hid, name, alts in parsed:
-        for a in alts:
-            if a:
-                idx.setdefault(norm_hop(a), hid)
     return idx
 
 

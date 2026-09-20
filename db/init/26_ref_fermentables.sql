@@ -1,5 +1,5 @@
 -- =============================================================================
--- 26_ref_malts.sql  ·  Published malt specifications (D32, same contract as
+-- 26_ref_fermentables.sql  ·  Published malt specifications (D32, same contract as
 -- ref.hops and ref.styles)
 --
 -- What a maltster asserts about its own product, not what this brewer measured.
