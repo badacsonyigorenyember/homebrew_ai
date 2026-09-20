@@ -172,13 +172,19 @@ services:
         # db/init/*.sql file silently never runs until its name is added here.
         # 15_ref.sql must precede 20_brew.sql: brew.recipes.style_id -> ref.styles.
         #
-        # ⛔ THE FILENAME NUMBER IS NOT THE ORDER, AND TWO FILES RUN OUT OF IT.
-        # 33_brew_yeast.sql seeds from corpus.yeasts, created by 71_corpus_dims,
-        # and 35_nlq_evidence.sql needs 73_'s f_resolve_ingredient and 74_'s
-        # style fold -- so both run at the END despite sorting as 33 and 35.
-        # Slotted numerically they fail with "relation does not exist", and under
-        # ON_ERROR_STOP=1 that halts the run and silently skips every later file,
-        # which is the exact failure 29_brew_formulate.sql documents.
+        # ⛔ THE BREWERSFRIEND CORPUS WAS DROPPED ON 2026-09-19 and corpus.* is
+        # now the single table 75_corpus_recipes.sql creates. Five files left
+        # this list with it -- 70_corpus, 71_corpus_dims, 72_nlq_corpus,
+        # 73_corpus_search, 74_corpus_styles -- and they take two dependants
+        # with them, which is why the out-of-order tail this comment used to
+        # explain is gone:
+        #   33_brew_yeast.sql    seeded brew.ingredients FROM corpus.yeasts.
+        #                        ⚠️ Rows already seeded survive in the live
+        #                        database; a FRESH one loses ~120 yeast entries.
+        #   35_nlq_evidence.sql  needed 73_'s f_resolve_ingredient and 74_'s
+        #                        style fold, and read four dropped tables.
+        # All seven files are still on disk, unmodified, so restoring the corpus
+        # is a matter of putting the names back.
         for f in /db-init/00_extensions.sql /db-init/10_kb.sql /db-init/15_ref.sql \
                  /db-init/20_brew.sql /db-init/26_ref_malts.sql /db-init/27_brew_catalogue.sql \
                  /db-init/28_brew_derived_sugars.sql /db-init/29_brew_formulate.sql \
@@ -186,9 +192,7 @@ services:
                  /db-init/31_brew_misc.sql /db-init/32_brew_sugars.sql \
                  /db-init/40_nlq.sql /db-init/60_obs.sql \
                  /db-init/62_obs_recipe_prompts.sql /db-init/63_model_switch.sql \
-                 /db-init/70_corpus.sql /db-init/71_corpus_dims.sql \
-                 /db-init/72_nlq_corpus.sql /db-init/73_corpus_search.sql /db-init/74_corpus_styles.sql \
-                 /db-init/33_brew_yeast.sql /db-init/35_nlq_evidence.sql; do
+                 /db-init/75_corpus_recipes.sql; do
           echo ">> $$f"
           psql -v ON_ERROR_STOP=1 -f "$$f"
         done
@@ -197,10 +201,9 @@ services:
         # GRANT naming a role that does not exist is an ERROR, not a no-op, and
         # 15_ref.sql line 237 grants to mem_writer -- so with ON_ERROR_STOP=1 a
         # brand-new cluster dies there and every later file is skipped. 16 such
-        # grant sites exist across 15_, 29_ and 60_; 73_ and 35_ instead guard
-        # theirs behind IF EXISTS (SELECT 1 FROM pg_roles ...), which survives but
-        # silently skips, leaving the formulate path without EXECUTE until the
-        # second stack start.
+        # grant sites exist across 15_, 29_ and 60_. (73_ and 35_ used to guard
+        # theirs behind IF EXISTS (SELECT 1 FROM pg_roles ...) instead, which
+        # survived but silently skipped; both left the list on 2026-09-19.)
         #
         # It has never bitten this machine because the roles already exist and
         # every restart re-runs the list with them in place.
@@ -208,7 +211,7 @@ services:
         # ⛔ NOT FIXED HERE ON PURPOSE. The fix is to create the roles before the
         # loop and keep only the blanket grants in 50_roles.sql -- 50_ cannot
         # simply move earlier, because it does GRANT EXECUTE ON ALL FUNCTIONS IN
-        # SCHEMA nlq, which must follow 40_/72_/73_/35_. That is a change to
+        # SCHEMA nlq, which must follow 40_. That is a change to
         # security-sensitive role management and deserves its own commit and its
         # own fresh-cluster test, not a ride along with a feature.
         echo ">> /db-init/50_roles.sql"
