@@ -117,6 +117,84 @@ _ALIASES = {
 _AMBIGUOUS = frozenset({norm_hop("Goldings")})
 
 
+# ---------------------------------------------------------------------------
+# The corpus was scraped before July 2020 and labels recipes with BJCP 2008/2015
+# style NAMES; ref.styles is BJCP 2021. `measured` 2026-09-21: that mismatch, not
+# any missing style, is why 10,397 of 35,620 recipes carried no ref_style_id.
+# Mapped to CODE rather than name -- a 2021 code is stable, a name is what
+# changed. Every entry is a guide-revision rename or an absorbed sub-style.
+#
+# ⛔ NOT MAPPED, DELIBERATELY: mead, cider, perry and their variants have no
+# target at all -- ref.styles is the BJCP BEER guide, 116 styles, no M/C
+# categories. Nor are the catch-alls ("--", Specialty Beer, Clone Beer, Belgian
+# Specialty Ale), which name no base style to fold to. Those stay NULL: an
+# unresolved style is honest, a guessed one corrupts every trend row it reaches.
+# ---------------------------------------------------------------------------
+_STYLE_ALIASES = {
+    # Renamed between guide revisions
+    "Imperial IPA": "22A",                   # Double IPA
+    "Russian Imperial Stout": "20C",         # Imperial Stout
+    "Weizen/Weissbier": "10A",
+    "Robust Porter": "20A",                  # American Porter
+    "Brown Porter": "13C",                   # English Porter
+    "California Common Beer": "19B",
+    "American Wheat or Rye Beer": "1D",      # base style is the wheat beer
+    "Extra Special/Strong Bitter (ESB)": "11C",
+    "Special/Best/Premium Bitter": "11B",
+    "Standard/Ordinary Bitter": "11A",
+    "German Pilsner (Pils)": "5D",
+    "Bohemian Pilsener": "3B",               # Czech Premium Pale Lager
+    "Oktoberfest/Märzen": "6A",
+    "Dry Stout": "15B",                      # Irish Stout
+    "Northern English Brown": "13B",         # British Brown Ale
+    "Southern English Brown": "27D",         # Historical: London Brown Ale
+    "London Brown Ale": "27D",
+    "Mild": "13A",                           # Dark Mild
+    "Strong Scotch Ale": "17C",              # Wee Heavy
+    "English Barleywine": "17D",
+    "Dunkelweizen": "10B",                   # Dunkles Weissbier
+    "Maibock/Helles Bock": "4C",
+    "Traditional Bock": "6C",                # Dunkles Bock
+    "Düsseldorf Altbier": "7B",
+    "North German Altbier": "7B",
+    "Scottish Export 80/-": "14C",
+    "Scottish Heavy 70/-": "14B",
+    "Scottish Light 60/-": "14A",
+    "Trappist Single": "26A",                # Belgian Single
+    "Straight (Unblended) Lambic": "23D",
+    "Flanders Brown Ale/Oud Bruin": "23C",
+    "Dortmunder Export": "5C",               # German Helles Exportbier
+    "Classic Rauchbier": "6B",
+    "Other Smoked Beer": "32B",             # Specialty Smoked Beer
+    "Premium American Lager": "2A",          # International Pale Lager
+    "Light American Lager": "1A",
+    "Standard American Lager": "1B",
+    "Dark American Lager": "2C",             # International Dark Lager
+    "Holiday/Winter Special Spiced Beer": "30C",
+    # Absorbed into BJCP 2021 Historical Beer (27)
+    "Classic American Pilsner": "27F",       # Pre-Prohibition Lager
+    "Pre-Prohibition Lager": "27F",
+    "Pre-Prohibition Porter": "27G",
+    "Roggenbier (German Rye Beer)": "27H",
+    "Roggenbier": "27H",
+    "Sahti": "27I",
+    "Kentucky Common": "27B",
+    "Lichtenhainer": "27C",
+    "Piwo Grodziskie": "27E",
+    "Kellerbier: Pale Kellerbier": "27A",
+    "Kellerbier: Amber Kellerbier": "27A",
+    # BJCP 2021 gave New England IPA its own style; the rest stay 21B Specialty IPA
+    "Specialty IPA: New England IPA": "21C",  # Hazy IPA
+    "Specialty IPA: Black IPA": "21B",
+    "Specialty IPA: Red IPA": "21B",
+    "Specialty IPA: White IPA": "21B",
+    "Specialty IPA: Rye IPA": "21B",
+    "Specialty IPA: Belgian IPA": "21B",
+    "Specialty IPA: Brown IPA": "21B",
+}
+_STYLE_ALIASES = {norm_hop(k): v for k, v in _STYLE_ALIASES.items()}
+
+
 def psql(sql, stdin=None):
     """supabase_admin, not postgres -- postgres is not a superuser in this stack."""
     p = subprocess.run(
@@ -150,17 +228,38 @@ def hop_index():
 
 
 def style_index():
-    """normalised BJCP style name -> ref.styles.id (guide='BJCP')."""
-    idx = {}
-    for line in psql("SELECT id, name FROM ref.styles WHERE guide='BJCP'").splitlines():
+    """(normalised BJCP style name -> id, BJCP code -> id), guide='BJCP'.
+
+    The code index exists for _STYLE_ALIASES, which maps the corpus's older
+    guide-revision names onto stable 2021 codes.
+    """
+    by_name, by_code = {}, {}
+    for line in psql("SELECT id, code, name FROM ref.styles WHERE guide='BJCP'").splitlines():
         parts = [p.strip() for p in line.split("|")]
-        if len(parts) == 2 and parts[0].isdigit():
-            idx[norm_hop(parts[1])] = parts[0]
-    return idx
+        if len(parts) == 3 and parts[0].isdigit():
+            by_code[parts[1]] = parts[0]
+            by_name[norm_hop(parts[2])] = parts[0]
+    return by_name, by_code
+
+
+def resolve_style(style_raw, by_name, by_code):
+    """Corpus style string -> ref.styles.id, or None.
+
+    Exact 2021 name first, then the guide-revision alias map. None is a real
+    answer: mead, cider and the catch-all labels have no BJCP beer style.
+    """
+    if not style_raw:
+        return None
+    sn = norm_hop(style_raw)
+    if sn in by_name:
+        return by_name[sn]
+    code = _STYLE_ALIASES.get(sn)
+    return by_code.get(code) if code else None
 
 
 def main(path):
-    hops, styles = hop_index(), style_index()
+    hops = hop_index()
+    styles, style_codes = style_index()
     alias_ids = {k: hops[norm_hop(v)] for k, v in _ALIASES.items()}
     hop_keys = list(hops)
     fuzzy_cache = {}
@@ -210,7 +309,7 @@ def main(path):
         style_raw = (r.get("style") or "").strip() or None
         w["r"].writerow([
             rid, url, name, style_raw,
-            styles.get(norm_hop(style_raw)) if style_raw else None,
+            resolve_style(style_raw, styles, style_codes),
             r.get("method"), int(r.get("views") or 0),
             num(r.get("batch")), num(r.get("og")), num(r.get("fg")),
             num(r.get("abv")), num(r.get("ibu")), num(r.get("color"))])
