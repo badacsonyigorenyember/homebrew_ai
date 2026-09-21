@@ -70,6 +70,25 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 Operational facts about this stack. Verified 2026-09-13.
 
+## Version control
+
+**Work directly on `main`. Do not create branches.** User preference, 2026-09-21:
+commit to `main` and push there. Do not open a feature branch, a worktree or a PR
+for ordinary work, and do not ask which branch to use — it is `main`.
+
+⚠️ This overrides the usual "branch first" default, including the one in most
+agent harnesses. It also overrides any skill that creates an isolated workspace:
+`superpowers:using-git-worktrees` and the worktree step of
+`superpowers:subagent-driven-development` are **not** to be used here. Those
+skills' isolation step conflicts with this repo anyway — `docker compose` only
+runs from the main checkout (no `.env` in a worktree, and the changed project
+name collides on container names), and `db-init` bind-mounts the main checkout's
+`db/init`, so schema work is unverifiable from anywhere else.
+
+The working tree usually carries unrelated work in progress. **Stage named paths
+only — never `git add -A` or `git add .`** — so a commit never sweeps up someone
+else's uncommitted files.
+
 ## Stack layout
 
 Self-hosted Supabase + n8n via Docker Compose. Kong fronts everything on
