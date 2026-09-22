@@ -99,17 +99,20 @@ def norm_hop(s):
 
 
 # Spec 1.6's named, evidenced corpus-spelling aliases -- corpus quirks, not
-# substitutes, so they do not belong in ref.hops.alternatives.
-_ALIASES = {
-    norm_hop("Hallertau Hersbrucker"): "Hersbrucker",
-    norm_hop("Domestic Hallertau"): "Hallertau (US)",
-    norm_hop("Kent Goldings"): "East Kent Golding",
-    norm_hop("Ekuanot"): "Equinox",
-    norm_hop("Cascade"): "Cascade (US)",
-    norm_hop("Amarillo"): "Amarillo VGXP01",
-    norm_hop("Cluster"): "Cluster (US)",
-    norm_hop("Northern Brewer"): "Northern Brewer (US)",
-}
+# substitutes, so they do not belong in ref.hops.substitutes.
+#
+# ⛔ EMPTIED 2026-09-22, and the empty dict is the point: every entry here
+# translated a corpus spelling into a HOP VARIETY HANDBOOK name, and ref.hops no
+# longer speaks that vocabulary. Both sides now come from brewersfriend, so all
+# eight keys -- Hallertau Hersbrucker, Domestic Hallertau, Kent Goldings, Ekuanot,
+# Cascade, Amarillo, Cluster, Northern Brewer -- are exact ref.hops names and
+# resolve on the plain lookup below. `measured` 2026-09-22: 8 of 8. Leaving the
+# old targets in place did not degrade the load, it raised KeyError('hallertau us')
+# at startup, because main() resolves every target eagerly.
+#
+# This stays as a dict rather than being deleted: the next corpus whose spellings
+# diverge from ref.hops needs exactly this hook.
+_ALIASES = {}
 
 # Bare names with more than one plausible ref.hops target and nothing in the
 # data to decide between them -- a refusal, not a coin-flip. `goldings`: East
