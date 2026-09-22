@@ -4,9 +4,9 @@
     "createdAt": "2026-08-12T07:45:11.956Z",
     "id": "ingestHopVariet",
     "name": "ingest-hop-varieties",
-    "description": "Book 7: load the Hop Variety Handbook into ref.hops as rows, then generate one card per variety into kb.chunks and embed it. 72 varieties, structured path, extracted from repeating PDF spec cards.",
+    "description": "⛔ ARCHIVED 2026-09-22 — TARGETS A DEAD SCHEMA. ref.hops dropped the 21 handbook columns this workflow INSERTs (origin, hop_type, the eight min/max oil and acid ranges), so it now fails on every run. Superseded by scripts/ingest/hops_extract.py. Original: Book 7: load the Hop Variety Handbook into ref.hops as rows, then generate one card per variety into kb.chunks and embed it. 72 varieties, structured path, extracted from repeating PDF spec cards.",
     "active": false,
-    "isArchived": false,
+    "isArchived": true,
     "nodes": [
       {
         "parameters": {},
