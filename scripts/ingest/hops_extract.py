@@ -3,7 +3,7 @@ import re
 
 from bs4 import BeautifulSoup
 import requests
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from pathlib import Path
 import psycopg
 
@@ -41,9 +41,14 @@ class Hop:
     link: str
     description: str
     substitutes: str
+    beer_styles: list = field(default_factory=list)
+
+@dataclass
+class BeerStyle:
+    beer_style: dict
 
 fetch_all_from_web_flag = False
-fetch_detailed_from_web_flag = False
+fetch_detailed_from_web_flag = True
 file_name = "./raw_hops_data.json"
 
 if fetch_all_from_web_flag:
@@ -125,15 +130,15 @@ with psycopg.connect(**conn_kwargs) as conn:
             if loaded_hop.name in hops_in_db:
                 loaded_hop.recipes += 1
 
-        for hop in main_hops:
-            if hop.recipes < 200:
-                main_hops.remove(hop)
+        main_hops = [hop for hop in main_hops if hop.recipes >= 200]
 
         print("len")
         print(len(main_hops))
 
-for hop in main_hops:
-    if fetch_detailed_from_web_flag:
+main_hops.sort(key=lambda x: x.name)
+
+if fetch_detailed_from_web_flag:
+    for hop in main_hops:
         url = 'https://www.brewersfriend.com' + hop.link
         print(url)
 
@@ -162,11 +167,9 @@ for hop in main_hops:
             html_content = response.text
 
             soup = BeautifulSoup(html_content, 'html.parser')
+            table = soup.find('table', {'class': 'ui table striped browse-results'})
 
-            # ==============================================================================
-            # 1. DESCRIPTION KINYERÉSE
-            # ==============================================================================
-            # Megkeressük a <b>Description:</b> elemet
+            # Description
             desc_label = soup.find('b', string=re.compile("Description:", re.IGNORECASE))
             description = ""
 
@@ -178,36 +181,82 @@ for hop in main_hops:
                     cleaned_desc = raw_desc.strip().strip('"').strip()
                     description = " ".join(cleaned_desc.split())
 
-            # ==============================================================================
-            # 2. SUBSTITUTES KINYERÉSE
-            # ==============================================================================
-            # Megkeressük a <b>Substitutes:</b> elemet
+            # Substitutes
             sub_label = soup.find('b', string=re.compile("Substitutes:", re.IGNORECASE))
             substitutes_list = []
 
             if sub_label:
-                # Elindulunk a <b> tag után, és összegyűjtjük a linkek (<a>) szövegeit
                 current_node = sub_label.next_sibling
                 while current_node and current_node.name != 'h2' and current_node.name != 'br':
                     if current_node.name == 'a':
                         substitutes_list.append(current_node.text.strip())
                     current_node = current_node.next_sibling
 
-            # Összefűzzük a talált helyettesítőket egy vesszővel elválasztott stringgé
             substitutes = ", ".join(substitutes_list)
+
+            # Most used in
+            beer_styles = []
+            all_recipe_count = 0
+            if table:
+                for row in table.find_all('tr'):
+                    cells = row.find_all('td')
+                    if cells:
+                        style_name = cells[0].text.strip()
+                        usage_pct = float(cells[2].text.strip().replace('%', ''))
+                        recipe_count = float(cells[1].text.strip())
+
+                        all_recipe_count += recipe_count
+
+                        beer_style = {
+                            "beer_style": style_name,
+                            "usage_pct": usage_pct,
+                            "popularity": recipe_count,
+                        }
+
+                        beer_styles.append(beer_style)
+
+            filtered_beer_styles = []
+            for beer_style in beer_styles:
+                beer_style["popularity"] = round(beer_style["popularity"] / all_recipe_count, 2)
+                if beer_style["popularity"] > 0.1:
+                    filtered_beer_styles.append(beer_style)
 
             hop.description = description
             hop.substitutes = substitutes
-
+            hop.beer_styles = filtered_beer_styles
 
         else:
             print(f"Hiba történt: {response.status_code}")
         print(hop)
+        response.close()
 
 main_hops.sort(key=lambda x: x.name)
 serializable_data = [asdict(hop) for hop in main_hops]
 
+with open("hops_data.json", "w", encoding="utf-8") as file:
+    json.dump(serializable_data, file, ensure_ascii=False, indent=4)
 
 with psycopg.connect(**conn_kwargs) as conn:
     with conn.cursor() as cur:
         cur.execute("TRUNCATE ref.hops RESTART IDENTITY CASCADE;")
+
+        # A `use` (Boil / Dry Hop / Whirlpool / First Wort) hasznalati fazis, nem
+        # hop_type (Aroma / Bitter / Dual purpose) -- ezert nem megy a hop_type-ba.
+        # Az `alfa` egyetlen ertek, sajat maga also es felso hatara.
+        cur.executemany(
+            "INSERT INTO ref.hops (name, alpha_acid_pct, description, substitutes, beer_styles) "
+            "VALUES (%s, %s, %s, %s, %s)",
+            [
+                (
+                    hop.name,
+                    hop.alfa,
+                    hop.description or None,
+                    [s.strip() for s in hop.substitutes.split(",") if s.strip()],
+                    json.dumps(hop.beer_styles)
+                )
+                for hop in main_hops
+            ],
+        )
+
+        cur.execute("SELECT count(*) FROM ref.hops")
+        print(f"ref.hops: {cur.fetchone()[0]} sor")

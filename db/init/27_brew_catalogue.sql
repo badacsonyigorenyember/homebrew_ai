@@ -31,19 +31,23 @@ WHERE m.potential_ppg IS NOT NULL
                     AND i.supplier IS NOT DISTINCT FROM m.maltster);
 
 -- Hops -----------------------------------------------------------------------
--- alpha_acid_pct is the midpoint of the published range; the range itself stays
--- in attrs, because a bittering calculation done on a midpoint should be able to
--- show the spread it came from.
+-- ⛔ REWRITTEN 2026-09-22 FOR THE NEW ref.hops SHAPE. This read h.alpha_min,
+-- h.alpha_max, h.origin and h.hop_type, all of which were dropped -- and because
+-- db-init runs psql with ON_ERROR_STOP=1 inside `set -e`, the missing column did
+-- not degrade this seed, it aborted the whole run at file 6 of 20 and skipped
+-- every later one including 50_roles.sql.
+--
+-- There is no midpoint left to take: brewersfriend publishes one alpha figure per
+-- variety, so alpha_acid_pct is carried straight through and no spread goes into
+-- attrs. Rows seeded from the handbook keep their old attrs -- the NOT EXISTS
+-- guard matches on name, so this never rewrites one.
 INSERT INTO brew.ingredients (kind, name, supplier, alpha_acid_pct, attrs)
 SELECT 'hop', h.name, NULL,
-       round((h.alpha_min + h.alpha_max) / 2.0, 2),
+       h.alpha_acid_pct,
        jsonb_build_object('ref_hop_id', h.id,
-                          'alpha_min', h.alpha_min,
-                          'alpha_max', h.alpha_max,
-                          'origin', h.origin,
-                          'hop_type', h.hop_type,
-                          'source_doc', 'Hop Variety Handbook')
+                          'substitutes', to_jsonb(h.substitutes),
+                          'beer_styles', h.beer_styles,
+                          'source_doc', 'brewersfriend.com')
 FROM ref.hops h
-WHERE h.alpha_min IS NOT NULL AND h.alpha_max IS NOT NULL
-  AND NOT EXISTS (SELECT 1 FROM brew.ingredients i
+WHERE NOT EXISTS (SELECT 1 FROM brew.ingredients i
                   WHERE i.kind = 'hop' AND i.name = h.name);
