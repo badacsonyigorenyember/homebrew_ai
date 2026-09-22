@@ -251,6 +251,57 @@ SELECT CASE
 FROM agg;
 $fn$;
 
+-- Per-term corpus coverage: does any current chunk contain ALL of a term's
+-- lexemes? One call answers a whole keyword list.
+--
+-- ⛔ This exists because neither of the two obvious answers works. nlq.search_knowledge's
+-- vector arm has no relevance predicate and always returns p_limit rows, so
+-- "the search found nothing" is not observable there. And corpus_vocabulary_gap
+-- needs two KNOWN lexemes before it reports anything, which a bare keyword rarely
+-- has: `measured` 2026-09-17, 'poppy seeds' is absent from the corpus and still
+-- returns gap_terms = {}, while 'crushed poppy seeds' -- the same ingredient --
+-- returns {poppi}. Per keyword, that function's routing is decided by phrase
+-- length rather than by coverage, which is why it is not reused here.
+--
+-- SECURITY DEFINER for the same reason as search_knowledge: agent_ro holds no
+-- privilege on kb at all (`measured`: has_schema_privilege('n8n_agent','kb','USAGE')
+-- = false), and reaches the corpus only through vetted nlq functions.
+CREATE OR REPLACE FUNCTION nlq.corpus_coverage(p_terms text[])
+RETURNS TABLE (term text, fts_hits int)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = nlq, kb, public AS $fn$
+  -- ⛔ WITH ORDINALITY + ORDER BY, not SELECT DISTINCT. DISTINCT hash-aggregates and
+  -- returns the rows in an arbitrary order: `measured` 2026-09-17, the input
+  -- {pastry stout, vanilla, poppy seeds, rum, Mákos Guba} came back as
+  -- {poppy seeds, rum, Mákos Guba, pastry stout, vanilla}. A caller that pairs the
+  -- result positionally against its own list then mislabels coverage silently, which
+  -- is the worst possible failure here -- a covered term routed to the web costs 12 s
+  -- and returns nothing the library did not already have. min(ord) keeps the first
+  -- occurrence of a duplicated term.
+  WITH kw AS (
+    SELECT btrim(t) AS term, min(ord) AS ord
+    FROM unnest(coalesce(p_terms, '{}'::text[])) WITH ORDINALITY AS u(t, ord)
+    WHERE btrim(t) <> ''
+    GROUP BY btrim(t)
+  )
+  SELECT kw.term,
+         (SELECT count(*)::int
+            FROM kb.chunks c
+            JOIN kb.document_versions v ON v.id = c.version_id AND v.is_current
+           WHERE c.fts @@ plainto_tsquery('english', kw.term))
+  FROM kw
+  ORDER BY kw.ord;
+$fn$;
+
+-- Guarded the way 73_ and 35_ guard theirs: 50_roles.sql runs last and re-grants
+-- EXECUTE on ALL FUNCTIONS in nlq, so this is belt-and-braces for a live stack
+-- that has not been restarted.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'agent_ro') THEN
+    GRANT EXECUTE ON FUNCTION nlq.corpus_coverage(text[]) TO agent_ro;
+  END IF;
+END $$;
+
 -- Hybrid retrieval over the book/PDF corpus: FTS + vector, fused with RRF (§3.4).
 -- Over-fetch p_candidates from each arm, fuse, return p_limit.
 --
