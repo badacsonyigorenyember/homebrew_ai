@@ -1,0 +1,524 @@
+<title>Recipe Builder Workflow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --ground: #F4F6F2;
+    --paper: #FFFFFF;
+    --ink: #17201B;
+    --muted: #56625A;
+    --line: #C7CEC6;
+    --faint: #E6EAE4;
+    --llm: #A8680F;
+    --sql: #2B5A88;
+    --code: #357033;
+    --search: #74479E;
+    --ext: #78827B;
+    --warn: #B3261E;
+    --warn-bg: #FBE9E7;
+    --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground: #111613; --paper: #19201C; --ink: #E4EAE5; --muted: #9AA69E;
+      --line: #36433B; --faint: #232C27;
+      --llm: #E3A94E; --sql: #7DAEDD; --code: #82C477; --search: #BB98E0;
+      --ext: #8D9891; --warn: #F2877D; --warn-bg: #3A1D1A;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground: #111613; --paper: #19201C; --ink: #E4EAE5; --muted: #9AA69E;
+    --line: #36433B; --faint: #232C27;
+    --llm: #E3A94E; --sql: #7DAEDD; --code: #82C477; --search: #BB98E0;
+    --ext: #8D9891; --warn: #F2877D; --warn-bg: #3A1D1A;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding-inline: 20px; padding-block: 32px 64px; }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.01em; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(34px, 5vw, 52px); line-height: 1; text-transform: uppercase; }
+  h2 { font-size: 28px; text-transform: uppercase; line-height: 1.1; }
+  h3 { font-size: 20px; line-height: 1.15; }
+  p { margin: 0; }
+  code, .mono { font-family: var(--font-mono); font-size: 0.88em; }
+
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+  header.top { display: grid; gap: 12px; margin-bottom: 20px; }
+  .lede { max-width: 68ch; font-size: 17px; }
+  .lede strong { font-weight: 600; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--muted); align-items: center; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 22px; height: 12px; border: 2px solid currentColor; border-radius: 3px; display: inline-block; }
+  .sw.dash { border-style: dashed; }
+  .c-llm { color: var(--llm); } .c-sql { color: var(--sql); } .c-code { color: var(--code); }
+  .c-search { color: var(--search); } .c-ext { color: var(--ext); } .c-warn { color: var(--warn); }
+  .badge { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--warn); background: var(--warn-bg); border: 1px solid var(--warn); border-radius: 3px; padding: 0 5px; white-space: nowrap; }
+
+  /* diagram */
+  .sheet { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 18px; }
+  figure { margin: 0; display: grid; gap: 12px; }
+  .scroll { overflow-x: auto; }
+  svg.dg { display: block; width: 100%; min-width: 900px; height: auto; color: var(--ink); }
+  .dg text { font-family: var(--font-body); fill: var(--ink); }
+  .dg .t1 { font-size: 13.5px; font-weight: 600; }
+  .dg .t2 { font-size: 11.5px; fill: var(--muted); }
+  .dg .tag { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.06em; }
+  .dg .lbl { font-family: var(--font-mono); font-size: 10.5px; fill: var(--muted); }
+  .dg .box { fill: var(--paper); stroke-width: 2; }
+  .dg .b-llm { stroke: var(--llm); } .dg .b-sql { stroke: var(--sql); } .dg .b-code { stroke: var(--code); }
+  .dg .b-search { stroke: var(--search); } .dg .b-in { stroke: var(--ink); }
+  .dg .b-ext { stroke: var(--ext); stroke-dasharray: 6 4; fill: var(--ground); }
+  .dg .f-llm { fill: var(--llm); } .dg .f-sql { fill: var(--sql); } .dg .f-code { fill: var(--code); }
+  .dg .f-search { fill: var(--search); } .dg .f-ext { fill: var(--ext); } .dg .f-ink { fill: var(--ink); }
+  .dg .flow { fill: none; stroke: var(--ink); stroke-width: 1.6; }
+  .dg .extflow { fill: none; stroke: var(--ext); stroke-width: 1.4; stroke-dasharray: 5 4; }
+  .dg .loop { fill: none; stroke: var(--warn); stroke-width: 1.6; }
+  .dg .loop-lbl { font-family: var(--font-mono); font-size: 10.5px; fill: var(--warn); }
+  .dg .wb { fill: var(--warn-bg); stroke: var(--warn); stroke-width: 1; }
+  .dg .wt { font-family: var(--font-mono); font-size: 10px; font-weight: 500; fill: var(--warn); }
+  .dg .gate { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+  .dg .ah { fill: var(--ink); } .dg .ah-ext { fill: var(--ext); } .dg .ah-warn { fill: var(--warn); }
+  figcaption { font-size: 13.5px; color: var(--muted); max-width: 90ch; }
+
+  section { margin-top: 44px; display: grid; gap: 16px; }
+  .intro { color: var(--muted); max-width: 72ch; }
+
+  /* tables */
+  .tbl { overflow-x: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--faint); }
+  th { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 500; background: var(--ground); }
+  tr:last-child td { border-bottom: 0; }
+  td.name { font-family: var(--font-mono); font-size: 13px; white-space: nowrap; }
+  td.tick { text-align: center; width: 64px; }
+  .later td { color: var(--muted); }
+
+  /* step cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 8px; align-content: start; break-inside: avoid; }
+  .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .type { font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 0.06em; border: 1.5px solid currentColor; border-radius: 3px; padding: 0 5px; white-space: nowrap; }
+  .card.ext { border-style: dashed; background: var(--ground); }
+  dl { margin: 0; display: grid; grid-template-columns: 58px 1fr; gap: 3px 10px; font-size: 13.5px; }
+  dt { font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; color: var(--muted); padding-top: 2px; letter-spacing: 0.04em; }
+  dd { margin: 0; }
+  .checks { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; padding-top: 8px; border-top: 1px solid var(--faint); }
+  .checks label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+  input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--code); margin: 0; }
+  input[type="checkbox"]:focus-visible { outline: 2px solid var(--sql); outline-offset: 2px; }
+  .notes-lines { height: 44px; background-image: repeating-linear-gradient(to bottom, transparent 0 21px, var(--faint) 21px 22px); }
+
+  /* watch-outs */
+  .watch { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 14px; }
+  .wgroup { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; break-inside: avoid; }
+  .wgroup h3 { margin-bottom: 8px; }
+  .wgroup ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  .wgroup li { display: grid; grid-template-columns: 34px 1fr; gap: 8px; font-size: 14px; }
+  .wgroup li .badge { justify-self: start; align-self: start; margin-top: 2px; }
+  .wgroup li b { font-weight: 600; }
+  .step-ref { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+
+  .testlist { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 6px 16px; }
+  .testlist label { display: grid; grid-template-columns: 22px 1fr; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--faint); font-size: 14px; cursor: pointer; }
+  .testlist label:last-child { border-bottom: 0; }
+  .testlist input { margin-top: 3px; }
+
+  .notes-sheet { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; height: 240px; background-image: repeating-linear-gradient(to bottom, transparent 0 31px, var(--faint) 31px 32px); }
+
+  @media (max-width: 520px) {
+    .cards, .watch { grid-template-columns: 1fr; }
+    .wrap { padding-inline: 16px; }
+  }
+
+  @page { size: A4 portrait; margin: 12mm; }
+  @page wide { size: A4 landscape; margin: 8mm; }
+  @media print {
+    :root, :root[data-theme="dark"] {
+      color-scheme: light;
+      --ground: #FFFFFF; --paper: #FFFFFF; --ink: #111; --muted: #444; --line: #BBB; --faint: #DDD;
+      --llm: #A8680F; --sql: #2B5A88; --code: #357033; --search: #74479E; --ext: #666; --warn: #B3261E; --warn-bg: #FFF;
+    }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { font-size: 11pt; }
+    .wrap { padding: 0; max-width: none; }
+    .diagram-page { page: wide; break-after: page; }
+    .diagram-page .lede { display: none; }
+    svg.dg { min-width: 0; }
+    .sheet, .card, .wgroup, .tbl, .testlist { border-color: #999; }
+    section { break-before: auto; }
+    .watch-sec, .data-sec { break-before: page; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+<div class="diagram-page">
+  <header class="top">
+    <div class="eyebrow">AI Homebrew Assistant · design sketch · 2026-09-23</div>
+    <h1>Recipe Builder Workflow</h1>
+    <p class="lede"><strong>The LLM decides what goes in the beer and why; code decides how much,
+      and checks that the result is the beer that was asked for.</strong> The model runs in three
+      steps only (S1, S6, S9). Everything else is SQL or a script, so the numbers can be reproduced and tested.</p>
+    <div class="legend" aria-label="Legend">
+      <span class="c-llm"><i class="sw"></i>LLM</span>
+      <span class="c-sql"><i class="sw"></i>SQL</span>
+      <span class="c-code"><i class="sw"></i>Code</span>
+      <span class="c-search"><i class="sw"></i>Search</span>
+      <span class="c-ext"><i class="sw dash"></i>Extension slot (later)</span>
+      <span class="c-warn">━ retry loop</span>
+      <span><span class="badge">⚠ 7</span> see watch-out no. 7</span>
+    </div>
+  </header>
+
+  <div class="sheet">
+    <figure>
+      <div class="scroll">
+        <svg class="dg" viewBox="0 0 1220 500" role="img"
+             aria-label="Recipe builder flow: the question becomes a Brief, names are resolved to reference ids, and a style gate either continues or asks for a style. Knowledge search and trend lookup run in parallel and feed a candidate pool. The LLM selects ingredients and proportions, code calculates amounts and checks them against the style, with an auto-adjust loop back to calculation and a structural loop back to selection. The recipe is then written and saved. Dashed boxes mark later extensions.">
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
+            <marker id="ahx" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah-ext"/></marker>
+            <marker id="ahw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah-warn"/></marker>
+          </defs>
+
+          <!-- ============ ROW A: understand ============ -->
+          <!-- S0 -->
+          <rect class="box b-in" x="40" y="40" width="140" height="64" rx="6"/>
+          <text class="t1" x="52" y="62">S0 Question</text>
+          <text class="t2" x="52" y="78">user's own words</text>
+          <text class="tag f-ink" x="52" y="95">INPUT</text>
+
+          <!-- S1 -->
+          <rect class="box b-llm" x="240" y="40" width="140" height="64" rx="6"/>
+          <text class="t1" x="252" y="62">S1 Understand</text>
+          <text class="t2" x="252" y="78">text → Brief</text>
+          <text class="tag f-llm" x="252" y="95">LLM</text>
+          <rect class="wb" x="340" y="32" width="36" height="16" rx="3"/><text class="wt" x="358" y="44" text-anchor="middle">⚠ 1</text>
+
+          <!-- S2 -->
+          <rect class="box b-sql" x="440" y="40" width="140" height="64" rx="6"/>
+          <text class="t1" x="452" y="62">S2 Resolve</text>
+          <text class="t2" x="452" y="78">names → refs ids</text>
+          <text class="tag f-sql" x="452" y="95">SQL + LLM</text>
+          <rect class="wb" x="522" y="32" width="54" height="16" rx="3"/><text class="wt" x="549" y="44" text-anchor="middle">⚠ 2 · 3</text>
+
+          <!-- G1 gate -->
+          <polygon class="gate" points="656,72 720,36 784,72 720,108"/>
+          <text class="t1" x="720" y="70" text-anchor="middle">G1</text>
+          <text class="t2" x="720" y="85" text-anchor="middle">style known?</text>
+
+          <!-- E1 -->
+          <rect class="box b-ext" x="900" y="46" width="170" height="52" rx="6"/>
+          <text class="t1" x="912" y="68">E1 Style loop</text>
+          <text class="t2" x="912" y="85">suggest 3, user picks</text>
+
+          <!-- row A arrows -->
+          <line class="flow" x1="180" y1="72" x2="238" y2="72" marker-end="url(#ah)"/>
+          <text class="lbl" x="209" y="64" text-anchor="middle">text</text>
+          <line class="flow" x1="380" y1="72" x2="438" y2="72" marker-end="url(#ah)"/>
+          <text class="lbl" x="409" y="64" text-anchor="middle">Brief</text>
+          <line class="flow" x1="580" y1="72" x2="654" y2="72" marker-end="url(#ah)"/>
+          <text class="lbl" x="617" y="64" text-anchor="middle">+ ids</text>
+          <line class="extflow" x1="763" y1="60" x2="898" y2="60" marker-end="url(#ahx)"/>
+          <text class="lbl" x="830" y="53" text-anchor="middle">no style</text>
+          <line class="extflow" x1="898" y1="90" x2="755" y2="90" marker-end="url(#ahx)"/>
+          <text class="lbl" x="830" y="106" text-anchor="middle">style picked</text>
+
+          <!-- yes bus -->
+          <polyline class="flow" points="720,108 720,140 20,140 20,352 38,352" marker-end="url(#ah)"/>
+          <polyline class="flow" points="20,242 38,242" marker-end="url(#ah)"/>
+          <text class="lbl" x="728" y="126">yes</text>
+          <text class="lbl" x="300" y="133" text-anchor="middle">Brief + style id → S3 and S4 run in parallel</text>
+
+          <!-- ============ extension boxes above row B ============ -->
+          <rect class="box b-ext" x="440" y="170" width="140" height="52" rx="6"/>
+          <text class="t1" x="452" y="192">E4 Refine</text>
+          <text class="t2" x="452" y="209">“more bitter” → S6</text>
+          <line class="extflow" x1="510" y1="222" x2="510" y2="263" marker-end="url(#ahx)"/>
+
+          <rect class="box b-ext" x="640" y="170" width="140" height="52" rx="6"/>
+          <text class="t1" x="652" y="192">E5 Equipment</text>
+          <text class="t2" x="652" y="209">efficiency, losses</text>
+          <line class="extflow" x1="710" y1="222" x2="710" y2="263" marker-end="url(#ahx)"/>
+
+          <rect class="box b-ext" x="840" y="170" width="140" height="52" rx="6"/>
+          <text class="t1" x="852" y="192">E2b Substitute</text>
+          <text class="t2" x="852" y="209">nearest spec match</text>
+          <line class="extflow" x1="910" y1="222" x2="910" y2="263" marker-end="url(#ahx)"/>
+
+          <!-- ============ ROW B: build ============ -->
+          <!-- S3 -->
+          <rect class="box b-search" x="40" y="210" width="140" height="64" rx="6"/>
+          <text class="t1" x="52" y="232">S3 Knowledge</text>
+          <text class="t2" x="52" y="248">library, then web</text>
+          <text class="tag f-search" x="52" y="265">SEARCH</text>
+          <rect class="wb" x="140" y="202" width="36" height="16" rx="3"/><text class="wt" x="158" y="214" text-anchor="middle">⚠ 4</text>
+
+          <!-- S4 -->
+          <rect class="box b-sql" x="40" y="320" width="140" height="64" rx="6"/>
+          <text class="t1" x="52" y="342">S4 Trends</text>
+          <text class="t2" x="52" y="358">style profile</text>
+          <text class="tag f-sql" x="52" y="375">SQL</text>
+          <rect class="wb" x="104" y="312" width="72" height="16" rx="3"/><text class="wt" x="140" y="324" text-anchor="middle">⚠ 5 · 6 · 7</text>
+
+          <!-- S3/S4 → S5 -->
+          <polyline class="flow" points="180,242 210,242 210,285 238,285" marker-end="url(#ah)"/>
+          <polyline class="flow" points="180,352 210,352 210,309 238,309" marker-end="url(#ah)"/>
+          <text class="lbl" x="186" y="235">evidence</text>
+          <text class="lbl" x="186" y="370">profile</text>
+
+          <!-- S5 -->
+          <rect class="box b-code" x="240" y="265" width="140" height="64" rx="6"/>
+          <text class="t1" x="252" y="287">S5 Candidates</text>
+          <text class="t2" x="252" y="303">trends + matches</text>
+          <text class="tag f-code" x="252" y="320">CODE</text>
+          <rect class="wb" x="340" y="257" width="36" height="16" rx="3"/><text class="wt" x="358" y="269" text-anchor="middle">⚠ 8</text>
+
+          <!-- S6 -->
+          <rect class="box b-llm" x="440" y="265" width="140" height="64" rx="6"/>
+          <text class="t1" x="452" y="287">S6 Select</text>
+          <text class="t2" x="452" y="303">ids, roles, %, g/L</text>
+          <text class="tag f-llm" x="452" y="320">LLM</text>
+          <rect class="wb" x="522" y="257" width="54" height="16" rx="3"/><text class="wt" x="549" y="269" text-anchor="middle">⚠ 8 · 9</text>
+
+          <!-- S7 -->
+          <rect class="box b-code" x="640" y="265" width="140" height="64" rx="6"/>
+          <text class="t1" x="652" y="287">S7 Calculate</text>
+          <text class="t2" x="652" y="303">kg, g, OG, IBU, FG…</text>
+          <text class="tag f-code" x="652" y="320">CODE</text>
+          <rect class="wb" x="728" y="257" width="48" height="16" rx="3"/><text class="wt" x="752" y="269" text-anchor="middle">⚠ 10–13</text>
+
+          <!-- S8 -->
+          <rect class="box b-code" x="840" y="265" width="140" height="64" rx="6"/>
+          <text class="t1" x="852" y="287">S8 Validate</text>
+          <text class="t2" x="852" y="303">style ranges, rules</text>
+          <text class="tag f-code" x="852" y="320">CODE</text>
+          <rect class="wb" x="928" y="257" width="48" height="16" rx="3"/><text class="wt" x="952" y="269" text-anchor="middle">⚠ 14–16</text>
+
+          <!-- S9 -->
+          <rect class="box b-llm" x="1040" y="265" width="140" height="64" rx="6"/>
+          <text class="t1" x="1052" y="287">S9 Write</text>
+          <text class="t2" x="1052" y="303">prose around numbers</text>
+          <text class="tag f-llm" x="1052" y="320">LLM</text>
+          <rect class="wb" x="1140" y="257" width="36" height="16" rx="3"/><text class="wt" x="1158" y="269" text-anchor="middle">⚠ 18</text>
+
+          <!-- row B arrows -->
+          <line class="flow" x1="380" y1="297" x2="438" y2="297" marker-end="url(#ah)"/>
+          <text class="lbl" x="409" y="289" text-anchor="middle">pool</text>
+          <line class="flow" x1="580" y1="297" x2="638" y2="297" marker-end="url(#ah)"/>
+          <text class="lbl" x="609" y="289" text-anchor="middle">choices</text>
+          <line class="flow" x1="780" y1="297" x2="838" y2="297" marker-end="url(#ah)"/>
+          <text class="lbl" x="809" y="289" text-anchor="middle">result</text>
+          <line class="flow" x1="980" y1="297" x2="1038" y2="297" marker-end="url(#ah)"/>
+          <text class="lbl" x="1009" y="289" text-anchor="middle">pass</text>
+
+          <!-- retry loops -->
+          <polyline class="loop" points="880,329 880,357 710,357 710,331" marker-end="url(#ahw)"/>
+          <text class="loop-lbl" x="795" y="372" text-anchor="middle">fixable → auto-adjust</text>
+          <polyline class="loop" points="950,329 950,395 510,395 510,331" marker-end="url(#ahw)"/>
+          <text class="loop-lbl" x="730" y="411" text-anchor="middle">wrong ingredients → re-select (max 3)</text>
+
+          <!-- ============ ROW C: finish ============ -->
+          <!-- E2a -->
+          <rect class="box b-ext" x="240" y="420" width="140" height="52" rx="6"/>
+          <text class="t1" x="252" y="442">E2a Inventory</text>
+          <text class="t2" x="252" y="459">only what I own</text>
+          <line class="extflow" x1="310" y1="420" x2="310" y2="331" marker-end="url(#ahx)"/>
+
+          <!-- S10 -->
+          <rect class="box b-sql" x="1040" y="420" width="140" height="64" rx="6"/>
+          <text class="t1" x="1052" y="442">S10 Save + log</text>
+          <text class="t2" x="1052" y="458">every step's output</text>
+          <text class="tag f-sql" x="1052" y="475">SQL</text>
+          <rect class="wb" x="1140" y="412" width="36" height="16" rx="3"/><text class="wt" x="1158" y="424" text-anchor="middle">⚠ 17</text>
+          <line class="flow" x1="1110" y1="329" x2="1110" y2="418" marker-end="url(#ah)"/>
+          <text class="lbl" x="1118" y="378">recipe</text>
+
+          <!-- E3 -->
+          <rect class="box b-ext" x="840" y="426" width="140" height="52" rx="6"/>
+          <text class="t1" x="852" y="448">E3 Feedback</text>
+          <text class="t2" x="852" y="465">ratings → S4 trends</text>
+          <line class="extflow" x1="1040" y1="452" x2="982" y2="452" marker-end="url(#ahx)"/>
+          <text class="lbl" x="1011" y="445" text-anchor="middle">brewed</text>
+        </svg>
+      </div>
+      <figcaption>How a question becomes a recipe. Solid boxes are the first version; dashed boxes are
+        extension slots whose arrows are reserved now so they can plug in later without re-plumbing. Red
+        loops are the only places the flow goes backwards, and both have a hard stop.
+        <span class="badge">⚠ n</span> points to the numbered watch-outs further down.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<section class="data-sec">
+  <h2>What it stands on: the data</h2>
+  <p class="intro">Nothing downstream works until these exist. Most failures in a pipeline like this come
+    from here, not from the prompts. Tick <b>Ready</b> when the data is loaded <i>and</i> spot-checked.</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Dataset</th><th>Must carry</th><th>Used by</th><th>Ready</th></tr></thead>
+      <tbody>
+        <tr><td class="name">refs.styles</td><td>code, name, <b>parent category</b> (for small-sample fallback), OG / FG / IBU / SRM / ABV min–max, description text</td><td>S2 S4 S8 E1</td><td class="tick"><input type="checkbox" id="d-styles" aria-label="refs.styles ready"></td></tr>
+        <tr><td class="name">refs.fermentables</td><td>role (base / crystal / roast / adjunct / sugar / extract), <b>potential</b> (PPG or SG), <b>colour</b> (one unit), diastatic power, needs-mash flag, max sensible %</td><td>S2 S5 S7 S8</td><td class="tick"><input type="checkbox" id="d-ferm" aria-label="refs.fermentables ready"></td></tr>
+        <tr><td class="name">refs.hops</td><td><b>alpha acid</b> (typical + range), purpose (bittering / aroma / dual), <b>aroma descriptor tags</b>, origin</td><td>S2 S3 S5 S7</td><td class="tick"><input type="checkbox" id="d-hops" aria-label="refs.hops ready"></td></tr>
+        <tr><td class="name">refs.yeasts</td><td>type (ale / lager / kveik / wild), <b>attenuation range</b>, temperature range, flocculation, alcohol tolerance, flavour tags (esters, phenols), STA1</td><td>S2 S5 S7</td><td class="tick"><input type="checkbox" id="d-yeast" aria-label="refs.yeasts ready"></td></tr>
+        <tr><td class="name">refs.misc</td><td>kind (spice / fruit / fining / water salt), use (boil / whirlpool / secondary), typical dose per litre</td><td>S2 S5 S7</td><td class="tick"><input type="checkbox" id="d-misc" aria-label="refs.misc ready"></td></tr>
+        <tr><td class="name">refs aliases</td><td>alias text → ref id, incl. trade names, codes (HBC 394), spelling variants, <b>Hungarian names</b></td><td>S2</td><td class="tick"><input type="checkbox" id="d-alias" aria-label="aliases ready"></td></tr>
+        <tr><td class="name">refs categories</td><td>groupings the <i>avoid</i> list can name: “crystal malts”, “American hops”, “Belgian yeast”</td><td>S2 S5 S8</td><td class="tick"><input type="checkbox" id="d-cat" aria-label="categories ready"></td></tr>
+        <tr><td class="name">recipe corpus</td><td>style id, batch size, ingredient lines <b>linked to refs ids</b>, amounts in normalised units, hop use + time, published OG / IBU</td><td>builds trends · tests</td><td class="tick"><input type="checkbox" id="d-corpus" aria-label="corpus ready"></td></tr>
+        <tr><td class="name">trends (per style)</td><td>per ingredient: <b>n</b>, usage share, p10 / p50 / p90 of % or g/L, role; style-level vital-stat spread, mash-temp spread; pair lift</td><td>S4 S5 S6 S8</td><td class="tick"><input type="checkbox" id="d-trends" aria-label="trends ready"></td></tr>
+        <tr><td class="name">library</td><td>brewing books / articles chunked with embeddings; source + page for citations</td><td>S3</td><td class="tick"><input type="checkbox" id="d-lib" aria-label="library ready"></td></tr>
+        <tr><td class="name">equipment default</td><td>batch litres, brewhouse efficiency, boil-off per hour, kettle + fermenter losses</td><td>S7</td><td class="tick"><input type="checkbox" id="d-equip" aria-label="equipment ready"></td></tr>
+        <tr><td class="name">run log</td><td>one row per run + one per step: input, output JSON, model, prompt version, data snapshot</td><td>S10 · debugging · E4</td><td class="tick"><input type="checkbox" id="d-log" aria-label="run log ready"></td></tr>
+        <tr class="later"><td class="name">inventory <i>(later)</i></td><td>what the user owns, by refs id + amount</td><td>E2a</td><td class="tick"><input type="checkbox" id="d-inv" aria-label="inventory ready"></td></tr>
+        <tr class="later"><td class="name">ratings <i>(later)</i></td><td>brewed flag, score, notes per saved recipe</td><td>E3</td><td class="tick"><input type="checkbox" id="d-rate" aria-label="ratings ready"></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Step sheet</h2>
+  <p class="intro">One card per step: what goes in, what comes out, what it reads, and which watch-outs
+    apply. Tick the three stages as they land.</p>
+  <div class="cards" id="cards"></div>
+</section>
+
+<section class="watch-sec">
+  <h2>Watch-outs</h2>
+  <p class="intro">Where this kind of pipeline breaks quietly. The numbers match the red markers on the diagram.</p>
+  <div class="watch">
+    <div class="wgroup">
+      <h3>Names &amp; input</h3>
+      <ol>
+        <li><span class="badge">⚠ 1</span><div><b>Validate the Brief, don't trust it.</b> Parse the LLM output against the schema and retry once on failure. Anything the model filled in on its own must be tagged <code>inferred</code>, never passed off as the user's words. <span class="step-ref">S1</span></div></li>
+        <li><span class="badge">⚠ 2</span><div><b>Names are messy.</b> “Citra®”, “HBC 394”, “2-row”, “pale malt”, Hungarian names. Match on the alias table first, fuzzy match second; if two candidates tie, <i>ask</i>. Also catch self-contradictions (“use Crystal 60, no crystal malts”) here and ask. <span class="step-ref">S2</span></div></li>
+        <li><span class="badge">⚠ 3</span><div><b>No refs row means no maths.</b> An ingredient with no specs can't be calculated. Ask for the specs, or take them from the web with a <code>low confidence</code> flag. Never let the model make them up. <span class="step-ref">S2</span></div></li>
+        <li><span class="badge">⚠ 4</span><div><b>Web pages are untrusted input.</b> They can carry instructions aimed at the model. Treat them as quoted evidence for this run only, cite them, and never auto-ingest them into the library. <span class="step-ref">S3</span></div></li>
+      </ol>
+    </div>
+    <div class="wgroup">
+      <h3>Trends</h3>
+      <ol>
+        <li><span class="badge">⚠ 5</span><div><b>Small samples lie.</b> Show <code>n</code> on every stat. Below about 10 recipes, fall back to the parent category, and say so in the output. <span class="step-ref">S4</span></div></li>
+        <li><span class="badge">⚠ 6</span><div><b>Trends are only as good as the corpus.</b> Normalise units and batch size (g/L, not g), normalise hop use and timing, remove duplicate clones of one recipe, and distrust style labels on scraped recipes. <span class="step-ref">S4 · corpus</span></div></li>
+        <li><span class="badge">⚠ 7</span><div><b>The median beer is a boring beer.</b> Trends pull toward the average, so let the user's wishes and the p10–p90 band move choices off the median. A “how adventurous” setting can come later. <span class="step-ref">S4 · S6</span></div></li>
+      </ol>
+    </div>
+    <div class="wgroup">
+      <h3>The model</h3>
+      <ol>
+        <li><span class="badge">⚠ 8</span><div><b>Closed menu.</b> S6 may only return ids from the S5 pool. Check this in code after every call, and reject and retry on an unknown id. <span class="step-ref">S5 · S6</span></div></li>
+        <li><span class="badge">⚠ 9</span><div><b>The model never does arithmetic.</b> It returns %, g/L, targets and reasons. Grams, gravities and IBU come from S7 only. <span class="step-ref">S6</span></div></li>
+        <li><span class="badge">⚠ 18</span><div><b>The writer can't change numbers.</b> Put amounts and specs into the text from the calculation result with a template. The LLM writes the prose around them and must not retype a figure. <span class="step-ref">S9</span></div></li>
+      </ol>
+    </div>
+    <div class="wgroup">
+      <h3>Calculation</h3>
+      <ol>
+        <li><span class="badge">⚠ 10</span><div><b>One unit system inside.</b> Pick kg, L, g, °C, gravity points and <i>one</i> colour unit (EBC or SRM, with °L converted on import), and convert only at the edges. Decide whether grist % means <b>by weight</b> or <b>by extract</b>, write it down, and make trends use the same definition. <span class="step-ref">S7</span></div></li>
+        <li><span class="badge">⚠ 11</span><div><b>Hops have fine print.</b> Pellet, whole and cryo hops have different utilisation (cryo ≈ half dose). Alpha acid varies by lot, so allow an override. Decide how whirlpool IBU is counted. Tinseth needs boil gravity, so calculate <b>gravity first, then IBU</b>. <span class="step-ref">S7</span></div></li>
+        <li><span class="badge">⚠ 12</span><div><b>The balancing item can go below zero.</b> If late hops already exceed the IBU target, or specialty malts exceed the OG target, the bittering hop or base malt comes out ≤ 0. Detect that and send it back to S6 as “wrong ingredients”. <span class="step-ref">S7 → S8</span></div></li>
+        <li><span class="badge">⚠ 13</span><div><b>FG is an estimate.</b> It is yeast attenuation adjusted for mash temperature and fermentability (sugar raises attenuation, crystal lowers it). Show it as ≈ and keep the formula in one place so it can be tuned against real batches. <span class="step-ref">S7</span></div></li>
+      </ol>
+    </div>
+    <div class="wgroup">
+      <h3>Checking &amp; loops</h3>
+      <ol>
+        <li><span class="badge">⚠ 14</span><div><b>Brewing sanity, not just style ranges.</b> Enough diastatic power when adjuncts are high, a cap on specialty %, a sane BU:GU ratio, and a limit on how many hops and malts a recipe can have. <span class="step-ref">S8</span></div></li>
+        <li><span class="badge">⚠ 15</span><div><b>Every loop must end.</b> Auto-adjust stops when inside tolerance (OG ±0.002, IBU ±1) or after 5 passes, because changing gravity moves IBU. Re-selection gets at most 3 rounds, then return the best attempt with its warnings. <span class="step-ref">S8</span></div></li>
+        <li><span class="badge">⚠ 16</span><div><b>Agree on who wins.</b> Hard user constraints come first, then style ranges, then soft wishes, then trends. If a user target or a must-have ingredient is off-style, <i>warn</i>; don't fail. <span class="step-ref">S8</span></div></li>
+      </ol>
+    </div>
+    <div class="wgroup">
+      <h3>Running it</h3>
+      <ol>
+        <li><span class="badge">⚠ 17</span><div><b>Make every run reproducible.</b> Log the model, prompt version and data snapshot (refs + trends build date) with each run, or a changed answer can't be explained. <span class="step-ref">S10</span></div></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Proving it works</h2>
+  <p class="intro">Build the calculator first and test it without any LLM, using selections written by hand.</p>
+  <div class="testlist">
+    <label><input type="checkbox" id="t-golden"><span><b>Known recipes:</b> feed 5–10 published recipes (their exact ingredients) into S7. OG within ±0.003, IBU within ±5, SRM within ±2 of the published values.</span></label>
+    <label><input type="checkbox" id="t-units"><span><b>Unit round-trip:</b> the same recipe entered in imperial and metric gives identical results.</span></label>
+    <label><input type="checkbox" id="t-edge"><span><b>Edge cases:</b> 100% extract, a 30% adjunct grist, a no-boil-hop NEIPA, and a style with n &lt; 10 all complete or fail with a clear reason.</span></label>
+    <label><input type="checkbox" id="t-const"><span><b>Constraint tests:</b> every must-include appears, nothing from avoid (including categories) appears, and a contradictory brief is asked about, not guessed.</span></label>
+    <label><input type="checkbox" id="t-eval"><span><b>Question set:</b> 20 realistic questions (exact style, vibes only, ingredient-led, contradictory, Hungarian), with the expected style and must-haves written down before running.</span></label>
+    <label><input type="checkbox" id="t-loop"><span><b>Loops end:</b> an impossible brief (a 3% imperial stout) returns best effort + warnings within the round limits.</span></label>
+  </div>
+</section>
+
+<section>
+  <h2>Notes</h2>
+  <div class="notes-sheet" aria-label="Space for handwritten notes"></div>
+</section>
+
+</div>
+
+<script>
+  const steps = [
+    { id: "S0", name: "Question", type: "INPUT", cls: "", in: "chat message", out: "raw text, session id", reads: "-", watch: "" },
+    { id: "S1", name: "Understand → Brief", type: "LLM", cls: "c-llm", in: "question text", out: "Brief (JSON): must, avoid, concepts, sensory, style, targets, batch; each field tagged user / inferred / default / missing", reads: "Brief schema + prompt", watch: "1" },
+    { id: "S2", name: "Resolve to refs", type: "SQL + LLM", cls: "c-sql", in: "Brief", out: "Brief with ref ids · unresolved list · contradictions", reads: "refs.*, aliases, categories", watch: "2 · 3" },
+    { id: "G1", name: "Style known?", type: "GATE", cls: "", in: "Brief.style", out: "continue, or ask for a style (E1 later)", reads: "-", watch: "" },
+    { id: "S3", name: "Knowledge", type: "SEARCH", cls: "c-search", in: "concepts, sensory words, unresolved names", out: "evidence pack: claim · suggested ref id · source · confidence", reads: "library, web, refs descriptor tags", watch: "4" },
+    { id: "S4", name: "Trends / style profile", type: "SQL", cls: "c-sql", in: "style id", out: "targets + ingredient and process priors (p10/p50/p90, n)", reads: "trends, refs.styles", watch: "5 · 6 · 7" },
+    { id: "S5", name: "Candidate pool", type: "CODE", cls: "c-code", in: "evidence, profile, must / avoid", out: "per-category shortlist, each with its reason + trend stats", reads: "refs specs", watch: "8" },
+    { id: "S6", name: "Select & proportion", type: "LLM", cls: "c-llm", in: "Brief, pool, profile, evidence", out: "ids, roles, grist %, late-hop g/L, yeast, mash °C, targets, reason per item", reads: "-", watch: "8 · 9" },
+    { id: "S7", name: "Calculate", type: "CODE", cls: "c-code", in: "selection, equipment default", out: "kg / g per item · OG, FG≈, ABV, IBU, SRM, BU:GU", reads: "refs specs", watch: "10 · 11 · 12 · 13" },
+    { id: "S8", name: "Validate", type: "CODE", cls: "c-code", in: "calc result, style ranges, Brief", out: "pass · fixable → S7 · wrong ingredients → S6, with reasons", reads: "refs.styles, trends", watch: "14 · 15 · 16" },
+    { id: "S9", name: "Write recipe", type: "LLM", cls: "c-llm", in: "calc result, reasons, evidence", out: "recipe with citations and warnings", reads: "output template", watch: "18" },
+    { id: "S10", name: "Save + log", type: "SQL", cls: "c-sql", in: "every object above", out: "stored recipe + run trace", reads: "-", watch: "17" },
+    { id: "E1", name: "Style loop", type: "LATER", cls: "c-ext", ext: true, in: "Brief without style", out: "3 styles to pick from (sensory match + ingredient fingerprint)", reads: "style descriptions, trends", watch: "" },
+    { id: "E2", name: "Inventory & substitution", type: "LATER", cls: "c-ext", ext: true, in: "what I own · missing item", out: "pool filtered to owned (S5) · nearest swap by specs (S8)", reads: "inventory, substitution groups", watch: "" },
+    { id: "E3–E5", name: "Feedback · refine · equipment", type: "LATER", cls: "c-ext", ext: true, in: "ratings · follow-up chat · user kit", out: "weighted trends · re-entry at S6/S7 · real efficiency", reads: "run log (E4 needs S10)", watch: "" },
+  ];
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const cards = document.getElementById("cards");
+  cards.innerHTML = steps.map(s => {
+    const key = s.id.replace(/[^A-Za-z0-9]/g, "");
+    const stages = ["Designed", "Built", "Tested"].map(st =>
+      `<label><input type="checkbox" id="c-${key}-${st.toLowerCase()}"> ${st}</label>`).join("");
+    return `<article class="card${s.ext ? " ext" : ""}">
+      <div class="card-head"><h3>${esc(s.id)} · ${esc(s.name)}</h3><span class="type ${s.cls}">${esc(s.type)}</span></div>
+      <dl>
+        <dt>In</dt><dd>${esc(s.in)}</dd>
+        <dt>Out</dt><dd>${esc(s.out)}</dd>
+        <dt>Reads</dt><dd>${esc(s.reads)}</dd>
+        ${s.watch ? `<dt>Watch</dt><dd><span class="badge">⚠ ${esc(s.watch)}</span></dd>` : ""}
+      </dl>
+      <div class="checks">${stages}</div>
+      <div class="notes-lines" aria-hidden="true"></div>
+    </article>`;
+  }).join("");
+
+  // Remember ticks in this browser only.
+  const KEY = "recipe-workflow-ticks";
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { saved = {}; }
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    if (saved[cb.id]) cb.checked = true;
+    cb.addEventListener("change", () => {
+      saved[cb.id] = cb.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+    });
+  });
+</script>
