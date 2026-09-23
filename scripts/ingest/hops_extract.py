@@ -49,7 +49,8 @@ class BeerStyle:
 
 fetch_all_from_web_flag = False
 fetch_detailed_from_web_flag = True
-file_name = "./raw_hops_data.json"
+raw_file_name = "data/raw_hops_data.json"
+file_name = "data/hops_data.json"
 
 if fetch_all_from_web_flag:
     # 2. A cURL parancsból kimásolt URL és fejlécek (Headers)
@@ -233,12 +234,12 @@ if fetch_detailed_from_web_flag:
 main_hops.sort(key=lambda x: x.name)
 serializable_data = [asdict(hop) for hop in main_hops]
 
-with open("hops_data.json", "w", encoding="utf-8") as file:
+with open(file_name, "w", encoding="utf-8") as file:
     json.dump(serializable_data, file, ensure_ascii=False, indent=4)
 
 with psycopg.connect(**conn_kwargs) as conn:
     with conn.cursor() as cur:
-        cur.execute("TRUNCATE ref.hops RESTART IDENTITY CASCADE;")
+        # cur.execute("TRUNCATE ref.hops RESTART IDENTITY CASCADE;")
 
         # A `use` (Boil / Dry Hop / Whirlpool / First Wort) hasznalati fazis, nem
         # hop_type (Aroma / Bitter / Dual purpose) -- ezert nem megy a hop_type-ba.
