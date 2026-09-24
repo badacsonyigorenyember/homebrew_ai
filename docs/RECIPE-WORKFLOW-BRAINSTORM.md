@@ -339,13 +339,59 @@ of starting over.
 
 ---
 
-## 6. Data contracts (sketch)
+## 6. Data contract: the `RecipeRun` envelope (sketch)
 
-These objects flow between the steps. Keep them versioned. Adding optional fields is the
-main way the workflow grows.
+**One object per run, passed down the whole workflow and nested by step.** Each step owns
+exactly one slot and fills it. Dump the object after any step and you see the whole run
+so far. S10 saves it by serialising it, and E4 (refine) reloads it, clears everything
+from S6 on, and re-runs.
+
+**The envelope is the container, not the interface.** Steps are *called with the slots
+they need*, not with the whole object, so the §4 "Needs" column stays true and every step
+can be tested in isolation.
+
+### 6.1 Rules
+
+1. **One owner per slot.** A step writes only its own slot (table in §6.3). The single
+   exception is S2, which fills the `ref_id`s *inside* `brief`. It resolves the Brief's
+   own names, so it doesn't get a slot of its own.
+2. **Write-once, except `attempts`.** The S6 → S8 loop *appends* one entry per round, so
+   failed rounds are kept for debugging and evals instead of being overwritten.
+3. **Steps take arguments, the orchestrator assigns.** A step returns its slot. It never
+   receives or mutates `run`.
+4. **An LLM step gets a projection and returns only its slot.** It never sees or returns
+   the whole object: that costs tokens, lets it second-guess earlier steps (S9 must make
+   no new decisions), and a model asked to return the whole object will quietly rewrite
+   or drop fields. Its output is schema-validated *before* it is assigned.
+5. **Every slot is optional.** `null` means "not reached yet". Adding a field is additive.
+   Bump `schema_version` only when a field is renamed or removed.
+6. **Parallel steps write disjoint slots.** S3 → `evidence` and S4 → `profile`, so merging
+   the two branches is trivial.
+
+### 6.2 Shape
 
 ```jsonc
-// Brief (S1 → S2)
+// RecipeRun: the one object that travels S0 → S10
+{
+  "id": "run_…",
+  "schema_version": 1,
+  "question":  "…",                           // S0  raw user text
+  "brief":     { /* Brief */ },               // S1, ref_ids filled by S2
+  "evidence":  { "findings": [ /* … */ ] },   // S3
+  "profile":   { /* StyleProfile */ },        // S4
+  "pool":      { /* CandidatePool */ },       // S5
+  "attempts":  [                              // S6–S8, one entry per round
+    {"kind": "initial", "selection": {}, "calc": {}, "validation": {}}
+  ],
+  "recipe":    { /* Recipe */ },              // S9
+  "trace":     [{"step": "S1", "ms": 2140, "model": "…", "tokens": 1830, "error": null}]
+}
+```
+
+The slots:
+
+```jsonc
+// brief (S1 → S2)
 {
   "style":        {"value": null, "ref_id": null, "source": "missing"},
   "must_include": [{"text": "Citra", "ref_id": null, "kind": "item"}],
@@ -354,10 +400,32 @@ main way the workflow grows.
   "sensory":      {"aroma": [], "flavour": [], "appearance": [], "mouthfeel": []},
   "targets":      {"abv": null, "ibu": null, "srm": null},
   "batch":        {"volume_l": 20, "efficiency": 0.72, "source": "default"},
+  "unresolved":   [],            // S2: names with no refs match → S3
   "open_questions": []
 }
 
-// Selection (S6 → S7): proportions only, no grams
+// evidence (S3)
+{
+  "findings": [
+    {"id": "ev3", "claim": "…", "suggests_ref_id": 7, "source": "…", "confidence": 0.8}
+  ]
+}
+
+// profile (S4): style description, targets, trend priors
+{
+  "style":   {"ref_id": 21, "name": "American IPA", "description": "…"},
+  "targets": {"og": {"min": 1.056, "max": 1.070, "p10": 1.058, "p50": 1.063, "p90": 1.068}, ...},
+  "priors":  {"hops": [{"ref_id": 7, "use": "dry_hop", "g_per_l": {"p10": 4, "p50": 7, "p90": 12}, "n": 140}], ...},
+  "fallback": null               // e.g. "parent_style" when n is too small
+}
+
+// pool (S5): the only ids S6 may pick
+{
+  "fermentables": [{"ref_id": 12, "reasons": ["trend", "user"], "stats": {"p50": 80, "n": 210}}],
+  "hops": [], "yeast": [], "misc": []
+}
+
+// attempts[n].selection (S6 → S7): proportions only, no grams
 {
   "fermentables": [{"ref_id": 12, "role": "base", "pct": 80}, ...],
   "hops":  [{"ref_id": 7, "use": "dry_hop", "g_per_l": 8}, {"ref_id": 3, "use": "bittering"}],
@@ -367,7 +435,131 @@ main way the workflow grows.
   "targets": {"og": 1.062, "ibu": 35},
   "rationale": [{"ref_id": 7, "why": "...", "evidence": ["ev3", "trend:hop:7"]}]
 }
+
+// attempts[n].calc (S7)
+{
+  "amounts": [{"ref_id": 12, "kg": 4.8}, {"ref_id": 3, "g": 22, "time_min": 60}, ...],
+  "specs":   {"og": 1.062, "fg": 1.012, "abv": 6.6, "ibu": 35, "srm": 6.1},
+  "estimates": ["fg"]            // FG is a heuristic; say so in the recipe
+}
+
+// attempts[n].validation (S8)
+{
+  "outcome": "fixable",          // pass | fixable | structural
+  "reasons": [{"check": "ibu_in_style", "value": 74, "range": [40, 70], "severity": "fail"}]
+}
+
+// recipe (S9)
+{"attempt": 2, "text": "…", "citations": ["ev3"], "warnings": []}
 ```
+
+`attempts[].kind` is `initial`, `auto_adjust` (S8 fixable → S7, same selection with the
+balancing variable moved) or `reselect` (S8 structural → S6). "Max 3 rounds" counts
+`reselect` entries. `recipe.attempt` records which attempt was written up: the passing
+one, or the best one after the round limit.
+
+### 6.3 Who reads and writes what
+
+This table is the contract. A step that needs a slot not listed here means the table
+needs changing, not the step.
+
+| Step | Reads (its projection)                                          | Writes                    |
+|------|-----------------------------------------------------------------|---------------------------|
+| S1   | `question`                                                      | `brief`                   |
+| S2   | `brief`                                                         | `brief.*.ref_id`, `brief.unresolved` |
+| G1   | `brief.style`                                                   | -                         |
+| S3   | `brief.concepts`, `brief.sensory`, `brief.unresolved`           | `evidence`                |
+| S4   | `brief.style.ref_id`                                            | `profile`                 |
+| S5   | `evidence`, `profile.priors`, `brief.must_include`, `brief.avoid` | `pool`                  |
+| S6   | `brief`, `pool`, `profile`, `evidence`, last `validation.reasons` | new `attempts[n].selection` |
+| S7   | `attempts[n].selection`, `profile.targets`, `brief.batch`       | `attempts[n].calc`        |
+| S8   | `attempts[n].calc`, `profile.targets`, `brief.must_include`, `brief.avoid` | `attempts[n].validation` |
+| S9   | chosen attempt's `calc` + `selection.rationale`, cited `evidence` only | `recipe`           |
+| S10  | the whole run                                                   | DB                        |
+
+### 6.4 In Python
+
+The ingest scripts use `dataclasses`. Use **Pydantic** here instead: LLM output has to be
+validated, and Pydantic gives the JSON schema for structured output
+(`Brief.model_json_schema()`) plus validation (`Brief.model_validate_json(text)`) and S10's
+serialisation (`run.model_dump_json()`) for free.
+
+```python
+class Attempt(BaseModel):
+    kind: Literal["initial", "auto_adjust", "reselect"]
+    selection: Selection
+    calc: Calc | None = None
+    validation: Validation | None = None
+
+class RecipeRun(BaseModel):
+    id: str
+    schema_version: int = 1
+    question: str
+    brief: Brief | None = None
+    evidence: Evidence | None = None
+    profile: StyleProfile | None = None
+    pool: CandidatePool | None = None
+    attempts: list[Attempt] = []
+    recipe: Recipe | None = None
+    trace: list[TraceEntry] = []
+```
+
+The orchestrator is the only code that touches `run`, and it reads like the flow diagram:
+
+```python
+def run_workflow(question: str) -> RecipeRun:
+    run = RecipeRun(id=new_run_id(), question=question)
+    run.brief = understand(run.question)                             # S1  LLM
+    run.brief = resolve_refs(run.brief)                              # S2
+    if run.brief.style.ref_id is None:                               # G1
+        return ask_for_style(run)
+    run.evidence, run.profile = gather(run.brief)                    # S3 ‖ S4
+    run.pool = build_pool(run.evidence, run.profile, run.brief)      # S5
+
+    feedback, kind = None, "initial"
+    for _ in range(MAX_RESELECT):
+        sel = select(run.brief, run.pool, run.profile, run.evidence, feedback)  # S6 LLM
+        for _ in range(MAX_ADJUST):
+            calc = calculate(sel, run.profile.targets, run.brief.batch)         # S7
+            val = validate(calc, run.profile, run.brief)                        # S8
+            run.attempts.append(Attempt(kind=kind, selection=sel, calc=calc, validation=val))
+            if val.outcome != "fixable":
+                break
+            sel, kind = auto_adjust(sel, val), "auto_adjust"
+        if val.outcome == "pass":
+            break
+        feedback, kind = val.reasons, "reselect"
+
+    run.recipe = write_recipe(best_attempt(run.attempts), run.evidence)          # S9  LLM
+    save(run)                                                                    # S10
+    return run
+```
+
+An LLM step builds its prompt from its arguments and returns only its slot:
+
+```python
+def understand(question: str) -> Brief:
+    text = llm(prompt=S1_PROMPT.format(question=question),
+               schema=Brief.model_json_schema())
+    return Brief.model_validate_json(text)      # fails loudly instead of corrupting run
+```
+
+`trace` is filled by a small `@step("S1")` wrapper around each step (timing, model,
+tokens, error), so step code stays free of logging.
+
+### 6.5 In n8n (if it is built there)
+
+The envelope goes against n8n's grain: Postgres, HTTP Request and AI Agent nodes replace
+`$json` with their own output. The cleanest mapping is **one sub-workflow per step,
+envelope in → envelope out**. The step's inner nodes do what they like, and a final Code
+node merges the result back into the incoming envelope (`{...envelope, profile: $json}`).
+⚠️ Every sub-workflow must be active, and re-activated plus `docker restart n8n` after any
+`import:workflow` (see `CLAUDE.md`).
+
+- [ ] `RecipeRun` model + slot models
+- [ ] Orchestrator with `attempts` loop
+- [ ] `@step` trace wrapper
+- [ ] Projection per LLM step (S1, S6, S9)
 
 ---
 

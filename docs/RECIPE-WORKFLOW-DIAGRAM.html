@@ -135,6 +135,14 @@
   .testlist label:last-child { border-bottom: 0; }
   .testlist input { margin-top: 3px; }
 
+  /* envelope */
+  td.slot { font-family: var(--font-mono); font-size: 13px; white-space: nowrap; font-weight: 500; }
+  td.who { white-space: nowrap; font-size: 13px; }
+  td.ex { font-size: 13.5px; }
+  .rules { display: grid; gap: 8px; }
+  .rules ol { margin: 0; padding-left: 22px; display: grid; gap: 6px; font-size: 14px; max-width: 95ch; }
+  .card dd code { font-size: 12px; }
+
   .notes-sheet { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; height: 240px; background-image: repeating-linear-gradient(to bottom, transparent 0 31px, var(--faint) 31px 32px); }
 
   @media (max-width: 520px) {
@@ -167,7 +175,7 @@
 
 <div class="diagram-page">
   <header class="top">
-    <div class="eyebrow">AI Homebrew Assistant · design sketch · 2026-09-23</div>
+    <div class="eyebrow">AI Homebrew Assistant · design sketch · 2026-09-23 · envelope added 2026-09-24</div>
     <h1>Recipe Builder Workflow</h1>
     <p class="lede"><strong>The LLM decides what goes in the beer and why; code decides how much,
       and checks that the result is the beer that was asked for.</strong> The model runs in three
@@ -227,11 +235,11 @@
 
           <!-- row A arrows -->
           <line class="flow" x1="180" y1="72" x2="238" y2="72" marker-end="url(#ah)"/>
-          <text class="lbl" x="209" y="64" text-anchor="middle">text</text>
+          <text class="lbl" x="209" y="64" text-anchor="middle">question</text>
           <line class="flow" x1="380" y1="72" x2="438" y2="72" marker-end="url(#ah)"/>
-          <text class="lbl" x="409" y="64" text-anchor="middle">Brief</text>
+          <text class="lbl" x="409" y="64" text-anchor="middle">brief</text>
           <line class="flow" x1="580" y1="72" x2="654" y2="72" marker-end="url(#ah)"/>
-          <text class="lbl" x="617" y="64" text-anchor="middle">+ ids</text>
+          <text class="lbl" x="617" y="64" text-anchor="middle">+ ref ids</text>
           <line class="extflow" x1="763" y1="60" x2="898" y2="60" marker-end="url(#ahx)"/>
           <text class="lbl" x="830" y="53" text-anchor="middle">no style</text>
           <line class="extflow" x1="898" y1="90" x2="755" y2="90" marker-end="url(#ahx)"/>
@@ -319,9 +327,9 @@
           <line class="flow" x1="380" y1="297" x2="438" y2="297" marker-end="url(#ah)"/>
           <text class="lbl" x="409" y="289" text-anchor="middle">pool</text>
           <line class="flow" x1="580" y1="297" x2="638" y2="297" marker-end="url(#ah)"/>
-          <text class="lbl" x="609" y="289" text-anchor="middle">choices</text>
+          <text class="lbl" x="609" y="289" text-anchor="middle" style="font-size:9.5px">selection</text>
           <line class="flow" x1="780" y1="297" x2="838" y2="297" marker-end="url(#ah)"/>
-          <text class="lbl" x="809" y="289" text-anchor="middle">result</text>
+          <text class="lbl" x="809" y="289" text-anchor="middle">calc</text>
           <line class="flow" x1="980" y1="297" x2="1038" y2="297" marker-end="url(#ah)"/>
           <text class="lbl" x="1009" y="289" text-anchor="middle">pass</text>
 
@@ -341,7 +349,7 @@
           <!-- S10 -->
           <rect class="box b-sql" x="1040" y="420" width="140" height="64" rx="6"/>
           <text class="t1" x="1052" y="442">S10 Save + log</text>
-          <text class="t2" x="1052" y="458">every step's output</text>
+          <text class="t2" x="1052" y="458">the whole RecipeRun</text>
           <text class="tag f-sql" x="1052" y="475">SQL</text>
           <rect class="wb" x="1140" y="412" width="36" height="16" rx="3"/><text class="wt" x="1158" y="424" text-anchor="middle">⚠ 17</text>
           <line class="flow" x1="1110" y1="329" x2="1110" y2="418" marker-end="url(#ah)"/>
@@ -357,11 +365,47 @@
       </div>
       <figcaption>How a question becomes a recipe. Solid boxes are the first version; dashed boxes are
         extension slots whose arrows are reserved now so they can plug in later without re-plumbing. Red
-        loops are the only places the flow goes backwards, and both have a hard stop.
+        loops are the only places the flow goes backwards, and both have a hard stop. Every arrow carries
+        the same <code>RecipeRun</code> object; its label names the slot the step before it just filled.
         <span class="badge">⚠ n</span> points to the numbered watch-outs further down.</figcaption>
     </figure>
   </div>
 </div>
+
+<section class="env-sec">
+  <h2>One object: the RecipeRun</h2>
+  <p class="intro">The whole run travels as one object, nested by step. Each step fills its own slot and
+    passes the object on, so dumping it after any step shows the run so far, S10 saves it by
+    serialising it, and E4 reloads it and clears everything from <code>attempts</code> on. The example
+    column follows one dummy run of <code>docs/recipe-run.example.js</code>:
+    <i>“A tropical, dank American IPA with Citra, around 6.5%, no crystal malt.”</i></p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Slot</th><th>Written by</th><th>Holds</th><th>Dummy run</th></tr></thead>
+      <tbody>
+        <tr><td class="slot">question</td><td class="who">S0 input</td><td>the user's own words</td><td class="ex">“A tropical, dank American IPA with Citra…”</td></tr>
+        <tr><td class="slot">brief</td><td class="who"><span class="c-llm">S1 LLM</span><br><span class="c-sql">S2 adds ids</span></td><td>must / avoid, concepts, sensory, style, targets, batch; every field tagged with its source</td><td class="ex">style American IPA → <b>21</b> · must Citra → <b>7</b> · avoid crystal malts (category <b>3</b>) · aroma tropical, dank · ABV 6.5 (<i>user</i>) · 20 L at 72% (<i>default</i>)</td></tr>
+        <tr><td class="slot">evidence</td><td class="who"><span class="c-search">S3 search</span></td><td>findings: claim, suggested ref id, source, confidence</td><td class="ex">ev1 Citra + Mosaic dry hop → tropical, dank (0.8) · ev2 Columbus → resinous, dank (0.7)</td></tr>
+        <tr><td class="slot">profile</td><td class="who"><span class="c-sql">S4 SQL</span></td><td>style description, target ranges, ingredient and process priors with <code>n</code></td><td class="ex">21A · OG 1.056–1.070 · IBU 40–70 · SRM 6–14 · Citra dry hop p50 6 g/L (n 140) · Crystal 40 p50 5% (n 150)</td></tr>
+        <tr><td class="slot">pool</td><td class="who"><span class="c-code">S5 code</span></td><td>the only ids S6 may pick, each with its reason and stats</td><td class="ex">Pale, Munich, oats · Citra, Mosaic, Centennial, Columbus · US-05 · <b>excluded</b>: Crystal 40 (avoid)</td></tr>
+        <tr><td class="slot">attempts[]</td><td class="who"><span class="c-llm">S6</span> <span class="c-code">S7 S8</span><br>one per round</td><td><code>{kind, selection, calc, validation}</code>; appended, never overwritten</td><td class="ex"><b>0</b> initial: 92% pale + 8% oats → SRM 4.0 &lt; 6 → <i>structural</i><br><b>1</b> reselect: + 20% Munich → IBU 52.8 vs 50 → <i>fixable</i><br><b>2</b> auto_adjust: Columbus 20 → 18 g → IBU 49.6 → <i>pass</i></td></tr>
+        <tr><td class="slot">recipe</td><td class="who"><span class="c-llm">S9 LLM</span></td><td>text, citations, warnings, and which attempt it wrote up</td><td class="ex">attempt 2 · cites ev1, ev2 · warns FG ≈ and pale-edge colour</td></tr>
+        <tr><td class="slot">trace[]</td><td class="who">every step</td><td>timing, model, tokens, error</td><td class="ex">one entry per step</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="sheet rules">
+    <h3>Rules that stop it becoming a god object</h3>
+    <ol>
+      <li><b>One owner per slot.</b> Only S2 writes into another step's slot: it fills the ids inside <code>brief</code>.</li>
+      <li><b>Write once.</b> <code>attempts</code> is the exception, and it only appends, so failed rounds stay visible.</li>
+      <li><b>Steps get arguments, not the run.</b> Each step takes the slots on its card below and returns its own slot. Only the orchestrator reads and writes <code>run</code>.</li>
+      <li><b>An LLM gets a projection and returns only its slot.</b> The result is schema-validated before it is stored. Never ask a model to return the whole object.</li>
+      <li><b>Every slot starts <code>null</code>.</b> Adding a field is additive; bump <code>schema_version</code> only on a rename or removal.</li>
+      <li><b>Parallel steps write different slots.</b> S3 → <code>evidence</code>, S4 → <code>profile</code>, so joining them needs no merge logic.</li>
+    </ol>
+  </div>
+</section>
 
 <section class="data-sec">
   <h2>What it stands on: the data</h2>
@@ -382,7 +426,7 @@
         <tr><td class="name">trends (per style)</td><td>per ingredient: <b>n</b>, usage share, p10 / p50 / p90 of % or g/L, role; style-level vital-stat spread, mash-temp spread; pair lift</td><td>S4 S5 S6 S8</td><td class="tick"><input type="checkbox" id="d-trends" aria-label="trends ready"></td></tr>
         <tr><td class="name">library</td><td>brewing books / articles chunked with embeddings; source + page for citations</td><td>S3</td><td class="tick"><input type="checkbox" id="d-lib" aria-label="library ready"></td></tr>
         <tr><td class="name">equipment default</td><td>batch litres, brewhouse efficiency, boil-off per hour, kettle + fermenter losses</td><td>S7</td><td class="tick"><input type="checkbox" id="d-equip" aria-label="equipment ready"></td></tr>
-        <tr><td class="name">run log</td><td>one row per run + one per step: input, output JSON, model, prompt version, data snapshot</td><td>S10 · debugging · E4</td><td class="tick"><input type="checkbox" id="d-log" aria-label="run log ready"></td></tr>
+        <tr><td class="name">run log</td><td>one row per run holding the whole <code>RecipeRun</code> as JSON (with <code>schema_version</code>), plus model, prompt version and data snapshot per step from <code>trace</code></td><td>S10 · debugging · E4</td><td class="tick"><input type="checkbox" id="d-log" aria-label="run log ready"></td></tr>
         <tr class="later"><td class="name">inventory <i>(later)</i></td><td>what the user owns, by refs id + amount</td><td>E2a</td><td class="tick"><input type="checkbox" id="d-inv" aria-label="inventory ready"></td></tr>
         <tr class="later"><td class="name">ratings <i>(later)</i></td><td>brewed flag, score, notes per saved recipe</td><td>E3</td><td class="tick"><input type="checkbox" id="d-rate" aria-label="ratings ready"></td></tr>
       </tbody>
@@ -392,8 +436,9 @@
 
 <section>
   <h2>Step sheet</h2>
-  <p class="intro">One card per step: what goes in, what comes out, what it reads, and which watch-outs
-    apply. Tick the three stages as they land.</p>
+  <p class="intro">One card per step: the <code>RecipeRun</code> slots it is handed (<b>In</b>), the slot it
+    fills (<b>Writes</b>), what that holds (<b>Out</b>), the data it reads, and which watch-outs apply.
+    Tick the three stages as they land.</p>
   <div class="cards" id="cards"></div>
 </section>
 
@@ -474,21 +519,21 @@
 
 <script>
   const steps = [
-    { id: "S0", name: "Question", type: "INPUT", cls: "", in: "chat message", out: "raw text, session id", reads: "-", watch: "" },
-    { id: "S1", name: "Understand → Brief", type: "LLM", cls: "c-llm", in: "question text", out: "Brief (JSON): must, avoid, concepts, sensory, style, targets, batch; each field tagged user / inferred / default / missing", reads: "Brief schema + prompt", watch: "1" },
-    { id: "S2", name: "Resolve to refs", type: "SQL + LLM", cls: "c-sql", in: "Brief", out: "Brief with ref ids · unresolved list · contradictions", reads: "refs.*, aliases, categories", watch: "2 · 3" },
-    { id: "G1", name: "Style known?", type: "GATE", cls: "", in: "Brief.style", out: "continue, or ask for a style (E1 later)", reads: "-", watch: "" },
-    { id: "S3", name: "Knowledge", type: "SEARCH", cls: "c-search", in: "concepts, sensory words, unresolved names", out: "evidence pack: claim · suggested ref id · source · confidence", reads: "library, web, refs descriptor tags", watch: "4" },
-    { id: "S4", name: "Trends / style profile", type: "SQL", cls: "c-sql", in: "style id", out: "targets + ingredient and process priors (p10/p50/p90, n)", reads: "trends, refs.styles", watch: "5 · 6 · 7" },
-    { id: "S5", name: "Candidate pool", type: "CODE", cls: "c-code", in: "evidence, profile, must / avoid", out: "per-category shortlist, each with its reason + trend stats", reads: "refs specs", watch: "8" },
-    { id: "S6", name: "Select & proportion", type: "LLM", cls: "c-llm", in: "Brief, pool, profile, evidence", out: "ids, roles, grist %, late-hop g/L, yeast, mash °C, targets, reason per item", reads: "-", watch: "8 · 9" },
-    { id: "S7", name: "Calculate", type: "CODE", cls: "c-code", in: "selection, equipment default", out: "kg / g per item · OG, FG≈, ABV, IBU, SRM, BU:GU", reads: "refs specs", watch: "10 · 11 · 12 · 13" },
-    { id: "S8", name: "Validate", type: "CODE", cls: "c-code", in: "calc result, style ranges, Brief", out: "pass · fixable → S7 · wrong ingredients → S6, with reasons", reads: "refs.styles, trends", watch: "14 · 15 · 16" },
-    { id: "S9", name: "Write recipe", type: "LLM", cls: "c-llm", in: "calc result, reasons, evidence", out: "recipe with citations and warnings", reads: "output template", watch: "18" },
-    { id: "S10", name: "Save + log", type: "SQL", cls: "c-sql", in: "every object above", out: "stored recipe + run trace", reads: "-", watch: "17" },
-    { id: "E1", name: "Style loop", type: "LATER", cls: "c-ext", ext: true, in: "Brief without style", out: "3 styles to pick from (sensory match + ingredient fingerprint)", reads: "style descriptions, trends", watch: "" },
-    { id: "E2", name: "Inventory & substitution", type: "LATER", cls: "c-ext", ext: true, in: "what I own · missing item", out: "pool filtered to owned (S5) · nearest swap by specs (S8)", reads: "inventory, substitution groups", watch: "" },
-    { id: "E3–E5", name: "Feedback · refine · equipment", type: "LATER", cls: "c-ext", ext: true, in: "ratings · follow-up chat · user kit", out: "weighted trends · re-entry at S6/S7 · real efficiency", reads: "run log (E4 needs S10)", watch: "" },
+    { id: "S0", name: "Question", type: "INPUT", cls: "", in: "chat message", writes: "question", out: "raw text, session id", reads: "-", watch: "" },
+    { id: "S1", name: "Understand → Brief", type: "LLM", cls: "c-llm", in: "question", writes: "brief", out: "Brief (JSON): must, avoid, concepts, sensory, style, targets, batch; each field tagged user / inferred / default / missing", reads: "Brief schema + prompt", watch: "1" },
+    { id: "S2", name: "Resolve to refs", type: "SQL + LLM", cls: "c-sql", in: "brief", writes: "brief.*.ref_id, brief.unresolved", out: "Brief with ref ids · unresolved list · contradictions", reads: "refs.*, aliases, categories", watch: "2 · 3" },
+    { id: "G1", name: "Style known?", type: "GATE", cls: "", in: "brief.style", writes: "-", out: "continue, or ask for a style (E1 later)", reads: "-", watch: "" },
+    { id: "S3", name: "Knowledge", type: "SEARCH", cls: "c-search", in: "brief.concepts, brief.sensory, brief.unresolved", writes: "evidence", out: "evidence pack: claim · suggested ref id · source · confidence", reads: "library, web, refs descriptor tags", watch: "4" },
+    { id: "S4", name: "Trends / style profile", type: "SQL", cls: "c-sql", in: "brief.style.ref_id", writes: "profile", out: "targets + ingredient and process priors (p10/p50/p90, n)", reads: "trends, refs.styles", watch: "5 · 6 · 7" },
+    { id: "S5", name: "Candidate pool", type: "CODE", cls: "c-code", in: "evidence, profile.priors, brief.must_include, brief.avoid", writes: "pool", out: "per-category shortlist, each with its reason + trend stats", reads: "refs specs", watch: "8" },
+    { id: "S6", name: "Select & proportion", type: "LLM", cls: "c-llm", in: "brief, pool, profile, evidence, last validation.reasons", writes: "attempts[n].selection", out: "ids, roles, grist %, late-hop g/L, yeast, mash °C, targets, reason per item", reads: "-", watch: "8 · 9" },
+    { id: "S7", name: "Calculate", type: "CODE", cls: "c-code", in: "attempts[n].selection, profile.targets, brief.batch", writes: "attempts[n].calc", out: "kg / g per item · OG, FG≈, ABV, IBU, SRM, BU:GU", reads: "refs specs", watch: "10 · 11 · 12 · 13" },
+    { id: "S8", name: "Validate", type: "CODE", cls: "c-code", in: "attempts[n].calc, profile.targets, brief.must_include, brief.avoid", writes: "attempts[n].validation", out: "pass · fixable → S7 · wrong ingredients → S6, with reasons", reads: "refs.styles, trends", watch: "14 · 15 · 16" },
+    { id: "S9", name: "Write recipe", type: "LLM", cls: "c-llm", in: "chosen attempt's calc + selection.rationale, cited evidence only", writes: "recipe", out: "recipe with citations and warnings", reads: "output template", watch: "18" },
+    { id: "S10", name: "Save + log", type: "SQL", cls: "c-sql", in: "the whole run", writes: "DB: one JSON row per run", out: "stored recipe + run trace", reads: "-", watch: "17" },
+    { id: "E1", name: "Style loop", type: "LATER", cls: "c-ext", ext: true, in: "brief without style", writes: "brief.style", out: "3 styles to pick from (sensory match + ingredient fingerprint)", reads: "style descriptions, trends", watch: "" },
+    { id: "E2", name: "Inventory & substitution", type: "LATER", cls: "c-ext", ext: true, in: "what I own · missing item", writes: "pool · attempts[n]", out: "pool filtered to owned (S5) · nearest swap by specs (S8)", reads: "inventory, substitution groups", watch: "" },
+    { id: "E3–E5", name: "Feedback · refine · equipment", type: "LATER", cls: "c-ext", ext: true, in: "ratings · follow-up chat · user kit", writes: "E4: saved run, cleared from attempts on", out: "weighted trends · re-entry at S6/S7 · real efficiency", reads: "run log (E4 needs S10)", watch: "" },
   ];
 
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -500,7 +545,8 @@
     return `<article class="card${s.ext ? " ext" : ""}">
       <div class="card-head"><h3>${esc(s.id)} · ${esc(s.name)}</h3><span class="type ${s.cls}">${esc(s.type)}</span></div>
       <dl>
-        <dt>In</dt><dd>${esc(s.in)}</dd>
+        <dt>In</dt><dd><code>${esc(s.in)}</code></dd>
+        <dt>Writes</dt><dd><code>${esc(s.writes)}</code></dd>
         <dt>Out</dt><dd>${esc(s.out)}</dd>
         <dt>Reads</dt><dd>${esc(s.reads)}</dd>
         ${s.watch ? `<dt>Watch</dt><dd><span class="badge">⚠ ${esc(s.watch)}</span></dd>` : ""}
