@@ -1829,3 +1829,59 @@ ON CONFLICT (name, version) DO NOTHING;
 
 UPDATE obs.prompts SET active = false WHERE name = 'formulate.recipe/propose';
 UPDATE obs.prompts SET active = true  WHERE name = 'formulate.recipe/propose' AND version = 11;
+
+
+-- ---------------------------------------------------------------------------
+-- resolve_style v1: pick ONE BJCP base style from the SQL shortlist.
+--
+-- The candidates come from the style-candidates query in
+-- docs/STYLE-RESOLUTION.md (family + sensory words + optional ABV, scored over
+-- ref.styles). The model only arbitrates between them: schema_json builds the
+-- ref_style_id enum from those same rows, and Ollama enforces it, so an id
+-- outside the shortlist cannot be generated. `measured` 2026-09-24 on
+-- gemma4:12b-it-q8_0: asked for id 999 against enum [74, 106, null] it returned
+-- 106. The enum guarantees a VALID id, not a right one -- the validator's ABV
+-- band check still applies.
+--
+-- ⚠️ The body has no leading or trailing newline, unlike the prompts above.
+-- It is copied byte-for-byte from the row first inserted by hand, so the
+-- stored sha256 (c19a4ba0...) stays the same.
+-- ---------------------------------------------------------------------------
+INSERT INTO obs.prompts (name, version, body, active, notes) VALUES
+('formulate.recipe/resolve_style', 1, $body$Classify a homebrew beer request into ONE BJCP 2021 base style, chosen from the
+candidates below. Output JSON only, no prose.
+
+The brewer's request:
+{{question}}
+
+The parsed brief:
+- family: {{family}}
+- target ABV: {{target_abv}}
+- sensory words: {{sensory}}
+
+Candidates, ranked by a keyword scorer (score 0-3, higher is better):
+{{candidates}}
+
+Rules, in priority order:
+1. Choose exactly ONE candidate. Copy its id exactly.
+2. BASE STYLE ONLY. Classify what the beer is underneath and ignore adjuncts,
+   fruit, spice, lactose, vanilla, coffee, barrel or wood aging. A "pastry
+   stout" is a stout; a "lingonberry double IPA" is a Double IPA. A specialty
+   style (29A-34C) is right only when no base style fits.
+3. A given target ABV is a HARD constraint: prefer the style whose ABV range
+   contains it. A style it misses by more than 1% is wrong unless every
+   candidate misses.
+4. No target ABV: infer strength from the request's own words ("imperial",
+   "session", "big", "strong"; "pastry" usually means imperial strength) and
+   set abv_basis to "inferred". If nothing implies a strength, set abv_basis
+   to "none" and decide on the descriptions alone.
+5. "matched" is a keyword match that cannot see negation: "low sweetness"
+   still matches "sweet". Check each candidate's description yourself.
+6. The score is a hint, not the answer. Overrule it when rules 2-4 say so.
+
+Fields:
+- ref_style_id: the chosen candidate id.
+- style_name: the chosen candidate label (code + name).
+- abv_basis: "given", "inferred" or "none".
+- reason: one or two sentences naming the rule that decided it.$body$, true, 'v1 initial')
+ON CONFLICT (name, version) DO NOTHING;

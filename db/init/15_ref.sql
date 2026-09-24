@@ -13,14 +13,15 @@
 
 CREATE SCHEMA IF NOT EXISTS ref;
 
--- One row per (guide, year, code). BJCP 2021 and BA 2026 coexist as rows; where
--- they disagree that disagreement is information, surfaced by Layer 4, never
--- resolved by dropping one (phase3 README §5.2).
+-- One row per (guide, year, code). ⛔ BJCP ONLY since 2026-09-24: the BA 2026
+-- rows were deleted and the CHECK below now refuses them, so a rerun of the
+-- ingest-ba-styles workflow fails loudly instead of quietly re-adding them.
+-- This reverses phase3 README §5.2, which had BJCP and BA coexist as rows.
 CREATE TABLE IF NOT EXISTS ref.styles (
   id          bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  guide       text NOT NULL CHECK (guide IN ('BJCP','BA')),
+  guide       text NOT NULL CHECK (guide = 'BJCP'),
   guide_year  int  NOT NULL,
-  code        text NOT NULL,          -- '15B'  ·  BA codes are not numeric
+  code        text NOT NULL,          -- '15B'
   name        text NOT NULL,          -- 'Irish Stout'
   category    text,
 
@@ -60,8 +61,14 @@ CREATE INDEX IF NOT EXISTS styles_tags_idx ON ref.styles USING gin (tags);
 CREATE INDEX IF NOT EXISTS styles_name_trgm_idx
   ON ref.styles USING gin (name gin_trgm_ops);
 
+-- Existing clusters: CREATE TABLE IF NOT EXISTS never touches the old CHECK, so
+-- narrow it here. The DELETE comes first or ADD CONSTRAINT fails on a BA row.
+DELETE FROM ref.styles WHERE guide <> 'BJCP';
+ALTER TABLE ref.styles DROP CONSTRAINT IF EXISTS styles_guide_check;
+ALTER TABLE ref.styles ADD CONSTRAINT styles_guide_check CHECK (guide = 'BJCP');
+
 COMMENT ON TABLE ref.styles IS
-  'Published style guidelines, all sources as rows. Numeric ranges are SQL-only '
+  'Published style guidelines, BJCP 2021 only. Numeric ranges are SQL-only '
   'and NEVER embedded; the narrative cards in kb.chunks are generated from these '
   'rows so the two cannot drift (D32).';
 
@@ -157,21 +164,24 @@ $fn$;
 -- The brewer's words are not a style code. `formulate.recipe/parse` returns the
 -- style "in the brewer's words" -- "pastry stout", "dry irish stout" -- so match
 -- on the HEAD NOUN (the last word; English beer-style names are head-final), then
--- keep only the rows sharing the MOST of the remaining words. "pastry stout"
--- resolves to BA "Dessert Stout or Pastry Beer" alone; a bare "stout" keeps all
--- sixteen and gets the widest band of the set. Ambiguity widens the band, never
--- narrows it, so an uncertain match cannot manufacture a constraint.
+-- keep only the rows sharing the MOST of the remaining words. No BJCP name
+-- contains "pastry", so "pastry stout" keeps the same eight stouts as a bare
+-- "stout" and gets the widest band of the set. (It resolved to BA "Dessert Stout
+-- or Pastry Beer" alone until the BA rows were removed on 2026-09-24.) Ambiguity
+-- widens the band, never narrows it, so an uncertain match cannot manufacture a
+-- constraint.
 --
 -- ⛔ A NULL end is an OPEN end, never a zero. has_vitals keeps out the 20 BJCP
--- styles that define no vitals at all, but BA writes "40+" as srm_max NULL and
--- two rows carry no srm_min, and both must read as "no bound on that side".
+-- styles that define no vitals at all. `measured` 2026-09-24: no BJCP row with
+-- vitals has a NULL SRM end -- the NULL ends came from BA's "40+" -- but the
+-- rule stays, because an open bound must never read as zero.
 --
 -- ⛔ An srm_max of 40 or more is returned as NO ceiling. Above roughly SRM 30 a
 -- beer is opaque and the difference stops being visible -- 29_brew_formulate.sql
--- says the same about Morey past 50. Of the sixteen stout rows here seven name no
--- ceiling and eight name exactly 40: the guides themselves stop distinguishing
--- there. `measured`: 29 runs of the same pastry-stout request landed SRM 35.1-43.3
--- twenty-six times, so a literal 40 would reject five beers that are simply black.
+-- says the same about Morey past 50. All eight BJCP stouts name exactly 40: the
+-- guide itself stops distinguishing there. `measured`: 29 runs of the same
+-- pastry-stout request landed SRM 35.1-43.3 twenty-six times, so a literal 40
+-- would reject five beers that are simply black.
 --
 -- Returns NULL when the style names nothing. The caller must then let the recipe
 -- through rather than guess.
