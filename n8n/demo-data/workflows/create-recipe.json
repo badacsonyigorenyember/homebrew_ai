@@ -1,0 +1,742 @@
+{
+  "updatedAt": "2026-09-25T08:49:30.658Z",
+  "createdAt": "2026-09-17T08:50:08.865Z",
+  "id": "XokwCioI0tuE9prP",
+  "name": "create-recipe",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "question"
+            },
+            {
+              "name": "session_id"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        -176
+      ],
+      "id": "2b08ad4b-6ebe-46a2-8594-ae6b745c7417",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT obs.f_start_run($1::text, NULL::int, 'formulate.recipe', $2::jsonb)::int AS run_id;",
+        "options": {
+          "queryReplacement": "={{ [ 'cap', JSON.stringify({max_steps: 8, max_wall_ms: 600000}) ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        -176
+      ],
+      "id": "868ee534-15cc-404d-bf08-398e85f5671b",
+      "name": "Start run",
+      "credentials": {
+        "postgres": {
+          "id": "memWriterCred001",
+          "name": "Postgres — mem_writer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "wfStepRetrieveKw",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/wfStepRetrieveKw",
+          "cachedResultName": "wf-step-retrieve-keywords"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "top_k": 8,
+            "mode": "rows",
+            "session_id": "={{ $json.session_id }}",
+            "keywords": "={{ $json.keywords }}",
+            "exclude": "={{ $json.descriptors }}",
+            "style": "={{ $json.style }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "keywords",
+              "displayName": "keywords",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            },
+            {
+              "id": "exclude",
+              "displayName": "exclude",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            },
+            {
+              "id": "style",
+              "displayName": "style",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "top_k",
+              "displayName": "top_k",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "mode",
+              "displayName": "mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1984,
+        -192
+      ],
+      "id": "45a5932a-5cdb-40ad-89ec-35a790d92fab",
+      "name": "Step 2 · retrieve",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1000
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- The published band and the observed practice in one round trip: both are\n-- keyed on the same style string and both are needed by the same next node.\n-- ⛔ `cohort` carries the RUNG. A cohort that relaxed to a different beer must\n-- not be presented to the model as this beer's practice, so `Build propose\n-- pack` drops the block entirely above rung 2 rather than caption it.\nSELECT coalesce(ref.f_style_bands($1::text), '{}'::jsonb) AS bands,\n       (SELECT to_jsonb(c) FROM nlq.find_cohort(\n          $1::text, ARRAY(SELECT jsonb_array_elements_text($2::jsonb))) c) AS cohort,\n       (SELECT jsonb_agg(to_jsonb(s)) FROM nlq.cohort_stats(\n          $1::text, ARRAY(SELECT jsonb_array_elements_text($2::jsonb))) s) AS practice,\n       -- Stage B. One verdict per named term -- catalogued / known_uncatalogued\n       -- / thin / unknown -- so \"is it in the catalogue\" stops being a yes/no\n       -- that had nowhere to send a no. ⛔ `unknown` is the brewer's business\n       -- BEFORE a grain bill is built, not a line in the warnings afterwards.\n       (SELECT jsonb_agg(to_jsonb(r)) FROM brew.f_resolve_request(\n          ARRAY(SELECT jsonb_array_elements_text($2::jsonb))) r) AS resolved,\n       -- C4. How brewers actually use each named ingredient: stage distribution\n       -- and amount quantiles, from 141,857 real additions. ⛔ Reported PER UNIT\n       -- and never converted -- vanilla arrives as each, oz, tsp, g and lb, and\n       -- a quartile over the mixture would be a number about nothing.\n       (SELECT jsonb_agg(to_jsonb(ip)) FROM jsonb_array_elements_text($2::jsonb) t\n          CROSS JOIN LATERAL nlq.ingredient_practice(t.value, $1::text) ip) AS ing_practice,\n       -- C3. Two or three whole recipes from the cohort, past a plausibility\n       -- gate. The gate matters: corpus recipe 280784 is a genuine vanilla\n       -- lactose stout that records IBU 0.00 beside two 60-minute boil hops.\n       (SELECT jsonb_agg(to_jsonb(e)) FROM nlq.find_exemplars(\n          $1::text, ARRAY(SELECT jsonb_array_elements_text($2::jsonb))) e) AS exemplars,\n       -- ⛔ STYLE ONLY -- no ingredient filter, deliberately. `practice` above is\n       -- keyed on style AND every named ingredient, so a brief naming something\n       -- rare relaxes the cohort to a higher rung and `Build propose pack` then\n       -- drops the whole block rather than caption a different beer's practice.\n       -- That is right for PROPORTIONS and wrong for the yeast fallback, which\n       -- only ever needs \"what do people ferment this style with\". Asking the\n       -- narrower question separately keeps rung 1 for the style: measured\n       -- 2026-09-16, `sweet stout` alone is rung 1 and S-04 at 18.8%, while the\n       -- same brief with poppy seeds in it relaxes past rung 2 and yields none.\n       (SELECT jsonb_agg(to_jsonb(y)) FROM nlq.cohort_stats($1::text, ARRAY[]::text[]) y\n         WHERE y.section = 'yeast') AS style_yeasts;",
+        "options": {
+          "queryReplacement": "={{ [ $('Unpack brief3').first().json.style, JSON.stringify($('Unpack brief3').first().json.must_include ?? []) ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2208,
+        -192
+      ],
+      "id": "9a112cab-6f0b-45ac-a479-c38e5575503c",
+      "name": "Style bands",
+      "credentials": {
+        "postgres": {
+          "id": "memWriterCred001",
+          "name": "Postgres — mem_writer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM brew.f_catalogue();",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2432,
+        -192
+      ],
+      "id": "2bdad901-6292-44dc-b90d-c10193d8c958",
+      "name": "Load catalogue",
+      "credentials": {
+        "postgres": {
+          "id": "memWriterCred001",
+          "name": "Postgres — mem_writer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const brief = $('Unpack brief3').first().json;\nconst ret   = $('Step 2 · retrieve').first().json;\nconst rows  = ret.rows ?? [];\nconst cat   = $input.all().map(i => i.json);\n\nif (!cat.length) throw new Error('brew.f_catalogue returned no ingredients');\n\nconst idmap = {};\nconst libraryPassages = rows.map((r, n) => {\n  const label = `S${n + 1}`;\n  idmap[r.chunk_id] = { label, doc_title: r.doc_title, page: r.page };\n  return `[${label}] ${r.doc_title} · ${r.heading}${r.page ? ` · p.${r.page}` : ''}\\n${r.text}`;\n}).join('\\n\\n');\n\n// --- the web arm's output, which used to be fetched and then dropped ---------\n// ⭐ wf-step-retrieve fires the web arm whenever nlq.corpus_vocabulary_gap\n// reports a term the library has never seen, and in `rows` mode it returns\n// `.web` and `.gap` beside `.rows`. This node read only `.rows`. On the run that\n// produced recipe #90 the arm DID fire -- obs.retrievals #373, gap_terms\n// {custard, poppi} -- searched, fetched, chunked, embedded and ranked, and every\n// passage was thrown away here. That is the whole reason an uncatalogued\n// ingredient had no technique behind it.\n//\n// ⛔ [W..] IS A DIFFERENT MARKER FROM [S..] AND MUST STAY ONE. A web passage\n// carries none of the library's editorial vetting, and renumbering it into the\n// [S..] sequence launders it into a citation the brewer would trust differently.\n// wf-step-retrieve's own text shape already draws this line and\n// brainstorm.pairing/compose v2 follows it; this is the same rule, not a new one.\nconst web  = Array.isArray(ret.web) ? ret.web : [];\nconst gap  = Array.isArray(ret.gap) ? ret.gap : [];\nconst webmap = {};\nconst webPassages = web.map((r, n) => {\n  const label = `W${n + 1}`;\n  webmap[label] = { label, url: r.url, heading: r.heading ?? '' };\n  return `[${label}] ${r.url}${r.heading ? ` · ${r.heading}` : ''}\\n${r.text}`;\n}).join('\\n\\n');\n\nconst passages = [\n  libraryPassages,\n  webPassages && (\n    (gap.length\n      ? `Your library has never seen ${gap.map(t => `\"${t}\"`).join(', ')}, so the passages below came from the open web.`\n      : 'The passages below came from the open web, not the library.') +\n    '\\nThey are labelled [W..]. Cite them as [W..] and NEVER as [S..]: they are not ' +\n    'in the brewer\\'s library and carry none of its vetting.\\n\\n' + webPassages),\n].filter(Boolean).join('\\n\\n---\\n');\n\n// The catalogue is the biggest thing in the prompt, so it carries only the\n// columns the model actually chooses on. names[] is kept for `compose`, which\n// must print ingredient names it never has to look up itself.\nconst names = {}, kinds = {}, roles = {}, atten = {};\nfor (const c of cat) {\n  names[c.id] = c.supplier ? `${c.supplier} ${c.name}` : c.name;\n  kinds[c.id] = c.kind;\n  roles[c.id] = c.role;\n  // Only yeast carries one; it is what lets `Validate proposal` take the\n  // attenuation from the strain the model PICKED rather than the number it\n  // guessed, which is the whole reason FG can stop being an estimate.\n  if (c.attenuation_pct != null) atten[c.id] = Number(c.attenuation_pct);\n}\n\n// Grouped by role, not one flat list. role comes from brew.f_catalogue, derived\n// in SQL from published colour -- so \"Bohemian Dark Malt\" at 6.5 L sits under\n// BASE and cannot be picked as a roast malt because of what it is called.\n// ⛔ EVERY ROLE brew.f_catalogue CAN RETURN MUST BE LISTED HERE. f_catalogue\n// derives `role` in SQL for fermentables and otherwise returns role = kind, so a\n// role missing from this array is not rendered -- the rows exist, the model\n// never sees them, and nothing anywhere reports it. That silently cost the\n// catalogue its misc, water_agent and yeast rows the moment they were inserted.\nconst SECTIONS = [\n  ['base',    'BASE MALTS - id | name | ppg | degL'],\n  ['caramel', 'CARAMEL & CRYSTAL MALTS (10-199 degL) - id | name | ppg | degL'],\n  ['roast',   'ROAST MALTS (>=200 degL) - THE ONLY MALTS THAT MAKE A BEER DARK - id | name | ppg | degL'],\n  ['adjunct', 'SUGARS & ADJUNCTS - id | name | ppg | degL'],\n  ['hop',     'HOPS - id | name | alpha %'],\n  ['yeast',   'YEAST - id | name | apparent attenuation % - PICK EXACTLY ONE, and stage it at \"fermenter\"'],\n  ['misc',    'FLAVOURINGS, SPICES, OAK & FRUIT - id | name - these have NO gravity and NO colour; give qty and a unit'],\n  ['water_agent', 'WATER SALTS - id | name - grams for the whole batch; leave them out unless the brewer asked'],\n];\nconst catalogue = SECTIONS.map(([role, heading]) => {\n  const rows = cat.filter(c => c.role === role).map(c => {\n    if (role === 'hop')   return `${c.id} | ${names[c.id]} | ${c.alpha_acid_pct ?? '-'}`;\n    if (role === 'yeast') return `${c.id} | ${names[c.id]} | ${c.attenuation_pct ?? '-'}`;\n    // A vanilla bean has no honest ppg and 27_brew_catalogue.sql forbids\n    // inventing one, so printing two empty columns would only invite the model\n    // to fill them. Name and id is the whole row.\n    if (role === 'misc' || role === 'water_agent') return `${c.id} | ${names[c.id]}`;\n    return `${c.id} | ${names[c.id]} | ${c.potential_ppg ?? '-'} | ${c.color_lovibond ?? '-'}`;\n  });\n  return rows.length ? `${heading}\\n${rows.join('\\n')}` : null;\n}).filter(Boolean).join('\\n\\n');\n\n// ⚠️ A role f_catalogue returns that nothing above renders is a silent hole, so\n// say so loudly rather than ship a prompt missing a third of the catalogue.\nconst listed = new Set(SECTIONS.map(([r]) => r));\nconst unrendered = [...new Set(cat.map(c => c.role))].filter(r => !listed.has(r));\nif (unrendered.length) {\n  throw new Error(`brew.f_catalogue returned role(s) with no SECTIONS entry: ` +\n                  `${unrendered.join(', ')} — those ingredients would be invisible to the model`);\n}\n\n\n// --- observed practice -------------------------------------------------------\n// nlq.cohort_stats for the style the brewer named, rendered as a short table.\n// Quartiles, not a lone median: \"6.50% of grist (usual range 5.10-7.85)\" tells\n// the model whether a proportion is settled or a matter of taste, and a bare\n// median does not.\n//\n// ⛔ RUNG 3 AND ABOVE IS DROPPED, NOT CAPTIONED. nlq.find_cohort relaxes when it\n// cannot fill the exact request -- at rung 4 the cohort contains NONE of the\n// ingredients asked for, and at rung 5 it is a different style altogether.\n// Handing that to the model as \"what brewers do for this beer\" would be the\n// fabricated-authority failure with extra steps. Better no block than a wrong\n// one: the prompt's own rules stand on their own.\nconst sb       = $('Style bands').first().json;\nconst cohort   = sb.cohort ?? null;\nconst pRows    = sb.practice ?? [];\nlet practice = '';\nlet practice_yeasts = [];\nif (cohort && cohort.rung <= 2 && pRows.length) {\n  const bySec = new Map();\n  for (const r of pRows) {\n    if (!bySec.has(r.section)) bySec.set(r.section, []);\n    bySec.get(r.section).push(r);\n  }\n  practice_yeasts = (bySec.get('yeast') ?? [])\n    .map(r => ({ name: r.item, pct: r.pct_of_cohort, typical: r.typical }));\n\n  const HEAD = { 'grain bill': 'GRAIN BILL', hops: 'HOPS',\n                 yeast: 'YEAST', 'other additions': 'OTHER ADDITIONS' };\n  const body = Object.entries(HEAD).map(([k, h]) => {\n    const rs = bySec.get(k);\n    if (!rs || !rs.length) return null;\n    return `${h}\\n` + rs.map(r => `  ${r.item} — in ${r.pct_of_cohort}% of them, ${r.typical}`).join('\\n');\n  }).filter(Boolean).join('\\n\\n');\n  practice = `Based on ${cohort.n_recipes} recipes.\\n\\n${body}`;\n}\n\n// --- Stage B verdicts and the C3/C4 evidence blocks --------------------------\n// ⛔ THE CORPUS SAYS WHAT IS POPULAR, NEVER WHAT IS GOOD. Every block below is\n// labelled as observed practice and none of it is citable as [S..]. 1,509\n// brewers putting vanilla in secondary is evidence; the library passages are\n// what say whether it is right.\nconst resolved = sb.resolved ?? [];\nconst unknown  = resolved.filter(r => r.verdict === 'unknown').map(r => r.term);\n\n// ⭐ STAGE B'S WHOLE POINT IS THE ROUTING, AND THE ROUTING HAS TO REACH THE\n// MODEL. f_resolve_request answers \"lactose -> catalogue id 109\" exactly, in\n// SQL, before the model is called -- and the first version of this node used\n// that answer only to detect `unknown`, leaving the model to find the id in a\n// 302-row list by itself. `measured` on R07: asked for a sweet stout \"with\n// lactose for body\", it shipped no lactose at all -- not in items, not in\n// additions, not even in not_available -- and put vanilla in the v8 slot though\n// vanilla had just been given a catalogue row. Both ids were already resolved\n// and neither was ever shown.\n//\n// This is the same lesson as the roast ceiling and the malt roles: a fact the\n// pipeline can compute is not a thing to ask a model to look up.\nconst ROUTE = {\n  catalogued: r => `${r.term} → IN THE CATALOGUE as id ${r.ingredient_id} ` +\n                   `\"${r.ingredient_name}\". Use that id in \"items\".`,\n  known_uncatalogued: r => `${r.term} → no catalogue row, but ${r.n_corpus_recipes} ` +\n                   `corpus recipes use it. Put it in \"uncatalogued_additions\".`,\n  thin: r => `${r.term} → no catalogue row and only ${r.n_corpus_recipes} corpus ` +\n             `recipe(s) use it. Put it in \"uncatalogued_additions\" and lean on the passages.`,\n  unknown: r => `${r.term} → nothing known anywhere. Say so in \"not_available\"; do NOT guess.`,\n};\nconst routing = resolved.map(r => '  ' + (ROUTE[r.verdict] ?? (() => ''))(r)).filter(s => s.trim()).join('\\n');\n\n// C4 -- per ingredient, per stage, PER UNIT. Units are never converted: 73_'s\n// rule. Only terms the brewer actually named, so this stays small.\nconst ipRows = sb.ing_practice ?? [];\nconst byTerm = new Map();\nfor (const r of ipRows) {\n  if (!byTerm.has(r.term)) byTerm.set(r.term, []);\n  if (byTerm.get(r.term).length < 4) byTerm.get(r.term).push(r);\n}\nconst ingredient_practice = [...byTerm.entries()].map(([term, rs]) =>\n  `${term}\\n` + rs.map(r =>\n    `  ${r.stage} — ${r.pct_at_stage}% of its uses · ${r.p50} ${r.unit} typical (${r.p25}-${r.p75})`\n  ).join('\\n')).join('\\n\\n');\n\n// C3 -- whole recipes, past the plausibility gate. The rejection count prints on\n// the sheet: \"12 of 173 were discarded as implausible\" is information.\nconst exRows  = sb.exemplars ?? [];\nconst exemplars = exRows.map(e => e.exemplar).filter(Boolean).join('\\n\\n');\nconst exemplar_note = exRows.length\n  ? (exRows[0].gate_note ?? '')\n  : '';\n\n// The yeast fallback's source when the cohort relaxed. Shape-matched to\n// practice_yeasts so `Validate proposal` can try one then the other.\nconst style_yeasts = (sb.style_yeasts ?? [])\n  .map(r => ({ name: r.item, pct: r.pct_of_cohort, typical: r.typical }));\n\nreturn [{ json: { ...brief, catalogue, passages, idmap, webmap, gap, names, kinds, roles, atten,\n                  style_yeasts,\n                  resolved, unknown, routing, ingredient_practice, exemplars, exemplar_note,\n                  practice, practice_yeasts, cohort,\n                  chunk_ids: rows.map(r => r.chunk_id) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2656,
+        -192
+      ],
+      "id": "2296f625-7f77-4ecd-8350-9646e221887a",
+      "name": "Build propose pack"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  recipe_run: {\n    iteration: 1,\n    run_id: $input.first().json.run_id,\n    question: $('When Executed by Another Workflow').first().json.question,\n    bjcp_style: null,\n    brief: {\n      style_guess: { value: null , ref_id: null },\n      must_include: [],\n      avoid: [],\n      sensory: { aroma: [], flavour: [], appearance: [], mouthfeel: [] },\n      targets: { abv: null, ibu: null, srm: null },\n      batch: { size: null, efficiency: 0 }\n    },\n    look_up: []\n  }\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        -176
+      ],
+      "id": "5307df35-c82a-4f8e-803f-c5063fc3d9ed",
+      "name": "Create RecipeRun"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "L0uI1b3FWMgUEszB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/L0uI1b3FWMgUEszB",
+          "cachedResultName": "wf-step-llm"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.recipe_run.run_id }}",
+            "seq": 1,
+            "step_id": "parse",
+            "profile": "extract",
+            "prompt_name": "formulate.recipe/parse",
+            "vars_json": "={{ JSON.stringify({ question: $json.recipe_run.question }) }}",
+            "schema_json": "={{ JSON.stringify({\n  type: \"object\",\n  additionalProperties: false,\n  required: [\"brief\"],\n  properties: {\n    brief: {\n      type: \"object\",\n      additionalProperties: false,\n      required: [\"style_guess\", \"must_include\", \"sensory\", \"targets\", \"batch\"],\n      properties: {\n        style_guess: {\n          type: \"object\",\n          additionalProperties: false,\n          required: [\"value\", \"ref_id\"],\n          properties: {\n            value:  { type: \"string\" },\n            ref_id: { type: \"null\" }\n          }\n        },\n        must_include: { type: \"array\", items: { type: \"string\" } },\n        sensory: {\n          type: \"object\",\n          additionalProperties: false,\n          required: [\"aroma\", \"flavour\", \"appearance\", \"mouthfeel\"],\n          properties: {\n            aroma:      { type: \"array\", items: { type: \"string\" } },\n            flavour:    { type: \"array\", items: { type: \"string\" } },\n            appearance: { type: \"array\", items: { type: \"string\" } },\n            mouthfeel:  { type: \"array\", items: { type: \"string\" } }\n          }\n        },\n        targets: {\n          type: \"object\",\n          additionalProperties: false,\n          required: [\"abv\", \"ibu\", \"srm\"],\n          properties: {\n            abv: { type: [\"number\", \"null\"] },\n            ibu: { type: [\"number\", \"null\"] },\n            srm: { type: [\"number\", \"null\"] }\n          }\n        },\n        batch: {\n          type: \"object\",\n          additionalProperties: false,\n          required: [\"size\", \"efficiency\"],\n          properties: {\n            size:       { type: \"number\" },\n            efficiency: { type: \"number\", minimum: 0, maximum: 1 }\n          }\n        }\n      }\n    }\n  }\n}) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "seq",
+              "displayName": "seq",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "step_id",
+              "displayName": "step_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "profile",
+              "displayName": "profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "prompt_name",
+              "displayName": "prompt_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "vars_json",
+              "displayName": "vars_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "schema_json",
+              "displayName": "schema_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        -176
+      ],
+      "id": "1517fe4c-8236-4153-b1b9-61bc24e547ab",
+      "name": "Step 1 · Brief",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH params AS\n  (SELECT 'stout'::text AS family, -- brief.style.value\n '{\"aroma\":[\"chocolate\",\"coffee\"],\"flavour\":[\"sweet\"],\"mouthfeel\":[\"full\",\"creamy\"]}'::JSONB AS sensory, -- brief.sensory\n 11::numeric AS abv -- brief.targets.abv.value, or NULL\n),\n     fam AS\n  (SELECT regexp_replace(lower(coalesce(family, '')), '[^a-z0-9]+', '', 'g') AS f\n   FROM params),\n     hit AS\n  (-- family match on name or *-family tag\n SELECT s.id\n   FROM ref.styles s,\n        fam\n   WHERE s.guide = 'BJCP'\n     AND fam.f <> ''\n     AND (regexp_replace(lower(s.name), '[^a-z0-9]+', '', 'g') LIKE '%' || fam.f || '%'\n          OR EXISTS\n            (SELECT 1\n             FROM unnest(s.tags) t\n             WHERE regexp_replace(t, '-?family$|[^a-z0-9]+', '', 'g') = fam.f))),\n     pool AS\n  (-- the family, or all BJCP styles if the family matched nothing\n SELECT s.*,\n        EXISTS\n     (SELECT 1\n      FROM hit) AS family_match\n   FROM ref.styles s\n   WHERE s.guide = 'BJCP'\n     AND (s.id IN\n            (SELECT id\n             FROM hit)\n          OR NOT EXISTS\n            (SELECT 1\n             FROM hit))),\n     words AS\n  (SELECT DISTINCT e.key AS field,\n                   lower(btrim(w)) AS word\n   FROM params,\n        jsonb_each(coalesce(sensory, '{}')) e,\n        jsonb_array_elements_text(e.value) w\n   WHERE e.key IN ('aroma',\n                   'flavour',\n                   'appearance',\n                   'mouthfeel')\n     AND btrim(w) <> ''),\n     hits AS\n  (-- word found in its own field, overall_impression or tags\n SELECT p.id,\n        w.field,\n        w.word,\n        to_tsvector('english', array_to_string(p.tags, ' ')) @@ plainto_tsquery('english', w.word) AS in_tags\n   FROM pool p\n   JOIN words w ON to_tsvector('english', concat_ws(' ', CASE w.field\n                                                             WHEN 'aroma' THEN p.aroma\n                                                             WHEN 'flavour' THEN p.flavor\n                                                             WHEN 'appearance' THEN p.appearance\n                                                             ELSE p.mouthfeel\n                                                         END, p.overall_impression, array_to_string(p.tags, ' '))) @@ plainto_tsquery('english', w.word)),\n     rarity AS\n  (-- 1 when one style matches the word, 0 when all do\n SELECT field,\n        word,\n        ln(\n             (SELECT count(*)\n              FROM pool)::numeric / count(*)) / nullif(ln(\n                                                            (SELECT count(*)\n                                                             FROM pool)::numeric), 0) AS r\n   FROM hits\n   GROUP BY field,\n            word),\n     weighted AS\n  (-- a tag hit counts in full: tags are curated and never negated\n SELECT h.id,\n        h.field,\n        h.word,\n        CASE\n            WHEN h.in_tags THEN 1\n            ELSE coalesce(r.r, 0)\n        END AS weight\n   FROM hits h\n   JOIN rarity r USING (field,\n                        word)),\n     sens AS\n  (SELECT id,\n          sum(weight) AS RAW,\n          jsonb_object_agg(field, words) AS matched\n   FROM\n     (SELECT id,\n             field,\n             sum(weight) AS weight,\n             jsonb_agg(word\n                       ORDER BY word) AS words\n      FROM weighted\n      GROUP BY id,\n               field) x\n   GROUP BY id),\n     scored AS\n  (SELECT p.*,\n          sens.matched,\n          params.abv AS target_abv,\n          coalesce(sens.raw / nullif(max(sens.raw) OVER (), 0), 0) AS sensory_score,\n          CASE\n              WHEN params.abv IS NULL\n                   OR NOT p.has_vitals THEN NULL\n              WHEN params.abv BETWEEN p.abv_min AND p.abv_max THEN 1\n              ELSE greatest(0, 1 - greatest(p.abv_min - params.abv, params.abv - p.abv_max) / greatest(p.abv_max - p.abv_min, 1))\n          END AS abv_score,\n          (p.tags && ARRAY['specialty-beer',\n                           'specialtybeer']) AS is_specialty\n   FROM pool p\n   CROSS JOIN params\n   LEFT JOIN sens ON sens.id = p.id)\nSELECT id AS ref_style_id,\n       code || '. ' || name AS label,\n       round(2 * coalesce(abv_score, 0) + sensory_score, 2) AS score,\n       family_match,\n       ref.f_range_text(abv_min, abv_max) AS abv_range,\n       CASE\n           WHEN abv_score IS NULL THEN NULL\n           WHEN target_abv < abv_min THEN 'below by ' || trim_scale(abv_min - target_abv)\n           WHEN target_abv > abv_max THEN 'above by ' || trim_scale(target_abv - abv_max)\n           ELSE 'in range'\n       END AS abv_fit,\n       coalesce(matched, '{}') AS matched,\n       overall_impression\nFROM scored\nORDER BY is_specialty,\n         2 * coalesce(abv_score, 0) + sensory_score DESC,\n         code\nLIMIT 5;",
+        "options": {
+          "queryReplacement": "={{ [$json.recipe_run.brief.style_guess.value, ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1072,
+        -176
+      ],
+      "id": "b9a7b152-cce6-421c-8de3-403eec3ceeef",
+      "name": "Find closest BJCP style",
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "L0uI1b3FWMgUEszB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/L0uI1b3FWMgUEszB",
+          "cachedResultName": "wf-step-llm"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $('Unpack brief').item.json.recipe_run.run_id }}",
+            "seq": 1,
+            "step_id": "resolve_style",
+            "profile": "extract",
+            "prompt_name": "formulate.recipe/resolve_style",
+            "vars_json": "={{ JSON.stringify({ \n  question: $('Unpack brief').item.json.recipe_run.question,\n  family: $('Unpack brief').item.json.recipe_run.brief.style_guess.value,\n  target_abv: $('Unpack brief').item.json.recipe_run.brief.targets.abv,\n  sensory: $('Unpack brief').item.json.recipe_run.brief.sensory,\n  candidates: $('Find closest BJCP style').all().map(({ json: c }) =>\n    `- id ${c.ref_style_id} | ${c.label} | score ${c.score} | ABV ${c.abv_range ?? \"not defined\"} (${c.abv_fit ?? \"no target\"})\\n` +\n    `  matched: ${JSON.stringify(c.matched)}\\n` +\n    `  description: ${c.overall_impression}`\n  ).join(\"\\n\")\n}) }}",
+            "schema_json": "={{ JSON.stringify({\n  type: \"object\",\n  additionalProperties: false,\n  required: [\"bjcp_style\"],\n  properties: {\n    bjcp_style:   { enum: $('Find closest BJCP style').all().map(i => i.json.label) },\n  }\n}) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "seq",
+              "displayName": "seq",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "step_id",
+              "displayName": "step_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "profile",
+              "displayName": "profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "prompt_name",
+              "displayName": "prompt_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "vars_json",
+              "displayName": "vars_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "schema_json",
+              "displayName": "schema_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1296,
+        -176
+      ],
+      "id": "2553f837-ab68-4933-a6aa-69800fa8131f",
+      "name": "Step 2 · Resolve style",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "QFOnROdk2tOCcaOP",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/QFOnROdk2tOCcaOP",
+          "cachedResultName": "update_recipe_state"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "field_name_to_update": "brief",
+            "output": "={{ $json.output }}",
+            "previous_state": "={{ $('Create RecipeRun').item.json.recipe_run }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "field_name_to_update",
+              "displayName": "field_name_to_update",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "previous_state",
+              "displayName": "previous_state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        880,
+        -176
+      ],
+      "id": "4ccedf85-bc22-47e7-b76b-4b7cb5c42853",
+      "name": "Unpack brief"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "QFOnROdk2tOCcaOP",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/QFOnROdk2tOCcaOP",
+          "cachedResultName": "update_recipe_state"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "field_name_to_update": "bjcp_style",
+            "output": "={{ $json.output }}",
+            "previous_state": "={{ $('Unpack brief').item.json.recipe_run }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "field_name_to_update",
+              "displayName": "field_name_to_update",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "previous_state",
+              "displayName": "previous_state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1536,
+        -176
+      ],
+      "id": "24a5ad0d-6322-47a2-ac53-cbc6e30e1e88",
+      "name": "Unpack resolve"
+    }
+  ],
+  "connections": {
+    "Start run": {
+      "main": [
+        [
+          {
+            "node": "Create RecipeRun",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Start run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Style bands": {
+      "main": [
+        [
+          {
+            "node": "Load catalogue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load catalogue": {
+      "main": [
+        [
+          {
+            "node": "Build propose pack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 2 · retrieve": {
+      "main": [
+        [
+          {
+            "node": "Style bands",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create RecipeRun": {
+      "main": [
+        [
+          {
+            "node": "Step 1 · Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 1 · Brief": {
+      "main": [
+        [
+          {
+            "node": "Unpack brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find closest BJCP style": {
+      "main": [
+        [
+          {
+            "node": "Step 2 · Resolve style",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 2 · Resolve style": {
+      "main": [
+        [
+          {
+            "node": "Unpack resolve",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unpack brief": {
+      "main": [
+        [
+          {
+            "node": "Find closest BJCP style",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "question": "I want to make a pastry stout recipe. I want a fairly strong, ~8 percent abv, with vanilla and poppy seeds. It would be representing a famous hungarian dessert called Mákos Guba. The vanilla and crushed poppy seeds would be drenched in rum, and I would add that to the stout. I want a really sweet, thick vanilla custardy stout with poppy seed, which is bitter. I want to use very little hops, to be a drinkable, Liqueur-like sweet treat. I want to make 10 liters of this. Can you provide me ideas, and could we manage to create a new recipe to achieve this result?",
+          "session_id": "ee2ce24827a34cddbc37223de489f6ea"
+        }
+      }
+    ]
+  },
+  "versionId": "497d0954-b6b2-4b9d-8653-e33441058294",
+  "activeVersionId": null,
+  "versionCounter": 764,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-09-17T08:50:08.865Z",
+      "createdAt": "2026-09-17T08:50:08.865Z",
+      "role": "workflow:owner",
+      "workflowId": "XokwCioI0tuE9prP",
+      "projectId": "cIpOMqhSXz7mHAJj",
+      "project": {
+        "updatedAt": "2026-07-23T14:53:00.343Z",
+        "createdAt": "2026-07-23T14:06:58.898Z",
+        "id": "cIpOMqhSXz7mHAJj",
+        "name": "János Tóth <janos.toth.2000@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "392cafdf-bd25-4c0b-8d4a-e40c58c63156"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

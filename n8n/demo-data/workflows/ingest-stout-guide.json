@@ -215,15 +215,15 @@
     "meta": null,
     "nodeGroups": [],
     "pinData": {},
-    "versionId": "a35ca9b3-86d7-4fa8-8bba-16e909b284a1",
+    "versionId": "24168b52-188e-461d-b19f-70f975a3bea2",
     "activeVersionId": null,
     "versionCounter": 1,
     "triggerCount": 0,
     "tags": [],
     "shared": [
       {
-        "updatedAt": "2026-09-14T10:40:00.000Z",
-        "createdAt": "2026-09-14T10:40:00.000Z",
+        "updatedAt": "2026-09-14T08:20:15.365Z",
+        "createdAt": "2026-09-14T08:20:15.365Z",
         "role": "workflow:owner",
         "workflowId": "ingestStoutGuid",
         "projectId": "cIpOMqhSXz7mHAJj",

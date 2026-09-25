@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-20T06:02:49.693Z",
+  "updatedAt": "2026-09-17T08:51:11.299Z",
   "createdAt": "2026-08-19T18:16:11.191Z",
   "id": "h2lN0E6u0J5x0MSC",
   "name": "chat-agent",
@@ -9,10 +9,10 @@
   "nodes": [
     {
       "parameters": {
+        "public": true,
         "options": {
           "responseMode": "streaming"
-        },
-        "public": true
+        }
       },
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.4,
@@ -38,7 +38,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        208,
+        704,
         0
       ],
       "id": "69a2bbe1-736c-4745-be9b-c807b30a29bc",
@@ -46,17 +46,17 @@
     },
     {
       "parameters": {
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_M",
         "options": {
           "temperature": 0.2,
           "keepAlive": "-1m",
           "numCtx": 16384
-        },
-        "model": "gemma4:12b-it-q8_0"
+        }
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        112,
+        448,
         224
       ],
       "id": "eee08447-0875-41c4-a8de-65c0658ac2af",
@@ -75,8 +75,8 @@
       "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
       "typeVersion": 1.4,
       "position": [
-        224,
-        208
+        576,
+        224
       ],
       "id": "d42ada01-172c-48d9-932b-247569d35a81",
       "name": "Postgres Chat Memory",
@@ -151,8 +151,8 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
       "position": [
-        352,
-        240
+        704,
+        208
       ],
       "id": "a1701eb3-6325-44cd-85f4-6524c4c89cff",
       "name": "search_brewing_knowledge"
@@ -191,8 +191,8 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
       "position": [
-        496,
-        240
+        864,
+        208
       ],
       "id": "2e267295-dc21-4c87-8696-1155a41613a9",
       "name": "brainstorm_pairing"
@@ -204,7 +204,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        416,
+        1296,
         0
       ],
       "id": "prepturn000000000000000000000001",
@@ -222,18 +222,18 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        624,
+        1520,
         0
       ],
       "id": "logturn0000000000000000000000001",
       "name": "Log turn",
+      "alwaysOutputData": true,
       "credentials": {
         "postgres": {
           "id": "memWriterCred001",
           "name": "Postgres — mem_writer"
         }
       },
-      "alwaysOutputData": true,
       "onError": "continueRegularOutput",
       "notes": "One statement writes BOTH rows of the turn. The `n` CTE allocates the next turn_no for the session, the user row and the assistant row share it, and both are ON CONFLICT DO NOTHING so a re-run cannot duplicate a turn. chunk_ids are not passed in — obs.f_session_chunk_ids($1, t0_iso) joins obs.retrievals, bounded to this turn by t0_iso."
     },
@@ -244,7 +244,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        180,
+        224,
         0
       ],
       "id": "e7b3d901-55aa-4c22-9f18-2d6a41c7e5b3",
@@ -295,8 +295,8 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
       "position": [
-        672,
-        240
+        1024,
+        208
       ],
       "id": "c1c6838b-48fb-48b7-969f-8d7911e815eb",
       "name": "formulate_recipe"
@@ -355,8 +355,8 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
       "position": [
-        672,
-        240
+        1168,
+        224
       ],
       "id": "prac-tool-00000001",
       "name": "common_practice"
@@ -484,9 +484,9 @@
   },
   "nodeGroups": [],
   "pinData": {},
-  "versionId": "dd7ff42b-16e0-4ff1-80b3-e60a729a43ca",
-  "activeVersionId": "dd7ff42b-16e0-4ff1-80b3-e60a729a43ca",
-  "versionCounter": 42,
+  "versionId": "18063817-8dce-4c8f-8beb-43df5587436e",
+  "activeVersionId": "b6b92ef7-3217-4516-a930-bdd41b7e6b7b",
+  "versionCounter": 47,
   "triggerCount": 1,
   "tags": [],
   "shared": [

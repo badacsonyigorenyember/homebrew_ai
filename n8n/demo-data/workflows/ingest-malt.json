@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-08-19T11:03:41.253Z",
+    "updatedAt": "2026-09-13T18:28:19.272Z",
     "createdAt": "2026-08-19T11:01:29.958Z",
     "id": "hpW9P0n7fxXY9KdF",
     "name": "ingest-malt",
@@ -208,7 +208,8 @@
     },
     "settings": {
       "executionOrder": "v1",
-      "binaryMode": "separate"
+      "binaryMode": "separate",
+      "availableInMCP": true
     },
     "staticData": null,
     "meta": null,
@@ -216,7 +217,7 @@
     "pinData": {},
     "versionId": "ceee0cab-7086-400e-8a94-5137bd62c025",
     "activeVersionId": null,
-    "versionCounter": 18,
+    "versionCounter": 19,
     "triggerCount": 0,
     "tags": [],
     "shared": [

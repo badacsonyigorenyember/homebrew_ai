@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-20T05:14:27.122Z",
+  "updatedAt": "2026-09-15T14:26:14.126Z",
   "createdAt": "2026-08-19T18:36:02.461Z",
   "id": "cCt9O4NyNPyegHBq",
   "name": "wf-step-retrieve",
@@ -323,8 +323,8 @@
       }
     ]
   },
-  "versionId": "e561a6dc-6053-4172-9871-231553105929",
-  "activeVersionId": "e561a6dc-6053-4172-9871-231553105929",
+  "versionId": "04fbfa6b-5ca0-4334-89ac-7b1869e97b89",
+  "activeVersionId": "04fbfa6b-5ca0-4334-89ac-7b1869e97b89",
   "versionCounter": 41,
   "triggerCount": 0,
   "tags": [],

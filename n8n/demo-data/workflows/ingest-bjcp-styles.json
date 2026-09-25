@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-08-12T08:44:48.323Z",
+    "updatedAt": "2026-09-13T18:28:21.441Z",
     "createdAt": "2026-08-12T07:45:11.956Z",
     "id": "Ejf3ESE3SK1XBqe3",
     "name": "ingest-bjcp-styles",
@@ -696,7 +696,8 @@
     },
     "settings": {
       "executionOrder": "v1",
-      "binaryMode": "separate"
+      "binaryMode": "separate",
+      "availableInMCP": true
     },
     "staticData": null,
     "meta": {
@@ -706,7 +707,7 @@
     "pinData": {},
     "versionId": "7c94323d-fb81-4d3c-910c-3e49ee62fd0b",
     "activeVersionId": null,
-    "versionCounter": 102,
+    "versionCounter": 103,
     "triggerCount": 0,
     "tags": [],
     "shared": [

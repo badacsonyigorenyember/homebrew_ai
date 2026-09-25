@@ -1,4 +1,6 @@
 {
+  "updatedAt": "2026-09-17T04:44:09.617Z",
+  "createdAt": "2026-09-14T12:00:50.676Z",
   "id": "rTq4Mk9BzXw2LvHd",
   "name": "wf-step-retrieve-multi",
   "description": "Splits a multi-part brewing question into one short single-topic search per part, runs wf-step-retrieve for each, and merges the passages. The number of searches is decided here, not by the agent.",
@@ -36,12 +38,12 @@
     },
     {
       "parameters": {
-        "jsCode": "const inp = $input.first().json;\n\nconst question = String(inp.question ?? '').trim();\nconst query    = String(inp.query ?? '').trim();\n\n// `question` is the raw user message, wired straight from the chat trigger, so it\n// is the one input the model cannot shape. `query` is the agent's own\n// reformulation and is only ever a fallback — decomposing the agent's already\n// collapsed phrasing is what this workflow exists to stop relying on.\nconst subject = question || query;\nif (!subject) throw new Error('wf-step-retrieve-multi called with neither question nor query');\n\nconst payload = {\n  model: 'gemma4:12b-it-q8_0',\n  messages: [{ role: 'user', content: \"You split a homebrewing question into the separate things it asks for.\\n\\nReturn one short search query per distinct topic, in the order they were asked. Each query must be four to six words, name its own topic, and stand alone without the others.\\n\\nRules:\\n- A question that asks for one thing returns exactly ONE query. Do not invent extra topics.\\n- Never return more than three.\\n- Repeat the beer style or ingredient name in queries about recipes, water, yeast or grain bills. Those live in style-specific passages.\\n- Off-flavours, faults and \\\"what should I watch for\\\" are their own topic, and are the ONE exception: do NOT attach a style name to them. Fault descriptions are written style-agnostically, so naming the style retrieves the style guide instead of the fault list. Use plain wording like \\\"common beer faults and off-flavors\\\".\\n- Do not answer the question. Return queries only.\\n\\nExample question: I am brewing an Irish stout. What water profile should I target, which yeast, and what off-flavour should I watch for?\\nExample queries: [\\\"Irish stout water profile\\\", \\\"Irish stout yeast strain\\\", \\\"common beer faults and off-flavors\\\"]\\n\\nExample question: What causes diacetyl and how do I get rid of it?\\nExample queries: [\\\"diacetyl cause and prevention\\\"]\\n\\nQuestion: \" + subject }],\n  // Splitting a question has one right answer; sampling only adds variance.\n  options: { temperature: 0, num_predict: 200 },\n  stream: false,\n  // `think: false` is load-bearing, not a tweak. The model otherwise spends the\n  // whole budget in its `thinking` field and returns empty content — the §2.6\n  // quirk, reproduced here every time. `measured` on gemma4:12b-it-q8_0: 1.0 s with it,\n  // 11.1 s without. Re-confirmed in wf-step-llm's compose step 2026-09-15.\n  think: false,\n  // Structured output: the parse in `Plan parts` must not depend on the model\n  // deciding to emit clean JSON.\n  format: {\n    type: 'object',\n    properties: { queries: { type: 'array', items: { type: 'string' } } },\n    required: ['queries'],\n  },\n};\n\nreturn [{ json: { payload, subject } }];\n"
+        "jsCode": "const inp = $input.first().json;\n\nconst question = String(inp.question ?? '').trim();\nconst query    = String(inp.query ?? '').trim();\n\n// `question` is the raw user message, wired straight from the chat trigger, so it\n// is the one input the model cannot shape. `query` is the agent's own\n// reformulation and is only ever a fallback — decomposing the agent's already\n// collapsed phrasing is what this workflow exists to stop relying on.\nconst subject = question || query;\nif (!subject) throw new Error('wf-step-retrieve-multi called with neither question nor query');\n\nconst payload = {\n  model: 'hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_M',\n  messages: [{ role: 'user', content: \"You split a homebrewing question into the separate things it asks for.\\n\\nReturn one short search query per distinct topic, in the order they were asked. Each query must be four to six words, name its own topic, and stand alone without the others.\\n\\nRules:\\n- A question that asks for one thing returns exactly ONE query. Do not invent extra topics.\\n- Never return more than three.\\n- Repeat the beer style or ingredient name in queries about recipes, water, yeast or grain bills. Those live in style-specific passages.\\n- Off-flavours, faults and \\\"what should I watch for\\\" are their own topic, and are the ONE exception: do NOT attach a style name to them. Fault descriptions are written style-agnostically, so naming the style retrieves the style guide instead of the fault list. Use plain wording like \\\"common beer faults and off-flavors\\\".\\n- Do not answer the question. Return queries only.\\n\\nExample question: I am brewing an Irish stout. What water profile should I target, which yeast, and what off-flavour should I watch for?\\nExample queries: [\\\"Irish stout water profile\\\", \\\"Irish stout yeast strain\\\", \\\"common beer faults and off-flavors\\\"]\\n\\nExample question: What causes diacetyl and how do I get rid of it?\\nExample queries: [\\\"diacetyl cause and prevention\\\"]\\n\\nQuestion: \" + subject }],\n  // Splitting a question has one right answer; sampling only adds variance.\n  options: { temperature: 0, num_predict: 200 },\n  stream: false,\n  // `think: false` is load-bearing, not a tweak. The model otherwise spends the\n  // whole budget in its `thinking` field and returns empty content — the §2.6\n  // quirk, reproduced here every time. `measured` on gemma4:12b-it-q8_0: 1.0 s with it,\n  // 11.1 s without. Re-confirmed in wf-step-llm's compose step 2026-09-15.\n  think: false,\n  // Structured output: the parse in `Plan parts` must not depend on the model\n  // deciding to emit clean JSON.\n  format: {\n    type: 'object',\n    properties: { queries: { type: 'array', items: { type: 'string' } } },\n    required: ['queries'],\n  },\n};\n\nreturn [{ json: { payload, subject } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        220,
+        224,
         0
       ],
       "id": "e476310e-b145-442a-a018-20d245d6a0ac",
@@ -61,7 +63,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        440,
+        448,
         0
       ],
       "id": "dba9adca-30d0-4b78-830c-5d2a18d00afd",
@@ -78,7 +80,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        660,
+        672,
         0
       ],
       "id": "9b03c0a4-4580-4763-8d04-a5ec5a992db3",
@@ -93,7 +95,6 @@
           "cachedResultUrl": "/workflow/cCt9O4NyNPyegHBq",
           "cachedResultName": "wf-step-retrieve"
         },
-        "mode": "each",
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
@@ -144,6 +145,7 @@
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
         },
+        "mode": "each",
         "options": {
           "waitForSubWorkflow": true
         }
@@ -165,7 +167,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1100,
+        1104,
         0
       ],
       "id": "2a5f3fe0-721d-4aeb-9676-adcfd7480cd5",
@@ -237,6 +239,34 @@
   "meta": {
     "templateCredsSetupCompleted": true
   },
+  "nodeGroups": [],
   "pinData": {},
-  "tags": []
+  "versionId": "324a3be5-4bf1-4856-aaac-d0e9a1d4a955",
+  "activeVersionId": "8e3f3a0e-a922-48a6-b14d-353d249dde9b",
+  "versionCounter": 13,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-09-14T12:00:50.676Z",
+      "createdAt": "2026-09-14T12:00:50.676Z",
+      "role": "workflow:owner",
+      "workflowId": "rTq4Mk9BzXw2LvHd",
+      "projectId": "cIpOMqhSXz7mHAJj",
+      "project": {
+        "updatedAt": "2026-07-23T14:53:00.343Z",
+        "createdAt": "2026-07-23T14:06:58.898Z",
+        "id": "cIpOMqhSXz7mHAJj",
+        "name": "János Tóth <janos.toth.2000@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "392cafdf-bd25-4c0b-8d4a-e40c58c63156"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
 }

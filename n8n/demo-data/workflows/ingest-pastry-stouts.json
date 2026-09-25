@@ -215,15 +215,15 @@
     "meta": null,
     "nodeGroups": [],
     "pinData": {},
-    "versionId": "baeeb84c-34ce-4fbf-bbf6-223afd67b4a8",
+    "versionId": "99fed14b-c462-4742-ad3b-23311b5e298f",
     "activeVersionId": null,
     "versionCounter": 1,
     "triggerCount": 0,
     "tags": [],
     "shared": [
       {
-        "updatedAt": "2026-09-14T10:20:00.000Z",
-        "createdAt": "2026-09-14T10:20:00.000Z",
+        "updatedAt": "2026-09-14T08:18:34.604Z",
+        "createdAt": "2026-09-14T08:18:34.604Z",
         "role": "workflow:owner",
         "workflowId": "ingestPastryStou",
         "projectId": "cIpOMqhSXz7mHAJj",

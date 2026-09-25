@@ -1,0 +1,172 @@
+{
+  "updatedAt": "2026-09-25T07:58:01.178Z",
+  "createdAt": "2026-09-25T07:52:31.051Z",
+  "id": "QFOnROdk2tOCcaOP",
+  "name": "update_recipe_state",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "field_name_to_update"
+            },
+            {
+              "name": "previous_state",
+              "type": "object"
+            },
+            {
+              "name": "output",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0f1e6fd4-3338-4f77-b87b-d912c12d84ad",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const recipe_run = $input.first().json.previous_state;\nconst output = $input.first().json.output;\n\n// 1. Copy the keys of recipe_run\nconst originalKeys = Object.keys(recipe_run);\n\n// 2. Create a new object for the updated keys and values\nconst updatedRecipeRun = {};\n\n// 3. Iterate through the original keys to store the order\noriginalKeys.forEach(key => {\n  if (key in output) {\n    // if the key is in the output, we check its type\n    const originalValue = recipe_run[key];\n    const newValue = output[key];\n    \n    if (originalValue !== null && typeof originalValue === 'object' && !Array.isArray(originalValue) && typeof newValue === 'object' && newValue !== null) {\n      // If it is an object, we store the order of the inner keys\n      const subKeys = Object.keys(originalValue);\n      const orderedSubObject = {};\n      subKeys.forEach(subKey => {\n        if (subKey in newValue) {\n          orderedSubObject[subKey] = newValue[subKey];\n        } else {\n          orderedSubObject[subKey] = originalValue[subKey];\n        }\n      });\n      // If the output contains new keys, we add them at the end\n      Object.keys(newValue).forEach(subKey => {\n        if (!(subKey in orderedSubObject)) {\n          orderedSubObject[subKey] = newValue[subKey];\n        }\n      });\n      updatedRecipeRun[key] = orderedSubObject;\n    } else {\n      // If the key is a simple value, then we overwrite it\n      updatedRecipeRun[key] = newValue;\n    }\n  } else {\n    // If the key is not in output, then we don´t edit\n    updatedRecipeRun[key] = recipe_run[key];\n  }\n});\n\nreturn {\n  recipe_run: updatedRecipeRun\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "cea205b7-70f7-4cb1-a38e-7757c7383306",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "field_name_to_update": "brief",
+          "previous_state": {
+            "iteration": 1,
+            "run_id": 231,
+            "question": "I want to make a pastry stout recipe. I want a fairly strong, ~8 percent abv, with vanilla and poppy seeds. It would be representing a famous hungarian dessert called Mákos Guba. The vanilla and crushed poppy seeds would be drenched in rum, and I would add that to the stout. I want a really sweet, thick vanilla custardy stout with poppy seed, which is bitter. I want to use very little hops, to be a drinkable, Liqueur-like sweet treat. I want to make 10 liters of this. Can you provide me ideas, and could we manage to create a new recipe to achieve this result?",
+            "bjcp_style": null,
+            "brief": {
+              "style_guess": {
+                "value": null,
+                "ref_id": null
+              },
+              "must_include": [],
+              "avoid": [],
+              "sensory": {
+                "aroma": [],
+                "flavour": [],
+                "appearance": [],
+                "mouthfeel": []
+              },
+              "targets": {
+                "abv": null,
+                "ibu": null,
+                "srm": null
+              },
+              "batch": {
+                "size": null,
+                "efficiency": 0
+              }
+            },
+            "look_up": []
+          },
+          "output": {
+            "batch": {
+              "efficiency": 0.72,
+              "size": 10
+            },
+            "must_include": [
+              "vanilla",
+              "poppy seeds",
+              "rum"
+            ],
+            "sensory": {
+              "appearance": [],
+              "aroma": [],
+              "flavour": [
+                "sweet",
+                "vanilla custardy",
+                "poppy seed",
+                "bitter",
+                "Liqueur-like"
+              ],
+              "mouthfeel": [
+                "thick"
+              ]
+            },
+            "style_guess": {
+              "ref_id": null,
+              "value": "stout"
+            },
+            "targets": {
+              "abv": 8,
+              "ibu": null,
+              "srm": null
+            }
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "d38d8f03-ddc8-4ef4-bbdd-27ad32c3603a",
+  "activeVersionId": null,
+  "versionCounter": 18,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-09-25T07:52:31.051Z",
+      "createdAt": "2026-09-25T07:52:31.051Z",
+      "role": "workflow:owner",
+      "workflowId": "QFOnROdk2tOCcaOP",
+      "projectId": "cIpOMqhSXz7mHAJj",
+      "project": {
+        "updatedAt": "2026-07-23T14:53:00.343Z",
+        "createdAt": "2026-07-23T14:06:58.898Z",
+        "id": "cIpOMqhSXz7mHAJj",
+        "name": "János Tóth <janos.toth.2000@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "392cafdf-bd25-4c0b-8d4a-e40c58c63156"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

@@ -600,17 +600,17 @@
     },
     "nodeGroups": [],
     "pinData": {},
-    "versionId": "7c94323d-fb81-4d3c-910c-3e49ee62fd0b",
+    "versionId": "45a80106-157a-4aa2-8f1e-1bfc4f2082e6",
     "activeVersionId": null,
     "versionCounter": 102,
     "triggerCount": 0,
     "tags": [],
     "shared": [
       {
-        "updatedAt": "2026-08-12T07:45:11.956Z",
-        "createdAt": "2026-08-12T07:45:11.956Z",
+        "updatedAt": "2026-09-14T05:09:06.729Z",
+        "createdAt": "2026-09-14T05:09:06.729Z",
         "role": "workflow:owner",
-        "workflowId": "Ejf3ESE3SK1XBqe3",
+        "workflowId": "ingestStudyGuide1",
         "projectId": "cIpOMqhSXz7mHAJj",
         "project": {
           "updatedAt": "2026-07-23T14:53:00.343Z",

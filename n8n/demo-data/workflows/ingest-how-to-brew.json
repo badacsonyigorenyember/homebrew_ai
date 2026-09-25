@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-08-12T09:00:35.318Z",
+    "updatedAt": "2026-09-13T18:28:14.720Z",
     "createdAt": "2026-08-12T08:58:58.691Z",
     "id": "BAe1fP1g7ZUsbIaq",
     "name": "ingest-how-to-brew",
@@ -210,7 +210,8 @@
     },
     "settings": {
       "executionOrder": "v1",
-      "binaryMode": "separate"
+      "binaryMode": "separate",
+      "availableInMCP": true
     },
     "staticData": null,
     "meta": null,
@@ -218,7 +219,7 @@
     "pinData": {},
     "versionId": "5155fe18-c0e3-4fc1-8f42-9dc7adb5585e",
     "activeVersionId": null,
-    "versionCounter": 20,
+    "versionCounter": 21,
     "triggerCount": 0,
     "tags": [],
     "shared": [

@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-08-12T13:31:00.584Z",
+    "updatedAt": "2026-09-13T18:28:07.215Z",
     "createdAt": "2026-08-12T13:28:00.439Z",
     "id": "UvDB7iJdXH262CNl",
     "name": "ingest-yeast",
@@ -210,7 +210,8 @@
     },
     "settings": {
       "executionOrder": "v1",
-      "binaryMode": "separate"
+      "binaryMode": "separate",
+      "availableInMCP": true
     },
     "staticData": null,
     "meta": null,
@@ -218,7 +219,7 @@
     "pinData": {},
     "versionId": "f872c401-71b4-42f2-91ab-175de0187f14",
     "activeVersionId": null,
-    "versionCounter": 26,
+    "versionCounter": 27,
     "triggerCount": 0,
     "tags": [],
     "shared": [

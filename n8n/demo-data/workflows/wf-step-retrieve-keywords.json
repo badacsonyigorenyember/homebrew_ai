@@ -1,7 +1,11 @@
 {
+  "updatedAt": "2026-09-18T13:15:06.497Z",
+  "createdAt": "2026-09-17T10:15:54.570Z",
   "id": "wfStepRetrieveKw",
   "name": "wf-step-retrieve-keywords",
   "description": "Keyword-fan-out retrieval: a list of terms in, ranked passages out. Probes kb.chunks.fts once for the whole list to decide which terms the library actually covers, searches the covered ones as one blended query through wf-step-retrieve, and sends each uncovered term to the web arm on its own. Returns the same two shapes as wf-step-retrieve -- `text` gives a single [S1]..[Sn]/[W1]..[Wn] block, `rows` gives structured rows with chunk_id.",
+  "active": true,
+  "isArchived": false,
   "nodes": [
     {
       "parameters": {
@@ -10,6 +14,9 @@
             {
               "name": "keywords",
               "type": "array"
+            },
+            {
+              "name": "concepts"
             },
             {
               "name": "exclude",
@@ -42,7 +49,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const i = $input.first().json;\n\n// `keywords` may arrive as a real array or as a JSON string, depending on how the\n// caller mapped it through the Execute Workflow node. Both are accepted.\nconst parse = v => {\n  if (Array.isArray(v)) return v;\n  if (typeof v === 'string' && v.trim().startsWith('[')) {\n    try { return JSON.parse(v); } catch (e) { return []; }\n  }\n  return [];\n};\nconst clean = v => parse(v).map(s => String(s ?? '').trim()).filter(Boolean);\n\nconst style = String(i.style ?? '').trim() || 'beer';\n\n// ⛔ Sensory descriptors must not reach the retriever. `bitter` matches 520 chunks\n// and `sweet` 301 (measured 2026-09-17), so searching them returns whatever sits\n// nearest the bare word, not anything about the brief. Document frequency cannot\n// separate them automatically -- `thick` (47) and `vanilla` (37) overlap -- so the\n// caller names them in `exclude` and they are dropped here.\nconst excl = new Set(clean(i.exclude).map(s => s.toLowerCase()));\n\nlet terms = [];\nconst seen = new Set();\nfor (const t of clean(i.keywords)) {\n  const k = t.toLowerCase();\n  if (excl.has(k) || seen.has(k)) continue;\n  seen.add(k);\n  terms.push(t);\n}\n\n// Collapse a longer term onto a shorter one it contains: \"crushed poppy seeds\" and\n// \"poppy seeds\" are the same search, and the shorter retrieves better in both arms.\n// ⛔ Case is preserved on whatever survives. nlq.corpus_vocabulary_gap's phrase arm\n// keys on a leading capital, so lowercasing here would hide product names from the\n// gap detector inside wf-step-retrieve.\nterms = terms.filter(t =>\n  !terms.some(o => o.length < t.length && t.toLowerCase().includes(o.toLowerCase())));\n\nif (!terms.length) terms = [style];\n\nconst k = Number(i.top_k);\nconst mode = String(i.mode ?? 'text').trim().toLowerCase() === 'rows' ? 'rows' : 'text';\n\nreturn [{ json: {\n  terms,\n  style,\n  mode,\n  session_id: String(i.session_id ?? '').trim(),\n  top_k: Number.isFinite(k) && k > 0 ? Math.min(Math.round(k), 8) : 8,\n}}];"
+        "jsCode": "const i = $input.first().json;\n\n// `keywords` and `concepts` may arrive as real arrays or as JSON strings, depending\n// on how the caller mapped them through the Execute Workflow node. Both are accepted.\nconst parse = v => {\n  if (Array.isArray(v)) return v;\n  if (typeof v === 'string' && v.trim().startsWith('[')) {\n    try { return JSON.parse(v); } catch (e) { return []; }\n  }\n  return [];\n};\nconst clean = v => parse(v).map(s => String(s ?? '').trim()).filter(Boolean);\n\nconst style = String(i.style ?? '').trim() || 'beer';\n\n// ⛔ Sensory descriptors must not reach the retriever. `bitter` matches 520 chunks and\n// `sweet` 301 (measured 2026-09-17), so searching them returns whatever sits nearest\n// the bare word. Document frequency cannot separate them automatically -- `thick` (47)\n// and `vanilla` (37) overlap -- so the caller names them here and they are dropped.\nconst excl = new Set(clean(i.exclude).map(s => s.toLowerCase()));\n\nconst dedupe = list => {\n  const out = [], seen = new Set();\n  for (const t of list) {\n    const k = t.toLowerCase();\n    if (excl.has(k) || seen.has(k)) continue;\n    seen.add(k);\n    out.push(t);\n  }\n  return out;\n};\n\n// Collapse a longer term onto a shorter one it contains: \"crushed poppy seeds\" and\n// \"poppy seeds\" are the same search, and the shorter retrieves better in both arms.\n//\n// ⛔ WITHIN a class only. Across classes the same rule would drop the concept\n// \"black forest cake\" in favour of the ingredient \"cake\", which is the opposite of\n// useful. Case is preserved on whatever survives -- corpus_vocabulary_gap's phrase\n// arm keys on a leading capital, so lowercasing would hide product names from the\n// gap detector inside wf-step-retrieve.\nconst collapse = list => list.filter(t =>\n  !list.some(o => o.length < t.length && t.toLowerCase().includes(o.toLowerCase())));\n\nconst concept_terms = collapse(dedupe(clean(i.concepts)));\n\n// ⛔ A term appearing in BOTH lists counts as a concept. It only reaches `concepts`\n// because the parse step made a deliberate positive call, and the reverse error is\n// the bug this split exists to fix -- asking the web how much Mákos Guba to add.\nconst isConcept = new Set(concept_terms.map(s => s.toLowerCase()));\nlet usage_terms = collapse(dedupe(clean(i.keywords)))\n  .filter(t => !isConcept.has(t.toLowerCase()));\n\nif (!usage_terms.length && !concept_terms.length) usage_terms = [style];\n\nconst k = Number(i.top_k);\nconst mode = String(i.mode ?? 'text').trim().toLowerCase() === 'rows' ? 'rows' : 'text';\n\nreturn [{ json: {\n  // One flat union so Probe corpus stays a SINGLE call covering both classes.\n  terms: [...usage_terms, ...concept_terms],\n  usage_terms,\n  concept_terms,\n  style,\n  mode,\n  session_id: String(i.session_id ?? '').trim(),\n  top_k: Number.isFinite(k) && k > 0 ? Math.min(Math.round(k), 8) : 8,\n}}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -79,7 +86,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const src = $('Normalise input').first().json;\n\n// Probe rows come back unordered (DISTINCT); re-key them against the normalised\n// term list so the caller's order survives into the query and the citations.\nconst hits = new Map();\nfor (const it of $input.all()) {\n  if (it.json.term == null) continue;\n  hits.set(String(it.json.term), Number(it.json.fts_hits) || 0);\n}\n\nconst covered   = src.terms.filter(t => (hits.get(t) ?? 0) > 0);\nconst uncovered = src.terms.filter(t => (hits.get(t) ?? 0) === 0);\n\n// ⛔ wf-step-retrieve THROWS on an empty query. When the library covers none of the\n// keywords the style is all that is left to search on, and it is never empty --\n// Normalise input defaults it to 'beer'.\nconst query = covered.join(' ') || src.style;\n\nreturn [{ json: { ...src, covered, uncovered, query } }];"
+        "jsCode": "const src = $('Normalise input').first().json;\n\n// Probe rows come back unordered (the function does SELECT DISTINCT), so re-key them\n// against the normalised lists -- that is what keeps the caller's order in the queries\n// and in the [S..] numbering.\nconst hits = new Map();\nfor (const it of $input.all()) {\n  if (it.json.term == null) continue;\n  hits.set(String(it.json.term), Number(it.json.fts_hits) || 0);\n}\nconst covers = t => (hits.get(t) ?? 0) > 5;\n\nreturn [{ json: {\n  ...src,\n  covered:            src.usage_terms.filter(covers),\n  uncovered:          src.usage_terms.filter(t => !covers(t)),\n  covered_concepts:   src.concept_terms.filter(covers),\n  uncovered_concepts: src.concept_terms.filter(t => !covers(t)),\n}}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -94,21 +101,30 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "cCt9O4NyNPyegHBq",
+          "value": "rTq4Mk9BzXw2LvHd",
           "mode": "list",
-          "cachedResultUrl": "/workflow/cCt9O4NyNPyegHBq",
-          "cachedResultName": "wf-step-retrieve"
+          "cachedResultUrl": "/workflow/rTq4Mk9BzXw2LvHd",
+          "cachedResultName": "wf-step-retrieve-multi"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
             "query": "={{ $json.query }}",
             "top_k": "={{ $json.top_k }}",
-            "mode": "rows",
             "session_id": "={{ $json.session_id }}"
           },
           "matchingColumns": [],
           "schema": [
+            {
+              "id": "question",
+              "displayName": "question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
             {
               "id": "query",
               "displayName": "query",
@@ -128,26 +144,8 @@
               "type": "number"
             },
             {
-              "id": "mode",
-              "displayName": "mode",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string"
-            },
-            {
               "id": "session_id",
               "displayName": "session_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string"
-            },
-            {
-              "id": "web_query",
-              "displayName": "web_query",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -158,6 +156,7 @@
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
         },
+        "mode": "each",
         "options": {
           "waitForSubWorkflow": true
         }
@@ -165,7 +164,7 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        832,
+        1040,
         0
       ],
       "id": "530dcce2-48ae-4ff9-8153-132f953ff3b7",
@@ -186,7 +185,7 @@
           "conditions": [
             {
               "id": "corpus-covers-none-of-these-keywords",
-              "leftValue": "={{ ($('Split coverage').first().json.uncovered ?? []).length > 0 }}",
+              "leftValue": "={{ ($('Split coverage').first().json.uncovered ?? []).length > 0 || ($('Split coverage').first().json.uncovered_concepts ?? []).length > 0 }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -202,7 +201,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1040,
+        1248,
         0
       ],
       "id": "0f1b4102-0154-4a57-bb52-ff9df24f1ee5",
@@ -210,12 +209,12 @@
     },
     {
       "parameters": {
-        "jsCode": "const src = $('Split coverage').first().json;\n\n// Capped at 3. Each call is a live SearXNG round trip plus page fetches -- measured\n// 12.2 s for one on 2026-09-17 -- so the cap is a latency budget, not a quality\n// judgement. Same cap as Plan parts in wf-step-retrieve-multi.\nreturn src.uncovered.slice(0, 3).map(term => ({ json: {\n  term,\n  // A bare keyword is a bad web query. Frame it as the brewer would have asked.\n  web_query: `${term} ${src.style} homebrew how much to use and when to add`,\n}}));"
+        "jsCode": "const s = $('Split coverage').first().json;\n\n// ⛔ Separate budgets, not one shared slice. A brief with four novel ingredients\n// would otherwise eat the whole cap and the concept lookup never runs -- and the\n// concept is usually the thing the brewer actually cares about.\n// Each call is a live SearXNG round trip: measured 8.7-14.9 s on 2026-09-17.\nconst usage = s.uncovered.slice(0, 3).map(term => ({ json: {\n  term, kind: 'usage',\n  web_query: `${term} homebrewing how to use it, how much and when to add`,\n}}));\n\n// ⛔ No style here, and no \"homebrew\". measured 2026-09-17: with the style attached,\n// \"Mákos Guba pastry stout homebrew how much to use and when to add\" returned three\n// generic pastry-stout pages and a steak-and-ale pie. Without it,\n// \"what is Mákos Guba Hungarian dessert ingredients and flavour\" returned the dish\n// itself -- \"hearty, but not overly rich… not overly sweet\" -- which is the brief.\nconst concept = s.uncovered_concepts.slice(0, 2).map(term => ({ json: {\n  term, kind: 'concept',\n  web_query: `what is ${term} — ingredients, flavour and description`,\n}}));\n\nreturn [...usage, ...concept];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1248,
+        1456,
         -160
       ],
       "id": "7ce13df7-69f8-4727-9bb0-1bc0b5b2062e",
@@ -235,26 +234,39 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1456,
+        1664,
         -160
       ],
       "id": "4868897f-6272-4c33-b04d-9044829441de",
       "name": "Web gaps",
-      "onError": "continueRegularOutput",
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "jsCode": "const src  = $('Split coverage').first().json;\nconst mode = String(src.mode ?? 'text').toLowerCase() === 'rows' ? 'rows' : 'text';\n\n// wf-step-retrieve was called with mode:'rows', so it returns one item carrying the\n// structured rows. Always Output Data is ON inside it, so a zero-row search arrives\n// as an empty array rather than as no item at all.\nconst libr = $('Library search').first().json ?? {};\nconst rows = (libr.rows ?? []).filter(r => r && r.chunk_id != null);\n\n// ⛔ `Web gaps` only runs on the true arm, so referencing it on the false arm THROWS\n// rather than returning empty. try/catch is load-bearing -- the same reason it is in\n// wf-step-retrieve's Return rows. onError:continueRegularOutput also means a failed\n// call arrives carrying `error` and no `rows`; that is treated as no web results.\nlet web = [];\ntry {\n  const seen = new Set();\n  for (const it of $('Web gaps').all()) {\n    for (const r of (it.json?.rows ?? [])) {\n      if (!r || seen.has(r.url)) continue;   // one passage per source\n      seen.add(r.url);\n      web.push(r);\n    }\n  }\n} catch (e) { /* gate was false: no web arm on this path */ }\n\nconst gap   = src.uncovered;\nconst asked = src.covered.length\n  ? src.covered.map(t => `\"${t}\"`).join(', ')\n  : `\"${src.query}\"`;\n\n// Structured shape -- for capabilities. Empty is a valid answer, not an error.\nif (mode === 'rows') {\n  return [{ json: {\n    query: src.query, count: rows.length,\n    covered: src.covered, gap, web, rows,\n  }}];\n}\n\n// Text shape -- for the model. ONE item, ONE key. Mirrors wf-step-retrieve's\n// Return rows; a caller must not be able to tell which retriever it reached.\nif (!rows.length && !web.length) {\n  return [{ json: { response: `No passages in the library matched ${asked}.` } }];\n}\n\nconst libraryBlock = rows.length\n  ? `${rows.length} passages from the library for ${asked}:\\n\\n` +\n    rows.map((x, n) =>\n      `[S${n + 1}] ${x.doc_title} · ${x.heading}${x.page ? ` · p.${x.page}` : ''}\\n${x.text}`\n    ).join('\\n\\n')\n  : `No passages in the library matched ${asked}.`;\n\nif (!web.length) {\n  const why = gap.length\n    ? `\\n\\nThe library does not cover ${gap.map(t => `\"${t}\"`).join(', ')}, and no usable web source was reachable.`\n    : '';\n  return [{ json: { response: libraryBlock + why } }];\n}\n\n// ⛔ [W..] is a DIFFERENT marker from [S..] on purpose, and the sentence below is an\n// instruction the model reads, not decoration. Web passages carry none of the\n// library's editorial vetting and must never be presented as though they do.\nconst webBlock = web.map((x, n) =>\n  `[W${n + 1}] ${x.url}${x.heading ? ` · ${x.heading}` : ''}\\n${x.text}`\n).join('\\n\\n');\n\nreturn [{ json: {\n  response: `${libraryBlock}\\n\\n---\\n` +\n    `Your library has never seen ${gap.map(t => `\"${t}\"`).join(', ')}, so these came from the web.\\n` +\n    `Cite them as [W1], [W2] — NOT as [S1] — and tell the reader plainly that this ` +\n    `part is from the web and is not in their library.\\n\\n${webBlock}`,\n}}];"
+        "jsCode": "const src  = $('Split coverage').first().json;\nconst mode = String(src.mode ?? 'text').toLowerCase() === 'rows' ? 'rows' : 'text';\n\n// ⛔ .all(), not .first(). Library search runs in mode:\"each\" over the items Plan\n// searches emits -- up to two, one per group -- so .first() reads only the usage\n// group and silently drops every concept passage. Index-aligned with Plan searches,\n// the same pairing Merge passages relies on in wf-step-retrieve-multi.\nconst planned = $('Plan searches').all().map(i => i.json);\nconst libr    = $('Library search').all().map(i => i.json ?? {});\nconst rowsOf = group => {\n  const idx = planned.findIndex(p => p.group === group);\n  if (idx < 0) return [];\n  // Always Output Data is ON inside wf-step-retrieve, so a zero-row search arrives\n  // as an empty array; filtering on chunk_id turns that back into \"no results\".\n  return (libr[idx]?.rows ?? []).filter(r => r && r.chunk_id != null);\n};\n// Both groups are [S..]: the marker encodes PROVENANCE, not topic, and a covered\n// concept is a vetted library passage like any other. Deduped -- a passage can win\n// both searches.\nconst seenChunk = new Set();\nconst rows = [...rowsOf('usage'), ...rowsOf('concept')]\n  .filter(r => !seenChunk.has(r.chunk_id) && seenChunk.add(r.chunk_id));\n\n// ⛔ `kind` CANNOT be read off Web gaps. measured on execution 2084: the HTTP node\n// returns only the webarm response -- {query, rows, skipped, dropped, secs} -- and\n// nothing from the request item. Pair on the echoed `query`, which is the verbatim\n// web_query Fan uncovered sent.\nconst kindOf = new Map($('Fan uncovered').all().map(i => [i.json.web_query, i.json.kind]));\n\n// ⛔ `Web gaps` only runs on the true arm, so referencing it on the false arm THROWS\n// rather than returning empty. try/catch is load-bearing -- the same reason it is in\n// wf-step-retrieve's Return rows. onError:continueRegularOutput also means a failed\n// call arrives carrying `error` and no `rows`; that is treated as no web results.\nconst web = [], concepts = [];\nconst seenUrl = new Set();   // shared: one passage per source across BOTH arms\ntry {\n  for (const it of $('Web gaps').all()) {\n    const res = it.json ?? {};\n    const bucket = kindOf.get(res.query) === 'concept' ? concepts : web;\n    for (const r of (res.rows ?? [])) {\n      if (!r || seenUrl.has(r.url)) continue;\n      seenUrl.add(r.url);\n      bucket.push(r);\n    }\n  }\n} catch (e) { /* gate was false: no web arm on this path */ }\n\nconst gap        = src.uncovered ?? [];\nconst gapConcept = src.uncovered_concepts ?? [];\nconst asked = planned.map(p => `\"${p.query}\"`).join(', ');\nconst q = t => `\"${t}\"`;\n\n// Structured shape -- for capabilities. Empty is a valid answer, not an error.\nif (mode === 'rows') {\n  return [{ json: {\n    query: planned.map(p => p.query).join(' | '),\n    count: rows.length,\n    covered: src.covered, covered_concepts: src.covered_concepts,\n    gap, gap_concepts: gapConcept,\n    web, concepts, rows,\n  }}];\n}\n\n// Text shape -- for the model. ONE item, ONE key.\nif (!rows.length && !web.length && !concepts.length) {\n  return [{ json: { response: `No passages in the library matched ${asked}.` } }];\n}\n\nconst blocks = [rows.length\n  ? `${rows.length} passages from the library, searched as ${asked}:\\n\\n` +\n    rows.map((x, n) =>\n      `[S${n + 1}] ${x.doc_title} · ${x.heading}${x.page ? ` · p.${x.page}` : ''}\\n${x.text}`\n    ).join('\\n\\n')\n  : `No passages in the library matched ${asked}.`];\n\n// ⛔ [W..] is a DIFFERENT marker from [S..] on purpose, and the sentence below is an\n// instruction the model reads, not decoration. Web passages carry none of the\n// library's editorial vetting and must never be presented as though they do.\nif (web.length) {\n  blocks.push(`---\\n` +\n    (gap.length\n      ? `Your library has never seen ${gap.map(q).join(', ')}, so these came from the web.\\n`\n      : `These came from the web, not your library.\\n`) +\n    `Cite them as [W1], [W2] — NOT as [S1] — and tell the reader plainly that this ` +\n    `part is from the web and is not in their library.\\n\\n` +\n    web.map((x, n) => `[W${n + 1}] ${x.url}${x.heading ? ` · ${x.heading}` : ''}\\n${x.text}`).join('\\n\\n'));\n} else if (gap.length) {\n  blocks.push(`The library does not cover ${gap.map(q).join(', ')}, and no usable web source was reachable.`);\n}\n\n// ⛔ A THIRD marker, not more [W..]. A concept passage is a food blog describing a\n// dessert: authoritative about the dessert, zero brewing authority. Dropped into the\n// [W..] block the model reads a bread-pudding recipe as brewing guidance.\nif (concepts.length) {\n  const label = concepts.length === 1 ? '[C1] describes' : `[C1]..[C${concepts.length}] describe`;\n  blocks.push(`---\\n` +\n    `${label} ${gapConcept.map(q).join(', ')} — what the brewer asked the beer to taste ` +\n    `LIKE. They are NOT brewing sources: do not take quantities, methods or timings ` +\n    `from them. Use them only to decide which flavours the recipe has to hit.\\n\\n` +\n    concepts.map((x, n) => `[C${n + 1}] ${x.url}${x.heading ? ` · ${x.heading}` : ''}\\n${x.text}`).join('\\n\\n'));\n} else if (gapConcept.length) {\n  blocks.push(`No usable description of ${gapConcept.map(q).join(', ')} was reachable on the web.`);\n}\n\nreturn [{ json: { response: blocks.join('\\n\\n') } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1680,
+        1888,
         0
       ],
       "id": "d3438c2c-778b-48cb-92d5-c27484f76ba4",
       "name": "Merge results"
+    },
+    {
+      "parameters": {
+        "jsCode": "const s = $('Split coverage').first().json;\nconst groups = [];\nif (s.covered.length)          groups.push({ group: 'usage',   query: s.covered.join(' ') });\nif (s.covered_concepts.length) groups.push({ group: 'concept', query: s.covered_concepts.join(' ') });\n\n// ⛔ wf-step-retrieve THROWS on an empty query. With nothing covered on either\n// side the style is all that is left, and Normalise input guarantees it is set.\nif (!groups.length) groups.push({ group: 'usage', query: s.style });\n\nreturn groups.map(g => ({ json: { ...g, top_k: s.top_k, mode: 'rows', session_id: s.session_id } }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "0c79354d-8464-4880-b6fe-5e91d79fe261",
+      "name": "Plan searches"
     }
   ],
   "connections": {
@@ -295,7 +307,7 @@
       "main": [
         [
           {
-            "node": "Library search",
+            "node": "Plan searches",
             "type": "main",
             "index": 0
           }
@@ -352,6 +364,17 @@
           }
         ]
       ]
+    },
+    "Plan searches": {
+      "main": [
+        [
+          {
+            "node": "Library search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -359,11 +382,74 @@
     "binaryMode": "separate",
     "availableInMCP": true
   },
-  "active": true,
-  "isArchived": false,
   "staticData": null,
   "meta": {
     "templateCredsSetupCompleted": true
   },
-  "tags": []
+  "nodeGroups": [],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "keywords": [
+            "pastry stout",
+            "crushed poppy seeds",
+            "drenched in rum",
+            "vanilla",
+            "poppy seeds",
+            "rum",
+            "sweet",
+            "thick",
+            "vanilla custardy",
+            "bitter",
+            "drinkable",
+            "Liqueur-like"
+          ],
+          "concepts": [
+            "Mákos Guba"
+          ],
+          "exclude": [
+            "sweet",
+            "thick",
+            "vanilla custardy",
+            "bitter",
+            "drinkable",
+            "Liqueur-like"
+          ],
+          "style": "pastry stout",
+          "top_k": 8,
+          "mode": "rows",
+          "session_id": "ee2ce24827a34cddbc37223de489f6ea"
+        }
+      }
+    ]
+  },
+  "versionId": "502376ca-66ed-4cf1-925c-db10d67cd143",
+  "activeVersionId": "37f062dc-cad9-48c6-bb68-3b99e956a1d4",
+  "versionCounter": 44,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-09-17T10:15:54.570Z",
+      "createdAt": "2026-09-17T10:15:54.570Z",
+      "role": "workflow:owner",
+      "workflowId": "wfStepRetrieveKw",
+      "projectId": "cIpOMqhSXz7mHAJj",
+      "project": {
+        "updatedAt": "2026-07-23T14:53:00.343Z",
+        "createdAt": "2026-07-23T14:06:58.898Z",
+        "id": "cIpOMqhSXz7mHAJj",
+        "name": "János Tóth <janos.toth.2000@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "392cafdf-bd25-4c0b-8d4a-e40c58c63156"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
 }

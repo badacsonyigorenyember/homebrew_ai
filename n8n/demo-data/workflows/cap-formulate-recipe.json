@@ -1,4 +1,6 @@
 {
+  "updatedAt": "2026-09-16T18:11:45.547Z",
+  "createdAt": "2026-09-14T14:45:40.921Z",
   "id": "capFormulateRec1",
   "name": "cap-formulate-recipe",
   "description": "Formulates a brewing recipe for a target style, volume and ABV: parses the brief, retrieves technique from the library, proposes a grain bill and hop schedule from the brew.ingredients catalogue, then computes OG/FG/ABV/IBU/SRM in SQL and saves it. The model never does the arithmetic.",
@@ -1025,6 +1027,34 @@
   },
   "staticData": null,
   "meta": {},
+  "nodeGroups": [],
   "pinData": {},
-  "tags": []
+  "versionId": "4827c22f-5747-43d1-b1fd-30ebc35ee90e",
+  "activeVersionId": "4827c22f-5747-43d1-b1fd-30ebc35ee90e",
+  "versionCounter": 23,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-09-14T14:45:40.921Z",
+      "createdAt": "2026-09-14T14:45:40.921Z",
+      "role": "workflow:owner",
+      "workflowId": "capFormulateRec1",
+      "projectId": "cIpOMqhSXz7mHAJj",
+      "project": {
+        "updatedAt": "2026-07-23T14:53:00.343Z",
+        "createdAt": "2026-07-23T14:06:58.898Z",
+        "id": "cIpOMqhSXz7mHAJj",
+        "name": "János Tóth <janos.toth.2000@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "392cafdf-bd25-4c0b-8d4a-e40c58c63156"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
 }
