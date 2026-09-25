@@ -1,1 +1,1 @@
-select * from corpus.miscs where name_raw ILIKE '%poppy%'
+Select * from refs.style where guide = 'BA'

@@ -1,0 +1,1 @@
+delete from ref.styles where guide = 'BA'
