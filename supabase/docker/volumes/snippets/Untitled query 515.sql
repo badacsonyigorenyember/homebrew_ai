@@ -1,1 +1,0 @@
-Select * from refs.style where guide = 'BA'
