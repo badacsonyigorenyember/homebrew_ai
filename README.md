@@ -1,11 +1,11 @@
 # AI Homebrew Assistant
 
-Cleared on 2026-10-08 to rethink the project from scratch.
+A self-hosted, local-first homebrewing assistant: a RAG knowledge base built from brewing
+books, used to design recipes from scratch.
 
-The previous state is preserved:
+**Everything about the project (goals, approach, stack, progress) is in
+[`PROJECT.md`](PROJECT.md).**
 
-- **Repo** — tag `archive/pre-reset-2026-10-08`. Restore a file or the whole tree with
-  `git checkout archive/pre-reset-2026-10-08 -- <path>` (or `-- .`).
-- **Live databases and n8n** — `~/homebrew-archive-2026-10-08/` (outside git):
-  `supabase-postgres.dump` and `n8n-postgres.dump` (`pg_dump -Fc`, restore with
-  `pg_restore`), plus per-file `n8n-workflows/` and `n8n-credentials/` exports.
+The pre-2026-10-08 build is archived under the git tag `archive/pre-reset-2026-10-08`
+(`git checkout archive/pre-reset-2026-10-08 -- <path>` restores a file), and its databases are
+dumped to `~/homebrew-archive-2026-10-08/` (`pg_restore` format).

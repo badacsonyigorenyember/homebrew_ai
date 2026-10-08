@@ -1,0 +1,27 @@
+{
+  "extraKnownMarketplaces": {
+    "n8n-io": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/n8n-io/skills.git"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "n8n-skills@n8n-io": true
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Read|Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
