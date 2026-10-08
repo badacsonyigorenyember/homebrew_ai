@@ -62,40 +62,32 @@ the knowledge base or to a clearly labelled assumption.
 
 ## 3. How recipe creation works *(current approach)*
 
-The approach is **proportions first, quantities last**. A recipe is designed as ratios, which
-can then be scaled to any batch size.
+Agreed 2026-10-08. Full design, diagrams and worked examples:
+[`docs/RECIPE-ROADMAP.md`](docs/RECIPE-ROADMAP.md). Database: [`docs/DATABASE.md`](docs/DATABASE.md).
+
+The approach is **proportions first, quantities last**, and **compute first**: the LLM reads the
+request (step 1) and writes the recipe sheet (step 16). Everything in between is SQL or
+deterministic code, with an LLM tie-break only when scores tie.
 
 ```
- User brief
-     │
-     ▼
- 1. STYLE        Pick the target style (BJCP / BA) and load its numeric ranges:
-                 OG, FG, ABV, IBU, SRM, plus its characteristic ingredients and process.
-     │
-     ▼
- 2. RATIOS       Decide the recipe's shape as proportions, not amounts:
-                 grain bill % (base / specialty / adjunct / roast), bitterness ratio
-                 (IBU:OG), hop schedule split (bittering / flavour / aroma / dry hop),
-                 yeast attenuation band, and process targets.
-     │
-     ▼
- 3. INGREDIENTS  Fill each ratio slot with real ingredients, preferring what the user has,
-                 then what they can get, then the textbook choice. Additions that are not in
-                 the catalogue (fruit, spices, …) are kept by name and never swapped for a
-                 catalogue item.
-     │
-     ▼
- 4. SCALE        Turn the ratios into amounts for the user's batch size, efficiency and
-                 equipment, then calculate OG / FG / ABV / IBU / SRM and check them against
-                 the style ranges.
-     │
-     ▼
- Recipe + reasoning + citations
+ A UNDERSTAND   0 brewer profile (stored) · 1 brief · 2 best-fit style · 3 deviation report
+ B DESIGN       4 targets (style range + hint knobs + user's numbers) · 5 blueprint (ratios)
+ C CHOOSE       6 yeast · 7 fermentables · 8 hops · 9 extras   (scored by code)
+ D COMPUTE      10 calculate amounts, OG/FG/ABV/IBU/SRM · 11 validate, retry max 3×
+ E PROCESS      12 water · 13 mash + boil · 14 ferment + condition · 15 package
+ F DELIVER      16 write + save (reasons, deviations, citations)
 ```
 
-Each step has its own input and output contract that code can check, so a failure can be
-pinned to one step. Brewing maths (gravity, IBU, colour, scaling) is **deterministic code,
-never the LLM**.
+- **The style is guidance, not law.** A best-fit style is always picked. Guidance is on by
+  default: the pipeline's own choices stay in style, and anything the user asks for
+  (ingredients or numbers) is accepted and listed as a deviation, never blocked.
+- **Style rules are graded on 5 levels** (required · typical · allowed · out of style · changes
+  style). They are not written per ingredient: a deterministic function compares the style's
+  sensory envelope with the ingredient's automatically derived tags, its usage and its dose, so
+  new ingredients need no rules ([`docs/STYLE-FIT.md`](docs/STYLE-FIT.md)).
+- **Ratios** come from per-style statistics computed over community recipes (D7).
+- Each step has an input/output contract that code can check, so a failure can be pinned to
+  one step.
 
 ---
 
@@ -138,9 +130,12 @@ The source files sit in `shared/rag-files/pending/` and have not been ingested s
 | Stout Style Guide | PDF | Stout styles and recipes | ⬜ |
 | BYO pastry stouts | Markdown | Adjunct technique | ⬜ |
 | Draught Beer Quality Manual 2019 | PDF | Serving and dispense | ⬜ |
-| BJCP 2021 style guidelines | Structured | Style ranges | ⬜ to source |
-| Brewers Association style guidelines | Structured | Style ranges | ⬜ to source |
-| Hop, yeast-strain and fault data | Structured | Ingredient catalogues | ⬜ to source |
+| BJCP 2021 style guidelines (`styles.json`) | Structured | Styles, 116 rows | ⬜ |
+| Brewers Association style guidelines (`ba_styles.json`) | Structured | Styles, 169 rows | ⬜ |
+| Hop data (`hops.json`, `hops.hopslist.json`), fault data (`beer_faults.json`) | Structured | Hop catalogue (72 + 268), faults (21) | ⬜ |
+| Brewer's Friend recipes (Kaggle, CC0) | Structured, 179,455 recipes | Per-style ratios (D7) | ⬜ 35,620 (views > 500) in the archive dump, measured 2026-10-08 |
+| Brewtarget default data (GPL-3) | Structured, BeerJSON | Yeast (296 + 275 entries), hops (282) (D8) | ⬜ candidate, not downloaded |
+| AHA recipe-design crash course · Oregon Brew Crew recipe formulation · BJCP exam study guide | Free web / PDF | Design method, rules of thumb, output checklist | ⬜ candidate, not downloaded |
 
 ---
 
@@ -163,6 +158,10 @@ Several of these are lessons from the first build (see §9).
    only when a measured need justifies it.
 6. **Measure before and after.** Every change to the recipe pipeline is run against a fixed
    set of test briefs, so improvement is shown, not assumed.
+7. **Compute first.** Anything that can be SQL or deterministic code must be: it is faster,
+   cheaper and testable. The LLM is only for free text in and prose out. Every new source gets
+   a *doc → calculation* pass first: its tables, formulas and rules of thumb become data or
+   code, and only the remaining prose goes to RAG.
 
 ---
 
@@ -173,9 +172,12 @@ Several of these are lessons from the first build (see §9).
 | D1 | Which style system is primary: BJCP, Brewers Association, or both? | BJCP 2021 as primary (the first build resolved styles against BJCP, classifying to the base style); BA as an alternative the user can pick | open |
 | D2 | Chat model: keep `gemma4:12b` or move to `qwen3.8:27b` (fits 16 GB at Q4, slower)? | Benchmark both on the recipe test set before deciding | open |
 | D3 | Where does the recipe pipeline live: n8n workflows, Postgres functions, or a Python service? | Undecided. The first build used n8n plus SQL and became hard to follow | open |
-| D4 | Ingredient catalogue: what schema, and where does the data come from? | — | open |
+| D4 | Ingredient catalogue: what schema, and where does the data come from? | Schema designed in [`docs/DATABASE.md`](docs/DATABASE.md) §2 (one `ref.ingredient` table + one table per kind, tags, source per row). Data sources: D7, D8 | open |
 | D5 | How the user interacts: chat UI, CLI, n8n chat trigger? | — | open |
 | D6 | Re-commit the infrastructure definition (`docker-compose.yml`, `kong.yml`) from the archive tag now, or rebuild it piece by piece? Until one happens, no container can be recreated and `supabase-kong` holds its config only in memory | Restore the compose and Kong files soon; leave `db-init` out until the new schema exists | open |
+| D7 | Where do the recipe ratios (grist %, hop split) come from? | Brewer's Friend corpus through automatic quality gates (no hand curation) → `corpus.style_profile`, thin styles shrunk toward their family, specialty styles use the base style, extra sources weighted (books, DIY Dog, own batches) ([`docs/STYLE-PROFILES.md`](docs/STYLE-PROFILES.md)) | open |
+| D8 | Yeast data source | Brewtarget default data: 571 entries with attenuation and temperature ranges, GPL-3 (fine for a private install) | open |
+| D9 | Who approves the extracted style sensory envelopes before they enter `ref`? | LLM extracts BJCP prose, code parses BA fields, the user reviews | open |
 
 ---
 
@@ -184,6 +186,34 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-08
+- Measured the archived Brewer's Friend corpus (read from the dump, nothing restored): 35,620
+  recipes (views > 500 of 179,455), 34,052 mapped to a BJCP 2021 style; 84 of 116 styles have
+  ≥ 50 recipes, 19 have 20–49, 9 have 1–19, 4 have none (28D, 29D, 30D, 34A). Junk left: 0
+  non-Latin names, 219 OG outside 1.020–1.150, 90 ABV-inconsistent, 3,287 (9 %) grist % not
+  summing to 100 ± 2. Wrote [`docs/STYLE-PROFILES.md`](docs/STYLE-PROFILES.md) (quality gates
+  instead of hand curation, robust statistics, family shrinkage for thin styles, weighted extra
+  sources) and [`docs/STYLE-FIT.md`](docs/STYLE-FIT.md) (deterministic 5-level algorithm with
+  automatic ingredient tagging, so new ingredients need no rules). Updated the roadmap,
+  `DATABASE.md` (`sensory_dimension`, `source_weight`, gate flags) and D7.
+- Agreed the recipe-creation approach after reviewing the roadmap point by point: brief before
+  style; style as guidance (best-fit style always picked, user overrides accepted and listed);
+  yeast → fermentables → hops → extras; added brewer profile, water, mash + boil, fermentation,
+  packaging and a validate loop (16 steps in 6 stages, §3); new principle 7 *compute first*
+  (§6). Rewrote [`docs/RECIPE-ROADMAP.md`](docs/RECIPE-ROADMAP.md): style rules organised as
+  sensory envelope + ingredient tags + usage effects + dose (worked "Citra in a stout" example
+  from BJCP 15B/20B text), a doc → calculation table, and web research on free ratio sources
+  (Brewer's Friend CC0 corpus, Beer Analytics, DIY Dog, AHA, Oregon Brew Crew, BJCP study guide,
+  Brewtarget yeast data). Wrote [`docs/DATABASE.md`](docs/DATABASE.md): `ref` / `corpus` / `kb` /
+  `app` schemas split by trust, ER diagrams, access rules, build order. Design only, nothing
+  built. Updated D4, D7–D9 and corrected §5 (the BJCP and BA style JSONs are already in
+  `pending/`).
+- Wrote [`docs/RECIPE-ROADMAP.md`](docs/RECIPE-ROADMAP.md): a review of the proposed recipe-creation
+  flow, an improved 10-step flow (brief → style → conflict check → targets → blueprint → pick →
+  calculate → validate → process → write), a 5-level style-rule scale, a hint→knob table, a
+  database split by trust (`ref` / `kb` / `corpus` / `app`) and a phased roadmap (P0–P9). It is a
+  **proposal**: §3 is unchanged until the user approves it. Added D7–D9.
+- Added a scope rule to `CLAUDE.md`: implement only what is asked, no unrequested suggestions or
+  follow-up fixes, so sessions can close.
 - Hardened the Claude Code setup (audit found the project-specific setup lived outside git):
   committed `.mcp.json` with the Supabase MCP **read-only** on purpose (`~/.mcp.json`, which leaked
   into every project under `~`, moved to `~/.mcp.json.bak`); added `.claude/settings.json` with a

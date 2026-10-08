@@ -1,5 +1,16 @@
 # CLAUDE.md
 
+## Scope: do what was asked, then stop
+
+- Implement exactly what the user asked for, and nothing else. No extra fixes, refactors,
+  cleanups or "while I was here" changes.
+- Don't end a task with suggestions, follow-up ideas, "next steps" or lists of issues you found.
+  Report what was done and stop, so the conversation can close.
+- Don't go looking for problems after the task is done. Improvement reviews happen only when the
+  user asks for one.
+- Exception: if you notice something that would lose data, expose a secret, or stop the requested
+  change from working, say so in one sentence. Don't fix it unless asked.
+
 ## PROJECT.md is the single source of truth
 
 [`PROJECT.md`](PROJECT.md) holds the project's purpose, goals, recipe approach, tech stack,
