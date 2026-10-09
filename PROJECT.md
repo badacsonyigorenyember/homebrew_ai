@@ -103,7 +103,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 
 | Layer | Choice | Role | Status |
 |---|---|---|---|
-| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)), schema not rebuilt |
+| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)); `ref` schema rebuilt: 7 empty tables owned by `postgres` and 8 `ref.source` rows (2026-10-09, [`ref-schema`](docs/work/ref-schema/plan.md) Task 2) |
 | Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | ⬜ schema not rebuilt |
 | Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, no workflows |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
@@ -193,6 +193,12 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- `ref-schema` Task 2 ([`docs/work/ref-schema/`](docs/work/ref-schema/plan.md)): added
+  `db/010_ref_schema.sql` (`ref` schema with `source`, `beer_style`, `ingredient`, `fermentable`,
+  `hop`, `yeast`, `water_salt`) and `db/011_ref_sources.sql` (8 source slugs), applied as
+  `postgres`. Measured: 7 of 7 `ref` tables owned by `postgres`, 8 `ref.source` rows; applying
+  both files again gave the same counts and no error. Licences other than `GPL-3.0`
+  (Brewtarget) and `unknown` (`hops-json`, `hopslist`) are left `NULL`, not checked yet.
 - `ref-schema` Task 1 ([`docs/work/ref-schema/`](docs/work/ref-schema/plan.md)): added the
   `loaders/` package with the shared helpers in `loaders/common.py` (`num`, `to_range`, `f_to_c`,
   `name_key`, `read_beerjson`), `requirements.txt` (`psycopg[binary]`, `pytest`) and `pytest.ini`.

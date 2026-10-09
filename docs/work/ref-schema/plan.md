@@ -99,7 +99,7 @@ Commit: `Add loader helpers: ranges, units, name keys`
 
 ### Task 2: `ref` schema and source rows
 Why: the tables every loader writes into, each row traceable to a source.
-- [ ] `db/010_ref_schema.sql`: `create schema if not exists ref` and these tables, all owned by
+- [x] `db/010_ref_schema.sql`: `create schema if not exists ref` and these tables, all owned by
   `postgres`. Column names are fixed by this list:
   - `source(id identity pk, slug text unique not null, title, edition, publisher, licence, url, notes)`
   - `beer_style(id identity pk, source_id fk not null, guide text check in ('BJCP','BA'), edition text not null, code, name, category, category_code, og numrange, fg numrange, ibu numrange, srm numrange, abv numrange, co2_vol numrange, characteristic_ingredients text, raw jsonb not null, unique(guide, edition, code))`. `co2_vol` stays NULL until P2.
@@ -108,14 +108,14 @@ Why: the tables every loader writes into, each row traceable to a source.
   - `hop(ingredient_id pk fk, origins text[], purpose text check in ('aroma','bittering','dual'), alpha_pct numrange, beta_pct numrange, total_oil_ml_100g numrange, oils_pct jsonb, field_source jsonb not null)`
   - `yeast(ingredient_id pk fk, product_id text, type text, form text, attenuation_pct numrange, temp_c numrange, flocculation text check in ('very low','low','medium low','medium','medium high','high','very high'), alcohol_tolerance_pct numeric(4,1))`
   - `water_salt(ingredient_id pk fk, formula text not null, molar_mass numeric(7,3) not null, ion_mg_per_l_per_g jsonb not null)`
-- [ ] `db/011_ref_sources.sql` inserts these slugs `ON CONFLICT (slug) DO NOTHING`, each with an
+- [x] `db/011_ref_sources.sql` inserts these slugs `ON CONFLICT (slug) DO NOTHING`, each with an
   edition or version: `bjcp-2021`, `ba-2026`, `weyermann-specs`, `viking-malt-2020`, `hops-json`,
   `hopslist`, `brewtarget-default-data` (licence `GPL-3.0`), `water-chemistry` (standard atomic
   masses, IUPAC). For `hops-json` and `hopslist` the provenance is unknown: licence `unknown`,
   notes `provenance unverified`.
-- [ ] Apply `010` then `011` with the command under *Rules* → no `ERROR`.
-- [ ] Verify: `docker exec supabase-db psql -U postgres -d postgres -Atc "select count(*) filter (where tableowner='postgres'), count(*) from pg_tables where schemaname='ref'; select count(*) from ref.source"` → `7|7` and `8`
-- [ ] Apply both files again → same output, no error.
+- [x] Apply `010` then `011` with the command under *Rules* → no `ERROR`.
+- [x] Verify: `docker exec supabase-db psql -U postgres -d postgres -Atc "select count(*) filter (where tableowner='postgres'), count(*) from pg_tables where schemaname='ref'; select count(*) from ref.source"` → `7|7` and `8`
+- [x] Apply both files again → same output, no error.
 Done when: 7 tables owned by `postgres`, 8 sources, and re-applying changes nothing.
 Commit: `Add ref schema and source rows`
 
