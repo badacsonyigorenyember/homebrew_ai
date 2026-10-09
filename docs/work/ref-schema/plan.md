@@ -1,6 +1,6 @@
 # `ref` schema, source rows and loader helpers — implementation plan
 
-Stage: draft
+Stage: shipped
 Source: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a index, item 2; was Tasks 2–3)
 Branch: ref-schema
 
@@ -45,9 +45,9 @@ Tech: Postgres 15 (self-hosted Supabase), Python 3.12 in `.venv`, `psycopg` 3 (3
 
 ### Task 1: Loader package and shared helpers
 Why: every loader needs the same range, unit and name handling (Review focus 1–3).
-- [ ] Create `requirements.txt` and `pytest.ini`, then
+- [x] Create `requirements.txt` and `pytest.ini`, then
   `.venv/bin/python -m pip install -r requirements.txt` → `Successfully installed pytest…`
-- [ ] In `loaders/common.py`:
+- [x] In `loaders/common.py`:
   - `num(x: str | float | int | None) -> Decimal | None`: `None`, `""` and whitespace → `None`.
     Builds the Decimal from `str(x)`, so `5.0` → `Decimal("5.0")`.
   - `to_range(lo, hi) -> psycopg.types.range.Range | None`: both missing → `None`; both present
@@ -58,7 +58,7 @@ Why: every loader needs the same range, unit and name handling (Review focus 1�
     Parentheses are dropped as characters, but their content is kept (`Saaz (US)` → `saazus`).
   - `read_beerjson(path) -> dict`: drops lines whose stripped text starts with `//`, then
     returns `json.loads(...)["beerjson"]`. Used by `hop-loader` and `yeast-loader`.
-- [ ] Write `tests/test_common.py` first and see it fail (`ModuleNotFoundError: loaders`):
+- [x] Write `tests/test_common.py` first and see it fail (`ModuleNotFoundError: loaders`):
   ```python
   from decimal import Decimal as D
   import pytest
@@ -93,35 +93,35 @@ Why: every loader needs the same range, unit and name handling (Review focus 1�
   ```
   plus `test_read_beerjson_strips_comment_header` (uses `tmp_path`: a file with two `//` lines,
   then `{"beerjson": {"version": 1}}` → `{"version": 1}`).
-- [ ] Implement, then `.venv/bin/python -m pytest tests/test_common.py -v` → 8 passed.
+- [x] Implement, then `.venv/bin/python -m pytest tests/test_common.py -v` → 8 passed.
 Done when: 8 passed.
 Commit: `Add loader helpers: ranges, units, name keys`
 
 ### Task 2: `ref` schema and source rows
 Why: the tables every loader writes into, each row traceable to a source.
-- [ ] `db/010_ref_schema.sql`: `create schema if not exists ref` and these tables, all owned by
+- [x] `db/010_ref_schema.sql`: `create schema if not exists ref` and these tables, all owned by
   `postgres`. Column names are fixed by this list:
   - `source(id identity pk, slug text unique not null, title, edition, publisher, licence, url, notes)`
-  - `beer_style(id identity pk, source_id fk not null, guide text check in ('BJCP','BA'), edition text not null, code, name, category, category_code, og numrange, fg numrange, ibu numrange, srm numrange, abv numrange, co2_vol numrange, characteristic_ingredients text, raw jsonb not null, unique(guide, edition, code))`. `co2_vol` stays NULL until P2.
-  - `ingredient(id identity pk, kind text check in ('fermentable','hop','yeast','misc','water_salt'), name text not null, name_key text not null, producer text not null default '', producer_key text not null default '', source_id fk not null, raw jsonb not null, unique(kind, producer_key, name_key))`
+  - `beer_style(id identity pk, source_id fk not null, guide text not null check in ('BJCP','BA'), edition text not null, code text not null, name, category, category_code, og numrange, fg numrange, ibu numrange, srm numrange, abv numrange, co2_vol numrange, characteristic_ingredients text, raw jsonb not null, unique(guide, edition, code))`. `co2_vol` stays NULL until P2.
+  - `ingredient(id identity pk, kind text not null check in ('fermentable','hop','yeast','misc','water_salt'), name text not null, name_key text not null, producer text not null default '', producer_key text not null default '', source_id fk not null, raw jsonb not null, unique(kind, producer_key, name_key))`
   - `fermentable(ingredient_id pk fk on delete cascade, potential_sg numeric(5,4), extract_dbfg_pct numeric(4,1), ebc numrange, type text, max_pct numeric(4,1))`. `type` and `max_pct` stay NULL until P3.
-  - `hop(ingredient_id pk fk, origins text[], purpose text check in ('aroma','bittering','dual'), alpha_pct numrange, beta_pct numrange, total_oil_ml_100g numrange, oils_pct jsonb, field_source jsonb not null)`
-  - `yeast(ingredient_id pk fk, product_id text, type text, form text, attenuation_pct numrange, temp_c numrange, flocculation text check in ('very low','low','medium low','medium','medium high','high','very high'), alcohol_tolerance_pct numeric(4,1))`
-  - `water_salt(ingredient_id pk fk, formula text not null, molar_mass numeric(7,3) not null, ion_mg_per_l_per_g jsonb not null)`
-- [ ] `db/011_ref_sources.sql` inserts these slugs `ON CONFLICT (slug) DO NOTHING`, each with an
+  - `hop(ingredient_id pk fk on delete cascade, origins text[], purpose text check in ('aroma','bittering','dual'), alpha_pct numrange, beta_pct numrange, total_oil_ml_100g numrange, oils_pct jsonb, field_source jsonb not null)`
+  - `yeast(ingredient_id pk fk on delete cascade, product_id text, type text, form text, attenuation_pct numrange, temp_c numrange, flocculation text check in ('very low','low','medium low','medium','medium high','high','very high'), alcohol_tolerance_pct numeric(4,1))`
+  - `water_salt(ingredient_id pk fk on delete cascade, formula text not null, molar_mass numeric(7,3) not null, ion_mg_per_l_per_g jsonb not null)`
+- [x] `db/011_ref_sources.sql` inserts these slugs `ON CONFLICT (slug) DO NOTHING`, each with an
   edition or version: `bjcp-2021`, `ba-2026`, `weyermann-specs`, `viking-malt-2020`, `hops-json`,
   `hopslist`, `brewtarget-default-data` (licence `GPL-3.0`), `water-chemistry` (standard atomic
-  masses, IUPAC). For `hops-json` and `hopslist` the provenance is unknown: licence `unknown`,
+  masses, edition `IUPAC standard atomic weights 2021`). For `hops-json` and `hopslist` the provenance is unknown: licence `unknown`,
   notes `provenance unverified`.
-- [ ] Apply `010` then `011` with the command under *Rules* → no `ERROR`.
-- [ ] Verify: `docker exec supabase-db psql -U postgres -d postgres -Atc "select count(*) filter (where tableowner='postgres'), count(*) from pg_tables where schemaname='ref'; select count(*) from ref.source"` → `7|7` and `8`
-- [ ] Apply both files again → same output, no error.
+- [x] Apply `010` then `011` with the command under *Rules* → no `ERROR`.
+- [x] Verify: `docker exec supabase-db psql -U postgres -d postgres -Atc "select count(*) filter (where tableowner='postgres'), count(*) from pg_tables where schemaname='ref'; select count(*) from ref.source"` → `7|7` and `8`
+- [x] Apply both files again → same output, no error.
 Done when: 7 tables owned by `postgres`, 8 sources, and re-applying changes nothing.
 Commit: `Add ref schema and source rows`
 
 ### Task 3: DB helpers for loaders
 Why: one connection path and one natural-key upsert, so re-running a loader never duplicates (Review focus 4).
-- [ ] `loaders/db.py`:
+- [x] `loaders/db.py`:
   - `connect() -> psycopg.Connection`: reads the 4 variables from the root `.env`,
     `autocommit=False`.
   - `source_id(conn, slug: str) -> int`: raises `LookupError` if the slug is missing.
@@ -129,9 +129,9 @@ Why: one connection path and one natural-key upsert, so re-running a loader neve
     `INSERT … ON CONFLICT (kind, producer_key, name_key) DO UPDATE` returning `id`, with
     `name_key = name_key(name)`, `producer_key = name_key(producer)` (`''` when there's no
     producer).
-- [ ] Verify: `.venv/bin/python -c "from loaders.db import connect, source_id; c=connect(); print(source_id(c,'bjcp-2021'))"` → an integer
-- [ ] Verify the error path: `source_id(c, 'nope')` raises `LookupError`.
-- [ ] Run the whole suite → all pass.
+- [x] Verify: `.venv/bin/python -c "from loaders.db import connect, source_id; c=connect(); print(source_id(c,'bjcp-2021'))"` → an integer
+- [x] Verify the error path: `source_id(c, 'nope')` raises `LookupError`.
+- [x] Run the whole suite → all pass.
 Done when: both verifies behave as stated.
 Commit: `Add DB helpers for ref loaders`
 
@@ -150,3 +150,15 @@ Commit: `Add DB helpers for ref loaders`
 ## Approved exceptions
 
 ## Deviations
+- 2026-10-09 · Task 2: `beer_style.guide`, `beer_style.code` and `ingredient.kind` are now
+  `NOT NULL` — review finding 1: a NULL in a natural key never hits `ON CONFLICT`, so re-runs
+  would duplicate. User approved.
+- 2026-10-09 · Task 2: `hop`, `yeast` and `water_salt` FKs to `ref.ingredient` now
+  `on delete cascade`, like `fermentable` — review finding 2: same delete behaviour for every
+  kind. User approved.
+- 2026-10-09 · Task 2: `water-chemistry` edition is `IUPAC standard atomic weights 2021` —
+  review finding 3: the edition must name the table year. User approved.
+- 2026-10-09 · Task 2: since the tables already existed, `010` ends with `ALTER` statements
+  (`set not null`; drop-and-add of the three FKs) and `011` with an `UPDATE` of the
+  `water-chemistry` edition, so both files bring an existing DB to the new state and stay
+  idempotent. Applied twice to the live DB and twice to a scratch DB (then dropped): same result.
