@@ -96,12 +96,12 @@ Commit: `Add hopline malt page fetcher`
 
 ### Task 2: Malt sources and the `field_source` column
 Why: every row needs its real source; per-field provenance needs a column.
-- [ ] `db/010_ref_schema.sql`: add `field_source jsonb not null  -- which source each field was taken from`
+- [x] `db/010_ref_schema.sql`: add `field_source jsonb not null  -- which source each field was taken from`
   to `create table ref.fermentable`; change the `max_pct` comment to
   `-- stated maximum share of the grist, %`; and at the end add
   `alter table ref.fermentable add column if not exists field_source jsonb not null;`
   (the table has 0 rows, measured 2026-10-09, so `not null` without a default works).
-- [ ] `db/011_ref_sources.sql`: replace the `weyermann-specs` and `viking-malt-2020` rows with:
+- [x] `db/011_ref_sources.sql`: replace the `weyermann-specs` and `viking-malt-2020` rows with:
 
   | slug | title | edition | publisher | url |
   |---|---|---|---|---|
@@ -114,9 +114,9 @@ Why: every row needs its real source; per-field provenance needs a column.
   Under the corrections at the end, remove the two old rows (no row references them; measured
   0 ingredients on 2026-10-09):
   `delete from ref.source s where s.slug in ('weyermann-specs', 'viking-malt-2020') and not exists (select 1 from ref.ingredient i where i.source_id = s.id);`
-- [ ] Apply both twice as `postgres`:
+- [x] Apply both twice as `postgres`:
   `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/010_ref_schema.sql` (then `011`).
-- [ ] Check: `select slug from ref.source order by id` → the 6 non-malt slugs plus the 4 new
+- [x] Check: `select slug from ref.source order by id` → the 6 non-malt slugs plus the 4 new
   ones, 10 rows, no `weyermann-specs` / `viking-malt-2020`; `\d ref.fermentable` shows
   `field_source jsonb not null`; same after the second apply. Suite still passes.
 Done when: both files apply twice without error and give the rows above.

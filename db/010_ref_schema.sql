@@ -59,7 +59,8 @@ create table if not exists ref.fermentable (
     extract_dbfg_pct numeric(4, 1),
     ebc              numrange,
     type             text,           -- stays NULL until P3
-    max_pct          numeric(4, 1)   -- stays NULL until P3
+    max_pct          numeric(4, 1),  -- stated maximum share of the grist, %
+    field_source     jsonb not null  -- which source each field was taken from
 );
 
 create table if not exists ref.hop (
@@ -113,3 +114,7 @@ alter table ref.water_salt
     drop constraint if exists water_salt_ingredient_id_fkey,
     add  constraint water_salt_ingredient_id_fkey
          foreign key (ingredient_id) references ref.ingredient (id) on delete cascade;
+
+-- Per-field provenance for fermentables (ref.fermentable had 0 rows when this was added,
+-- so NOT NULL without a default works).
+alter table ref.fermentable add column if not exists field_source jsonb not null;

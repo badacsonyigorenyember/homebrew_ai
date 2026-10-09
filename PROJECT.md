@@ -103,7 +103,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 
 | Layer | Choice | Role | Status |
 |---|---|---|---|
-| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)); `ref` schema rebuilt: 7 tables owned by `postgres` and 8 `ref.source` rows (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); `ref.beer_style` has 285 rows, BJCP 2021 116 + BA 2026 169 (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); the other 6 tables are empty |
+| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)); `ref` schema rebuilt: 7 tables owned by `postgres` (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); 10 `ref.source` rows, the 2 `malts.json` sources replaced by 4 malt sources, and `ref.fermentable.field_source` added (2026-10-09, [`malt-loader`](docs/work/malt-loader/plan.md) Task 2); `ref.beer_style` has 285 rows, BJCP 2021 116 + BA 2026 169 (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); the other 6 tables are empty |
 | Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | ⬜ schema not rebuilt |
 | Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, no workflows |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
@@ -193,6 +193,13 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- `malt-loader` Task 2 ([`docs/work/malt-loader/`](docs/work/malt-loader/plan.md)):
+  `db/010_ref_schema.sql` adds `ref.fermentable.field_source jsonb not null` (per-field source,
+  as on `ref.hop`) and describes `max_pct` as the stated maximum share of the grist;
+  `db/011_ref_sources.sql` adds `hopline-malts`, `weyermann-2026`, `viking-malt-2023` and
+  `simpsons-malt-2025`, and deletes the unused `weyermann-specs` and `viking-malt-2020` rows while
+  no ingredient references them. Applied both twice as `postgres`, no errors; measured each time:
+  10 `ref.source` rows, `field_source` present and `not null`. Suite 14 passed.
 - `malt-loader` Task 1 ([`docs/work/malt-loader/`](docs/work/malt-loader/plan.md)): added
   `loaders/fetch_hopline.py` (standard library only; `listing_links`, `product_page`, CLI
   `python -m loaders.fetch_hopline OUT.json`, one request per second, never `/shop_ajax/`).
