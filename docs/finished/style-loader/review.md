@@ -2,7 +2,7 @@
 
 Diff: main...style-loader at 3a30173  ·  Verdict: ready for testing
 
-No brief; checked against the plan and its Source, [`docs/work/fill-ref/README.md`](../fill-ref/README.md)
+No brief; checked against the plan and its Source, [`docs/work/fill-ref/README.md`](../../work/fill-ref/README.md)
 (global constraints, Review focus 1, 2, 4). Measured on 2026-10-09: suite 12 passed; in
 `ref.beer_style` BA 169 rows / 144 with OG / 12 with open-ended SRM, BJCP 116 / 96; 15B is
 `[1.036,1.044]|[25,45]|[25,40]`; every row's `source_id` is `ba-2026` or `bjcp-2021`; no

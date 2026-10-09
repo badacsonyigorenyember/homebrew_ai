@@ -3,7 +3,7 @@ Overall: ✅ all 10 checks and 12 tests pass
 # Verification: style-loader
 
 Branch `style-loader` at 567a6ac, against `main`. Run 2026-10-09. No brief; checked against
-`plan.md` and its Source, [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (global
+`plan.md` and its Source, [`docs/work/fill-ref/README.md`](../../work/fill-ref/README.md) (global
 constraints, Review focus 1, 2, 4).
 
 ## Part 1: Where to look

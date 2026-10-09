@@ -1,7 +1,7 @@
 # Styles loader (BJCP 2021 + BA 2026) — implementation plan
 
 Stage: shipped
-Source: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a index, item 3; was Task 4)
+Source: [`docs/work/fill-ref/README.md`](../../work/fill-ref/README.md) (P1a index, item 3; was Task 4)
 Branch: style-loader
 
 ## Approach
