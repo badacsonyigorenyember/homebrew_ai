@@ -1,6 +1,6 @@
 # Recover the Supabase containers (D6) — implementation plan
 
-Stage: approved
+Stage: implementing
 Source: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a index, item 1; was Task 1)
 Branch: recover-stack
 
@@ -39,20 +39,23 @@ writes under `supabase/docker/volumes/db`, so the `rmdir` is the user's.
 
 ### Task 1: Restore the compose and mount files from the archive
 Why: the three containers can't start without their bind-mounted files (D6).
-- [ ] **Needs the user.** Ask them to remove the 10 empty root-owned placeholder directories.
+- [x] **Needs the user.** Ask them to remove the 10 empty root-owned placeholder directories.
   The guard hook blocks this for Claude on purpose. `rmdir` refuses non-empty directories, so
   it can't delete data:
   ```bash
   cd "/home/gorenyember/AI Homebrew Assistant/supabase/docker/volumes" && sudo rmdir db/webhooks.sql db/jwt.sql db/roles.sql db/_supabase.sql db/logs.sql db/pooler.sql db/realtime.sql api/kong.yml api/kong-entrypoint.sh pooler/pooler.exs
   ```
   Expected: no output. Report `needs-input` until it is done, and check it with
-  `find supabase/docker/volumes -maxdepth 2 -type d -user root` (no output).
-- [ ] Restore the files:
+  `find supabase/docker/volumes -maxdepth 2 -type d -user root` → only
+  `supabase/docker/volumes/snippets` (mounted by the running `supabase-studio`; leave it).
+  The parent directories `api/` and `pooler/` were also created by Docker as root; the user
+  takes them over with `sudo chown gorenyember:gorenyember api pooler` so git can write into them.
+- [x] Restore the files:
   `git checkout archive/pre-reset-2026-10-08 -- docker-compose.yml supabase/docker/docker-compose.yml supabase/docker/volumes/db/webhooks.sql supabase/docker/volumes/db/jwt.sql supabase/docker/volumes/db/roles.sql supabase/docker/volumes/db/_supabase.sql supabase/docker/volumes/db/logs.sql supabase/docker/volumes/db/pooler.sql supabase/docker/volumes/db/realtime.sql supabase/docker/volumes/api/kong.yml supabase/docker/volumes/api/kong-entrypoint.sh supabase/docker/volumes/pooler/pooler.exs`
   → `git status` shows the 12 files as new.
-- [ ] In `docker-compose.yml`, delete the `db-init:` service block and the header comment line
+- [x] In `docker-compose.yml`, delete the `db-init:` service block and the header comment line
   that describes it. Nothing `depends_on` it (checked 2026-10-09).
-- [ ] Run `docker compose config -q` → exit 0, no output.
+- [x] Run `docker compose config -q` → exit 0, no output.
 Done when: the 12 files are regular files and compose config validates.
 Commit: `Restore compose and Supabase mount files (D6)`
 
@@ -95,3 +98,4 @@ No code, so no regression tests. The Task 2 checks are what dev-verify re-runs:
 ## Approved exceptions
 
 ## Deviations
+- 2026-10-09 · Task 1: the root-owned check accepts `volumes/snippets` in its output, and the user also chowned `volumes/api` and `volumes/pooler` — Docker had created those parents as root too, so git could not write into them; `snippets` is mounted live by `supabase-studio` and is outside this work.

@@ -101,7 +101,7 @@ operate the stack safely is in [`docs/OPERATIONS.md`](docs/OPERATIONS.md).
 
 | Layer | Choice | Role | Status |
 |---|---|---|---|
-| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🔴 down since 2026-10-08 ~20:48: `supabase-db`, `-kong`, `-pooler` can't start because their mounted files were removed in the reset (recovery = [`recover-stack`](docs/work/recover-stack/plan.md)) |
+| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🔴 down since 2026-10-08 ~20:48: `supabase-db`, `-kong`, `-pooler` couldn't start because their mounted files were removed in the reset. Files restored 2026-10-09, containers not yet restarted (recovery = [`recover-stack`](docs/work/recover-stack/plan.md)) |
 | Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | ⬜ schema not rebuilt |
 | Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, no workflows |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
@@ -192,6 +192,11 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- `recover-stack` Task 1 ([`docs/work/recover-stack/`](docs/work/recover-stack/plan.md)): restored
+  `docker-compose.yml` (with the `db-init` service removed), `supabase/docker/docker-compose.yml`
+  and the 10 bind-mounted DB/Kong/pooler files from the archive tag, after the user removed the
+  root-owned placeholder directories and took ownership of `volumes/api` and `volumes/pooler`.
+  `docker compose config -q` exits 0. Containers not restarted yet (Task 2).
 - Added design principle §6.8 *Readable over optimal*: understandability wins over
   optimisation, after the first build's config-table-driven n8n workflows proved hard to follow.
   CLAUDE.md points to it, and `dev-review` now checks for it.
