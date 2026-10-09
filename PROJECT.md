@@ -4,7 +4,7 @@
 > is trying to do, how it is built, and how far along it is. If code and this file
 > disagree, one of them is wrong. Fix it, and record the fix in the [Progress log](#8-progress-log).
 >
-> Last updated: **2026-10-08**
+> Last updated: **2026-10-09**
 
 ---
 
@@ -101,7 +101,7 @@ operate the stack safely is in [`docs/OPERATIONS.md`](docs/OPERATIONS.md).
 
 | Layer | Choice | Role | Status |
 |---|---|---|---|
-| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running, empty |
+| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🔴 down since 2026-10-08 ~20:48: `supabase-db`, `-kong`, `-pooler` can't start because their mounted files were removed in the reset (recovery = plan Task 1) |
 | Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | ⬜ schema not rebuilt |
 | Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, no workflows |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
@@ -119,7 +119,7 @@ operate the stack safely is in [`docs/OPERATIONS.md`](docs/OPERATIONS.md).
 
 ## 5. Knowledge sources
 
-The source files sit in `shared/rag-files/pending/` and have not been ingested since the reset.
+Not ingested since the reset. On 2026-10-08 the source files were removed from `shared/rag-files/pending/` on purpose, to be re-added as each loader needs them. Only `how_to_brew.pdf` is there now (checked 2026-10-09).
 
 | Source | Type | Feeds | Status |
 |---|---|---|---|
@@ -134,7 +134,7 @@ The source files sit in `shared/rag-files/pending/` and have not been ingested s
 | Brewers Association style guidelines (`ba_styles.json`) | Structured | Styles, 169 rows | ⬜ |
 | Hop data (`hops.json`, `hops.hopslist.json`), fault data (`beer_faults.json`) | Structured | Hop catalogue (72 + 268), faults (21) | ⬜ |
 | Brewer's Friend recipes (Kaggle, CC0) | Structured, 179,455 recipes | Per-style ratios (D7) | ⬜ 35,620 (views > 500) in the archive dump, measured 2026-10-08 |
-| Brewtarget default data (GPL-3) | Structured, BeerJSON | Yeast (296 + 275 entries), hops (282) (D8) | ⬜ candidate, not downloaded |
+| Brewtarget default data (GPL-3) | Structured, BeerJSON | Yeast (296 + 275 entries), hops (282) (D8) | ⬜ downloaded before the reset (`DefaultContent003/004`), to be re-added |
 | AHA recipe-design crash course · Oregon Brew Crew recipe formulation · BJCP exam study guide | Free web / PDF | Design method, rules of thumb, output checklist | ⬜ candidate, not downloaded |
 
 ---
@@ -184,6 +184,15 @@ Several of these are lessons from the first build (see §9).
 ## 8. Progress log
 
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
+
+### 2026-10-09
+- Wrote the P1a plan [`docs/superpowers/plans/2026-10-09-fill-ref.md`](docs/superpowers/plans/2026-10-09-fill-ref.md):
+  recover the stack (D6), then load `ref` (styles, malts, hops, yeasts, water salts) with tested
+  Python loaders, plus the order of the phases after it. Found while planning: the Supabase DB,
+  Kong and pooler have been down since 2026-10-08 ~20:48, because their bind-mounted files
+  (removed in the reset) became empty root-owned directories on restart; all of them are in the
+  archive tag. Measured source shapes from the 2026-10-08 copies (counts in the plan). Nothing
+  built yet.
 
 ### 2026-10-08
 - Measured the archived Brewer's Friend corpus (read from the dump, nothing restored): 35,620
