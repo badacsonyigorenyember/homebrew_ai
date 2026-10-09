@@ -1,6 +1,6 @@
 # `ref` schema, source rows and loader helpers — implementation plan
 
-Stage: approved
+Stage: implementing
 Source: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a index, item 2; was Tasks 2–3)
 Branch: ref-schema
 
@@ -45,9 +45,9 @@ Tech: Postgres 15 (self-hosted Supabase), Python 3.12 in `.venv`, `psycopg` 3 (3
 
 ### Task 1: Loader package and shared helpers
 Why: every loader needs the same range, unit and name handling (Review focus 1–3).
-- [ ] Create `requirements.txt` and `pytest.ini`, then
+- [x] Create `requirements.txt` and `pytest.ini`, then
   `.venv/bin/python -m pip install -r requirements.txt` → `Successfully installed pytest…`
-- [ ] In `loaders/common.py`:
+- [x] In `loaders/common.py`:
   - `num(x: str | float | int | None) -> Decimal | None`: `None`, `""` and whitespace → `None`.
     Builds the Decimal from `str(x)`, so `5.0` → `Decimal("5.0")`.
   - `to_range(lo, hi) -> psycopg.types.range.Range | None`: both missing → `None`; both present
@@ -58,7 +58,7 @@ Why: every loader needs the same range, unit and name handling (Review focus 1�
     Parentheses are dropped as characters, but their content is kept (`Saaz (US)` → `saazus`).
   - `read_beerjson(path) -> dict`: drops lines whose stripped text starts with `//`, then
     returns `json.loads(...)["beerjson"]`. Used by `hop-loader` and `yeast-loader`.
-- [ ] Write `tests/test_common.py` first and see it fail (`ModuleNotFoundError: loaders`):
+- [x] Write `tests/test_common.py` first and see it fail (`ModuleNotFoundError: loaders`):
   ```python
   from decimal import Decimal as D
   import pytest
@@ -93,7 +93,7 @@ Why: every loader needs the same range, unit and name handling (Review focus 1�
   ```
   plus `test_read_beerjson_strips_comment_header` (uses `tmp_path`: a file with two `//` lines,
   then `{"beerjson": {"version": 1}}` → `{"version": 1}`).
-- [ ] Implement, then `.venv/bin/python -m pytest tests/test_common.py -v` → 8 passed.
+- [x] Implement, then `.venv/bin/python -m pytest tests/test_common.py -v` → 8 passed.
 Done when: 8 passed.
 Commit: `Add loader helpers: ranges, units, name keys`
 

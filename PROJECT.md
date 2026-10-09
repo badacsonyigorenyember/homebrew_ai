@@ -111,7 +111,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 | Chat model | `gemma4:12b-it-q8_0` *(also pulled: `qwen3.8:27b`)* | Reasoning, extraction, recipe drafting | ⚠️ to be re-evaluated (§7) |
 | Embedding model | `bge-m3` (1024-dim) | Chunk and query embeddings | 🟢 pulled |
 | Web search | **SearXNG** + `webarm` service | Lookups for what the books do not cover | 🔴 `searxng` down since 2026-10-08 (`settings.yml` lost in the reset, [`OPERATIONS.md`](docs/OPERATIONS.md) §1); recovery is separate work, not started. `webarm` running. Optional |
-| Scripts | Python (`.venv`) | One-off extract/load jobs, evals | — |
+| Scripts | Python (`.venv`), `psycopg` 3, `pytest` (`requirements.txt`) | One-off extract/load jobs, evals | 🟡 `loaders/` package started: shared helpers in `loaders/common.py`, 8 unit tests pass (2026-10-09, [`ref-schema`](docs/work/ref-schema/plan.md) Task 1) |
 | Dev tooling | Claude Code: Supabase MCP (read-only, `.mcp.json`), official n8n MCP (local scope) + `n8n-skills` plugin, guard hook (`.claude/hooks/guard.sh`) | Building and inspecting the stack; schema changes go through SQL files applied as `postgres` | 🟢 |
 | Delivery workflow | Project skills `dev-flow` (orchestrator) + `dev-brief`, `dev-plan`, `dev-implement`, `dev-review`, `dev-verify`, `dev-ship` (`.claude/skills/`) | Brief → plan → build → review → verify → merge, one subagent per step, work in `docs/work/<slug>/` | 🟢 in use; first work shipped: [`recover-stack`](docs/finished/recover-stack/plan.md) (2026-10-09) |
 | Eval guidance | Project skills `retrieval-evaluation-metrics`, `rag-evaluation-frameworks` (`.claude/skills/`) | Reference for building the retrieval test set and regression gate (§6.6) | 🟢 installed, not yet used |
@@ -193,6 +193,10 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- `ref-schema` Task 1 ([`docs/work/ref-schema/`](docs/work/ref-schema/plan.md)): added the
+  `loaders/` package with the shared helpers in `loaders/common.py` (`num`, `to_range`, `f_to_c`,
+  `name_key`, `read_beerjson`), `requirements.txt` (`psycopg[binary]`, `pytest`) and `pytest.ini`.
+  `pytest` 9.1.1 installed in `.venv`; `tests/test_common.py` → 8 passed. No DB yet.
 - Shipped work now moves from `docs/work/<slug>/` to `docs/finished/<slug>/`: `dev-ship` does it
   as its last step on `main`, after a green verification, the merge and the push, and fixes the
   links into the folder. `docs/work/` holds only work in progress. `recover-stack` moved first.
