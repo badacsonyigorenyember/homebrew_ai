@@ -22,3 +22,30 @@ No must-fix findings. Plan tasks 1–5 are done as written, with every differenc
 Deviations; scope matches the Files table; the maths is in tested code; no secrets; DB changes
 are `.sql` files applied as `postgres`; source files stay git-ignored; PROJECT.md §4, §5 and §8
 are updated.
+
+## Re-review 2026-10-09
+
+Diff: main...malt-loader at d6d0a07  ·  Verdict: ready for testing
+
+Checked: fix commit d6d0a07 (`IGNORE_HOPLINE_EXTRACT` removed; `user-supplied` source,
+`USER_SUPPLIED` and `merge(..., user=...)`), the whole branch diff against plan.md (changed files
+match the Files table; no other paths), the suite (23 passed), and the loaded rows. `merge` takes
+the user's figure only in the last `elif`, after catalogue and hopline, and only `extract_pct` is
+read from the entry; `potential_sg` follows the extract and its source. No code path still refers
+to the removed flag. DB: 11 `ref.source` rows with `user-supplied` last; 74 fermentables, 73 EBC,
+74 potential, 62 `max_pct`; potential sourced Weyermann 36 / Viking 31 / hopline 6 / user-supplied 1;
+Crystal T50, DRC and Crystal Extra Dark extract 70.0, potential 1.0323 from `hopline-malts`;
+Acidulated Malt extract 64.9, potential 1.0300 from `user-supplied`, with the user's wording in
+`raw["user-supplied"]` (the only row carrying that key); every `potential_sg` equals
+`round(1 + extract/100 × 46.214/1000, 4)` and shares the extract's `field_source`. Arithmetic:
+30 / 46.214 = 64.9%, and 64.9 × 0.46214 = 29.993 → 1.0300. The plan (two dated Deviations,
+Task 3/4/5 text, test table) and PROJECT.md §4, §5, §8 describe the new state; the fix commit is
+one line with no trailer.
+
+| # | Severity | Where | Finding | Why it matters |
+|---|---|---|---|---|
+| 5 | note | docs/work/malt-loader/verification.md | Written at 0257ccf, before the fix: it still reports 10 sources, 70 with potential and 22 tests. | The verify step has to rerun it; nothing else depends on it. |
+| 6 | note | tests/test_malts.py:436 | The "user does not replace hopline" case merges Maris Otter (Simpsons) with the Weyermann Acidulated catalogue fixture. The assertion holds because that fixture has no extract. | Test still fails if the order of precedence broke; only the fixture pairing is odd. |
+
+No must-fix or should-fix findings. Earlier findings 1–4 stand as recorded (1 left as is by the
+user); finding 2's and 3's situations are unchanged by the fix.
