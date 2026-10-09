@@ -1,6 +1,6 @@
 # Malt loader (hopline malts + maltster catalogues) — implementation plan
 
-Stage: approved
+Stage: implementing
 Source: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a index, item 4; was Task 5),
 re-scoped by the user on 2026-10-09 (see Deviations)
 Branch: malt-loader
@@ -69,7 +69,7 @@ Not committed (in `shared/rag-files/pending/`, already git-ignored): `hopline_ma
 
 ### Task 1: Fetch the hopline malt pages
 Why: hopline decides which malts are loaded; this captures its pages as raw data.
-- [ ] `loaders/fetch_hopline.py`, standard library only (`urllib.request`, `re`, `html`, `json`):
+- [x] `loaders/fetch_hopline.py`, standard library only (`urllib.request`, `re`, `html`, `json`):
   - `listing_links(html: str) -> list[tuple[str, str]]`: `(sku, url)` from every
     `class="product__name-link ..." data-sku="NNNNNN" href="..."` anchor, in page order, no repeats.
   - `product_page(html: str) -> dict`: `name` = text of the `<h1 class='artdet__name ...'>`;
@@ -81,14 +81,14 @@ Why: hopline decides which malts are loaded; this captures its pages as raw data
     `…/osszes-malata,2`, `,3`, … until a page adds no new SKU; then each product page. One
     request per second, a `User-Agent` naming this project, never `/shop_ajax/`. Writes
     `{"fetched": "<YYYY-MM-DD>", "listing": "<first listing URL>", "products": [{"sku", "url", "name", "spec"}, …]}`.
-- [ ] Write the tests first (`tests/test_fetch_hopline.py`, inline HTML) and see them fail:
+- [x] Write the tests first (`tests/test_fetch_hopline.py`, inline HTML) and see them fail:
   - `test_listing_links`: two anchors plus a repeat of the first → 2 pairs in order.
   - `test_product_page`: an `<h1 class='artdet__name x'>Simpsons Crystal T50 maláta</h1>`, a
     `<script>` containing `EBC: 1`, and `Főkategória Feltöltött termékek Simpsons Crystal T50 maláta EBC: 139 - 154 … Bővebben` →
     `name == "Simpsons Crystal T50 maláta"`, `spec` starts with `Főkategória`, contains
     `EBC: 139 - 154`, has no script text and no `Bővebben`.
-- [ ] Implement; `.venv/bin/python -m pytest tests/test_fetch_hopline.py -v` → 2 passed.
-- [ ] Run `.venv/bin/python -m loaders.fetch_hopline shared/rag-files/pending/hopline_malts.json`.
+- [x] Implement; `.venv/bin/python -m pytest tests/test_fetch_hopline.py -v` → 2 passed.
+- [x] Run `.venv/bin/python -m loaders.fetch_hopline shared/rag-files/pending/hopline_malts.json`.
   Expect 82 products, every `name` set, `spec` set for all 74 SKUs Task 4 maps. If the count is
   not 82, stop and report (the shop changed since 2026-10-09).
 Done when: 2 passed and the JSON holds 82 products.

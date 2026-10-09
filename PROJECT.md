@@ -193,6 +193,12 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- `malt-loader` Task 1 ([`docs/work/malt-loader/`](docs/work/malt-loader/plan.md)): added
+  `loaders/fetch_hopline.py` (standard library only; `listing_links`, `product_page`, CLI
+  `python -m loaders.fetch_hopline OUT.json`, one request per second, never `/shop_ajax/`).
+  Ran it: 5 listing pages, 82 products in `shared/rag-files/pending/hopline_malts.json`
+  (fetched 2026-10-09, not committed), every name set, spec text set for all 74 malts to be
+  mapped (only the 4 liquid extracts, which are skipped, have none). 2 new tests; suite 14 passed.
 - Planned `malt-loader` ([`docs/work/malt-loader/plan.md`](docs/work/malt-loader/plan.md)),
   re-scoped from `malts.json`: load only the grain malts hopline.hu sells from Weyermann (37),
   Viking Malt (32) and Simpsons (5); Sladovna, BestMalz and malt extracts left out. Figures come
