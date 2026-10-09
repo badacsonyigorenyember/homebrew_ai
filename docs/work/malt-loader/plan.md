@@ -1,6 +1,6 @@
 # Malt loader (hopline malts + maltster catalogues) — implementation plan
 
-Stage: verify
+Stage: review
 Source: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a index, item 4; was Task 5),
 re-scoped by the user on 2026-10-09 (see Deviations)
 Branch: malt-loader
@@ -13,7 +13,8 @@ products are left out on purpose: Sladovna (2), BestMalz (1) and the malt extrac
 `malts.json` (still in `pending/`) is no longer used.
 
 **Where the figures come from:** the maltster catalogue wins; hopline only fills a field the
-catalogue lacks. `ref.fermentable.field_source` records the source slug of each filled field
+catalogue lacks; a figure the user supplied by hand (source `user-supplied`, so far only
+Weyermann Acidulated Malt's extract) only fills a field both lack. `ref.fermentable.field_source` records the source slug of each filled field
 (same idea as `ref.hop.field_source`), and `ref.ingredient.raw` keeps both source records whole,
 keyed by source slug.
 
@@ -36,7 +37,8 @@ keyed by source slug.
 `potential_sg = 1 + ppg / 1000` rounded half-up to 4 places, from the dry-basis fine-grind
 extract (Weyermann "Extract (dry substance)", Viking "EXTRACT FINE % dm", hopline
 "Kihozatal: min X%"). Simpsons prints no extract, so Crystal T50, DRC and Crystal Extra Dark
-get `NULL` potential; hopline's flat "min 70%" for these three is ignored (user decision). `max_pct` is the stated upper usage limit (catalogue usage text, else
+take hopline's "min 70%" (potential 1.0323; user decision). Weyermann Acidulated Malt has no
+extract in either source and gets the user's 64.9% (from "PPG 1.03 ≈ 30"; potential 1.0300). `max_pct` is the stated upper usage limit (catalogue usage text, else
 hopline "Felhasználás"), `NULL` where neither states one; for Weyermann Carapils and Carahell,
 which print a main range plus a higher special-use limit, it is the main range's top (10, 15;
 user decision); this replaces the earlier "stays NULL
@@ -55,12 +57,12 @@ never committed; nothing calls an LLM.
 | Path | New / changed | Purpose |
 |---|---|---|
 | `db/010_ref_schema.sql` | changed | `ref.fermentable.field_source jsonb not null`; `max_pct` comment |
-| `db/011_ref_sources.sql` | changed | 4 malt sources replace the 2 unused `malts.json` ones |
+| `db/011_ref_sources.sql` | changed | 4 malt sources replace the 2 unused `malts.json` ones; `user-supplied` source |
 | `loaders/fetch_hopline.py` | new | `listing_links`, `product_page`, CLI writing `hopline_malts.json` |
-| `loaders/malt_products.py` | new | `PRODUCTS` (74 SKUs), `SKIPPED` (8 SKUs), `IGNORE_HOPLINE_EXTRACT` (3 SKUs) |
+| `loaders/malt_products.py` | new | `PRODUCTS` (74 SKUs), `SKIPPED` (8 SKUs), `USER_SUPPLIED` (1 SKU) |
 | `loaders/malts.py` | new | spec parsing, `potential_sg`, `max_pct_from_text`, `merge`, `load`, CLI |
 | `tests/test_fetch_hopline.py` | new | 2 tests on inline HTML |
-| `tests/test_malts.py` | new | 8 tests on inline fixtures |
+| `tests/test_malts.py` | new | 9 tests on inline fixtures |
 | `docs/work/fill-ref/README.md` | changed | item 4 and its source-file row describe the new inputs (done in the plan commit) |
 | `PROJECT.md` | changed | §5 malt row, §4 scripts row, §8 |
 
@@ -137,15 +139,15 @@ Why: potential and colour feed the gravity and colour maths in P2; a wrong merge
     `extract_pct` (the number after "Kihozatal :" and "min"/"min."; "? %", "- %" or missing →
     `None`) and `max_pct` (the text after "Felhasználás" up to "Származási" through
     `max_pct_from_text`; the colon may be spaced oddly, e.g. `Felhasználá s: 100 %`).
-  - `merge(item: dict, producer: str, catalogue: dict | None, name: str, *, ignore_hopline_extract: bool = False) -> Fermentable`: each of
+  - `merge(item: dict, producer: str, catalogue: dict | None, name: str, user: dict | None = None) -> Fermentable`: each of
     `ebc`, `extract_dbfg_pct`, `max_pct` from the catalogue entry when it has a value, else from
-    hopline; `potential_sg` follows `extract_dbfg_pct` and gets the same `field_source`.
-    `ignore_hopline_extract=True` drops hopline's extract, so it stays `NULL` without a
-    catalogue extract (used for the 3 Simpsons crystals, see Deviations).
+    hopline, else from the user's entry (`extract_pct` only, source `user-supplied`, see
+    Deviations); `potential_sg` follows `extract_dbfg_pct` and gets the same `field_source`.
     `field_source` lists only fields that have a value. `source_slug` = the producer's
     catalogue slug (`Weyermann` → `weyermann-2026`, `Viking Malt` → `viking-malt-2023`,
     `Simpsons Malt` → `simpsons-malt-2025`) when `catalogue` is given, else `hopline-malts`.
-    `raw = {"hopline-malts": item, <catalogue slug>: catalogue}` (catalogue key only when given).
+    `raw = {"hopline-malts": item, <catalogue slug>: catalogue, "user-supplied": user}` (the last
+    two keys only when given).
   - Catalogue entry fields used: `extract_pct`, `ebc_min`, `ebc_max`, `usage` (verbatim text
     through `max_pct_from_text`). The shape is fixed in Task 4.
 - [x] Write the tests first (`tests/test_malts.py`) and see them fail on import:
@@ -166,9 +168,12 @@ Why: potential and colour feed the gravity and colour maths in P2; a wrong merge
     `field_source == {"ebc": "simpsons-malt-2025", "extract_dbfg_pct": "hopline-malts", "potential_sg": "hopline-malts", "max_pct": "hopline-malts"}`,
     `set(raw) == {"hopline-malts", "simpsons-malt-2025"}`, `source_slug == "simpsons-malt-2025"`.
   - `test_no_extract_stays_null`: Crystal T50 (catalogue EBC 139–154, no extract) with a hopline
-    spec without Kihozatal, and with the real spec (`Kihozatal : min 70 %`) and
-    `ignore_hopline_extract=True` → both times `extract_dbfg_pct is None`, `potential_sg is None`,
-    neither key in `field_source`.
+    spec without Kihozatal, and with `Kihozatal : ? %` → both times `extract_dbfg_pct is None`,
+    `potential_sg is None`, neither key in `field_source`.
+  - `test_user_supplied_fills_only_gaps` (added in the fix round): Acidulated Malt (no extract
+    in the catalogue, hopline `? %`) with user `{extract_pct: 64.9}` → extract 64.9, potential
+    `1.0300`, both sourced `user-supplied`, the entry in `raw["user-supplied"]`; with Maris
+    Otter's hopline `min 79 %` the user's figure is not used; `build` passes `USER_SUPPLIED`.
   - `test_hopline_only`: Viking Sprau Malt, no catalogue (`EBC: 4.0 … Kihozatal : min 81% Felhasználás : max 15%`)
     → `source_slug == "hopline-malts"`, every `field_source` value `"hopline-malts"`, `max_pct == 15`.
 - [x] Implement; `.venv/bin/python -m pytest tests/test_malts.py -v` → 6 passed; whole suite passes.
@@ -205,8 +210,9 @@ Why: the catalogue supplies the figures; the explicit map decides which product 
     Búzamaláta = Wheat, pörkölt árpa = Roasted Barley, Keksz = Cookie, savas = Acidulated,
     rozs = Rye, füstölt = Smoked). If one cannot be matched with confidence, map it to `None`
     and record it in Deviations.
-  - `IGNORE_HOPLINE_EXTRACT: set[str]`: `101510` Crystal Extra Dark, `101520` Crystal T50,
-    `101530` DRC, with a comment giving the user's decision.
+  - `USER_SUPPLIED: dict[str, dict]` (added in the fix round): `101080` Acidulated Malt →
+    `{"extract_pct": 64.9, "user_wording": "PPG: 1.03 which means ~30?", "date": "2026-10-09"}`,
+    with a comment giving the user's figure and the arithmetic.
   - `SKIPPED: dict[str, str]`: `101000` BestMalz, `101440` / `101450` Sladovna, `101300`,
     `101330`, `101332`, `101333`, `101334` malt extracts, each with the reason.
 - [x] Add to `tests/test_malts.py`:
@@ -224,7 +230,7 @@ Commit: `Map hopline malts to catalogue products`
 Why: the fermentable catalogue the recipe steps choose from (Review focus 4).
 - [x] In `loaders/malts.py` add `build(hopline: dict, catalogue: list[dict]) -> list[Fermentable]`
   (for each hopline product: in `SKIPPED` → skip; in `PRODUCTS` → `merge` with its catalogue
-  entry looked up by `(producer, product)` and `ignore_hopline_extract=sku in IGNORE_HOPLINE_EXTRACT`, `KeyError` naming it if missing; otherwise
+  entry looked up by `(producer, product)` and `user=USER_SUPPLIED.get(sku)`, `KeyError` naming it if missing; otherwise
   `ValueError` naming the SKU), `load(conn, items) -> int` (`upsert_ingredient` with kind
   `fermentable`, producer and the source's id, then upsert `ref.fermentable` on
   `ingredient_id`, all columns including `field_source` as `Jsonb`; one transaction) and the CLI
@@ -239,8 +245,8 @@ Why: the fermentable catalogue the recipe steps choose from (Review focus 4).
   - `select s.slug, count(*) from ref.ingredient i join ref.source s on s.id = i.source_id where i.kind = 'fermentable' group by 1 order by 1`
     → `hopline-malts|1` (Sprau Malt), `simpsons-malt-2025|5`, `viking-malt-2023|31`, `weyermann-2026|37`.
   - `select i.name from ref.fermentable f join ref.ingredient i on i.id = f.ingredient_id where f.potential_sg is null order by 1`
-    → Crystal Extra Dark, Crystal T50, DRC (Simpsons names as printed). Any other row must
-    have no extract in either source; list it in the PROJECT.md entry.
+    → none (after the fix round). Any row listed must have no extract in any source; list it
+    in the PROJECT.md entry.
   - Maris Otter row: `ebc [4.4,6.6]`, `extract_dbfg_pct 79.0`, `potential_sg 1.0365`,
     `max_pct 100.0`, `field_source` as in `test_catalogue_wins_hopline_fills`.
   - Record (measured, not predicted): `count(ebc)`, `count(max_pct)`, and the
@@ -261,7 +267,8 @@ Commit: `Load hopline malts into ref`
 | Only a stated upper limit becomes `max_pct` | `tests/test_malts.py::test_max_pct_from_text` | 3 |
 | Hopline formats: ranges, single, `max`, `-`, `?` | `tests/test_malts.py::test_hopline_spec` | 3 |
 | Catalogue wins, hopline fills gaps, `field_source` and `raw` record both | `tests/test_malts.py::test_catalogue_wins_hopline_fills` | 3 |
-| No extract anywhere (or hopline's ignored) stays `NULL`, never 0 | `tests/test_malts.py::test_no_extract_stays_null` | 3 |
+| No extract anywhere stays `NULL`, never 0 | `tests/test_malts.py::test_no_extract_stays_null` | 3 |
+| A user-supplied figure fills only what both sources lack | `tests/test_malts.py::test_user_supplied_fills_only_gaps` | 3 |
 | Unmatched product is sourced to hopline, never to a guessed catalogue | `tests/test_malts.py::test_hopline_only` | 3 |
 | Every SKU decided once; no two malts share a name key | `tests/test_malts.py::test_product_map` | 4 |
 | A new hopline product never loads silently | `tests/test_malts.py::test_unknown_sku_raises` | 5 |
@@ -296,3 +303,16 @@ Commit: `Load hopline malts into ref`
   special-use "up to 40%" / "up to 30%" that `max_pct_from_text` would otherwise pick.
 - 2026-10-09 · Task 5: Weyermann Acidulated Malt also has `NULL` potential — neither source
   states an extract (catalogue none, hopline "Kihozatal : ? %"), as the check allows.
+- 2026-10-09 · fix round after verification: `IGNORE_HOPLINE_EXTRACT` and `merge`'s
+  `ignore_hopline_extract` are removed, so Simpsons Crystal T50, DRC and Crystal Extra Dark take
+  hopline's "min 70%" (extract 70.0, potential 1.0323, `field_source` `hopline-malts`), and
+  `test_no_extract_stays_null` now checks hopline `? %` instead — the user reversed "Keep them
+  NULL": "T50, DRC and Crystal Extra dark: extract % d.b min 70", source "Hopline (already there)".
+- 2026-10-09 · fix round after verification: new source `user-supplied` (`db/011_ref_sources.sql`),
+  `USER_SUPPLIED` in `loaders/malt_products.py` and `merge(..., user=...)`, which fills a field
+  only where both the catalogue and hopline lack it; Weyermann Acidulated Malt gets extract 64.9
+  (potential 1.0300), with the user's wording in `raw["user-supplied"]` — the user said
+  "PPG: 1.03 which means ~30?" (potential 1.030 = 30 ppg; 30 / 46.214 = 64.9%) and chose
+  "New 'user-supplied' source (Recommended)". This replaces the earlier deviation that left
+  Acidulated Malt's potential `NULL`. Measured after two loads: 74 rows, 73 with EBC, 74 with
+  potential, 62 with `max_pct`; no `NULL` potential.

@@ -2,8 +2,9 @@
 
 Two inputs per malt: the hopline product page (fetched by loaders.fetch_hopline) and, when the
 maltster's catalogue lists the product, its catalogue entry (hand-built malt_catalogue.json).
-The catalogue wins; hopline only fills a field the catalogue lacks. field_source records which
-source each filled field came from, and raw keeps both source records whole.
+The catalogue wins; hopline only fills a field the catalogue lacks; a figure the user supplied
+by hand (USER_SUPPLIED) only fills a field both lack. field_source records which source each
+filled field came from, and raw keeps every source record whole.
 """
 
 import argparse
@@ -18,9 +19,10 @@ from psycopg.types.range import Range
 
 from loaders.common import num, to_range
 from loaders.db import connect, source_id, upsert_ingredient
-from loaders.malt_products import IGNORE_HOPLINE_EXTRACT, PRODUCTS, SKIPPED
+from loaders.malt_products import PRODUCTS, SKIPPED, USER_SUPPLIED
 
 HOPLINE = "hopline-malts"
+USER = "user-supplied"
 
 # The source slug of each maltster's catalogue (rows in db/011_ref_sources.sql).
 CATALOGUE_SLUG = {
@@ -114,23 +116,17 @@ def merge(
     producer: str,
     catalogue: dict | None,
     name: str,
-    *,
-    ignore_hopline_extract: bool = False,
+    user: dict | None = None,
 ) -> Fermentable:
-    """One hopline product and its catalogue entry (or None) as a Fermentable.
+    """One hopline product, its catalogue entry (or None) and any user-supplied figures (or
+    None) as a Fermentable.
 
     Each of ebc, extract_dbfg_pct and max_pct comes from the catalogue when it has a value,
-    else from hopline. potential_sg follows extract_dbfg_pct. field_source names the source
-    of every field that has a value.
-
-    ignore_hopline_extract: leave the extract NULL rather than take hopline's figure. The user
-    decided this on 2026-10-09 for Simpsons Crystal T50, DRC and Crystal Extra Dark, where the
-    catalogue prints no extract and hopline lists a flat "min 70%".
+    else from hopline, else from the user's entry. potential_sg follows extract_dbfg_pct.
+    field_source names the source of every field that has a value.
     """
     catalogue_slug = CATALOGUE_SLUG[producer]
     hopline = parse_hopline_spec(item["spec"])
-    if ignore_hopline_extract:
-        hopline["extract_pct"] = None
 
     from_catalogue = {"ebc": None, "extract_pct": None, "max_pct": None}
     if catalogue is not None:
@@ -139,6 +135,11 @@ def merge(
             "extract_pct": num(catalogue["extract_pct"]),
             "max_pct": max_pct_from_text(catalogue["usage"]),
         }
+
+    # The user has supplied only an extract so far (see USER_SUPPLIED).
+    from_user = {"ebc": None, "extract_pct": None, "max_pct": None}
+    if user is not None:
+        from_user["extract_pct"] = num(user["extract_pct"])
 
     values = {}
     field_source = {}
@@ -149,6 +150,9 @@ def merge(
         elif hopline[key] is not None:
             values[field] = hopline[key]
             field_source[field] = HOPLINE
+        elif from_user[key] is not None:
+            values[field] = from_user[key]
+            field_source[field] = USER
         else:
             values[field] = None
     if "extract_dbfg_pct" in field_source:
@@ -157,6 +161,8 @@ def merge(
     raw = {HOPLINE: item}
     if catalogue is not None:
         raw[catalogue_slug] = catalogue
+    if user is not None:
+        raw[USER] = user
 
     return Fermentable(
         name=name,
@@ -173,6 +179,7 @@ def merge(
 
 def build(hopline: dict, catalogue: list[dict]) -> list[Fermentable]:
     """A Fermentable for every hopline product mapped in PRODUCTS; SKIPPED ones are left out.
+    A product in USER_SUPPLIED gets those figures where both sources lack them.
 
     hopline is the file loaders.fetch_hopline writes; catalogue is malt_catalogue.json.
     A product in neither map raises ValueError, so a new hopline product never loads without
@@ -193,9 +200,7 @@ def build(hopline: dict, catalogue: list[dict]) -> list[Fermentable]:
             if (producer, product) not in entries:
                 raise KeyError(f"SKU {sku}: no catalogue entry for {producer} {product!r}")
             entry = entries[(producer, product)]
-        items.append(
-            merge(item, producer, entry, name, ignore_hopline_extract=sku in IGNORE_HOPLINE_EXTRACT)
-        )
+        items.append(merge(item, producer, entry, name, user=USER_SUPPLIED.get(sku)))
     return items
 
 

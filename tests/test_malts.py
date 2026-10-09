@@ -4,7 +4,7 @@ import pytest
 from psycopg.types.range import Range
 
 from loaders.common import name_key
-from loaders.malt_products import IGNORE_HOPLINE_EXTRACT, PRODUCTS, SKIPPED
+from loaders.malt_products import PRODUCTS, SKIPPED, USER_SUPPLIED
 from loaders.malts import build, max_pct_from_text, merge, parse_hopline_spec, potential_sg
 
 # Inline fixtures: spec text as fetch_hopline captures it (shortened, wording kept).
@@ -33,6 +33,15 @@ SIMPSONS_CRYSTAL_T50 = {
     "spec": "Főkategória Feltöltött termékek Simpsons Crystal T50 maláta EBC: 139 - 154 "
     "A Simpsons Crystal T50 kiegyensúlyozott karamellás édességet ad. "
     "Kihozatal : min 70 % Felhasználás : 5-10 % Származási hely : Egyesült Királyság",
+}
+
+WEYERMANN_ACIDULATED = {
+    "sku": "101080",
+    "url": "https://www.hopline.hu/weyermann-savas-malata",
+    "name": "Weyermann savas maláta",
+    "spec": "Főkategória Alapanyagok Maláták Weyermann savas maláta EBC: 2.5 - 12 Ph : 4.5 "
+    "Gyümölcsös-savas aromájú maláta. Ajánlott sörtípusok : pils, búza, Ale "
+    "Kihozatal : ? % Felhasználás : 1-5 % Származási hely : ?",
 }
 
 VIKING_SPRAU = {
@@ -105,24 +114,49 @@ def test_catalogue_wins_hopline_fills():
 def test_no_extract_stays_null():
     catalogue = {"ebc_min": 139, "ebc_max": 154, "extract_pct": None, "usage": None}
 
-    # No extract in either source.
+    # No Kihozatal in the hopline spec, no extract in the catalogue.
     no_kihozatal = dict(SIMPSONS_CRYSTAL_T50, spec="EBC: 139 - 154 Felhasználás : 5-10 %")
-    f = merge(no_kihozatal, "Simpsons Malt", catalogue, "Crystal T50")
-    assert f.extract_dbfg_pct is None
-    assert f.potential_sg is None
-    assert "extract_dbfg_pct" not in f.field_source
-    assert "potential_sg" not in f.field_source
+    # Hopline "Kihozatal : ? %" means not stated, not 0.
+    unknown = dict(SIMPSONS_CRYSTAL_T50, spec="EBC: 139 - 154 Kihozatal : ? % Felhasználás : 5-10 %")
 
-    # Hopline's "min 70 %" is ignored when asked (user decision for 3 Simpsons crystals).
-    f = merge(SIMPSONS_CRYSTAL_T50, "Simpsons Malt", catalogue, "Crystal T50",
-              ignore_hopline_extract=True)
-    assert f.extract_dbfg_pct is None
-    assert f.potential_sg is None
-    assert "extract_dbfg_pct" not in f.field_source
-    assert "potential_sg" not in f.field_source
-    assert f.ebc == Range(D("139"), D("154"), "[]")
-    assert f.max_pct == 10
-    assert f.field_source == {"ebc": "simpsons-malt-2025", "max_pct": "hopline-malts"}
+    for item in (no_kihozatal, unknown):
+        f = merge(item, "Simpsons Malt", catalogue, "Crystal T50")
+        assert f.extract_dbfg_pct is None
+        assert f.potential_sg is None
+        assert f.ebc == Range(D("139"), D("154"), "[]")
+        assert f.max_pct == 10
+        assert f.field_source == {"ebc": "simpsons-malt-2025", "max_pct": "hopline-malts"}
+
+
+def test_user_supplied_fills_only_gaps():
+    catalogue = {"ebc_min": 1.5, "ebc_max": 5, "extract_pct": None, "usage": None}
+    user = {"extract_pct": 64.9, "user_wording": "PPG: 1.03 which means ~30?"}
+
+    # Neither source states an extract: the user's figure fills it.
+    f = merge(WEYERMANN_ACIDULATED, "Weyermann", catalogue, "Acidulated Malt", user=user)
+    assert f.extract_dbfg_pct == D("64.9")
+    assert f.potential_sg == D("1.0300")
+    assert f.ebc == Range(D("1.5"), D("5"), "[]")
+    assert f.max_pct == 5
+    assert f.field_source == {
+        "ebc": "weyermann-2026",
+        "extract_dbfg_pct": "user-supplied",
+        "potential_sg": "user-supplied",
+        "max_pct": "hopline-malts",
+    }
+    assert f.raw["user-supplied"] is user
+    assert f.source_slug == "weyermann-2026"
+
+    # build passes USER_SUPPLIED for the Acidulated Malt SKU.
+    entry = dict(catalogue, maltster="Weyermann", product="Acidulated Malt")
+    [built] = build({"products": [WEYERMANN_ACIDULATED]}, [entry])
+    assert built.extract_dbfg_pct == D("64.9")
+    assert built.field_source["extract_dbfg_pct"] == "user-supplied"
+
+    # Hopline states an extract: the user's figure does not replace it.
+    f = merge(SIMPSONS_MARRIS_OTTER, "Simpsons Malt", catalogue, "Finest Pale Ale Maris Otter", user=user)
+    assert f.extract_dbfg_pct == 79
+    assert f.field_source["extract_dbfg_pct"] == "hopline-malts"
 
 
 def test_hopline_only():
@@ -144,7 +178,7 @@ def test_product_map():
     assert producers.count("Simpsons Malt") == 5
     assert len(SKIPPED) == 8
     assert not set(PRODUCTS) & set(SKIPPED)
-    assert IGNORE_HOPLINE_EXTRACT <= set(PRODUCTS)
+    assert set(USER_SUPPLIED) <= set(PRODUCTS)
 
     # Two names with one key would make the upsert overwrite one malt with another.
     keys = [(producer, name_key(name)) for producer, _, name in PRODUCTS.values()]

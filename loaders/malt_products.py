@@ -93,13 +93,13 @@ PRODUCTS: dict[str, tuple[str, str | None, str]] = {
     "101530": ("Simpsons Malt", "DRC", "DRC"),  # Simpsons DRC maláta
 }
 
-# Hopline lists "Kihozatal: min 70%" for these three Simpsons crystals, while the Simpsons
-# sheet prints no extract. The user decided on 2026-10-09 to keep their extract and potential
-# NULL rather than take hopline's flat figure.
-IGNORE_HOPLINE_EXTRACT: set[str] = {
-    "101510",  # Simpsons Crystal Extra Dark maláta
-    "101520",  # Simpsons Crystal T50 maláta
-    "101530",  # Simpsons DRC maláta
+# Figures the user supplied by hand (source "user-supplied"). Each fills a field only where
+# neither the catalogue nor hopline states it, and the whole entry is kept in raw.
+USER_SUPPLIED: dict[str, dict] = {
+    # Weyermann savas maláta: the catalogue prints no extract and hopline says "Kihozatal : ? %".
+    # The user gave "PPG: 1.03 which means ~30?" on 2026-10-09: potential 1.030 is 30 ppg,
+    # and 30 / 46.214 = 64.9% extract, which gives potential 1.0300 back.
+    "101080": {"extract_pct": 64.9, "user_wording": "PPG: 1.03 which means ~30?", "date": "2026-10-09"},
 }
 
 SKIPPED: dict[str, str] = {
