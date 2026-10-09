@@ -1,6 +1,6 @@
 # `ref` schema, source rows and loader helpers — implementation plan
 
-Stage: review
+Stage: verify
 Source: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a index, item 2; was Tasks 2–3)
 Branch: ref-schema
 
