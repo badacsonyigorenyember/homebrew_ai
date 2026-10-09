@@ -111,6 +111,7 @@ operate the stack safely is in [`docs/OPERATIONS.md`](docs/OPERATIONS.md).
 | Web search | **SearXNG** + `webarm` service | Lookups for what the books do not cover | 🟢 running, optional |
 | Scripts | Python (`.venv`) | One-off extract/load jobs, evals | — |
 | Dev tooling | Claude Code: Supabase MCP (read-only, `.mcp.json`), official n8n MCP (local scope) + `n8n-skills` plugin, guard hook (`.claude/hooks/guard.sh`) | Building and inspecting the stack; schema changes go through SQL files applied as `postgres` | 🟢 |
+| Delivery workflow | Project skills `dev-flow` (orchestrator) + `dev-brief`, `dev-plan`, `dev-implement`, `dev-review`, `dev-verify`, `dev-ship` (`.claude/skills/`) | Brief → plan → build → review → verify → merge, one subagent per step, work in `docs/work/<slug>/` | 🟢 installed, not yet used |
 | Eval guidance | Project skills `retrieval-evaluation-metrics`, `rag-evaluation-frameworks` (`.claude/skills/`) | Reference for building the retrieval test set and regression gate (§6.6) | 🟢 installed, not yet used |
 
 **Hardware:** Ryzen 9 9900X · Radeon RX 9070 XT (16 GB VRAM, RDNA 4 / gfx1201) · 32 GB RAM.
@@ -186,6 +187,11 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- Added the delivery-workflow skills: `dev-flow` orchestrates `dev-brief` → `dev-plan` →
+  `dev-implement` (one subagent per task) → `dev-review` → `dev-verify` → `dev-ship`, with user
+  approval gates on the brief, the plan and shipping. Each piece of work gets
+  `docs/work/<slug>/` and branch `<slug>`; one-line commits, `--no-ff` merge to `main`. Not yet
+  run on real work.
 - Wrote the P1a plan [`docs/superpowers/plans/2026-10-09-fill-ref.md`](docs/superpowers/plans/2026-10-09-fill-ref.md):
   recover the stack (D6), then load `ref` (styles, malts, hops, yeasts, water salts) with tested
   Python loaders, plus the order of the phases after it. Found while planning: the Supabase DB,
