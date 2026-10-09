@@ -193,6 +193,10 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- Wrote brief for `recover-searxng` ([`docs/work/recover-searxng/`](docs/work/recover-searxng/brief.md)):
+  bring `searxng` back with `docker start` from its archived settings, kept as a tracked
+  secret-free template with the live `settings.yml` git-ignored. Approved; planning and
+  implementation deferred until web search is needed.
 - `dev-flow` now says in chat which skill it calls (`Called: /dev-plan`) or skips and why,
   runs all six skills unless one is already done, asked to be skipped or has nothing to act on,
   copies the verification tables unchanged, and ends with a flow summary table (each skill:
