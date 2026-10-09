@@ -2,6 +2,8 @@ from decimal import Decimal as D
 
 from psycopg.types.range import Range
 
+from loaders.common import name_key
+from loaders.malt_products import IGNORE_HOPLINE_EXTRACT, PRODUCTS, SKIPPED
 from loaders.malts import max_pct_from_text, merge, parse_hopline_spec, potential_sg
 
 # Inline fixtures: spec text as fetch_hopline captures it (shortened, wording kept).
@@ -131,3 +133,18 @@ def test_hopline_only():
     assert set(f.field_source) == {"ebc", "extract_dbfg_pct", "potential_sg", "max_pct"}
     assert set(f.field_source.values()) == {"hopline-malts"}
     assert set(f.raw) == {"hopline-malts"}
+
+
+def test_product_map():
+    producers = [producer for producer, _, _ in PRODUCTS.values()]
+    assert len(PRODUCTS) == 74
+    assert producers.count("Weyermann") == 37
+    assert producers.count("Viking Malt") == 32
+    assert producers.count("Simpsons Malt") == 5
+    assert len(SKIPPED) == 8
+    assert not set(PRODUCTS) & set(SKIPPED)
+    assert IGNORE_HOPLINE_EXTRACT <= set(PRODUCTS)
+
+    # Two names with one key would make the upsert overwrite one malt with another.
+    keys = [(producer, name_key(name)) for producer, _, name in PRODUCTS.values()]
+    assert len(keys) == len(set(keys))

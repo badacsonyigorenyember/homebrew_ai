@@ -193,6 +193,15 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- `malt-loader` Task 4 ([`docs/work/malt-loader/`](docs/work/malt-loader/plan.md)): built
+  `shared/rag-files/pending/malt_catalogue.json` by hand from the Weyermann (Crop 2026), Viking
+  (2023) and Simpsons (Nov 2025) PDFs: 72 entries (Weyermann 37, Viking 30, Simpsons 5), each
+  with its page, re-checked against the page text (not committed). Added `loaders/malt_products.py`:
+  all 82 hopline SKUs decided — 74 mapped (Weyermann 37, Viking 32, Simpsons 5; Sprau Malt has
+  no catalogue entry), 8 skipped (BestMalz, Sladovna, malt extracts), and
+  `IGNORE_HOPLINE_EXTRACT` for the three Simpsons crystals. Checked: every SKU in
+  `hopline_malts.json` is mapped or skipped, every mapped product is in the catalogue exactly
+  once. `tests/test_malts.py` 7 passed; suite 21 passed. Not loaded yet (Task 5).
 - `malt-loader` Task 3 ([`docs/work/malt-loader/`](docs/work/malt-loader/plan.md)): added
   `loaders/malts.py` with the pure part of the loader: `potential_sg` (extract % → SG via
   ppg = extract/100 × 46.214), `max_pct_from_text`, `parse_hopline_spec` and `merge` (catalogue

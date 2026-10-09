@@ -62,8 +62,8 @@ never committed; nothing calls an LLM.
 | `docs/work/fill-ref/README.md` | changed | item 4 and its source-file row describe the new inputs (done in the plan commit) |
 | `PROJECT.md` | changed | §5 malt row, §4 scripts row, §8 |
 
-Not committed (in `shared/rag-files/pending/`, already git-ignored): `hopline_malts.json`,
-`malt_catalogue.json` and copies of the three PDFs.
+Not committed (in `shared/rag-files/pending/`, already git-ignored): `hopline_malts.json` and
+`malt_catalogue.json`. The three PDFs stay in `~/Downloads`.
 
 ## Tasks
 
@@ -175,9 +175,9 @@ Commit: `Parse and merge hopline and catalogue malts`
 
 ### Task 4: Catalogue figures and the hopline → catalogue map
 Why: the catalogue supplies the figures; the explicit map decides which product each SKU is.
-- [ ] Copy the three PDFs from `~/Downloads` to `shared/rag-files/pending/` (not committed).
+- [x] Read the three PDFs in `~/Downloads` (not copied, see Deviations).
   Get text with `pdftotext -layout` into the scratchpad.
-- [ ] Build `shared/rag-files/pending/malt_catalogue.json`: a list with one entry per
+- [x] Build `shared/rag-files/pending/malt_catalogue.json`: a list with one entry per
   catalogue product that a hopline SKU maps to, nothing else:
   `{"maltster": "Weyermann" | "Viking Malt" | "Simpsons Malt", "product": "<name as printed, without the maltster word>", "page": <PDF page>, "extract_pct": <number or null>, "ebc_min": <number or null>, "ebc_max": <number or null>, "moisture_max_pct": <number or null>, "protein_pct": "<as printed or null>", "usage": "<the usage sentence verbatim, or null>"}`.
   Copy figures exactly (decimal comma → point). Extract: Weyermann "Extract (dry substance)",
@@ -186,7 +186,7 @@ Why: the catalogue supplies the figures; the explicit map decides which product 
   "Recommended addition: …", Viking the "Dosage/Usage rate …" sentence, Simpsons the bracket in
   Characteristics (e.g. "Use in small amounts (<10%).") or `null`. Moisture and protein are kept
   for `raw` only. After building, re-read every entry against its page text and fix mismatches.
-- [ ] `loaders/malt_products.py`:
+- [x] `loaders/malt_products.py`:
   - `PRODUCTS: dict[str, tuple[str, str | None, str]]`: SKU → (producer, catalogue product or
     `None`, ingredient name), one line per SKU with the hopline name as a comment. The name is
     the catalogue product, except where two SKUs share one product. Known matches:
@@ -205,14 +205,14 @@ Why: the catalogue supplies the figures; the explicit map decides which product 
     `101530` DRC, with a comment giving the user's decision.
   - `SKIPPED: dict[str, str]`: `101000` BestMalz, `101440` / `101450` Sladovna, `101300`,
     `101330`, `101332`, `101333`, `101334` malt extracts, each with the reason.
-- [ ] Add to `tests/test_malts.py`:
+- [x] Add to `tests/test_malts.py`:
   - `test_product_map`: 74 `PRODUCTS` (Weyermann 37, Viking Malt 32, Simpsons Malt 5),
     8 `SKIPPED`, no SKU in both, and `name_key(name)` unique per producer (two names colliding
     would make the upsert overwrite one malt with another).
-- [ ] Check against the files (a one-off command, not a test): every SKU in
+- [x] Check against the files (a one-off command, not a test): every SKU in
   `hopline_malts.json` is in `PRODUCTS` or `SKIPPED`, and every non-`None` catalogue product
   exists in `malt_catalogue.json` exactly once.
-- [ ] `.venv/bin/python -m pytest -v` → suite passes (7 in `test_malts.py`).
+- [x] `.venv/bin/python -m pytest -v` → suite passes (7 in `test_malts.py`).
 Done when: the map covers all 82 SKUs and every mapped product has a catalogue entry.
 Commit: `Map hopline malts to catalogue products`
 
@@ -277,3 +277,12 @@ Commit: `Load hopline malts into ref`
   101520, 101530) and Task 5's `build` passes it — hopline lists "Kihozatal: min 70%" for
   Simpsons Crystal T50, DRC and Crystal Extra Dark, and the user decided to keep their extract
   and potential `NULL` ("Keep them NULL").
+- 2026-10-09 · Task 4: the PDFs were read in place in `~/Downloads`, not copied to
+  `shared/rag-files/pending/` — the copy was refused by the session's permission check, and the
+  catalogue JSON only needs the text.
+- 2026-10-09 · Task 4: catalogue details — Weyermann figures come from each page's parameter
+  table (Eraclea's prose says 2.5–5.5 EBC, its table 2.5–4.5); Carawheat, Carabelge, Chocolate
+  Wheat and Carabohemian are printed twice, the entry uses the first page (14, 18, 15, 26; page
+  36's Carabohemian table carries leftover base-malt rows); ® and ™ are dropped from product
+  names. 72 catalogue entries for 74 SKUs (two smoked pilsners share Viking Smoked Malt; Sprau
+  has none).
