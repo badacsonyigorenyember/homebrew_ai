@@ -1,10 +1,11 @@
 from decimal import Decimal as D
 
+import pytest
 from psycopg.types.range import Range
 
 from loaders.common import name_key
 from loaders.malt_products import IGNORE_HOPLINE_EXTRACT, PRODUCTS, SKIPPED
-from loaders.malts import max_pct_from_text, merge, parse_hopline_spec, potential_sg
+from loaders.malts import build, max_pct_from_text, merge, parse_hopline_spec, potential_sg
 
 # Inline fixtures: spec text as fetch_hopline captures it (shortened, wording kept).
 VIKING_PILSNER = {
@@ -148,3 +149,9 @@ def test_product_map():
     # Two names with one key would make the upsert overwrite one malt with another.
     keys = [(producer, name_key(name)) for producer, _, name in PRODUCTS.values()]
     assert len(keys) == len(set(keys))
+
+
+def test_unknown_sku_raises():
+    unknown = dict(VIKING_SPRAU, sku="999999", name="Új maláta")
+    with pytest.raises(ValueError, match="999999"):
+        build({"products": [unknown]}, [])

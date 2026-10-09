@@ -6,13 +6,19 @@ The catalogue wins; hopline only fills a field the catalogue lacks. field_source
 source each filled field came from, and raw keeps both source records whole.
 """
 
+import argparse
+import json
 import re
 from dataclasses import dataclass
 from decimal import Decimal, ROUND_HALF_UP
 
+import psycopg
+from psycopg.types.json import Jsonb
 from psycopg.types.range import Range
 
 from loaders.common import num, to_range
+from loaders.db import connect, source_id, upsert_ingredient
+from loaders.malt_products import IGNORE_HOPLINE_EXTRACT, PRODUCTS, SKIPPED
 
 HOPLINE = "hopline-malts"
 
@@ -163,3 +169,88 @@ def merge(
         field_source=field_source,
         raw=raw,
     )
+
+
+def build(hopline: dict, catalogue: list[dict]) -> list[Fermentable]:
+    """A Fermentable for every hopline product mapped in PRODUCTS; SKIPPED ones are left out.
+
+    hopline is the file loaders.fetch_hopline writes; catalogue is malt_catalogue.json.
+    A product in neither map raises ValueError, so a new hopline product never loads without
+    a decision in loaders.malt_products. A mapped catalogue product that the catalogue file
+    lacks raises KeyError.
+    """
+    entries = {(entry["maltster"], entry["product"]): entry for entry in catalogue}
+    items = []
+    for item in hopline["products"]:
+        sku = item["sku"]
+        if sku in SKIPPED:
+            continue
+        if sku not in PRODUCTS:
+            raise ValueError(f"hopline SKU {sku} ({item['name']}) is in neither PRODUCTS nor SKIPPED")
+        producer, product, name = PRODUCTS[sku]
+        entry = None
+        if product is not None:
+            if (producer, product) not in entries:
+                raise KeyError(f"SKU {sku}: no catalogue entry for {producer} {product!r}")
+            entry = entries[(producer, product)]
+        items.append(
+            merge(item, producer, entry, name, ignore_hopline_extract=sku in IGNORE_HOPLINE_EXTRACT)
+        )
+    return items
+
+
+def load(conn: psycopg.Connection, items: list[Fermentable]) -> int:
+    """Insert or update each malt in ref.ingredient and ref.fermentable; returns how many.
+
+    Re-running updates the same rows instead of adding duplicates. All rows are written in
+    one transaction (the connection commits on leaving its with-block).
+    """
+    for f in items:
+        ingredient_id = upsert_ingredient(
+            conn, "fermentable", f.name, f.producer, source_id(conn, f.source_slug), f.raw
+        )
+        conn.execute(
+            """
+            insert into ref.fermentable
+                (ingredient_id, potential_sg, extract_dbfg_pct, ebc, max_pct, field_source)
+            values (%s, %s, %s, %s, %s, %s)
+            on conflict (ingredient_id) do update
+               set potential_sg = excluded.potential_sg,
+                   extract_dbfg_pct = excluded.extract_dbfg_pct,
+                   ebc = excluded.ebc,
+                   max_pct = excluded.max_pct,
+                   field_source = excluded.field_source
+            """,
+            (
+                ingredient_id,
+                f.potential_sg,
+                f.extract_dbfg_pct,
+                f.ebc,
+                f.max_pct,
+                Jsonb(f.field_source),
+            ),
+        )
+    return len(items)
+
+
+def read_json(path):
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Load the malts sold on hopline.hu into ref.fermentable.")
+    parser.add_argument("--hopline", required=True, help="path to hopline_malts.json (loaders.fetch_hopline)")
+    parser.add_argument("--catalogue", required=True, help="path to malt_catalogue.json")
+    args = parser.parse_args()
+
+    hopline = read_json(args.hopline)
+    items = build(hopline, read_json(args.catalogue))
+    skipped = sum(1 for item in hopline["products"] if item["sku"] in SKIPPED)
+    with connect() as conn:
+        print(f"loaded: {load(conn, items)} malts")
+    print(f"skipped: {skipped} hopline products (see SKIPPED in loaders/malt_products.py)")
+
+
+if __name__ == "__main__":
+    main()

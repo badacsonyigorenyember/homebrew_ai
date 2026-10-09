@@ -103,7 +103,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 
 | Layer | Choice | Role | Status |
 |---|---|---|---|
-| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)); `ref` schema rebuilt: 7 tables owned by `postgres` (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); 10 `ref.source` rows, the 2 `malts.json` sources replaced by 4 malt sources, and `ref.fermentable.field_source` added (2026-10-09, [`malt-loader`](docs/work/malt-loader/plan.md) Task 2); `ref.beer_style` has 285 rows, BJCP 2021 116 + BA 2026 169 (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); the other 6 tables are empty |
+| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)); `ref` schema rebuilt: 7 tables owned by `postgres` (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); 10 `ref.source` rows, the 2 `malts.json` sources replaced by 4 malt sources, and `ref.fermentable.field_source` added (2026-10-09, [`malt-loader`](docs/work/malt-loader/plan.md) Task 2); `ref.beer_style` has 285 rows, BJCP 2021 116 + BA 2026 169 (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); `ref.fermentable` has 74 rows with 74 `ref.ingredient` rows (2026-10-09, [`malt-loader`](docs/work/malt-loader/plan.md) Task 5); `hop`, `yeast` and `water_salt` are empty |
 | Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | ⬜ schema not rebuilt |
 | Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, no workflows |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
@@ -111,7 +111,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 | Chat model | `gemma4:12b-it-q8_0` *(also pulled: `qwen3.8:27b`)* | Reasoning, extraction, recipe drafting | ⚠️ to be re-evaluated (§7) |
 | Embedding model | `bge-m3` (1024-dim) | Chunk and query embeddings | 🟢 pulled |
 | Web search | **SearXNG** + `webarm` service | Lookups for what the books do not cover | 🔴 `searxng` down since 2026-10-08 (`settings.yml` lost in the reset, [`OPERATIONS.md`](docs/OPERATIONS.md) §1); recovery is separate work, not started. `webarm` running. Optional |
-| Scripts | Python (`.venv`), `psycopg` 3, `pytest` (`requirements.txt`) | One-off extract/load jobs, evals | 🟡 `loaders/` package: shared helpers in `loaders/common.py` (8 unit tests pass) and DB helpers in `loaders/db.py` (`connect`, `source_id`, `upsert_ingredient`, checked against the running DB) (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); styles loader `loaders/styles.py` (`python -m loaders.styles --bjcp PATH --ba PATH`, 4 unit tests pass) (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped) |
+| Scripts | Python (`.venv`), `psycopg` 3, `pytest` (`requirements.txt`) | One-off extract/load jobs, evals | 🟡 `loaders/` package: shared helpers in `loaders/common.py` (8 unit tests pass) and DB helpers in `loaders/db.py` (`connect`, `source_id`, `upsert_ingredient`, checked against the running DB) (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); styles loader `loaders/styles.py` (`python -m loaders.styles --bjcp PATH --ba PATH`, 4 unit tests pass) (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); hopline malt fetcher `loaders/fetch_hopline.py` (`python -m loaders.fetch_hopline OUT.json`, 2 unit tests pass) and malt loader `loaders/malts.py` with the SKU map `loaders/malt_products.py` (`python -m loaders.malts --hopline PATH --catalogue PATH`, 8 unit tests pass) (2026-10-09, [`malt-loader`](docs/work/malt-loader/plan.md)) |
 | Dev tooling | Claude Code: Supabase MCP (read-only, `.mcp.json`), official n8n MCP (local scope) + `n8n-skills` plugin, guard hook (`.claude/hooks/guard.sh`) | Building and inspecting the stack; schema changes go through SQL files applied as `postgres` | 🟢 |
 | Delivery workflow | Project skills `dev-flow` (orchestrator) + `dev-brief`, `dev-plan`, `dev-implement`, `dev-review`, `dev-verify`, `dev-ship` (`.claude/skills/`) | Brief → plan → build → review → verify → merge, one subagent per step, work in `docs/work/<slug>/` | 🟢 in use; shipped: [`recover-stack`](docs/finished/recover-stack/plan.md), [`ref-schema`](docs/finished/ref-schema/plan.md), [`style-loader`](docs/finished/style-loader/plan.md) (2026-10-09) |
 | Eval guidance | Project skills `retrieval-evaluation-metrics`, `rag-evaluation-frameworks` (`.claude/skills/`) | Reference for building the retrieval test set and regression gate (§6.6) | 🟢 installed, not yet used |
@@ -122,14 +122,14 @@ decision in §7 replaces it. How to operate the stack safely is in
 
 ## 5. Knowledge sources
 
-Not ingested since the reset. On 2026-10-08 the source files were removed from `shared/rag-files/pending/` on purpose, to be re-added as each loader needs them. Now there: `how_to_brew.pdf`, `styles.json` and `ba_styles.json` (checked 2026-10-09).
+Not ingested since the reset. On 2026-10-08 the source files were removed from `shared/rag-files/pending/` on purpose, to be re-added as each loader needs them. Now there: `how_to_brew.pdf`, `styles.json`, `ba_styles.json`, `hopline_malts.json` and `malt_catalogue.json`, plus the no longer used `malts.json` (checked 2026-10-09). The three malt catalogue PDFs are read from `~/Downloads`.
 
 | Source | Type | Feeds | Status |
 |---|---|---|---|
 | *How to Brew* — John Palmer | PDF book | General process, ingredients, maths | ⬜ |
 | *Water* — Palmer & Kaminski | PDF book | Water chemistry | ⬜ |
 | *Yeast* — White & Zainasheff | PDF book | Yeast and fermentation | ⬜ |
-| Malt data (`malts.json`) | Structured | Fermentable catalogue | ⬜ |
+| Malt data: hopline.hu malt list (`hopline_malts.json`) + Weyermann (Crop 2026), Viking Malt (2023), Simpsons (Nov 2025) catalogues (`malt_catalogue.json`) | Structured (fetched pages + hand-built from the PDFs) | Fermentable catalogue, 74 malts | ✅ loaded into `ref.fermentable`: 74 rows (Weyermann 37, Viking 32, Simpsons 5), 73 with EBC, 70 with potential, 62 with `max_pct` (2026-10-09) |
 | Stout Style Guide | PDF | Stout styles and recipes | ⬜ |
 | BYO pastry stouts | Markdown | Adjunct technique | ⬜ |
 | Draught Beer Quality Manual 2019 | PDF | Serving and dispense | ⬜ |
@@ -193,6 +193,18 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- `malt-loader` Task 5 ([`docs/work/malt-loader/`](docs/work/malt-loader/plan.md)): added
+  `build`, `load` and the CLI to `loaders/malts.py` (an SKU in neither `PRODUCTS` nor `SKIPPED`
+  raises) and loaded the hopline malts: 74 `ref.fermentable` rows (Weyermann 37, Viking Malt 32,
+  Simpsons Malt 5), 8 hopline products skipped. Sources: `weyermann-2026` 37, `viking-malt-2023`
+  31, `simpsons-malt-2025` 5, `hopline-malts` 1 (Sprau Malt). Measured: 73 with EBC (Viking
+  Enzyme Malt has none), 70 with potential (`NULL`: Simpsons Crystal T50, DRC, Crystal Extra
+  Dark by user decision, and Weyermann Acidulated Malt, which has no extract in either source),
+  62 with `max_pct` (from Weyermann 36, Viking 8, Simpsons 1, hopline 17; 12 Viking malts have
+  none). Maris Otter row as tested: EBC 4.4–6.6, extract 79.0, potential 1.0365, max 100.
+  Weyermann Carapils and Carahell take the main recommendation as `max_pct` (10, 15; user
+  decision), with the full printed sentence kept in `raw`. Ran twice, same counts both times.
+  `tests/test_malts.py` 8 passed; suite 22 passed.
 - `malt-loader` Task 4 ([`docs/work/malt-loader/`](docs/work/malt-loader/plan.md)): built
   `shared/rag-files/pending/malt_catalogue.json` by hand from the Weyermann (Crop 2026), Viking
   (2023) and Simpsons (Nov 2025) PDFs: 72 entries (Weyermann 37, Viking 30, Simpsons 5), each

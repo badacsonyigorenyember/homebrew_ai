@@ -37,7 +37,9 @@ keyed by source slug.
 extract (Weyermann "Extract (dry substance)", Viking "EXTRACT FINE % dm", hopline
 "Kihozatal: min X%"). Simpsons prints no extract, so Crystal T50, DRC and Crystal Extra Dark
 get `NULL` potential; hopline's flat "min 70%" for these three is ignored (user decision). `max_pct` is the stated upper usage limit (catalogue usage text, else
-hopline "Felhasználás"), `NULL` where neither states one; this replaces the earlier "stays NULL
+hopline "Felhasználás"), `NULL` where neither states one; for Weyermann Carapils and Carahell,
+which print a main range plus a higher special-use limit, it is the main range's top (10, 15;
+user decision); this replaces the earlier "stays NULL
 until P3". `type` stays `NULL` until P3. Moisture, protein and origin are kept only in `raw`;
 Lovibond is not stored (derived from EBC at display time, not in this work).
 
@@ -185,7 +187,9 @@ Why: the catalogue supplies the figures; the explicit map decides which product 
   Simpsons none. Colour: a "max."/"<" value gives only `ebc_max`. Usage: Weyermann
   "Recommended addition: …", Viking the "Dosage/Usage rate …" sentence, Simpsons the bracket in
   Characteristics (e.g. "Use in small amounts (<10%).") or `null`. Moisture and protein are kept
-  for `raw` only. After building, re-read every entry against its page text and fix mismatches.
+  for `raw` only. Where the user chose the main recommendation over a printed special-use limit
+  (Carapils, Carahell), `usage` holds only the main recommendation and `usage_printed` the full
+  printed sentence (kept in `raw` with the entry). After building, re-read every entry against its page text and fix mismatches.
 - [x] `loaders/malt_products.py`:
   - `PRODUCTS: dict[str, tuple[str, str | None, str]]`: SKU → (producer, catalogue product or
     `None`, ingredient name), one line per SKU with the hopline name as a comment. The name is
@@ -218,18 +222,18 @@ Commit: `Map hopline malts to catalogue products`
 
 ### Task 5: Load malts into `ref`
 Why: the fermentable catalogue the recipe steps choose from (Review focus 4).
-- [ ] In `loaders/malts.py` add `build(hopline: dict, catalogue: list[dict]) -> list[Fermentable]`
+- [x] In `loaders/malts.py` add `build(hopline: dict, catalogue: list[dict]) -> list[Fermentable]`
   (for each hopline product: in `SKIPPED` → skip; in `PRODUCTS` → `merge` with its catalogue
   entry looked up by `(producer, product)` and `ignore_hopline_extract=sku in IGNORE_HOPLINE_EXTRACT`, `KeyError` naming it if missing; otherwise
   `ValueError` naming the SKU), `load(conn, items) -> int` (`upsert_ingredient` with kind
   `fermentable`, producer and the source's id, then upsert `ref.fermentable` on
   `ingredient_id`, all columns including `field_source` as `Jsonb`; one transaction) and the CLI
   `python -m loaders.malts --hopline PATH --catalogue PATH`, which prints loaded and skipped counts.
-- [ ] Add `test_unknown_sku_raises` to `tests/test_malts.py`: `build` with a hopline product
+- [x] Add `test_unknown_sku_raises` to `tests/test_malts.py`: `build` with a hopline product
   whose SKU is in neither map → `ValueError`. Suite passes (8 in `test_malts.py`).
-- [ ] Run it twice:
+- [x] Run it twice:
   `.venv/bin/python -m loaders.malts --hopline shared/rag-files/pending/hopline_malts.json --catalogue shared/rag-files/pending/malt_catalogue.json`
-- [ ] After each run:
+- [x] After each run:
   - `select i.producer, count(*) from ref.ingredient i join ref.fermentable f on f.ingredient_id = i.id group by 1 order by 1`
     → `Simpsons Malt|5`, `Viking Malt|32`, `Weyermann|37`.
   - `select s.slug, count(*) from ref.ingredient i join ref.source s on s.id = i.source_id where i.kind = 'fermentable' group by 1 order by 1`
@@ -241,7 +245,7 @@ Why: the fermentable catalogue the recipe steps choose from (Review focus 4).
     `max_pct 100.0`, `field_source` as in `test_catalogue_wins_hopline_fills`.
   - Record (measured, not predicted): `count(ebc)`, `count(max_pct)`, and the
     `field_source->>'max_pct'` split by source.
-- [ ] PROJECT.md §5: replace the `malts.json` row with "Malt data: hopline.hu malt list +
+- [x] PROJECT.md §5: replace the `malts.json` row with "Malt data: hopline.hu malt list +
   Weyermann (Crop 2026), Viking Malt (2023), Simpsons (Nov 2025) catalogues", ✅ with the
   measured counts and date, and update the line above the table (what is in `pending/`).
   §4 scripts row: add the malt loader and fetcher. §8 entry.
@@ -286,3 +290,9 @@ Commit: `Load hopline malts into ref`
   36's Carabohemian table carries leftover base-malt rows); ® and ™ are dropped from product
   names. 72 catalogue entries for 74 SKUs (two smoked pilsners share Viking Smoked Malt; Sprau
   has none).
+- 2026-10-09 · Task 5: in `malt_catalogue.json`, Weyermann Carapils `usage` is now
+  "Recommended addition: 5-10%" and Carahell "Recommended addition: 10-15%", with the full
+  printed sentence in a new `usage_printed` key — the user chose "Normal limit: 10 / 15" over the
+  special-use "up to 40%" / "up to 30%" that `max_pct_from_text` would otherwise pick.
+- 2026-10-09 · Task 5: Weyermann Acidulated Malt also has `NULL` potential — neither source
+  states an extract (catalogue none, hopline "Kihozatal : ? %"), as the check allows.
