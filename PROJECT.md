@@ -193,6 +193,13 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- `malt-loader` Task 3 ([`docs/work/malt-loader/`](docs/work/malt-loader/plan.md)): added
+  `loaders/malts.py` with the pure part of the loader: `potential_sg` (extract % → SG via
+  ppg = extract/100 × 46.214), `max_pct_from_text`, `parse_hopline_spec` and `merge` (catalogue
+  wins, hopline fills gaps, `field_source` per field, both records in `raw`). `merge` can ignore
+  hopline's extract: the user decided the flat "min 70%" hopline lists for Simpsons Crystal T50,
+  DRC and Crystal Extra Dark is not used, so their extract and potential stay `NULL`.
+  `tests/test_malts.py` 6 passed; suite 20 passed. Not loaded yet (Tasks 4–5).
 - `malt-loader` Task 2 ([`docs/work/malt-loader/`](docs/work/malt-loader/plan.md)):
   `db/010_ref_schema.sql` adds `ref.fermentable.field_source jsonb not null` (per-field source,
   as on `ref.hop`) and describes `max_pct` as the stated maximum share of the grist;
