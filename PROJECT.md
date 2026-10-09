@@ -193,6 +193,14 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- `ref-schema` review fixes ([`docs/work/ref-schema/`](docs/work/ref-schema/plan.md)):
+  `beer_style.guide`, `beer_style.code` and `ingredient.kind` are `NOT NULL` (natural keys);
+  `hop`, `yeast` and `water_salt` cascade on ingredient delete like `fermentable`;
+  `water-chemistry` edition is `IUPAC standard atomic weights 2021`. `010`/`011` gained
+  `ALTER`/`UPDATE` statements so they update the existing tables. Measured on the live DB after
+  applying twice: the 3 columns `NOT NULL`, all 4 detail FKs `on delete cascade`, 7|7 tables
+  owned by `postgres`, 8 sources; a NULL `kind`/`code` insert is rejected and deleting an
+  ingredient removes its hop row (rolled back). Suite: 8 passed.
 - `ref-schema` Task 3 ([`docs/work/ref-schema/`](docs/work/ref-schema/plan.md)): added
   `loaders/db.py` with `connect()` (reads only the 4 connection variables from the root `.env`,
   connects as `postgres.<tenant>` through the pooler), `source_id()` and `upsert_ingredient()`

@@ -1,7 +1,7 @@
 -- ref.source rows: one per data source the P1a loaders read. Needs 010_ref_schema.sql.
 -- Apply as postgres (docs/OPERATIONS.md §4):
 --   docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/011_ref_sources.sql
--- Idempotent: an existing slug is left as it is.
+-- Idempotent: an existing slug is left as it is, except for the corrections at the end.
 -- A NULL licence means it has not been checked yet.
 
 insert into ref.source (slug, title, edition, publisher, licence, url, notes) values
@@ -39,7 +39,12 @@ insert into ref.source (slug, title, edition, publisher, licence, url, notes) va
      'https://github.com/Brewtarget/brewtarget',
      'BeerJSON files DefaultContent003-Ingredients-Hops-Yeasts.json and DefaultContent004-MoreYeasts.json'),
     ('water-chemistry',
-     'Standard atomic masses', 'IUPAC standard atomic weights',
+     'Standard atomic masses', 'IUPAC standard atomic weights 2021',
      'IUPAC', null, null,
      'Molar masses and ion contributions of brewing water salts, computed from standard atomic masses')
 on conflict (slug) do nothing;
+
+-- Corrections to rows inserted by an earlier version of this file.
+update ref.source set edition = 'IUPAC standard atomic weights 2021'
+ where slug = 'water-chemistry'
+   and edition is distinct from 'IUPAC standard atomic weights 2021';

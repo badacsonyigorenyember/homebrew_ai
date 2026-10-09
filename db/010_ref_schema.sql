@@ -22,9 +22,9 @@ create table if not exists ref.source (
 create table if not exists ref.beer_style (
     id                         bigint generated always as identity primary key,
     source_id                  bigint not null references ref.source (id),
-    guide                      text check (guide in ('BJCP', 'BA')),
+    guide                      text not null check (guide in ('BJCP', 'BA')),
     edition                    text not null,
-    code                       text,
+    code                       text not null,
     name                       text,
     category                   text,
     category_code              text,
@@ -43,7 +43,7 @@ create table if not exists ref.beer_style (
 -- name_key and producer_key come from loaders.common.name_key, so re-loading never duplicates.
 create table if not exists ref.ingredient (
     id           bigint generated always as identity primary key,
-    kind         text check (kind in ('fermentable', 'hop', 'yeast', 'misc', 'water_salt')),
+    kind         text not null check (kind in ('fermentable', 'hop', 'yeast', 'misc', 'water_salt')),
     name         text not null,
     name_key     text not null,
     producer     text not null default '',
@@ -63,7 +63,7 @@ create table if not exists ref.fermentable (
 );
 
 create table if not exists ref.hop (
-    ingredient_id     bigint primary key references ref.ingredient (id),
+    ingredient_id     bigint primary key references ref.ingredient (id) on delete cascade,
     origins           text[],
     purpose           text check (purpose in ('aroma', 'bittering', 'dual')),
     alpha_pct         numrange,
@@ -74,7 +74,7 @@ create table if not exists ref.hop (
 );
 
 create table if not exists ref.yeast (
-    ingredient_id         bigint primary key references ref.ingredient (id),
+    ingredient_id         bigint primary key references ref.ingredient (id) on delete cascade,
     product_id            text,
     type                  text,
     form                  text,
@@ -87,8 +87,29 @@ create table if not exists ref.yeast (
 );
 
 create table if not exists ref.water_salt (
-    ingredient_id      bigint primary key references ref.ingredient (id),
+    ingredient_id      bigint primary key references ref.ingredient (id) on delete cascade,
     formula            text not null,
     molar_mass         numeric(7, 3) not null,
     ion_mg_per_l_per_g jsonb not null
 );
+
+-- Bring tables created by an earlier version of this file up to date
+-- (create table if not exists leaves an existing table as it is).
+-- Natural-key columns must be NOT NULL: a NULL never matches ON CONFLICT, so it would duplicate.
+alter table ref.beer_style alter column guide set not null,
+                           alter column code  set not null;
+alter table ref.ingredient alter column kind  set not null;
+
+-- Deleting an ingredient removes its detail row, for every kind.
+alter table ref.hop
+    drop constraint if exists hop_ingredient_id_fkey,
+    add  constraint hop_ingredient_id_fkey
+         foreign key (ingredient_id) references ref.ingredient (id) on delete cascade;
+alter table ref.yeast
+    drop constraint if exists yeast_ingredient_id_fkey,
+    add  constraint yeast_ingredient_id_fkey
+         foreign key (ingredient_id) references ref.ingredient (id) on delete cascade;
+alter table ref.water_salt
+    drop constraint if exists water_salt_ingredient_id_fkey,
+    add  constraint water_salt_ingredient_id_fkey
+         foreign key (ingredient_id) references ref.ingredient (id) on delete cascade;
