@@ -1,6 +1,6 @@
 # Recover the Supabase containers (D6) — implementation plan
 
-Stage: review
+Stage: verify
 Source: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a index, item 1; was Task 1)
 Branch: recover-stack
 
