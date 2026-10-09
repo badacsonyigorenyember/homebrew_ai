@@ -7,9 +7,14 @@ How the running stack behaves and the traps already hit. Linked from `CLAUDE.md`
 
 *Checked 2026-10-09.*
 
-- All containers run under compose project `aihomebrewassistant`, with working directory
+- The containers belong to compose project `aihomebrewassistant`, with working directory
   this repo's root. Every one has restart policy `unless-stopped`, so they come back after a
   reboot.
+- **`searxng` is down**: `Exited (127)` since 2026-10-08 18:48 UTC. Its bind-mounted
+  `searxng/settings.yml` was removed in the reset and is now a root-owned placeholder directory,
+  so the container fails with "not a directory" (the trap in §3). The file is in the archive tag.
+  Recovering it is separate work. Until then a `docker compose up -d` fails on `searxng`, and
+  `webarm` (which `depends_on` a healthy `searxng`) can't be started through compose.
 - **The compose definition is back in the repo** (2026-10-09, `recover-stack`):
   `docker-compose.yml`, `supabase/docker/docker-compose.yml`, the bind-mounted Supabase files
   (`volumes/db/*.sql`, `volumes/api/kong.yml` + `kong-entrypoint.sh`, `volumes/pooler/pooler.exs`)
@@ -44,8 +49,9 @@ How the running stack behaves and the traps already hit. Linked from `CLAUDE.md`
   next container start Docker creates the missing source path as a directory, and the container
   fails with "not a directory" (or, for a mounted code directory, can't find its entrypoint).
   This took down `supabase-db`, `-kong`, `-pooler` and `-edge-functions` after the reset
-  (2026-10-08). Fix: stop the container, remove the placeholder directory (root-owned, so the
-  user runs `sudo rmdir`), restore the file, `docker start` again.
+  (2026-10-08), and `searxng` (`searxng/settings.yml`, still down, see §1). Fix: stop the
+  container, remove the placeholder directory (root-owned, so the user runs `sudo rmdir`),
+  restore the file, `docker start` again.
 - The old `db-init` service ran a **hardcoded** file list, not a glob. A new `.sql` file
   never ran until it was added to that list, and the list order was the execution order. If
   `db-init` comes back, keep that in mind or make it glob.

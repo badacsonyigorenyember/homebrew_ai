@@ -110,7 +110,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 | LLM runtime | **Ollama** (ROCm) | Local chat and embedding models | 🟢 running |
 | Chat model | `gemma4:12b-it-q8_0` *(also pulled: `qwen3.8:27b`)* | Reasoning, extraction, recipe drafting | ⚠️ to be re-evaluated (§7) |
 | Embedding model | `bge-m3` (1024-dim) | Chunk and query embeddings | 🟢 pulled |
-| Web search | **SearXNG** + `webarm` service | Lookups for what the books do not cover | 🟢 running, optional |
+| Web search | **SearXNG** + `webarm` service | Lookups for what the books do not cover | 🔴 `searxng` down since 2026-10-08 (`settings.yml` lost in the reset, [`OPERATIONS.md`](docs/OPERATIONS.md) §1); recovery is separate work, not started. `webarm` running. Optional |
 | Scripts | Python (`.venv`) | One-off extract/load jobs, evals | — |
 | Dev tooling | Claude Code: Supabase MCP (read-only, `.mcp.json`), official n8n MCP (local scope) + `n8n-skills` plugin, guard hook (`.claude/hooks/guard.sh`) | Building and inspecting the stack; schema changes go through SQL files applied as `postgres` | 🟢 |
 | Delivery workflow | Project skills `dev-flow` (orchestrator) + `dev-brief`, `dev-plan`, `dev-implement`, `dev-review`, `dev-verify`, `dev-ship` (`.claude/skills/`) | Brief → plan → build → review → verify → merge, one subagent per step, work in `docs/work/<slug>/` | 🟢 installed, not yet used |
@@ -193,6 +193,12 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- `recover-stack` review fix ([`docs/work/recover-stack/`](docs/work/recover-stack/review.md)):
+  corrected the docs that said all containers run. `searxng` has been `Exited (127)` since
+  2026-10-08 18:48 UTC with the same deleted-bind-mount trap (`searxng/settings.yml` is now a
+  root-owned directory; the file is in the archive tag). Updated OPERATIONS.md §1 and the §3
+  trap entry, and the §4 SearXNG row. Recovering `searxng` is separate follow-up work, not
+  started; nothing was changed on the container.
 - `recover-stack` Task 2 ([`docs/work/recover-stack/`](docs/work/recover-stack/plan.md)):
   `docker start` brought `supabase-db`, `-kong` and `-pooler` back (all healthy). Checked:
   `select 1` as `postgres` → 1, `/rest/v1/` through Kong → 401, `docker compose ps` lists the
