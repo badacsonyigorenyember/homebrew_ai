@@ -15,16 +15,30 @@ insert into ref.source (slug, title, edition, publisher, licence, url, notes) va
      'Brewers Association', null,
      'https://www.brewersassociation.org/edu/brewers-association-beer-style-guidelines/',
      'Loaded from ba_styles.json'),
-    ('weyermann-specs',
-     'Weyermann malt specifications', 'malts.json copy of 2026-10-08',
+    ('hopline-malts',
+     'Hopline malt product pages', 'website, fetched 2026-10-09',
+     'Hopline', null,
+     'https://www.hopline.hu/alapanyagok/malatak/osszes-malata',
+     null),
+    ('weyermann-2026',
+     'Weyermann products, brewery (EN)', 'Crop 2026',
      'Weyermann Specialty Malts', null,
-     'https://www.weyermann.de/',
-     'Weyermann rows of malts.json'),
-    ('viking-malt-2020',
-     'Viking Malt product specifications', '2020',
+     'https://www.weyermannmalt.com/',
+     null),
+    ('viking-malt-2023',
+     'Viking Malt Standard Product Portfolio', '2023',
      'Viking Malt', null,
      'https://www.vikingmalt.com/',
-     'Viking Malt rows of malts.json'),
+     null),
+    ('simpsons-malt-2025',
+     'Simpsons Malt product range (NextHop)', 'November 2025',
+     'Simpsons Malt', null,
+     'https://www.simpsonsmalt.co.uk/',
+     null),
+    ('user-supplied',
+     'Figures supplied by the user', null,
+     null, null, null,
+     'Hand-entered figures where no source states one; the user''s wording is kept in raw'),
     ('hops-json',
      'Hop data (hops.json)', 'hops.json copy of 2026-10-08',
      null, 'unknown', null,
@@ -48,3 +62,9 @@ on conflict (slug) do nothing;
 update ref.source set edition = 'IUPAC standard atomic weights 2021'
  where slug = 'water-chemistry'
    and edition is distinct from 'IUPAC standard atomic weights 2021';
+
+-- The two malts.json sources were replaced by the malt sources above; remove them while
+-- nothing references them.
+delete from ref.source s
+ where s.slug in ('weyermann-specs', 'viking-malt-2020')
+   and not exists (select 1 from ref.ingredient i where i.source_id = s.id);
