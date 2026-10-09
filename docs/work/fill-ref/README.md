@@ -26,7 +26,7 @@ edit PROJECT.md, so parallel branches would conflict.
 | 1 | [`recover-stack`](../../finished/recover-stack/plan.md) | 1 | `supabase-db`, `-kong`, `-pooler` running again; compose file back in the repo (D6) | — | One `sudo rmdir` command |
 | 2 | [`ref-schema`](../../finished/ref-schema/plan.md) | 2, 3 | `loaders/` package with shared helpers, `ref` schema, 8 source rows, DB helpers | 1 | — |
 | 3 | [`style-loader`](../../finished/style-loader/plan.md) | 4 | 116 BJCP 2021 + 169 BA 2026 styles in `ref.beer_style` | 2 | Re-add `styles.json`, `ba_styles.json` |
-| 4 | [`malt-loader`](../malt-loader/plan.md) | 5 | The 74 Weyermann, Viking and Simpsons malts hopline.hu sells, figures from the maltster catalogues, in `ref.fermentable` | 2 | The 3 maltster PDFs (in `~/Downloads`) |
+| 4 | [`malt-loader`](../../finished/malt-loader/plan.md) | 5 | The 74 Weyermann, Viking and Simpsons malts hopline.hu sells, figures from the maltster catalogues, in `ref.fermentable` | 2 | The 3 maltster PDFs (in `~/Downloads`) |
 | 5 | [`hop-loader`](../hop-loader/plan.md) | 6 | 3 hop sources merged into `ref.hop`, near-duplicate report | 2 | Re-add 3 hop files; confirm source precedence |
 | 6 | [`yeast-loader`](../yeast-loader/plan.md) | 7 | Brewtarget yeasts, deduped, in `ref.yeast` | 2 | Re-add 2 Brewtarget files |
 | 7 | [`water-salts`](../water-salts/plan.md) | 8 | 8 brewing salts with computed ion contributions | 2 | — |

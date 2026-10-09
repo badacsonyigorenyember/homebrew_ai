@@ -103,7 +103,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 
 | Layer | Choice | Role | Status |
 |---|---|---|---|
-| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)); `ref` schema rebuilt: 7 tables owned by `postgres` (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); 11 `ref.source` rows, the 2 `malts.json` sources replaced by 4 malt sources plus a `user-supplied` source for hand-entered figures, and `ref.fermentable.field_source` added (2026-10-09, [`malt-loader`](docs/work/malt-loader/plan.md), shipped); `ref.beer_style` has 285 rows, BJCP 2021 116 + BA 2026 169 (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); `ref.fermentable` has 74 rows with 74 `ref.ingredient` rows (2026-10-09, [`malt-loader`](docs/work/malt-loader/plan.md), shipped); `hop`, `yeast` and `water_salt` are empty |
+| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)); `ref` schema rebuilt: 7 tables owned by `postgres` (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); 11 `ref.source` rows, the 2 `malts.json` sources replaced by 4 malt sources plus a `user-supplied` source for hand-entered figures, and `ref.fermentable.field_source` added (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped); `ref.beer_style` has 285 rows, BJCP 2021 116 + BA 2026 169 (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); `ref.fermentable` has 74 rows with 74 `ref.ingredient` rows (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped); `hop`, `yeast` and `water_salt` are empty |
 | Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | ⬜ schema not rebuilt |
 | Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, no workflows |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
@@ -111,7 +111,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 | Chat model | `gemma4:12b-it-q8_0` *(also pulled: `qwen3.8:27b`)* | Reasoning, extraction, recipe drafting | ⚠️ to be re-evaluated (§7) |
 | Embedding model | `bge-m3` (1024-dim) | Chunk and query embeddings | 🟢 pulled |
 | Web search | **SearXNG** + `webarm` service | Lookups for what the books do not cover | 🔴 `searxng` down since 2026-10-08 (`settings.yml` lost in the reset, [`OPERATIONS.md`](docs/OPERATIONS.md) §1); recovery is separate work, not started. `webarm` running. Optional |
-| Scripts | Python (`.venv`), `psycopg` 3, `pytest` (`requirements.txt`) | One-off extract/load jobs, evals | 🟡 `loaders/` package: shared helpers in `loaders/common.py` (8 unit tests pass) and DB helpers in `loaders/db.py` (`connect`, `source_id`, `upsert_ingredient`, checked against the running DB) (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); styles loader `loaders/styles.py` (`python -m loaders.styles --bjcp PATH --ba PATH`, 4 unit tests pass) (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); hopline malt fetcher `loaders/fetch_hopline.py` (`python -m loaders.fetch_hopline OUT.json`, 2 unit tests pass) and malt loader `loaders/malts.py` with the SKU map `loaders/malt_products.py` (`python -m loaders.malts --hopline PATH --catalogue PATH`, 9 unit tests pass) (2026-10-09, [`malt-loader`](docs/work/malt-loader/plan.md), shipped) |
+| Scripts | Python (`.venv`), `psycopg` 3, `pytest` (`requirements.txt`) | One-off extract/load jobs, evals | 🟡 `loaders/` package: shared helpers in `loaders/common.py` (8 unit tests pass) and DB helpers in `loaders/db.py` (`connect`, `source_id`, `upsert_ingredient`, checked against the running DB) (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); styles loader `loaders/styles.py` (`python -m loaders.styles --bjcp PATH --ba PATH`, 4 unit tests pass) (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); hopline malt fetcher `loaders/fetch_hopline.py` (`python -m loaders.fetch_hopline OUT.json`, 2 unit tests pass) and malt loader `loaders/malts.py` with the SKU map `loaders/malt_products.py` (`python -m loaders.malts --hopline PATH --catalogue PATH`, 9 unit tests pass) (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped) |
 | Dev tooling | Claude Code: Supabase MCP (read-only, `.mcp.json`), official n8n MCP (local scope) + `n8n-skills` plugin, guard hook (`.claude/hooks/guard.sh`) | Building and inspecting the stack; schema changes go through SQL files applied as `postgres` | 🟢 |
 | Delivery workflow | Project skills `dev-flow` (orchestrator) + `dev-brief`, `dev-plan`, `dev-implement`, `dev-review`, `dev-verify`, `dev-ship` (`.claude/skills/`) | Brief → plan → build → review → verify → merge, one subagent per step, work in `docs/work/<slug>/` | 🟢 in use; shipped: [`recover-stack`](docs/finished/recover-stack/plan.md), [`ref-schema`](docs/finished/ref-schema/plan.md), [`style-loader`](docs/finished/style-loader/plan.md) (2026-10-09) |
 | Eval guidance | Project skills `retrieval-evaluation-metrics`, `rag-evaluation-frameworks` (`.claude/skills/`) | Reference for building the retrieval test set and regression gate (§6.6) | 🟢 installed, not yet used |
@@ -193,14 +193,14 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
-- Shipped `malt-loader` ([`docs/work/malt-loader/`](docs/work/malt-loader/verification.md)),
+- Shipped `malt-loader` ([`docs/finished/malt-loader/`](docs/finished/malt-loader/verification.md)),
   merged to `main`: `loaders/fetch_hopline.py` saves hopline.hu's malt pages and
   `loaders/malts.py` merges them with the hand-built maltster catalogue figures (catalogue wins,
   hopline fills gaps, a `user-supplied` figure fills only what both lack) and upserts them.
   `ref.fermentable` has 74 malts (Weyermann 37, Viking 32, Simpsons 5): 73 with EBC, 74 with
   potential, 62 with `max_pct`, each field's source in `field_source`; 11 `ref.source` rows.
   Verification: all 20 checks pass; re-run before the merge: `pytest` 23 passed.
-- `malt-loader` fix round after verification ([`docs/work/malt-loader/`](docs/work/malt-loader/plan.md)),
+- `malt-loader` fix round after verification ([`docs/finished/malt-loader/`](docs/finished/malt-loader/plan.md)),
   two user data decisions: Simpsons Crystal T50, DRC and Crystal Extra Dark now take hopline's
   "min 70%" extract (the `IGNORE_HOPLINE_EXTRACT` special case is removed; the user reversed
   "Keep them NULL"); Weyermann Acidulated Malt gets extract 64.9 from the user's "PPG 1.03 ≈ 30"
@@ -210,7 +210,7 @@ Newest first. One entry per meaningful change: what was done, and why if that is
   EBC, 74 with potential (no `NULL` left; from Weyermann 36, Viking 31, hopline 6, user-supplied
   1), 62 with `max_pct`. Crystals: extract 70.0, potential 1.0323; Acidulated: extract 64.9,
   potential 1.0300. `tests/test_malts.py` 9 passed; suite 23 passed.
-- `malt-loader` Task 5 ([`docs/work/malt-loader/`](docs/work/malt-loader/plan.md)): added
+- `malt-loader` Task 5 ([`docs/finished/malt-loader/`](docs/finished/malt-loader/plan.md)): added
   `build`, `load` and the CLI to `loaders/malts.py` (an SKU in neither `PRODUCTS` nor `SKIPPED`
   raises) and loaded the hopline malts: 74 `ref.fermentable` rows (Weyermann 37, Viking Malt 32,
   Simpsons Malt 5), 8 hopline products skipped. Sources: `weyermann-2026` 37, `viking-malt-2023`
@@ -222,7 +222,7 @@ Newest first. One entry per meaningful change: what was done, and why if that is
   Weyermann Carapils and Carahell take the main recommendation as `max_pct` (10, 15; user
   decision), with the full printed sentence kept in `raw`. Ran twice, same counts both times.
   `tests/test_malts.py` 8 passed; suite 22 passed.
-- `malt-loader` Task 4 ([`docs/work/malt-loader/`](docs/work/malt-loader/plan.md)): built
+- `malt-loader` Task 4 ([`docs/finished/malt-loader/`](docs/finished/malt-loader/plan.md)): built
   `shared/rag-files/pending/malt_catalogue.json` by hand from the Weyermann (Crop 2026), Viking
   (2023) and Simpsons (Nov 2025) PDFs: 72 entries (Weyermann 37, Viking 30, Simpsons 5), each
   with its page, re-checked against the page text (not committed). Added `loaders/malt_products.py`:
@@ -231,27 +231,27 @@ Newest first. One entry per meaningful change: what was done, and why if that is
   `IGNORE_HOPLINE_EXTRACT` for the three Simpsons crystals. Checked: every SKU in
   `hopline_malts.json` is mapped or skipped, every mapped product is in the catalogue exactly
   once. `tests/test_malts.py` 7 passed; suite 21 passed. Not loaded yet (Task 5).
-- `malt-loader` Task 3 ([`docs/work/malt-loader/`](docs/work/malt-loader/plan.md)): added
+- `malt-loader` Task 3 ([`docs/finished/malt-loader/`](docs/finished/malt-loader/plan.md)): added
   `loaders/malts.py` with the pure part of the loader: `potential_sg` (extract % → SG via
   ppg = extract/100 × 46.214), `max_pct_from_text`, `parse_hopline_spec` and `merge` (catalogue
   wins, hopline fills gaps, `field_source` per field, both records in `raw`). `merge` can ignore
   hopline's extract: the user decided the flat "min 70%" hopline lists for Simpsons Crystal T50,
   DRC and Crystal Extra Dark is not used, so their extract and potential stay `NULL`.
   `tests/test_malts.py` 6 passed; suite 20 passed. Not loaded yet (Tasks 4–5).
-- `malt-loader` Task 2 ([`docs/work/malt-loader/`](docs/work/malt-loader/plan.md)):
+- `malt-loader` Task 2 ([`docs/finished/malt-loader/`](docs/finished/malt-loader/plan.md)):
   `db/010_ref_schema.sql` adds `ref.fermentable.field_source jsonb not null` (per-field source,
   as on `ref.hop`) and describes `max_pct` as the stated maximum share of the grist;
   `db/011_ref_sources.sql` adds `hopline-malts`, `weyermann-2026`, `viking-malt-2023` and
   `simpsons-malt-2025`, and deletes the unused `weyermann-specs` and `viking-malt-2020` rows while
   no ingredient references them. Applied both twice as `postgres`, no errors; measured each time:
   10 `ref.source` rows, `field_source` present and `not null`. Suite 14 passed.
-- `malt-loader` Task 1 ([`docs/work/malt-loader/`](docs/work/malt-loader/plan.md)): added
+- `malt-loader` Task 1 ([`docs/finished/malt-loader/`](docs/finished/malt-loader/plan.md)): added
   `loaders/fetch_hopline.py` (standard library only; `listing_links`, `product_page`, CLI
   `python -m loaders.fetch_hopline OUT.json`, one request per second, never `/shop_ajax/`).
   Ran it: 5 listing pages, 82 products in `shared/rag-files/pending/hopline_malts.json`
   (fetched 2026-10-09, not committed), every name set, spec text set for all 74 malts to be
   mapped (only the 4 liquid extracts, which are skipped, have none). 2 new tests; suite 14 passed.
-- Planned `malt-loader` ([`docs/work/malt-loader/plan.md`](docs/work/malt-loader/plan.md)),
+- Planned `malt-loader` ([`docs/finished/malt-loader/plan.md`](docs/finished/malt-loader/plan.md)),
   re-scoped from `malts.json`: load only the grain malts hopline.hu sells from Weyermann (37),
   Viking Malt (32) and Simpsons (5); Sladovna, BestMalz and malt extracts left out. Figures come
   from the maltster catalogues (Weyermann Crop 2026, Viking 2023, Simpsons Nov 2025), hopline fills
