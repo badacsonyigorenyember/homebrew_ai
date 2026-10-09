@@ -103,7 +103,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 
 | Layer | Choice | Role | Status |
 |---|---|---|---|
-| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/work/recover-stack/plan.md)), schema not rebuilt |
+| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)), schema not rebuilt |
 | Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | ⬜ schema not rebuilt |
 | Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, no workflows |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
@@ -113,7 +113,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 | Web search | **SearXNG** + `webarm` service | Lookups for what the books do not cover | 🔴 `searxng` down since 2026-10-08 (`settings.yml` lost in the reset, [`OPERATIONS.md`](docs/OPERATIONS.md) §1); recovery is separate work, not started. `webarm` running. Optional |
 | Scripts | Python (`.venv`) | One-off extract/load jobs, evals | — |
 | Dev tooling | Claude Code: Supabase MCP (read-only, `.mcp.json`), official n8n MCP (local scope) + `n8n-skills` plugin, guard hook (`.claude/hooks/guard.sh`) | Building and inspecting the stack; schema changes go through SQL files applied as `postgres` | 🟢 |
-| Delivery workflow | Project skills `dev-flow` (orchestrator) + `dev-brief`, `dev-plan`, `dev-implement`, `dev-review`, `dev-verify`, `dev-ship` (`.claude/skills/`) | Brief → plan → build → review → verify → merge, one subagent per step, work in `docs/work/<slug>/` | 🟢 in use; first work shipped: [`recover-stack`](docs/work/recover-stack/plan.md) (2026-10-09) |
+| Delivery workflow | Project skills `dev-flow` (orchestrator) + `dev-brief`, `dev-plan`, `dev-implement`, `dev-review`, `dev-verify`, `dev-ship` (`.claude/skills/`) | Brief → plan → build → review → verify → merge, one subagent per step, work in `docs/work/<slug>/` | 🟢 in use; first work shipped: [`recover-stack`](docs/finished/recover-stack/plan.md) (2026-10-09) |
 | Eval guidance | Project skills `retrieval-evaluation-metrics`, `rag-evaluation-frameworks` (`.claude/skills/`) | Reference for building the retrieval test set and regression gate (§6.6) | 🟢 installed, not yet used |
 
 **Hardware:** Ryzen 9 9900X · Radeon RX 9070 XT (16 GB VRAM, RDNA 4 / gfx1201) · 32 GB RAM.
@@ -201,25 +201,25 @@ Newest first. One entry per meaningful change: what was done, and why if that is
   copies the verification tables unchanged, and ends with a flow summary table (each skill:
   called or not, result in a few words). Asked for after `recover-stack`, where the skipped brief
   and the reformatted test tables were not visible enough.
-- Shipped `recover-stack` ([`docs/work/recover-stack/`](docs/work/recover-stack/verification.md)),
+- Shipped `recover-stack` ([`docs/finished/recover-stack/`](docs/finished/recover-stack/verification.md)),
   merged to `main`: compose and Supabase mount files back in the repo (without `db-init`), and
   `supabase-db`, `-kong` and `-pooler` running again (D6). Re-checked before the merge: `select 1`
   → 1, `/rest/v1/` → 401, 0 containers `Restarting`, `docker compose config -q` exit 0, and
   `compose ps` lists the three. First piece of work delivered through `dev-flow`.
-- `recover-stack` review fix ([`docs/work/recover-stack/`](docs/work/recover-stack/review.md)):
+- `recover-stack` review fix ([`docs/finished/recover-stack/`](docs/finished/recover-stack/review.md)):
   corrected the docs that said all containers run. `searxng` has been `Exited (127)` since
   2026-10-08 18:48 UTC with the same deleted-bind-mount trap (`searxng/settings.yml` is now a
   root-owned directory; the file is in the archive tag). Updated OPERATIONS.md §1 and the §3
   trap entry, and the §4 SearXNG row. Recovering `searxng` is separate follow-up work, not
   started; nothing was changed on the container.
-- `recover-stack` Task 2 ([`docs/work/recover-stack/`](docs/work/recover-stack/plan.md)):
+- `recover-stack` Task 2 ([`docs/finished/recover-stack/`](docs/finished/recover-stack/plan.md)):
   `docker start` brought `supabase-db`, `-kong` and `-pooler` back (all healthy). Checked:
   `select 1` as `postgres` → 1, `/rest/v1/` through Kong → 401, `docker compose ps` lists the
   three. `supabase-edge-functions` was also crash-looping (its `functions/main/index.ts` had been
   removed in the reset); restored it from the archive and restarted it, after which 0 containers
   are `Restarting`. D6 decided: restore the compose and Kong files (done), without `db-init`.
   OPERATIONS.md §1 and CLAUDE.md updated; new trap entry for deleted bind-mount files.
-- `recover-stack` Task 1 ([`docs/work/recover-stack/`](docs/work/recover-stack/plan.md)): restored
+- `recover-stack` Task 1 ([`docs/finished/recover-stack/`](docs/finished/recover-stack/plan.md)): restored
   `docker-compose.yml` (with the `db-init` service removed), `supabase/docker/docker-compose.yml`
   and the 10 bind-mounted DB/Kong/pooler files from the archive tag, after the user removed the
   root-owned placeholder directories and took ownership of `volumes/api` and `volumes/pooler`.
