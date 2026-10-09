@@ -121,7 +121,7 @@ Commit: `Add ref schema and source rows`
 
 ### Task 3: DB helpers for loaders
 Why: one connection path and one natural-key upsert, so re-running a loader never duplicates (Review focus 4).
-- [ ] `loaders/db.py`:
+- [x] `loaders/db.py`:
   - `connect() -> psycopg.Connection`: reads the 4 variables from the root `.env`,
     `autocommit=False`.
   - `source_id(conn, slug: str) -> int`: raises `LookupError` if the slug is missing.
@@ -129,9 +129,9 @@ Why: one connection path and one natural-key upsert, so re-running a loader neve
     `INSERT … ON CONFLICT (kind, producer_key, name_key) DO UPDATE` returning `id`, with
     `name_key = name_key(name)`, `producer_key = name_key(producer)` (`''` when there's no
     producer).
-- [ ] Verify: `.venv/bin/python -c "from loaders.db import connect, source_id; c=connect(); print(source_id(c,'bjcp-2021'))"` → an integer
-- [ ] Verify the error path: `source_id(c, 'nope')` raises `LookupError`.
-- [ ] Run the whole suite → all pass.
+- [x] Verify: `.venv/bin/python -c "from loaders.db import connect, source_id; c=connect(); print(source_id(c,'bjcp-2021'))"` → an integer
+- [x] Verify the error path: `source_id(c, 'nope')` raises `LookupError`.
+- [x] Run the whole suite → all pass.
 Done when: both verifies behave as stated.
 Commit: `Add DB helpers for ref loaders`
 
