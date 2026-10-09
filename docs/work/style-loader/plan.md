@@ -53,16 +53,16 @@ Commit: `Parse BJCP 2021 and BA 2026 styles`
 
 ### Task 2: Load styles into `ref.beer_style`
 Why: every later step picks its style from this table (Review focus 4).
-- [ ] Add `load(conn, styles: list[Style]) -> int`, an upsert on `(guide, edition, code)` with
+- [x] Add `load(conn, styles: list[Style]) -> int`, an upsert on `(guide, edition, code)` with
   `source_id` from `source_id(conn, 'bjcp-2021' | 'ba-2026')`, and the CLI
   `python -m loaders.styles --bjcp PATH --ba PATH`.
-- [ ] Run it twice:
+- [x] Run it twice:
   `.venv/bin/python -m loaders.styles --bjcp shared/rag-files/pending/styles.json --ba shared/rag-files/pending/ba_styles.json`
-- [ ] After each run: `select guide, count(*), count(og) from ref.beer_style group by 1 order by 1`
+- [x] After each run: `select guide, count(*), count(og) from ref.beer_style group by 1 order by 1`
   → `BA|169|144`, `BJCP|116|96`.
-- [ ] `select og, ibu, srm from ref.beer_style where guide='BJCP' and code='15B'` →
+- [x] `select og, ibu, srm from ref.beer_style where guide='BJCP' and code='15B'` →
   `[1.036,1.044]|[25,45]|[25,40]` (measured in `styles.json`).
-- [ ] PROJECT.md §5: BJCP and BA rows → loaded, with the measured counts and date.
+- [x] PROJECT.md §5: BJCP and BA rows → loaded, with the measured counts and date.
 Done when: both runs give the same counts and 15B matches.
 Commit: `Load BJCP 2021 and BA 2026 styles into ref`
 

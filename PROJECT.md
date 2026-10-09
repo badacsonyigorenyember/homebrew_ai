@@ -122,7 +122,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 
 ## 5. Knowledge sources
 
-Not ingested since the reset. On 2026-10-08 the source files were removed from `shared/rag-files/pending/` on purpose, to be re-added as each loader needs them. Only `how_to_brew.pdf` is there now (checked 2026-10-09).
+Not ingested since the reset. On 2026-10-08 the source files were removed from `shared/rag-files/pending/` on purpose, to be re-added as each loader needs them. Now there: `how_to_brew.pdf`, `styles.json` and `ba_styles.json` (checked 2026-10-09).
 
 | Source | Type | Feeds | Status |
 |---|---|---|---|
@@ -133,8 +133,8 @@ Not ingested since the reset. On 2026-10-08 the source files were removed from `
 | Stout Style Guide | PDF | Stout styles and recipes | ⬜ |
 | BYO pastry stouts | Markdown | Adjunct technique | ⬜ |
 | Draught Beer Quality Manual 2019 | PDF | Serving and dispense | ⬜ |
-| BJCP 2021 style guidelines (`styles.json`) | Structured | Styles, 116 rows | ⬜ |
-| Brewers Association style guidelines (`ba_styles.json`) | Structured | Styles, 169 rows | ⬜ |
+| BJCP 2021 style guidelines (`styles.json`) | Structured | Styles, 116 rows | ✅ loaded into `ref.beer_style`: 116 rows, 96 with vitals (2026-10-09) |
+| Brewers Association style guidelines (`ba_styles.json`) | Structured | Styles, 169 rows | ✅ loaded into `ref.beer_style`: 169 rows, 144 with OG (2026-10-09) |
 | Hop data (`hops.json`, `hops.hopslist.json`), fault data (`beer_faults.json`) | Structured | Hop catalogue (72 + 268), faults (21) | ⬜ |
 | Brewer's Friend recipes (Kaggle, CC0) | Structured, 179,455 recipes | Per-style ratios (D7) | ⬜ 35,620 (views > 500) in the archive dump, measured 2026-10-08 |
 | Brewtarget default data (GPL-3) | Structured, BeerJSON | Yeast (296 + 275 entries), hops (282) (D8) | ⬜ downloaded before the reset (`DefaultContent003/004`), to be re-added |
@@ -193,6 +193,12 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- `style-loader` Task 2 ([`docs/work/style-loader/`](docs/work/style-loader/plan.md)): added
+  `load` (upsert on `(guide, edition, code)`, `source_id` from `bjcp-2021` / `ba-2026`) and the
+  CLI `python -m loaders.styles --bjcp PATH --ba PATH`. The re-added `styles.json` and
+  `ba_styles.json` have the field names Task 1 assumed. Ran it twice: both times
+  `ref.beer_style` has BA 169 rows (144 with OG) and BJCP 116 (96 with OG), 285 in all;
+  15B is `[1.036,1.044]|[25,45]|[25,40]`; 12 BA rows have an open-ended SRM. Suite 12 passed.
 - `style-loader` Task 1 ([`docs/work/style-loader/`](docs/work/style-loader/plan.md)): added
   `loaders/styles.py` with `Style`, `parse_bjcp` (BJCP 2021, code = style number) and `parse_ba`
   (BA 2026, code = number slug); vitals become `numrange`s through `to_range`, blank text and
