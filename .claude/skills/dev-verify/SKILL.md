@@ -14,15 +14,15 @@ focus are what you check). Set `Stage: verify`. Collect the changes with `git di
 
 ## Part 1: Where to look
 
-For a human starting a manual check. Summarise; don't list every item.
+For a human starting a manual check. Each of the first four is a few words or one sentence:
 
+- **Goal:** what the work set out to do.
+- **How:** how it was achieved.
+- **Why this way:** why it was done like this rather than another way.
+- **Result:** what exists or works now, with summarised counts where they matter.
 - **Start here:** the one place to look first, and what you should see there.
-- Then one short block per kind of change that happened. Skip kinds that did not change:
-  - **Database:** schemas, tables, functions and views added, changed or removed, with
-    summarised counts ("116 BJCP styles added to `ref.style`", "all rows with id < 100 removed").
-  - **Workflows** (n8n), **scripts and services:** for each, its name, then what it does, what
-    problem it solves, and how it solves it, 1–2 sentences each.
-  - **Files and config:** what changed and where.
+- **Changed files:** every path from `git diff --stat main...<slug>`, one per line, paths only.
+  Don't describe the changes.
 
 ## Part 2: Spot checks
 
@@ -69,8 +69,9 @@ Top of the file: one line, `Overall: ✅ all N checks and M tests pass` or `Over
 failed: C3, test_x`. Commit `verification.md` and `plan.md` (`Add verification: <slug>`).
 
 Do not fix failures here. Subagent mode: report `done` with the Overall line and the failed IDs
-with their Cause in Summary. Direct mode: show the Overall line, the Start here block, and both
-tables.
+with their Cause in Summary. Direct mode: show the Overall line, Part 1 as written, and a count
+line (`Spot checks: N/N pass · Regression tests: M/M pass`); list only the failing rows, not the
+passing ones. `verification.md` itself keeps every row.
 
 ## Re-verify
 

@@ -111,9 +111,11 @@ continue?". Keep going.
 
 - After step 4: the must-fix and should-fix findings, one line each. Ask about the should-fix
   ones.
-- After step 5: read `verification.md` and show the Overall line, *Start here*, and the
-  spot-check and regression tables exactly as written there. Copy them; don't merge, shorten or
-  reformat them. Then ask to ship.
+- After step 5: read `verification.md` and show the Overall line and Part 1 (Goal, How, Why
+  this way, Result, Start here, Changed files) as written there. Then one count line for the
+  passing results, e.g. `Spot checks: 11/11 pass · Regression tests: 9/9 pass`. Don't list
+  passing rows. List only the failing rows, under their table's header, copied exactly as
+  written there; don't merge, shorten or reformat them. Then ask to ship.
 - At the end (after shipping, or wherever the user stops the flow): merge sha, branch, the paths
   of brief, plan and verification, and the flow summary below. After shipping, dev-ship has
   moved the folder, so those paths are under `docs/finished/<slug>/`.
