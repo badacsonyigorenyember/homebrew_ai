@@ -193,6 +193,12 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- `style-loader` Task 1 ([`docs/work/style-loader/`](docs/work/style-loader/plan.md)): added
+  `loaders/styles.py` with `Style`, `parse_bjcp` (BJCP 2021, code = style number) and `parse_ba`
+  (BA 2026, code = number slug); vitals become `numrange`s through `to_range`, blank text and
+  missing vitals stay `None`, `raw` keeps the whole input row. Tested on inline fixtures only
+  (the source files are not in the repo yet): `tests/test_styles.py` 4 passed; suite 12 passed.
+  Nothing loaded into the DB yet.
 - Shipped `ref-schema` ([`docs/finished/ref-schema/`](docs/finished/ref-schema/verification.md)),
   merged to `main`: `ref` schema with 7 tables owned by `postgres` (`db/010_ref_schema.sql`),
   8 `ref.source` rows (`db/011_ref_sources.sql`), and the `loaders/` package with shared helpers
