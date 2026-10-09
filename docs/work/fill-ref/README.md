@@ -26,7 +26,7 @@ edit PROJECT.md, so parallel branches would conflict.
 | 1 | [`recover-stack`](../../finished/recover-stack/plan.md) | 1 | `supabase-db`, `-kong`, `-pooler` running again; compose file back in the repo (D6) | — | One `sudo rmdir` command |
 | 2 | [`ref-schema`](../../finished/ref-schema/plan.md) | 2, 3 | `loaders/` package with shared helpers, `ref` schema, 8 source rows, DB helpers | 1 | — |
 | 3 | [`style-loader`](../../finished/style-loader/plan.md) | 4 | 116 BJCP 2021 + 169 BA 2026 styles in `ref.beer_style` | 2 | Re-add `styles.json`, `ba_styles.json` |
-| 4 | [`malt-loader`](../malt-loader/plan.md) | 5 | 77 Weyermann + Viking malts in `ref.fermentable` | 2 | Re-add `malts.json` |
+| 4 | [`malt-loader`](../malt-loader/plan.md) | 5 | The 74 Weyermann, Viking and Simpsons malts hopline.hu sells, figures from the maltster catalogues, in `ref.fermentable` | 2 | The 3 maltster PDFs (in `~/Downloads`) |
 | 5 | [`hop-loader`](../hop-loader/plan.md) | 6 | 3 hop sources merged into `ref.hop`, near-duplicate report | 2 | Re-add 3 hop files; confirm source precedence |
 | 6 | [`yeast-loader`](../yeast-loader/plan.md) | 7 | Brewtarget yeasts, deduped, in `ref.yeast` | 2 | Re-add 2 Brewtarget files |
 | 7 | [`water-salts`](../water-salts/plan.md) | 8 | 8 brewing salts with computed ion contributions | 2 | — |
@@ -61,7 +61,7 @@ catch it.
 |---|---|---|
 | `styles.json` | `style-loader` | list of 116, all values strings, 20 styles with no vitals (27A–34C) |
 | `ba_styles.json` | `style-loader` | list of 169, numbers as floats; 25 with no OG; 12 with `srmmin` but no `srmmax` |
-| `malts.json` | `malt-loader` | list of 77 (Weyermann 44, Viking Malt 33); `category` is null in all 77; 4 rows give only a maximum colour (e.g. Carabody, max 8 EBC) |
+| `hopline_malts.json` (fetched), `malt_catalogue.json` (hand-built from the Weyermann Crop 2026, Viking 2023 and Simpsons Nov 2025 PDFs) | `malt-loader` | hopline: 82 products, 74 loaded (re-scoped 2026-10-09; `malts.json` no longer used) |
 | `hops.json` | `hop-loader` | list of 72, `flavour` list, origins like `USA`, `SVN`, `BE/DE` |
 | `hops.hopslist.json` | `hop-loader` | list of 268, same fields as `hops.json`, 22 with no origin |
 | `DefaultContent003-Ingredients-Hops-Yeasts.json` | `hop-loader`, `yeast-loader` | Brewtarget BeerJSON: `//` comment header, then `beerjson.hop_varieties` (282) and `beerjson.cultures` (296) |

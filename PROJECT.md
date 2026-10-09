@@ -193,6 +193,12 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- Planned `malt-loader` ([`docs/work/malt-loader/plan.md`](docs/work/malt-loader/plan.md)),
+  re-scoped from `malts.json`: load only the grain malts hopline.hu sells from Weyermann (37),
+  Viking Malt (32) and Simpsons (5); Sladovna, BestMalz and malt extracts left out. Figures come
+  from the maltster catalogues (Weyermann Crop 2026, Viking 2023, Simpsons Nov 2025), hopline fills
+  only what a catalogue lacks, and a new `ref.fermentable.field_source` records the source of each
+  field. `max_pct` is now filled from the stated maximum usage (was "NULL until P3"). Nothing built yet.
 - Shipped `style-loader` ([`docs/finished/style-loader/`](docs/finished/style-loader/verification.md)),
   merged to `main`: `loaders/styles.py` parses BJCP 2021 and BA 2026 styles and upserts them on
   `(guide, edition, code)`; `ref.beer_style` has 285 rows (BJCP 116, 96 with vitals; BA 169,
