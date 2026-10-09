@@ -1,6 +1,6 @@
 # Malt loader (hopline malts + maltster catalogues) — implementation plan
 
-Stage: implementing
+Stage: review
 Source: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a index, item 4; was Task 5),
 re-scoped by the user on 2026-10-09 (see Deviations)
 Branch: malt-loader
