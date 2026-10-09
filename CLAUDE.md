@@ -47,11 +47,9 @@ not hoped for. Mark anything unverified as such.
 
 ## The running stack
 
-- The containers still run from the pre-reset compose file, which **is no longer in the repo**.
-  `docker compose` in this directory fails. Use plain `docker` commands, and **do not recreate
-  `supabase-kong`**: its `kong.yml` exists only inside the running container. Read
-  [`docs/OPERATIONS.md`](docs/OPERATIONS.md) before restarting, recreating or reconfiguring
-  anything.
+- The compose definition (`docker-compose.yml`, `supabase/docker/`) is back in the repo, without
+  the old `db-init` service. Read [`docs/OPERATIONS.md`](docs/OPERATIONS.md) before restarting,
+  recreating or reconfiguring anything.
 - **Database changes:** write them as `.sql` files in the repo and apply them with `psql` as
   `postgres` (the command is in OPERATIONS.md §4). The Supabase MCP server is **read-only on
   purpose**, for inspection only. Objects created through MCP or as `supabase_admin` end up

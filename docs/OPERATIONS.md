@@ -5,26 +5,21 @@ How the running stack behaves and the traps already hit. Linked from `CLAUDE.md`
 
 ## 1. State of the stack after the reset
 
-*Checked 2026-10-08.*
+*Checked 2026-10-09.*
 
-- All 18 containers run under compose project `aihomebrewassistant`, with working directory
+- All containers run under compose project `aihomebrewassistant`, with working directory
   this repo's root. Every one has restart policy `unless-stopped`, so they come back after a
   reboot.
-- **The files that define them are no longer on disk.** `docker-compose.yml`, the `db/init/*.sql`
-  schema files and `supabase/docker/volumes/api/kong.yml` were removed in the reset. They
-  exist only in the archive tag:
-
-  ```bash
-  git show archive/pre-reset-2026-10-08:docker-compose.yml
-  ```
-
-- Consequences until the compose file is re-committed:
-  - `docker compose …` in this directory fails (no compose file). Use plain `docker`
-    commands (`docker ps`, `docker logs`, `docker exec`, `docker restart <name>`).
-  - **Do not recreate `supabase-kong`.** It holds the deleted `kong.yml` through a
-    single-file bind mount (see §3). A recreate would start it without its config, which
-    breaks the API gateway and the Supabase MCP endpoint. `docker restart` is safe.
-  - Recreating any container needs the compose file back first.
+- **The compose definition is back in the repo** (2026-10-09, `recover-stack`):
+  `docker-compose.yml`, `supabase/docker/docker-compose.yml`, the bind-mounted Supabase files
+  (`volumes/db/*.sql`, `volumes/api/kong.yml` + `kong-entrypoint.sh`, `volumes/pooler/pooler.exs`)
+  and the edge-functions entrypoint `volumes/functions/main/index.ts`, all restored from the
+  archive tag. `docker compose config -q` passes and `docker compose ps` sees the running
+  containers.
+- The **`db-init` service was removed** from the restored compose file, because it applied the
+  old schema list. The old `db/init/*.sql` schema files were not restored.
+- `supabase-kong` can be recreated again: its config comes from `volumes/api/kong.yml` in the
+  repo. Recreating still follows the rules in §3 (main checkout only, `--no-deps`).
 
 ## 2. Machine-level constraints
 
@@ -34,7 +29,7 @@ How the running stack behaves and the traps already hit. Linked from `CLAUDE.md`
   Stop one before starting the other.
 - Hardware: Ryzen 9 9900X, Radeon RX 9070 XT (gfx1201, 16 GB), 32 GB RAM.
 
-## 3. Compose rules (for when the compose file is back)
+## 3. Compose rules
 
 - **Run compose only from the main checkout**, never from `.claude/worktrees/*`. Compose takes
   the project name from the directory, and a worktree has no `.env` (it is gitignored). The
@@ -45,6 +40,12 @@ How the running stack behaves and the traps already hit. Linked from `CLAUDE.md`
   write-temp-then-rename, which gives the file a new inode. The container keeps reading the
   old one. After editing `kong.yml`, run `docker compose up -d --no-deps --force-recreate kong`,
   then confirm inside the container (`docker exec supabase-kong grep … /home/kong/temp.yml`).
+- **A bind-mounted file deleted on the host becomes an empty root-owned directory.** On the
+  next container start Docker creates the missing source path as a directory, and the container
+  fails with "not a directory" (or, for a mounted code directory, can't find its entrypoint).
+  This took down `supabase-db`, `-kong`, `-pooler` and `-edge-functions` after the reset
+  (2026-10-08). Fix: stop the container, remove the placeholder directory (root-owned, so the
+  user runs `sudo rmdir`), restore the file, `docker start` again.
 - The old `db-init` service ran a **hardcoded** file list, not a glob. A new `.sql` file
   never ran until it was added to that list, and the list order was the execution order. If
   `db-init` comes back, keep that in mind or make it glob.

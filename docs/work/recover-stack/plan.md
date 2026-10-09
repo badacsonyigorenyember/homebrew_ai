@@ -31,6 +31,7 @@ writes under `supabase/docker/volumes/db`, so the `rmdir` is the user's.
 | `supabase/docker/volumes/db/{webhooks,jwt,roles,_supabase,logs,pooler,realtime}.sql` | new (from archive) | DB init scripts bind-mounted into `supabase-db` |
 | `supabase/docker/volumes/api/{kong.yml,kong-entrypoint.sh}` | new (from archive) | Kong config bind-mounted into `supabase-kong` |
 | `supabase/docker/volumes/pooler/pooler.exs` | new (from archive) | Supavisor config bind-mounted into `supabase-pooler` |
+| `supabase/docker/volumes/functions/main/index.ts` | new (from archive) | Edge-runtime main service bind-mounted into `supabase-edge-functions` (already un-ignored by `.gitignore`) |
 | `docs/OPERATIONS.md` | changed | §1 state of the stack, new trap entry |
 | `CLAUDE.md` | changed | "The running stack" no longer says compose fails |
 | `PROJECT.md` | changed | §4 Database row, §7 D6 → decided, §8 |
@@ -61,25 +62,27 @@ Commit: `Restore compose and Supabase mount files (D6)`
 
 ### Task 2: Start the three containers and record D6
 Why: the DB must be up for every later P1a item.
-- [ ] `docker start supabase-db supabase-kong supabase-pooler`. Don't use compose here.
-- [ ] Verify:
+- [x] `docker start supabase-db supabase-kong supabase-pooler`. Don't use compose here.
+- [x] Restore `supabase/docker/volumes/functions/main/index.ts` from the archive tag and
+  `docker restart supabase-edge-functions` (no recreate, no compose).
+- [x] Verify:
   - `docker exec supabase-db psql -U postgres -d postgres -Atc "select 1"` → `1`
   - `curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8000/rest/v1/` → `401` (Kong answers and asks for a key)
   - after about a minute, `docker ps --format '{{.Names}} {{.Status}}' | grep -c Restarting` →
     `0` (auth, storage, realtime and edge-functions recover once the DB is back)
   - `docker compose ps --format '{{.Name}}'` lists `supabase-db`, `supabase-kong` and
     `supabase-pooler` (compose recognises the running containers)
-- [ ] OPERATIONS.md §1: replace "The files that define them are no longer on disk" and its
+- [x] OPERATIONS.md §1: replace "The files that define them are no longer on disk" and its
   consequences with the current state: the files are back, `docker compose` works, `db-init`
   was removed, and `supabase-kong` can be recreated again from `kong.yml` (date-stamp it).
   Add a trap entry: a bind-mounted file deleted on the host turns into a root-owned empty
   directory on the next container start, and the container then fails with "not a directory".
-- [ ] CLAUDE.md "The running stack": the compose file is back in the repo; keep the rule to
+- [x] CLAUDE.md "The running stack": the compose file is back in the repo; keep the rule to
   read OPERATIONS.md before restarting or recreating anything.
-- [ ] PROJECT.md: §4 Database row → 🟢 running (with the date); §4 intro text no longer says the
+- [x] PROJECT.md: §4 Database row → 🟢 running (with the date); §4 intro text no longer says the
   containers can't be recreated; D6 moves out of §7 with its *why*; §8 entry linking
   `docs/work/recover-stack/`.
-- [ ] Tell the user to reconnect the `supabase` MCP server with `/mcp` from an interactive
+- [x] Tell the user to reconnect the `supabase` MCP server with `/mcp` from an interactive
   `claude` terminal.
 Done when: all four checks give the expected output.
 Commit: `Restart Supabase DB, Kong and pooler; settle D6`
@@ -99,3 +102,4 @@ No code, so no regression tests. The Task 2 checks are what dev-verify re-runs:
 
 ## Deviations
 - 2026-10-09 · Task 1: the root-owned check accepts `volumes/snippets` in its output, and the user also chowned `volumes/api` and `volumes/pooler` — Docker had created those parents as root too, so git could not write into them; `snippets` is mounted live by `supabase-studio` and is outside this work.
+- 2026-10-09 · Task 2: also restored `supabase/docker/volumes/functions/main/index.ts` and restarted `supabase-edge-functions` — it crash-looped ("could not find an appropriate entrypoint") because this 13th bind-mounted file was also removed in the reset, so the 0-Restarting check could not pass; user chose this fix. `.gitignore` already had the `!supabase/docker/volumes/functions/main/` exception, so it needed no change.
