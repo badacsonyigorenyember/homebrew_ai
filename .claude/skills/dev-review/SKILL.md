@@ -19,9 +19,12 @@ Read `git diff main...<slug>` and `git log --oneline main..<slug>`, then:
 2. **Brief:** every requirement and acceptance criterion is met or covered by a planned check.
 3. **Scope:** nothing was changed that the brief and plan did not ask for.
 4. **Correctness:** bugs, wrong edge cases, wrong units, maths not done in tested code.
-5. **Tests:** they test the critical behaviour named in the plan, and would fail if it broke.
-6. **Safety:** no secrets in the diff, DB changes are `.sql` files, guard rules respected.
-7. **Records:** PROJECT.md §8 and status columns updated, commits are one line each.
+5. **Readability** (PROJECT.md §6.8): each workflow, function or file can be understood on its
+   own, without tracing config tables or generic machinery; any optimisation that costs
+   readability is backed by a measured need.
+6. **Tests:** they test the critical behaviour named in the plan, and would fail if it broke.
+7. **Safety:** no secrets in the diff, DB changes are `.sql` files, guard rules respected.
+8. **Records:** PROJECT.md §8 and status columns updated, commits are one line each.
 
 ## Output: `docs/work/<slug>/review.md`
 
@@ -37,7 +40,8 @@ Diff: main...<slug> at <short sha>  ·  Verdict: ready for testing | fixes neede
 
 Severity: **must-fix** (wrong result, broken requirement, data or secret risk, missing
 critical test), **should-fix** (real but harmless now; the user decides), **note** (no action).
-Only report what you checked in the code. No style opinions.
+Only report what you checked in the code. No style opinions; readability findings (check 5)
+are about whether a reader can follow the logic, not formatting or naming taste.
 
 Commit `review.md` and `plan.md` (`Add review: <slug>`). Subagent mode: report `done`, with the must-fix and
 should-fix items in Summary. Direct mode: show the table.

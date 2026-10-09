@@ -31,6 +31,9 @@ not hoped for. Mark anything unverified as such.
 
 ## Working rules
 
+- **Readable over optimal** ([PROJECT.md](PROJECT.md) §6.8). Write code and workflows a reader
+  can follow from the file alone; no config-table-driven or generic machinery unless a measured
+  need requires it.
 - **No git worktrees.** Work in this checkout and use a plain branch when isolation is
   needed. This overrides superpowers' `using-git-worktrees` step and the isolation default in
   `subagent-driven-development`. A worktree has no `.env`, and compose run from one starts a

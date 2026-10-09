@@ -163,6 +163,11 @@ Several of these are lessons from the first build (see §9).
    cheaper and testable. The LLM is only for free text in and prose out. Every new source gets
    a *doc → calculation* pass first: its tables, formulas and rules of thumb become data or
    code, and only the remaining prose goes to RAG.
+8. **Readable over optimal.** Someone opening a workflow, function or file should understand
+   what it does from that file alone. Prefer explicit, somewhat repetitive logic over generic
+   machinery driven by config. The first build kept n8n workflow behaviour in database config
+   tables: efficient, but you had to trace the tables to know what a workflow did. Optimise
+   only when a measured need requires it, and keep the readable version's shape.
 
 ---
 
@@ -187,6 +192,9 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- Added design principle §6.8 *Readable over optimal*: understandability wins over
+  optimisation, after the first build's config-table-driven n8n workflows proved hard to follow.
+  CLAUDE.md points to it, and `dev-review` now checks for it.
 - Split the P1a plan into 8 dev-flow work items, each with its own `docs/work/<slug>/plan.md`
   (`Stage: draft`, awaiting approval) and branch: `recover-stack`, `ref-schema`, `style-loader`,
   `malt-loader`, `hop-loader`, `yeast-loader`, `water-salts`, `ref-spotcheck`. The index (order,
