@@ -101,7 +101,7 @@ operate the stack safely is in [`docs/OPERATIONS.md`](docs/OPERATIONS.md).
 
 | Layer | Choice | Role | Status |
 |---|---|---|---|
-| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🔴 down since 2026-10-08 ~20:48: `supabase-db`, `-kong`, `-pooler` can't start because their mounted files were removed in the reset (recovery = plan Task 1) |
+| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🔴 down since 2026-10-08 ~20:48: `supabase-db`, `-kong`, `-pooler` can't start because their mounted files were removed in the reset (recovery = [`recover-stack`](docs/work/recover-stack/plan.md)) |
 | Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | ⬜ schema not rebuilt |
 | Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, no workflows |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
@@ -187,12 +187,21 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- Split the P1a plan into 8 dev-flow work items, each with its own `docs/work/<slug>/plan.md`
+  (`Stage: draft`, awaiting approval) and branch: `recover-stack`, `ref-schema`, `style-loader`,
+  `malt-loader`, `hop-loader`, `yeast-loader`, `water-salts`, `ref-spotcheck`. The index (order,
+  source files, global constraints, review focus) is
+  [`docs/work/fill-ref/README.md`](docs/work/fill-ref/README.md), and the original plan was
+  removed. Changes found while curating: `recover-stack` uses `docker start` on the existing
+  containers (no recreate, so the Kong rule holds); `read_beerjson` moved to the shared helpers so
+  the yeast loader doesn't depend on the hop loader; the hop source precedence is a question at
+  plan approval; `pytest` is not installed yet (checked).
 - Added the delivery-workflow skills: `dev-flow` orchestrates `dev-brief` → `dev-plan` →
   `dev-implement` (one subagent per task) → `dev-review` → `dev-verify` → `dev-ship`, with user
   approval gates on the brief, the plan and shipping. Each piece of work gets
   `docs/work/<slug>/` and branch `<slug>`; one-line commits, `--no-ff` merge to `main`. Not yet
   run on real work.
-- Wrote the P1a plan [`docs/superpowers/plans/2026-10-09-fill-ref.md`](docs/superpowers/plans/2026-10-09-fill-ref.md):
+- Wrote the P1a plan (now split, see above; original at `b84e914:docs/superpowers/plans/2026-10-09-fill-ref.md`):
   recover the stack (D6), then load `ref` (styles, malts, hops, yeasts, water salts) with tested
   Python loaders, plus the order of the phases after it. Found while planning: the Supabase DB,
   Kong and pooler have been down since 2026-10-08 ~20:48, because their bind-mounted files
