@@ -28,6 +28,7 @@ chain for this work. Do not invoke those.
 | a requirement or idea | 1 Brief |
 | a path to an existing spec or plan | 2 Plan, with that path as input |
 | a slug, or `docs/work/<slug>/` exists | resume, using the table below |
+| a slug that is in `docs/finished/<slug>/` | nothing: it is shipped. Say so and ask what they want |
 
 | State on disk | Next step |
 |---|---|
@@ -114,7 +115,8 @@ continue?". Keep going.
   spot-check and regression tables exactly as written there. Copy them; don't merge, shorten or
   reformat them. Then ask to ship.
 - At the end (after shipping, or wherever the user stops the flow): merge sha, branch, the paths
-  of brief, plan and verification, and the flow summary below.
+  of brief, plan and verification, and the flow summary below. After shipping, dev-ship has
+  moved the folder, so those paths are under `docs/finished/<slug>/`.
 
 ### Flow summary
 

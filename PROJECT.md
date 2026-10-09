@@ -193,6 +193,9 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- Shipped work now moves from `docs/work/<slug>/` to `docs/finished/<slug>/`: `dev-ship` does it
+  as its last step on `main`, after a green verification, the merge and the push, and fixes the
+  links into the folder. `docs/work/` holds only work in progress. `recover-stack` moved first.
 - `dev-flow` now says in chat which skill it calls (`Called: /dev-plan`) or skips and why,
   runs all six skills unless one is already done, asked to be skipped or has nothing to act on,
   copies the verification tables unchanged, and ends with a flow summary table (each skill:

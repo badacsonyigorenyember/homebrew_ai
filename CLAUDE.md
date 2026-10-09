@@ -66,7 +66,8 @@ not hoped for. Mark anything unverified as such.
 - Project skills: `retrieval-evaluation-metrics` and `rag-evaluation-frameworks` (PROJECT.md §6.6).
 - Delivery workflow: `dev-flow` runs brief → plan → implement → review → verify → ship with one
   subagent per step; each step is also its own skill (`dev-brief`, `dev-plan`, `dev-implement`,
-  `dev-review`, `dev-verify`, `dev-ship`). Work lives in `docs/work/<slug>/`. Shared rules:
+  `dev-review`, `dev-verify`, `dev-ship`). Work lives in `docs/work/<slug>/` and moves to `docs/finished/<slug>/` once it
+  is shipped. Shared rules:
   [`.claude/skills/dev-flow/conventions.md`](.claude/skills/dev-flow/conventions.md).
 - Operational traps (compose, Kong, roles, n8n CLI, the Ollama iGPU warning) are in
   [`docs/OPERATIONS.md`](docs/OPERATIONS.md). Add new ones there, not to personal memory, so

@@ -24,6 +24,9 @@ Do not invoke those, and ignore "REQUIRED SUB-SKILL" or similar directives insid
 - The files on disk are the state. Any step can be resumed by reading the folder. The `Stage:`
   line at the top of `plan.md` is one of: `draft`, `approved`, `implementing`, `review`,
   `verify`, `shipped`. `brief.md` has `Status: draft` or `Status: approved`.
+- Finished work moves to `docs/finished/<slug>/`. dev-ship does this as its last step, on `main`,
+  once the work is verified (`Overall: ✅`), merged and pushed. So `docs/work/` holds only work
+  in progress, and a slug under `docs/finished/` is shipped.
 - Work in this checkout on a plain branch. **Never a git worktree** (CLAUDE.md). The first step
   that commits creates the branch: if `git branch --show-current` is `main`, run
   `git switch -c <slug>` (or `git switch <slug>` if it exists).

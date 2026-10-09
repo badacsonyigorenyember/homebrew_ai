@@ -30,6 +30,17 @@ First read `.claude/skills/dev-flow/conventions.md` and `docs/work/<slug>/verifi
    only when the user says so.
 6. `git push origin main`
 7. `git branch -d <slug>` (local only; it is merged). Keep the remote branch.
+8. Move the work folder to `docs/finished/`, on `main`:
+   - `git mv docs/work/<slug> docs/finished/<slug>`
+   - Fix the links that pointed into it: `grep -rn 'work/<slug>/\|\.\./<slug>/' --include=*.md .`
+     outside the moved folder (PROJECT.md, other plans, READMEs).
+   - Fix the relative links inside the moved folder that start with `../` (a link to
+     `../fill-ref/README.md` becomes `../../work/fill-ref/README.md`).
+   - Leave plain-text mentions of the old path in review or task text as they are: they record
+     what happened at the time.
+   - Commit `Move <slug> to docs/finished` and `git push origin main`.
+
+Report the folder's new path, so the flow summary points at `docs/finished/<slug>/`.
 
 ## Stop and ask instead of forcing
 
