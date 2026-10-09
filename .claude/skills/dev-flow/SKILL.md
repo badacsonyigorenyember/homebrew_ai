@@ -6,7 +6,8 @@ description: Use when the user wants a requirement, idea or existing plan in thi
 # dev-flow
 
 Run the work through its steps with one subagent per step. Your chat with the user holds only
-stage summaries, questions, approvals and the test results. You do not read code, write code or
+which skill runs or is skipped, stage summaries, questions, approvals, the test results and the
+closing flow summary. You do not read code, write code or
 edit docs yourself; the subagents do. Your only edits are the `Status:`/`Stage:` line and the
 approval commits.
 
@@ -40,6 +41,20 @@ chain for this work. Do not invoke those.
 If the user asks to skip the brief for a requirement, start at 2 with the requirement text as
 input.
 
+## Every step runs, or the user hears why not
+
+All six skills run by default. Skip one only when:
+
+- its output is already on disk and approved (resuming, or the user gave an existing plan), or
+- the user asked to skip it, or
+- it has nothing to act on, and you can name what is missing.
+
+Never skip `dev-review` or `dev-verify` on your own judgment because "there is no code": checks
+the plan names still get run and shown. Announce every skip in chat the moment you decide it,
+with the reason in plain words:
+
+`**Skipped: /dev-brief** — a plan already existed (docs/work/<slug>/plan.md)`
+
 ## Steps
 
 | # | Skill | Subagents | Gate |
@@ -55,6 +70,12 @@ Fix loops (4 → 3 → 4 and 5 → 3 → 5) run at most 2 rounds each. If findin
 after that, show them to the user and ask: fix again, accept as they are, or stop.
 
 ## Dispatching
+
+Right before each dispatch, write one line in chat naming the skill and its job:
+
+`**Called: /dev-implement** · Task 2/3`
+
+When you resume a subagent with SendMessage instead, write `**Resumed: /<skill>** · <why>`.
 
 Agent tool, `subagent_type: general-purpose`, not in the background, never `isolation:
 worktree`. The prompt:
@@ -90,5 +111,24 @@ continue?". Keep going.
 - After step 4: the must-fix and should-fix findings, one line each. Ask about the should-fix
   ones.
 - After step 5: read `verification.md` and show the Overall line, *Start here*, and the
-  spot-check and regression tables exactly as written there. Then ask to ship.
-- At the end: merge sha, branch, and the paths of brief, plan and verification.
+  spot-check and regression tables exactly as written there. Copy them; don't merge, shorten or
+  reformat them. Then ask to ship.
+- At the end (after shipping, or wherever the user stops the flow): merge sha, branch, the paths
+  of brief, plan and verification, and the flow summary below.
+
+### Flow summary
+
+One row per skill, in step order, every skill listed whether it ran or not. Result is a few
+words. A skill that ran more than once gets its count and what each run did. A step finished in
+an earlier session says so, with what is on disk.
+
+```
+| Skill | Called | Result |
+|---|---|---|
+| /dev-brief | ⏭ skipped | A plan already existed, so no brief was written |
+| /dev-plan | ⏭ earlier session | Plan written in 7cdc4a2; approved here |
+| /dev-implement | ✅ ×3 | Task 1, Task 2, review fix 1 — all done |
+| /dev-review | ✅ ×1 | Ready for testing; 1 should-fix (fixed) |
+| /dev-verify | ✅ ×1 | Overall ✅, 10/10 checks pass |
+| /dev-ship | ✅ ×1 | Merged to main · 265e492 |
+```

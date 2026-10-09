@@ -193,6 +193,11 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- `dev-flow` now says in chat which skill it calls (`Called: /dev-plan`) or skips and why,
+  runs all six skills unless one is already done, asked to be skipped or has nothing to act on,
+  copies the verification tables unchanged, and ends with a flow summary table (each skill:
+  called or not, result in a few words). Asked for after `recover-stack`, where the skipped brief
+  and the reformatted test tables were not visible enough.
 - Shipped `recover-stack` ([`docs/work/recover-stack/`](docs/work/recover-stack/verification.md)),
   merged to `main`: compose and Supabase mount files back in the repo (without `db-init`), and
   `supabase-db`, `-kong` and `-pooler` running again (D6). Re-checked before the merge: `select 1`
