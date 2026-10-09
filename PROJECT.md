@@ -93,25 +93,27 @@ deterministic code, with an LLM tie-break only when scores tie.
 
 ## 4. Tech stack
 
-The infrastructure below is **still running** from before the 2026-10-08 reset, but its
-`docker-compose.yml` and schema were removed from the repo with everything else (see the
-archive tag in §9). Each piece is kept unless a decision in §7 replaces it, and will be
-re-committed as it is rebuilt. Until then the containers cannot be recreated (D6). How to
-operate the stack safely is in [`docs/OPERATIONS.md`](docs/OPERATIONS.md).
+The infrastructure below has run since before the 2026-10-08 reset. Its compose definition
+and the Supabase mount files were restored from the archive tag (§9) on 2026-10-09, without the
+old `db-init` service; the old schema was not restored and is rebuilt piece by piece. *Why
+restore rather than rebuild (was D6): the files were unchanged and needed as they were, and
+without them no container could be recreated or even restarted.* Each piece is kept unless a
+decision in §7 replaces it. How to operate the stack safely is in
+[`docs/OPERATIONS.md`](docs/OPERATIONS.md).
 
 | Layer | Choice | Role | Status |
 |---|---|---|---|
-| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🔴 down since 2026-10-08 ~20:48: `supabase-db`, `-kong`, `-pooler` can't start because their mounted files were removed in the reset (recovery = [`recover-stack`](docs/work/recover-stack/plan.md)) |
+| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/work/recover-stack/plan.md)), schema not rebuilt |
 | Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | ⬜ schema not rebuilt |
 | Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, no workflows |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
 | LLM runtime | **Ollama** (ROCm) | Local chat and embedding models | 🟢 running |
 | Chat model | `gemma4:12b-it-q8_0` *(also pulled: `qwen3.8:27b`)* | Reasoning, extraction, recipe drafting | ⚠️ to be re-evaluated (§7) |
 | Embedding model | `bge-m3` (1024-dim) | Chunk and query embeddings | 🟢 pulled |
-| Web search | **SearXNG** + `webarm` service | Lookups for what the books do not cover | 🟢 running, optional |
+| Web search | **SearXNG** + `webarm` service | Lookups for what the books do not cover | 🔴 `searxng` down since 2026-10-08 (`settings.yml` lost in the reset, [`OPERATIONS.md`](docs/OPERATIONS.md) §1); recovery is separate work, not started. `webarm` running. Optional |
 | Scripts | Python (`.venv`) | One-off extract/load jobs, evals | — |
 | Dev tooling | Claude Code: Supabase MCP (read-only, `.mcp.json`), official n8n MCP (local scope) + `n8n-skills` plugin, guard hook (`.claude/hooks/guard.sh`) | Building and inspecting the stack; schema changes go through SQL files applied as `postgres` | 🟢 |
-| Delivery workflow | Project skills `dev-flow` (orchestrator) + `dev-brief`, `dev-plan`, `dev-implement`, `dev-review`, `dev-verify`, `dev-ship` (`.claude/skills/`) | Brief → plan → build → review → verify → merge, one subagent per step, work in `docs/work/<slug>/` | 🟢 installed, not yet used |
+| Delivery workflow | Project skills `dev-flow` (orchestrator) + `dev-brief`, `dev-plan`, `dev-implement`, `dev-review`, `dev-verify`, `dev-ship` (`.claude/skills/`) | Brief → plan → build → review → verify → merge, one subagent per step, work in `docs/work/<slug>/` | 🟢 in use; first work shipped: [`recover-stack`](docs/work/recover-stack/plan.md) (2026-10-09) |
 | Eval guidance | Project skills `retrieval-evaluation-metrics`, `rag-evaluation-frameworks` (`.claude/skills/`) | Reference for building the retrieval test set and regression gate (§6.6) | 🟢 installed, not yet used |
 
 **Hardware:** Ryzen 9 9900X · Radeon RX 9070 XT (16 GB VRAM, RDNA 4 / gfx1201) · 32 GB RAM.
@@ -180,7 +182,6 @@ Several of these are lessons from the first build (see §9).
 | D3 | Where does the recipe pipeline live: n8n workflows, Postgres functions, or a Python service? | Undecided. The first build used n8n plus SQL and became hard to follow | open |
 | D4 | Ingredient catalogue: what schema, and where does the data come from? | Schema designed in [`docs/DATABASE.md`](docs/DATABASE.md) §2 (one `ref.ingredient` table + one table per kind, tags, source per row). Data sources: D7, D8 | open |
 | D5 | How the user interacts: chat UI, CLI, n8n chat trigger? | — | open |
-| D6 | Re-commit the infrastructure definition (`docker-compose.yml`, `kong.yml`) from the archive tag now, or rebuild it piece by piece? Until one happens, no container can be recreated and `supabase-kong` holds its config only in memory | Restore the compose and Kong files soon; leave `db-init` out until the new schema exists | open |
 | D7 | Where do the recipe ratios (grist %, hop split) come from? | Brewer's Friend corpus through automatic quality gates (no hand curation) → `corpus.style_profile`, thin styles shrunk toward their family, specialty styles use the base style, extra sources weighted (books, DIY Dog, own batches) ([`docs/STYLE-PROFILES.md`](docs/STYLE-PROFILES.md)) | open |
 | D8 | Yeast data source | Brewtarget default data: 571 entries with attenuation and temperature ranges, GPL-3 (fine for a private install) | open |
 | D9 | Who approves the extracted style sensory envelopes before they enter `ref`? | LLM extracts BJCP prose, code parses BA fields, the user reviews | open |
@@ -192,6 +193,29 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-09
+- Shipped `recover-stack` ([`docs/work/recover-stack/`](docs/work/recover-stack/verification.md)),
+  merged to `main`: compose and Supabase mount files back in the repo (without `db-init`), and
+  `supabase-db`, `-kong` and `-pooler` running again (D6). Re-checked before the merge: `select 1`
+  → 1, `/rest/v1/` → 401, 0 containers `Restarting`, `docker compose config -q` exit 0, and
+  `compose ps` lists the three. First piece of work delivered through `dev-flow`.
+- `recover-stack` review fix ([`docs/work/recover-stack/`](docs/work/recover-stack/review.md)):
+  corrected the docs that said all containers run. `searxng` has been `Exited (127)` since
+  2026-10-08 18:48 UTC with the same deleted-bind-mount trap (`searxng/settings.yml` is now a
+  root-owned directory; the file is in the archive tag). Updated OPERATIONS.md §1 and the §3
+  trap entry, and the §4 SearXNG row. Recovering `searxng` is separate follow-up work, not
+  started; nothing was changed on the container.
+- `recover-stack` Task 2 ([`docs/work/recover-stack/`](docs/work/recover-stack/plan.md)):
+  `docker start` brought `supabase-db`, `-kong` and `-pooler` back (all healthy). Checked:
+  `select 1` as `postgres` → 1, `/rest/v1/` through Kong → 401, `docker compose ps` lists the
+  three. `supabase-edge-functions` was also crash-looping (its `functions/main/index.ts` had been
+  removed in the reset); restored it from the archive and restarted it, after which 0 containers
+  are `Restarting`. D6 decided: restore the compose and Kong files (done), without `db-init`.
+  OPERATIONS.md §1 and CLAUDE.md updated; new trap entry for deleted bind-mount files.
+- `recover-stack` Task 1 ([`docs/work/recover-stack/`](docs/work/recover-stack/plan.md)): restored
+  `docker-compose.yml` (with the `db-init` service removed), `supabase/docker/docker-compose.yml`
+  and the 10 bind-mounted DB/Kong/pooler files from the archive tag, after the user removed the
+  root-owned placeholder directories and took ownership of `volumes/api` and `volumes/pooler`.
+  `docker compose config -q` exits 0. Containers not restarted yet (Task 2).
 - Added design principle §6.8 *Readable over optimal*: understandability wins over
   optimisation, after the first build's config-table-driven n8n workflows proved hard to follow.
   CLAUDE.md points to it, and `dev-review` now checks for it.
