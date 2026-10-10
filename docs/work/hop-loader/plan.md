@@ -155,7 +155,7 @@ Commit: `Parse hopline hop pages`
 
 ### Task 4: The hopline SKU → hop map
 Why: the explicit map decides what each product is, so nothing is merged on a guess (R1, R2, R7, R8, A2).
-- [ ] `loaders/hop_products.py`, one line per SKU with hopline's product name as a comment:
+- [x] `loaders/hop_products.py`, one line per SKU with hopline's product name as a comment:
   - `HOPS: dict[str, str]`: main SKU → hop name, 90 entries. The main SKU is the `-cs` (100 g)
     page where the variety has one, else its only page. The name is hopline's without
     "komló", the pack size, an alpha in the name and ™ (`Hallertau Opal komló 1kg  9.00%` →
@@ -172,13 +172,13 @@ Why: the explicit map decides what each product is, so nothing is merged on a gu
     `200999`, Hallertau Opal `200989`, Southern Star `200609`, Zappa `200779`.
   - `NULL_FIGURES: dict[str, str]`: `200269` → "page shows Falconer's Flight (tags, text and
     figures)", `200669` → "page shows Taurus (tags and text)". User decision 2026-10-10.
-- [ ] Add `test_hop_map` to `tests/test_hops.py`: 90 `HOPS`, 16 `PACK_SIZES`, every
+- [x] Add `test_hop_map` to `tests/test_hops.py`: 90 `HOPS`, 16 `PACK_SIZES`, every
   `PACK_SIZES` value is in `HOPS`, no SKU in both, every `NULL_FIGURES` key is in `HOPS`, 5 names
   end in ` LUPOMAX`, and `name_key(name)` is unique across `HOPS` (two names colliding would make
   the upsert overwrite one hop with another).
-- [ ] Check against the file (a one-off command, not a test): every SKU in `hopline_hops.json`
+- [x] Check against the file (a one-off command, not a test): every SKU in `hopline_hops.json`
   is in `HOPS` or `PACK_SIZES`, and every `HOPS` SKU is in the file.
-- [ ] Suite passes (7 in `test_hops.py`).
+- [x] Suite passes (7 in `test_hops.py`).
 Done when: the map covers all 106 SKUs.
 Commit: `Map hopline hop products`
 

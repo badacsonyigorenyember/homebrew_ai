@@ -3,6 +3,8 @@ from decimal import Decimal as D
 import pytest
 from psycopg.types.range import Range
 
+from loaders.common import name_key
+from loaders.hop_products import HOPS, NULL_FIGURES, PACK_SIZES
 from loaders.hops import make_hop, origin_codes, parse_figure, purpose_of
 
 
@@ -131,3 +133,14 @@ def test_pack_sizes_and_null_figures():
     assert hop.origins == ["US"]
     assert hop.purpose == "dual"
     assert set(hop.field_source) == {"origins", "purpose"}
+
+
+def test_hop_map():
+    assert len(HOPS) == 90
+    assert len(PACK_SIZES) == 16
+    assert set(PACK_SIZES.values()) <= set(HOPS)
+    assert not set(PACK_SIZES) & set(HOPS)
+    assert set(NULL_FIGURES) <= set(HOPS)
+    assert sum(name.endswith(" LUPOMAX") for name in HOPS.values()) == 5
+    keys = [name_key(name) for name in HOPS.values()]
+    assert len(set(keys)) == len(keys)
