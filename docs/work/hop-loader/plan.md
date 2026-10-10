@@ -1,6 +1,6 @@
 # Hop loader (hopline.hu hops) — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md) · Index: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a item 5)
 Branch: hop-loader
 
@@ -57,7 +57,7 @@ Not committed (in `shared/rag-files/pending/`, git-ignored): `hopline_hops.json`
 
 ### Task 1: Fetch the hopline hop pages
 Why: hopline decides which hops are loaded; this captures its pages as raw data (R1, A1).
-- [ ] In `loaders/fetch_hopline.py` (standard library only, as now):
+- [x] In `loaders/fetch_hopline.py` (standard library only, as now):
   - `LINK`: accept any SKU, `data-sku="([^"]+)"` (hop SKUs look like `200020-cs`,
     `200712-masolata-1`; with `\d+` only 28 of 106 are found).
   - `spec_table(html: str) -> dict[str, str] | None`: the first `<table>` inside
@@ -76,7 +76,7 @@ Why: hopline decides which hops are loaded; this captures its pages as raw data 
     and writes `{"fetched", "listing", "categories": {"aroma": [sku…], "bittering": […], "dual": […]}, "products": [{"sku", "url", "name", "spec", "table", "params"}, …]}`.
     One request per second, the `User-Agent` names the project (make it say "hopline loader",
     not "malt loader"), never `/shop_ajax/`.
-- [ ] Write the tests first (`tests/test_fetch_hopline.py`, inline HTML) and see them fail:
+- [x] Write the tests first (`tests/test_fetch_hopline.py`, inline HTML) and see them fail:
   - `test_listing_links_any_sku`: anchors with `data-sku="200020-cs"` and
     `data-sku="200712-masolata-1"` → both pairs, in order.
   - `test_spec_table_and_params`: the East Kent Golding table shape
@@ -84,8 +84,8 @@ Why: hopline decides which hops are loaded; this captures its pages as raw data 
     starting with a `mobile-head` span, e.g. `<span class="mobile-head">Béta-sav</span><span>2-3 %</span>`)
     → `{"Alfa-sav": "5-6 %", "Béta-sav": "2-3 %", "Co-Humolone": "29 %", "Olaj tartalom": "0,85 %"}`;
     a data block with `Évjárat`/`2025` and `Ország`/`USA` pairs → `{"Évjárat": "2025", "Ország": "USA"}`.
-- [ ] Implement; `.venv/bin/python -m pytest tests/test_fetch_hopline.py -v` → 4 passed; suite passes.
-- [ ] Run `.venv/bin/python -m loaders.fetch_hopline --hops shared/rag-files/pending/hopline_hops.json`.
+- [x] Implement; `.venv/bin/python -m pytest tests/test_fetch_hopline.py -v` → 4 passed; suite passes.
+- [x] Run `.venv/bin/python -m loaders.fetch_hopline --hops shared/rag-files/pending/hopline_hops.json`.
   Expect 106 products, every `name` set, every `table` set, categories aroma 101, bittering 60,
   dual 56. If the product count is not 106, stop and report (the shop changed since 2026-10-10).
 Done when: 4 passed and the JSON holds 106 products.

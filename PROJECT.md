@@ -111,7 +111,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 | Chat model | `gemma4:12b-it-q8_0` *(also pulled: `qwen3.8:27b`)* | Reasoning, extraction, recipe drafting | ⚠️ to be re-evaluated (§7) |
 | Embedding model | `bge-m3` (1024-dim) | Chunk and query embeddings | 🟢 pulled |
 | Web search | **SearXNG** + `webarm` service | Lookups for what the books do not cover | 🔴 `searxng` down since 2026-10-08 (`settings.yml` lost in the reset, [`OPERATIONS.md`](docs/OPERATIONS.md) §1); recovery is separate work, not started. `webarm` running. Optional |
-| Scripts | Python (`.venv`), `psycopg` 3, `pytest` (`requirements.txt`) | One-off extract/load jobs, evals | 🟡 `loaders/` package: shared helpers in `loaders/common.py` (8 unit tests pass) and DB helpers in `loaders/db.py` (`connect`, `source_id`, `upsert_ingredient`, checked against the running DB) (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); styles loader `loaders/styles.py` (`python -m loaders.styles --bjcp PATH --ba PATH`, 4 unit tests pass) (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); hopline malt fetcher `loaders/fetch_hopline.py` (`python -m loaders.fetch_hopline OUT.json`, 2 unit tests pass) and malt loader `loaders/malts.py` with the SKU map `loaders/malt_products.py` (`python -m loaders.malts --hopline PATH --catalogue PATH`, 9 unit tests pass) (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped) |
+| Scripts | Python (`.venv`), `psycopg` 3, `pytest` (`requirements.txt`) | One-off extract/load jobs, evals | 🟡 `loaders/` package: shared helpers in `loaders/common.py` (8 unit tests pass) and DB helpers in `loaders/db.py` (`connect`, `source_id`, `upsert_ingredient`, checked against the running DB) (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); styles loader `loaders/styles.py` (`python -m loaders.styles --bjcp PATH --ba PATH`, 4 unit tests pass) (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); hopline fetcher `loaders/fetch_hopline.py` (malts: `python -m loaders.fetch_hopline OUT.json`; hops with `--hops`, added 2026-10-10 in [`hop-loader`](docs/work/hop-loader/plan.md); 4 unit tests pass) and malt loader `loaders/malts.py` with the SKU map `loaders/malt_products.py` (`python -m loaders.malts --hopline PATH --catalogue PATH`, 9 unit tests pass) (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped) |
 | Dev tooling | Claude Code: Supabase MCP (read-only, `.mcp.json`), official n8n MCP (local scope) + `n8n-skills` plugin, guard hook (`.claude/hooks/guard.sh`) | Building and inspecting the stack; schema changes go through SQL files applied as `postgres` | 🟢 |
 | Delivery workflow | Project skills `dev-flow` (orchestrator) + `dev-brief`, `dev-plan`, `dev-implement`, `dev-review`, `dev-verify`, `dev-ship` (`.claude/skills/`) | Brief → plan → build → review → verify → merge, one subagent per step, work in `docs/work/<slug>/` | 🟢 in use; shipped: [`recover-stack`](docs/finished/recover-stack/plan.md), [`ref-schema`](docs/finished/ref-schema/plan.md), [`style-loader`](docs/finished/style-loader/plan.md) (2026-10-09) |
 | Eval guidance | Project skills `retrieval-evaluation-metrics`, `rag-evaluation-frameworks` (`.claude/skills/`) | Reference for building the retrieval test set and regression gate (§6.6) | 🟢 installed, not yet used |
@@ -122,7 +122,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 
 ## 5. Knowledge sources
 
-Not ingested since the reset. On 2026-10-08 the source files were removed from `shared/rag-files/pending/` on purpose, to be re-added as each loader needs them. Now there: `how_to_brew.pdf`, `styles.json`, `ba_styles.json`, `hopline_malts.json` and `malt_catalogue.json`, plus the no longer used `malts.json` (checked 2026-10-09). The three malt catalogue PDFs are read from `~/Downloads`.
+Not ingested since the reset. On 2026-10-08 the source files were removed from `shared/rag-files/pending/` on purpose, to be re-added as each loader needs them. Now there: `how_to_brew.pdf`, `styles.json`, `ba_styles.json`, `hopline_malts.json`, `malt_catalogue.json` and `hopline_hops.json` (fetched 2026-10-10), plus the no longer used `malts.json` (checked 2026-10-10). The three malt catalogue PDFs are read from `~/Downloads`.
 
 | Source | Type | Feeds | Status |
 |---|---|---|---|
@@ -193,6 +193,12 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-10
+- `hop-loader` Task 1 ([`docs/work/hop-loader/plan.md`](docs/work/hop-loader/plan.md)):
+  `loaders/fetch_hopline.py` now accepts non-numeric SKUs, reads each page's spec table
+  (`spec_table`) and data block (`params`), and has a `--hops` mode that also saves the SKUs of
+  hopline's aroma / bittering / dual listings. Ran it: 106 products in
+  `shared/rag-files/pending/hopline_hops.json`, every name and spec table set; categories aroma
+  101, bittering 60, dual 56. 4 fetcher tests pass, suite 25 passed.
 - Planned `hop-loader` ([`docs/work/hop-loader/plan.md`](docs/work/hop-loader/plan.md)),
   re-scoped from three hop JSON files (`hops.json`, `hops.hopslist.json`, Brewtarget) to the
   hops hopline.hu sells: 106 products (measured 2026-10-10) = 85 varieties + 5 LUPOMAX + 16
