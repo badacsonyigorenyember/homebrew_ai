@@ -27,7 +27,7 @@ edit PROJECT.md, so parallel branches would conflict.
 | 2 | [`ref-schema`](../../finished/ref-schema/plan.md) | 2, 3 | `loaders/` package with shared helpers, `ref` schema, 8 source rows, DB helpers | 1 | — |
 | 3 | [`style-loader`](../../finished/style-loader/plan.md) | 4 | 116 BJCP 2021 + 169 BA 2026 styles in `ref.beer_style` | 2 | Re-add `styles.json`, `ba_styles.json` |
 | 4 | [`malt-loader`](../../finished/malt-loader/plan.md) | 5 | The 74 Weyermann, Viking and Simpsons malts hopline.hu sells, figures from the maltster catalogues, in `ref.fermentable` | 2 | The 3 maltster PDFs (in `~/Downloads`) |
-| 5 | [`hop-loader`](../hop-loader/plan.md) | 6 | 3 hop sources merged into `ref.hop`, near-duplicate report | 2 | Re-add 3 hop files; confirm source precedence |
+| 5 | [`hop-loader`](../hop-loader/plan.md) | 6 | The 90 hops hopline.hu sells (85 varieties + 5 LUPOMAX), figures from hopline's pages, in `ref.hop` | 2 | — |
 | 6 | [`yeast-loader`](../yeast-loader/plan.md) | 7 | Brewtarget yeasts, deduped, in `ref.yeast` | 2 | Re-add 2 Brewtarget files |
 | 7 | [`water-salts`](../water-salts/plan.md) | 8 | 8 brewing salts with computed ion contributions | 2 | — |
 | 8 | [`ref-spotcheck`](../ref-spotcheck/plan.md) | 9 | Spot-check pack run, measured counts recorded in PROJECT.md and DATABASE.md | 3–7 | Spot-check 10 rows per table |
@@ -62,9 +62,8 @@ catch it.
 | `styles.json` | `style-loader` | list of 116, all values strings, 20 styles with no vitals (27A–34C) |
 | `ba_styles.json` | `style-loader` | list of 169, numbers as floats; 25 with no OG; 12 with `srmmin` but no `srmmax` |
 | `hopline_malts.json` (fetched), `malt_catalogue.json` (hand-built from the Weyermann Crop 2026, Viking 2023 and Simpsons Nov 2025 PDFs) | `malt-loader` | hopline: 82 products, 74 loaded (re-scoped 2026-10-09; `malts.json` no longer used) |
-| `hops.json` | `hop-loader` | list of 72, `flavour` list, origins like `USA`, `SVN`, `BE/DE` |
-| `hops.hopslist.json` | `hop-loader` | list of 268, same fields as `hops.json`, 22 with no origin |
-| `DefaultContent003-Ingredients-Hops-Yeasts.json` | `hop-loader`, `yeast-loader` | Brewtarget BeerJSON: `//` comment header, then `beerjson.hop_varieties` (282) and `beerjson.cultures` (296) |
+| `hopline_hops.json` (fetched) | `hop-loader` | hopline: 106 products, 90 hops (re-scoped 2026-10-10; `hops.json`, `hops.hopslist.json` and Brewtarget hops no longer used) |
+| `DefaultContent003-Ingredients-Hops-Yeasts.json` | `yeast-loader` | Brewtarget BeerJSON: `//` comment header, then `beerjson.hop_varieties` (282) and `beerjson.cultures` (296) |
 | `DefaultContent004-MoreYeasts.json` | `yeast-loader` | Brewtarget BeerJSON: `beerjson.cultures` (275) |
 
 Not loaded in P1a: `beer_faults.json` (later), BJCP/BA PDFs (P3), books (P7).
@@ -85,7 +84,7 @@ Not loaded in P1a: `beer_faults.json` (later), BJCP/BA PDFs (P3), books (P7).
 
 1. **Open-ended ranges:** a BA style with `srmmin = 5` and no `srmmax` must load as `[5,)`, not `NULL`, `[5,0]` or `[5,5]` (`ref-schema` `to_range`, `style-loader` test).
 2. **Specialty styles with no vitals** (20 BJCP, 25 BA) must still load, with `NULL` ranges, not zeros (`style-loader` test).
-3. **Same name, different hop:** `Saaz` and `Saaz (US)` must stay two hops. Prefix and similar-name pairs go to a review report and are never merged automatically (`hop-loader` tests).
+3. **Same name, different hop:** `Saaz` and `Saaz (US)` must stay two hops. Hop names come from an explicit SKU map, its test forbids two names sharing a `name_key`, and nothing is merged automatically (`hop-loader` tests).
 4. **Re-running a loader** must not duplicate ingredients or styles (load-twice step in every loader).
 5. **Yeasts:** 71 of 571 entries have no `product_id`, and 72 `(producer, product_id)` pairs repeat across the two files. Dedupe must merge only true repeats, and the 4 entries already in °C must not be converted again (`yeast-loader` tests).
 

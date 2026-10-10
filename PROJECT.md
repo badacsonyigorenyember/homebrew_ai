@@ -4,7 +4,7 @@
 > is trying to do, how it is built, and how far along it is. If code and this file
 > disagree, one of them is wrong. Fix it, and record the fix in the [Progress log](#8-progress-log).
 >
-> Last updated: **2026-10-09**
+> Last updated: **2026-10-10**
 
 ---
 
@@ -191,6 +191,16 @@ Several of these are lessons from the first build (see §9).
 ## 8. Progress log
 
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
+
+### 2026-10-10
+- Planned `hop-loader` ([`docs/work/hop-loader/plan.md`](docs/work/hop-loader/plan.md)),
+  re-scoped from three hop JSON files (`hops.json`, `hops.hopslist.json`, Brewtarget) to the
+  hops hopline.hu sells: 106 products (measured 2026-10-10) = 85 varieties + 5 LUPOMAX + 16
+  extra pack sizes, so 90 `ref.hop` rows, figures from hopline's pages only (source
+  `hopline-hops`). User decisions: alpha from the spec table, the data block's `Alfasav` only as
+  fallback; Delta and Lotus (pages show Falconer's Flight / Taurus) loaded with `NULL` figures;
+  LUPOMAX as 5 separate hops. Nothing built yet.
+- Wrote brief for `hop-loader` ([`docs/work/hop-loader/`](docs/work/hop-loader/brief.md)).
 
 ### 2026-10-09
 - Shipped `malt-loader` ([`docs/finished/malt-loader/`](docs/finished/malt-loader/verification.md)),
