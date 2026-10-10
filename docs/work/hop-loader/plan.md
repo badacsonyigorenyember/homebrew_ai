@@ -1,6 +1,6 @@
 # Hop loader (hopline.hu hops) — implementation plan
 
-Stage: verify
+Stage: shipped
 Brief: [brief.md](brief.md) · Index: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a item 5)
 Branch: hop-loader
 
