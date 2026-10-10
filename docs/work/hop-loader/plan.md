@@ -1,6 +1,6 @@
 # Hop loader (hopline.hu hops) — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md) · Index: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a item 5)
 Branch: hop-loader
 
@@ -184,7 +184,7 @@ Commit: `Map hopline hop products`
 
 ### Task 5: Load hops into `ref` and write the report
 Why: the hop catalogue the recipe steps choose from (R2, R8, A3, A5, A6, A8, A9).
-- [ ] In `loaders/hops.py` add:
+- [x] In `loaders/hops.py` add:
   - `build(hopline: dict) -> list[Hop]`: an SKU in neither `HOPS` nor `PACK_SIZES` →
     `ValueError` naming it; for each `HOPS` SKU, `make_hop(name, main, its PACK_SIZES extras,
     hopline["categories"], null_figures=sku in NULL_FIGURES)`.
@@ -198,11 +198,11 @@ Why: the hop catalogue the recipe steps choose from (R2, R8, A3, A5, A6, A8, A9)
     as `loaders/malts.py::load`.
   - CLI `python -m loaders.hops --hopline PATH --report PATH`: builds, loads, writes the report,
     prints the loaded count.
-- [ ] Add `test_unknown_sku_raises`: `build` with a product whose SKU is in neither map →
+- [x] Add `test_unknown_sku_raises`: `build` with a product whose SKU is in neither map →
   `ValueError`. Suite passes (8 in `test_hops.py`).
-- [ ] Run it twice:
+- [x] Run it twice:
   `.venv/bin/python -m loaders.hops --hopline shared/rag-files/pending/hopline_hops.json --report docs/work/hop-loader/report.md`
-- [ ] After each run (expected values measured on the 2026-10-10 pages; record what you get):
+- [x] After each run (expected values measured on the 2026-10-10 pages; record what you get):
   - `select count(*), count(*) filter (where i.name like '% LUPOMAX') from ref.hop h join ref.ingredient i on i.id = h.ingredient_id` → `90|5`.
   - `select purpose, count(*) from ref.hop group by 1 order by 1` → aroma 34, bittering 4,
     dual 51, `NULL` 1 (Enigma).
@@ -212,8 +212,8 @@ Why: the hop catalogue the recipe steps choose from (R2, R8, A3, A5, A6, A8, A9)
   - Citra row: `origins {US}`, `purpose dual`, `alpha_pct [10,15]`, `beta_pct [3,4.5]`,
     `total_oil_ml_100g [1.5,3]`, `field_source` as in `test_citra`.
   - `select count(*) from ref.ingredient where kind = 'hop' and source_id <> (select id from ref.source where slug = 'hopline-hops')` → 0.
-- [ ] `grep -niE "ollama|llm" loaders/hops.py loaders/hop_products.py` → nothing.
-- [ ] PROJECT.md §5: replace the "Hop data (`hops.json`, `hops.hopslist.json`)" part of the row
+- [x] `grep -nwiE "ollama|llm" loaders/hops.py loaders/hop_products.py` → nothing (whole words: `fullmatch` contains "llm").
+- [x] PROJECT.md §5: replace the "Hop data (`hops.json`, `hops.hopslist.json`)" part of the row
   with the hopline hop list, ✅ with the measured counts and date (keep `beer_faults.json`
   as ⬜); update the line above the table (what is in `pending/`). §4 scripts row: the hop
   loader, map and `--hops` fetch. §4 database row: `ref.hop` count. §8 entry pointing at
@@ -246,3 +246,5 @@ Commit: `Load hopline hops into ref`
   The precedence question and the near-duplicate report are gone: the explicit SKU map and
   `test_hop_map` replace them. User decisions: hopline only; table alpha first; Delta and Lotus
   loaded with `NULL` figures; LUPOMAX as 5 separate hops with their page figures.
+- 2026-10-10 · Task 5: the no-LLM grep uses `-w` (whole words) — without it `re.fullmatch` in
+  `loaders/hops.py` matches "llm"; the code calls no LLM.

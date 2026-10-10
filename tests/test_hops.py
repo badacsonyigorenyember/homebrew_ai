@@ -5,7 +5,7 @@ from psycopg.types.range import Range
 
 from loaders.common import name_key
 from loaders.hop_products import HOPS, NULL_FIGURES, PACK_SIZES
-from loaders.hops import make_hop, origin_codes, parse_figure, purpose_of
+from loaders.hops import build, make_hop, origin_codes, parse_figure, purpose_of
 
 
 def r(lo, hi):
@@ -144,3 +144,10 @@ def test_hop_map():
     assert sum(name.endswith(" LUPOMAX") for name in HOPS.values()) == 5
     keys = [name_key(name) for name in HOPS.values()]
     assert len(set(keys)) == len(keys)
+
+
+def test_unknown_sku_raises():
+    stranger = {**CITRA, "sku": "999999-new", "name": "Brand New komló 100g"}
+    hopline = {"categories": {"aroma": [], "bittering": [], "dual": []}, "products": [stranger]}
+    with pytest.raises(ValueError, match="999999-new"):
+        build(hopline)

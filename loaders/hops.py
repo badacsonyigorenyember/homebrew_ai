@@ -7,12 +7,18 @@ hop subcategories. Unknown stays None (NULL), never 0. field_source records the 
 filled field, and raw keeps every page of the hop whole.
 """
 
+import argparse
+import json
 import re
 from dataclasses import dataclass
 
+import psycopg
+from psycopg.types.json import Jsonb
 from psycopg.types.range import Range
 
 from loaders.common import to_range
+from loaders.db import connect, source_id, upsert_ingredient
+from loaders.hop_products import HOPS, NULL_FIGURES, PACK_SIZES
 
 HOPLINE = "hopline-hops"
 
@@ -142,3 +148,138 @@ def make_hop(
         field_source=field_source,
         raw={HOPLINE: {page["sku"]: page for page in pages}},
     )
+
+
+def build(hopline: dict) -> list[Hop]:
+    """A Hop for every main SKU in HOPS, with its PACK_SIZES pages as extras.
+
+    hopline is the file `loaders.fetch_hopline --hops` writes. An SKU in neither HOPS nor
+    PACK_SIZES raises ValueError, so a new hopline product never loads without a decision in
+    loaders.hop_products. Hops in NULL_FIGURES are built without acid or oil figures.
+    """
+    products = {}
+    for product in hopline["products"]:
+        sku = product["sku"]
+        if sku not in HOPS and sku not in PACK_SIZES:
+            raise ValueError(
+                f"hopline SKU {sku} ({product['name']}) is in neither HOPS nor PACK_SIZES"
+            )
+        products[sku] = product
+
+    hops = []
+    for sku, name in HOPS.items():
+        extras = [products[extra] for extra, main in PACK_SIZES.items() if main == sku]
+        hops.append(
+            make_hop(
+                name,
+                products[sku],
+                extras,
+                hopline["categories"],
+                null_figures=sku in NULL_FIGURES,
+            )
+        )
+    return hops
+
+
+def report(hopline: dict) -> str:
+    """Markdown listing the pages whose figures were not used or disagree:
+    hops loaded without figures, pack sizes whose table differs from the main page's, and
+    LUPOMAX pages whose table equals the pellet's."""
+    products = {product["sku"]: product for product in hopline["products"]}
+    sku_of = {name: sku for sku, name in HOPS.items()}
+
+    lines = [
+        "# Hop loader report",
+        "",
+        f"Input: hopline hop pages fetched {hopline['fetched']}, {len(products)} products, "
+        f"{len(HOPS)} hops.",
+        "",
+        "## Hops loaded without figures",
+        "",
+    ]
+    for sku, reason in NULL_FIGURES.items():
+        lines.append(f"- {HOPS[sku]} (`{sku}`): no figures loaded, {reason}.")
+    for hop in build(hopline):
+        sku = sku_of[hop.name]
+        if hop.alpha_pct is None and sku not in NULL_FIGURES:
+            table = products[sku]["table"]
+            lines.append(f"- {hop.name} (`{sku}`): no alpha on the page (table: {table}).")
+
+    lines += ["", "## Pack sizes whose table differs from the main page's", ""]
+    for extra, main in PACK_SIZES.items():
+        if products[extra]["table"] != products[main]["table"]:
+            lines.append(
+                f"- {HOPS[main]}: `{extra}` {products[extra]['table']} vs "
+                f"main `{main}` {products[main]['table']}; the main page's figures are loaded."
+            )
+
+    lines += ["", "## LUPOMAX pages whose table equals the pellet's", ""]
+    for sku, name in HOPS.items():
+        if not name.endswith(" LUPOMAX"):
+            continue
+        pellet = sku_of[name.removesuffix(" LUPOMAX")]
+        if products[sku]["table"] == products[pellet]["table"]:
+            lines.append(
+                f"- {name} (`{sku}`) repeats {HOPS[pellet]} (`{pellet}`): "
+                f"{products[sku]['table']}. Loaded as the page shows."
+            )
+
+    return "\n".join(lines) + "\n"
+
+
+def load(conn: psycopg.Connection, hops: list[Hop]) -> int:
+    """Insert or update each hop in ref.ingredient and ref.hop; returns how many.
+
+    Re-running updates the same rows instead of adding duplicates. All rows are written in
+    one transaction (the connection commits on leaving its with-block). oils_pct stays NULL.
+    """
+    hopline_id = source_id(conn, HOPLINE)
+    for hop in hops:
+        ingredient_id = upsert_ingredient(conn, "hop", hop.name, "", hopline_id, hop.raw)
+        conn.execute(
+            """
+            insert into ref.hop
+                (ingredient_id, origins, purpose, alpha_pct, beta_pct, total_oil_ml_100g,
+                 field_source)
+            values (%s, %s, %s, %s, %s, %s, %s)
+            on conflict (ingredient_id) do update
+               set origins = excluded.origins,
+                   purpose = excluded.purpose,
+                   alpha_pct = excluded.alpha_pct,
+                   beta_pct = excluded.beta_pct,
+                   total_oil_ml_100g = excluded.total_oil_ml_100g,
+                   field_source = excluded.field_source
+            """,
+            (
+                ingredient_id,
+                hop.origins,
+                hop.purpose,
+                hop.alpha_pct,
+                hop.beta_pct,
+                hop.total_oil_ml_100g,
+                Jsonb(hop.field_source),
+            ),
+        )
+    return len(hops)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Load the hops sold on hopline.hu into ref.hop.")
+    parser.add_argument(
+        "--hopline", required=True, help="path to hopline_hops.json (loaders.fetch_hopline --hops)"
+    )
+    parser.add_argument("--report", required=True, help="path of the Markdown report to write")
+    args = parser.parse_args()
+
+    with open(args.hopline, encoding="utf-8") as f:
+        hopline = json.load(f)
+    hops = build(hopline)
+    with connect() as conn:
+        print(f"loaded: {load(conn, hops)} hops")
+    with open(args.report, "w", encoding="utf-8") as f:
+        f.write(report(hopline))
+    print(f"report: {args.report}")
+
+
+if __name__ == "__main__":
+    main()
