@@ -103,7 +103,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 
 | Layer | Choice | Role | Status |
 |---|---|---|---|
-| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)); `ref` schema rebuilt: 7 tables owned by `postgres` (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); `ref.source` has 10 rows (measured 2026-10-10): the 2 `malts.json` sources replaced by 4 malt sources plus a `user-supplied` source for hand-entered figures, and `ref.fermentable.field_source` added (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped; 11 rows after it), then `hopline-hops` added and the unused `hops-json` and `hopslist` removed (2026-10-10, [`hop-loader`](docs/work/hop-loader/plan.md), shipped); `ref.beer_style` has 285 rows, BJCP 2021 116 + BA 2026 169 (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); `ref.fermentable` has 74 rows with 74 `ref.ingredient` rows (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped); `ref.hop` has 90 rows with 90 `ref.ingredient` rows of kind `hop`, all from `hopline-hops` (2026-10-10, [`hop-loader`](docs/work/hop-loader/plan.md), shipped); `yeast` and `water_salt` are empty |
+| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)); `ref` schema rebuilt: 7 tables owned by `postgres` (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); `ref.source` has 10 rows (measured 2026-10-10): the 2 `malts.json` sources replaced by 4 malt sources plus a `user-supplied` source for hand-entered figures, and `ref.fermentable.field_source` added (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped; 11 rows after it), then `hopline-hops` added and the unused `hops-json` and `hopslist` removed (2026-10-10, [`hop-loader`](docs/finished/hop-loader/plan.md), shipped); `ref.beer_style` has 285 rows, BJCP 2021 116 + BA 2026 169 (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); `ref.fermentable` has 74 rows with 74 `ref.ingredient` rows (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped); `ref.hop` has 90 rows with 90 `ref.ingredient` rows of kind `hop`, all from `hopline-hops` (2026-10-10, [`hop-loader`](docs/finished/hop-loader/plan.md), shipped); `yeast` and `water_salt` are empty |
 | Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | ⬜ schema not rebuilt |
 | Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, no workflows |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
@@ -111,7 +111,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 | Chat model | `gemma4:12b-it-q8_0` *(also pulled: `qwen3.8:27b`)* | Reasoning, extraction, recipe drafting | ⚠️ to be re-evaluated (§7) |
 | Embedding model | `bge-m3` (1024-dim) | Chunk and query embeddings | 🟢 pulled |
 | Web search | **SearXNG** + `webarm` service | Lookups for what the books do not cover | 🔴 `searxng` down since 2026-10-08 (`settings.yml` lost in the reset, [`OPERATIONS.md`](docs/OPERATIONS.md) §1); recovery is separate work, not started. `webarm` running. Optional |
-| Scripts | Python (`.venv`), `psycopg` 3, `pytest` (`requirements.txt`) | One-off extract/load jobs, evals | 🟡 `loaders/` package: shared helpers in `loaders/common.py` (8 unit tests pass) and DB helpers in `loaders/db.py` (`connect`, `source_id`, `upsert_ingredient`, checked against the running DB) (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); styles loader `loaders/styles.py` (`python -m loaders.styles --bjcp PATH --ba PATH`, 4 unit tests pass) (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); hopline fetcher `loaders/fetch_hopline.py` (malts: `python -m loaders.fetch_hopline OUT.json`; hops with `--hops`, added 2026-10-10 in [`hop-loader`](docs/work/hop-loader/plan.md), shipped; 4 unit tests pass) and hop loader `loaders/hops.py` with the SKU map `loaders/hop_products.py` (`python -m loaders.hops --hopline PATH --report PATH`; 90 hops, 16 pack sizes; 8 unit tests pass, 2026-10-10, [`hop-loader`](docs/work/hop-loader/plan.md), shipped) and malt loader `loaders/malts.py` with the SKU map `loaders/malt_products.py` (`python -m loaders.malts --hopline PATH --catalogue PATH`, 9 unit tests pass) (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped) |
+| Scripts | Python (`.venv`), `psycopg` 3, `pytest` (`requirements.txt`) | One-off extract/load jobs, evals | 🟡 `loaders/` package: shared helpers in `loaders/common.py` (8 unit tests pass) and DB helpers in `loaders/db.py` (`connect`, `source_id`, `upsert_ingredient`, checked against the running DB) (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); styles loader `loaders/styles.py` (`python -m loaders.styles --bjcp PATH --ba PATH`, 4 unit tests pass) (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); hopline fetcher `loaders/fetch_hopline.py` (malts: `python -m loaders.fetch_hopline OUT.json`; hops with `--hops`, added 2026-10-10 in [`hop-loader`](docs/finished/hop-loader/plan.md), shipped; 4 unit tests pass) and hop loader `loaders/hops.py` with the SKU map `loaders/hop_products.py` (`python -m loaders.hops --hopline PATH --report PATH`; 90 hops, 16 pack sizes; 8 unit tests pass, 2026-10-10, [`hop-loader`](docs/finished/hop-loader/plan.md), shipped) and malt loader `loaders/malts.py` with the SKU map `loaders/malt_products.py` (`python -m loaders.malts --hopline PATH --catalogue PATH`, 9 unit tests pass) (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped) |
 | Dev tooling | Claude Code: Supabase MCP (read-only, `.mcp.json`), official n8n MCP (local scope) + `n8n-skills` plugin, guard hook (`.claude/hooks/guard.sh`) | Building and inspecting the stack; schema changes go through SQL files applied as `postgres` | 🟢 |
 | Delivery workflow | Project skills `dev-flow` (orchestrator) + `dev-brief`, `dev-plan`, `dev-implement`, `dev-review`, `dev-verify`, `dev-ship` (`.claude/skills/`) | Brief → plan → build → review → verify → merge, one subagent per step, work in `docs/work/<slug>/` | 🟢 in use; shipped: [`recover-stack`](docs/finished/recover-stack/plan.md), [`ref-schema`](docs/finished/ref-schema/plan.md), [`style-loader`](docs/finished/style-loader/plan.md) (2026-10-09) |
 | Eval guidance | Project skills `retrieval-evaluation-metrics`, `rag-evaluation-frameworks` (`.claude/skills/`) | Reference for building the retrieval test set and regression gate (§6.6) | 🟢 installed, not yet used |
@@ -194,50 +194,50 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-10
-- Shipped `hop-loader` ([`docs/work/hop-loader/`](docs/work/hop-loader/verification.md)),
+- Shipped `hop-loader` ([`docs/finished/hop-loader/`](docs/finished/hop-loader/verification.md)),
   merged to `main`: `loaders/fetch_hopline.py --hops` saves hopline.hu's 106 hop product pages
   and `loaders/hops.py` with the SKU map `loaders/hop_products.py` upserts them as 90 hops.
   `ref.hop` has 90 rows (5 LUPOMAX): purpose aroma 34 / bittering 4 / dual 51 / none 1, alpha
   `NULL` only for Delta, Lotus and Sterling, each field's source in `field_source`; 10
   `ref.source` rows (`hopline-hops` added, `hops-json` and `hopslist` removed).
   Verification: all 17 checks pass; re-run before the merge: `pytest` 33 passed.
-- `hop-loader` Task 5 ([`docs/work/hop-loader/plan.md`](docs/work/hop-loader/plan.md)):
+- `hop-loader` Task 5 ([`docs/finished/hop-loader/plan.md`](docs/finished/hop-loader/plan.md)):
   `loaders/hops.py` builds, loads and reports (`python -m loaders.hops --hopline PATH --report PATH`).
   Ran it twice, same results both times: `ref.hop` 90 rows (5 LUPOMAX), purpose aroma 34,
   bittering 4, dual 51, `NULL` 1 (Enigma); alpha `NULL` for Delta, Lotus, Sterling; origin
   `NULL` for Dolcita; Citra `{US}`, dual, alpha [10,15], beta [3,4.5], oil [1.5,3]; every hop
-  ingredient from `hopline-hops`. Report: [`report.md`](docs/work/hop-loader/report.md)
+  ingredient from `hopline-hops`. Report: [`report.md`](docs/finished/hop-loader/report.md)
   (Nectaron pack sizes differ, Amarillo and Mosaic LUPOMAX repeat the pellet). 8 tests in
   `tests/test_hops.py` pass, suite 33 passed.
-- `hop-loader` Task 4 ([`docs/work/hop-loader/plan.md`](docs/work/hop-loader/plan.md)):
+- `hop-loader` Task 4 ([`docs/finished/hop-loader/plan.md`](docs/finished/hop-loader/plan.md)):
   `loaders/hop_products.py` maps every hopline hop SKU: 90 main SKUs to a hop name (5 LUPOMAX
   hops kept separate), 16 extra pack sizes to their main SKU, and Delta and Lotus to `NULL`
   figures. `test_hop_map` passes (suite 32 passed); a one-off check found all 106 SKUs of the
   fetched `hopline_hops.json` in the map and every mapped SKU in the file.
-- `hop-loader` Task 3 ([`docs/work/hop-loader/plan.md`](docs/work/hop-loader/plan.md)):
+- `hop-loader` Task 3 ([`docs/finished/hop-loader/plan.md`](docs/finished/hop-loader/plan.md)):
   `loaders/hops.py` parses one hop from its hopline pages (pure, no files or DB): figures to
   numranges (`?` stays `NULL`, an unknown format raises), country to ISO code (unknown raises),
   purpose from hopline's subcategories, table alpha with the data block's `Alfasav` as fallback.
   6 tests in `tests/test_hops.py` pass, suite 31 passed; all 318 figures and every country in the
   fetched `hopline_hops.json` parse.
-- `hop-loader` Task 2 ([`docs/work/hop-loader/plan.md`](docs/work/hop-loader/plan.md)):
+- `hop-loader` Task 2 ([`docs/finished/hop-loader/plan.md`](docs/finished/hop-loader/plan.md)):
   `db/011_ref_sources.sql` adds the `hopline-hops` source (fetched 2026-10-10) and deletes the
   unused `hops-json` and `hopslist` rows (0 ingredients referenced them). Applied twice as
   `postgres`: 10 `ref.source` rows both times. Suite 25 passed.
-- `hop-loader` Task 1 ([`docs/work/hop-loader/plan.md`](docs/work/hop-loader/plan.md)):
+- `hop-loader` Task 1 ([`docs/finished/hop-loader/plan.md`](docs/finished/hop-loader/plan.md)):
   `loaders/fetch_hopline.py` now accepts non-numeric SKUs, reads each page's spec table
   (`spec_table`) and data block (`params`), and has a `--hops` mode that also saves the SKUs of
   hopline's aroma / bittering / dual listings. Ran it: 106 products in
   `shared/rag-files/pending/hopline_hops.json`, every name and spec table set; categories aroma
   101, bittering 60, dual 56. 4 fetcher tests pass, suite 25 passed.
-- Planned `hop-loader` ([`docs/work/hop-loader/plan.md`](docs/work/hop-loader/plan.md)),
+- Planned `hop-loader` ([`docs/finished/hop-loader/plan.md`](docs/finished/hop-loader/plan.md)),
   re-scoped from three hop JSON files (`hops.json`, `hops.hopslist.json`, Brewtarget) to the
   hops hopline.hu sells: 106 products (measured 2026-10-10) = 85 varieties + 5 LUPOMAX + 16
   extra pack sizes, so 90 `ref.hop` rows, figures from hopline's pages only (source
   `hopline-hops`). User decisions: alpha from the spec table, the data block's `Alfasav` only as
   fallback; Delta and Lotus (pages show Falconer's Flight / Taurus) loaded with `NULL` figures;
   LUPOMAX as 5 separate hops. Nothing built yet.
-- Wrote brief for `hop-loader` ([`docs/work/hop-loader/`](docs/work/hop-loader/brief.md)).
+- Wrote brief for `hop-loader` ([`docs/finished/hop-loader/`](docs/finished/hop-loader/brief.md)).
 
 ### 2026-10-09
 - Shipped `malt-loader` ([`docs/finished/malt-loader/`](docs/finished/malt-loader/verification.md)),

@@ -27,7 +27,7 @@ edit PROJECT.md, so parallel branches would conflict.
 | 2 | [`ref-schema`](../../finished/ref-schema/plan.md) | 2, 3 | `loaders/` package with shared helpers, `ref` schema, 8 source rows, DB helpers | 1 | — |
 | 3 | [`style-loader`](../../finished/style-loader/plan.md) | 4 | 116 BJCP 2021 + 169 BA 2026 styles in `ref.beer_style` | 2 | Re-add `styles.json`, `ba_styles.json` |
 | 4 | [`malt-loader`](../../finished/malt-loader/plan.md) | 5 | The 74 Weyermann, Viking and Simpsons malts hopline.hu sells, figures from the maltster catalogues, in `ref.fermentable` | 2 | The 3 maltster PDFs (in `~/Downloads`) |
-| 5 | [`hop-loader`](../hop-loader/plan.md) | 6 | The 90 hops hopline.hu sells (85 varieties + 5 LUPOMAX), figures from hopline's pages, in `ref.hop` | 2 | — |
+| 5 | [`hop-loader`](../../finished/hop-loader/plan.md) | 6 | The 90 hops hopline.hu sells (85 varieties + 5 LUPOMAX), figures from hopline's pages, in `ref.hop` | 2 | — |
 | 6 | [`yeast-loader`](../yeast-loader/plan.md) | 7 | Brewtarget yeasts, deduped, in `ref.yeast` | 2 | Re-add 2 Brewtarget files |
 | 7 | [`water-salts`](../water-salts/plan.md) | 8 | 8 brewing salts with computed ion contributions | 2 | — |
 | 8 | [`ref-spotcheck`](../ref-spotcheck/plan.md) | 9 | Spot-check pack run, measured counts recorded in PROJECT.md and DATABASE.md | 3–7 | Spot-check 10 rows per table |
@@ -102,7 +102,7 @@ Not loaded in P1a: `beer_faults.json` (later), BJCP/BA PDFs (P3), books (P7).
   test. The yeast loader no longer depends on the hop loader. Test totals are unchanged (28).
 - **Each loader is split into two tasks**, parse (pure, tested) and load (DB, load twice), so
   each commit can be reviewed on its own.
-- **The hop near-duplicate report is committed** as `docs/work/hop-loader/report.md`. The
+- **The hop near-duplicate report is committed** as `docs/finished/hop-loader/report.md`. The
   original put it in a PR description, but dev-flow merges locally without PRs.
 - **The hop source precedence is a question at plan approval**, not at review.
 

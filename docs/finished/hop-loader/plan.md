@@ -1,7 +1,7 @@
 # Hop loader (hopline.hu hops) — implementation plan
 
 Stage: shipped
-Brief: [brief.md](brief.md) · Index: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a item 5)
+Brief: [brief.md](brief.md) · Index: [`docs/work/fill-ref/README.md`](../../work/fill-ref/README.md) (P1a item 5)
 Branch: hop-loader
 
 ## Approach
