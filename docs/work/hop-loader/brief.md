@@ -122,7 +122,8 @@ A6. `select count(*) from ref.hop where alpha_pct is null` is recorded; the rows
 A7. `ref.source` has `hopline-hops` and no `hops-json` / `hopslist` (R6).
 A8. `report.md` lists Delta and Lotus, the pack-size disagreements (Nectaron), and the LUPOMAX
     pages whose figures equal the pellet page's (Mosaic) (R2, R7).
-A9. `grep -ri "ollama\|llm" loaders/hops.py` finds nothing; the suite passes (R9).
+A9. `grep -nwiE "ollama|llm" loaders/hops.py loaders/hop_products.py` finds nothing; the suite
+    passes (R9).
 
 ## Decisions (user, 2026-10-10)
 1. Figures from hopline only; no second source in this work.
@@ -137,3 +138,5 @@ None.
 - 2026-10-10 · whole brief: input changed from three hop JSON files (`hops.json`,
   `hops.hopslist.json`, Brewtarget) to hopline.hu's hop pages — the user asked for the malt
   approach with hopline's hop data.
+- 2026-10-10 · A9: substring grep matched `re.fullmatch`; changed to the whole-word grep over
+  both hop modules — user decision.
