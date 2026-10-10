@@ -93,15 +93,15 @@ Commit: `Fetch hopline hop pages`
 
 ### Task 2: Hop source row
 Why: every hop row needs its real source; the old hop sources are unused (R6, A7).
-- [ ] `db/011_ref_sources.sql`: add
+- [x] `db/011_ref_sources.sql`: add
   `('hopline-hops', 'Hopline hop product pages', 'website, fetched <the "fetched" date in hopline_hops.json>', 'Hopline', null, 'https://www.hopline.hu/alapanyagok/komlok/osszes-komlo', null)`,
   and remove the `hops-json` and `hopslist` rows from the insert list. Under the corrections at
   the end add (0 ingredients reference them, measured 2026-10-10):
   `delete from ref.source s where s.slug in ('hops-json', 'hopslist') and not exists (select 1 from ref.ingredient i where i.source_id = s.id);`
   Leave `brewtarget-default-data` as it is (`yeast-loader` uses it).
-- [ ] Apply twice as `postgres`:
+- [x] Apply twice as `postgres`:
   `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/011_ref_sources.sql`
-- [ ] Check after each apply: `select slug from ref.source order by id` → 10 rows, includes
+- [x] Check after each apply: `select slug from ref.source order by id` → 10 rows, includes
   `hopline-hops`, no `hops-json` / `hopslist`. Suite still passes.
 Done when: the file applies twice without error and gives those rows.
 Commit: `Add hopline hop source`

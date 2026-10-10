@@ -20,6 +20,11 @@ insert into ref.source (slug, title, edition, publisher, licence, url, notes) va
      'Hopline', null,
      'https://www.hopline.hu/alapanyagok/malatak/osszes-malata',
      null),
+    ('hopline-hops',
+     'Hopline hop product pages', 'website, fetched 2026-10-10',
+     'Hopline', null,
+     'https://www.hopline.hu/alapanyagok/komlok/osszes-komlo',
+     null),
     ('weyermann-2026',
      'Weyermann products, brewery (EN)', 'Crop 2026',
      'Weyermann Specialty Malts', null,
@@ -39,14 +44,6 @@ insert into ref.source (slug, title, edition, publisher, licence, url, notes) va
      'Figures supplied by the user', null,
      null, null, null,
      'Hand-entered figures where no source states one; the user''s wording is kept in raw'),
-    ('hops-json',
-     'Hop data (hops.json)', 'hops.json copy of 2026-10-08',
-     null, 'unknown', null,
-     'provenance unverified'),
-    ('hopslist',
-     'Hop data (hops.hopslist.json)', 'hops.hopslist.json copy of 2026-10-08',
-     null, 'unknown', null,
-     'provenance unverified'),
     ('brewtarget-default-data',
      'Brewtarget default ingredient data', 'DefaultContent003 and DefaultContent004',
      'Brewtarget project', 'GPL-3.0',
@@ -67,4 +64,10 @@ update ref.source set edition = 'IUPAC standard atomic weights 2021'
 -- nothing references them.
 delete from ref.source s
  where s.slug in ('weyermann-specs', 'viking-malt-2020')
+   and not exists (select 1 from ref.ingredient i where i.source_id = s.id);
+
+-- The hops.json and hops.hopslist.json sources were replaced by hopline-hops; remove them
+-- while nothing references them.
+delete from ref.source s
+ where s.slug in ('hops-json', 'hopslist')
    and not exists (select 1 from ref.ingredient i where i.source_id = s.id);

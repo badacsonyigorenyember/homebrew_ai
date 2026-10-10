@@ -103,7 +103,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 
 | Layer | Choice | Role | Status |
 |---|---|---|---|
-| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)); `ref` schema rebuilt: 7 tables owned by `postgres` (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); 11 `ref.source` rows, the 2 `malts.json` sources replaced by 4 malt sources plus a `user-supplied` source for hand-entered figures, and `ref.fermentable.field_source` added (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped); `ref.beer_style` has 285 rows, BJCP 2021 116 + BA 2026 169 (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); `ref.fermentable` has 74 rows with 74 `ref.ingredient` rows (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped); `hop`, `yeast` and `water_salt` are empty |
+| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)); `ref` schema rebuilt: 7 tables owned by `postgres` (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); 11 `ref.source` rows, the 2 `malts.json` sources replaced by 4 malt sources plus a `user-supplied` source for hand-entered figures, and `ref.fermentable.field_source` added (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped); 10 `ref.source` rows, `hopline-hops` added and the unused `hops-json` and `hopslist` removed (2026-10-10, [`hop-loader`](docs/work/hop-loader/plan.md)); `ref.beer_style` has 285 rows, BJCP 2021 116 + BA 2026 169 (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); `ref.fermentable` has 74 rows with 74 `ref.ingredient` rows (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped); `hop`, `yeast` and `water_salt` are empty |
 | Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | ⬜ schema not rebuilt |
 | Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, no workflows |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
@@ -193,6 +193,10 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-10
+- `hop-loader` Task 2 ([`docs/work/hop-loader/plan.md`](docs/work/hop-loader/plan.md)):
+  `db/011_ref_sources.sql` adds the `hopline-hops` source (fetched 2026-10-10) and deletes the
+  unused `hops-json` and `hopslist` rows (0 ingredients referenced them). Applied twice as
+  `postgres`: 10 `ref.source` rows both times. Suite 25 passed.
 - `hop-loader` Task 1 ([`docs/work/hop-loader/plan.md`](docs/work/hop-loader/plan.md)):
   `loaders/fetch_hopline.py` now accepts non-numeric SKUs, reads each page's spec table
   (`spec_table`) and data block (`params`), and has a `--hops` mode that also saves the SKUs of
