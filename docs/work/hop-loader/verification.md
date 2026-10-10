@@ -1,8 +1,8 @@
-Overall: ❌ 16 of 17 checks and all 33 tests pass · failed: C16 (Cause: decision)
+Overall: ✅ all 17 checks and 33 tests pass (re-verify 2026-10-10)
 
 # Verification: hop-loader
 
-Branch: hop-loader at 3419696 · Run: 2026-10-10 · DB checks read-only (no reload in this run)
+Branch: hop-loader at 3419696 · Run: 2026-10-10, re-verified the same day after A9 changed · DB checks read-only (no reload in this run)
 
 ## Part 1: Summary
 
@@ -19,12 +19,12 @@ Branch: hop-loader at 3419696 · Run: 2026-10-10 · DB checks read-only (no relo
 - ✅ 📝 **Brief:** Written in the session directly from a read-only fetch of 2026-10-10 (106 products, 85 varieties + 5 LUPOMAX + 16 pack sizes); four user decisions recorded; approved in cbb90a3.
 - ✅ 🗺️ **Plan:** Five tasks rewritten for hopline-only input; approved in 5987233.
 - ⚠️ 🔨 **Implement:** All 5 tasks done (7a0f5df, 54dba9e, a1d9361, 26c1255, 1f019fd); two loads gave identical counts; one fix round after review.
-  - ⚠️ Task 5: the plan's no-LLM grep matched `fullmatch`; changed to whole-word `-w` and recorded in plan Deviations, but not in brief A9 (see C16).
+  - ⚠️ Task 5: the plan's no-LLM grep matched `fullmatch`; changed to whole-word `-w` and recorded in plan Deviations (brief A9 followed on user decision, see Verify).
 - ❌ 🔍 **Review:** Ready for testing (62ab1ef) with one should-fix: PROJECT.md showed both 11 and 10 `ref.source` rows. 🔧 fixed in 3419696
   - ⚠️ Note: Lotus purpose `dual` comes from hopline's categories for a page that carries Taurus content (within the R7 decision).
   - ⚠️ Note: a `HOPS` SKU missing from the fetched file stops the load with a bare `KeyError`, not a named message.
   - ⚠️ Note: oil stored as mL/100 g is still the brief's unverified assumption.
-- ❌ 🧪 **Verify:** 16 of 17 spot checks pass; C16 fails because brief A9's literal grep matches `re.fullmatch` (the whole-word grep in C15 finds nothing). 🧮 spot checks ❌ 16/17 · 🧪 tests ✅ 33/33
+- ❌ 🧪 **Verify:** First run: C16 failed, because brief A9's substring grep matched `re.fullmatch`. The user changed A9 to the whole-word grep (brief Deviations). The re-verify passes everything. 🔧 fixed in 6cfe61a 🧮 spot checks ✅ 17/17 · 🧪 tests ✅ 33/33
 
 👀 **Start here:** `docs/work/hop-loader/report.md`: you should see Delta, Lotus and Sterling loaded without figures, the two Nectaron pack sizes whose alpha differs, and Amarillo and Mosaic LUPOMAX repeating the pellet figures.
 
@@ -239,5 +239,44 @@ Command: `.venv/bin/python -m pytest -v`  ·  Result: ✅ 33 passed
 | tests/test_hops.py::test_hop_map | Every SKU decided once; no two hops share a name key | ✅ |
 | tests/test_hops.py::test_unknown_sku_raises | A new hopline product never loads silently | ✅ |
 | tests/test_fetch_hopline.py, test_common.py, test_malts.py, test_styles.py (23 others) | Malt, style and shared-helper behaviour unchanged | ✅ |
+
+Failures: none.
+
+## Re-verify 2026-10-10
+
+After the user's decision on C16: brief A9 now reads `grep -nwiE "ollama|llm" loaders/hops.py
+loaders/hop_products.py` finds nothing (brief Deviations, 2026-10-10). Every check and the whole
+suite were run again; commands as above unless shown.
+
+| Check | Expected | Actual | Result |
+|---|---|---|---|
+| C1 | 106 106 aroma 101, bittering 60, dual 56 | `106 106 {'aroma': 101, 'bittering': 60, 'dual': 56}` | ✅ pass |
+| C2 | 0 0 90 16 | `0 0 90 16` | ✅ pass |
+| C3 | 90\|5 | 90\|5 | ✅ pass |
+| C4 | 90\|90 | 90\|90 | ✅ pass |
+| C5 | aroma 34, bittering 4, dual 51, NULL 1 | aroma\|34, bittering\|4, dual\|51, NULL\|1 | ✅ pass |
+| C6 | Enigma | Enigma | ✅ pass |
+| C7 | Delta, Lotus, Sterling | Delta, Lotus, Sterling | ✅ pass |
+| C8 | Dolcita | Dolcita | ✅ pass |
+| C9 | {US}\|dual\|[10,15]\|[3,4.5]\|[1.5,3]\|5 fields, all `hopline-hops` | same, 5 fields all `hopline-hops` | ✅ pass |
+| C10 | 0\|0 | 0\|0 | ✅ pass |
+| C11 | 10 rows, `hopline-hops`, no `hops-json` / `hopslist` | 10 rows, ends `user-supplied,hopline-hops` | ✅ pass |
+| C12 | 0 | 0 | ✅ pass |
+| C13 | 2 | 2 | ✅ pass |
+| C14 | Delta, Lotus, Nectaron, Mosaic LUPOMAX listed | Amarillo LUPOMAX 1, Delta 1, Lotus 1, Mosaic LUPOMAX 1, Nectaron 2, Sterling 1 | ✅ pass |
+| C15 | no match, exit 1 | `exit 1` | ✅ pass |
+| C17 | path printed, 0 | `shared/rag-files/pending/hopline_hops.json`, `0` | ✅ pass |
+
+### ✅ C16 · No LLM in the hop modules, brief A9 as now written (A9)
+
+```bash
+grep -nwiE "ollama|llm" loaders/hops.py loaders/hop_products.py; echo "exit $?"
+```
+
+| Expected | Actual | Result |
+|---|---|---|
+| nothing found | `exit 1` (no match) | ✅ pass |
+
+Command: `.venv/bin/python -m pytest -q`  ·  Result: ✅ 33 passed
 
 Failures: none.
