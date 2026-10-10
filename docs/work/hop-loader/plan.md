@@ -108,7 +108,7 @@ Commit: `Add hopline hop source`
 
 ### Task 3: Parse a hop (pure, no files, no DB)
 Why: alpha acids feed IBU in P2; a wrong figure or a silent 0 corrupts recipes (R3–R6, R9, A4, A5).
-- [ ] In `loaders/hops.py`:
+- [x] In `loaders/hops.py`:
   - `@dataclass Hop(name, origins: list[str] | None, purpose: str | None, alpha_pct, beta_pct, total_oil_ml_100g, field_source: dict[str, str], raw: dict)`.
   - `parse_figure(text: str | None) -> Range | None`: decimal comma → point, a leading `~` and
     surrounding space dropped; then `a`, `a-b`, `a - b` or `a – b` followed by `%` or `ml`
@@ -129,7 +129,7 @@ Why: alpha acids feed IBU in P2; a wrong figure or a silent 0 corrupts recipes (
     `origins` ← `origin_codes(main["params"].get("Ország"))`; `purpose` ← `purpose_of` over
     `main` and `extras`. `field_source` = `"hopline-hops"` for each of those five fields that has
     a value, nothing else. `raw = {"hopline-hops": {sku: product, …}}` for `main` and every extra.
-- [ ] Write the tests first (`tests/test_hops.py`) and see them fail on import:
+- [x] Write the tests first (`tests/test_hops.py`) and see them fail on import:
   - `test_parse_figure`: `"10-15 %"`→`[10,15]`, `"9.5 - 11.5 %"`→`[9.5,11.5]`,
     `"5.8-6.3%"`→`[5.8,6.3]`, `"0,85 %"`→`[0.85,0.85]`, `"~ 18.5 %"`→`[18.5,18.5]`,
     `"16,5%"`→`[16.5,16.5]`, `"1.6-2.5 ml"`→`[1.6,2.5]`, `"2,5 – 5 %"`→`[2.5,5]`,
@@ -149,7 +149,7 @@ Why: alpha acids feed IBU in P2; a wrong figure or a silent 0 corrupts recipes (
     30 g (`9.5 - 13 %`) as extras → `alpha_pct == [9.5,11.5]`, `set(raw["hopline-hops"])` has
     all 3 SKUs; Delta (`200269`, table `9.5-12 %`) with `null_figures=True` → all three figures
     `None`, `origins` and `purpose` still set.
-- [ ] Implement; `.venv/bin/python -m pytest tests/test_hops.py -v` → 6 passed; suite passes.
+- [x] Implement; `.venv/bin/python -m pytest tests/test_hops.py -v` → 6 passed; suite passes.
 Done when: 6 passed, suite green.
 Commit: `Parse hopline hop pages`
 
