@@ -6,7 +6,8 @@ Two inputs: the hopline flake and sugar product pages (fetched by
 
 Hopline wins: its few printed figures (rice max %, candi colour, lactose "non-fermentable")
 come first. Palmer fills each field still empty: the extract (Table 18.5's FGDB yield, or
-Table 24.1's PPG as extract %) and a sugar's fermentability. Fermentability "normal" (follows
+Table 24.1's PPG as extract %; that one is as sold, water included, not dry basis, so P2
+must not moisture-correct it) and a sugar's fermentability. Fermentability "normal" (follows
 the yeast's attenuation, like every malt) needs no source; "full" and "none" do.
 field_source records which source each filled field came from, and raw keeps every source
 record whole. Honey is Palmer only: hopline sells none.

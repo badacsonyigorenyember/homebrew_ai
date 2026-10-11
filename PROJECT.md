@@ -203,6 +203,7 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- Fixed adjunct-fermentables review should-fix 1 ([`docs/work/adjunct-fermentables/review.md`](docs/work/adjunct-fermentables/review.md)): DATABASE.md and the `loaders/adjuncts.py` docstring note that sugar and honey extracts are Palmer's as-sold PPG ÷ 46 (water included), so P2 must not moisture-correct them. Docs only; no data changed.
 - Added the adjunct-fermentables gap report ([`docs/work/adjunct-fermentables/report.md`](docs/work/adjunct-fermentables/report.md), R6/A3): 47 test-brief ingredients, 38 found in `ref`, 7 added (ids 3392–3398), 2 left out (Special B: hopline sells none; Lactobacillus: user decision); each NULL in the 7 new rows listed with its reason. Coverage check: `missing: []`.
 - Implemented adjunct-fermentables Task 4 ([`docs/work/adjunct-fermentables/plan.md`](docs/work/adjunct-fermentables/plan.md)):
   `python -m loaders.adjuncts --hopline shared/rag-files/pending/hopline_adjuncts.json` loaded

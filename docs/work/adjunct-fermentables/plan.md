@@ -338,3 +338,5 @@ Commit: `Add adjunct gap report`
 None.
 
 ## Deviations
+
+- 2026-10-11 · Review should-fix 1: DATABASE.md's fermentable rule and the loaders/adjuncts.py docstring now say sugar and honey extracts are as-sold PPG ÷ 46, not dry basis — so P2 applies no moisture correction to them

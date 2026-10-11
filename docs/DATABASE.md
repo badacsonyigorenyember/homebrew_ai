@@ -223,6 +223,8 @@ reads them; beta stays in `raw`), `water_salt.molar_mass` (computed in code).
   `full` all of it, `normal` follows the yeast's attenuation (grain malts and flakes; the
   default, needs no source), `none` none of it (lactose stays whole in FG). `full` and `none`
   must be stated by a source and recorded in `field_source`.
+  Sugar and honey extracts are Palmer's as-sold PPG ÷ 46 (water included), not dry basis:
+  apply no moisture correction to them.
 - Extras without gravity data (cinnamon, vanilla) are `misc` and **never enter the OG/IBU/SRM
   maths**.
 - Fermentable `role` is derived by code from EBC + name keywords.
