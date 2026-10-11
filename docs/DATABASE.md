@@ -190,7 +190,7 @@ erDiagram
 | `beer_style` | guide, code (unique per source), ranges (`numrange`), characteristic ingredients, `raw` | `styles.json`, `ba_styles.json` | 285: BJCP 2021 116 + BA 2026 169 |
 | `ingredient` | kind, name, producer, source, `raw` | all kind loaders | 164 |
 | `fermentable` | extract (% dbfg, as the sources state it), colour (EBC range), max % of grist, `role`, `field_source` | hopline malt pages + Weyermann, Viking, Simpsons catalogues | 74 (74 with extract, 73 with EBC, 62 with `max_pct`); `role` empty until P3 |
-| `hop` | origins, purpose, alpha range, total oil, `field_source` | hopline hop pages | 90 (87 with alpha) |
+| `hop` | origins, purpose, alpha range, total oil, `field_source` | hopline hop pages; values hopline lacks (4 hops' alpha/oil, Enigma's purpose) from Beer Maverick through the hop loader | 90 (all with alpha and total oil) |
 | `yeast` | product id, type, form, attenuation range, temperature range, flocculation, alcohol tolerance | Brewtarget data (296 + 275) | empty, P1 (`yeast-loader`) |
 | `water_salt` | formula, ions per gram | computed from atomic masses | empty, P1 (`water-salts`) |
 | `misc` | `category` (spice, fruit, wood, lactose, …), **no gravity data** | corpus `misc` names, by hand | empty, P3 |
@@ -207,7 +207,11 @@ extract in code), `fermentable.type` (replaced by `role`), `hop.beta_pct` and `o
 reads them; beta stays in `raw`), `water_salt.molar_mass` (computed in code).
 
 **Rules for `ref`**
-- Every row has `source_id` (and the source has an edition).
+- Every loaded row is sourced: `beer_style` and `ingredient` have `source_id` (and the source
+  has an edition); the kind tables are sourced through their `ingredient` row, and malts and
+  hops record each field's source in `field_source`. The style-fit vocabulary (`tag`,
+  `tag_synonym`, `sensory_dimension`, …) is hand-made and reviewed; envelopes and rules carry
+  their guideline `quote` instead.
 - Units are SI (kg, L, °C, SG, EBC). Conversion happens only at display.
 - A value no source states stays `NULL`, never 0. Computed values (potential SG, molar mass) are
   not stored.
@@ -442,3 +446,4 @@ Not built; each comes with the feature or source that needs it.
 | `app.batch` + `tasting` | batch log feature |
 | `app.inventory.best_before` | when a step reads it |
 | `ref.beer_style.co2_vol` | P6 (step 15), together with a source that states it (e.g. Palmer ch. 11) |
+| A style family for BA styles | if BA becomes a selectable guide: `category_code` is `NULL` for all 169 BA rows (the source has none), so the thin-style family fallback ([STYLE-PROFILES.md](STYLE-PROFILES.md) §3) would use BA's `category` text (10 origin families, e.g. *British Origin Ale Styles*) |

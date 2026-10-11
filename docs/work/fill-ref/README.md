@@ -45,8 +45,8 @@ Each step gets its own work item(s) when it is reached.
 | 2 | **P0 test briefs**: 20 briefs | Can run alongside P1a. Briefs decide which styles get envelopes first (P3). | You write or approve them |
 | 3 | **P1a: fill `ref`** (`ref-schema` … `ref-spotcheck`) | Everything downstream picks from it. | Re-add the source files (table below) |
 | 4 | **P2: maths library**, starting with the doc → calc pass on *How to Brew* | Gravity, IBU, SRM and ABV are needed before any recipe step. `how_to_brew.pdf` is already in `pending/`. | — |
-| 5 | **P1b: `corpus`** ← archive dump, `name_map`, `style_profile` | Ratios (D7). Mapping names to `ref` needs `ref` filled first. | Settle D7 |
-| 6 | **P3: tags, usage effects, envelopes** | Needs `ref` + `corpus`. | Review envelopes (D9) |
+| 5 | **P1b: fill `corpus`** ← archive dump, `name_map`, profile job → `style_profile`, `style_grist`, `style_hop_use`, `style_ingredient` (tables created empty by `slim-ref`) | Ratios (D7). Mapping names to `ref` needs `ref` filled first. | Settle D7 |
+| 6 | **P3: tags, envelopes, `fermentable.role`** (tables created empty by `slim-ref`; usage effects and cut points are code, [DATABASE.md](../../DATABASE.md) §8) | Needs `ref` + `corpus`. | Review envelopes (D9) |
 | 7 | **P4–P5: the recipe workflow** (steps 0–11) | **Not yet.** It needs 3–6, and D3 (n8n vs SQL vs Python service) must be decided first. | Decide D3 |
 | 8 | **P7: books → `kb`**, *How to Brew* → *Water* → *Yeast* | After each book's doc → calc pass, so only prose is embedded. *Water* feeds P6 (step 12), *Yeast* feeds steps 6 and 14. | Re-add the PDFs |
 
@@ -70,7 +70,7 @@ Not loaded in P1a: `beer_faults.json` (later), BJCP/BA PDFs (P3), books (P7).
 
 ## Global constraints (every work item)
 
-- Every `ref` row has a `source_id` pointing at `ref.source`, and every source has an edition or version.
+- Every loaded `ref` row is sourced: `beer_style` and `ingredient` rows have a `source_id` pointing at `ref.source` (kind tables through their ingredient), and every source has an edition or version.
 - Units are SI: °C, L, kg, SG, EBC. °F and ppg are converted on load. Conversion back happens only at display.
 - Unknown stays `NULL`. Nothing is guessed. Every original record is kept whole in a `raw jsonb` column.
 - Schema objects are created only by `.sql` files in `db/`, applied as `postgres`:
@@ -87,6 +87,15 @@ Not loaded in P1a: `beer_faults.json` (later), BJCP/BA PDFs (P3), books (P7).
 3. **Same name, different hop:** `Saaz` and `Saaz (US)` must stay two hops. Hop names come from an explicit SKU map, its test forbids two names sharing a `name_key`, and nothing is merged automatically (`hop-loader` tests).
 4. **Re-running a loader** must not duplicate ingredients or styles (load-twice step in every loader).
 5. **Yeasts:** 71 of 571 entries have no `product_id`, and 72 `(producer, product_id)` pairs repeat across the two files. Dedupe must merge only true repeats, and the 4 entries already in °C must not be converted again (`yeast-loader` tests).
+
+## Schema changes since the split
+
+[`slim-ref`](../../finished/slim-ref/plan.md) (shipped 2026-10-11) applied the database review
+([`DATABASE-REVIEW.md`](../../DATABASE-REVIEW.md)): 7 `ref` columns dropped (`beer_style.edition`,
+`co2_vol`; `fermentable.potential_sg`, `type`; `hop.beta_pct`, `oils_pct`;
+`water_salt.molar_mass`), the style key is now `(source_id, code)`, and every `ref`, `corpus`,
+`kb` and `app` table exists, empty where not loaded. `yeast-loader` needed no change;
+`water-salts` and `ref-spotcheck` were updated (see their Deviations).
 
 ## What changed from the original plan
 
