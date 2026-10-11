@@ -1,6 +1,6 @@
 # `ref` spot-check pack and P1a results — implementation plan
 
-Stage: draft
+Stage: approved
 Source: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a index, item 8; was Task 9)
 Branch: ref-spotcheck
 
