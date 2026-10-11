@@ -194,6 +194,10 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- Planned `slim-ref` ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): apply the approved database review: drop
+  the 7 unused `ref` columns and re-run the loaders, then create all `corpus`, `kb`, `app` and
+  style-fit tables now, empty (user decision "Everything in §5"), and rewrite DATABASE.md.
+  Nothing built yet.
 - Wrote [`docs/DATABASE-REVIEW.md`](docs/DATABASE-REVIEW.md), a **proposal** (nothing applied):
   each column traced to the pipeline step that reads it, with priorities. Proposes dropping 7
   columns from the built `ref` tables (`beer_style.edition`, `co2_vol`; `fermentable.potential_sg`,
