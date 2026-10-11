@@ -28,7 +28,7 @@ In:
 Out:
 - Adding oats, candi sugar, corn, rice, lactose, honey or any other ingredient to `ref`, the gap
   report against `ref.ingredient`, the ingredient decisions and any schema change. All of that is
-  the separate work item [`adjunct-fermentables`](../adjunct-fermentables/brief.md), which uses
+  the separate work item [`adjunct-fermentables`](../../work/adjunct-fermentables/brief.md), which uses
   these briefs.
 - Fruit, or any extra whose gravity can't be counted reliably. No brief asks for one (user
   decision, 2026-10-11).
