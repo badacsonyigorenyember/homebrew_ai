@@ -183,7 +183,7 @@ Commit: `Add hopline yeast source and yeast field_source`
 ### Task 3: Parse a yeast (pure, no files, no DB)
 Why: temperature and attenuation drive the fermentation step and FG; a wrong unit or a silent 0
 corrupts recipes.
-- [ ] In `loaders/yeasts.py`:
+- [x] In `loaders/yeasts.py`:
   - `@dataclass Yeast(name, producer, product_id, type, form, attenuation_pct, temp_c, flocculation, alcohol_tolerance_pct, field_source: dict[str, str], raw: dict)`.
   - `parse_range(text: str | None, unit: str) -> Range | None`: decimal comma → point, a leading
     `~` dropped; `a`, `a-b`, `a – b` followed by `unit` (`°C` or `v/v%` or `%`, space optional)
@@ -204,7 +204,7 @@ corrupts recipes.
     `"hopline-yeasts"` for each of `temp_c`, `flocculation`, `alcohol_tolerance_pct`, `type`,
     `form`, `product_id` that has a value, nothing else. `raw = {"hopline-yeasts": {sku: product, …}}`
     for `main` and every extra. `attenuation_pct = None`.
-- [ ] Write the tests first (`tests/test_yeasts.py`) and see them fail on import:
+- [x] Write the tests first (`tests/test_yeasts.py`) and see them fail on import:
   - `test_parse_range`: `"18 – 28 °C"`→`[18,28]`, `"17-22°C"`→`[17,22]`,
     `"15,5 – 17,5 v/v%"`→`[15.5,17.5]` (unit `v/v%`), `"10 – 10 v/v%"`→`[10,10]`,
     `"~12 %"`→`[12,12]` (unit `%`), `None`/`""`/`"-"`→`None`, `"64 – 82 °F"`→`ValueError`,
@@ -235,7 +235,7 @@ corrupts recipes.
     `Flokkuláció` and `Alkoholtolarencia`, table `magas`, `5-5.5%`) → `high`, `5.5`; Suava
     `302410` (no `Hőmérséklet`, `Minimum hőmérséklet: 24`, `Maximum hőmérséklet: 30`, no
     `Stílus`) → `temp_c == [24,30]`, `type is None`, `type` not in `field_source`.
-- [ ] Implement; `.venv/bin/python -m pytest tests/test_yeasts.py -v` → 7 passed; suite passes.
+- [x] Implement; `.venv/bin/python -m pytest tests/test_yeasts.py -v` → 7 passed; suite passes.
 Done when: 7 passed, suite green.
 Commit: `Parse hopline yeast pages`
 
