@@ -19,3 +19,21 @@ with no trailer. §2, §3 and §6 are unchanged.
 | 3 | note | docs/work/test-briefs/plan.md (Deviations) | The first Task 2 line says b12's deviation "stays kind `ingredient`, so R7 keeps 3". The next line removes that deviation and moves the count to b16. | Both lines are history, read in order. The current plan text (spread table, counts) is correct. |
 | 4 | note | PROJECT.md:114, :195 | Both link `docs/work/test-briefs/`. | dev-ship moves the folder to `docs/finished/`, so these links need updating then. |
 | 5 | note | user auto-memory (outside the repo) | The note "BJCP style = base style … 26D, not 30A" no longer matches R3 for prominent adjuncts. | Future sessions may apply the old rule. The note was not changed. |
+
+## Re-review 2026-10-11
+
+Diff: main...test-briefs at ed8a1ca  ·  Verdict: ready for testing
+
+Checked: the fix commit `ed8a1ca` (PROJECT.md, RECIPE-ROADMAP.md, brief.md, plan.md) against
+finding 1 and the user's D1 answer of 2026-10-11. `pytest -q` gives 61 passed. The commit is one
+line with no trailer. §2, §3 and §6 of PROJECT.md are unchanged. No other place in the repo
+calls D1 open.
+
+| # | Severity | Where | Finding | Why it matters |
+|---|---|---|---|---|
+| 1 | resolved | PROJECT.md:144–153 (§5), §7, §8 | D1 is gone from §7 and is now a §5 note with a *why*, as §10 asks. The note matches the user's answer: both guides, BJCP 2021 preferred, BA where it describes the beer better or the user is asked, and the user can set BJCP only or BA only. It states the R3 rule in full (base style by default; the specialty code, base style as alternative, when an adjunct is prominent; a specialty category when no base style exists), which was the gap. The §8 entry is dated, newest first and links the work folder. The brief's Scope Out line and both Deviations sections record the change. Placement in §5 follows D8. | — |
+| 6 | note | docs/RECIPE-ROADMAP.md:310–313 | The new D1 paragraph in §9 says "Step 2 picks the base style…", and step 2 is the Style step in the §3 flow table. That is correct. Round 1's finding 1 said "step 1" for this; that was my slip, and the fix did not copy it. | None now. |
+| 7 | note | docs/DATABASE.md:451 | The deferred row "A style family for BA styles" is conditioned on "if BA becomes a selectable guide". D1 now uses BA, so that condition may be met. Same open question as the RECIPE-ROADMAP "Later · BA as a selectable guide" row, which the user is asked separately. | Whoever answers the roadmap question should look at this row too. Not changed. |
+
+Earlier findings: 2, 3 and 4 still stand as notes, unchanged. Note 5 (the auto-memory note) is
+settled: the user updated the memory.
