@@ -1,6 +1,6 @@
 # Database review: what the recipe assistant actually needs
 
-> **Status:** approved 2026-10-11, applied 2026-10-11 by [`slim-ref`](work/slim-ref/plan.md);
+> **Status:** approved 2026-10-11, applied 2026-10-11 by [`slim-ref`](finished/slim-ref/plan.md);
 > [DATABASE.md](DATABASE.md) now describes the built design, and the `.sql` files in `db/`
 > (`010`–`015`) are the exact definitions. It reviewed the `ref` schema as built then
 > ([`db/010_ref_schema.sql`](../db/010_ref_schema.sql)) and the planned `corpus` / `kb` / `app`

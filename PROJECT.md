@@ -103,8 +103,8 @@ decision in §7 replaces it. How to operate the stack safely is in
 
 | Layer | Choice | Role | Status |
 |---|---|---|---|
-| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)); `ref` schema rebuilt: 7 tables owned by `postgres` (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); `ref.source` has 10 rows (measured 2026-10-10): the 2 `malts.json` sources replaced by 4 malt sources plus a `user-supplied` source for hand-entered figures, and `ref.fermentable.field_source` added (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped; 11 rows after it), then `hopline-hops` added and the unused `hops-json` and `hopslist` removed (2026-10-10, [`hop-loader`](docs/finished/hop-loader/plan.md), shipped); `ref.beer_style` has 285 rows, BJCP 2021 116 + BA 2026 169 (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); `ref.fermentable` has 74 rows with 74 `ref.ingredient` rows (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped); `ref.hop` has 90 rows with 90 `ref.ingredient` rows of kind `hop`, all from `hopline-hops` (2026-10-10, [`hop-loader`](docs/finished/hop-loader/plan.md), shipped); `yeast` and `water_salt` are empty; database review applied 2026-10-11 ([`slim-ref`](docs/work/slim-ref/plan.md), shipped): 7 unused `ref` columns dropped and the loaders re-run (285 styles, 164 ingredients, 74 malts, 90 hops, measured), then `ref` 15 tables, `corpus` 7, `kb` 1, `app` 8, all owned by `postgres`, the new ones empty; design in [`docs/DATABASE.md`](docs/DATABASE.md). *Why this schema (was D4): each typed column is read by a pipeline step and everything else stays in `raw`; behaviour (usage effects, hint knobs, cut points, source weights) lives in code; all tables were created up front, empty, by user decision.* |
-| Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | 🟡 `vector` 0.8.0 installed in schema `extensions`; `kb.chunk` created with HNSW + GIN indexes, empty (2026-10-11, [`slim-ref`](docs/work/slim-ref/plan.md), shipped) |
+| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)); `ref` schema rebuilt: 7 tables owned by `postgres` (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); `ref.source` has 10 rows (measured 2026-10-10): the 2 `malts.json` sources replaced by 4 malt sources plus a `user-supplied` source for hand-entered figures, and `ref.fermentable.field_source` added (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped; 11 rows after it), then `hopline-hops` added and the unused `hops-json` and `hopslist` removed (2026-10-10, [`hop-loader`](docs/finished/hop-loader/plan.md), shipped); `ref.beer_style` has 285 rows, BJCP 2021 116 + BA 2026 169 (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); `ref.fermentable` has 74 rows with 74 `ref.ingredient` rows (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped); `ref.hop` has 90 rows with 90 `ref.ingredient` rows of kind `hop`, all from `hopline-hops` (2026-10-10, [`hop-loader`](docs/finished/hop-loader/plan.md), shipped); `yeast` and `water_salt` are empty; database review applied 2026-10-11 ([`slim-ref`](docs/finished/slim-ref/plan.md), shipped): 7 unused `ref` columns dropped and the loaders re-run (285 styles, 164 ingredients, 74 malts, 90 hops, measured), then `ref` 15 tables, `corpus` 7, `kb` 1, `app` 8, all owned by `postgres`, the new ones empty; design in [`docs/DATABASE.md`](docs/DATABASE.md). *Why this schema (was D4): each typed column is read by a pipeline step and everything else stays in `raw`; behaviour (usage effects, hint knobs, cut points, source weights) lives in code; all tables were created up front, empty, by user decision.* |
+| Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | 🟡 `vector` 0.8.0 installed in schema `extensions`; `kb.chunk` created with HNSW + GIN indexes, empty (2026-10-11, [`slim-ref`](docs/finished/slim-ref/plan.md), shipped) |
 | Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, no workflows |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
 | LLM runtime | **Ollama** (ROCm) | Local chat and embedding models | 🟢 running |
@@ -193,13 +193,13 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
-- Shipped `slim-ref` ([`docs/work/slim-ref/`](docs/work/slim-ref/verification.md)),
+- Shipped `slim-ref` ([`docs/finished/slim-ref/`](docs/finished/slim-ref/verification.md)),
   merged to `main`: the approved database review is applied. 7 unused `ref` columns dropped
   and the loaders re-run (285 styles, 164 ingredients, 74 malts, 90 hops); `ref` 15 tables,
   `corpus` 7, `kb` 1, `app` 8, all owned by `postgres`, the new ones empty; `vector` 0.8.0 with
   `kb.chunk` (vector(1024), HNSW + GIN). Verification: 22/22 spot checks, 42/42 tests (33
   pytest + 9 database), re-run before the merge.
-- `slim-ref` Task 6 ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): rewrote
+- `slim-ref` Task 6 ([`docs/finished/slim-ref/plan.md`](docs/finished/slim-ref/plan.md)): rewrote
   [`docs/DATABASE.md`](docs/DATABASE.md) to describe the built design (31 tables, names checked
   against the catalog; row counts measured: 10 sources, 285 styles, 164 ingredients, 74 malts,
   90 hops, every other table empty); new §8 "Behaviour in code, not tables" and §9 "Later".
@@ -208,34 +208,34 @@ Newest first. One entry per meaningful change: what was done, and why if that is
   effects, hint knobs, cut points and source weights in code; STYLE-FIT derives the malt role
   from EBC + name keywords (`fermentable.type` is gone). `water-salts` and `ref-spotcheck` plans
   updated for the dropped columns. D4 closed (§4 Database row). Suite: 33 passed.
-- `slim-ref` Task 5 ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): created the
+- `slim-ref` Task 5 ([`docs/finished/slim-ref/plan.md`](docs/finished/slim-ref/plan.md)): created the
   `app` schema from review §5.5 in `db/015_app.sql` (applied twice, no error): schema and 8 empty
   tables owned by `postgres` (`brewer_profile`, `inventory`, `brief`, `recipe`, `recipe_item`,
   `recipe_deviation`, `run`, `run_step`); `app.recipe` has the typed `batch_l`,
   `efficiency_pct`, `og`, `fg`, `abv`, `ibu`, `srm`. Measured totals: `ref` 15, `corpus` 7,
   `kb` 1, `app` 8 tables (31, review §6). Created now, empty, by user decision ("Everything in
   §5"); P4–P5 fill them. Suite: 33 passed.
-- `slim-ref` Task 4 ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): installed
+- `slim-ref` Task 4 ([`docs/finished/slim-ref/plan.md`](docs/finished/slim-ref/plan.md)): installed
   `vector` 0.8.0 in schema `extensions` (created as `postgres`; owner `supabase_admin`, like the
   other 8 extensions) and created the `kb` schema from review §5.4 in `db/014_kb.sql` (applied
   twice, no error): schema and empty `kb.chunk` owned by `postgres`, `embedding vector(1024)`
   (bge-m3), indexes `chunk_embedding_idx` (HNSW), `chunk_fts_idx` (GIN), `chunk_source_id_idx`;
   `ref.source.file_path` (text) added. Created now, empty, by user decision ("Everything in §5");
   P7 fills it. Suite: 33 passed.
-- `slim-ref` Task 3 ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): created
+- `slim-ref` Task 3 ([`docs/finished/slim-ref/plan.md`](docs/finished/slim-ref/plan.md)): created
   the `corpus` schema from review §5.3 in `db/013_corpus.sql` (applied twice, no error):
   schema owned by `postgres`, 7 empty tables owned by `postgres` (`recipe`, `recipe_item`,
   `name_map`, `style_profile`, `style_grist`, `style_hop_use`, `style_ingredient`) and the
   indexes `recipe_style_id_idx`, `recipe_item_recipe_id_idx`, `recipe_item_kind_raw_key_idx`.
   Created now, empty, by user decision ("Everything in §5"); P1b and P3 fill them. Suite: 33 passed.
-- `slim-ref` Task 2 ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): created
+- `slim-ref` Task 2 ([`docs/finished/slim-ref/plan.md`](docs/finished/slim-ref/plan.md)): created
   the style-fit vocabulary from review §5.2 in `db/012_style_fit.sql` (applied twice, no error):
   `fermentable.role` (text, empty) and 8 empty tables (`misc`, `tag`, `tag_synonym`,
   `ingredient_tag`, `sensory_dimension`, `style_sensory`, `style_character`, `style_rule`).
   `ref` now has 15 tables, all owned by `postgres`. Rolled-back inserts confirmed `style_rule`
   rejects a row with neither ingredient nor tag, and `style_character` rejects a row without its
   `style_sensory` envelope. Suite: 33 passed.
-- `slim-ref` Task 1 ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): dropped the
+- `slim-ref` Task 1 ([`docs/finished/slim-ref/plan.md`](docs/finished/slim-ref/plan.md)): dropped the
   7 unused `ref` columns (`beer_style.edition`, `co2_vol`; `fermentable.potential_sg`, `type`;
   `hop.beta_pct`, `oils_pct`; `water_salt.molar_mass`) in `db/010_ref_schema.sql`;
   `ref.beer_style` is now unique on `(source_id, code)`. Styles, malts and hops loaders lose the
@@ -243,7 +243,7 @@ Newest first. One entry per meaningful change: what was done, and why if that is
   (285 distinct `(source_id, code)`), 164 ingredients, 74 malts (74 with extract, 0 with
   `potential_sg` in `field_source`), 90 hops (87 with alpha, 0 with `beta_pct` in
   `field_source`); hop report unchanged; Citra's beta still in `raw`. Suite: 33 passed.
-- Planned `slim-ref` ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): apply the approved database review: drop
+- Planned `slim-ref` ([`docs/finished/slim-ref/plan.md`](docs/finished/slim-ref/plan.md)): apply the approved database review: drop
   the 7 unused `ref` columns and re-run the loaders, then create all `corpus`, `kb`, `app` and
   style-fit tables now, empty (user decision "Everything in §5"), and rewrite DATABASE.md.
   Nothing built yet.

@@ -1,6 +1,6 @@
 # Database design
 
-> **Status:** built 2026-10-11 ([`slim-ref`](work/slim-ref/plan.md)) from the approved
+> **Status:** built 2026-10-11 ([`slim-ref`](finished/slim-ref/plan.md)) from the approved
 > [DATABASE-REVIEW.md](DATABASE-REVIEW.md). The `.sql` files in [`db/`](../db/) (`010`–`015`)
 > are the exact definitions, applied as `postgres` ([OPERATIONS.md](OPERATIONS.md) §4); this
 > file explains them. All tables were created up front, empty, **by user decision**
