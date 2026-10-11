@@ -287,10 +287,10 @@ flowchart LR
 
 | Phase | Do | ✅ Done when |
 |---|---|---|
-| **P0** | 20 test briefs (varied styles, deviations, overrides, not just stouts). Settle D7–D9. | briefs in the repo · decisions logged |
+| **P0** | 20 test briefs (varied styles, deviations, overrides, not just stouts) in [`evals/recipe_briefs.toml`](../evals/recipe_briefs.toml), reviewed by you. D7 and D9 moved to P3; D8 decided. | ✅ done 2026-10-11: 20 briefs in the repo, 16 BJCP categories, all six adjuncts needed, `tests/test_recipe_briefs.py` 10 passed |
 | **P1** | `ref` + `corpus` schemas ([DATABASE.md](DATABASE.md)). Load styles (116 + 169), malts, hops, hopline yeasts, water salts, the corpus with quality gates ([STYLE-PROFILES.md](STYLE-PROFILES.md) §2). | row counts match sources · 10 rows spot-checked per table |
 | **P2** | Maths library with unit tests | tests pass against Palmer's and OBC's worked examples |
-| **P3** | Tag vocabulary · ingredient tags · usage effects · envelopes for the test styles · `style_profile` | the Citra table (§5) reproduces from SQL |
+| **P3** | Tag vocabulary · ingredient tags · usage effects · envelopes for the test styles · `style_profile`. Settle D7, D9. | the Citra table (§5) reproduces from SQL |
 | **P4** | Steps 0–3 | ≥ 18/20 briefs: right style, right deviations |
 | **P5** | Steps 4–11 | ≥ 16/20 validate · **0 invented ingredients** · LLM calls ≤ 2 + tie-breaks |
 | **P7** | Doc → calc pass per book, then ingest the rest into `kb`, retrieval eval | recall@5 measured, above an agreed bar |
@@ -304,8 +304,13 @@ flowchart LR
 
 | # | Question | Recommendation |
 |---|---|---|
-| D7 | Ratio source | Brewer's Friend corpus through quality gates → `style_profile` with family shrinkage for thin styles, extra weighted sources, AHA/OBC rules of thumb as caps, Beer Analytics as a manual cross-check ([STYLE-PROFILES.md](STYLE-PROFILES.md)) |
-| D9 | Who approves style envelopes | LLM extracts, you review |
+| D7 | Ratio source (decided in P3) | Brewer's Friend corpus through quality gates → `style_profile` with family shrinkage for thin styles, extra weighted sources, AHA/OBC rules of thumb as caps, Beer Analytics as a manual cross-check ([STYLE-PROFILES.md](STYLE-PROFILES.md)) |
+| D9 | Who approves style envelopes (decided in P3) | LLM extracts, you review |
+
+D1 (style guide) is decided, 2026-10-11: both guides are used, BJCP 2021 preferred; BA where it
+describes the beer better, or the user is asked; the user can set BJCP only or BA only. Step 2
+picks the base style by default, and the specialty code (base style as the alternative) when
+the request makes an adjunct prominent ([PROJECT.md](../PROJECT.md) §5).
 
 D8 (yeast data) is decided, 2026-10-11: hopline.hu's dry and liquid yeasts, with attenuation
 from the makers' catalogues and data sheets and Brewfather. *Why: the user chose the shop's own

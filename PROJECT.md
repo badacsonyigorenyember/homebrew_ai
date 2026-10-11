@@ -111,7 +111,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 | Chat model | `gemma4:12b-it-q8_0` *(also pulled: `qwen3.8:27b`)* | Reasoning, extraction, recipe drafting | ⚠️ to be re-evaluated (§7) |
 | Embedding model | `bge-m3` (1024-dim) | Chunk and query embeddings | 🟢 pulled |
 | Web search | **SearXNG** + `webarm` service | Lookups for what the books do not cover | 🔴 `searxng` down since 2026-10-08 (`settings.yml` lost in the reset, [`OPERATIONS.md`](docs/OPERATIONS.md) §1); recovery is separate work, not started. `webarm` running. Optional |
-| Scripts | Python (`.venv`), `psycopg` 3, `pytest` (`requirements.txt`) | One-off extract/load jobs, evals | 🟡 `loaders/` package: shared helpers in `loaders/common.py` (8 unit tests pass) and DB helpers in `loaders/db.py` (`connect`, `source_id`, `upsert_ingredient`, checked against the running DB) (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); styles loader `loaders/styles.py` (`python -m loaders.styles --bjcp PATH --ba PATH`, 4 unit tests pass) (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); hopline fetcher `loaders/fetch_hopline.py` (malts: `python -m loaders.fetch_hopline OUT.json`; hops with `--hops`, added 2026-10-10 in [`hop-loader`](docs/finished/hop-loader/plan.md), shipped; dry and liquid yeasts with `--yeasts`, added 2026-10-11 in [`yeast-loader`](docs/finished/yeast-loader/plan.md), shipped; 6 unit tests pass); yeast loader `loaders/yeasts.py` (`python -m loaders.yeasts --hopline PATH --report PATH`; parser, `build`, `report`, `load`) with the SKU map `loaders/yeast_products.py` (119 yeasts, 2 pack sizes, 8 skipped, the strains Brewline pages copy, 93 attenuation entries copied from the makers' sources and the user's Brewfather figures); 12 unit tests pass, 2026-10-11, [`yeast-loader`](docs/finished/yeast-loader/plan.md), shipped) and hop loader `loaders/hops.py` with the SKU map `loaders/hop_products.py` (`python -m loaders.hops --hopline PATH --report PATH`; 90 hops, 16 pack sizes; 8 unit tests pass, 2026-10-10, [`hop-loader`](docs/finished/hop-loader/plan.md), shipped; Beer Maverick fill `BEERMAVERICK` for values hopline lacks, 9 unit tests pass, 2026-10-11) and malt loader `loaders/malts.py` with the SKU map `loaders/malt_products.py` (`python -m loaders.malts --hopline PATH --catalogue PATH`, 9 unit tests pass) (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped) |
+| Scripts | Python (`.venv`), `psycopg` 3, `pytest` (`requirements.txt`) | One-off extract/load jobs, evals | 🟡 `loaders/` package: shared helpers in `loaders/common.py` (8 unit tests pass) and DB helpers in `loaders/db.py` (`connect`, `source_id`, `upsert_ingredient`, checked against the running DB) (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); styles loader `loaders/styles.py` (`python -m loaders.styles --bjcp PATH --ba PATH`, 4 unit tests pass) (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); hopline fetcher `loaders/fetch_hopline.py` (malts: `python -m loaders.fetch_hopline OUT.json`; hops with `--hops`, added 2026-10-10 in [`hop-loader`](docs/finished/hop-loader/plan.md), shipped; dry and liquid yeasts with `--yeasts`, added 2026-10-11 in [`yeast-loader`](docs/finished/yeast-loader/plan.md), shipped; 6 unit tests pass); yeast loader `loaders/yeasts.py` (`python -m loaders.yeasts --hopline PATH --report PATH`; parser, `build`, `report`, `load`) with the SKU map `loaders/yeast_products.py` (119 yeasts, 2 pack sizes, 8 skipped, the strains Brewline pages copy, 93 attenuation entries copied from the makers' sources and the user's Brewfather figures); 12 unit tests pass, 2026-10-11, [`yeast-loader`](docs/finished/yeast-loader/plan.md), shipped) and hop loader `loaders/hops.py` with the SKU map `loaders/hop_products.py` (`python -m loaders.hops --hopline PATH --report PATH`; 90 hops, 16 pack sizes; 8 unit tests pass, 2026-10-10, [`hop-loader`](docs/finished/hop-loader/plan.md), shipped; Beer Maverick fill `BEERMAVERICK` for values hopline lacks, 9 unit tests pass, 2026-10-11) and malt loader `loaders/malts.py` with the SKU map `loaders/malt_products.py` (`python -m loaders.malts --hopline PATH --catalogue PATH`, 9 unit tests pass) (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped); recipe test briefs `evals/recipe_briefs.toml` (20 briefs, P0) checked by `tests/test_recipe_briefs.py` (10 tests pass; the style-code test needs the running DB and fails without it) (2026-10-11, [`test-briefs`](docs/work/test-briefs/plan.md), shipped) |
 | Dev tooling | Claude Code: Supabase MCP (read-only, `.mcp.json`), official n8n MCP (local scope) + `n8n-skills` plugin, guard hook (`.claude/hooks/guard.sh`) | Building and inspecting the stack; schema changes go through SQL files applied as `postgres` | 🟢 |
 | Delivery workflow | Project skills `dev-flow` (orchestrator) + `dev-brief`, `dev-plan`, `dev-implement`, `dev-review`, `dev-verify`, `dev-ship` (`.claude/skills/`) | Brief → plan → build → review → verify → merge, one subagent per step, work in `docs/work/<slug>/` | 🟢 in use; shipped: [`recover-stack`](docs/finished/recover-stack/plan.md), [`ref-schema`](docs/finished/ref-schema/plan.md), [`style-loader`](docs/finished/style-loader/plan.md) (2026-10-09) |
 | Eval guidance | Project skills `retrieval-evaluation-metrics`, `rag-evaluation-frameworks` (`.claude/skills/`) | Reference for building the retrieval test set and regression gate (§6.6) | 🟢 installed, not yet used |
@@ -140,6 +140,17 @@ Not ingested since the reset. On 2026-10-08 the source files were removed from `
 | Brewer's Friend recipes (Kaggle, CC0) | Structured, 179,455 recipes | Per-style ratios (D7) | ⬜ 35,620 (views > 500) in the archive dump, measured 2026-10-08 |
 | Yeast data: hopline.hu dry and liquid yeast lists (`hopline_yeasts.json`, 129 products) | Structured (fetched pages) | Yeast catalogue, 119 yeasts | ✅ loaded into `ref.yeast`: 119 rows (dry 81, liquid 38; YeastFlow 38, Lallemand 18, Norse Nectar 17, Fermentis 13, Mangrove Jack's 13, Brewline 10, Gozdawa 9, YeasterBunny 1), 119 with temperature, 113 with flocculation, 114 with alcohol tolerance, 93 with attenuation (2026-10-11, [`yeast-loader`](docs/finished/yeast-loader/plan.md), shipped); no page states attenuation; it is copied as printed from the sources the user named: YeastFlow catalogue 34, Lallemand catalogue 17, Brewfather figures from the user 16 (Gozdawa 8, Brewline 8), Mangrove Jack's data sheets 13, Fermentis data sheets 12, user-supplied 1 (YF-666, printed "800-100", confirmed 80–100); 10 rows spot-checked against the source, no errors (2026-10-11, [`ref-spotcheck`](docs/finished/ref-spotcheck/plan.md)); none for Norse Nectar and YeasterBunny (user decision) and 8 strains with no figure in their source ([`report.md`](docs/finished/yeast-loader/report.md)). *Why hopline, not Brewtarget's BeerJSON (was D8): the user chose the shop's own yeasts, as for malts and hops (2026-10-11); the Brewtarget files are no longer needed* |
 | AHA recipe-design crash course · Oregon Brew Crew recipe formulation · BJCP exam study guide | Free web / PDF | Design method, rules of thumb, output checklist | ⬜ candidate, not downloaded |
+
+**Style guides (was D1, decided 2026-10-11):** both are used. BJCP 2021 is preferred; BA 2026 is
+used where it describes the requested beer better, or the user is asked which to use. The user
+can also set a preference: BJCP only or BA only. Within a guide, the best-fit style is the
+**base style** by default (adjuncts and extras are ignored). When the request makes an adjunct a
+stated, prominent feature, the specialty code is expected (e.g. 31B Alternative Sugar Beer for a
+honey-forward blonde), with the base style as the alternative; a specialty category is also used
+when no meaningful base style exists ([`test-briefs`](docs/work/test-briefs/brief.md) R3, agreed
+by the user 2026-10-11). Step 2 is not built yet; it follows this rule (P4). *Why: the user's
+call: BJCP stays first, as in the first build and the test briefs, but a beer BA describes
+better is not forced into BJCP, and the brewer can choose.*
 
 ---
 
@@ -178,12 +189,11 @@ Several of these are lessons from the first build (see §9).
 
 | # | Question | Leaning | Status |
 |---|---|---|---|
-| D1 | Which style system is primary: BJCP, Brewers Association, or both? | BJCP 2021 as primary (the first build resolved styles against BJCP, classifying to the base style); BA as an alternative the user can pick | open |
 | D2 | Chat model: keep `gemma4:12b` or move to `qwen3.8:27b` (fits 16 GB at Q4, slower)? | Benchmark both on the recipe test set before deciding | open |
 | D3 | Where does the recipe pipeline live: n8n workflows, Postgres functions, or a Python service? | Undecided. The first build used n8n plus SQL and became hard to follow | open |
 | D5 | How the user interacts: chat UI, CLI, n8n chat trigger? | — | open |
-| D7 | Where do the recipe ratios (grist %, hop split) come from? | Brewer's Friend corpus through automatic quality gates (no hand curation) → `corpus.style_profile`, thin styles shrunk toward their family, specialty styles use the base style, extra sources weighted (books, DIY Dog, own batches) ([`docs/STYLE-PROFILES.md`](docs/STYLE-PROFILES.md)) | open |
-| D9 | Who approves the extracted style sensory envelopes before they enter `ref`? | LLM extracts BJCP prose, code parses BA fields, the user reviews | open |
+| D7 | Where do the recipe ratios (grist %, hop split) come from? | Brewer's Friend corpus through automatic quality gates (no hand curation) → `corpus.style_profile`, thin styles shrunk toward their family, specialty styles use the base style, extra sources weighted (books, DIY Dog, own batches) ([`docs/STYLE-PROFILES.md`](docs/STYLE-PROFILES.md)). Belongs to P3 (moved from P0, 2026-10-11) | open |
+| D9 | Who approves the extracted style sensory envelopes before they enter `ref`? | LLM extracts BJCP prose, code parses BA fields, the user reviews. Belongs to P3 (moved from P0, 2026-10-11) | open |
 
 ---
 
@@ -192,6 +202,36 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- Shipped `test-briefs` ([`docs/work/test-briefs/`](docs/work/test-briefs/verification.md)),
+  merged to `main`: P0 is done. [`evals/recipe_briefs.toml`](evals/recipe_briefs.toml) holds
+  the 20 user-approved recipe test briefs across 16 BJCP categories, checked by
+  `tests/test_recipe_briefs.py` (10 tests; the style-code test needs the running DB). D1
+  decided and the R3 classification rule recorded in §5. Verification: 13/13 spot checks,
+  61/61 tests; re-run before the merge: `pytest` 61 passed.
+- `test-briefs` review fix ([`docs/work/test-briefs/`](docs/work/test-briefs/review.md)): D1
+  decided by the user: both style guides are used, BJCP 2021 preferred, BA where it describes
+  the beer better or the user is asked; the user can set BJCP only or BA only. D1 moved from §7
+  to a §5 note, which also states the R3 classification rule: base style by default; when the
+  request makes an adjunct a prominent feature, the specialty code, with the base style as the
+  alternative (why b12 expects 31B, alt 18A). The briefs still expect BJCP codes. RECIPE-ROADMAP
+  §9 notes D1 as decided. Suite: 61 passed.
+- `test-briefs` Task 3 ([`docs/work/test-briefs/`](docs/work/test-briefs/plan.md)): P0 test
+  briefs recorded. [`evals/recipe_briefs.toml`](evals/recipe_briefs.toml) holds 20 briefs, all
+  20 reviewed and approved by the user (two reworded in review: b12 now expects 31B Alternative
+  Sugar Beer, alt 18A, because the request makes honey prominent; b16 adds a bit of rice as an
+  ingredient deviation). Measured by `pytest -s tests/test_recipe_briefs.py`: 16 BJCP
+  categories, 3 stouts/porters, 4 lagers, 2 Belgian, 2 wheat/sour, 3 hop-forward; adjuncts
+  flaked oats 2, candi sugar 1, flaked corn 1, flaked rice 2, lactose 2, honey 2; deviations
+  ingredient 3, number 3, mismatch 1, conflict 1; guidance off 1; exclusions 2, inventories 2;
+  every §7 hint row used; 4 batch sizes (10, 15, 20, 23 L); 0 fruit or non-gravity extras. Suite: 61
+  passed. RECIPE-ROADMAP §8 shows P0 done; D7 and D9 moved to P3 and stay open (§7).
+- Planned `test-briefs` ([`docs/work/test-briefs/plan.md`](docs/work/test-briefs/plan.md)):
+  20 briefs in `evals/recipe_briefs.toml` (TOML, read with the standard library), checked by
+  `tests/test_recipe_briefs.py` against `ref.beer_style` and the brief's coverage minimums,
+  then the user's review, then the P0 status in PROJECT.md and RECIPE-ROADMAP.
+- Wrote brief for `test-briefs` ([`docs/work/test-briefs/`](docs/work/test-briefs/brief.md)):
+  P0's 20 test briefs, written fresh in English, covering the adjunct fermentables oats, candi
+  sugar, corn, rice, lactose and honey, with no fruit and no non-gravity extras (user decisions).
 - Shipped `ref-spotcheck` ([`docs/finished/ref-spotcheck/`](docs/finished/ref-spotcheck/verification.md)),
   merged to `main`: the read-only pack `db/checks/ref_spotcheck.sql` and the measured P1a
   results in PROJECT.md and DATABASE.md (16 sources, 285 styles, 291 ingredients, 0 rows
