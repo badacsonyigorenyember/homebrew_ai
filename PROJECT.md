@@ -192,6 +192,9 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- Wrote brief for `test-briefs` ([`docs/work/test-briefs/`](docs/work/test-briefs/brief.md)):
+  P0's 20 test briefs, written fresh in English, covering the adjunct fermentables oats, candi
+  sugar, corn, rice, lactose and honey, with no fruit and no non-gravity extras (user decisions).
 - Shipped `ref-spotcheck` ([`docs/finished/ref-spotcheck/`](docs/finished/ref-spotcheck/verification.md)),
   merged to `main`: the read-only pack `db/checks/ref_spotcheck.sql` and the measured P1a
   results in PROJECT.md and DATABASE.md (16 sources, 285 styles, 291 ingredients, 0 rows
