@@ -11,7 +11,9 @@
 #   id          b01, b02, ...
 #   request     the user's words, English, one to three sentences
 #   why         what this brief tests
-#   style       expected best-fit BJCP 2021 code, the base style (adjuncts are ignored)
+#   style       expected best-fit BJCP 2021 code: the base style (adjuncts are ignored), unless the
+#               request makes an adjunct a stated, prominent feature; then the specialty code
+#               (e.g. 31B), with the base style in alt_styles
 #   alt_styles  other acceptable codes, only where the request is genuinely ambiguous
 #   deviations  { kind, what, from }; kind is ingredient, number, mismatch or conflict
 #   stated      only numbers the user stated: batch_l, abv, og, ibu, srm
@@ -239,12 +241,12 @@ water_salts = []
 
 [[brief]]
 id = "b12"
-request = "A simple blonde ale with some honey in it, easy drinking for friends who don't like craft beer."
-why = "Honey is an ingredient deviation on the base style 18A, not a reason for 31B."
-style = "18A"
-alt_styles = []
+request = "A simple blonde ale where the honey really shines through, I want to taste it in every glass. Easy drinking for friends who don't like craft beer."
+why = "Honey as a stated, prominent feature: the right outcome is 31B on an 18A base, said to the user."
+style = "31B"
+alt_styles = ["18A"]
 deviations = [
-  { kind = "ingredient", what = "honey", from = "18A ingredients" },
+  { kind = "ingredient", what = "prominent honey", from = "18A ingredients: makes it a 31B on an 18A base" },
 ]
 stated = {}
 hints = []

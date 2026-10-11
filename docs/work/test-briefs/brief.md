@@ -50,9 +50,11 @@ R2. Each brief records: an id, the request text, a one-line *why* (what the brie
     from what), the numbers the user stated (batch L, ABV, OG, IBU, SRM), hint words, wanted
     ingredients, excluded ingredients, the user's stated inventory, guidance on/off, and the
     ingredients the recipe will need, as generic names (e.g. "flaked oats", not an id).
-R3. The expected style is the **base style**: adjuncts and extras are ignored, and a specialty
-    category (30A, 31B…) is used only when no meaningful base style exists. Every expected code
-    exists in `ref.beer_style` for source `bjcp-2021`.
+R3. The expected style is the **base style**: adjuncts and extras are ignored, unless the request
+    makes an adjunct a stated, prominent feature. Then the specialty code (e.g. 31B Alternative
+    Sugar Beer) is expected, with the base style as an accepted alternative. A specialty category
+    is also used when no meaningful base style exists. Every expected code exists in
+    `ref.beer_style` for source `bjcp-2021`.
 R4. Style ranges are not copied into the file. Whatever reads the briefs gets them from
     `ref.beer_style`.
 R5. Style spread: the 20 briefs span at least 8 different BJCP categories, with no more than 3
@@ -119,3 +121,6 @@ None. Answered by the user on 2026-10-11: no non-gravity extras (R11), English o
 - 2026-10-11 · Scope, R13, A6: the ingredient decisions moved to the separate work item
   `adjunct-fermentables` — the user asked for two work items: test briefs, and adding the
   remaining ingredients.
+- 2026-10-11 · R3: a prominent, stated adjunct now means the specialty code is expected (base
+  style as alternative); b12 becomes 31B with alt 18A — user review (A5): the assistant should
+  tell a user that a honey-forward blonde is an alternative sugar beer, not a blonde ale.

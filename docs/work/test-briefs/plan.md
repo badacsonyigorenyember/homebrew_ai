@@ -37,7 +37,7 @@ Every `[[brief]]` has exactly these keys; empty values are `""`, `[]` or `{}`:
 | `id` | string | `b01` … `b20`, unique |
 | `request` | string | the user's words, English, 1–3 sentences |
 | `why` | string | one line: what this brief tests |
-| `style` | string | expected best-fit BJCP 2021 code, e.g. `"16B"` (base style, R3) |
+| `style` | string | expected best-fit BJCP 2021 code, e.g. `"16B"`: the base style, or the specialty code when the request makes an adjunct a prominent feature (R3) |
 | `alt_styles` | list of codes | only where the request is genuinely ambiguous |
 | `deviations` | list of `{ kind, what, from }` | `kind` is one of `ingredient`, `number`, `mismatch`, `conflict`; `what` names what deviates, `from` names what it deviates from (e.g. `"16B ingredients"`, `"8B ABV range"`) |
 | `stated` | inline table | only numbers the user stated; keys from `batch_l`, `abv`, `og`, `ibu`, `srm` |
@@ -66,7 +66,7 @@ The six adjuncts use these exact names in `needs.fermentables`, so the test can 
 | b09 | 6A Märzen | lager, `malty` | | |
 | b10 | 26B Belgian Dubbel | Belgian | candi sugar (typical) | inventory ("I have …") |
 | b11 | 25B Saison | Belgian, `dry` + `full`/`chewy` | | conflict: bone dry vs full and chewy |
-| b12 | 18A Blonde Ale | base style, not 31B | honey | ingredient deviation |
+| b12 | 31B Alternative Sugar Beer, alt 18A | prominent honey makes it a specialty | honey | ingredient deviation (31B on an 18A base) |
 | b13 | 10A Weissbier | wheat | | 15 L |
 | b14 | 23A Berliner Weisse | sour, `session` | | ABV 3 stated |
 | b15 | 11B Best Bitter | | | inventory; 23 L |
@@ -76,7 +76,7 @@ The six adjuncts use these exact names in `needs.fermentables`, so the test can 
 | b19 | 17C Wee Heavy | `malty`, `stronger` | honey | ingredient deviation; 10 L |
 | b20 | 19C American Brown Ale | `full` | lactose | ingredient deviation |
 
-Counts this gives (the test measures the real file): 15 BJCP categories; 3 stouts/porters;
+Counts this gives (the test measures the real file): 16 BJCP categories; 3 stouts/porters;
 4 lagers; 2 Belgian; 2 wheat/sour; 3 hop-forward; every adjunct ≥ 1 (oats 2, lactose 2,
 honey 2); 3 ingredient deviations, 3 number deviations (b08, b17, b18), 1 mismatch, 1 guidance
 off, 1 conflict; 2 exclusions, 2 inventories; every §7 hint row ≥ 1; batch sizes 10, 15, 20,
@@ -125,11 +125,11 @@ Commit: `Add 20 recipe test briefs with coverage test`
 ### Task 2: User review of the 20 briefs
 Why: A5. The expected style and deviations are judgement calls, and the user's call wins.
 **Needs the user.**
-- [ ] Report `needs-input` with a table per brief: id, request, expected style (and alts),
+- [x] Report `needs-input` with a table per brief: id, request, expected style (and alts),
   deviations. Ask the user to approve or correct each one.
-- [ ] Apply every correction in `evals/recipe_briefs.toml`. If a correction drops a count below
+- [x] Apply every correction in `evals/recipe_briefs.toml`. If a correction drops a count below
   an R5–R10 minimum, say which and propose a replacement brief before writing it.
-- [ ] Re-run `.venv/bin/python -m pytest -q`, expect 61 passed.
+- [x] Re-run `.venv/bin/python -m pytest -q`, expect 61 passed.
 Done when: the user has approved all 20 briefs and the suite passes.
 Commit: `Apply user review to test briefs` (skip the commit if nothing changed, and say so)
 
@@ -160,3 +160,8 @@ Commit: `Record P0 test briefs in PROJECT and roadmap`
 
 ## Deviations
 - 2026-10-11 · Task 1: `needs` is written as a `[brief.needs]` sub-table, not an inline table — the one-line inline form ran past 150 characters; the parsed shape is the same.
+- 2026-10-11 · Task 2: R3 changed by the user (prominent adjunct → specialty code, base style as
+  alternative); b12 reworded to make the honey prominent and now expects 31B, alt 18A. Its
+  deviation stays kind `ingredient`, so R7 keeps 3. b19, b20 stay base style; b14 keeps
+  Lactobacillus under `needs.yeast` (read as the culture slot). Test unchanged: it never
+  enforced the base-style rule.
