@@ -5,7 +5,7 @@ from psycopg.types.range import Range
 
 from loaders.common import name_key
 from loaders.yeast_products import PACK_SIZES, SKIPPED, YEASTS
-from loaders.yeasts import flocculation, make_yeast, parse_range, tolerance, type_of
+from loaders.yeasts import build, flocculation, make_yeast, parse_range, tolerance, type_of
 
 
 def r(lo, hi):
@@ -225,3 +225,10 @@ def test_yeast_map():
     # Two yeasts with the same key would make the upsert overwrite one with the other.
     keys = [(name_key(producer), name_key(name)) for producer, _, name in YEASTS.values()]
     assert len(set(keys)) == len(keys)
+
+
+def test_unknown_sku_raises():
+    unknown = {**US05, "sku": "999999", "name": "Brand New Yeast"}
+    hopline = {"forms": {"dry": ["999999"], "liquid": []}, "products": [unknown]}
+    with pytest.raises(ValueError, match="999999"):
+        build(hopline)

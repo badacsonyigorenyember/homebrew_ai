@@ -111,7 +111,7 @@ named by the user, so nothing waits on the user any more).
 | `tests/test_fetch_hopline.py` | changed | 2 new tests |
 | `db/010_ref_schema.sql` | changed | `ref.yeast.field_source jsonb not null` |
 | `db/011_ref_sources.sql` | changed | `hopline-yeasts` source; remove unused `brewtarget-default-data`; 6 attenuation sources (Task 6) |
-| `loaders/yeast_products.py` | new | `YEASTS` (119), `PACK_SIZES` (2), `SKIPPED` (8), later `ATTENUATION` |
+| `loaders/yeast_products.py` | new | `YEASTS` (119), `PACK_SIZES` (2), `SKIPPED` (8), `BREWLINE_COPIES` (8, report only), later `ATTENUATION` |
 | `loaders/yeasts.py` | new | `Yeast`, `parse_range`, `tolerance`, `flocculation`, `TYPES`, `make_yeast`, `build`, `report`, `load`, CLI |
 | `tests/test_yeasts.py` | new | 10 tests on inline fixtures |
 | `docs/work/yeast-loader/report.md` | new | data block vs description disagreements, the strain each Brewline page says it copies, yeasts without attenuation |
@@ -276,7 +276,7 @@ Commit: `Map hopline yeast products`
 
 ### Task 5: Load yeasts into `ref` and write the report
 Why: the yeast catalogue step 6 chooses from.
-- [ ] In `loaders/yeasts.py` add:
+- [x] In `loaders/yeasts.py` add:
   - `build(hopline: dict) -> list[Yeast]`: an SKU in no map → `ValueError` naming it; `SKIPPED`
     → left out; for each `YEASTS` SKU, `make_yeast(producer, product_id, name, form from hopline["forms"], main, its PACK_SIZES extras)`.
   - `report(hopline: dict) -> str`: Markdown lists: pages where the data block and the
@@ -291,11 +291,11 @@ Why: the yeast catalogue step 6 chooses from.
     transaction, as `loaders/hops.py::load`.
   - CLI `python -m loaders.yeasts --hopline PATH --report PATH`: builds, loads, writes the
     report, prints loaded and skipped counts.
-- [ ] Add `test_unknown_sku_raises`: `build` with a product whose SKU is in no map → `ValueError`.
+- [x] Add `test_unknown_sku_raises`: `build` with a product whose SKU is in no map → `ValueError`.
   Suite passes (9 in `test_yeasts.py`).
-- [ ] Run it twice:
+- [x] Run it twice:
   `.venv/bin/python -m loaders.yeasts --hopline shared/rag-files/pending/hopline_yeasts.json --report docs/work/yeast-loader/report.md`
-- [ ] After each run (expected values measured on the 2026-10-11 pages; record what you get):
+- [x] After each run (expected values measured on the 2026-10-11 pages; record what you get):
   - `select count(*), count(temp_c), count(flocculation), count(alcohol_tolerance_pct), count(attenuation_pct) from ref.yeast` → `119|119|113|114|0`.
   - `select form, count(*) from ref.yeast group by 1 order by 1` → dry 81, liquid 38.
   - `select i.producer, count(*) from ref.yeast y join ref.ingredient i on i.id = y.ingredient_id group by 1 order by 1`
@@ -303,8 +303,8 @@ Why: the yeast catalogue step 6 chooses from.
   - US-05 row: `product_id US-05`, `form dry`, `type ale`, `temp_c [18,28]`, `flocculation medium`,
     `alcohol_tolerance_pct 11.0`, `raw` with 1 SKU.
   - `select count(*) from ref.ingredient where kind = 'yeast' and source_id <> (select id from ref.source where slug = 'hopline-yeasts')` → 0.
-- [ ] `grep -nwiE "ollama|llm" loaders/yeasts.py loaders/yeast_products.py` → nothing.
-- [ ] PROJECT.md §5 yeast row ✅ with the measured counts and date, and the line above the table
+- [x] `grep -nwiE "ollama|llm" loaders/yeasts.py loaders/yeast_products.py` → nothing.
+- [x] PROJECT.md §5 yeast row ✅ with the measured counts and date, and the line above the table
   (what is in `pending/`); §4 scripts row (yeast loader, map, `--yeasts` fetch) and database row
   (`ref.yeast` count, `field_source`); `docs/DATABASE.md` `yeast` row (source hopline, count);
   §8 entry pointing at `report.md`.
@@ -403,3 +403,10 @@ Commit: `Add yeast attenuation from maker catalogues`
   this rule: `Ideális hőmérséklet` 123, `Ajánlott sörtípusok` 125, `Adagolás` 128; two pages
   split the temperature label oddly (M54 `302220-H` → `Ideális hőmérséklet: 1` = `8 - 20 °C`,
   M84 `302250-H` → `Erjesztési hőmérséklet`), left raw for Task 5's report to handle.
+- 2026-10-11 · Task 5: the report needs to know which strain each Brewline page copies, so
+  `loaders/yeast_products.py` gains `BREWLINE_COPIES` (8 Brewline SKUs → the copied strains'
+  SKUs; German Lager → SafLager W-34/70 `301100`, U.S. West Coast Ale → US-05 and BRY-97),
+  used by the report only. The temperature comparison reads the description's leading figure
+  (the Norse Nectar and some Gozdawa lines carry a note after it) from `Ideális hőmérséklet`,
+  M84's `Erjesztési hőmérséklet` and M54's split label (`"1" + "8 - 20 °C"`): 125 pages have
+  both, 23 disagree (the plan said 121 with both; the 23 / 9 / 5 disagreements match).

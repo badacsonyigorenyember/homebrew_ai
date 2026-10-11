@@ -12,6 +12,8 @@ PACK_SIZES: 2 g SKU -> the 12 g SKU of the same Brewline product. Its page is ke
 
 SKIPPED: SKU -> why it is not loaded (non-beer yeasts, user decision 2026-10-11).
 
+BREWLINE_COPIES: Brewline SKU -> the SKUs of the strains its page says it copies (report only).
+
 An SKU in none of the three raises in loaders.yeasts.build, so a new hopline product never
 loads without a decision here. Comments are hopline's product names (2026-10-11).
 """
@@ -160,4 +162,17 @@ SKIPPED: dict[str, str] = {
     "301591": "mead yeast",  # Gozdawa Mead 10g
     "300230": "mead yeast",  # Mangrove Jack's M05 Mead élesztő
     "301241": "sake yeast",  # YF-601 Yeastflow For the SAKE of brewing élesztő
+}
+
+# Brewline SKU -> the SKUs of the strains its page says it copies (Köln and Pure Hornindal name
+# none). Used only by the report, to show whether the data blocks agree.
+BREWLINE_COPIES: dict[str, list[str]] = {
+    "301101": ["301100"],  # German Lager -> SafLager W-34/70
+    "301492": ["301491"],  # Czech Lager -> Gozdawa Czech Pilsner 18 (CP18)
+    "300091": ["300090"],  # High Performance Ale -> Nottingham
+    "301011": ["301010"],  # Abbey Monk Ale -> SafAle BE-256
+    "302170": ["301060"],  # Bajor Búza -> SafAle WB-06
+    "301650": ["302010"],  # Belgian Wit -> SafAle T-58
+    "301021": ["301020"],  # British Ale -> SafAle S-04
+    "301601": ["301030", "300030"],  # U.S. West Coast Ale -> SafAle US-05 and BRY-97
 }
