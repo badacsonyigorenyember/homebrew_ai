@@ -121,6 +121,7 @@ named by the user, so nothing waits on the user any more).
 | `docs/work/yeast-loader/report.md` | new | data block vs description disagreements, the strain each Brewline page says it copies, yeasts without attenuation |
 | `docs/FILL-REF-README.md` | changed | item 6 and its source-file rows describe the new input (in the plan commit) |
 | `docs/DATABASE.md` | changed | `yeast` row: source and count |
+| `docs/RECIPE-ROADMAP.md` | changed | yeast source (hopline, attenuation from the makers and Brewfather) in §2, §6 and P1; D8 moved out of §9 as decided |
 | `PROJECT.md` | changed | §5 yeast row, §7 D8 decided, §4 scripts and database rows, §8 |
 
 Not committed (in `shared/rag-files/pending/`, git-ignored): `hopline_yeasts.json`.
@@ -436,3 +437,7 @@ Commit: `Add yeast attenuation from maker catalogues`
   deleted while nothing references it (16 sources). YF-666's printed `800-100` is stored as
   `[80,100]` with source `user-supplied`, as the user confirmed ("Use 80–100"), the printed text
   kept. 84 → 93 entries; 26 yeasts without attenuation.
+- 2026-10-11 · Files: `docs/RECIPE-ROADMAP.md` added — review finding 1: it still named
+  Brewtarget as the yeast source and D8 as open; it now names hopline's yeasts with attenuation
+  from the makers' sources and Brewfather, and lists D8 as decided, as PROJECT.md does (the user
+  chose to update it in this work).
