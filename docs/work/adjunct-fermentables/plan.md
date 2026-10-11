@@ -232,16 +232,16 @@ Commit: `Add adjunct fermentable loader with tests`
 
 ### Task 4: the adjuncts are in `ref`, and loading twice changes nothing
 Why: R1–R4, R8; A1–A4, A8.
-- [ ] Run `.venv/bin/python -m loaders.adjuncts --hopline shared/rag-files/pending/hopline_adjuncts.json`.
+- [x] Run `.venv/bin/python -m loaders.adjuncts --hopline shared/rag-files/pending/hopline_adjuncts.json`.
       Expect `loaded: 7 adjuncts`, `skipped: 7 hopline products`.
-- [ ] Fingerprint query (new rows):
+- [x] Fingerprint query (new rows):
       `select count(*), md5(string_agg(i.name || i.raw::text || f::text, '|' order by i.name)) from ref.ingredient i join ref.fermentable f on f.ingredient_id = i.id join ref.source s on s.id = i.source_id where s.slug in ('hopline-adjuncts', 'palmer-how-to-brew');`
       Note the result, run the loader again, and run the query again: same count (7) and same
       md5 (A8).
-- [ ] A1: the 7 names (Flaked Oats, Flaked Corn, Flaked Rice, Flaked Barley, Brown Candi Sugar,
+- [x] A1: the 7 names (Flaked Oats, Flaked Corn, Flaked Rice, Flaked Barley, Brown Candi Sugar,
       Lactose, Honey) each have an `ingredient` row of kind `fermentable` and a `fermentable`
       row.
-- [ ] A2: `select count(*) from ref.ingredient where source_id is null;` → 0. And this returns
+- [x] A2: `select count(*) from ref.ingredient where source_id is null;` → 0. And this returns
       0 rows:
       ```sql
       select i.name, v.k
@@ -255,16 +255,16 @@ Why: R1–R4, R8; A1–A4, A8.
        where s.slug in ('hopline-adjuncts', 'palmer-how-to-brew')
          and v.filled and not f.field_source ? v.k;
       ```
-- [ ] A4: `select fermentability, count(*) from ref.fermentable group by 1;` → `normal` 78
+- [x] A4: `select fermentability, count(*) from ref.fermentable group by 1;` → `normal` 78
       (74 malts + 4 flakes), `full` 2, `none` 1.
-- [ ] `.venv/bin/python -m pytest` in full, expect all pass.
-- [ ] `docs/DATABASE.md`:
+- [x] `.venv/bin/python -m pytest` in full, expect all pass.
+- [x] `docs/DATABASE.md`:
   - table rows `source` 18, `ingredient` and `fermentable` with the measured counts.
   - "Filled from" for `fermentable`: add hopline flake and sugar pages + Palmer Tables
     18.5/24.1.
   - §7 fill-order row 2: the measured counts, and the "no sugars, adjuncts" gap replaced by
     what is now there.
-- [ ] `PROJECT.md`:
+- [x] `PROJECT.md`:
   - §4 Database row: sources 18, the `ref.fermentable` count and the adjunct rows with their
     sources.
   - §4 Scripts row: `loaders/adjuncts.py`, `fetch_hopline --adjuncts`, test counts as
