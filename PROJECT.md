@@ -192,6 +192,9 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- `ref-spotcheck` review fix: DATABASE.md §7 step-2 gap note now names the Beer Maverick
+  values as `hop.field_source` records them (Delta, Lotus, Sterling alpha + oil, Mount Hood
+  oil, Enigma purpose; 8 values, queried 2026-10-11).
 - `ref-spotcheck` Task 1 ([`docs/work/ref-spotcheck/plan.md`](docs/work/ref-spotcheck/plan.md)):
   read-only pack `db/checks/ref_spotcheck.sql` prints counts for all 15 `ref` tables, rows
   without a source and 10 random rows per loaded table. Measured: 16 sources, 285 styles,
