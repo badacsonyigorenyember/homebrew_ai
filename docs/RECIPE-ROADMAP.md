@@ -49,7 +49,8 @@
 | 📘 B | [BJCP Beer Exam Study Guide](https://legacy.bjcp.org/docs/BJCP_Study_Guide.pdf) (2017) | What a complete recipe must contain (exam question T14) | © BJCP, free | Output checklist for step 16 |
 | 📘 B | [BeerSmith: Designing with percentages](https://beersmith.com/blog/2024/10/30/designing-beer-recipes-using-percentages/) | %-first grist design | ©, free to read | Background |
 | 📘 B | Your *How to Brew* PDF, Section 4 / Ch. 19 | Per-style recipes for a dozen or so styles | © | kb + cross-check |
-| 🧪 **C: ingredients** | [Brewtarget default data](https://github.com/Brewtarget/brewtarget/tree/develop/data) | **571 yeast entries** (attenuation + temperature ranges), 282 hops, BJCP 2021 styles, in BeerJSON | **GPL-3** | ⭐ Fills the yeast gap (D8) |
+| 🧪 **C: ingredients** | [hopline.hu dry](https://www.hopline.hu/alapanyagok/elesztok/szaraz-eleszto) and [liquid](https://www.hopline.hu/alapanyagok/elesztok/folyekony-eleszto) yeast pages, attenuation from the makers' catalogues and data sheets (YeastFlow, Lallemand, Fermentis, Mangrove Jack's) and Brewfather | **119 beer yeasts**: temperature, flocculation, alcohol tolerance; attenuation for 93 | shop and maker pages, facts copied | ⭐ The yeast catalogue, `ref.yeast` (D8 decided 2026-10-11) |
+| 🧪 C | [Brewtarget default data](https://github.com/Brewtarget/brewtarget/tree/develop/data) | 571 yeast entries (attenuation + temperature ranges), 282 hops, BJCP 2021 styles, in BeerJSON | **GPL-3** | Not used: yeasts come from hopline (D8) |
 | 🧪 C | [BeerJSON](https://github.com/beerjson/beerjson) | Open recipe format standard | MIT | Import/export format |
 
 > ⚖️ GPL-3 data is fine for a private, self-hosted project. The licence obligations only apply
@@ -237,7 +238,7 @@ first. Those become data or code. Only the remaining prose goes to RAG.
 | Carbonation volumes per style, priming sugar | Palmer ch. 11 | `ref.beer_style` column + function |
 | Residual alkalinity, salt additions | *Water* book | water functions |
 | Pitch rate | *Yeast* book | function |
-| Yeast attenuation, temperature | Brewtarget data | `ref.yeast` |
+| Yeast attenuation, temperature | hopline yeast pages (temperature); makers' catalogues and data sheets, Brewfather (attenuation) | `ref.yeast` |
 | Grist %, hop split, dosage, yeast ranking per style | Brewer's Friend corpus | `corpus.style_profile` |
 | Sensory envelope | BJCP / BA text | `ref.style_sensory` |
 | Faults → causes | beer_faults.json | `ref.fault` (later) |
@@ -287,7 +288,7 @@ flowchart LR
 | Phase | Do | ✅ Done when |
 |---|---|---|
 | **P0** | 20 test briefs (varied styles, deviations, overrides, not just stouts). Settle D7–D9. | briefs in the repo · decisions logged |
-| **P1** | `ref` + `corpus` schemas ([DATABASE.md](DATABASE.md)). Load styles (116 + 169), malts, hops, Brewtarget yeasts, water salts, the corpus with quality gates ([STYLE-PROFILES.md](STYLE-PROFILES.md) §2). | row counts match sources · 10 rows spot-checked per table |
+| **P1** | `ref` + `corpus` schemas ([DATABASE.md](DATABASE.md)). Load styles (116 + 169), malts, hops, hopline yeasts, water salts, the corpus with quality gates ([STYLE-PROFILES.md](STYLE-PROFILES.md) §2). | row counts match sources · 10 rows spot-checked per table |
 | **P2** | Maths library with unit tests | tests pass against Palmer's and OBC's worked examples |
 | **P3** | Tag vocabulary · ingredient tags · usage effects · envelopes for the test styles · `style_profile` | the Citra table (§5) reproduces from SQL |
 | **P4** | Steps 0–3 | ≥ 18/20 briefs: right style, right deviations |
@@ -304,5 +305,8 @@ flowchart LR
 | # | Question | Recommendation |
 |---|---|---|
 | D7 | Ratio source | Brewer's Friend corpus through quality gates → `style_profile` with family shrinkage for thin styles, extra weighted sources, AHA/OBC rules of thumb as caps, Beer Analytics as a manual cross-check ([STYLE-PROFILES.md](STYLE-PROFILES.md)) |
-| D8 | Yeast data | Brewtarget default data (571 entries, GPL-3) |
 | D9 | Who approves style envelopes | LLM extracts, you review |
+
+D8 (yeast data) is decided, 2026-10-11: hopline.hu's dry and liquid yeasts, with attenuation
+from the makers' catalogues and data sheets and Brewfather. *Why: the user chose the shop's own
+yeasts, as for malts and hops* ([PROJECT.md](../PROJECT.md) §5).

@@ -1,6 +1,8 @@
+import json
+
 import pytest
 
-from loaders.fetch_hopline import listing_links, params, product_page, spec_table
+from loaders.fetch_hopline import ajax_links, listing_links, long_description, params, product_page, spec_table
 
 
 def test_listing_links():
@@ -89,3 +91,44 @@ def test_spec_table_and_params():
     uneven = '<div class="artdet__short-descripton-content"><table><tr><th>A</th><th>B</th></tr><tr><td>1</td></tr></table></div>'
     with pytest.raises(ValueError):
         spec_table(uneven)
+
+
+def test_ajax_listing_body():
+    body = json.dumps({
+        "filter_box_content": "<div>filters</div>",
+        "product_list_content": """
+        <a class="product__name-link product_link_normal" data-sku="301030"
+           href="https://www.hopline.hu/fermentis-safale-us-05">SafAle US-05</a>
+        <a class="product__name-link product_link_normal" data-sku="301601"
+           href="https://www.hopline.hu/Brewline-U-S-West-Coast-Ale-12g-US-05">Brewline U.S. West Coast Ale</a>
+        """,
+    })
+    assert ajax_links(body) == [
+        ("301030", "https://www.hopline.hu/fermentis-safale-us-05"),
+        ("301601", "https://www.hopline.hu/Brewline-U-S-West-Coast-Ale-12g-US-05"),
+    ]
+
+
+def test_long_description():
+    html = """
+    <div class="long-description__title main-title-left">Részletek</div>
+    <div class="long-description__content text-muted text-justify"><style>table .mobile-head {display:none;}</style>
+    <table><tbody>
+    <tr><th><span>Stílus</span></th><th>Aroma</th><th>Flokkuláció</th><th>Alkoholtolerancia</th></tr>
+    <tr><td><span>Ale</span></td><td>semleges</td><td>közepes</td><td>9-11 %</td></tr>
+    </tbody></table>
+    <p><strong>Ideális hőmérséklet: </strong>18 - 28 °C</p><p><strong>Adagolás:</strong> 5-8g/10l</p></div>
+    <div class="artdet__param-title">Stílus</div>
+    """
+    details = long_description(html)
+    assert details["table"] == {
+        "Stílus": "Ale",
+        "Aroma": "semleges",
+        "Flokkuláció": "közepes",
+        "Alkoholtolerancia": "9-11 %",
+    }
+    assert details["labels"] == {"Ideális hőmérséklet": "18 - 28 °C", "Adagolás": "5-8g/10l"}
+    assert "Ideális hőmérséklet" in details["text"]
+    assert "mobile-head" not in details["text"]
+
+    assert long_description("<div class='other'><p>x</p></div>") is None

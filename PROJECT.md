@@ -103,7 +103,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 
 | Layer | Choice | Role | Status |
 |---|---|---|---|
-| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)); `ref` schema rebuilt: 7 tables owned by `postgres` (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); `ref.source` has 10 rows (measured 2026-10-10): the 2 `malts.json` sources replaced by 4 malt sources plus a `user-supplied` source for hand-entered figures, and `ref.fermentable.field_source` added (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped; 11 rows after it), then `hopline-hops` added and the unused `hops-json` and `hopslist` removed (2026-10-10, [`hop-loader`](docs/finished/hop-loader/plan.md), shipped); `ref.beer_style` has 285 rows, BJCP 2021 116 + BA 2026 169 (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); `ref.fermentable` has 74 rows with 74 `ref.ingredient` rows (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped); `ref.hop` has 90 rows with 90 `ref.ingredient` rows of kind `hop`, all from `hopline-hops` (2026-10-10, [`hop-loader`](docs/finished/hop-loader/plan.md), shipped); `yeast` and `water_salt` are empty; database review applied 2026-10-11 ([`slim-ref`](docs/finished/slim-ref/plan.md), shipped): 7 unused `ref` columns dropped and the loaders re-run (285 styles, 164 ingredients, 74 malts, 90 hops, measured), then `ref` 15 tables, `corpus` 7, `kb` 1, `app` 8, all owned by `postgres`, the new ones empty; design in [`docs/DATABASE.md`](docs/DATABASE.md). *Why this schema (was D4): each typed column is read by a pipeline step and everything else stays in `raw`; behaviour (usage effects, hint knobs, cut points, source weights) lives in code; all tables were created up front, empty, by user decision.* |
+| Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)); `ref` schema rebuilt: 7 tables owned by `postgres` (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); `ref.source` has 10 rows (measured 2026-10-10): the 2 `malts.json` sources replaced by 4 malt sources plus a `user-supplied` source for hand-entered figures, and `ref.fermentable.field_source` added (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped; 11 rows after it), then `hopline-hops` added and the unused `hops-json` and `hopslist` removed (2026-10-10, [`hop-loader`](docs/finished/hop-loader/plan.md), shipped), then `hopline-yeasts` added, the unused `brewtarget-default-data` removed and `ref.yeast.field_source` added (11 rows), then 5 yeast attenuation sources added (`yeastflow-catalogue`, `lallemand-catalogue`, `fermentis-datasheets`, `mangrovejacks-datasheets`, `brewfather`): 16 rows, measured 2026-10-11 ([`yeast-loader`](docs/work/yeast-loader/plan.md), shipped); `ref.beer_style` has 285 rows, BJCP 2021 116 + BA 2026 169 (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); `ref.fermentable` has 74 rows with 74 `ref.ingredient` rows (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped); `ref.hop` has 90 rows with 90 `ref.ingredient` rows of kind `hop`, all from `hopline-hops` (2026-10-10, [`hop-loader`](docs/finished/hop-loader/plan.md), shipped); `ref.yeast` has 119 rows with 119 `ref.ingredient` rows of kind `yeast`, all from `hopline-yeasts`, each with per-field `field_source`, 93 with attenuation from the makers' sources, Brewfather and the user (2026-10-11, [`yeast-loader`](docs/work/yeast-loader/plan.md), shipped); `water_salt` is empty; database review applied 2026-10-11 ([`slim-ref`](docs/finished/slim-ref/plan.md), shipped): 7 unused `ref` columns dropped and the loaders re-run (285 styles, 164 ingredients, 74 malts, 90 hops, measured), then `ref` 15 tables, `corpus` 7, `kb` 1, `app` 8, all owned by `postgres`, the new ones empty; design in [`docs/DATABASE.md`](docs/DATABASE.md). *Why this schema (was D4): each typed column is read by a pipeline step and everything else stays in `raw`; behaviour (usage effects, hint knobs, cut points, source weights) lives in code; all tables were created up front, empty, by user decision.* |
 | Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | 🟡 `vector` 0.8.0 installed in schema `extensions`; `kb.chunk` created with HNSW + GIN indexes, empty (2026-10-11, [`slim-ref`](docs/finished/slim-ref/plan.md), shipped) |
 | Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, no workflows |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
@@ -111,7 +111,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 | Chat model | `gemma4:12b-it-q8_0` *(also pulled: `qwen3.8:27b`)* | Reasoning, extraction, recipe drafting | ⚠️ to be re-evaluated (§7) |
 | Embedding model | `bge-m3` (1024-dim) | Chunk and query embeddings | 🟢 pulled |
 | Web search | **SearXNG** + `webarm` service | Lookups for what the books do not cover | 🔴 `searxng` down since 2026-10-08 (`settings.yml` lost in the reset, [`OPERATIONS.md`](docs/OPERATIONS.md) §1); recovery is separate work, not started. `webarm` running. Optional |
-| Scripts | Python (`.venv`), `psycopg` 3, `pytest` (`requirements.txt`) | One-off extract/load jobs, evals | 🟡 `loaders/` package: shared helpers in `loaders/common.py` (8 unit tests pass) and DB helpers in `loaders/db.py` (`connect`, `source_id`, `upsert_ingredient`, checked against the running DB) (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); styles loader `loaders/styles.py` (`python -m loaders.styles --bjcp PATH --ba PATH`, 4 unit tests pass) (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); hopline fetcher `loaders/fetch_hopline.py` (malts: `python -m loaders.fetch_hopline OUT.json`; hops with `--hops`, added 2026-10-10 in [`hop-loader`](docs/finished/hop-loader/plan.md), shipped; 4 unit tests pass) and hop loader `loaders/hops.py` with the SKU map `loaders/hop_products.py` (`python -m loaders.hops --hopline PATH --report PATH`; 90 hops, 16 pack sizes; 8 unit tests pass, 2026-10-10, [`hop-loader`](docs/finished/hop-loader/plan.md), shipped; Beer Maverick fill `BEERMAVERICK` for values hopline lacks, 9 unit tests pass, 2026-10-11) and malt loader `loaders/malts.py` with the SKU map `loaders/malt_products.py` (`python -m loaders.malts --hopline PATH --catalogue PATH`, 9 unit tests pass) (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped) |
+| Scripts | Python (`.venv`), `psycopg` 3, `pytest` (`requirements.txt`) | One-off extract/load jobs, evals | 🟡 `loaders/` package: shared helpers in `loaders/common.py` (8 unit tests pass) and DB helpers in `loaders/db.py` (`connect`, `source_id`, `upsert_ingredient`, checked against the running DB) (2026-10-09, [`ref-schema`](docs/finished/ref-schema/plan.md), shipped); styles loader `loaders/styles.py` (`python -m loaders.styles --bjcp PATH --ba PATH`, 4 unit tests pass) (2026-10-09, [`style-loader`](docs/finished/style-loader/plan.md), shipped); hopline fetcher `loaders/fetch_hopline.py` (malts: `python -m loaders.fetch_hopline OUT.json`; hops with `--hops`, added 2026-10-10 in [`hop-loader`](docs/finished/hop-loader/plan.md), shipped; dry and liquid yeasts with `--yeasts`, added 2026-10-11 in [`yeast-loader`](docs/work/yeast-loader/plan.md), shipped; 6 unit tests pass); yeast loader `loaders/yeasts.py` (`python -m loaders.yeasts --hopline PATH --report PATH`; parser, `build`, `report`, `load`) with the SKU map `loaders/yeast_products.py` (119 yeasts, 2 pack sizes, 8 skipped, the strains Brewline pages copy, 93 attenuation entries copied from the makers' sources and the user's Brewfather figures); 12 unit tests pass, 2026-10-11, [`yeast-loader`](docs/work/yeast-loader/plan.md), shipped) and hop loader `loaders/hops.py` with the SKU map `loaders/hop_products.py` (`python -m loaders.hops --hopline PATH --report PATH`; 90 hops, 16 pack sizes; 8 unit tests pass, 2026-10-10, [`hop-loader`](docs/finished/hop-loader/plan.md), shipped; Beer Maverick fill `BEERMAVERICK` for values hopline lacks, 9 unit tests pass, 2026-10-11) and malt loader `loaders/malts.py` with the SKU map `loaders/malt_products.py` (`python -m loaders.malts --hopline PATH --catalogue PATH`, 9 unit tests pass) (2026-10-09, [`malt-loader`](docs/finished/malt-loader/plan.md), shipped) |
 | Dev tooling | Claude Code: Supabase MCP (read-only, `.mcp.json`), official n8n MCP (local scope) + `n8n-skills` plugin, guard hook (`.claude/hooks/guard.sh`) | Building and inspecting the stack; schema changes go through SQL files applied as `postgres` | 🟢 |
 | Delivery workflow | Project skills `dev-flow` (orchestrator) + `dev-brief`, `dev-plan`, `dev-implement`, `dev-review`, `dev-verify`, `dev-ship` (`.claude/skills/`) | Brief → plan → build → review → verify → merge, one subagent per step, work in `docs/work/<slug>/` | 🟢 in use; shipped: [`recover-stack`](docs/finished/recover-stack/plan.md), [`ref-schema`](docs/finished/ref-schema/plan.md), [`style-loader`](docs/finished/style-loader/plan.md) (2026-10-09) |
 | Eval guidance | Project skills `retrieval-evaluation-metrics`, `rag-evaluation-frameworks` (`.claude/skills/`) | Reference for building the retrieval test set and regression gate (§6.6) | 🟢 installed, not yet used |
@@ -122,7 +122,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 
 ## 5. Knowledge sources
 
-Not ingested since the reset. On 2026-10-08 the source files were removed from `shared/rag-files/pending/` on purpose, to be re-added as each loader needs them. Now there: `how_to_brew.pdf`, `styles.json`, `ba_styles.json`, `hopline_malts.json`, `malt_catalogue.json` and `hopline_hops.json` (fetched and loaded 2026-10-10), plus the no longer used `malts.json` (checked 2026-10-10). The three malt catalogue PDFs are read from `~/Downloads`.
+Not ingested since the reset. On 2026-10-08 the source files were removed from `shared/rag-files/pending/` on purpose, to be re-added as each loader needs them. Now there: `how_to_brew.pdf`, `styles.json`, `ba_styles.json`, `hopline_malts.json`, `malt_catalogue.json`, `hopline_hops.json` (fetched and loaded 2026-10-10) and `hopline_yeasts.json` (fetched and loaded 2026-10-11), plus the no longer used `malts.json` (checked 2026-10-10). The three malt catalogue PDFs are read from `~/Downloads`.
 
 | Source | Type | Feeds | Status |
 |---|---|---|---|
@@ -138,7 +138,7 @@ Not ingested since the reset. On 2026-10-08 the source files were removed from `
 | Hop data: hopline.hu hop list (`hopline_hops.json`, 106 products) | Structured (fetched pages) | Hop catalogue, 90 hops | ✅ loaded into `ref.hop`: 90 rows (5 LUPOMAX), purpose aroma 35 / bittering 4 / dual 51, 90 with alpha and total oil, 89 with origin (2026-10-10); Delta, Lotus, Sterling alpha + oil, Mount Hood oil and Enigma purpose come from Beer Maverick (source `beermaverick`), loaded by the hop loader (2026-10-11) |
 | Fault data (`beer_faults.json`) | Structured | Faults (21) | ⬜ |
 | Brewer's Friend recipes (Kaggle, CC0) | Structured, 179,455 recipes | Per-style ratios (D7) | ⬜ 35,620 (views > 500) in the archive dump, measured 2026-10-08 |
-| Brewtarget default data (GPL-3) | Structured, BeerJSON | Yeast (296 + 275 entries), hops (282) (D8) | ⬜ downloaded before the reset (`DefaultContent003/004`), to be re-added |
+| Yeast data: hopline.hu dry and liquid yeast lists (`hopline_yeasts.json`, 129 products) | Structured (fetched pages) | Yeast catalogue, 119 yeasts | ✅ loaded into `ref.yeast`: 119 rows (dry 81, liquid 38; YeastFlow 38, Lallemand 18, Norse Nectar 17, Fermentis 13, Mangrove Jack's 13, Brewline 10, Gozdawa 9, YeasterBunny 1), 119 with temperature, 113 with flocculation, 114 with alcohol tolerance, 93 with attenuation (2026-10-11, [`yeast-loader`](docs/work/yeast-loader/plan.md), shipped); no page states attenuation; it is copied as printed from the sources the user named: YeastFlow catalogue 34, Lallemand catalogue 17, Brewfather figures from the user 16 (Gozdawa 8, Brewline 8), Mangrove Jack's data sheets 13, Fermentis data sheets 12, user-supplied 1 (YF-666, printed "800-100", confirmed 80–100); none for Norse Nectar and YeasterBunny (user decision) and 8 strains with no figure in their source ([`report.md`](docs/work/yeast-loader/report.md)). *Why hopline, not Brewtarget's BeerJSON (was D8): the user chose the shop's own yeasts, as for malts and hops (2026-10-11); the Brewtarget files are no longer needed* |
 | AHA recipe-design crash course · Oregon Brew Crew recipe formulation · BJCP exam study guide | Free web / PDF | Design method, rules of thumb, output checklist | ⬜ candidate, not downloaded |
 
 ---
@@ -183,7 +183,6 @@ Several of these are lessons from the first build (see §9).
 | D3 | Where does the recipe pipeline live: n8n workflows, Postgres functions, or a Python service? | Undecided. The first build used n8n plus SQL and became hard to follow | open |
 | D5 | How the user interacts: chat UI, CLI, n8n chat trigger? | — | open |
 | D7 | Where do the recipe ratios (grist %, hop split) come from? | Brewer's Friend corpus through automatic quality gates (no hand curation) → `corpus.style_profile`, thin styles shrunk toward their family, specialty styles use the base style, extra sources weighted (books, DIY Dog, own batches) ([`docs/STYLE-PROFILES.md`](docs/STYLE-PROFILES.md)) | open |
-| D8 | Yeast data source | Brewtarget default data: 571 entries with attenuation and temperature ranges, GPL-3 (fine for a private install) | open |
 | D9 | Who approves the extracted style sensory envelopes before they enter `ref`? | LLM extracts BJCP prose, code parses BA fields, the user reviews | open |
 
 ---
@@ -193,6 +192,85 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- Shipped `yeast-loader` ([`docs/work/yeast-loader/`](docs/work/yeast-loader/verification.md)),
+  merged to `main`: `loaders/fetch_hopline.py --yeasts` saves hopline.hu's 129 dry and liquid
+  yeast pages and `loaders/yeasts.py` with the SKU map `loaders/yeast_products.py` loads them
+  as 119 yeasts (dry 81, liquid 38; 8 non-beer yeasts skipped), all values outside `raw` in
+  English. `ref.yeast`: 119 with temperature, 113 with flocculation, 114 with alcohol
+  tolerance, 93 with attenuation copied as printed from 6 named sources, each field's source in
+  `field_source`; 16 `ref.source` rows. Verification: 24/24 spot checks, 48/48 tests; re-run
+  before the merge: `pytest` 48 passed.
+- `yeast-loader` re-review note 1 ([`docs/work/yeast-loader/plan.md`](docs/work/yeast-loader/plan.md)):
+  the report glosses the Hungarian page values it quotes in English beside the printed text
+  (`'Belga Ale' (Belgian ale)`, `'Közepes' (medium)`, `"max tartomány": max range`). Loader run:
+  119 rows, 119/113/114/93 filled, unchanged. 48 tests pass.
+- `yeast-loader` change request ([`docs/work/yeast-loader/plan.md`](docs/work/yeast-loader/plan.md)):
+  no Hungarian outside `raw`. The one Hungarian value, Brewline `302170` "Bajor Búza", is now
+  `Bavarian Wheat` (row renamed in place, same id); the `hopline-yeasts` source notes and the
+  report are in English, page quotes kept as printed. New test checks the names, type,
+  flocculation and `field_source` values. Loader run twice: 119 rows, 119/113/114/93 filled
+  (temp, flocculation, alcohol, attenuation), unchanged. 47 tests pass.
+- `yeast-loader` Task 6, user answers ([`docs/work/yeast-loader/plan.md`](docs/work/yeast-loader/plan.md)):
+  8 Brewline products get the user's Brewfather figures (`[a,a]`, source `brewfather`; "german
+  wheat" taken as Brewline Bavarian Wheat `302170`), YF-666 gets `[80,100]` as `user-supplied` (page prints
+  `800-100`); the unused `brewline-catalogue` source is removed (16 sources, applied twice).
+  Run twice, same result: 119 rows, 93 with attenuation, every entry matches the DB; 26 without,
+  reasons in [`report.md`](docs/work/yeast-loader/report.md). 46 tests pass.
+- `yeast-loader` Task 6 ([`docs/work/yeast-loader/plan.md`](docs/work/yeast-loader/plan.md)):
+  attenuation copied as printed from the makers' own sources into `ATTENUATION` in
+  `loaders/yeast_products.py` (84 entries, each with source, URL, printed text, date) and loaded
+  into `ref.yeast.attenuation_pct` with `field_source` per source; 6 sources added to
+  `ref.source` (17 rows, applied twice). Run twice, same result: 119 rows, 84 with attenuation
+  (YeastFlow 34, Lallemand 17, Mangrove Jack's 13, Fermentis 12, Brewfather 8); every entry
+  re-read against its source and matches the DB. Not filled (35, reasons in
+  [`report.md`](docs/work/yeast-loader/report.md)): Norse Nectar 17 and YeasterBunny 1 (user),
+  Brewline 10 (its catalogue PDF lists only other, 500 g strains; asked), Gozdawa W-34/70, CBC-1
+  (`n/a%`), BR-8, YF-666 (`800-100` printed), YF-801/998/999 (empty). 10 tests in
+  `test_yeasts.py` pass, 46 in the suite.
+- `yeast-loader` Task 5 ([`docs/work/yeast-loader/plan.md`](docs/work/yeast-loader/plan.md)):
+  `python -m loaders.yeasts --hopline PATH --report PATH` loads hopline's yeasts into
+  `ref.ingredient` + `ref.yeast`. Run twice, same result both times: 119 rows (dry 81,
+  liquid 38; producer counts as planned), 119 with temperature, 113 with flocculation, 114 with
+  alcohol tolerance, 0 with attenuation; type ale 75, kveik 20, lager 17, brett 2, unknown 5;
+  US-05 `[18,28]` °C, medium, 11 %. The 8 non-beer yeasts are skipped. The report
+  ([`report.md`](docs/work/yeast-loader/report.md)) lists where data block and description
+  disagree (temperature 23, flocculation 9, alcohol 5; M20 noted as another strain's
+  description), the Brewline rows against the strains they copy, and the 3 kveiks with
+  Lactobacillus. 9 tests in `test_yeasts.py` pass, 45 in the suite.
+- `yeast-loader` Task 4 ([`docs/work/yeast-loader/plan.md`](docs/work/yeast-loader/plan.md)):
+  `loaders/yeast_products.py` is the explicit hopline SKU map: 119 yeasts (producer, product id,
+  name), 2 Brewline 2 g packs joined to their 12 g product, 8 non-beer yeasts skipped with the
+  reason. Names follow the makers' own spelling where it differs from hopline's (checked on
+  yeastflow.com and lallemandbrewing.com, e.g. `YF-205 Holy Cölibate`, `Diamond`). Measured
+  against `hopline_yeasts.json`: all 129 SKUs in exactly one map; YeastFlow 38, Lallemand 18,
+  Norse Nectar 17, Fermentis 13, Mangrove Jack's 13, Brewline 10, Gozdawa 9, YeasterBunny 1;
+  dry 81, liquid 38. `test_yeast_map` passes, 44 in the suite.
+- `yeast-loader` Task 3 ([`docs/work/yeast-loader/plan.md`](docs/work/yeast-loader/plan.md)):
+  `loaders/yeasts.py` parses one hopline yeast page into a `Yeast`: temperature in °C (any other
+  unit raises), flocculation and style family through fixed maps (unknown raises), alcohol
+  tolerance as the data block's range top with the description as fallback, figures from the
+  main page only, per-field `field_source` and every page in `raw`; no files, no DB yet.
+  7 new tests pass, 43 in the suite; all 121 beer-yeast pages in `hopline_yeasts.json` parse
+  without error (one-off check).
+- `yeast-loader` Task 2 ([`docs/work/yeast-loader/plan.md`](docs/work/yeast-loader/plan.md)):
+  `ref.source` gains `hopline-yeasts` and loses the unused `brewtarget-default-data`
+  (0 ingredients referenced it); `ref.yeast` gains `field_source jsonb not null` for per-field
+  provenance. Both SQL files applied twice as `postgres` without error; measured 11 sources and
+  the new column both times; 36 tests pass.
+- `yeast-loader` Task 1 ([`docs/work/yeast-loader/plan.md`](docs/work/yeast-loader/plan.md)):
+  `python -m loaders.fetch_hopline --yeasts OUT.json` reads both yeast pages through their
+  product-list request and saves each page's name, spec table, data block and long description
+  (table, `<strong>` labels, text). Measured: 129 products (dry 90 on 5 pages, liquid 39 on 2,
+  none in both), all with name, data block and description; 6 fetcher tests pass. Malt and hop
+  page parsing unchanged (8 pages compared old vs new).
+- Planned `yeast-loader` ([`docs/work/yeast-loader/plan.md`](docs/work/yeast-loader/plan.md)):
+  the source is now hopline.hu's dry and liquid yeast pages instead of the Brewtarget BeerJSON
+  files (user decision, D8 closed, §5). Measured on the pages: 129 products (dry 90, liquid 39),
+  listed only through the pages' own product-list request; temperature, flocculation, alcohol
+  tolerance and style family on nearly all, attenuation on none. Expects 119 yeasts (Brewline
+  as its own producer, 2 g packs joined to their 12 g product, 8 non-beer yeasts skipped),
+  attenuation from the maker catalogues and data sheets the user named per producer
+  (Brewfather figures for 8 Gozdawa strains; none for Norse Nectar and YeasterBunny).
 - Wrote brief for `hop-figures` ([`docs/work/hop-figures/`](docs/work/hop-figures/brief.md)),
   narrowed to the hop loader's Beer Maverick fill below plus the slim-ref follow-up doc edits;
   the oil-unit check moved to the draft brief

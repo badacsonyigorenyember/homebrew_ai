@@ -49,11 +49,36 @@ insert into ref.source (slug, title, edition, publisher, licence, url, notes) va
      'Figures supplied by the user', null,
      null, null, null,
      'Hand-entered figures where no source states one; the user''s wording is kept in raw'),
-    ('brewtarget-default-data',
-     'Brewtarget default ingredient data', 'DefaultContent003 and DefaultContent004',
-     'Brewtarget project', 'GPL-3.0',
-     'https://github.com/Brewtarget/brewtarget',
-     'BeerJSON files DefaultContent003-Ingredients-Hops-Yeasts.json and DefaultContent004-MoreYeasts.json'),
+    ('hopline-yeasts',
+     'Hopline yeast product pages', 'website, fetched 2026-10-11',
+     'Hopline', null,
+     'https://www.hopline.hu/alapanyagok/elesztok/szaraz-eleszto',
+     'Dry yeast page (this URL) and liquid yeast page (https://www.hopline.hu/alapanyagok/elesztok/folyekony-eleszto)'),
+    ('yeastflow-catalogue',
+     'YeastFlow strain catalogue', 'website, fetched 2026-10-11',
+     'YeastFlow', null,
+     'https://yeastflow.com/our-strains/',
+     'Yeast attenuation; each strain page under this URL'),
+    ('lallemand-catalogue',
+     'Lallemand brewing yeast catalogue', 'website, fetched 2026-10-11',
+     'Lallemand Brewing', null,
+     'https://www.lallemandbrewing.com/en/continental-europe/products/brewing-yeast?page=1',
+     'Yeast attenuation; the product pages of the catalogue'),
+    ('fermentis-datasheets',
+     'Fermentis technical data sheets', 'website, fetched 2026-10-11',
+     'Fermentis', null,
+     'https://fermentis.com/',
+     'Yeast attenuation; data sheets linked from hopline, else fermentis.com product pages'),
+    ('mangrovejacks-datasheets',
+     'Mangrove Jack''s yeast data sheets', 'website, fetched 2026-10-11',
+     'Mangrove Jack''s', null,
+     'https://mangrovejacks.com/',
+     'Yeast attenuation; product pages and the Yeast Range booklet linked from hopline'),
+    ('brewfather',
+     'Brewfather yeast database', 'website, figures given by the user 2026-10-11',
+     'Brewfather', null,
+     'https://brewfather.app/',
+     'Yeast attenuation for Gozdawa and Brewline strains, as the user read them'),
     ('water-chemistry',
      'Standard atomic masses', 'IUPAC standard atomic weights 2021',
      'IUPAC', null, null,
@@ -65,6 +90,22 @@ update ref.source set edition = 'IUPAC standard atomic weights 2021'
  where slug = 'water-chemistry'
    and edition is distinct from 'IUPAC standard atomic weights 2021';
 
+update ref.source set notes = 'Yeast attenuation for Gozdawa and Brewline strains, as the user read them'
+ where slug = 'brewfather'
+   and notes is distinct from 'Yeast attenuation for Gozdawa and Brewline strains, as the user read them';
+
+update ref.source set notes = 'Dry yeast page (this URL) and liquid yeast page (https://www.hopline.hu/alapanyagok/elesztok/folyekony-eleszto)'
+ where slug = 'hopline-yeasts'
+   and notes is distinct from 'Dry yeast page (this URL) and liquid yeast page (https://www.hopline.hu/alapanyagok/elesztok/folyekony-eleszto)';
+
+-- Brewline "Bajor Búza" is named in English (user request 2026-10-11). Renaming the row keeps
+-- its id, so the yeast loader's upsert updates it instead of adding a second row.
+update ref.ingredient
+   set name = 'Bavarian Wheat', name_key = 'bavarianwheat'
+ where kind = 'yeast' and producer_key = 'brewline' and name_key = 'bajorbuza'
+   and not exists (select 1 from ref.ingredient
+                    where kind = 'yeast' and producer_key = 'brewline' and name_key = 'bavarianwheat');
+
 -- The two malts.json sources were replaced by the malt sources above; remove them while
 -- nothing references them.
 delete from ref.source s
@@ -75,4 +116,16 @@ delete from ref.source s
 -- while nothing references them.
 delete from ref.source s
  where s.slug in ('hops-json', 'hopslist')
+   and not exists (select 1 from ref.ingredient i where i.source_id = s.id);
+
+-- The Brewtarget yeast files were replaced by hopline-yeasts; remove the source while nothing
+-- references it.
+delete from ref.source s
+ where s.slug = 'brewtarget-default-data'
+   and not exists (select 1 from ref.ingredient i where i.source_id = s.id);
+
+-- The Brewline catalogue PDF lists none of hopline's Brewline products (their attenuation comes
+-- from Brewfather instead); remove the source while nothing references it.
+delete from ref.source s
+ where s.slug = 'brewline-catalogue'
    and not exists (select 1 from ref.ingredient i where i.source_id = s.id);

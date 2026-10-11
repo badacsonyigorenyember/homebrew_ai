@@ -186,12 +186,12 @@ erDiagram
 
 | Table | Key columns | Filled from | Rows (2026-10-11) |
 |---|---|---|---|
-| `source` | slug, title, edition, licence, url, `file_path` (book file, for `kb`) | by hand, `db/011_ref_sources.sql` | 10 |
+| `source` | slug, title, edition, licence, url, `file_path` (book file, for `kb`) | by hand, `db/011_ref_sources.sql` | 16 |
 | `beer_style` | guide, code (unique per source), ranges (`numrange`), characteristic ingredients, `raw` | `styles.json`, `ba_styles.json` | 285: BJCP 2021 116 + BA 2026 169 |
-| `ingredient` | kind, name, producer, source, `raw` | all kind loaders | 164 |
+| `ingredient` | kind, name, producer, source, `raw` | all kind loaders | 283 (74 fermentable, 90 hop, 119 yeast) |
 | `fermentable` | extract (% dbfg, as the sources state it), colour (EBC range), max % of grist, `role`, `field_source` | hopline malt pages + Weyermann, Viking, Simpsons catalogues | 74 (74 with extract, 73 with EBC, 62 with `max_pct`); `role` empty until P3 |
 | `hop` | origins, purpose, alpha range, total oil, `field_source` | hopline hop pages; values hopline lacks (4 hops' alpha/oil, Enigma's purpose) from Beer Maverick through the hop loader | 90 (all with alpha and total oil) |
-| `yeast` | product id, type, form, attenuation range, temperature range, flocculation, alcohol tolerance | Brewtarget data (296 + 275) | empty, P1 (`yeast-loader`) |
+| `yeast` | product id, type, form, attenuation range, temperature range, flocculation, alcohol tolerance | hopline dry and liquid yeast pages; attenuation from the makers' catalogues and data sheets (Brewfather for Gozdawa and Brewline) | 119 (dry 81, liquid 38; 93 with attenuation) |
 | `water_salt` | formula, ions per gram | computed from atomic masses | empty, P1 (`water-salts`) |
 | `misc` | `category` (spice, fruit, wood, lactose, …), **no gravity data** | corpus `misc` names, by hand | empty, P3 |
 | `tag` · `tag_synonym` | facet, name, parent ("citrusy" → citrus) · source word → tag | hop descriptors, malt roles, yeast families | empty, P3 |
@@ -412,7 +412,7 @@ All tables exist (§1). This is the order they get data in.
 | # | Step | Tables filled | Done when |
 |---|---|---|---|
 | 1 | Styles | `ref.source`, `ref.beer_style` ← both style JSONs | ✅ loaded: 285 rows (BJCP 116 + BA 169), 10 sources; the spot-check against the PDFs is still to do (`ref-spotcheck`) |
-| 2 | Ingredients | `ref.ingredient` + kind tables ← malts, hops, Brewtarget yeasts, salts | 🟡 malts 74, hops 90 (164 ingredients); yeasts (`yeast-loader`) and salts (`water-salts`) not loaded yet |
+| 2 | Ingredients | `ref.ingredient` + kind tables ← malts, hops, hopline yeasts, salts | 🟡 malts 74, hops 90, yeasts 119 (283 ingredients); salts (`water-salts`) not loaded yet |
 | 3 | Style-fit vocabulary | `ref.tag`, `tag_synonym`, `ingredient_tag`, `misc`, `fermentable.role` | every hop has ≥ 1 character tag |
 | 4 | Corpus | `corpus.recipe`, `recipe_item` ← archive dump · `name_map` · profile job → `style_profile`, `style_grist`, `style_hop_use`, `style_ingredient` | ≥ 90 % of grist mass mapped to a role for the test styles |
 | 5 | Envelopes | `ref.sensory_dimension`, `style_sensory`, `style_character` for the test styles (BA parsed, BJCP extracted + reviewed); `style_rule` where needed | the Citra table in the roadmap reproduces from SQL + code |
