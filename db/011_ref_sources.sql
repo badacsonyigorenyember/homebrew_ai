@@ -86,7 +86,12 @@ insert into ref.source (slug, title, edition, publisher, licence, url, notes) va
     ('palmer-how-to-brew',
      'How to Brew', 'Fourth edition 2017',
      'Brewers Publications', null, null,
-     'Table 18.5 (p. 289) and Table 24.1 (p. 436) only; file shared/rag-files/pending/how_to_brew.pdf')
+     'Table 18.5 (p. 289) and Table 24.1 (p. 436) only; file shared/rag-files/pending/how_to_brew.pdf'),
+    ('hopline-adjuncts',
+     'Hopline flake and sugar product pages', 'website, fetched 2026-10-11',
+     'Hopline', null,
+     'https://www.hopline.hu/alapanyagok/malatak/pelyhek-199',
+     'Flakes (this URL) and the fermentable and non-fermentable sugar pages (https://www.hopline.hu/alapanyagok/cukrok-edesitoszerek-244/erjesztheto-250 and https://www.hopline.hu/alapanyagok/cukrok-edesitoszerek-244/nem-erjesztheto)')
 on conflict (slug) do nothing;
 
 -- Corrections to rows inserted by an earlier version of this file.

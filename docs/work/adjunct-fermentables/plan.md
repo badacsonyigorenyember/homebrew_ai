@@ -118,7 +118,7 @@ Commit: `Add fermentability column and Palmer source to ref`
 
 ### Task 2: hopline's adjunct pages are fetched
 Why: R7 (hopline data from hopline's pages), R8.
-- [ ] `loaders/fetch_hopline.py`:
+- [x] `loaders/fetch_hopline.py`:
   - `ADJUNCT_LISTINGS = {"flakes": ".../alapanyagok/malatak/pelyhek-199", "fermentable sugars": ".../alapanyagok/cukrok-edesitoszerek-244/erjesztheto-250", "non-fermentable sugars": ".../alapanyagok/cukrok-edesitoszerek-244/nem-erjesztheto"}`
     (full `https://www.hopline.hu` URLs).
   - `page_text(html) -> str | None`: `visible_text(html)` from the first `"Főkategória"` up
@@ -132,19 +132,19 @@ Why: R7 (hopline data from hopline's pages), R8.
   - Do not use `product_page` or `long_description` for these pages: `long_description` raises
     on the barley flake page (a table with 0 headers), and `product_page`'s spec is `None` on
     the candi and lactose pages.
-- [ ] Write test `tests/test_fetch_hopline.py::test_page_text_runs_from_main_category_to_reviews`:
+- [x] Write test `tests/test_fetch_hopline.py::test_page_text_runs_from_main_category_to_reviews`:
       an inline HTML fixture with a `<script>`, a "Főkategória … Szín: 225 EBC …" block and a
       "Vélemények" footer. The text has the block, and neither the script nor the footer. A page
       without "Vélemények" gives `None`.
-- [ ] `db/011_ref_sources.sql`: add
+- [x] `db/011_ref_sources.sql`: add
       `('hopline-adjuncts', 'Hopline flake and sugar product pages', 'website, fetched <fetch date>', 'Hopline', null, 'https://www.hopline.hu/alapanyagok/malatak/pelyhek-199', 'Flakes (this URL) and the fermentable and non-fermentable sugar pages (https://www.hopline.hu/alapanyagok/cukrok-edesitoszerek-244/erjesztheto-250 and https://www.hopline.hu/alapanyagok/cukrok-edesitoszerek-244/nem-erjesztheto)')`.
       Use the date the fetch below runs. Apply it as in Task 1. `ref.source` → 18 rows.
-- [ ] Run `.venv/bin/python -m loaders.fetch_hopline --adjuncts shared/rag-files/pending/hopline_adjuncts.json`.
+- [x] Run `.venv/bin/python -m loaders.fetch_hopline --adjuncts shared/rag-files/pending/hopline_adjuncts.json`.
       Expect 14 products: flakes 9, fermentable sugars 3, non-fermentable sugars 2. Every
       product has a non-null `text`. A different count is fine if every SKU is then mapped in
       Task 3. A new product that is a fermentable this work's scope might cover is a question
       for the user, not a silent `SKIPPED` entry.
-- [ ] Run `.venv/bin/python -m pytest tests/test_fetch_hopline.py`, expect pass.
+- [x] Run `.venv/bin/python -m pytest tests/test_fetch_hopline.py`, expect pass.
 Done when: the JSON file exists with 14 products, all with text, and the test passes.
 Commit: `Fetch hopline adjunct pages`
 
