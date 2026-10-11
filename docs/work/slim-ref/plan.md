@@ -1,6 +1,6 @@
 # Apply the database review (slim `ref`, create all schemas) — implementation plan
 
-Stage: approved
+Stage: implementing
 Source: [`docs/DATABASE-REVIEW.md`](../../DATABASE-REVIEW.md) (committed on `main` in `8b41df1`)
 Branch: slim-ref
 
@@ -72,49 +72,49 @@ All `psql` commands below are run from the repo root. `Q` is shorthand for
 
 ### Task 1: Drop the 7 unused `ref` columns and re-run the loaders
 Why: review §4.1 / §4.2 / §5.1 — columns no step reads, always `NULL`, or computed.
-- [ ] `db/010_ref_schema.sql`, `create table` statements:
+- [x] `db/010_ref_schema.sql`, `create table` statements:
   - `ref.beer_style`: remove `edition text not null` and `co2_vol numrange` (and its comment);
     replace `unique (guide, edition, code)` with `unique (source_id, code)`.
   - `ref.fermentable`: remove `potential_sg` and `type` (and its comment).
   - `ref.hop`: remove `beta_pct` and `oils_pct`.
   - `ref.water_salt`: remove `molar_mass`.
-- [ ] Append to the end of 010, under a comment
+- [x] Append to the end of 010, under a comment
   `-- Columns removed by the database review (docs/DATABASE-REVIEW.md §5.1, 2026-10-11)`, the
   review §5.1 SQL verbatim (drop old key, drop/add `beer_style_source_id_code_key`, drop the 7
   columns with `if exists`).
-- [ ] `loaders/styles.py`: remove `edition` from `Style`, `parse_style(row, guide)` (no edition
+- [x] `loaders/styles.py`: remove `edition` from `Style`, `parse_style(row, guide)` (no edition
   argument), `parse_bjcp` / `parse_ba` call it without one. `load()`: no `edition` in the column
   list, `on conflict (source_id, code) do update`, and drop `source_id = excluded.source_id`
   from the `set` list (it is now part of the key). Docstring: "on (source_id, code)".
   The printed labels ("BJCP 2021: … styles") stay.
-- [ ] `loaders/malts.py`: remove `potential_sg` from `Fermentable`, from `merge()` (the
+- [x] `loaders/malts.py`: remove `potential_sg` from `Fermentable`, from `merge()` (the
   `field_source["potential_sg"]` line, the constructor argument, the docstring sentence) and
   from `load()`'s insert/update. Keep `potential_sg()` and `PPG_OF_PURE_EXTRACT`; add one line
   to its docstring: not stored (the DB keeps only the extract the sources state), kept for the
   maths library.
-- [ ] `loaders/hops.py`: remove `beta_pct` from `Hop`, from `make_hop()` (the `Béta-sav` parse,
+- [x] `loaders/hops.py`: remove `beta_pct` from `Hop`, from `make_hop()` (the `Béta-sav` parse,
   the `values` entry, the constructor argument; `null_figures` sets `alpha = oil = None`) and
   from `load()`; remove "oils_pct stays NULL." from `load()`'s docstring. `raw` keeps the whole
   page, so beta stays there.
-- [ ] Tests: `tests/test_styles.py` — drop the `edition` parts of the asserts in
+- [x] Tests: `tests/test_styles.py` — drop the `edition` parts of the asserts in
   `test_bjcp_21a` and `test_ba_code_is_slug`. `tests/test_malts.py` — drop every
   `f.potential_sg` assert in `test_catalogue_wins_hopline_fills`, `test_no_extract_stays_null`,
   `test_user_supplied_fills_only_gaps`, and the `"potential_sg"` key from their expected
   `field_source` dicts and from the set in `test_hopline_only`; `test_potential_sg` stays as is.
   `tests/test_hops.py` — drop the `beta_pct` assert and `field_source` key in `test_citra`, and
   `assert hop.beta_pct is None` in `test_pack_sizes_and_null_figures`.
-- [ ] Run `.venv/bin/python -m pytest -q` → 33 passed (no test added or removed).
-- [ ] Apply 010 twice:
+- [x] Run `.venv/bin/python -m pytest -q` → 33 passed (no test added or removed).
+- [x] Apply 010 twice:
   `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/010_ref_schema.sql`
   → no error either time.
-- [ ] Re-run the loaders, each twice:
+- [x] Re-run the loaders, each twice:
   - `.venv/bin/python -m loaders.styles --bjcp shared/rag-files/pending/styles.json --ba shared/rag-files/pending/ba_styles.json`
     → `BJCP 2021: 116 styles`, `BA 2026: 169 styles`
   - `.venv/bin/python -m loaders.malts --hopline shared/rag-files/pending/hopline_malts.json --catalogue shared/rag-files/pending/malt_catalogue.json`
     → `loaded: 74 malts`
   - `R=$(mktemp -d)/report.md; .venv/bin/python -m loaders.hops --hopline shared/rag-files/pending/hopline_hops.json --report "$R" && diff "$R" docs/finished/hop-loader/report.md`
     → `loaded: 90 hops`, no diff
-- [ ] Check (after the second run):
+- [x] Check (after the second run):
   - `Q "select count(*), count(distinct (source_id, code)) from ref.beer_style"` → `285|285`
   - `Q "select count(*) from ref.ingredient"` → `164`
   - `Q "select count(*), count(extract_dbfg_pct), count(*) filter (where field_source ? 'potential_sg') from ref.fermentable"` → `74|74|0`
@@ -122,7 +122,7 @@ Why: review §4.1 / §4.2 / §5.1 — columns no step reads, always `NULL`, or c
   - `Q "select table_name, column_name from information_schema.columns where table_schema = 'ref' and (table_name, column_name) in (('beer_style','edition'),('beer_style','co2_vol'),('fermentable','potential_sg'),('fermentable','type'),('hop','beta_pct'),('hop','oils_pct'),('water_salt','molar_mass'))"` → no rows
   - `Q "select conname from pg_constraint where conrelid = 'ref.beer_style'::regclass and contype = 'u'"` → `beer_style_source_id_code_key` only
   - `Q "select i.raw->'hopline-hops'->'200750-cs'->'table'->>'Béta-sav' from ref.ingredient i where i.kind = 'hop' and i.name = 'Citra'"` → `3-4.5 %` as stored today (beta kept in `raw`)
-- [ ] PROJECT.md §8: dated line for this task with the measured results.
+- [x] PROJECT.md §8: dated line for this task with the measured results.
 Done when: suite 33 passed, all checks above match, the hop report is unchanged.
 Commit: `Drop unused ref columns and re-run loaders`
 

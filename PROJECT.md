@@ -194,6 +194,14 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- `slim-ref` Task 1 ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): dropped the
+  7 unused `ref` columns (`beer_style.edition`, `co2_vol`; `fermentable.potential_sg`, `type`;
+  `hop.beta_pct`, `oils_pct`; `water_salt.molar_mass`) in `db/010_ref_schema.sql`;
+  `ref.beer_style` is now unique on `(source_id, code)`. Styles, malts and hops loaders lose the
+  dropped fields (`potential_sg()` stays for the maths library) and were re-run twice: 285 styles
+  (285 distinct `(source_id, code)`), 164 ingredients, 74 malts (74 with extract, 0 with
+  `potential_sg` in `field_source`), 90 hops (87 with alpha, 0 with `beta_pct` in
+  `field_source`); hop report unchanged; Citra's beta still in `raw`. Suite: 33 passed.
 - Planned `slim-ref` ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): apply the approved database review: drop
   the 7 unused `ref` columns and re-run the loaders, then create all `corpus`, `kb`, `app` and
   style-fit tables now, empty (user decision "Everything in §5"), and rewrite DATABASE.md.

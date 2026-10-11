@@ -23,7 +23,6 @@ create table if not exists ref.beer_style (
     id                         bigint generated always as identity primary key,
     source_id                  bigint not null references ref.source (id),
     guide                      text not null check (guide in ('BJCP', 'BA')),
-    edition                    text not null,
     code                       text not null,
     name                       text,
     category                   text,
@@ -33,10 +32,9 @@ create table if not exists ref.beer_style (
     ibu                        numrange,
     srm                        numrange,
     abv                        numrange,
-    co2_vol                    numrange,  -- stays NULL until P2
     characteristic_ingredients text,
     raw                        jsonb not null,
-    unique (guide, edition, code)
+    unique (source_id, code)
 );
 
 -- One row per ingredient; the kind-specific details live in the tables below.
@@ -55,10 +53,8 @@ create table if not exists ref.ingredient (
 
 create table if not exists ref.fermentable (
     ingredient_id    bigint primary key references ref.ingredient (id) on delete cascade,
-    potential_sg     numeric(5, 4),
     extract_dbfg_pct numeric(4, 1),
     ebc              numrange,
-    type             text,           -- stays NULL until P3
     max_pct          numeric(4, 1),  -- stated maximum share of the grist, %
     field_source     jsonb not null  -- which source each field was taken from
 );
@@ -68,9 +64,7 @@ create table if not exists ref.hop (
     origins           text[],
     purpose           text check (purpose in ('aroma', 'bittering', 'dual')),
     alpha_pct         numrange,
-    beta_pct          numrange,
     total_oil_ml_100g numrange,
-    oils_pct          jsonb,
     field_source      jsonb not null  -- which source each field was taken from
 );
 
@@ -90,7 +84,6 @@ create table if not exists ref.yeast (
 create table if not exists ref.water_salt (
     ingredient_id      bigint primary key references ref.ingredient (id) on delete cascade,
     formula            text not null,
-    molar_mass         numeric(7, 3) not null,
     ion_mg_per_l_per_g jsonb not null
 );
 
@@ -118,3 +111,23 @@ alter table ref.water_salt
 -- Per-field provenance for fermentables (ref.fermentable had 0 rows when this was added,
 -- so NOT NULL without a default works).
 alter table ref.fermentable add column if not exists field_source jsonb not null;
+
+-- Columns removed by the database review (docs/DATABASE-REVIEW.md §5.1, 2026-10-11)
+
+-- beer_style: edition lives in ref.source; co2_vol has no source yet (back in P6)
+alter table ref.beer_style drop constraint if exists beer_style_guide_edition_code_key;
+alter table ref.beer_style drop constraint if exists beer_style_source_id_code_key;
+alter table ref.beer_style add  constraint beer_style_source_id_code_key unique (source_id, code);
+alter table ref.beer_style drop column if exists edition,
+                           drop column if exists co2_vol;
+
+-- fermentable: potential follows from extract (maths library); role replaces type in P3
+alter table ref.fermentable drop column if exists potential_sg,
+                            drop column if exists type;
+
+-- hop: nothing reads beta acids or the oil breakdown; both stay in raw
+alter table ref.hop drop column if exists beta_pct,
+                    drop column if exists oils_pct;
+
+-- water_salt (empty): molar mass is an input to the ion computation, not a result
+alter table ref.water_salt drop column if exists molar_mass;
