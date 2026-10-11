@@ -12,8 +12,16 @@ create table if not exists ref.misc (
     ingredient_id bigint primary key references ref.ingredient (id) on delete cascade,
     category      text not null
                   check (category in ('spice', 'herb', 'fruit', 'wood', 'coffee', 'cacao',
-                                      'vanilla', 'lactose', 'smoke', 'fining', 'other'))
+                                      'vanilla', 'smoke', 'fining', 'other'))
 );
+
+-- Lactose is a fermentable now (adjunct-fermentables), so it is no longer a misc category.
+-- Brings a table created by an earlier version of this file up to date.
+alter table ref.misc
+    drop constraint if exists misc_category_check,
+    add  constraint misc_category_check
+         check (category in ('spice', 'herb', 'fruit', 'wood', 'coffee', 'cacao',
+                             'vanilla', 'smoke', 'fining', 'other'));
 
 -- Flavour and origin vocabulary; parent gives partial matches (grapefruit ⊂ citrus ⊂ fruity)
 create table if not exists ref.tag (

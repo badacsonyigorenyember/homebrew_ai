@@ -1,4 +1,4 @@
-"""Fetch hopline.hu's malt or hop list and product pages -> raw page facts as JSON.
+"""Fetch hopline.hu's malt, hop, yeast or adjunct lists and product pages -> raw page facts as JSON.
 
 No interpretation happens here: for each product it keeps the SKU, the URL, the name, the spec
 text, the spec table, the data block and the long description as shown on the page.
@@ -12,6 +12,7 @@ One request per second; /shop_ajax/ is never fetched (robots.txt disallows it).
 Run: python -m loaders.fetch_hopline OUT.json          (malts)
      python -m loaders.fetch_hopline --hops OUT.json   (hops, with hopline's three hop categories)
      python -m loaders.fetch_hopline --yeasts OUT.json (dry and liquid yeasts, with the long description)
+     python -m loaders.fetch_hopline --adjuncts OUT.json (flakes and sugars, with each page's visible text)
 """
 
 import argparse
@@ -32,6 +33,11 @@ HOP_CATEGORIES = {
 YEAST_LISTINGS = {
     "dry": "https://www.hopline.hu/alapanyagok/elesztok/szaraz-eleszto",
     "liquid": "https://www.hopline.hu/alapanyagok/elesztok/folyekony-eleszto",
+}
+ADJUNCT_LISTINGS = {
+    "flakes": "https://www.hopline.hu/alapanyagok/malatak/pelyhek-199",
+    "fermentable sugars": "https://www.hopline.hu/alapanyagok/cukrok-edesitoszerek-244/erjesztheto-250",
+    "non-fermentable sugars": "https://www.hopline.hu/alapanyagok/cukrok-edesitoszerek-244/nem-erjesztheto",
 }
 USER_AGENT = "AI-Homebrew-Assistant hopline loader (personal project; one request per second)"
 
@@ -169,6 +175,22 @@ def product_page(html: str) -> dict:
     return {"name": name, "spec": spec, "table": spec_table(html), "params": params(html)}
 
 
+def page_text(html: str) -> str | None:
+    """The product's visible text from the first "Főkategória" up to the next "Vélemények".
+
+    Used for the adjunct pages, which have no spec line: their figures are in the description.
+    None when either marker is missing.
+    """
+    text = visible_text(html)
+    start = text.find("Főkategória")
+    if start == -1:
+        return None
+    end = text.find("Vélemények", start)
+    if end == -1:
+        return None
+    return text[start:end].strip()
+
+
 def fetch(url: str) -> str:
     """One GET as this project, then a one-second pause."""
     if "/shop_ajax/" in url:
@@ -245,16 +267,44 @@ def fetch_yeasts(out: str) -> None:
     print(f"wrote {len(products)} products to {out}")
 
 
+def fetch_adjuncts(out: str) -> None:
+    """The three adjunct listings and every product page on them, as name and page text -> out."""
+    categories = {category: listing(url) for category, url in ADJUNCT_LISTINGS.items()}
+    products = []
+    seen: set[str] = set()
+    for links in categories.values():
+        for sku, url in links:
+            if sku not in seen:
+                seen.add(sku)
+                html = fetch(url)
+                m = NAME.search(html)
+                name = visible_text(m.group(1)) if m else None
+                products.append({"sku": sku, "url": url, "name": name, "text": page_text(html)})
+    result = {
+        "fetched": date.today().isoformat(),
+        "listings": ADJUNCT_LISTINGS,
+        "categories": {category: [sku for sku, _ in links] for category, links in categories.items()},
+        "products": products,
+    }
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump(result, f, ensure_ascii=False, indent=2)
+    print(f"wrote {len(products)} products to {out}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("out", help="JSON file to write")
     kind = parser.add_mutually_exclusive_group()
     kind.add_argument("--hops", action="store_true", help="fetch the hop list instead of the malt list")
     kind.add_argument("--yeasts", action="store_true", help="fetch the dry and liquid yeast lists instead")
+    kind.add_argument("--adjuncts", action="store_true", help="fetch the flake and sugar lists instead")
     args = parser.parse_args()
 
     if args.yeasts:
         fetch_yeasts(args.out)
+        return
+    if args.adjuncts:
+        fetch_adjuncts(args.out)
         return
 
     listing_url = HOP_LISTING_URL if args.hops else LISTING_URL

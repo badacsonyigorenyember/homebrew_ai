@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from loaders.fetch_hopline import ajax_links, listing_links, long_description, params, product_page, spec_table
+from loaders.fetch_hopline import ajax_links, listing_links, long_description, page_text, params, product_page, spec_table
 
 
 def test_listing_links():
@@ -132,3 +132,25 @@ def test_long_description():
     assert "mobile-head" not in details["text"]
 
     assert long_description("<div class='other'><p>x</p></div>") is None
+
+
+def test_page_text_runs_from_main_category_to_reviews():
+    html = """
+    <html><body>
+    <h1 class='artdet__name'>Brown Candi cukor 1kg</h1>
+    <script>var x = "Szín: 1 EBC";</script>
+    <div>F&#337;kategória</div> <a>Cukrok</a>
+    <p>Barna kandiscukor belga sörökhöz.</p>
+    <p>Szín: 225 EBC</p>
+    <div>Vélemények</div><p>Nincs még vélemény</p>
+    </body></html>
+    """
+    text = page_text(html)
+    assert text.startswith("Főkategória")
+    assert "Szín: 225 EBC" in text
+    assert "var x" not in text
+    assert "Szín: 1 EBC" not in text
+    assert "Vélemények" not in text
+    assert "Nincs még vélemény" not in text
+
+    assert page_text("<div>Főkategória</div><p>Szín: 225 EBC</p>") is None

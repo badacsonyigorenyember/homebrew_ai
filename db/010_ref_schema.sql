@@ -135,3 +135,9 @@ alter table ref.hop drop column if exists beta_pct,
 
 -- water_salt (empty): molar mass is an input to the ion computation, not a result
 alter table ref.water_salt drop column if exists molar_mass;
+
+-- How much of a fermentable's extract yeast can ferment (adjunct-fermentables, 2026-10-11):
+-- full = all of it (sugars), normal = follows the yeast's attenuation (malts, flakes),
+-- none = none of it (lactose). The 74 malts already loaded take the default, normal.
+alter table ref.fermentable add column if not exists fermentability text not null default 'normal'
+    check (fermentability in ('full', 'normal', 'none'));

@@ -141,6 +141,7 @@ erDiagram
         numrange ebc
         numeric max_pct
         text role "base|kilned|crystal|roast|adjunct|sugar"
+        text fermentability "full|normal|none"
         jsonb field_source
     }
     hop {
@@ -188,14 +189,14 @@ erDiagram
 
 | Table | Key columns | Filled from | Rows (2026-10-11) |
 |---|---|---|---|
-| `source` | slug, title, edition, licence, url, `file_path` (book file, for `kb`) | by hand, `db/011_ref_sources.sql` | 16 |
+| `source` | slug, title, edition, licence, url, `file_path` (book file, for `kb`) | by hand, `db/011_ref_sources.sql` | 18 |
 | `beer_style` | guide, code (unique per source), ranges (`numrange`), characteristic ingredients, `raw` | `styles.json`, `ba_styles.json` | 285: BJCP 2021 116 + BA 2026 169 |
-| `ingredient` | kind, name, producer, source, `raw` | all kind loaders | 283 (74 fermentable, 90 hop, 119 yeast) |
-| `fermentable` | extract (% dbfg, as the sources state it), colour (EBC range), max % of grist, `role`, `field_source` | hopline malt pages + Weyermann, Viking, Simpsons catalogues | 74 (74 with extract, 73 with EBC, 62 with `max_pct`); `role` empty until P3 |
+| `ingredient` | kind, name, producer, source, `raw` | all kind loaders | 298 (81 fermentable, 90 hop, 119 yeast, 8 water_salt) |
+| `fermentable` | extract (% dbfg, as the sources state it), colour (EBC range), max % of grist, `role`, `fermentability` (`full` / `normal` / `none`), `field_source` | hopline malt pages + Weyermann, Viking, Simpsons catalogues; hopline flake and sugar pages + Palmer, *How to Brew* Tables 18.5 and 24.1 (adjuncts) | 81: 74 malts + 7 adjuncts (4 flakes, brown candi sugar, lactose, honey); 81 with extract, 74 with EBC, 63 with `max_pct`; fermentability `normal` 78, `full` 2, `none` 1; `role` empty until P3 |
 | `hop` | origins, purpose, alpha range, total oil, `field_source` | hopline hop pages; values hopline lacks (4 hops' alpha/oil, Enigma's purpose) from Beer Maverick through the hop loader | 90 (all with alpha and total oil) |
 | `yeast` | product id, type, form, attenuation range, temperature range, flocculation, alcohol tolerance | hopline dry and liquid yeast pages; attenuation from the makers' catalogues and data sheets (Brewfather for Gozdawa and Brewline) | 119 (dry 81, liquid 38; 93 with attenuation) |
 | `water_salt` | formula, ions per gram | computed from atomic masses | empty, P1 (`water-salts`) |
-| `misc` | `category` (spice, fruit, wood, lactose, …), **no gravity data** | corpus `misc` names, by hand | empty, P3 |
+| `misc` | `category` (spice, fruit, wood, vanilla, …), **no gravity data** | corpus `misc` names, by hand | empty, P3 |
 | `tag` · `tag_synonym` | facet, name, parent ("citrusy" → citrus) · source word → tag | hop descriptors, malt roles, yeast families | empty, P3 |
 | `ingredient_tag` | ingredient ↔ tag, `reviewed` (false = derived by code); no weight, match strength comes from the tag tree | derived by code from the ingredient's own data ([STYLE-FIT.md](STYLE-FIT.md) §2) | empty, P3 |
 | `sensory_dimension` | name, class (core · specialty · transforming) | by hand | empty, P3 |
@@ -217,6 +218,13 @@ reads them; beta stays in `raw`), `water_salt.molar_mass` (computed in code).
 - Units are SI (kg, L, °C, SG, EBC). Conversion happens only at display.
 - A value no source states stays `NULL`, never 0. Computed values (potential SG, molar mass) are
   not stored.
+- Anything with gravity (malts, flakes, sugars, lactose, honey) is a `fermentable` and enters
+  OG through its extract. Its `fermentability` says how much of that extract yeast can ferment:
+  `full` all of it, `normal` follows the yeast's attenuation (grain malts and flakes; the
+  default, needs no source), `none` none of it (lactose stays whole in FG). `full` and `none`
+  must be stated by a source and recorded in `field_source`.
+  Sugar and honey extracts are Palmer's as-sold PPG ÷ 46 (water included), not dry basis:
+  apply no moisture correction to them.
 - Extras without gravity data (cinnamon, vanilla) are `misc` and **never enter the OG/IBU/SRM
   maths**.
 - Fermentable `role` is derived by code from EBC + name keywords.
@@ -414,7 +422,7 @@ All tables exist (§1). This is the order they get data in.
 | # | Step | Tables filled | Done when |
 |---|---|---|---|
 | 1 | Styles | `ref.source`, `ref.beer_style` ← both style JSONs | ✅ 285 rows (BJCP 116 + BA 169), 16 sources, 0 rows without a source; 10 rows per table spot-checked against the sources, no errors (2026-10-11, `ref-spotcheck`). `co2_vol` was dropped: no source has it; back in P6 |
-| 2 | Ingredients | `ref.ingredient` + kind tables ← malts, hops, hopline yeasts, salts | ✅ malts 74, hops 90, yeasts 119, salts 8 (291 ingredients), 0 without a source; 10 rows per table spot-checked, no errors (2026-10-11). Gaps: the malts are grain malts from three maltsters only (no sugars, adjuncts or extracts); `fermentable.role` stays empty until P3; 8 hop values were entered by hand from Beer Maverick (`hop.field_source` = `beermaverick`): alpha and oil of Delta, Lotus and Sterling, Mount Hood's oil and Enigma's purpose; all 8 checked against beermaverick.com by the user, all match (2026-10-11) |
+| 2 | Ingredients | `ref.ingredient` + kind tables ← malts, hops, hopline yeasts, salts | ✅ malts 74, adjuncts 7, hops 90, yeasts 119, salts 8 (298 ingredients), 0 without a source; 10 rows per table spot-checked, no errors (2026-10-11). Adjuncts (2026-10-11): 4 flakes (oats, corn, rice, barley), brown candi sugar and lactose from hopline, honey from Palmer, extract from Palmer Tables 18.5/24.1. Gaps: the malts are grain malts from three maltsters only; no malt extracts, and other hopline adjuncts (rye, wheat, chit flakes, white candi, fructose) are not loaded; `fermentable.role` stays empty until P3; 8 hop values were entered by hand from Beer Maverick (`hop.field_source` = `beermaverick`): alpha and oil of Delta, Lotus and Sterling, Mount Hood's oil and Enigma's purpose; all 8 checked against beermaverick.com by the user, all match (2026-10-11) |
 | 3 | Style-fit vocabulary | `ref.tag`, `tag_synonym`, `ingredient_tag`, `misc`, `fermentable.role` | every hop has ≥ 1 character tag |
 | 4 | Corpus | `corpus.recipe`, `recipe_item` ← archive dump · `name_map` · profile job → `style_profile`, `style_grist`, `style_hop_use`, `style_ingredient` | ≥ 90 % of grist mass mapped to a role for the test styles |
 | 5 | Envelopes | `ref.sensory_dimension`, `style_sensory`, `style_character` for the test styles (BA parsed, BJCP extracted + reviewed); `style_rule` where needed | the Citra table in the roadmap reproduces from SQL + code |
