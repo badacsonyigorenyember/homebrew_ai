@@ -2,6 +2,8 @@
 
 > **Status:** design, 2026-10-08. **Nothing is built yet**: the Supabase database is empty
 > since the reset. Workflow context: [RECIPE-ROADMAP.md](RECIPE-ROADMAP.md).
+> **Under review:** [DATABASE-REVIEW.md](DATABASE-REVIEW.md) (2026-10-11) proposes changes to
+> this design; not approved yet.
 > Table and column names are the plan. They become real in `.sql` files applied as `postgres`
 > ([OPERATIONS.md](OPERATIONS.md) §4).
 

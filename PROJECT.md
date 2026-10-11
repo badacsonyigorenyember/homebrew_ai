@@ -4,7 +4,7 @@
 > is trying to do, how it is built, and how far along it is. If code and this file
 > disagree, one of them is wrong. Fix it, and record the fix in the [Progress log](#8-progress-log).
 >
-> Last updated: **2026-10-10**
+> Last updated: **2026-10-11**
 
 ---
 
@@ -181,7 +181,7 @@ Several of these are lessons from the first build (see §9).
 | D1 | Which style system is primary: BJCP, Brewers Association, or both? | BJCP 2021 as primary (the first build resolved styles against BJCP, classifying to the base style); BA as an alternative the user can pick | open |
 | D2 | Chat model: keep `gemma4:12b` or move to `qwen3.8:27b` (fits 16 GB at Q4, slower)? | Benchmark both on the recipe test set before deciding | open |
 | D3 | Where does the recipe pipeline live: n8n workflows, Postgres functions, or a Python service? | Undecided. The first build used n8n plus SQL and became hard to follow | open |
-| D4 | Ingredient catalogue: what schema, and where does the data come from? | Schema designed in [`docs/DATABASE.md`](docs/DATABASE.md) §2 (one `ref.ingredient` table + one table per kind, tags, source per row). Data sources: D7, D8 | open |
+| D4 | Ingredient catalogue: what schema, and where does the data come from? | Schema designed in [`docs/DATABASE.md`](docs/DATABASE.md) §2 (one `ref.ingredient` table + one table per kind, tags, source per row); review proposing slimmer columns and behaviour tables moved to code: [`docs/DATABASE-REVIEW.md`](docs/DATABASE-REVIEW.md), awaiting approval. Data sources: D7, D8 | open |
 | D5 | How the user interacts: chat UI, CLI, n8n chat trigger? | — | open |
 | D7 | Where do the recipe ratios (grist %, hop split) come from? | Brewer's Friend corpus through automatic quality gates (no hand curation) → `corpus.style_profile`, thin styles shrunk toward their family, specialty styles use the base style, extra sources weighted (books, DIY Dog, own batches) ([`docs/STYLE-PROFILES.md`](docs/STYLE-PROFILES.md)) | open |
 | D8 | Yeast data source | Brewtarget default data: 571 entries with attenuation and temperature ranges, GPL-3 (fine for a private install) | open |
@@ -192,6 +192,15 @@ Several of these are lessons from the first build (see §9).
 ## 8. Progress log
 
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
+
+### 2026-10-11
+- Wrote [`docs/DATABASE-REVIEW.md`](docs/DATABASE-REVIEW.md), a **proposal** (nothing applied):
+  each column traced to the pipeline step that reads it, with priorities. Proposes dropping 7
+  columns from the built `ref` tables (`beer_style.edition`, `co2_vol`; `fermentable.potential_sg`,
+  `type`; `hop.beta_pct`, `oils_pct`; `water_salt.molar_mass`), moving `usage_effect`, `hint_knob`
+  and `source_weight` to code, merging `kb.document` into `ref.source`, typed tables instead of
+  arrays and mixed jsonb, and a profile snapshot on `app.recipe`. Measured: `ref` `raw` columns
+  hold ~630 kB, so the full source records stay. DATABASE.md is unchanged until approval.
 
 ### 2026-10-10
 - Shipped `hop-loader` ([`docs/finished/hop-loader/`](docs/finished/hop-loader/verification.md)),
