@@ -10,6 +10,10 @@ PACK_SIZES: extra pack-size SKU -> the main SKU of its hop. Its page is kept in 
 NULL_FIGURES: main SKUs whose page shows another hop's content, with the reason. These hops are
 loaded with name, origin and purpose, but no acid or oil figures (user decision 2026-10-10).
 
+BEERMAVERICK: main SKU -> alpha, total oil or purpose from Beer Maverick (source `beermaverick`),
+entered by the user on 2026-10-11 for the hops where hopline has none. A value fills a field only
+where hopline has none; hopline's own values are never overwritten.
+
 An SKU in neither HOPS nor PACK_SIZES raises in loaders.hops.build, so a new hopline product
 never loads without a decision here. Comments are hopline's product names (2026-10-10).
 """
@@ -129,4 +133,30 @@ PACK_SIZES: dict[str, str] = {
 NULL_FIGURES: dict[str, str] = {
     "200269": "page shows Falconer's Flight (tags, text and figures)",  # Delta komló 1kg
     "200669": "page shows Taurus (tags and text)",  # Lotus komló 1kg
+}
+
+BEERMAVERICK: dict[str, dict] = {
+    "200269": {  # Delta: hopline's page shows Falconer's Flight
+        "alpha_pct": ("5.5", "7"),
+        "total_oil_ml_100g": ("0.5", "1.1"),
+        "date": "2026-10-11",
+    },
+    "200669": {  # Lotus: hopline's page shows Taurus
+        "alpha_pct": ("13", "17"),
+        "total_oil_ml_100g": ("1.5", "2.5"),
+        "date": "2026-10-11",
+    },
+    "200929": {  # Sterling: hopline's table shows "? %" for every figure
+        "alpha_pct": ("5.5", "8.5"),
+        "total_oil_ml_100g": ("0.6", "1.9"),
+        "date": "2026-10-11",
+    },
+    "200450-cs": {  # Mount Hood: hopline has alpha but no oil
+        "total_oil_ml_100g": ("1.2", "1.7"),
+        "date": "2026-10-11",
+    },
+    "201081": {  # Enigma: in none of hopline's aroma / bittering / dual subcategories
+        "purpose": "aroma",
+        "date": "2026-10-11",
+    },
 }

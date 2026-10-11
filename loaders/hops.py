@@ -3,8 +3,10 @@
 One input: the hopline hop pages, fetched by `loaders.fetch_hopline --hops`. Each hop's figures
 come from its main page's spec table; the data block's Alfasav is used only when the table has
 no alpha. Origin is hopline's country, mapped to ISO codes; purpose comes from hopline's three
-hop subcategories. Unknown stays None (NULL), never 0. field_source records the source of each
-filled field, and raw keeps every page of the hop whole.
+hop subcategories. Where hopline has no alpha, oil or purpose, the value entered from Beer
+Maverick (BEERMAVERICK in loaders.hop_products) fills it. Unknown stays None (NULL), never 0.
+field_source records the source of each filled field, and raw keeps every page of the hop whole,
+plus the Beer Maverick entry when one is used.
 """
 
 import argparse
@@ -18,9 +20,10 @@ from psycopg.types.range import Range
 
 from loaders.common import to_range
 from loaders.db import connect, source_id, upsert_ingredient
-from loaders.hop_products import HOPS, NULL_FIGURES, PACK_SIZES
+from loaders.hop_products import BEERMAVERICK, HOPS, NULL_FIGURES, PACK_SIZES
 
 HOPLINE = "hopline-hops"
+BEER_MAVERICK = "beermaverick"
 
 NUMBER = r"(\d+(?:\.\d+)?)"
 
@@ -105,12 +108,18 @@ def purpose_of(skus: list[str], categories: dict[str, list[str]]) -> str | None:
 
 
 def make_hop(
-    name: str, main: dict, extras: list[dict], categories: dict, null_figures: bool = False
+    name: str,
+    main: dict,
+    extras: list[dict],
+    categories: dict,
+    null_figures: bool = False,
+    beermaverick: dict | None = None,
 ) -> Hop:
     """One hop from its main page and its extra pack-size pages.
 
     Figures come from the main page's table (alpha falls back to the data block's Alfasav);
-    with null_figures they all stay None. Origin from the main page, purpose over every page.
+    with null_figures hopline's figures are not used. A beermaverick entry then fills alpha,
+    oil and purpose where hopline gave none. Origin from the main page, purpose over every page.
     """
     table = main["table"] or {}
     params = main["params"]
@@ -134,6 +143,19 @@ def make_hop(
         "total_oil_ml_100g": oil,
     }
     field_source = {field: HOPLINE for field, value in values.items() if value is not None}
+    raw = {HOPLINE: {page["sku"]: page for page in pages}}
+
+    if beermaverick is not None:
+        if alpha is None and "alpha_pct" in beermaverick:
+            alpha = to_range(*beermaverick["alpha_pct"])
+            field_source["alpha_pct"] = BEER_MAVERICK
+        if oil is None and "total_oil_ml_100g" in beermaverick:
+            oil = to_range(*beermaverick["total_oil_ml_100g"])
+            field_source["total_oil_ml_100g"] = BEER_MAVERICK
+        if purpose is None and "purpose" in beermaverick:
+            purpose = beermaverick["purpose"]
+            field_source["purpose"] = BEER_MAVERICK
+        raw[BEER_MAVERICK] = beermaverick
 
     return Hop(
         name=name,
@@ -142,7 +164,7 @@ def make_hop(
         alpha_pct=alpha,
         total_oil_ml_100g=oil,
         field_source=field_source,
-        raw={HOPLINE: {page["sku"]: page for page in pages}},
+        raw=raw,
     )
 
 
@@ -151,7 +173,8 @@ def build(hopline: dict) -> list[Hop]:
 
     hopline is the file `loaders.fetch_hopline --hops` writes. An SKU in neither HOPS nor
     PACK_SIZES raises ValueError, so a new hopline product never loads without a decision in
-    loaders.hop_products. Hops in NULL_FIGURES are built without acid or oil figures.
+    loaders.hop_products. Hops in NULL_FIGURES are built without hopline's figures, and
+    BEERMAVERICK fills the alpha, oil and purpose hopline lacks.
     """
     products = {}
     for product in hopline["products"]:
@@ -172,6 +195,7 @@ def build(hopline: dict) -> list[Hop]:
                 extras,
                 hopline["categories"],
                 null_figures=sku in NULL_FIGURES,
+                beermaverick=BEERMAVERICK.get(sku),
             )
         )
     return hops
@@ -190,16 +214,23 @@ def report(hopline: dict) -> str:
         f"Input: hopline hop pages fetched {hopline['fetched']}, {len(products)} products, "
         f"{len(HOPS)} hops.",
         "",
-        "## Hops loaded without figures",
+        "## Hops without hopline figures",
         "",
     ]
+    hops = build(hopline)
     for sku, reason in NULL_FIGURES.items():
-        lines.append(f"- {HOPS[sku]} (`{sku}`): no figures loaded, {reason}.")
-    for hop in build(hopline):
+        lines.append(f"- {HOPS[sku]} (`{sku}`): hopline's figures not used, {reason}.")
+    for hop in hops:
         sku = sku_of[hop.name]
-        if hop.alpha_pct is None and sku not in NULL_FIGURES:
+        if hop.field_source.get("alpha_pct") != HOPLINE and sku not in NULL_FIGURES:
             table = products[sku]["table"]
             lines.append(f"- {hop.name} (`{sku}`): no alpha on the page (table: {table}).")
+
+    lines += ["", "## Figures filled from Beer Maverick", ""]
+    for hop in hops:
+        filled = [field for field, source in hop.field_source.items() if source == BEER_MAVERICK]
+        if filled:
+            lines.append(f"- {hop.name} (`{sku_of[hop.name]}`): {', '.join(filled)}.")
 
     lines += ["", "## Pack sizes whose table differs from the main page's", ""]
     for extra, main in PACK_SIZES.items():

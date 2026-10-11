@@ -4,7 +4,7 @@ import pytest
 from psycopg.types.range import Range
 
 from loaders.common import name_key
-from loaders.hop_products import HOPS, NULL_FIGURES, PACK_SIZES
+from loaders.hop_products import BEERMAVERICK, HOPS, NULL_FIGURES, PACK_SIZES
 from loaders.hops import build, make_hop, origin_codes, parse_figure, purpose_of
 
 
@@ -132,12 +132,47 @@ def test_pack_sizes_and_null_figures():
     assert set(hop.field_source) == {"origins", "purpose"}
 
 
+def test_beermaverick_fills_only_what_hopline_lacks():
+    categories = {"aroma": ["200269"], "bittering": [], "dual": ["200269"]}
+    entry = {"alpha_pct": ("5.5", "7"), "total_oil_ml_100g": ("0.5", "1.1"), "date": "2026-10-11"}
+    hop = make_hop("Delta", DELTA, [], categories, null_figures=True, beermaverick=entry)
+    assert hop.alpha_pct == r("5.5", "7")
+    assert hop.total_oil_ml_100g == r("0.5", "1.1")
+    assert hop.field_source == {
+        "origins": "hopline-hops",
+        "purpose": "hopline-hops",
+        "alpha_pct": "beermaverick",
+        "total_oil_ml_100g": "beermaverick",
+    }
+    assert hop.raw["beermaverick"] == entry
+
+    # hopline has alpha but no oil (as for Mount Hood): only the oil comes from BeerMaverick.
+    no_oil = {**CITRA, "table": {**CITRA["table"], "Olaj tartalom": "? %"}}
+    entry = {"alpha_pct": ("1", "2"), "total_oil_ml_100g": ("1.2", "1.7"), "date": "2026-10-11"}
+    hop = make_hop("Citra", no_oil, [], CITRA_CATEGORIES, beermaverick=entry)
+    assert hop.alpha_pct == r("10", "15")
+    assert hop.field_source["alpha_pct"] == "hopline-hops"
+    assert hop.total_oil_ml_100g == r("1.2", "1.7")
+    assert hop.field_source["total_oil_ml_100g"] == "beermaverick"
+
+    # hopline lists the hop in none of its subcategories (as for Enigma): purpose from BeerMaverick.
+    nowhere = {"aroma": [], "bittering": [], "dual": []}
+    hop = make_hop("Citra", CITRA, [], nowhere, beermaverick={"purpose": "aroma", "date": "x"})
+    assert hop.purpose == "aroma"
+    assert hop.field_source["purpose"] == "beermaverick"
+    hop = make_hop("Citra", CITRA, [], CITRA_CATEGORIES, beermaverick={"purpose": "aroma", "date": "x"})
+    assert hop.purpose == "dual"
+    assert hop.field_source["purpose"] == "hopline-hops"
+
+
 def test_hop_map():
     assert len(HOPS) == 90
     assert len(PACK_SIZES) == 16
     assert set(PACK_SIZES.values()) <= set(HOPS)
     assert not set(PACK_SIZES) & set(HOPS)
     assert set(NULL_FIGURES) <= set(HOPS)
+    assert set(BEERMAVERICK) <= set(HOPS)
+    assert set(NULL_FIGURES) <= set(BEERMAVERICK)
     assert sum(name.endswith(" LUPOMAX") for name in HOPS.values()) == 5
     keys = [name_key(name) for name in HOPS.values()]
     assert len(set(keys)) == len(keys)
