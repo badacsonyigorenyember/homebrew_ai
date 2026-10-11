@@ -6,7 +6,7 @@
 > file explains them. All tables were created up front, empty, **by user decision**
 > (2026-10-11), not in the phase that fills them; each table below names the phase that fills
 > it. Row counts were measured on the live DB on 2026-10-11. P1a (`ref` load, fill-order steps
-> 1–2) is done and spot-checked ([`ref-spotcheck`](work/ref-spotcheck/plan.md),
+> 1–2) is done and spot-checked ([`ref-spotcheck`](finished/ref-spotcheck/plan.md),
 > `db/checks/ref_spotcheck.sql`).
 > Workflow context: [RECIPE-ROADMAP.md](RECIPE-ROADMAP.md).
 
