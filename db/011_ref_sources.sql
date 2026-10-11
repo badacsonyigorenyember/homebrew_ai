@@ -74,16 +74,11 @@ insert into ref.source (slug, title, edition, publisher, licence, url, notes) va
      'Mangrove Jack''s', null,
      'https://mangrovejacks.com/',
      'Yeast attenuation; product pages and the Yeast Range booklet linked from hopline'),
-    ('brewline-catalogue',
-     'Brewline catalogue (EN)', 'catalogue PDF, fetched 2026-10-11',
-     'Brewline', null,
-     'https://www.brewline.eu/images/EN_CATALOGUE_BREWLINE.pdf',
-     'Yeast attenuation'),
     ('brewfather',
      'Brewfather yeast database', 'website, figures given by the user 2026-10-11',
      'Brewfather', null,
      'https://brewfather.app/',
-     'Yeast attenuation for Gozdawa strains, as the user read them'),
+     'Yeast attenuation for Gozdawa and Brewline strains, as the user read them'),
     ('water-chemistry',
      'Standard atomic masses', 'IUPAC standard atomic weights 2021',
      'IUPAC', null, null,
@@ -94,6 +89,10 @@ on conflict (slug) do nothing;
 update ref.source set edition = 'IUPAC standard atomic weights 2021'
  where slug = 'water-chemistry'
    and edition is distinct from 'IUPAC standard atomic weights 2021';
+
+update ref.source set notes = 'Yeast attenuation for Gozdawa and Brewline strains, as the user read them'
+ where slug = 'brewfather'
+   and notes is distinct from 'Yeast attenuation for Gozdawa and Brewline strains, as the user read them';
 
 -- The two malts.json sources were replaced by the malt sources above; remove them while
 -- nothing references them.
@@ -111,4 +110,10 @@ delete from ref.source s
 -- references it.
 delete from ref.source s
  where s.slug = 'brewtarget-default-data'
+   and not exists (select 1 from ref.ingredient i where i.source_id = s.id);
+
+-- The Brewline catalogue PDF lists none of hopline's Brewline products (their attenuation comes
+-- from Brewfather instead); remove the source while nothing references it.
+delete from ref.source s
+ where s.slug = 'brewline-catalogue'
    and not exists (select 1 from ref.ingredient i where i.source_id = s.id);

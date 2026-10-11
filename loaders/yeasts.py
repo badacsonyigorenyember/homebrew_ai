@@ -245,20 +245,28 @@ ANOTHER_STRAINS_DESCRIPTION = {
 
 LACTOBACILLUS = "Lactobacillust tartalmaz!"
 
+# Attenuation entries the report explains (user decisions 2026-10-11).
+ATTENUATION_NOTES = {
+    "302170": "Brewfather's \"german wheat\" (73), one of the figures the user gave for "
+    "Brewline, is taken as this product (Bajor Búza, Bavarian wheat).",
+    "301242": "the YeastFlow page prints \"800-100\"; the user confirmed it means 80-100, so "
+    "[80,100] is stored with source user-supplied and the printed text kept in raw.",
+}
+
 # Why a yeast has no ATTENUATION entry, for the report: by producer, else by SKU.
 NO_ATTENUATION_BY_PRODUCER = {
     "Norse Nectar": "no attenuation source (user: \"we can skipp norse nectar\")",
     "YeasterBunny": "no attenuation source (user: \"leave out the yeasterbunny\")",
-    "Brewline": "the Brewline catalogue PDF lists only its 500 g strains (ORIGIN AmeriK, ORIGIN "
-    "CeltiK, Pop Ale, Rock Ale, Folk Ale, Classic Lager, Hip-Hop Lager, Jazz Sour, Excellence "
-    "E2F), none of them this product",
 }
 NO_ATTENUATION = {
     "301471": "no Brewfather figure among those the user gave",
+    "301011": "no Brewfather figure among those the user gave (the Brewline catalogue PDF lists "
+    "only other, 500 g strains)",
+    "302310": "no Brewfather figure among those the user gave (the Brewline catalogue PDF lists "
+    "only other, 500 g strains)",
     "300040": "the catalogue page prints \"n/a%\"; its data sheet says \"high attenuation\" only",
     "302190": "neither the fermentis.com page nor its data sheet gives a figure (a bottle "
     "refermentation Brett); hopline links the W-34/70 sheet",
-    "301242": "the catalogue page prints \"800-100\", which is not a figure to copy as printed",
     "301243": "the catalogue page's Attenuation box is empty",
     "301244": "the catalogue page's Attenuation box is empty",
     "301245": "the catalogue page's Attenuation box is empty",
@@ -399,6 +407,10 @@ def report(hopline: dict) -> str:
         by_reason.setdefault((producer, reason), []).append(f"{name} (`{sku}`)")
     for (producer, reason), names in sorted(by_reason.items()):
         lines.append(f"- {producer} ({len(names)}): {', '.join(names)}: {reason}.")
+
+    lines += ["", "## Attenuation notes", ""]
+    for sku, note in ATTENUATION_NOTES.items():
+        lines.append(f"- {YEASTS[sku][0]} {YEASTS[sku][2]} (`{sku}`): {note}")
 
     lines += ["", f"## Attenuation by source ({len(ATTENUATION)})", ""]
     by_source: dict[str, int] = {}

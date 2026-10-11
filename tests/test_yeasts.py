@@ -232,6 +232,13 @@ def test_yeast_map():
     assert not [
         sku for sku in ATTENUATION if YEASTS[sku][0] in ("Norse Nectar", "YeasterBunny")
     ]
+    # User decisions 2026-10-11: Brewfather's "german wheat" is Brewline Bajor Búza; YF-666's
+    # printed "800-100" is 80-100, recorded as user-supplied with the printed text kept.
+    assert ATTENUATION["302170"]["source"] == "brewfather"
+    assert ATTENUATION["302170"]["attenuation_pct"] == ("73", "73")
+    assert ATTENUATION["301242"]["source"] == "user-supplied"
+    assert ATTENUATION["301242"]["attenuation_pct"] == ("80", "100")
+    assert ATTENUATION["301242"]["printed"] == "800-100"
 
 
 ATTENUATION_SOURCES = {
@@ -239,8 +246,8 @@ ATTENUATION_SOURCES = {
     "lallemand-catalogue",
     "fermentis-datasheets",
     "mangrovejacks-datasheets",
-    "brewline-catalogue",
     "brewfather",
+    "user-supplied",
 }
 
 US05_ATTENUATION = {

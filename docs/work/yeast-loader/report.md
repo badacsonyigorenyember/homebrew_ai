@@ -66,23 +66,28 @@ Input: hopline yeast pages fetched 2026-10-11, 129 products: 119 yeasts loaded, 
 
 - none
 
-## Yeasts without attenuation (35)
+## Yeasts without attenuation (26)
 
-- Brewline (10): German Lager (`301101`), Czech Lager (`301492`), High Performance Ale (`300091`), Köln (`300121`), Abbey Monk Ale (`301011`), Pure Hornindal (`302310`), Bajor Búza (`302170`), Belgian Wit (`301650`), British Ale (`301021`), U.S. West Coast Ale (`301601`): the Brewline catalogue PDF lists only its 500 g strains (ORIGIN AmeriK, ORIGIN CeltiK, Pop Ale, Rock Ale, Folk Ale, Classic Lager, Hip-Hop Lager, Jazz Sour, Excellence E2F), none of them this product.
+- Brewline (2): Abbey Monk Ale (`301011`), Pure Hornindal (`302310`): no Brewfather figure among those the user gave (the Brewline catalogue PDF lists only other, 500 g strains).
 - Fermentis (1): SafBrew BR-8 (`302190`): neither the fermentis.com page nor its data sheet gives a figure (a bottle refermentation Brett); hopline links the W-34/70 sheet.
 - Gozdawa (1): W-34/70 (`301471`): no Brewfather figure among those the user gave.
 - Lallemand (1): CBC-1 (`300040`): the catalogue page prints "n/a%"; its data sheet says "high attenuation" only.
 - Norse Nectar (17): Aurland (`302360`), Ebbergarden (`301170`), Espe (`301180`), Framgarden (`302140`), Hornindal (`301150`), Jordal (`302380`), Jovaru (`301190`), Lida (`302160`), Nystein (`302320`), Opshaug (`301210`), Rivenes (`301220`), Simonaitis (`301221`), Skare (`301200`), Spro (`301120`), Stranda (`301140`), Voss (`301130`), Wollsaeter (`302370`): no attenuation source (user: "we can skipp norse nectar").
-- YeastFlow (1): YF-666 Yeastman (`301242`): the catalogue page prints "800-100", which is not a figure to copy as printed.
 - YeastFlow (3): YF-801 Brett Pid (`301243`), YF-998 Sour, yes sour! (`301244`), YF-999 Sourprise (`301245`): the catalogue page's Attenuation box is empty.
 - YeasterBunny (1): YB-208 Tormodgarden (`301160`): no attenuation source (user: "leave out the yeasterbunny").
 
-## Attenuation by source (84)
+## Attenuation notes
 
-- brewfather: 8
+- Brewline Bajor Búza (`302170`): Brewfather's "german wheat" (73), one of the figures the user gave for Brewline, is taken as this product (Bajor Búza, Bavarian wheat).
+- YeastFlow YF-666 Yeastman (`301242`): the YeastFlow page prints "800-100"; the user confirmed it means 80-100, so [80,100] is stored with source user-supplied and the printed text kept in raw.
+
+## Attenuation by source (93)
+
+- brewfather: 16
 - fermentis-datasheets: 12
 - lallemand-catalogue: 17
 - mangrovejacks-datasheets: 13
+- user-supplied: 1
 - yeastflow-catalogue: 34
 
 ## Pages that say "Lactobacillust tartalmaz!"

@@ -1,6 +1,6 @@
 # Yeast loader (hopline.hu yeasts) — implementation plan
 
-Stage: implementing
+Stage: review
 Source: [`docs/FILL-REF-README.md`](../../FILL-REF-README.md) (P1a index, item 6), re-scoped by
 the user on 2026-10-11 (see Deviations)
 Branch: yeast-loader
@@ -45,14 +45,18 @@ on 2026-10-11, one per producer:
 | Lallemand (18) | product catalogue <https://www.lallemandbrewing.com/en/continental-europe/products/brewing-yeast?page=1> (and its further pages); **not** the links on hopline's Lallemand pages, which the user says are wrong | `lallemand-catalogue` |
 | Fermentis (13) | the data sheets linked from hopline's Fermentis pages; T-58 `302010` has none, use <https://fermentis.com/en/product/safale-t%e2%80%9158/>; where hopline links another strain's sheet (BE-256 → S-189, S-33 → T-58, BR-8 → W-34/70), the strain's own fermentis.com product page | `fermentis-datasheets` |
 | Mangrove Jack's (13) | the product pages linked from hopline's pages; where the link is another strain's page (M20 → M15), a 404 (M47) or the Yeast Range booklet (M84), the strain's page in that booklet | `mangrovejacks-datasheets` |
-| Brewline (10) | catalogue PDF <https://www.brewline.eu/images/EN_CATALOGUE_BREWLINE.pdf> | `brewline-catalogue` |
+| Brewline (10) | Brewfather, figures given by the user (below; the catalogue PDF <https://www.brewline.eu/images/EN_CATALOGUE_BREWLINE.pdf> lists none of these products); Abbey Monk Ale `301011` and Pure Hornindal `302310` have none | `brewfather` |
 | Gozdawa (9) | Brewfather, figures given by the user (below); W-34/70 `301471` has none | `brewfather` |
+| YeastFlow YF-666 `301242` | its page prints `800-100`; the user confirmed 80–100 | `user-supplied` |
 | Norse Nectar (17), YeasterBunny (1) | none: the user said to skip them. They are still loaded, with attenuation `NULL` (orchestrator's reading of "skip" / "leave out": no attenuation source, not dropped) | — |
 
 Gozdawa figures from Brewfather, as the user gave them: Czech Pilsner 18 `301491` 76, Old
 German Altbier `301571` 78, Porter&Kvass `301531` 72, Pure Ale `301541` 75, "Rochefort" Trappist
 Ale `301561` 77, Conan "New England" `301482` 76, Noble Saison `301540` 83, Real Scotland
-`301551` 71. Gozdawa W-34/70 `301471` has no figure and stays `NULL`. Brewfather gives one
+`301551` 71. Gozdawa W-34/70 `301471` has no figure and stays `NULL`. Brewline figures from
+Brewfather, as the user gave them: Belgian Wit `301650` 78, Bajor Búza `302170` 73 (the user's
+"german wheat"), British Ale `301021` 75, Czech Lager `301492` 76, German Lager `301101` 81, High
+Performance Ale `300091` 81, Köln `300121` 78, U.S. West Coast Ale `301601` 80. Brewfather gives one
 figure, so each is stored as the point range `[a,a]`, not widened into a guessed range; the
 same goes for any other source that prints one figure.
 
@@ -110,7 +114,7 @@ named by the user, so nothing waits on the user any more).
 | `loaders/fetch_hopline.py` | changed | `div_content`, `long_description`, `ajax_listing`, `--yeasts` mode |
 | `tests/test_fetch_hopline.py` | changed | 2 new tests |
 | `db/010_ref_schema.sql` | changed | `ref.yeast.field_source jsonb not null` |
-| `db/011_ref_sources.sql` | changed | `hopline-yeasts` source; remove unused `brewtarget-default-data`; 6 attenuation sources (Task 6) |
+| `db/011_ref_sources.sql` | changed | `hopline-yeasts` source; remove unused `brewtarget-default-data`; 5 attenuation sources (Task 6) |
 | `loaders/yeast_products.py` | new | `YEASTS` (119), `PACK_SIZES` (2), `SKIPPED` (8), `BREWLINE_COPIES` (8, report only), later `ATTENUATION` |
 | `loaders/yeasts.py` | new | `Yeast`, `parse_range`, `tolerance`, `flocculation`, `TYPES`, `make_yeast`, `build`, `report`, `load`, CLI |
 | `tests/test_yeasts.py` | new | 10 tests on inline fixtures |
@@ -313,16 +317,15 @@ Commit: `Load hopline yeasts into ref`
 
 ### Task 6: Attenuation from the makers' catalogues
 Why: attenuation sets FG; hopline has none. Sources as in the Approach table (user, 2026-10-11).
-- [x] `db/011_ref_sources.sql`: add 6 rows, `licence` `NULL`, edition `website, fetched <date>`
-  (Brewline: `catalogue PDF, fetched <date>`; Brewfather: `website, figures given by the user
-  2026-10-11`):
+- [x] `db/011_ref_sources.sql`: add 5 rows, `licence` `NULL`, edition `website, fetched <date>`
+  (Brewfather: `website, figures given by the user 2026-10-11`):
   `yeastflow-catalogue` (YeastFlow strain catalogue, YeastFlow, <https://yeastflow.com/our-strains/>),
   `lallemand-catalogue` (Lallemand brewing yeast catalogue, Lallemand Brewing, the URL in Approach),
   `fermentis-datasheets` (Fermentis technical data sheets, Fermentis, <https://fermentis.com/>),
   `mangrovejacks-datasheets` (Mangrove Jack's yeast data sheets, Mangrove Jack's, <https://mangrovejacks.com/>),
-  `brewline-catalogue` (Brewline catalogue (EN), Brewline, the PDF URL),
   `brewfather` (Brewfather yeast database, Brewfather, <https://brewfather.app/>).
-  Apply twice as `postgres`; `select count(*) from ref.source` → 17 both times.
+  `user-supplied` (already there) takes YF-666. Apply twice as `postgres`;
+  `select count(*) from ref.source` → 16 both times.
 - [x] Read each source (fetch into the scratchpad, `pdftotext -layout` for PDFs; one request per
   second, a `User-Agent` naming the project). For each loaded strain, copy the attenuation
   exactly as printed (decimal comma → point; `a-b %` → `(a, b)`, one figure → `(a, a)`), with
@@ -331,8 +334,9 @@ Why: attenuation sets FG; hopline has none. Sources as in the Approach table (us
   of → no entry, listed in the report. Afterwards re-read every entry against its source text.
 - [x] `loaders/yeast_products.py`: `ATTENUATION: dict[str, dict]`, main SKU →
   `{"attenuation_pct": ("78", "82"), "source": "<slug>", "url": "<page or PDF read>", "printed": "<the text as printed>", "date": "<YYYY-MM-DD>"}`.
-  Gozdawa entries use source `brewfather`, `url` `None`, `printed` the user's figure, e.g.
-  `"76"` for `301491`, date `2026-10-11`.
+  Gozdawa and Brewline entries use source `brewfather`, `url` `None`, `printed` the user's
+  figure, e.g. `"76"` for `301491`, date `2026-10-11`. YF-666 uses `user-supplied`, its page URL,
+  `printed` `"800-100"` and the user's words.
 - [x] `make_yeast` takes `attenuation: dict | None`; when given, `attenuation_pct = to_range(*…)`,
   `field_source["attenuation_pct"] = entry["source"]`, and the entry goes in
   `raw[entry["source"]]`. `build` passes `ATTENUATION.get(sku)`. The load step looks up no
@@ -341,13 +345,14 @@ Why: attenuation sets FG; hopline has none. Sources as in the Approach table (us
   `attenuation_pct` with that source and lands in `raw["fermentis-datasheets"]`; the Gozdawa
   Czech Pilsner 18 entry `76` → `[76,76]` with source `brewfather`; without an entry it stays
   `None` and is not in `field_source`); `test_yeast_map` also checks every `ATTENUATION` key is
-  in `YEASTS`, every `source` is one of the 6 slugs, and no Norse Nectar or YeasterBunny SKU has
-  an entry. Suite passes (10 in `test_yeasts.py`).
+  in `YEASTS`, every `source` is one of the 5 slugs or `user-supplied`, no Norse Nectar or YeasterBunny SKU
+  has an entry, Bajor Búza is `brewfather` 73 and YF-666 `user-supplied` [80,100] with
+  `printed` `800-100`. Suite passes (10 in `test_yeasts.py`).
 - [x] Run the loader twice; `count(attenuation_pct)` = number of `ATTENUATION` entries both
-  times (at most 100: 119 − 17 Norse Nectar − 1 YeasterBunny − Gozdawa W-34/70), other counts
+  times (measured 93: 119 − 17 Norse Nectar − 1 YeasterBunny − 8 with no figure in their source), other counts
   as in Task 5; `select field_source->>'attenuation_pct', count(*) from ref.yeast group by 1`
   recorded. The report lists every yeast still without attenuation, with the reason. Update
-  PROJECT.md §5 / §8 and §4 database row (source count 17).
+  PROJECT.md §5 / §8 and §4 database row (source count 16).
 Done when: both runs give the same counts and every `ATTENUATION` figure is in `ref.yeast`.
 Commit: `Add yeast attenuation from maker catalogues`
 
@@ -424,3 +429,10 @@ Commit: `Add yeast attenuation from maker catalogues`
   gives a reason for each yeast without attenuation (a missing reason raises) and the count per
   source. Task 4's `SafBrew BR-8` and `M36 Liberty Bell Ale` were checked on fermentis.com and
   mangrovejacks.com: both names are right, no change.
+- 2026-10-11 · Task 6: the user gave Brewfather figures for 8 Brewline products, loaded as `[a,a]`
+  under `brewfather` like the Gozdawa ones; "german wheat" is taken as Bajor Búza `302170`
+  (noted in the report); Abbey Monk Ale and Pure Hornindal got none and stay `NULL`. The
+  `brewline-catalogue` source, now used by no yeast, is removed from `011_ref_sources.sql` and
+  deleted while nothing references it (16 sources). YF-666's printed `800-100` is stored as
+  `[80,100]` with source `user-supplied`, as the user confirmed ("Use 80–100"), the printed text
+  kept. 84 → 93 entries; 26 yeasts without attenuation.

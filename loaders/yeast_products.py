@@ -326,6 +326,13 @@ ATTENUATION: dict[str, dict] = {
         "attenuation_pct": ("78", "83"), "source": "yeastflow-catalogue", "printed": "78-83",
         "url": "https://yeastflow.com/our-strains/yf-503-hotspur-viking/", "date": DATE,
     },
+    # YF-666: the page prints "800-100"; the user confirmed it means 80-100 (2026-10-11), so the
+    # figure is user-supplied and the printed text is kept.
+    "301242": {  # YF-666 – Yeastman
+        "attenuation_pct": ("80", "100"), "source": "user-supplied", "printed": "800-100",
+        "url": "https://yeastflow.com/our-strains/yf-666-yeastman/", "date": DATE,
+        "user": "Use 80–100",
+    },
     # Lallemand: product pages of the catalogue (spec table "Attenuation"); Suava has no figure
     # there, so its technical data sheet linked from that page is used.
     "300010": {  # LalBrew Abbaye™
@@ -501,8 +508,8 @@ ATTENUATION: dict[str, dict] = {
         "attenuation_pct": ("72", "76"), "source": "mangrovejacks-datasheets", "printed": "72 - 76%",
         "url": "https://help.mangrovejacks.com/hc/en-us/article_attachments/13551379984785/Mangrove_Jack_s_Yeast_Range.pdf", "date": DATE,
     },
-    # Gozdawa: Brewfather figures as the user gave them on 2026-10-11 (no URL); one figure is
-    # stored as [a,a].
+    # Gozdawa and Brewline: Brewfather figures as the user gave them on 2026-10-11 (no URL); one
+    # figure is stored as [a,a]. Brewline Abbey Monk Ale and Pure Hornindal got none.
     "301491": {  # Czech Pilsner 18
         "attenuation_pct": ("76", "76"), "source": "brewfather", "printed": "76",
         "url": None, "date": DATE,
@@ -533,6 +540,38 @@ ATTENUATION: dict[str, dict] = {
     },
     "301551": {  # Real Scotland
         "attenuation_pct": ("71", "71"), "source": "brewfather", "printed": "71",
+        "url": None, "date": DATE,
+    },
+    "301650": {  # Brewline Belgian Wit
+        "attenuation_pct": ("78", "78"), "source": "brewfather", "printed": "Belgian wit 78",
+        "url": None, "date": DATE,
+    },
+    "302170": {  # Brewline Bajor Búza (Brewfather: "german wheat")
+        "attenuation_pct": ("73", "73"), "source": "brewfather", "printed": "german wheat 73",
+        "url": None, "date": DATE,
+    },
+    "301021": {  # Brewline British Ale
+        "attenuation_pct": ("75", "75"), "source": "brewfather", "printed": "british ale 75",
+        "url": None, "date": DATE,
+    },
+    "301492": {  # Brewline Czech Lager
+        "attenuation_pct": ("76", "76"), "source": "brewfather", "printed": "czech lager 76",
+        "url": None, "date": DATE,
+    },
+    "301101": {  # Brewline German Lager
+        "attenuation_pct": ("81", "81"), "source": "brewfather", "printed": "german lager 81",
+        "url": None, "date": DATE,
+    },
+    "300091": {  # Brewline High Performance Ale
+        "attenuation_pct": ("81", "81"), "source": "brewfather", "printed": "high performance ale 81",
+        "url": None, "date": DATE,
+    },
+    "300121": {  # Brewline Köln
+        "attenuation_pct": ("78", "78"), "source": "brewfather", "printed": "köln 78",
+        "url": None, "date": DATE,
+    },
+    "301601": {  # Brewline U.S. West Coast Ale
+        "attenuation_pct": ("80", "80"), "source": "brewfather", "printed": "us west coast 80",
         "url": None, "date": DATE,
     },
 }
