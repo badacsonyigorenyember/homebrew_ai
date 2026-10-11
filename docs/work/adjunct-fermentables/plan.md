@@ -1,6 +1,6 @@
 # Adjunct fermentables — implementation plan
 
-Stage: review
+Stage: verify
 Brief: [brief.md](brief.md)
 Branch: adjunct-fermentables
 
