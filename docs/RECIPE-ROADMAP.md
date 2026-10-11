@@ -307,6 +307,11 @@ flowchart LR
 | D7 | Ratio source (decided in P3) | Brewer's Friend corpus through quality gates → `style_profile` with family shrinkage for thin styles, extra weighted sources, AHA/OBC rules of thumb as caps, Beer Analytics as a manual cross-check ([STYLE-PROFILES.md](STYLE-PROFILES.md)) |
 | D9 | Who approves style envelopes (decided in P3) | LLM extracts, you review |
 
+D1 (style guide) is decided, 2026-10-11: both guides are used, BJCP 2021 preferred; BA where it
+describes the beer better, or the user is asked; the user can set BJCP only or BA only. Step 2
+picks the base style by default, and the specialty code (base style as the alternative) when
+the request makes an adjunct prominent ([PROJECT.md](../PROJECT.md) §5).
+
 D8 (yeast data) is decided, 2026-10-11: hopline.hu's dry and liquid yeasts, with attenuation
 from the makers' catalogues and data sheets and Brewfather. *Why: the user chose the shop's own
 yeasts, as for malts and hops* ([PROJECT.md](../PROJECT.md) §5).

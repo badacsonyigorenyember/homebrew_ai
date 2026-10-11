@@ -141,6 +141,17 @@ Not ingested since the reset. On 2026-10-08 the source files were removed from `
 | Yeast data: hopline.hu dry and liquid yeast lists (`hopline_yeasts.json`, 129 products) | Structured (fetched pages) | Yeast catalogue, 119 yeasts | ✅ loaded into `ref.yeast`: 119 rows (dry 81, liquid 38; YeastFlow 38, Lallemand 18, Norse Nectar 17, Fermentis 13, Mangrove Jack's 13, Brewline 10, Gozdawa 9, YeasterBunny 1), 119 with temperature, 113 with flocculation, 114 with alcohol tolerance, 93 with attenuation (2026-10-11, [`yeast-loader`](docs/finished/yeast-loader/plan.md), shipped); no page states attenuation; it is copied as printed from the sources the user named: YeastFlow catalogue 34, Lallemand catalogue 17, Brewfather figures from the user 16 (Gozdawa 8, Brewline 8), Mangrove Jack's data sheets 13, Fermentis data sheets 12, user-supplied 1 (YF-666, printed "800-100", confirmed 80–100); 10 rows spot-checked against the source, no errors (2026-10-11, [`ref-spotcheck`](docs/finished/ref-spotcheck/plan.md)); none for Norse Nectar and YeasterBunny (user decision) and 8 strains with no figure in their source ([`report.md`](docs/finished/yeast-loader/report.md)). *Why hopline, not Brewtarget's BeerJSON (was D8): the user chose the shop's own yeasts, as for malts and hops (2026-10-11); the Brewtarget files are no longer needed* |
 | AHA recipe-design crash course · Oregon Brew Crew recipe formulation · BJCP exam study guide | Free web / PDF | Design method, rules of thumb, output checklist | ⬜ candidate, not downloaded |
 
+**Style guides (was D1, decided 2026-10-11):** both are used. BJCP 2021 is preferred; BA 2026 is
+used where it describes the requested beer better, or the user is asked which to use. The user
+can also set a preference: BJCP only or BA only. Within a guide, the best-fit style is the
+**base style** by default (adjuncts and extras are ignored). When the request makes an adjunct a
+stated, prominent feature, the specialty code is expected (e.g. 31B Alternative Sugar Beer for a
+honey-forward blonde), with the base style as the alternative; a specialty category is also used
+when no meaningful base style exists ([`test-briefs`](docs/work/test-briefs/brief.md) R3, agreed
+by the user 2026-10-11). Step 2 is not built yet; it follows this rule (P4). *Why: the user's
+call: BJCP stays first, as in the first build and the test briefs, but a beer BA describes
+better is not forced into BJCP, and the brewer can choose.*
+
 ---
 
 ## 6. Design principles
@@ -178,7 +189,6 @@ Several of these are lessons from the first build (see §9).
 
 | # | Question | Leaning | Status |
 |---|---|---|---|
-| D1 | Which style system is primary: BJCP, Brewers Association, or both? | BJCP 2021 as primary (the first build resolved styles against BJCP, classifying to the base style); BA as an alternative the user can pick | open |
 | D2 | Chat model: keep `gemma4:12b` or move to `qwen3.8:27b` (fits 16 GB at Q4, slower)? | Benchmark both on the recipe test set before deciding | open |
 | D3 | Where does the recipe pipeline live: n8n workflows, Postgres functions, or a Python service? | Undecided. The first build used n8n plus SQL and became hard to follow | open |
 | D5 | How the user interacts: chat UI, CLI, n8n chat trigger? | — | open |
@@ -192,6 +202,13 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- `test-briefs` review fix ([`docs/work/test-briefs/`](docs/work/test-briefs/review.md)): D1
+  decided by the user: both style guides are used, BJCP 2021 preferred, BA where it describes
+  the beer better or the user is asked; the user can set BJCP only or BA only. D1 moved from §7
+  to a §5 note, which also states the R3 classification rule: base style by default; when the
+  request makes an adjunct a prominent feature, the specialty code, with the base style as the
+  alternative (why b12 expects 31B, alt 18A). The briefs still expect BJCP codes. RECIPE-ROADMAP
+  §9 notes D1 as decided. Suite: 61 passed.
 - `test-briefs` Task 3 ([`docs/work/test-briefs/`](docs/work/test-briefs/plan.md)): P0 test
   briefs recorded. [`evals/recipe_briefs.toml`](evals/recipe_briefs.toml) holds 20 briefs, all
   20 reviewed and approved by the user (two reworded in review: b12 now expects 31B Alternative

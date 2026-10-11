@@ -169,3 +169,7 @@ Commit: `Record P0 test briefs in PROJECT and roadmap`
   b16 reworded to add a bit of rice, an ingredient deviation on 18B, so R7 ingredient
   deviations are b16, b19, b20 — user review. b16 also gains the `crisp` hint and needs flaked
   rice (rice now in 2 briefs).
+- 2026-10-11 · Review fix 1: D1 decided by the user (both style guides, BJCP 2021 preferred, BA
+  where it describes the beer better or the user is asked; the user can set BJCP only or BA
+  only). PROJECT.md moves D1 from §7 to a §5 note that also states the R3 rule; the brief's
+  Scope Out line is updated. The briefs still expect BJCP codes; no test change.

@@ -39,7 +39,9 @@ Out:
 - An eval runner script, step JSON contracts, and any n8n or pipeline work (D3 stays open).
 - Deciding D7 (ratio source) and D9 (envelope approval). The P0 roadmap row lists them, but they
   belong to P3 and stay open.
-- BA styles as the expected style (D1 leaning: BJCP primary; BA comes "Later").
+- BA styles as the expected style (D1 decided 2026-10-11: both guides are used and BJCP 2021 is
+  preferred, so the briefs expect BJCP codes; whether a brief should also accept a BA
+  alternative is not part of this work).
 
 ## Requirements
 R1. There are exactly 20 briefs, all written fresh. Each brief's request is in English, written
@@ -124,3 +126,7 @@ None. Answered by the user on 2026-10-11: no non-gravity extras (R11), English o
 - 2026-10-11 · R3: a prominent, stated adjunct now means the specialty code is expected (base
   style as alternative); b12 becomes 31B with alt 18A — user review (A5): the assistant should
   tell a user that a honey-forward blonde is an alternative sugar beer, not a blonde ale.
+- 2026-10-11 · Scope (Out): D1 decided by the user (both style guides, BJCP 2021 preferred, BA
+  where it describes the beer better or the user is asked; the user can set BJCP only or BA
+  only), so the BA line no longer cites the leaning or "Later" — review should-fix 1. The
+  briefs still expect BJCP codes.
