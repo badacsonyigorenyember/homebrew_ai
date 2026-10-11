@@ -203,6 +203,7 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- Added the adjunct-fermentables gap report ([`docs/work/adjunct-fermentables/report.md`](docs/work/adjunct-fermentables/report.md), R6/A3): 47 test-brief ingredients, 38 found in `ref`, 7 added (ids 3392–3398), 2 left out (Special B: hopline sells none; Lactobacillus: user decision); each NULL in the 7 new rows listed with its reason. Coverage check: `missing: []`.
 - Implemented adjunct-fermentables Task 4 ([`docs/work/adjunct-fermentables/plan.md`](docs/work/adjunct-fermentables/plan.md)):
   `python -m loaders.adjuncts --hopline shared/rag-files/pending/hopline_adjuncts.json` loaded
   7 adjuncts into `ref` (7 hopline products skipped). Measured: `ref.fermentable` 81 rows

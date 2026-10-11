@@ -1,6 +1,6 @@
 # Adjunct fermentables — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: adjunct-fermentables
 
@@ -278,7 +278,7 @@ Commit: `Load adjunct fermentables into ref`
 
 ### Task 5: the gap report covers every test-brief ingredient
 Why: R6, A3, A6.
-- [ ] Write `docs/work/adjunct-fermentables/report.md`. It has two parts.
+- [x] Write `docs/work/adjunct-fermentables/report.md`. It has two parts.
   - Part 1, the gap table. One row per distinct ingredient named anywhere in
     `evals/recipe_briefs.toml` (`needs.*`, `wanted`, `excluded`, `inventory`), with columns:
     name · kind · briefs · status (`found` / `added` / `left out`) · `ref` id(s) · reason or
@@ -302,7 +302,7 @@ Why: R6, A3, A6.
       prints none.
     - max %: no source states one (rice: 40 % from hopline).
     - honey's NHB percentages (Palmer p. 437) are flavour bands, not a grist maximum.
-- [ ] Check coverage with a one-off command (not a permanent test: the folder moves to
+- [x] Check coverage with a one-off command (not a permanent test: the folder moves to
       `docs/finished/` on ship):
       ```bash
       .venv/bin/python -c "
@@ -314,7 +314,7 @@ Why: R6, A3, A6.
       print(len(names), 'names;', 'missing:', missing)"
       ```
       Expect `missing: []`.
-- [ ] `PROJECT.md` §8: one line linking the report, with the found / added / left-out counts.
+- [x] `PROJECT.md` §8: one line linking the report, with the found / added / left-out counts.
 Done when: the coverage command prints `missing: []`, and every row has a status and, for
 left out, a reason.
 Commit: `Add adjunct gap report`
