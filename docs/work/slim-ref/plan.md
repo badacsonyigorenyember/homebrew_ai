@@ -203,7 +203,7 @@ Commit: `Add app schema`
 ### Task 6: Describe the applied design in the docs
 Why: CLAUDE.md (PROJECT.md is the source of truth; docs describe the current plan); the user
 asked for "all the related files and the docs".
-- [ ] **`docs/DATABASE.md`: rewrite** to describe what is built, keeping the section numbers
+- [x] **`docs/DATABASE.md`: rewrite** to describe what is built, keeping the section numbers
   §1–§7 (fill-ref and ref-spotcheck link §2, §6, §7). Remove the "Under review" note and the
   "Nothing is built yet" status. Contents:
   - Status: built 2026-10-11 ([`slim-ref`](work/slim-ref/plan.md)) from the approved
@@ -229,12 +229,12 @@ asked for "all the related files and the docs".
     `efficiency_pct` snapshot, `run_step.try`); `batch`, `tasting`, `inventory.best_before`
     listed as later.
   - §6 access rules: unchanged.
-  - §7 build order: now "fill order" — steps 1–2 done (measured counts), the rest name the
-    tables they fill.
+  - §7 build order: now "fill order" — step 1 loaded and step 2 partly (measured counts; yeasts
+    and salts not loaded yet), the rest name the tables they fill.
   - New §8 "Behaviour in code, not tables": usage effects, hint knobs, sensory cut points,
     source weights (review §4.3), and §9 "Later": `ref.fault`, `app.batch`, `tasting`,
     `inventory.best_before`, `beer_style.co2_vol` (P6, with a source).
-- [ ] **`docs/DATABASE-REVIEW.md`**: status block → "approved 2026-10-11, applied 2026-10-11 by
+- [x] **`docs/DATABASE-REVIEW.md`**: status block → "approved 2026-10-11, applied 2026-10-11 by
   [`slim-ref`](work/slim-ref/plan.md); DATABASE.md now describes the built design". Edit in
   place the lines that say a table or column is added "in the phase that first fills it"
   (TL;DR rule bullet, §5 intro "Phase tags say when each part gets built", §9 placeholder row)
@@ -243,24 +243,24 @@ asked for "all the related files and the docs".
   `## Deviations` with `- 2026-10-11 · §5: all tables created now, empty, not in the phase
   that fills them — user decision ("Everything in §5"). fermentable.role is therefore an empty
   column until P3.`
-- [ ] **`docs/STYLE-FIT.md`**: §1 diagram subgraph "one small global table" → "in code"; §3
+- [x] **`docs/STYLE-FIT.md`**: §1 diagram subgraph "one small global table" → "in code"; §3
   heading → "Usage effects (in code, ~20 entries)" with one line saying they are a dict next to
   their tests (PROJECT.md §6.8); §4: cut points live in code; §5: `ref.sensory_dimension` holds
   name and class (no specialty category, no cut points). §2 fermentable row: role inputs
   "colour (EBC) + name keywords" instead of "colour + type" (`fermentable.type` was dropped;
   review §4.1) — see Question 1.
-- [ ] **`docs/STYLE-PROFILES.md`** §4: "Weights are one config table" → weights are a dict in
+- [x] **`docs/STYLE-PROFILES.md`** §4: "Weights are one config table" → weights are a dict in
   code next to their tests.
-- [ ] **`docs/RECIPE-ROADMAP.md`**: §5 table "Usage effects" row "Lives in" → code (not
+- [x] **`docs/RECIPE-ROADMAP.md`**: §5 table "Usage effects" row "Lives in" → code (not
   `ref.usage_effect`); the "hint-knob table" cell → hint-knob dict in code.
-- [ ] **`docs/work/water-salts/plan.md`**: Rules line → ion values come from `ATOMIC_MASS` only
+- [x] **`docs/work/water-salts/plan.md`**: Rules line → ion values come from `ATOMIC_MASS` only
   (molar mass is computed in code, not stored); Task 2 upsert list without `molar_mass`; add a
   Deviations line `- 2026-10-11 · Task 2: no molar_mass column — dropped by the database
   review (slim-ref)`.
-- [ ] **`docs/work/ref-spotcheck/plan.md`**: Task 1 doc-update step → "`fermentable.role`
+- [x] **`docs/work/ref-spotcheck/plan.md`**: Task 1 doc-update step → "`fermentable.role`
   exists but stays empty until P3; `beer_style.co2_vol` was dropped (no source has it; back in
   P6)" instead of the `type` / `co2_vol` notes; add a Deviations line naming slim-ref.
-- [ ] **`PROJECT.md`**:
+- [x] **`PROJECT.md`**:
   - §4 Database row: add the slim-ref result (7 columns dropped, loaders re-run with the counts
     from Task 1; `ref` 15 tables, `corpus` 7, `kb` 1, `app` 8, all owned by `postgres`, new
     ones empty) and the closed decision as `*Why this schema (was D4): …*` in one line (each
@@ -271,8 +271,8 @@ asked for "all the related files and the docs".
   - §5 malt row: "74 with potential" → "74 with extract".
   - §7: remove D4 (its data-source part is D7 and D8).
   - §8: dated line for this task; "Last updated" date.
-- [ ] Run `.venv/bin/python -m pytest -q` → 33 passed.
-- [ ] `grep -rn -E 'potential_sg|beta_pct|oils_pct|molar_mass|co2_vol|usage_effect|hint_knob|source_weight|kb\.document|character_tags' docs/DATABASE.md docs/STYLE-FIT.md docs/STYLE-PROFILES.md docs/RECIPE-ROADMAP.md docs/work/`
+- [x] Run `.venv/bin/python -m pytest -q` → 33 passed.
+- [x] `grep -rn -E 'potential_sg|beta_pct|oils_pct|molar_mass|co2_vol|usage_effect|hint_knob|source_weight|kb\.document|character_tags' docs/DATABASE.md docs/STYLE-FIT.md docs/STYLE-PROFILES.md docs/RECIPE-ROADMAP.md docs/work/`
   → only mentions that say the item was dropped or moved to code (and this plan).
 Done when: DATABASE.md matches the catalog table and column names; no doc still describes a
 dropped column or a behaviour table as current.
@@ -300,3 +300,5 @@ Commit: `Describe the applied database design in docs`
 
 - 2026-10-11 · Tasks 2–5: all review §5 tables created now, empty, not in the phase that fills
   them — user decision ("Everything in §5"), overriding the review's phase tags.
+- 2026-10-11 · Task 6: DATABASE.md §7 marks step 2 partly done, not done — yeasts and salts
+  are not loaded yet (measured: `ref.yeast` and `ref.water_salt` 0 rows).

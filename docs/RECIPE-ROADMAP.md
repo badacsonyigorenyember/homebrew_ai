@@ -189,7 +189,7 @@ flowchart LR
 |---|---|---|---|
 | **Style envelope** | `ref.style_sensory` | once per style: BA fields parsed by code, BJCP prose extracted by LLM, **you review** | 15B: hop aroma *none–low*, character *earthy, floral* |
 | **Ingredient tags** | `ref.ingredient_tag` | from hops.json `flavour` / origin, malt role, yeast family | Citra: *US, citrus, tropical* |
-| **Usage effects** | `ref.usage_effect` | one small global table | bittering → bitterness only (character doesn't carry) · late / dry hop → aroma + character |
+| **Usage effects** | code (a dict next to its tests) | once, ~20 entries | bittering → bitterness only (character doesn't carry) · late / dry hop → aroma + character |
 | **Dose check** | `corpus.style_profile` | computed | dry hop g/L above the style's p90 → "above typical" |
 | **Overrides** | `ref.style_rule` | by hand, only where the above can't say it | 16A: lactose → 👍 |
 
@@ -233,7 +233,7 @@ first. Those become data or code. Only the remaining prose goes to RAG.
 |---|---|---|
 | Extract potential per malt | malts.json, maltster sheets, OBC table | `ref.fermentable` |
 | IBU (Tinseth), colour (Morey), gravity, ABV | Palmer | maths functions |
-| Mash temperature ↔ body / FG | Palmer ch. 14 | hint-knob table |
+| Mash temperature ↔ body / FG | Palmer ch. 14 | hint-knob dict in code |
 | Carbonation volumes per style, priming sugar | Palmer ch. 11 | `ref.beer_style` column + function |
 | Residual alkalinity, salt additions | *Water* book | water functions |
 | Pitch rate | *Yeast* book | function |

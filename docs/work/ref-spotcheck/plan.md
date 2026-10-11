@@ -36,9 +36,10 @@ Why: P1's done condition, and PROJECT.md must state measured facts.
   result before the doc updates.
 - [ ] Run the whole suite: `.venv/bin/python -m pytest -v` → all passed (28 expected:
   common 8, styles 4, fermentables 3, hops 6, yeasts 4, water salts 3).
-- [ ] Update the docs with measured numbers only. Record known gaps as facts: `malts.json` has no
-  type, so fermentable roles wait for P3; it has no sugars, adjuncts or generic malts (feeds
-  D4); `co2_vol` is NULL until P2. Add the user's spot-check result.
+- [ ] Update the docs with measured numbers only. Record known gaps as facts:
+  `fermentable.role` exists but stays empty until P3; `malts.json` has no sugars, adjuncts or
+  generic malts; `beer_style.co2_vol` was dropped (no source has it; back in P6). Add the
+  user's spot-check result.
 Done when: 0 rows without a source, the suite passes, and the user has spot-checked.
 Commit: `Add ref spot-check pack; record P1a results`
 
@@ -52,3 +53,7 @@ Commit: `Add ref spot-check pack; record P1a results`
 ## Approved exceptions
 
 ## Deviations
+
+- 2026-10-11 · Task 1: gap notes updated for slim-ref — `fermentable.type` and
+  `beer_style.co2_vol` were dropped by the database review, `fermentable.role` was created empty,
+  and D4 is closed
