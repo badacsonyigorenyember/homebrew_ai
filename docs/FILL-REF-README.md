@@ -28,7 +28,7 @@ edit PROJECT.md, so parallel branches would conflict.
 | 3 | [`style-loader`](../../finished/style-loader/plan.md) | 4 | 116 BJCP 2021 + 169 BA 2026 styles in `ref.beer_style` | 2 | Re-add `styles.json`, `ba_styles.json` |
 | 4 | [`malt-loader`](../../finished/malt-loader/plan.md) | 5 | The 74 Weyermann, Viking and Simpsons malts hopline.hu sells, figures from the maltster catalogues, in `ref.fermentable` | 2 | The 3 maltster PDFs (in `~/Downloads`) |
 | 5 | [`hop-loader`](../../finished/hop-loader/plan.md) | 6 | The 90 hops hopline.hu sells (85 varieties + 5 LUPOMAX), figures from hopline's pages, in `ref.hop` | 2 | — |
-| 6 | [`yeast-loader`](../yeast-loader/plan.md) | 7 | Brewtarget yeasts, deduped, in `ref.yeast` | 2 | Re-add 2 Brewtarget files |
+| 6 | [`yeast-loader`](../yeast-loader/plan.md) | 7 | The 119 yeasts hopline.hu sells (dry and liquid pages; Brewline as its own producer, non-beer yeasts skipped), in `ref.yeast` | 2 | — (attenuation sources named by the user 2026-10-11) |
 | 7 | [`water-salts`](../water-salts/plan.md) | 8 | 8 brewing salts with computed ion contributions | 2 | — |
 | 8 | [`ref-spotcheck`](../ref-spotcheck/plan.md) | 9 | Spot-check pack run, measured counts recorded in PROJECT.md and DATABASE.md | 3–7 | Spot-check 10 rows per table |
 
@@ -63,8 +63,7 @@ catch it.
 | `ba_styles.json` | `style-loader` | list of 169, numbers as floats; 25 with no OG; 12 with `srmmin` but no `srmmax` |
 | `hopline_malts.json` (fetched), `malt_catalogue.json` (hand-built from the Weyermann Crop 2026, Viking 2023 and Simpsons Nov 2025 PDFs) | `malt-loader` | hopline: 82 products, 74 loaded (re-scoped 2026-10-09; `malts.json` no longer used) |
 | `hopline_hops.json` (fetched) | `hop-loader` | hopline: 106 products, 90 hops (re-scoped 2026-10-10; `hops.json`, `hops.hopslist.json` and Brewtarget hops no longer used) |
-| `DefaultContent003-Ingredients-Hops-Yeasts.json` | `yeast-loader` | Brewtarget BeerJSON: `//` comment header, then `beerjson.hop_varieties` (282) and `beerjson.cultures` (296) |
-| `DefaultContent004-MoreYeasts.json` | `yeast-loader` | Brewtarget BeerJSON: `beerjson.cultures` (275) |
+| `hopline_yeasts.json` (fetched) | `yeast-loader` | hopline: 129 products (dry 90, liquid 39), 119 yeasts (re-scoped 2026-10-11; the Brewtarget BeerJSON files are no longer used) |
 
 Not loaded in P1a: `beer_faults.json` (later), BJCP/BA PDFs (P3), books (P7).
 
@@ -86,7 +85,7 @@ Not loaded in P1a: `beer_faults.json` (later), BJCP/BA PDFs (P3), books (P7).
 2. **Specialty styles with no vitals** (20 BJCP, 25 BA) must still load, with `NULL` ranges, not zeros (`style-loader` test).
 3. **Same name, different hop:** `Saaz` and `Saaz (US)` must stay two hops. Hop names come from an explicit SKU map, its test forbids two names sharing a `name_key`, and nothing is merged automatically (`hop-loader` tests).
 4. **Re-running a loader** must not duplicate ingredients or styles (load-twice step in every loader).
-5. **Yeasts:** 71 of 571 entries have no `product_id`, and 72 `(producer, product_id)` pairs repeat across the two files. Dedupe must merge only true repeats, and the 4 entries already in °C must not be converted again (`yeast-loader` tests).
+5. **Yeasts:** 8 Brewline pages say they copy another maker's strain but stay their own rows. Names, product ids and merges come from an explicit SKU map, its test forbids two yeasts sharing a key, and temperatures are stored in °C as printed, any other unit raising (`yeast-loader` tests).
 
 ## Schema changes since the split
 

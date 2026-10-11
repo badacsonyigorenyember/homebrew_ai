@@ -138,7 +138,7 @@ Not ingested since the reset. On 2026-10-08 the source files were removed from `
 | Hop data: hopline.hu hop list (`hopline_hops.json`, 106 products) | Structured (fetched pages) | Hop catalogue, 90 hops | ✅ loaded into `ref.hop`: 90 rows (5 LUPOMAX), purpose aroma 35 / bittering 4 / dual 51, 90 with alpha and total oil, 89 with origin (2026-10-10); Delta, Lotus, Sterling alpha + oil, Mount Hood oil and Enigma purpose come from Beer Maverick (source `beermaverick`), loaded by the hop loader (2026-10-11) |
 | Fault data (`beer_faults.json`) | Structured | Faults (21) | ⬜ |
 | Brewer's Friend recipes (Kaggle, CC0) | Structured, 179,455 recipes | Per-style ratios (D7) | ⬜ 35,620 (views > 500) in the archive dump, measured 2026-10-08 |
-| Brewtarget default data (GPL-3) | Structured, BeerJSON | Yeast (296 + 275 entries), hops (282) (D8) | ⬜ downloaded before the reset (`DefaultContent003/004`), to be re-added |
+| Yeast data: hopline.hu dry and liquid yeast lists (`hopline_yeasts.json`, 129 products) | Structured (fetched pages) | Yeast catalogue, 119 yeasts | ⬜ planned ([`yeast-loader`](docs/work/yeast-loader/plan.md)); no page states attenuation; it comes from the maker catalogues and data sheets the user named (Brewfather figures for Gozdawa), none for Norse Nectar and YeasterBunny. *Why hopline, not Brewtarget's BeerJSON (was D8): the user chose the shop's own yeasts, as for malts and hops (2026-10-11); the Brewtarget files are no longer needed* |
 | AHA recipe-design crash course · Oregon Brew Crew recipe formulation · BJCP exam study guide | Free web / PDF | Design method, rules of thumb, output checklist | ⬜ candidate, not downloaded |
 
 ---
@@ -183,7 +183,6 @@ Several of these are lessons from the first build (see §9).
 | D3 | Where does the recipe pipeline live: n8n workflows, Postgres functions, or a Python service? | Undecided. The first build used n8n plus SQL and became hard to follow | open |
 | D5 | How the user interacts: chat UI, CLI, n8n chat trigger? | — | open |
 | D7 | Where do the recipe ratios (grist %, hop split) come from? | Brewer's Friend corpus through automatic quality gates (no hand curation) → `corpus.style_profile`, thin styles shrunk toward their family, specialty styles use the base style, extra sources weighted (books, DIY Dog, own batches) ([`docs/STYLE-PROFILES.md`](docs/STYLE-PROFILES.md)) | open |
-| D8 | Yeast data source | Brewtarget default data: 571 entries with attenuation and temperature ranges, GPL-3 (fine for a private install) | open |
 | D9 | Who approves the extracted style sensory envelopes before they enter `ref`? | LLM extracts BJCP prose, code parses BA fields, the user reviews | open |
 
 ---
@@ -193,6 +192,14 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- Planned `yeast-loader` ([`docs/work/yeast-loader/plan.md`](docs/work/yeast-loader/plan.md)):
+  the source is now hopline.hu's dry and liquid yeast pages instead of the Brewtarget BeerJSON
+  files (user decision, D8 closed, §5). Measured on the pages: 129 products (dry 90, liquid 39),
+  listed only through the pages' own product-list request; temperature, flocculation, alcohol
+  tolerance and style family on nearly all, attenuation on none. Expects 119 yeasts (Brewline
+  as its own producer, 2 g packs joined to their 12 g product, 8 non-beer yeasts skipped),
+  attenuation from the maker catalogues and data sheets the user named per producer
+  (Brewfather figures for 8 Gozdawa strains; none for Norse Nectar and YeasterBunny).
 - Wrote brief for `hop-figures` ([`docs/work/hop-figures/`](docs/work/hop-figures/brief.md)),
   narrowed to the hop loader's Beer Maverick fill below plus the slim-ref follow-up doc edits;
   the oil-unit check moved to the draft brief
