@@ -190,13 +190,13 @@ Commit: `Add kb schema with pgvector`
 
 ### Task 5: Create the `app` schema
 Why: review §4.3 (typed water ions, typed results, profile snapshot) / §5.5; user decision.
-- [ ] Write `db/015_app.sql`: header comment, then review §5.5 verbatim.
-- [ ] Apply twice with `-v ON_ERROR_STOP=1` → no error.
-- [ ] Check:
+- [x] Write `db/015_app.sql`: header comment, then review §5.5 verbatim.
+- [x] Apply twice with `-v ON_ERROR_STOP=1` → no error.
+- [x] Check:
   - `Q "select count(*), count(*) filter (where tableowner = 'postgres') from pg_tables where schemaname = 'app'"` → `8|8`
   - `Q "select column_name from information_schema.columns where table_schema = 'app' and table_name = 'recipe' and column_name in ('batch_l','efficiency_pct','og','fg','abv','ibu','srm') order by 1"` → 7 rows
   - `Q "select schemaname, count(*) from pg_tables where schemaname in ('ref','corpus','kb','app') group by 1 order by 1"` → `app|8`, `corpus|7`, `kb|1`, `ref|15` (31 tables, review §6)
-- [ ] PROJECT.md §8: dated line.
+- [x] PROJECT.md §8: dated line.
 Done when: 8 `app` tables owned by `postgres`; 31 tables across the four schemas.
 Commit: `Add app schema`
 

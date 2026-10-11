@@ -194,6 +194,13 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- `slim-ref` Task 5 ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): created the
+  `app` schema from review §5.5 in `db/015_app.sql` (applied twice, no error): schema and 8 empty
+  tables owned by `postgres` (`brewer_profile`, `inventory`, `brief`, `recipe`, `recipe_item`,
+  `recipe_deviation`, `run`, `run_step`); `app.recipe` has the typed `batch_l`,
+  `efficiency_pct`, `og`, `fg`, `abv`, `ibu`, `srm`. Measured totals: `ref` 15, `corpus` 7,
+  `kb` 1, `app` 8 tables (31, review §6). Created now, empty, by user decision ("Everything in
+  §5"); P4–P5 fill them. Suite: 33 passed.
 - `slim-ref` Task 4 ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): installed
   `vector` 0.8.0 in schema `extensions` (created as `postgres`; owner `supabase_admin`, like the
   other 8 extensions) and created the `kb` schema from review §5.4 in `db/014_kb.sql` (applied
