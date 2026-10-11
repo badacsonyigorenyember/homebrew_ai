@@ -192,6 +192,10 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- `water-salts` Task 1 ([`docs/work/water-salts/plan.md`](docs/work/water-salts/plan.md)):
+  `loaders/water_salts.py` computes the mg/L of each ion from 1 g of each of the 8 brewing salts
+  in 1 L from IUPAC atomic masses (gypsum Ca 232.8 / SO4 557.9, CaCl2·2H2O Ca 272.6 / Cl 482.3,
+  baking soda Na 273.7 / HCO3 726.3). Not loaded yet. 51 tests pass.
 - Shipped `yeast-loader` ([`docs/finished/yeast-loader/`](docs/finished/yeast-loader/verification.md)),
   merged to `main`: `loaders/fetch_hopline.py --yeasts` saves hopline.hu's 129 dry and liquid
   yeast pages and `loaders/yeasts.py` with the SKU map `loaders/yeast_products.py` loads them

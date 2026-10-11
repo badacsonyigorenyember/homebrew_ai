@@ -1,6 +1,6 @@
 # Water salts (computed from atomic masses) — implementation plan
 
-Stage: approved
+Stage: implementing
 Source: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a index, item 7; was Task 8)
 Branch: water-salts
 
@@ -22,7 +22,7 @@ not stored); the loader is idempotent.
 
 | Path | New / changed | Purpose |
 |---|---|---|
-| `loaders/water_salts.py` | new | `ATOMIC_MASS`, `SALTS`, `ion_mg_per_l_per_g`, `load`, CLI |
+| `loaders/water_salts.py` | new | `ATOMIC_MASS`, `PARTS`, `SALTS`, `ion_mg_per_l_per_g`, `load`, CLI |
 | `tests/test_water_salts.py` | new | 3 tests |
 | `PROJECT.md` | changed | §8 |
 
@@ -30,19 +30,19 @@ not stored); the loader is idempotent.
 
 ### Task 1: Compute ion contributions
 Why: water adjustments (P6, step 12) depend on these numbers being exact.
-- [ ] In `loaders/water_salts.py`: `ATOMIC_MASS: dict[str, Decimal]` (IUPAC standard values for
+- [x] In `loaders/water_salts.py`: `ATOMIC_MASS: dict[str, Decimal]` (IUPAC standard values for
   H, C, O, Na, Mg, S, Cl, Ca); `SALTS: list[tuple[name, formula, composition]]` for gypsum
   CaSO₄·2H₂O, calcium chloride CaCl₂·2H₂O, epsom salt MgSO₄·7H₂O, magnesium chloride MgCl₂·6H₂O,
   table salt NaCl, baking soda NaHCO₃, chalk CaCO₃, slaked lime Ca(OH)₂;
   `ion_mg_per_l_per_g(composition) -> dict[str, Decimal]`, the mg/L of each brewing ion (Ca, Mg,
   Na, SO4, Cl, HCO3, CO3, OH) from 1 g in 1 L, rounded to 0.1.
-- [ ] Write the tests first and see them fail on import. The values follow from the atomic masses
+- [x] Write the tests first and see them fail on import. The values follow from the atomic masses
   (re-checked 2026-10-09). Cross-check against the *Water* book's salt table once it is
   re-added:
   - `test_gypsum`: Ca `232.8`, SO4 `557.9`
   - `test_calcium_chloride_dihydrate`: Ca `272.6`, Cl `482.3`
   - `test_baking_soda`: Na `273.7`, HCO3 `726.3`
-- [ ] Implement, then `.venv/bin/python -m pytest tests/test_water_salts.py -v` → 3 passed; whole suite passes.
+- [x] Implement, then `.venv/bin/python -m pytest tests/test_water_salts.py -v` → 3 passed; whole suite passes.
 Done when: 3 passed.
 Commit: `Compute water salt ion contributions`
 
@@ -69,3 +69,4 @@ Commit: `Load water salts into ref`
 ## Deviations
 
 - 2026-10-11 · Task 2: no molar_mass column — dropped by the database review (slim-ref)
+- 2026-10-11 · Task 1: a salt's composition is counted in parts (ions and H2O), each part's atoms in `PARTS` — lets the code take ion masses and drop water of hydration without a formula parser
