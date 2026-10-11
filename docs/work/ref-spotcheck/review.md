@@ -21,3 +21,21 @@ Plan: Task 1 done as written; the suite count change (40 → 51) is recorded und
 Scope: only the three files in the plan's Files table plus `plan.md`. Safety: the pack is
 read-only (`default_transaction_read_only = on`), no secrets, no schema change. Records:
 PROJECT.md §4, §5 and §8 updated; commits are one line, no trailer.
+
+## Re-review 2026-10-11
+
+Diff: e1f6f28..d333ddd (3aa647e, d333ddd)  ·  Verdict: ready for testing
+
+Re-queried `ref.hop.field_source` read-only: exactly 8 values are `beermaverick` (Delta,
+Lotus, Sterling `alpha_pct` + `total_oil_ml_100g`; Mount Hood `total_oil_ml_100g`; Enigma
+`purpose`).
+
+| # | Earlier finding | Status | Checked |
+|---|---|---|---|
+| 1 | Gap note did not match `hop.field_source` | resolved | docs/DATABASE.md:417 now names the same 8 values as the query above; PROJECT.md §5 hop row agrees |
+| 2 | Hand-entered Beer Maverick values not checked | resolved | User checked all 8 against beermaverick.com, all match; recorded in DATABASE.md:417, PROJECT.md §5 hop row and §8 |
+| 5 | Sterling claim not re-checkable | moot | The §5 hop row now cites the user's check of all 8 values instead |
+
+New commits: docs only (`PROJECT.md`, `docs/DATABASE.md`), no code or DB change, no secrets;
+§8 entry added newest first; both commit messages are one line with no trailer. No new
+findings.
