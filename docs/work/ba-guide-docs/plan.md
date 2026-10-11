@@ -1,6 +1,6 @@
 # Bring BA "later" notes in line with D1 — implementation plan
 
-Stage: verify
+Stage: shipped
 Brief: [brief.md](brief.md)
 Branch: ba-guide-docs
 
