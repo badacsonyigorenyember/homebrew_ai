@@ -194,6 +194,12 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- `slim-ref` Task 3 ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): created
+  the `corpus` schema from review §5.3 in `db/013_corpus.sql` (applied twice, no error):
+  schema owned by `postgres`, 7 empty tables owned by `postgres` (`recipe`, `recipe_item`,
+  `name_map`, `style_profile`, `style_grist`, `style_hop_use`, `style_ingredient`) and the
+  indexes `recipe_style_id_idx`, `recipe_item_recipe_id_idx`, `recipe_item_kind_raw_key_idx`.
+  Created now, empty, by user decision ("Everything in §5"); P1b and P3 fill them. Suite: 33 passed.
 - `slim-ref` Task 2 ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): created
   the style-fit vocabulary from review §5.2 in `db/012_style_fit.sql` (applied twice, no error):
   `fermentable.role` (text, empty) and 8 empty tables (`misc`, `tag`, `tag_synonym`,

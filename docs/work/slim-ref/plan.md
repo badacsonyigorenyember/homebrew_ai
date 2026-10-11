@@ -157,13 +157,13 @@ Commit: `Add style-fit vocabulary tables`
 
 ### Task 3: Create the `corpus` schema
 Why: review §5.3; user decision "Everything in §5".
-- [ ] Write `db/013_corpus.sql`: header comment, then review §5.3 verbatim.
-- [ ] Apply twice with `-v ON_ERROR_STOP=1` → no error.
-- [ ] Check:
+- [x] Write `db/013_corpus.sql`: header comment, then review §5.3 verbatim.
+- [x] Apply twice with `-v ON_ERROR_STOP=1` → no error.
+- [x] Check:
   - `Q "select nspowner::regrole from pg_namespace where nspname = 'corpus'"` → `postgres`
   - `Q "select count(*), count(*) filter (where tableowner = 'postgres') from pg_tables where schemaname = 'corpus'"` → `7|7`
   - `Q "select indexname from pg_indexes where schemaname = 'corpus' and indexname like '%\_idx' order by 1"` → `recipe_item_kind_raw_key_idx`, `recipe_item_recipe_id_idx`, `recipe_style_id_idx`
-- [ ] PROJECT.md §8: dated line.
+- [x] PROJECT.md §8: dated line.
 Done when: 7 `corpus` tables owned by `postgres`, three indexes present.
 Commit: `Add corpus schema`
 
