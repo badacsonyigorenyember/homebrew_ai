@@ -202,6 +202,10 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- Planned `adjunct-fermentables` ([`docs/work/adjunct-fermentables/plan.md`](docs/work/adjunct-fermentables/plan.md)):
+  flaked oats, corn, rice and barley, brown candi sugar, lactose and honey from hopline's pages
+  and Palmer's Tables 18.5/24.1. A `fermentability` category (`full` · `normal` · `none`) on
+  `ref.fermentable`, lactose out of `ref.misc`, and a gap report against the 20 test briefs.
 - Shipped `ba-guide-docs` ([`docs/finished/ba-guide-docs/`](docs/finished/ba-guide-docs/verification.md)),
   merged to `main`: RECIPE-ROADMAP §8 and DATABASE.md §9 now agree with D1 (BA is a step-2
   guide, not a future option). Verified 9/9 spot checks, 61/61 tests.
