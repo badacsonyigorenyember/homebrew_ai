@@ -150,7 +150,7 @@ Commit: `Fetch hopline adjunct pages`
 
 ### Task 3: the adjunct loader builds sourced fermentables
 Why: R1–R4, R7. A wrong extract or fermentability would corrupt every recipe's OG/FG.
-- [ ] `loaders/adjunct_products.py`, module docstring in the style of `malt_products.py`.
+- [x] `loaders/adjunct_products.py`, module docstring in the style of `malt_products.py`.
   - `PALMER: dict[str, dict]` keyed by the row name as printed. Each entry has `table`,
     `page` and the printed values as strings, and for sugars the category next to the printed
     fermentability:
@@ -176,7 +176,7 @@ Why: R1–R4, R7. A wrong extract or fermentability would corrupt every recipe's
     - rye flakes `400120`, wheat flakes `400130`, chit malt flakes `400290`, white candi
       `400081-cs`, fructose `400370`: other adjuncts, no test brief needs them.
     - rice hulls `400160`, `400161-cs`: process aid.
-- [ ] `loaders/adjuncts.py`, module docstring saying what comes from where.
+- [x] `loaders/adjuncts.py`, module docstring saying what comes from where.
   - `HOPLINE = "hopline-adjuncts"`, `PALMER_SLUG = "palmer-how-to-brew"`.
   - `@dataclass Adjunct`: `name`, `source_slug`, `extract_dbfg_pct`, `ebc`, `max_pct`,
     `fermentability`, `field_source`, `raw`.
@@ -205,7 +205,7 @@ Why: R1–R4, R7. A wrong extract or fermentability would corrupt every recipe's
     (all five columns). Same transaction pattern as `malts.load`.
   - `main()`: `--hopline PATH`, prints `loaded: N adjuncts` and
     `skipped: N hopline products (see SKIPPED in loaders/adjunct_products.py)`.
-- [ ] Write tests in `tests/test_adjuncts.py`. Inline fixture: a hopline dict with the 14 SKUs,
+- [x] Write tests in `tests/test_adjuncts.py`. Inline fixture: a hopline dict with the 14 SKUs,
       each `text` shortened but holding the quoted words.
   - `test_extract_pct_from_ppg`: 46 → `Decimal("100.0")`, 38 → `Decimal("82.6")`. Pins the
     conversion and its rounding.
@@ -223,7 +223,7 @@ Why: R1–R4, R7. A wrong extract or fermentability would corrupt every recipe's
     `ValueError`.
   - `test_maps_do_not_overlap`: `PRODUCTS`, `PACK_SIZES`, `SKIPPED` keys are disjoint. Every
     Palmer row named in `PRODUCTS` and `PALMER_ONLY` exists in `PALMER`.
-- [ ] Run `.venv/bin/python -m pytest tests/test_adjuncts.py`, expect pass. Then
+- [x] Run `.venv/bin/python -m pytest tests/test_adjuncts.py`, expect pass. Then
       `.venv/bin/python -c "import json; from loaders.adjuncts import build; print(len(build(json.load(open('shared/rag-files/pending/hopline_adjuncts.json')))))"`
       → `7` against the real fetched file. This also proves every quoted wording is on the real
       pages.
