@@ -128,14 +128,14 @@ Commit: `Drop unused ref columns and re-run loaders`
 
 ### Task 2: Create the style-fit vocabulary tables
 Why: review §4.3 / §5.2; user decision "Everything in §5" (created now, empty).
-- [ ] Write `db/012_style_fit.sql`: header comment in 010's style (what it is, needs 010, the
+- [x] Write `db/012_style_fit.sql`: header comment in 010's style (what it is, needs 010, the
   apply command, idempotent), then review §5.2 verbatim.
-- [ ] Apply twice with `-v ON_ERROR_STOP=1` → no error.
-- [ ] Check:
+- [x] Apply twice with `-v ON_ERROR_STOP=1` → no error.
+- [x] Check:
   - `Q "select count(*), count(*) filter (where tableowner = 'postgres') from pg_tables where schemaname = 'ref'"` → `15|15`
   - `Q "select data_type from information_schema.columns where table_schema = 'ref' and table_name = 'fermentable' and column_name = 'role'"` → `text`
   - `Q "select count(*) from pg_indexes where schemaname = 'ref' and indexname = 'ingredient_tag_tag_id_idx'"` → `1`
-- [ ] Prove the two constraints the review added instead of arrays and two-target columns
+- [x] Prove the two constraints the review added instead of arrays and two-target columns
   (rolled back, nothing kept). Run with `ON_ERROR_STOP` **off**:
   ```
   begin;
@@ -151,7 +151,7 @@ Why: review §4.3 / §5.2; user decision "Everything in §5" (created now, empty
   → first insert fails on the `style_rule` check (neither ingredient nor tag), the
   `style_character` insert fails on its foreign key to `ref.style_sensory`. Then
   `Q "select count(*) from ref.tag"` → `0`.
-- [ ] PROJECT.md §8: dated line.
+- [x] PROJECT.md §8: dated line.
 Done when: 15 `ref` tables owned by `postgres`, both constraints reject bad rows.
 Commit: `Add style-fit vocabulary tables`
 

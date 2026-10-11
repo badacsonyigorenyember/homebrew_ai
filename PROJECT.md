@@ -194,6 +194,13 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- `slim-ref` Task 2 ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): created
+  the style-fit vocabulary from review §5.2 in `db/012_style_fit.sql` (applied twice, no error):
+  `fermentable.role` (text, empty) and 8 empty tables (`misc`, `tag`, `tag_synonym`,
+  `ingredient_tag`, `sensory_dimension`, `style_sensory`, `style_character`, `style_rule`).
+  `ref` now has 15 tables, all owned by `postgres`. Rolled-back inserts confirmed `style_rule`
+  rejects a row with neither ingredient nor tag, and `style_character` rejects a row without its
+  `style_sensory` envelope. Suite: 33 passed.
 - `slim-ref` Task 1 ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): dropped the
   7 unused `ref` columns (`beer_style.edition`, `co2_vol`; `fermentable.potential_sg`, `type`;
   `hop.beta_pct`, `oils_pct`; `water_salt.molar_mass`) in `db/010_ref_schema.sql`;
