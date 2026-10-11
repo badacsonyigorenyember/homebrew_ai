@@ -82,7 +82,11 @@ insert into ref.source (slug, title, edition, publisher, licence, url, notes) va
     ('water-chemistry',
      'Standard atomic masses', 'IUPAC standard atomic weights 2021',
      'IUPAC', null, null,
-     'Molar masses and ion contributions of brewing water salts, computed from standard atomic masses')
+     'Molar masses and ion contributions of brewing water salts, computed from standard atomic masses'),
+    ('palmer-how-to-brew',
+     'How to Brew', 'Fourth edition 2017',
+     'Brewers Publications', null, null,
+     'Table 18.5 (p. 289) and Table 24.1 (p. 436) only; file shared/rag-files/pending/how_to_brew.pdf')
 on conflict (slug) do nothing;
 
 -- Corrections to rows inserted by an earlier version of this file.

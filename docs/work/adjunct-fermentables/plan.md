@@ -1,6 +1,6 @@
 # Adjunct fermentables — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: adjunct-fermentables
 
@@ -81,23 +81,23 @@ Measured while planning (2026-10-11):
 
 ### Task 1: `ref` can store fermentability, and lactose is no longer a misc category
 Why: R4, R5, R7 (Palmer source row).
-- [ ] `db/010_ref_schema.sql`: append, with a comment saying the 74 malts take the default:
+- [x] `db/010_ref_schema.sql`: append, with a comment saying the 74 malts take the default:
       `alter table ref.fermentable add column if not exists fermentability text not null default 'normal' check (fermentability in ('full', 'normal', 'none'));`
-- [ ] `db/012_style_fit.sql`: remove `'lactose'` from the `create table ref.misc` check list.
+- [x] `db/012_style_fit.sql`: remove `'lactose'` from the `create table ref.misc` check list.
       Then add an idempotent block that brings an existing table up to date:
       `alter table ref.misc drop constraint if exists misc_category_check, add constraint misc_category_check check (category in ('spice', 'herb', 'fruit', 'wood', 'coffee', 'cacao', 'vanilla', 'smoke', 'fining', 'other'));`
-- [ ] `db/011_ref_sources.sql`: add to the insert list
+- [x] `db/011_ref_sources.sql`: add to the insert list
       `('palmer-how-to-brew', 'How to Brew', 'Fourth edition 2017', 'Brewers Publications', null, null, 'Table 18.5 (p. 289) and Table 24.1 (p. 436) only; file shared/rag-files/pending/how_to_brew.pdf')`.
-- [ ] Apply in this order, each as `postgres` (OPERATIONS.md §4):
+- [x] Apply in this order, each as `postgres` (OPERATIONS.md §4):
       `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/010_ref_schema.sql`,
       then `011_ref_sources.sql`, then `012_style_fit.sql`. Run all three a second time: no
       error (idempotent).
-- [ ] Check:
+- [x] Check:
       `select fermentability, count(*) from ref.fermentable group by 1;` → `normal | 74`.
       `select pg_get_constraintdef(oid) from pg_constraint where conname = 'misc_category_check';`
       → no `lactose`.
       `select count(*) from ref.source;` → 17.
-- [ ] `docs/DATABASE.md` (R5):
+- [x] `docs/DATABASE.md` (R5):
   - mermaid `fermentable`: add `text fermentability "full|normal|none"`.
   - table row `fermentable`: name the column.
   - table row `misc`: category list without lactose.
@@ -109,9 +109,9 @@ Why: R4, R5, R7 (Palmer source row).
        `full` and `none` must be stated by a source and recorded in `field_source`.
     2. Extras without gravity data (cinnamon, vanilla) are `misc` and never enter the
        OG/IBU/SRM maths.
-- [ ] `docs/STYLE-FIT.md` line 55: drop `*lactose → sweetness*` from the misc example list.
+- [x] `docs/STYLE-FIT.md` line 55: drop `*lactose → sweetness*` from the misc example list.
       Lactose is a fermentable now. Its style fit comes through tags, like any fermentable's.
-- [ ] Run `.venv/bin/python -m pytest`, expect 61 passed (nothing reads the new column yet).
+- [x] Run `.venv/bin/python -m pytest`, expect 61 passed (nothing reads the new column yet).
 Done when: the three checks above return the stated results, and the 74 malts are unchanged
 apart from the new column.
 Commit: `Add fermentability column and Palmer source to ref`

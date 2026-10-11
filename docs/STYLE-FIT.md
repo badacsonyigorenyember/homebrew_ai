@@ -52,7 +52,7 @@ flowchart LR
 | Hop | origin, flavour text, notes, alpha, oils | origin → origin tag · descriptor dictionary (*grapefruit → citrus*, *mango → tropical*, *pine → resin*) · alpha → purpose | Citra → `US` `citrus` `tropical` |
 | Fermentable | EBC, name keywords | role from **colour (EBC) + name keywords** (`ref.fermentable.role`): base · kilned · crystal · roast · adjunct · sugar | Carafa III → `roast` |
 | Yeast | type, notes, attenuation, temperature | family from type (`lager`, `american-ale`, `belgian`, `wheat`, `kveik`, `brett`, `lacto`) · character from notes (*banana, clove, clean, fruity*) | WLP001 → `american-ale` `clean` |
-| Misc | type, name | category → sensation (*spice*, *fruit*, *wood*, *lactose → sweetness*) | cinnamon → `spice` |
+| Misc | type, name | category → sensation (*spice*, *fruit*, *wood*) | cinnamon → `spice` |
 
 - **The descriptor dictionary is the only hand-made part** (~150 words → tags, in
   `ref.tag_synonym`). A new hop that uses known words needs no work.
