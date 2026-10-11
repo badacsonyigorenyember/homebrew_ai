@@ -1,6 +1,6 @@
 # Yeast loader (hopline.hu yeasts) — implementation plan
 
-Stage: verify
+Stage: shipped
 Source: [`docs/FILL-REF-README.md`](../../FILL-REF-README.md) (P1a index, item 6), re-scoped by
 the user on 2026-10-11 (see Deviations)
 Branch: yeast-loader
