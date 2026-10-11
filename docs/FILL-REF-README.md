@@ -28,7 +28,7 @@ edit PROJECT.md, so parallel branches would conflict.
 | 3 | [`style-loader`](../../finished/style-loader/plan.md) | 4 | 116 BJCP 2021 + 169 BA 2026 styles in `ref.beer_style` | 2 | Re-add `styles.json`, `ba_styles.json` |
 | 4 | [`malt-loader`](../../finished/malt-loader/plan.md) | 5 | The 74 Weyermann, Viking and Simpsons malts hopline.hu sells, figures from the maltster catalogues, in `ref.fermentable` | 2 | The 3 maltster PDFs (in `~/Downloads`) |
 | 5 | [`hop-loader`](../../finished/hop-loader/plan.md) | 6 | The 90 hops hopline.hu sells (85 varieties + 5 LUPOMAX), figures from hopline's pages, in `ref.hop` | 2 | — |
-| 6 | [`yeast-loader`](../yeast-loader/plan.md) | 7 | The 119 yeasts hopline.hu sells (dry and liquid pages; Brewline as its own producer, non-beer yeasts skipped), in `ref.yeast` | 2 | — (attenuation sources named by the user 2026-10-11) |
+| 6 | [`yeast-loader`](finished/yeast-loader/plan.md) | 7 | The 119 yeasts hopline.hu sells (dry and liquid pages; Brewline as its own producer, non-beer yeasts skipped), in `ref.yeast` | 2 | — (attenuation sources named by the user 2026-10-11) |
 | 7 | [`water-salts`](../water-salts/plan.md) | 8 | 8 brewing salts with computed ion contributions | 2 | — |
 | 8 | [`ref-spotcheck`](../ref-spotcheck/plan.md) | 9 | Spot-check pack run, measured counts recorded in PROJECT.md and DATABASE.md | 3–7 | Spot-check 10 rows per table |
 
