@@ -35,7 +35,7 @@ BA_ORDINARY_BITTER = {
 
 def test_bjcp_21a():
     [style] = parse_bjcp([BJCP_21A])
-    assert style.guide == "BJCP" and style.edition == "2021" and style.code == "21A"
+    assert style.guide == "BJCP" and style.code == "21A"
     assert style.og == Range(D("1.056"), D("1.070"), "[]")
     assert style.ibu == Range(D("40"), D("70"), "[]")
     assert style.category == "IPA" and style.category_code == "21"
@@ -59,5 +59,5 @@ def test_ba_open_srm():                  # Review focus 1
 
 def test_ba_code_is_slug():
     [style] = parse_ba([BA_ORDINARY_BITTER])
-    assert style.guide == "BA" and style.edition == "2026"
+    assert style.guide == "BA"
     assert style.code == "ordinary-bitter"

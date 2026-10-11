@@ -15,8 +15,8 @@ stays deterministic code.
 Needs `ref-schema` shipped. No source files needed, so this item can run before the loaders
 that wait on files.
 
-Rules for this work: `molar_mass` and ion values come from `ATOMIC_MASS` only; the loader is
-idempotent.
+Rules for this work: ion values come from `ATOMIC_MASS` only (molar mass is computed in code,
+not stored); the loader is idempotent.
 
 ## Files
 
@@ -49,7 +49,7 @@ Commit: `Compute water salt ion contributions`
 ### Task 2: Load water salts into `ref`
 Why: the salts step 12 chooses from (Review focus 4).
 - [ ] Add `load(conn) -> int` (`upsert_ingredient` kind `water_salt`, source `water-chemistry`;
-  upsert `ref.water_salt` with `formula`, `molar_mass`, `ion_mg_per_l_per_g`) and the CLI
+  upsert `ref.water_salt` with `formula`, `ion_mg_per_l_per_g`) and the CLI
   `python -m loaders.water_salts`.
 - [ ] Run it twice → `select count(*) from ref.water_salt` → `8` both times.
 Done when: 8 rows after each run.
@@ -67,3 +67,5 @@ Commit: `Load water salts into ref`
 ## Approved exceptions
 
 ## Deviations
+
+- 2026-10-11 · Task 2: no molar_mass column — dropped by the database review (slim-ref)

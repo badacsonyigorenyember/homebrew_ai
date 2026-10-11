@@ -1,19 +1,20 @@
 # Database review: what the recipe assistant actually needs
 
-> **Status:** proposal, 2026-10-11. **Nothing in here has been applied.** It reviews the built
-> `ref` schema ([`db/010_ref_schema.sql`](../db/010_ref_schema.sql)) and the planned `corpus` /
-> `kb` / `app` schemas ([DATABASE.md](DATABASE.md)) against the 16 pipeline steps
-> ([RECIPE-ROADMAP.md](RECIPE-ROADMAP.md) §3) and [STYLE-FIT.md](STYLE-FIT.md) /
-> [STYLE-PROFILES.md](STYLE-PROFILES.md). Once approved, DATABASE.md gets updated to match, and
-> the changes become `.sql` files applied as `postgres`.
+> **Status:** approved 2026-10-11, applied 2026-10-11 by [`slim-ref`](work/slim-ref/plan.md);
+> [DATABASE.md](DATABASE.md) now describes the built design, and the `.sql` files in `db/`
+> (`010`–`015`) are the exact definitions. It reviewed the `ref` schema as built then
+> ([`db/010_ref_schema.sql`](../db/010_ref_schema.sql)) and the planned `corpus` / `kb` / `app`
+> schemas against the 16 pipeline steps ([RECIPE-ROADMAP.md](RECIPE-ROADMAP.md) §3) and
+> [STYLE-FIT.md](STYLE-FIT.md) / [STYLE-PROFILES.md](STYLE-PROFILES.md).
 > Figures were measured on the live DB on 2026-10-11 unless marked otherwise.
 
 ---
 
 ## TL;DR
 
-- **The rule:** a typed column exists only if a pipeline step reads it, and it is added in the
-  phase that first fills it. Everything else stays in `raw`.
+- **The rule:** a typed column exists only if a pipeline step reads it. Everything else stays
+  in `raw`. Each part is tagged with the phase that fills it; all of them were created, empty,
+  on 2026-10-11 (Deviations).
 - **`raw` is the safety net, not waste.** All `ref` `raw` columns together hold **~630 kB**
   (`beer_style` 485 kB, `ingredient` 145 kB). They keep the whole source record, so a field
   needed later is one migration plus a loader re-run, with no new files.
@@ -40,7 +41,7 @@ Right, with one distinction:
 
 | | Meaning | Where it goes |
 |---|---|---|
-| **Typed column** | a pipeline step reads it, so it must be clean, in SI units, constrained and queryable | a real column, added when its phase starts |
+| **Typed column** | a pipeline step reads it, so it must be clean, in SI units, constrained and queryable | a real column (all created on 2026-10-11, filled in their phase) |
 | **Source record** | everything else the source said | `raw jsonb`, stored once, never queried by the pipeline |
 | **Nothing** | always `NULL`, or computable from another column | not stored |
 
@@ -125,7 +126,7 @@ best-before. All of these stay in `raw` (or aren't collected yet).
 | `fermentable.potential_sg` | 74 | 10 | ❌ **drop**: computed from extract (`ppg = extract/100 × 46.214`). Storing both lets them drift apart; the function already exists and is tested (`loaders/malts.py`) and moves to the maths library |
 | `fermentable.ebc` | 73 | 7, 10 (colour), role | ✅ keep |
 | `fermentable.type` | **0** | — | ❌ **drop**, replaced by `role` in P3 |
-| `fermentable.role` | — | 5, 7, style fit | ➕ **add in P3**: base · kilned · crystal · roast · adjunct · sugar, derived by code from EBC + name |
+| `fermentable.role` | — | 5, 7, style fit | ➕ **add** (created 2026-10-11, filled in P3): base · kilned · crystal · roast · adjunct · sugar, derived by code from EBC + name |
 | `fermentable.max_pct` | 62 | 7, 11 | ✅ keep |
 | `fermentable.field_source` | 74 | provenance | ✅ keep (malts merge 4 sources) |
 | `hop.origins`, `purpose`, `alpha_pct` | 87–89 | 8, 10, tags | ✅ keep |
@@ -170,7 +171,8 @@ best-before. All of these stay in `raw` (or aren't collected yet).
 ## 5. Proposed schema (SQL)
 
 Written for review. When approved it becomes numbered files in `db/`, each idempotent and
-applied as `postgres` (OPERATIONS.md §4). Phase tags say when each part gets built.
+applied as `postgres` (OPERATIONS.md §4). Phase tags name the phase that fills each part;
+everything was created on 2026-10-11, empty (Deviations).
 
 ### 5.1 Changes to the built `ref` tables (now)
 
@@ -585,10 +587,15 @@ No covering or composite performance indexes until a query is measured to need o
 | Issue | Handling |
 |---|---|
 | Stored values drift from the column they're computed from (`potential_sg`) | Store only what the source states; compute the rest in the tested maths library |
-| Placeholder columns that stay `NULL` for phases (`co2_vol`, `type`) | Add a column in the phase that fills it, together with its source |
+| Placeholder columns that stay `NULL` for phases (`co2_vol`, `type`) | Drop columns no source fills (`co2_vol` comes back in P6 with its source). The tables and `fermentable.role` were created on 2026-10-11, empty until the phase that fills them (Deviations) |
 | Old recipes change when the profile changes | Snapshot `batch_l` and `efficiency_pct` on `app.recipe` |
 | Tag arrays and two-target columns can't be foreign keys | Join table `style_character`; two nullable FKs with a check on `style_rule` |
 | Behaviour hidden in config tables (the first build's problem, §6.8) | `usage_effect`, `hint_knob`, cut points and corpus weights live in code next to their tests |
 | A field turns out to be needed later | `raw` keeps the full source record, so it's a migration plus a loader re-run (§1) |
 | Source files exist only on one disk, git-ignored | Not handled by this proposal (§1, risk) |
 | Dropping columns breaks loaders | The code impact for §5.1 is listed under it; it ships as one dev-flow item with its test updates |
+
+## Deviations
+
+- 2026-10-11 · §5: all tables created now, empty, not in the phase that fills them — user
+  decision ("Everything in §5"). fermentable.role is therefore an empty column until P3.

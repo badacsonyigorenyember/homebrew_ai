@@ -22,7 +22,6 @@ from loaders.db import connect, source_id
 @dataclass
 class Style:
     guide: str
-    edition: str
     code: str
     name: str | None
     category: str | None
@@ -44,11 +43,10 @@ def text(x) -> str | None:
     return s or None
 
 
-def parse_style(row: dict, guide: str, edition: str) -> Style:
+def parse_style(row: dict, guide: str) -> Style:
     """One source style dict as a Style; missing vitals become None ranges."""
     return Style(
         guide=guide,
-        edition=edition,
         code=row["number"].strip(),
         name=text(row.get("name")),
         category=text(row.get("category")),
@@ -65,12 +63,12 @@ def parse_style(row: dict, guide: str, edition: str) -> Style:
 
 def parse_bjcp(rows: list[dict]) -> list[Style]:
     """BJCP 2021 styles from styles.json; the code is the style number, e.g. "21A"."""
-    return [parse_style(row, "BJCP", "2021") for row in rows]
+    return [parse_style(row, "BJCP") for row in rows]
 
 
 def parse_ba(rows: list[dict]) -> list[Style]:
     """BA 2026 styles from ba_styles.json; the code is the number slug, e.g. "ordinary-bitter"."""
-    return [parse_style(row, "BA", "2026") for row in rows]
+    return [parse_style(row, "BA") for row in rows]
 
 
 # The ref.source slug for each guide.
@@ -78,7 +76,7 @@ SOURCE_SLUG = {"BJCP": "bjcp-2021", "BA": "ba-2026"}
 
 
 def load(conn: psycopg.Connection, styles: list[Style]) -> int:
-    """Insert or update each style on (guide, edition, code); returns how many were written.
+    """Insert or update each style on (source_id, code); returns how many were written.
 
     Re-running updates the same rows instead of adding duplicates.
     """
@@ -86,12 +84,11 @@ def load(conn: psycopg.Connection, styles: list[Style]) -> int:
         conn.execute(
             """
             insert into ref.beer_style
-                (source_id, guide, edition, code, name, category, category_code,
+                (source_id, guide, code, name, category, category_code,
                  og, fg, ibu, srm, abv, characteristic_ingredients, raw)
-            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            on conflict (guide, edition, code) do update
-               set source_id = excluded.source_id,
-                   name = excluded.name,
+            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            on conflict (source_id, code) do update
+               set name = excluded.name,
                    category = excluded.category,
                    category_code = excluded.category_code,
                    og = excluded.og,
@@ -105,7 +102,6 @@ def load(conn: psycopg.Connection, styles: list[Style]) -> int:
             (
                 source_id(conn, SOURCE_SLUG[style.guide]),
                 style.guide,
-                style.edition,
                 style.code,
                 style.name,
                 style.category,

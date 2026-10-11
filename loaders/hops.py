@@ -51,7 +51,6 @@ class Hop:
     origins: list[str] | None
     purpose: str | None
     alpha_pct: Range | None
-    beta_pct: Range | None
     total_oil_ml_100g: Range | None
     field_source: dict[str, str]
     raw: dict
@@ -117,12 +116,11 @@ def make_hop(
     params = main["params"]
 
     if null_figures:
-        alpha = beta = oil = None
+        alpha = oil = None
     else:
         alpha = parse_figure(table.get("Alfa-sav"))
         if alpha is None:
             alpha = parse_figure(params.get("Alfasav"))
-        beta = parse_figure(table.get("Béta-sav"))
         oil = parse_figure(table.get("Olaj tartalom"))
 
     pages = [main, *extras]
@@ -133,7 +131,6 @@ def make_hop(
         "origins": origins,
         "purpose": purpose,
         "alpha_pct": alpha,
-        "beta_pct": beta,
         "total_oil_ml_100g": oil,
     }
     field_source = {field: HOPLINE for field, value in values.items() if value is not None}
@@ -143,7 +140,6 @@ def make_hop(
         origins=origins,
         purpose=purpose,
         alpha_pct=alpha,
-        beta_pct=beta,
         total_oil_ml_100g=oil,
         field_source=field_source,
         raw={HOPLINE: {page["sku"]: page for page in pages}},
@@ -231,7 +227,7 @@ def load(conn: psycopg.Connection, hops: list[Hop]) -> int:
     """Insert or update each hop in ref.ingredient and ref.hop; returns how many.
 
     Re-running updates the same rows instead of adding duplicates. All rows are written in
-    one transaction (the connection commits on leaving its with-block). oils_pct stays NULL.
+    one transaction (the connection commits on leaving its with-block).
     """
     hopline_id = source_id(conn, HOPLINE)
     for hop in hops:
@@ -239,14 +235,12 @@ def load(conn: psycopg.Connection, hops: list[Hop]) -> int:
         conn.execute(
             """
             insert into ref.hop
-                (ingredient_id, origins, purpose, alpha_pct, beta_pct, total_oil_ml_100g,
-                 field_source)
-            values (%s, %s, %s, %s, %s, %s, %s)
+                (ingredient_id, origins, purpose, alpha_pct, total_oil_ml_100g, field_source)
+            values (%s, %s, %s, %s, %s, %s)
             on conflict (ingredient_id) do update
                set origins = excluded.origins,
                    purpose = excluded.purpose,
                    alpha_pct = excluded.alpha_pct,
-                   beta_pct = excluded.beta_pct,
                    total_oil_ml_100g = excluded.total_oil_ml_100g,
                    field_source = excluded.field_source
             """,
@@ -255,7 +249,6 @@ def load(conn: psycopg.Connection, hops: list[Hop]) -> int:
                 hop.origins,
                 hop.purpose,
                 hop.alpha_pct,
-                hop.beta_pct,
                 hop.total_oil_ml_100g,
                 Jsonb(hop.field_source),
             ),

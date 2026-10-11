@@ -42,7 +42,6 @@ class Fermentable:
     name: str
     producer: str
     source_slug: str
-    potential_sg: Decimal | None
     extract_dbfg_pct: Decimal | None
     ebc: Range | None
     max_pct: Decimal | None
@@ -52,7 +51,8 @@ class Fermentable:
 
 def potential_sg(extract_pct: Decimal | None) -> Decimal | None:
     """Potential SG from the dry-basis fine-grind extract %: ppg = extract/100 x 46.214,
-    SG = 1 + ppg/1000, rounded half-up to 4 places. None stays None."""
+    SG = 1 + ppg/1000, rounded half-up to 4 places. None stays None.
+    Not stored (the DB keeps only the extract the sources state); kept for the maths library."""
     if extract_pct is None:
         return None
     ppg = extract_pct / 100 * PPG_OF_PURE_EXTRACT
@@ -122,7 +122,7 @@ def merge(
     None) as a Fermentable.
 
     Each of ebc, extract_dbfg_pct and max_pct comes from the catalogue when it has a value,
-    else from hopline, else from the user's entry. potential_sg follows extract_dbfg_pct.
+    else from hopline, else from the user's entry.
     field_source names the source of every field that has a value.
     """
     catalogue_slug = CATALOGUE_SLUG[producer]
@@ -155,8 +155,6 @@ def merge(
             field_source[field] = USER
         else:
             values[field] = None
-    if "extract_dbfg_pct" in field_source:
-        field_source["potential_sg"] = field_source["extract_dbfg_pct"]
 
     raw = {HOPLINE: item}
     if catalogue is not None:
@@ -168,7 +166,6 @@ def merge(
         name=name,
         producer=producer,
         source_slug=catalogue_slug if catalogue is not None else HOPLINE,
-        potential_sg=potential_sg(values["extract_dbfg_pct"]),
         extract_dbfg_pct=values["extract_dbfg_pct"],
         ebc=values["ebc"],
         max_pct=values["max_pct"],
@@ -217,18 +214,16 @@ def load(conn: psycopg.Connection, items: list[Fermentable]) -> int:
         conn.execute(
             """
             insert into ref.fermentable
-                (ingredient_id, potential_sg, extract_dbfg_pct, ebc, max_pct, field_source)
-            values (%s, %s, %s, %s, %s, %s)
+                (ingredient_id, extract_dbfg_pct, ebc, max_pct, field_source)
+            values (%s, %s, %s, %s, %s)
             on conflict (ingredient_id) do update
-               set potential_sg = excluded.potential_sg,
-                   extract_dbfg_pct = excluded.extract_dbfg_pct,
+               set extract_dbfg_pct = excluded.extract_dbfg_pct,
                    ebc = excluded.ebc,
                    max_pct = excluded.max_pct,
                    field_source = excluded.field_source
             """,
             (
                 ingredient_id,
-                f.potential_sg,
                 f.extract_dbfg_pct,
                 f.ebc,
                 f.max_pct,

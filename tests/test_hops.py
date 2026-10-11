@@ -90,7 +90,6 @@ def test_citra():
     hop = make_hop("Citra", CITRA, [], CITRA_CATEGORIES)
     assert hop.name == "Citra"
     assert hop.alpha_pct == r("10", "15")
-    assert hop.beta_pct == r("3", "4.5")
     assert hop.total_oil_ml_100g == r("1.5", "3")
     assert hop.origins == ["US"]
     assert hop.purpose == "dual"
@@ -98,7 +97,6 @@ def test_citra():
         "origins": "hopline-hops",
         "purpose": "hopline-hops",
         "alpha_pct": "hopline-hops",
-        "beta_pct": "hopline-hops",
         "total_oil_ml_100g": "hopline-hops",
     }
     assert hop.raw == {"hopline-hops": {"200750-cs": CITRA}}
@@ -128,7 +126,6 @@ def test_pack_sizes_and_null_figures():
     categories = {"aroma": ["200269"], "bittering": [], "dual": ["200269"]}
     hop = make_hop("Delta", DELTA, [], categories, null_figures=True)
     assert hop.alpha_pct is None
-    assert hop.beta_pct is None
     assert hop.total_oil_ml_100g is None
     assert hop.origins == ["US"]
     assert hop.purpose == "dual"

@@ -98,12 +98,10 @@ def test_catalogue_wins_hopline_fills():
     assert f.producer == "Simpsons Malt"
     assert f.ebc == Range(D("4.4"), D("6.6"), "[]")
     assert f.extract_dbfg_pct == 79
-    assert f.potential_sg == D("1.0365")
     assert f.max_pct == 100
     assert f.field_source == {
         "ebc": "simpsons-malt-2025",
         "extract_dbfg_pct": "hopline-malts",
-        "potential_sg": "hopline-malts",
         "max_pct": "hopline-malts",
     }
     assert set(f.raw) == {"hopline-malts", "simpsons-malt-2025"}
@@ -122,7 +120,6 @@ def test_no_extract_stays_null():
     for item in (no_kihozatal, unknown):
         f = merge(item, "Simpsons Malt", catalogue, "Crystal T50")
         assert f.extract_dbfg_pct is None
-        assert f.potential_sg is None
         assert f.ebc == Range(D("139"), D("154"), "[]")
         assert f.max_pct == 10
         assert f.field_source == {"ebc": "simpsons-malt-2025", "max_pct": "hopline-malts"}
@@ -135,13 +132,11 @@ def test_user_supplied_fills_only_gaps():
     # Neither source states an extract: the user's figure fills it.
     f = merge(WEYERMANN_ACIDULATED, "Weyermann", catalogue, "Acidulated Malt", user=user)
     assert f.extract_dbfg_pct == D("64.9")
-    assert f.potential_sg == D("1.0300")
     assert f.ebc == Range(D("1.5"), D("5"), "[]")
     assert f.max_pct == 5
     assert f.field_source == {
         "ebc": "weyermann-2026",
         "extract_dbfg_pct": "user-supplied",
-        "potential_sg": "user-supplied",
         "max_pct": "hopline-malts",
     }
     assert f.raw["user-supplied"] is user
@@ -165,7 +160,7 @@ def test_hopline_only():
     assert f.ebc == Range(D("4.0"), D("4.0"), "[]")
     assert f.extract_dbfg_pct == 81
     assert f.max_pct == 15
-    assert set(f.field_source) == {"ebc", "extract_dbfg_pct", "potential_sg", "max_pct"}
+    assert set(f.field_source) == {"ebc", "extract_dbfg_pct", "max_pct"}
     assert set(f.field_source.values()) == {"hopline-malts"}
     assert set(f.raw) == {"hopline-malts"}
 

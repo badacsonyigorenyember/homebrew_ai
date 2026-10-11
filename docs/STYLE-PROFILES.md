@@ -101,7 +101,8 @@ flowchart LR
 | **Your brewed + rated batches** (`app.batch`) | grows | 5 | your system, your taste |
 | Beer Analytics | — | — | manual cross-check only, no data download |
 
-Every source goes through the same gates (§2). Weights are one config table, so they're easy to tune.
+Every source goes through the same gates (§2). The weights are a dict in code next to their
+tests, so they're easy to tune and read.
 
 ---
 

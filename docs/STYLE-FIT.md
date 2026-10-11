@@ -30,7 +30,7 @@ flowchart LR
       T["🏷️ tags<br/>origin · character · role"]
       N["🔢 numbers<br/>alpha · oil · EBC · attenuation"]
     end
-    subgraph GLOBAL["one small global table"]
+    subgraph GLOBAL["in code"]
       U["⚙️ usage effects<br/>dry hop → aroma + character"]
     end
     D["📏 dose<br/>g/L · % of grist"] --> F
@@ -50,7 +50,7 @@ flowchart LR
 | Kind | Uses | Rule (code) | Example |
 |---|---|---|---|
 | Hop | origin, flavour text, notes, alpha, oils | origin → origin tag · descriptor dictionary (*grapefruit → citrus*, *mango → tropical*, *pine → resin*) · alpha → purpose | Citra → `US` `citrus` `tropical` |
-| Fermentable | EBC, type, name keywords | role from **colour + type**, not name: base · kilned · crystal · roast · adjunct · sugar | Carafa III → `roast` |
+| Fermentable | EBC, name keywords | role from **colour (EBC) + name keywords** (`ref.fermentable.role`): base · kilned · crystal · roast · adjunct · sugar | Carafa III → `roast` |
 | Yeast | type, notes, attenuation, temperature | family from type (`lager`, `american-ale`, `belgian`, `wheat`, `kveik`, `brett`, `lacto`) · character from notes (*banana, clove, clean, fruity*) | WLP001 → `american-ale` `clean` |
 | Misc | type, name | category → sensation (*spice*, *fruit*, *wood*, *lactose → sweetness*) | cinnamon → `spice` |
 
@@ -63,7 +63,10 @@ flowchart LR
 
 ---
 
-## 3. Usage effects (one global table, ~20 rows)
+## 3. Usage effects (in code, ~20 entries)
+
+They say how the algorithm behaves, so they are a dict next to their tests, not a table
+(PROJECT.md §6.8).
 
 | Kind / role | Usage | Drives sensation | Carries character? |
 |---|---|---|---|
@@ -90,10 +93,10 @@ flowchart LR
 | esters / phenols | yeast character tag + fermentation temperature |
 | sourness, smoke, spice… | present / absent |
 
-**Level cut points are calibrated on the corpus, not invented.** For example: the median oil
-dose of styles whose envelope says *hop aroma high* vs *low* sets the thresholds. That uses
-statistics over thousands of recipes, so the noise in single recipes doesn't matter
-([STYLE-PROFILES.md](STYLE-PROFILES.md)).
+**Level cut points are calibrated on the corpus, not invented,** and live in code next to
+their tests. For example: the median oil dose of styles whose envelope says *hop aroma high*
+vs *low* sets the thresholds. That uses statistics over thousands of recipes, so the noise in
+single recipes doesn't matter ([STYLE-PROFILES.md](STYLE-PROFILES.md)).
 
 ---
 
@@ -118,8 +121,8 @@ level(style, ingredient, usage, dose):
 **✅ required** is checked on the whole recipe, not per ingredient: the style's characteristic
 ingredients become role requirements (15B: *roast present*; 21A: *pale base ≥ 70 % of grist*).
 
-**Sensation classes** live in a tiny table (`ref.sensory_dimension`: name, class, specialty
-category), so "silence means ⛔ / ⚠️ / fine" is data, not code.
+**Sensation classes** live in a tiny table (`ref.sensory_dimension`: name and class; no
+specialty category, no cut points), so "silence means ⛔ / ⚠️ / fine" is data, not code.
 
 ### Worked example
 
