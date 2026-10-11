@@ -3,9 +3,18 @@
 The numbers are computed, never typed in: a salt's molar mass is the sum of the IUPAC standard
 atomic masses of its atoms, and each ion's share of 1 g (1000 mg) is the ion's mass over that
 molar mass. Water of hydration counts in the molar mass but adds no ion.
+
+Run: python -m loaders.water_salts   (loads the salts into ref.ingredient + ref.water_salt)
 """
 
 from decimal import ROUND_HALF_UP, Decimal
+
+import psycopg
+from psycopg.types.json import Jsonb
+
+from loaders.db import connect, source_id, upsert_ingredient
+
+SOURCE = "water-chemistry"
 
 # IUPAC standard (abridged) atomic weights, g/mol.
 ATOMIC_MASS: dict[str, Decimal] = {
@@ -61,3 +70,39 @@ def ion_mg_per_l_per_g(composition: dict[str, int]) -> dict[str, Decimal]:
         for part, n in composition.items()
         if part not in WATER
     }
+
+
+def load(conn: psycopg.Connection) -> int:
+    """Insert or update each salt in ref.ingredient and ref.water_salt; returns how many.
+
+    Re-running updates the same rows instead of adding duplicates. All rows are written in
+    one transaction (the connection commits on leaving its with-block).
+    """
+    chemistry_id = source_id(conn, SOURCE)
+    for name, formula, composition in SALTS:
+        ingredient_id = upsert_ingredient(
+            conn, "water_salt", name, "", chemistry_id,
+            {"formula": formula, "composition": composition},
+        )
+        # JSON has no Decimal; a value rounded to 0.1 is exact enough as a float.
+        ions = {ion: float(mg) for ion, mg in ion_mg_per_l_per_g(composition).items()}
+        conn.execute(
+            """
+            insert into ref.water_salt (ingredient_id, formula, ion_mg_per_l_per_g)
+            values (%s, %s, %s)
+            on conflict (ingredient_id) do update
+               set formula = excluded.formula,
+                   ion_mg_per_l_per_g = excluded.ion_mg_per_l_per_g
+            """,
+            (ingredient_id, formula, Jsonb(ions)),
+        )
+    return len(SALTS)
+
+
+def main() -> None:
+    with connect() as conn:
+        print(f"loaded: {load(conn)} water salts")
+
+
+if __name__ == "__main__":
+    main()

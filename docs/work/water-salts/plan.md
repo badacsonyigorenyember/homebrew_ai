@@ -48,10 +48,10 @@ Commit: `Compute water salt ion contributions`
 
 ### Task 2: Load water salts into `ref`
 Why: the salts step 12 chooses from (Review focus 4).
-- [ ] Add `load(conn) -> int` (`upsert_ingredient` kind `water_salt`, source `water-chemistry`;
+- [x] Add `load(conn) -> int` (`upsert_ingredient` kind `water_salt`, source `water-chemistry`;
   upsert `ref.water_salt` with `formula`, `ion_mg_per_l_per_g`) and the CLI
   `python -m loaders.water_salts`.
-- [ ] Run it twice → `select count(*) from ref.water_salt` → `8` both times.
+- [x] Run it twice → `select count(*) from ref.water_salt` → `8` both times.
 Done when: 8 rows after each run.
 Commit: `Load water salts into ref`
 
