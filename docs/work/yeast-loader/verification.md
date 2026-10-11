@@ -1,20 +1,24 @@
 # Verification: yeast-loader
 
-Overall: ✅ all 20 checks and 46 tests pass
+Overall: ✅ all 24 checks and 48 tests pass
 
-Branch `yeast-loader` at 7c310c6, verified 2026-10-11. No brief; checked against `plan.md`
-(its Approach, each task's Done-when line and the *Critical behaviour and its tests* table),
-`review.md`, and the user decisions recorded in the plan's Deviations.
+Branch `yeast-loader` at fb2ec2f, verified 2026-10-11 (second run; the first, at 7c310c6,
+passed 20/20 checks and 46/46 tests and predates the English-only change). No brief; checked
+against `plan.md` (its Approach, each task's Done-when line, the *Critical behaviour and its
+tests* table), `review.md` (both rounds), the user decisions in the plan's Deviations, and the
+user's request after the first verification: "Don´t use Hungarian words, instead translate
+everything to english. Like Bajor búza" (scope: every value written outside `raw` and the
+printed provenance is English; quotes kept as printed get an English gloss).
 
 ## Part 1: Summary
 
-🎯 **Goal:** load every beer yeast hopline.hu sells into `ref.yeast`, sourced, in SI units, with attenuation for FG.
+🎯 **Goal:** load every beer yeast hopline.hu sells into `ref.yeast`, sourced, in SI units, in English, with attenuation for FG.
 
-🛠️ **How:** fetch hopline's dry and liquid yeast pages (their product lists come from the page's own AJAX listing), map each SKU explicitly to a yeast, parse the data block (description as fallback), and take attenuation as printed from the maker sources and Brewfather figures the user named.
+🛠️ **How:** fetch hopline's dry and liquid yeast pages (their product lists come from the page's own AJAX listing), map each SKU explicitly to a yeast with an English name, parse the data block (description as fallback), and take attenuation as printed from the maker sources and Brewfather figures the user named.
 
-🤔 **Why this way:** the user wanted the shop's own yeasts, as for malts and hops, and no hopline page states attenuation, so each figure comes from a named source with its printed text kept.
+🤔 **Why this way:** the user wanted the shop's own yeasts, as for malts and hops, and no hopline page states attenuation, so each figure comes from a named source with its printed text kept in `raw`, while everything outside `raw` is English as the user asked.
 
-🏁 **Result:** `ref.yeast` holds 119 yeasts (dry 81, liquid 38; 8 producers, Brewline 10 rows of its own), all with temperature, 113 with flocculation, 114 with alcohol tolerance, 93 with attenuation from 6 sources; 26 without attenuation, each with its reason in `report.md`.
+🏁 **Result:** `ref.yeast` holds 119 yeasts (dry 81, liquid 38; 8 producers, Brewline 10 rows of its own, `302170` now `Bavarian Wheat`), all with temperature, 113 with flocculation, 114 with alcohol tolerance, 93 with attenuation from 6 sources; no Hungarian outside `raw`; every Hungarian quote in `report.md` (35) carries an English gloss.
 
 ### 🚦 Steps
 
@@ -31,9 +35,16 @@ Branch `yeast-loader` at 7c310c6, verified 2026-10-11. No brief; checked against
   - ⚠️ should-fix: `docs/RECIPE-ROADMAP.md` still named Brewtarget and an open D8 🔧 fixed in 7c310c6 (C20).
   - ⚠️ note: no test ties each attenuation figure to its printed text (checked one-off here, C16: 92/92 match).
   - ⚠️ note: the `brewline-catalogue` delete only cleans the running DB (harmless; C7 shows it gone).
-- ✅ 🧪 **Verify:** all checks and the whole suite run on the live DB; the loader re-run left the same counts and regenerated `report.md` byte for byte. 🧮 spot checks ✅ 20/20 · 🧪 tests ✅ 46/46
+- ⚠️ 🧪 **Verify (round 1):** ✅ 20/20 checks, ✅ 46/46 tests (c8fd791); the user answered "Not yet" to shipping and asked for no Hungarian words.
+  - ⚠️ change request: "Bajor Búza" was the one Hungarian DB value 🔧 fixed in 28c4cf0 (C21, C22).
+- ✅ 🔨 **Implement (change request):** 28c4cf0: Brewline `302170` renamed in place to `Bavarian Wheat` by `db/011` (same id, no 120th row), `hopline-yeasts` source note and report labels in English, new `test_no_hungarian_outside_raw`; 47 tests.
+- ⚠️ 🔍 **Re-review:** ready for testing (9daa86e), 0 must-fix, 2 notes.
+  - ⚠️ note: two Hungarian quotes in `report.md` had no English gloss (`'Belga Ale'`, `max tartomány`) 🔧 fixed in fb2ec2f (C24).
+  - ⚠️ note: `verification.md` predated the change 🔧 rewritten by this run.
+- ✅ 🔨 **Implement (re-review note 1):** fb2ec2f: glosses from `STYLE_FAMILIES_EN`, `FLOCCULATION` and `DESCRIPTION_PHRASES_EN`, new `test_report_glosses_hungarian_quotes`; 48 tests, counts unchanged.
+- ✅ 🧪 **Verify (round 2):** all checks and the whole suite run on the live DB; the loader re-run kept 119 rows (one `Bavarian Wheat`) and regenerated `report.md` byte for byte. 🧮 spot checks ✅ 24/24 · 🧪 tests ✅ 48/48
 
-👀 **Start here:** [`report.md`](report.md), section "Yeasts without attenuation (26)": every yeast without a figure, grouped by producer, each with its reason; above it, the pages where the data block and the description disagree.
+👀 **Start here:** [`report.md`](report.md), section "Brewline rows and the strains their pages say they copy": `Bavarian Wheat (302170) copies SafAle WB-06` and `'Belga Ale' (Belgian ale)` show the English names and glosses; below it, "Yeasts without attenuation (26)" gives every yeast without a figure with its reason.
 
 📁 **Changed files:**
 - `PROJECT.md`
@@ -144,7 +155,7 @@ docker exec supabase-db psql -U postgres -d postgres -tAc "select i.producer, co
 |---|---|---|
 | Norse Nectar 17 / 0, YeasterBunny 1 / 0 | Norse Nectar\|17\|0, YeasterBunny\|1\|0 | ✅ pass |
 
-### ✅ C10 · Brewline: 10 rows, user's Brewfather figures, Abbey Monk Ale and Pure Hornindal NULL (user decision)
+### ✅ C10 · Brewline: 10 rows in English, user's Brewfather figures, Abbey Monk Ale and Pure Hornindal NULL (user decisions)
 
 ```bash
 docker exec supabase-db psql -U postgres -d postgres -tAc "select i.name, y.attenuation_pct, y.field_source->>'attenuation_pct' from ref.yeast y join ref.ingredient i on i.id=y.ingredient_id where i.producer='Brewline' order by 1"
@@ -152,7 +163,7 @@ docker exec supabase-db psql -U postgres -d postgres -tAc "select i.name, y.atte
 
 | Expected | Actual | Result |
 |---|---|---|
-| Belgian Wit 78, Bajor Búza 73, British Ale 75, Czech Lager 76, German Lager 81, High Performance Ale 81, Köln 78, U.S. West Coast Ale 80, all `[a,a]` brewfather; Abbey Monk Ale and Pure Hornindal empty | Abbey Monk Ale (empty), Bajor Búza [73,73], Belgian Wit [78,78], British Ale [75,75], Czech Lager [76,76], German Lager [81,81], High Performance Ale [81,81], Köln [78,78], Pure Hornindal (empty), U.S. West Coast Ale [80,80]; all 8 brewfather | ✅ pass |
+| Belgian Wit 78, Bavarian Wheat 73, British Ale 75, Czech Lager 76, German Lager 81, High Performance Ale 81, Köln 78, U.S. West Coast Ale 80, all `[a,a]` brewfather; Abbey Monk Ale and Pure Hornindal empty | Abbey Monk Ale (empty), Bavarian Wheat [73,73], Belgian Wit [78,78], British Ale [75,75], Czech Lager [76,76], German Lager [81,81], High Performance Ale [81,81], Köln [78,78], Pure Hornindal (empty), U.S. West Coast Ale [80,80]; all 8 brewfather | ✅ pass |
 
 ### ✅ C11 · 2 g packs kept in raw of their 12 g product (user decision)
 
@@ -254,11 +265,71 @@ grep -i brewtarget docs/RECIPE-ROADMAP.md | grep -vc "Not used: yeasts come from
 |---|---|---|
 | 0 (Brewtarget only as "Not used"), 1 | 0, 1 | ✅ pass |
 
+### ✅ C21 · Brewline `302170` is Bavarian Wheat, [73,73] brewfather; no Bajor row left (user's English request)
+
+```bash
+docker exec supabase-db psql -U postgres -d postgres -tAc "select i.name, i.name_key, y.attenuation_pct, y.field_source->>'attenuation_pct', (select count(*) from ref.ingredient where kind='yeast' and name_key like 'bajor%') from ref.ingredient i join ref.yeast y on y.ingredient_id=i.id where i.kind='yeast' and i.raw->'hopline-yeasts' ? '302170'"
+```
+
+| Expected | Actual | Result |
+|---|---|---|
+| Bavarian Wheat\|bavarianwheat\|[73,73]\|brewfather\|0 | Bavarian Wheat\|bavarianwheat\|[73,73]\|brewfather\|0 | ✅ pass |
+
+### ✅ C22 · No Hungarian outside `raw` in the yeast rows (user's English request)
+
+Same detector as `test_no_hungarian_outside_raw` (letters áéíóőúű, or a Hungarian page word),
+run on every column of the 119 rows except `raw`; the second command lists the non-ASCII names.
+
+```bash
+docker exec supabase-db psql -U postgres -d postgres -tAc "select count(*) from ref.yeast y join ref.ingredient i on i.id=y.ingredient_id where lower(concat_ws(' ', i.name, i.name_key, i.producer, i.producer_key, y.product_id, y.type, y.form, y.flocculation, y.field_source::text)) ~ '[áéíóőúű]|\m(élesztő|eleszto|bajor|búza|buza|belga|amerikai|sör|száraz|folyékony|alacsony|közepes|magas|nagyon|semleges|gyümölcsös)\M'"
+docker exec supabase-db psql -U postgres -d postgres -tAc "select string_agg(i.name, ', ' order by i.name) from ref.ingredient i where kind='yeast' and i.name ~ '[^ -~]'"
+```
+
+| Expected | Actual | Result |
+|---|---|---|
+| 0; only German / maker spellings: Köln, YF-110 Kölschermeister, YF-201 St. Cölibate, YF-205 Holy Cölibate | 0; Köln, YF-110 Kölschermeister, YF-201 St. Cölibate, YF-205 Holy Cölibate | ✅ pass |
+
+### ✅ C23 · The 7 yeast-related sources are English (user's English request)
+
+Title, edition, publisher, licence and notes, URLs stripped (a hopline URL keeps its slug).
+
+```bash
+docker exec supabase-db psql -U postgres -d postgres -tAc "select string_agg(slug, ',' order by slug) filter (where lower(regexp_replace(concat_ws(' ', title, edition, publisher, licence, notes), 'https?://\S+', '', 'g')) ~ '[áéíóőúű]|\m(élesztő|eleszto|bajor|búza|buza|belga|amerikai|sör|száraz|folyékony|alacsony|közepes|magas|nagyon|semleges|gyümölcsös)\M'), count(*) from ref.source where slug in ('hopline-yeasts','fermentis-datasheets','lallemand-catalogue','mangrovejacks-datasheets','yeastflow-catalogue','brewfather','user-supplied')"
+```
+
+| Expected | Actual | Result |
+|---|---|---|
+| (none flagged)\|7 | \|7 | ✅ pass |
+
+### ✅ C24 · Every Hungarian quote in report.md has an English gloss (user's English request, re-review note 1)
+
+A quoted page value is Hungarian by the same detector (plus `tartomány`); it must be followed by
+` (` and its gloss. The Norse Nectar temperature note is explained by its own paragraph instead.
+
+```bash
+.venv/bin/python - <<'EOF'
+import re
+t = open('docs/work/yeast-loader/report.md').read()
+W = {"élesztő","eleszto","bajor","búza","buza","belga","amerikai","sör","száraz","folyékony","alacsony","közepes","magas","nagyon","semleges","gyümölcsös","tartomány"}
+hu = lambda s: bool(set("áéíóőúű") & set(s.lower())) or bool(W & set(re.findall(r"\w+", s.lower())))
+quotes = [(m.group(1), t[m.end():m.end()+2]) for m in re.finditer(r"(?<=[\s(])'([^']+)'(?=[\s,;.)]|$)", t, re.M)]
+h = [(q, after) for q, after in quotes if hu(q)]
+note = [q for q, a in h if "ezek a törzsek" in q]
+bad = [q for q, a in h if "ezek a törzsek" not in q and a != " ("]
+print(len(h), "Hungarian quotes,", len(note), "Norse Nectar notes,", "note explained" if "says the strains are adapted to high temperatures" in t else "note NOT explained", ",", len(bad), "unglossed", bad)
+EOF
+cat docs/DATABASE.md docs/FILL-REF-README.md docs/RECIPE-ROADMAP.md docs/work/yeast-loader/report.md | grep -ci bajor
+```
+
+| Expected | Actual | Result |
+|---|---|---|
+| 0 unglossed, Norse Nectar note explained; "Bajor" in none of the English docs or the report | 35 Hungarian quotes, 10 Norse Nectar notes, note explained , 0 unglossed []; 0 | ✅ pass |
+
 ## Part 3: Regression tests
 
 Every test the plan's *Critical behaviour and its tests* table names exists; none was added.
 
-Command: `.venv/bin/python -m pytest -v`  ·  Result: ✅ 46 passed
+Command: `.venv/bin/python -m pytest -v`  ·  Result: ✅ 48 passed
 
 | Test | Protects | Result |
 |---|---|---|
@@ -274,19 +345,21 @@ Command: `.venv/bin/python -m pytest -v`  ·  Result: ✅ 46 passed
 | tests/test_yeasts.py::test_yeast_map | Every SKU decided once; no two yeasts share a key; attenuation entries and sources valid | ✅ |
 | tests/test_yeasts.py::test_unknown_sku_raises | A new hopline product never loads silently | ✅ |
 | tests/test_yeasts.py::test_attenuation_fill | Attenuation only from a named source, one figure → `[a,a]`, `field_source` per source | ✅ |
-| Loader re-run (below) | Re-running doesn't duplicate | ✅ |
-| The other 33 tests (common, hops, malts, styles, earlier fetch tests) | Earlier loaders unchanged | ✅ |
+| tests/test_yeasts.py::test_no_hungarian_outside_raw | No Hungarian in names, type, flocculation, `field_source` (fails on "Bajor Búza") | ✅ |
+| tests/test_yeasts.py::test_report_glosses_hungarian_quotes | A Hungarian value the report quotes gets its English gloss; English values are quoted alone | ✅ |
+| Loader re-run (below) | Re-running doesn't duplicate, and the rename doesn't add a 120th row | ✅ |
+| The other 34 tests (common, hops, malts, styles, earlier fetch tests) | Earlier loaders unchanged | ✅ |
 
 Re-run, report written to the scratchpad and compared with the committed one:
 
 ```bash
 .venv/bin/python -m loaders.yeasts --hopline shared/rag-files/pending/hopline_yeasts.json --report <scratchpad>/report.md
-docker exec supabase-db psql -U postgres -d postgres -tAc "select (select count(*) from ref.yeast), (select count(*) from ref.ingredient where kind='yeast'), (select count(attenuation_pct) from ref.yeast)"
+docker exec supabase-db psql -U postgres -d postgres -tAc "select (select count(*) from ref.yeast), (select count(*) from ref.ingredient where kind='yeast'), (select count(attenuation_pct) from ref.yeast), (select count(*) from ref.ingredient where kind='yeast' and name='Bavarian Wheat')"
 cmp <scratchpad>/report.md docs/work/yeast-loader/report.md && echo "report identical"
 ```
 
 | Expected | Actual | Result |
 |---|---|---|
-| loaded 119, skipped 8; 119\|119\|93; report identical | loaded: 119 yeasts, skipped: 8 non-beer yeasts; 119\|119\|93; report identical | ✅ pass |
+| loaded 119, skipped 8; 119\|119\|93\|1; report identical | loaded: 119 yeasts, skipped: 8 non-beer yeasts; 119\|119\|93\|1; report identical | ✅ pass |
 
 Failures: none.
