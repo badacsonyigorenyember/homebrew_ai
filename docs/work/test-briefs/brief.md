@@ -26,10 +26,10 @@ In:
 - PROJECT.md and RECIPE-ROADMAP status for P0, plus the two ingredient decisions below.
 
 Out:
-- Adding oats, candi sugar, corn, rice, lactose, honey or any other ingredient to `ref`. That is
-  the next piece of work and will use these briefs to list what is missing.
-- A gap report comparing the briefs' ingredients with `ref.ingredient`. Also next work.
-- Schema changes, e.g. moving lactose out of the `ref.misc` categories.
+- Adding oats, candi sugar, corn, rice, lactose, honey or any other ingredient to `ref`, the gap
+  report against `ref.ingredient`, the ingredient decisions and any schema change. All of that is
+  the separate work item [`adjunct-fermentables`](../adjunct-fermentables/brief.md), which uses
+  these briefs.
 - Fruit, or any extra whose gravity can't be counted reliably. No brief asks for one (user
   decision, 2026-10-11).
 - Extras that add no gravity (spices, herbs, coffee, vanilla, cacao, wood). No brief asks for
@@ -74,11 +74,8 @@ R11. No brief asks for fruit or for an extra that adds no gravity (spice, herb, 
     salt.
 R12. An automated test reads the file and checks R1–R3 and R5–R11. A count that misses its
     minimum fails the test.
-R13. PROJECT.md records the user's ingredient decisions (2026-10-11): oats, candi sugar, corn,
-    rice, lactose and honey are the minimum set to add, as **fermentables that count toward
-    gravity**. Fruit and other extras that can't be counted are not added. The P0 status is
-    updated in PROJECT.md and in the RECIPE-ROADMAP §8 row, D7 and D9 are noted as moved to P3,
-    and the briefs file is linked.
+R13. The P0 status is updated in PROJECT.md and in the RECIPE-ROADMAP §8 row, D7 and D9 are
+    noted as moved to P3, and the briefs file is linked.
 
 ## Constraints
 - Readable over optimal (PROJECT.md §6.8): a person can review a brief from the file alone. Any
@@ -110,7 +107,7 @@ A4. A search of the file for style range values (OG/IBU/SRM bands) finds none. O
     user stated appear (R4).
 A5. The user has read all 20 briefs and approved the expected style and deviations of each one
     (R2, R3).
-A6. PROJECT.md has the dated §8 entry, the ingredient decision, the P0 status, a note on
+A6. PROJECT.md has the dated §8 entry, the P0 status, a note on
     D7/D9 and the link to the file, and RECIPE-ROADMAP §8 shows P0 done (R13).
 A7. `pytest` passes in full: the existing tests plus the new one.
 
@@ -119,3 +116,6 @@ None. Answered by the user on 2026-10-11: no non-gravity extras (R11), English o
 20 briefs written fresh (Scope).
 
 ## Deviations
+- 2026-10-11 · Scope, R13, A6: the ingredient decisions moved to the separate work item
+  `adjunct-fermentables` — the user asked for two work items: test briefs, and adding the
+  remaining ingredients.
