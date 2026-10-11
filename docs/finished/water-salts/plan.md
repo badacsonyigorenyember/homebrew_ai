@@ -1,7 +1,7 @@
 # Water salts (computed from atomic masses) — implementation plan
 
 Stage: shipped
-Source: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a index, item 7; was Task 8)
+Source: [`docs/FILL-REF-README.md`](../../FILL-REF-README.md) (P1a index, item 7; was Task 8)
 Branch: water-salts
 
 ## Approach
