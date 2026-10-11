@@ -202,6 +202,9 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- Wrote brief for `ba-guide-docs` ([`docs/work/ba-guide-docs/`](docs/work/ba-guide-docs/brief.md)):
+  the RECIPE-ROADMAP "Later · BA as a selectable guide" item and the DATABASE.md §9 BA
+  style-family trigger are out of date against D1.
 - Shipped `test-briefs` ([`docs/finished/test-briefs/`](docs/finished/test-briefs/verification.md)),
   merged to `main`: P0 is done. [`evals/recipe_briefs.toml`](evals/recipe_briefs.toml) holds
   the 20 user-approved recipe test briefs across 16 BJCP categories, checked by
