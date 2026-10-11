@@ -1,6 +1,6 @@
 # `ref` spot-check pack and P1a results — implementation plan
 
-Stage: approved
+Stage: review
 Source: [`docs/work/fill-ref/README.md`](../fill-ref/README.md) (P1a index, item 8; was Task 9)
 Branch: ref-spotcheck
 
@@ -30,17 +30,17 @@ Rules for this work: record measured numbers only, and known gaps as facts, not 
 
 ### Task 1: Spot-check pack, run and record P1a
 Why: P1's done condition, and PROJECT.md must state measured facts.
-- [ ] Write `db/checks/ref_spotcheck.sql`: row counts for all 15 `ref` tables (the 8 style-fit
+- [x] Write `db/checks/ref_spotcheck.sql`: row counts for all 15 `ref` tables (the 8 style-fit
   tables must be 0); rows with no `source_id` in `beer_style` and `ingredient`, the two loaded
   tables that carry one (must be 0; the kind tables are sourced through their ingredient row);
   and 10 random rows per loaded table (`order by random() limit 10`) with the columns a person
   would check against the sources.
-- [ ] Run it: `docker exec -i supabase-db psql -U postgres -d postgres < db/checks/ref_spotcheck.sql`.
+- [x] Run it: `docker exec -i supabase-db psql -U postgres -d postgres < db/checks/ref_spotcheck.sql`.
   Put the output in the Report for the user (`needs-input`) and wait for their spot-check
   result before the doc updates.
-- [ ] Run the whole suite: `.venv/bin/python -m pytest -v` → all passed (40 expected:
-  common 8, styles 4, malts 9, hops 8, fetch_hopline 4, yeasts 4, water salts 3).
-- [ ] Update the docs with measured numbers only. Record known gaps as facts:
+- [x] Run the whole suite: `.venv/bin/python -m pytest -v` → all passed (51 expected:
+  common 8, styles 4, malts 9, hops 9, fetch_hopline 6, yeasts 12, water salts 3).
+- [x] Update the docs with measured numbers only. Record known gaps as facts:
   `fermentable.role` exists but stays empty until P3; the 74 malts are grain malts from three
   maltsters only (no sugars, adjuncts or extracts); `beer_style.co2_vol` was dropped (no source
   has it; back in P6); the missing alpha and oil of Delta, Lotus, Sterling and Mount Hood were
@@ -55,7 +55,7 @@ Commit: `Add ref spot-check pack; record P1a results`
 |---|---|---|
 | Every loaded `ref` row is sourced | `ref_spotcheck.sql` no-source count = 0 | 1 |
 | The style-fit tables are still empty | `ref_spotcheck.sql` counts = 0 | 1 |
-| All P1a parsers still behave | whole suite (40 tests) | 1 |
+| All P1a parsers still behave | whole suite (51 tests) | 1 |
 
 ## Approved exceptions
 
@@ -68,3 +68,5 @@ Commit: `Add ref spot-check pack; record P1a results`
   tables, and the source check runs on `beer_style` and `ingredient` — `slim-ref` created tables
   without `source_id`; expected suite 28 → 40 and the malt gap note no longer names `malts.json`
   — the loaders were re-scoped and gained tests after this plan was written
+- 2026-10-11 · Task 1: expected suite 40 → 51 (hops 8 → 9, fetch_hopline 4 → 6, yeasts 4 → 12)
+  — measured on this branch; the loaders gained tests after the last plan update
