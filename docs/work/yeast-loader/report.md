@@ -66,16 +66,24 @@ Input: hopline yeast pages fetched 2026-10-11, 129 products: 119 yeasts loaded, 
 
 - none
 
-## Yeasts without attenuation (119)
+## Yeasts without attenuation (35)
 
-- Brewline (10): German Lager, Czech Lager, High Performance Ale, Köln, Abbey Monk Ale, Pure Hornindal, Bajor Búza, Belgian Wit, British Ale, U.S. West Coast Ale
-- Fermentis (13): SafBrew BR-8, SafAle BE-134, SafAle BE-256, SafAle K-97, SafAle S-04, SafAle S-33, SafAle T-58, SafAle US-05, SafAle W-68, SafAle WB-06, SafLager S-189, SafLager S-23, SafLager W-34/70
-- Gozdawa (9): Czech Pilsner 18, Old German Altbier, Porter&Kvass, Pure Ale, W-34/70, "Rochefort" Trappist Ale, Conan "New England", Noble Saison, Real Scotland
-- Lallemand (18): Abbaye, Belle Saison, BRY-97, CBC-1, Diamond, Farmhouse, House Ale, Munich Classic, New England, Nottingham, NovaLager, Philly Sour, Pomona, Suava Ale, Verdant IPA, Voss, Windsor, Wit
-- Mangrove Jack's (13): M15 Empire Ale, M20 Bavarian Wheat, M21 Belgian Wit, M29 French Saison, M31 Belgian Tripel, M36 Liberty Bell Ale, M41 Belgian Ale, M42 New World Strong Ale, M44 US West Coast, M47 Belgian Abbey, M54 Californian Lager, M66 Hophead Ale, M84 Bohemian Lager
-- Norse Nectar (17): Aurland, Ebbergarden, Espe, Framgarden, Hornindal, Jordal, Jovaru, Lida, Nystein, Opshaug, Rivenes, Simonaitis, Skare, Spro, Stranda, Voss, Wollsaeter
-- YeastFlow (38): YF-101 Queen of Hearts, YF-102 British Bulldog, YF-103 Steamprunk, YF-104 Terrier, YF-105 Haggis, YF-106 Redshamrock, YF-107 McGyver, YF-108 Jawohl!, YF-109 Caskaway, YF-110 Kölschermeister, YF-111 Pacification, YF-112 Vermonter, YF-114 Crazy Hazy, YF-116 St. Hedwig, YF-201 St. Cölibate, YF-202 Priest D'vel, YF-203 Father Tibi, YF-204 Priest D'vill, YF-205 Holy Cölibate, YF-206 Double Agent, YF-207 Wit'n a minute, YF-208 Priest Passion, YF-301 Pils'ing them softly, YF-302 Californithologist, YF-303 Yeastoberfest, YF-304 Bockster, YF-305 Mistr Pilsner, YF-306 Herr Schnellager, YF-401 Mr. Weizen, YF-402 Herr Weizen, YF-403 Frau Weizen, YF-501 Kingster, YF-502 Farmster, YF-503 Hotspur Viking, YF-666 Yeastman, YF-801 Brett Pid, YF-998 Sour, yes sour!, YF-999 Sourprise
-- YeasterBunny (1): YB-208 Tormodgarden
+- Brewline (10): German Lager (`301101`), Czech Lager (`301492`), High Performance Ale (`300091`), Köln (`300121`), Abbey Monk Ale (`301011`), Pure Hornindal (`302310`), Bajor Búza (`302170`), Belgian Wit (`301650`), British Ale (`301021`), U.S. West Coast Ale (`301601`): the Brewline catalogue PDF lists only its 500 g strains (ORIGIN AmeriK, ORIGIN CeltiK, Pop Ale, Rock Ale, Folk Ale, Classic Lager, Hip-Hop Lager, Jazz Sour, Excellence E2F), none of them this product.
+- Fermentis (1): SafBrew BR-8 (`302190`): neither the fermentis.com page nor its data sheet gives a figure (a bottle refermentation Brett); hopline links the W-34/70 sheet.
+- Gozdawa (1): W-34/70 (`301471`): no Brewfather figure among those the user gave.
+- Lallemand (1): CBC-1 (`300040`): the catalogue page prints "n/a%"; its data sheet says "high attenuation" only.
+- Norse Nectar (17): Aurland (`302360`), Ebbergarden (`301170`), Espe (`301180`), Framgarden (`302140`), Hornindal (`301150`), Jordal (`302380`), Jovaru (`301190`), Lida (`302160`), Nystein (`302320`), Opshaug (`301210`), Rivenes (`301220`), Simonaitis (`301221`), Skare (`301200`), Spro (`301120`), Stranda (`301140`), Voss (`301130`), Wollsaeter (`302370`): no attenuation source (user: "we can skipp norse nectar").
+- YeastFlow (1): YF-666 Yeastman (`301242`): the catalogue page prints "800-100", which is not a figure to copy as printed.
+- YeastFlow (3): YF-801 Brett Pid (`301243`), YF-998 Sour, yes sour! (`301244`), YF-999 Sourprise (`301245`): the catalogue page's Attenuation box is empty.
+- YeasterBunny (1): YB-208 Tormodgarden (`301160`): no attenuation source (user: "leave out the yeasterbunny").
+
+## Attenuation by source (84)
+
+- brewfather: 8
+- fermentis-datasheets: 12
+- lallemand-catalogue: 17
+- mangrovejacks-datasheets: 13
+- yeastflow-catalogue: 34
 
 ## Pages that say "Lactobacillust tartalmaz!"
 

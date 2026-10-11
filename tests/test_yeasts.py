@@ -4,7 +4,7 @@ import pytest
 from psycopg.types.range import Range
 
 from loaders.common import name_key
-from loaders.yeast_products import PACK_SIZES, SKIPPED, YEASTS
+from loaders.yeast_products import ATTENUATION, PACK_SIZES, SKIPPED, YEASTS
 from loaders.yeasts import build, flocculation, make_yeast, parse_range, tolerance, type_of
 
 
@@ -225,6 +225,60 @@ def test_yeast_map():
     # Two yeasts with the same key would make the upsert overwrite one with the other.
     keys = [(name_key(producer), name_key(name)) for producer, _, name in YEASTS.values()]
     assert len(set(keys)) == len(keys)
+    # Attenuation only for loaded yeasts, only from the named sources, none for the producers
+    # the user said to skip.
+    assert set(ATTENUATION) <= set(YEASTS)
+    assert {entry["source"] for entry in ATTENUATION.values()} <= ATTENUATION_SOURCES
+    assert not [
+        sku for sku in ATTENUATION if YEASTS[sku][0] in ("Norse Nectar", "YeasterBunny")
+    ]
+
+
+ATTENUATION_SOURCES = {
+    "yeastflow-catalogue",
+    "lallemand-catalogue",
+    "fermentis-datasheets",
+    "mangrovejacks-datasheets",
+    "brewline-catalogue",
+    "brewfather",
+}
+
+US05_ATTENUATION = {
+    "attenuation_pct": ("78", "82"),
+    "source": "fermentis-datasheets",
+    "url": "https://distributors.fermentis.com/download/135/english/171/safale-us-05-en.pdf",
+    "printed": "78-82%",
+    "date": "2026-10-11",
+}
+
+CZECH_PILSNER_ATTENUATION = {
+    "attenuation_pct": ("76", "76"),
+    "source": "brewfather",
+    "url": None,
+    "printed": "76",
+    "date": "2026-10-11",
+}
+
+
+def test_attenuation_fill():
+    us05 = make_yeast("Fermentis", "US-05", "SafAle US-05", "dry", US05, [], US05_ATTENUATION)
+    assert us05.attenuation_pct == r("78", "82")
+    assert us05.field_source["attenuation_pct"] == "fermentis-datasheets"
+    assert us05.field_source["temp_c"] == "hopline-yeasts"
+    assert us05.raw["fermentis-datasheets"] == US05_ATTENUATION
+    assert us05.raw["hopline-yeasts"] == {"301030": US05}
+
+    # One printed figure is stored as the point range [a,a], not widened.
+    pilsner = make_yeast(
+        "Gozdawa", None, "Czech Pilsner 18", "dry", REAL_SCOTLAND, [], CZECH_PILSNER_ATTENUATION
+    )
+    assert pilsner.attenuation_pct == r("76", "76")
+    assert pilsner.field_source["attenuation_pct"] == "brewfather"
+
+    without = make_yeast("Fermentis", "US-05", "SafAle US-05", "dry", US05, [], None)
+    assert without.attenuation_pct is None
+    assert "attenuation_pct" not in without.field_source
+    assert set(without.raw) == {"hopline-yeasts"}
 
 
 def test_unknown_sku_raises():

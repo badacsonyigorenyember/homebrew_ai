@@ -43,8 +43,8 @@ on 2026-10-11, one per producer:
 |---|---|---|
 | YeastFlow (38) | catalogue <https://yeastflow.com/our-strains/> | `yeastflow-catalogue` |
 | Lallemand (18) | product catalogue <https://www.lallemandbrewing.com/en/continental-europe/products/brewing-yeast?page=1> (and its further pages); **not** the links on hopline's Lallemand pages, which the user says are wrong | `lallemand-catalogue` |
-| Fermentis (13) | the data sheets linked from hopline's Fermentis pages (12 of 13); T-58 `302010` has none, use <https://fermentis.com/en/product/safale-t%e2%80%9158/> | `fermentis-datasheets` |
-| Mangrove Jack's (13) | the data sheets linked from hopline's pages (13 of 13) | `mangrovejacks-datasheets` |
+| Fermentis (13) | the data sheets linked from hopline's Fermentis pages; T-58 `302010` has none, use <https://fermentis.com/en/product/safale-t%e2%80%9158/>; where hopline links another strain's sheet (BE-256 → S-189, S-33 → T-58, BR-8 → W-34/70), the strain's own fermentis.com product page | `fermentis-datasheets` |
+| Mangrove Jack's (13) | the product pages linked from hopline's pages; where the link is another strain's page (M20 → M15), a 404 (M47) or the Yeast Range booklet (M84), the strain's page in that booklet | `mangrovejacks-datasheets` |
 | Brewline (10) | catalogue PDF <https://www.brewline.eu/images/EN_CATALOGUE_BREWLINE.pdf> | `brewline-catalogue` |
 | Gozdawa (9) | Brewfather, figures given by the user (below); W-34/70 `301471` has none | `brewfather` |
 | Norse Nectar (17), YeasterBunny (1) | none: the user said to skip them. They are still loaded, with attenuation `NULL` (orchestrator's reading of "skip" / "leave out": no attenuation source, not dropped) | — |
@@ -313,7 +313,7 @@ Commit: `Load hopline yeasts into ref`
 
 ### Task 6: Attenuation from the makers' catalogues
 Why: attenuation sets FG; hopline has none. Sources as in the Approach table (user, 2026-10-11).
-- [ ] `db/011_ref_sources.sql`: add 6 rows, `licence` `NULL`, edition `website, fetched <date>`
+- [x] `db/011_ref_sources.sql`: add 6 rows, `licence` `NULL`, edition `website, fetched <date>`
   (Brewline: `catalogue PDF, fetched <date>`; Brewfather: `website, figures given by the user
   2026-10-11`):
   `yeastflow-catalogue` (YeastFlow strain catalogue, YeastFlow, <https://yeastflow.com/our-strains/>),
@@ -323,27 +323,27 @@ Why: attenuation sets FG; hopline has none. Sources as in the Approach table (us
   `brewline-catalogue` (Brewline catalogue (EN), Brewline, the PDF URL),
   `brewfather` (Brewfather yeast database, Brewfather, <https://brewfather.app/>).
   Apply twice as `postgres`; `select count(*) from ref.source` → 17 both times.
-- [ ] Read each source (fetch into the scratchpad, `pdftotext -layout` for PDFs; one request per
+- [x] Read each source (fetch into the scratchpad, `pdftotext -layout` for PDFs; one request per
   second, a `User-Agent` naming the project). For each loaded strain, copy the attenuation
   exactly as printed (decimal comma → point; `a-b %` → `(a, b)`, one figure → `(a, a)`), with
   the URL it was read from. A word only ("medium-high") or no figure → no entry; list it in the
   report. Match by product id where the source prints one, else by name; a match you aren't sure
   of → no entry, listed in the report. Afterwards re-read every entry against its source text.
-- [ ] `loaders/yeast_products.py`: `ATTENUATION: dict[str, dict]`, main SKU →
+- [x] `loaders/yeast_products.py`: `ATTENUATION: dict[str, dict]`, main SKU →
   `{"attenuation_pct": ("78", "82"), "source": "<slug>", "url": "<page or PDF read>", "printed": "<the text as printed>", "date": "<YYYY-MM-DD>"}`.
   Gozdawa entries use source `brewfather`, `url` `None`, `printed` the user's figure, e.g.
   `"76"` for `301491`, date `2026-10-11`.
-- [ ] `make_yeast` takes `attenuation: dict | None`; when given, `attenuation_pct = to_range(*…)`,
+- [x] `make_yeast` takes `attenuation: dict | None`; when given, `attenuation_pct = to_range(*…)`,
   `field_source["attenuation_pct"] = entry["source"]`, and the entry goes in
   `raw[entry["source"]]`. `build` passes `ATTENUATION.get(sku)`. The load step looks up no
   extra `source_id`: the ingredient's source stays `hopline-yeasts`.
-- [ ] Tests: `test_attenuation_fill` (a `fermentis-datasheets` range entry fills
+- [x] Tests: `test_attenuation_fill` (a `fermentis-datasheets` range entry fills
   `attenuation_pct` with that source and lands in `raw["fermentis-datasheets"]`; the Gozdawa
   Czech Pilsner 18 entry `76` → `[76,76]` with source `brewfather`; without an entry it stays
   `None` and is not in `field_source`); `test_yeast_map` also checks every `ATTENUATION` key is
   in `YEASTS`, every `source` is one of the 6 slugs, and no Norse Nectar or YeasterBunny SKU has
   an entry. Suite passes (10 in `test_yeasts.py`).
-- [ ] Run the loader twice; `count(attenuation_pct)` = number of `ATTENUATION` entries both
+- [x] Run the loader twice; `count(attenuation_pct)` = number of `ATTENUATION` entries both
   times (at most 100: 119 − 17 Norse Nectar − 1 YeasterBunny − Gozdawa W-34/70), other counts
   as in Task 5; `select field_source->>'attenuation_pct', count(*) from ref.yeast group by 1`
   recorded. The report lists every yeast still without attenuation, with the reason. Update
@@ -410,3 +410,17 @@ Commit: `Add yeast attenuation from maker catalogues`
   (the Norse Nectar and some Gozdawa lines carry a note after it) from `Ideális hőmérséklet`,
   M84's `Erjesztési hőmérséklet` and M54's split label (`"1" + "8 - 20 °C"`): 125 pages have
   both, 23 disagree (the plan said 121 with both; the 23 / 9 / 5 disagreements match).
+- 2026-10-11 · Task 6: three hopline Fermentis links point to another strain's data sheet
+  (BE-256 → S-189, S-33 → T-58, BR-8 → W-34/70), so those strains are read from their own
+  fermentis.com product page (box "Apparent attenuation"), like T-58; Mangrove Jack's M20
+  (hopline links M15's page), M47 (link 404) and M84 (link is the Yeast Range booklet) are read
+  from their own page in that booklet; Lallemand figures come from the catalogue's product pages
+  (the listing itself shows none), Suava's from the data sheet linked there, since its page has
+  words only; YF-107 McGyver from its page under yeastflow.com/our-strains/ although the index
+  now lists YF-118 instead. Result: 84 entries, not 100. Brewline gets none: its catalogue PDF
+  lists only 500 g strains (ORIGIN AmeriK, CeltiK, Pop Ale, Rock Ale, Folk Ale, Classic Lager,
+  Hip-Hop Lager, Jazz Sour, E2F), none matching hopline's 10 Brewline products (question to the
+  user). The `brewline-catalogue` source row is added anyway, as the plan says. The report
+  gives a reason for each yeast without attenuation (a missing reason raises) and the count per
+  source. Task 4's `SafBrew BR-8` and `M36 Liberty Bell Ale` were checked on fermentis.com and
+  mangrovejacks.com: both names are right, no change.

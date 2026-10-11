@@ -20,7 +20,7 @@ from psycopg.types.range import Range
 
 from loaders.common import to_range
 from loaders.db import connect, source_id, upsert_ingredient
-from loaders.yeast_products import BREWLINE_COPIES, PACK_SIZES, SKIPPED, YEASTS
+from loaders.yeast_products import ATTENUATION, BREWLINE_COPIES, PACK_SIZES, SKIPPED, YEASTS
 
 HOPLINE = "hopline-yeasts"
 
@@ -148,11 +148,14 @@ def make_yeast(
     form: str,
     main: dict,
     extras: list[dict],
+    attenuation: dict | None = None,
 ) -> Yeast:
     """One yeast from its main page and its extra pack-size pages.
 
     Figures come from the main page only; the extras are kept in raw. Attenuation is on no
-    hopline page and stays None.
+    hopline page: it comes from `attenuation`, an ATTENUATION entry from the producer's source,
+    which is recorded in field_source and kept whole in raw under that source's slug. Without
+    an entry it stays None.
     """
     params = main["params"]
     details_table = (main.get("details") or {}).get("table")
@@ -172,13 +175,19 @@ def make_yeast(
     field_source = {field: HOPLINE for field, value in values.items() if value is not None}
     raw = {HOPLINE: {page["sku"]: page for page in [main, *extras]}}
 
+    attenuation_pct = None
+    if attenuation is not None:
+        attenuation_pct = to_range(*attenuation["attenuation_pct"])
+        field_source["attenuation_pct"] = attenuation["source"]
+        raw[attenuation["source"]] = attenuation
+
     return Yeast(
         name=name,
         producer=producer,
         product_id=product_id,
         type=values["type"],
         form=form,
-        attenuation_pct=None,
+        attenuation_pct=attenuation_pct,
         temp_c=temp_c,
         flocculation=values["flocculation"],
         alcohol_tolerance_pct=values["alcohol_tolerance_pct"],
@@ -208,7 +217,15 @@ def build(hopline: dict) -> list[Yeast]:
     for sku, (producer, product_id, name) in YEASTS.items():
         extras = [products[extra] for extra, main in PACK_SIZES.items() if main == sku]
         yeasts.append(
-            make_yeast(producer, product_id, name, form_of[sku], products[sku], extras)
+            make_yeast(
+                producer,
+                product_id,
+                name,
+                form_of[sku],
+                products[sku],
+                extras,
+                ATTENUATION.get(sku),
+            )
         )
     return yeasts
 
@@ -227,6 +244,25 @@ ANOTHER_STRAINS_DESCRIPTION = {
 }
 
 LACTOBACILLUS = "Lactobacillust tartalmaz!"
+
+# Why a yeast has no ATTENUATION entry, for the report: by producer, else by SKU.
+NO_ATTENUATION_BY_PRODUCER = {
+    "Norse Nectar": "no attenuation source (user: \"we can skipp norse nectar\")",
+    "YeasterBunny": "no attenuation source (user: \"leave out the yeasterbunny\")",
+    "Brewline": "the Brewline catalogue PDF lists only its 500 g strains (ORIGIN AmeriK, ORIGIN "
+    "CeltiK, Pop Ale, Rock Ale, Folk Ale, Classic Lager, Hip-Hop Lager, Jazz Sour, Excellence "
+    "E2F), none of them this product",
+}
+NO_ATTENUATION = {
+    "301471": "no Brewfather figure among those the user gave",
+    "300040": "the catalogue page prints \"n/a%\"; its data sheet says \"high attenuation\" only",
+    "302190": "neither the fermentis.com page nor its data sheet gives a figure (a bottle "
+    "refermentation Brett); hopline links the W-34/70 sheet",
+    "301242": "the catalogue page prints \"800-100\", which is not a figure to copy as printed",
+    "301243": "the catalogue page's Attenuation box is empty",
+    "301244": "the catalogue page's Attenuation box is empty",
+    "301245": "the catalogue page's Attenuation box is empty",
+}
 
 
 def description_temperature(labels: dict) -> str | None:
@@ -264,7 +300,8 @@ def param_differences(a: dict, b: dict) -> list[str]:
 def report(hopline: dict) -> str:
     """Markdown for the user to check: pages whose data block and description disagree, the
     Brewline rows and the strains they copy, pack sizes whose data block differs, the yeasts
-    without attenuation, and the kveiks whose page says they contain Lactobacillus."""
+    without attenuation and why, the attenuation count per source, and the kveiks whose page
+    says they contain Lactobacillus."""
     products = {product["sku"]: product for product in hopline["products"]}
 
     def title(sku: str) -> str:
@@ -352,11 +389,23 @@ def report(hopline: dict) -> str:
 
     missing = [yeast for yeast in yeasts if yeast.attenuation_pct is None]
     lines += ["", f"## Yeasts without attenuation ({len(missing)})", ""]
-    by_producer: dict[str, list[str]] = {}
-    for yeast in missing:
-        by_producer.setdefault(yeast.producer, []).append(yeast.name)
-    for producer, names in sorted(by_producer.items()):
-        lines.append(f"- {producer} ({len(names)}): {', '.join(names)}")
+    by_reason: dict[tuple[str, str], list[str]] = {}
+    for sku, (producer, _, name) in YEASTS.items():
+        if sku in ATTENUATION:
+            continue
+        reason = NO_ATTENUATION.get(sku, NO_ATTENUATION_BY_PRODUCER.get(producer))
+        if reason is None:
+            raise ValueError(f"yeast {sku} ({name}) has no attenuation and no reason why")
+        by_reason.setdefault((producer, reason), []).append(f"{name} (`{sku}`)")
+    for (producer, reason), names in sorted(by_reason.items()):
+        lines.append(f"- {producer} ({len(names)}): {', '.join(names)}: {reason}.")
+
+    lines += ["", f"## Attenuation by source ({len(ATTENUATION)})", ""]
+    by_source: dict[str, int] = {}
+    for entry in ATTENUATION.values():
+        by_source[entry["source"]] = by_source.get(entry["source"], 0) + 1
+    for source, count in sorted(by_source.items()):
+        lines.append(f"- {source}: {count}")
 
     lines += ["", f"## Pages that say \"{LACTOBACILLUS}\"", ""]
     for sku, product in products.items():

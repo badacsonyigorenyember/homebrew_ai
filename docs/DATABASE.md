@@ -186,12 +186,12 @@ erDiagram
 
 | Table | Key columns | Filled from | Rows (2026-10-11) |
 |---|---|---|---|
-| `source` | slug, title, edition, licence, url, `file_path` (book file, for `kb`) | by hand, `db/011_ref_sources.sql` | 10 |
+| `source` | slug, title, edition, licence, url, `file_path` (book file, for `kb`) | by hand, `db/011_ref_sources.sql` | 17 |
 | `beer_style` | guide, code (unique per source), ranges (`numrange`), characteristic ingredients, `raw` | `styles.json`, `ba_styles.json` | 285: BJCP 2021 116 + BA 2026 169 |
 | `ingredient` | kind, name, producer, source, `raw` | all kind loaders | 283 (74 fermentable, 90 hop, 119 yeast) |
 | `fermentable` | extract (% dbfg, as the sources state it), colour (EBC range), max % of grist, `role`, `field_source` | hopline malt pages + Weyermann, Viking, Simpsons catalogues | 74 (74 with extract, 73 with EBC, 62 with `max_pct`); `role` empty until P3 |
 | `hop` | origins, purpose, alpha range, total oil, `field_source` | hopline hop pages; values hopline lacks (4 hops' alpha/oil, Enigma's purpose) from Beer Maverick through the hop loader | 90 (all with alpha and total oil) |
-| `yeast` | product id, type, form, attenuation range, temperature range, flocculation, alcohol tolerance | hopline dry and liquid yeast pages; attenuation from the makers' catalogues (Task 6 of `yeast-loader`) | 119 (dry 81, liquid 38; 0 with attenuation yet) |
+| `yeast` | product id, type, form, attenuation range, temperature range, flocculation, alcohol tolerance | hopline dry and liquid yeast pages; attenuation from the makers' catalogues and data sheets (Brewfather for Gozdawa) | 119 (dry 81, liquid 38; 84 with attenuation) |
 | `water_salt` | formula, ions per gram | computed from atomic masses | empty, P1 (`water-salts`) |
 | `misc` | `category` (spice, fruit, wood, lactose, …), **no gravity data** | corpus `misc` names, by hand | empty, P3 |
 | `tag` · `tag_synonym` | facet, name, parent ("citrusy" → citrus) · source word → tag | hop descriptors, malt roles, yeast families | empty, P3 |

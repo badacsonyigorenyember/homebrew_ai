@@ -14,6 +14,9 @@ SKIPPED: SKU -> why it is not loaded (non-beer yeasts, user decision 2026-10-11)
 
 BREWLINE_COPIES: Brewline SKU -> the SKUs of the strains its page says it copies (report only).
 
+ATTENUATION: main SKU -> attenuation copied from the producer's own source (no hopline page
+states one), with that source's slug, the URL read and the text as printed.
+
 An SKU in none of the three raises in loaders.yeasts.build, so a new hopline product never
 loads without a decision here. Comments are hopline's product names (2026-10-11).
 """
@@ -175,4 +178,361 @@ BREWLINE_COPIES: dict[str, list[str]] = {
     "301650": ["302010"],  # Belgian Wit -> SafAle T-58
     "301021": ["301020"],  # British Ale -> SafAle S-04
     "301601": ["301030", "300030"],  # U.S. West Coast Ale -> SafAle US-05 and BRY-97
+}
+
+# The day the maker sources below were read.
+DATE = "2026-10-11"
+
+# Main SKU -> attenuation copied as printed by the producer's source the user named (2026-10-11).
+# attenuation_pct is (low, high) as printed, one figure -> (a, a); "printed" is the text as it
+# stands in the source; url is the page or PDF it was read from. A source with a word only or no
+# figure gives no entry (listed in the report). Norse Nectar and YeasterBunny have no source.
+ATTENUATION: dict[str, dict] = {
+    # YeastFlow: strain pages under https://yeastflow.com/our-strains/ ("Attenuation" box, no unit
+    # printed). YF-107 has a page there though the index lists YF-118 Mrs. McGyver instead.
+    "301230": {  # YF 101 – Queen of hearts
+        "attenuation_pct": ("72", "76"), "source": "yeastflow-catalogue", "printed": "72-76",
+        "url": "https://yeastflow.com/our-strains/yf-101-queen-of-hearts/", "date": DATE,
+    },
+    "301240": {  # YF 102 – British bulldog
+        "attenuation_pct": ("72", "76"), "source": "yeastflow-catalogue", "printed": "72-76",
+        "url": "https://yeastflow.com/our-strains/yf-102-british-bulldog/", "date": DATE,
+    },
+    "301250": {  # YF 103 – Steamprunk
+        "attenuation_pct": ("71", "75"), "source": "yeastflow-catalogue", "printed": "71-75",
+        "url": "https://yeastflow.com/our-strains/yf-103-steamprunk/", "date": DATE,
+    },
+    "301260": {  # YF-104 – Terrier
+        "attenuation_pct": ("67", "71"), "source": "yeastflow-catalogue", "printed": "67-71",
+        "url": "https://yeastflow.com/our-strains/yf-104-terrier/", "date": DATE,
+    },
+    "301270": {  # YF-105 – Haggis
+        "attenuation_pct": ("69", "73"), "source": "yeastflow-catalogue", "printed": "69-73",
+        "url": "https://yeastflow.com/our-strains/yf-105-haggis/", "date": DATE,
+    },
+    "301280": {  # YF-106 – Redshamrock
+        "attenuation_pct": ("71", "75"), "source": "yeastflow-catalogue", "printed": "71-75",
+        "url": "https://yeastflow.com/our-strains/yf-106-redshamrock/", "date": DATE,
+    },
+    "301290": {  # YF-107 – McGyver
+        "attenuation_pct": ("73", "77"), "source": "yeastflow-catalogue", "printed": "73-77",
+        "url": "https://yeastflow.com/our-strains/yf-107-mcgyver/", "date": DATE,
+    },
+    "301300": {  # YF-108 – Jawohl!
+        "attenuation_pct": ("65", "72"), "source": "yeastflow-catalogue", "printed": "65-72",
+        "url": "https://yeastflow.com/our-strains/yf-108-jawohl/", "date": DATE,
+    },
+    "301310": {  # YF-109 – Caskaway
+        "attenuation_pct": ("67", "71"), "source": "yeastflow-catalogue", "printed": "67-71",
+        "url": "https://yeastflow.com/our-strains/yf-109-caskaway/", "date": DATE,
+    },
+    "301460": {  # YF-110 – Kölschermeister
+        "attenuation_pct": ("72", "78"), "source": "yeastflow-catalogue", "printed": "72-78",
+        "url": "https://yeastflow.com/our-strains/yf-110-kolschermeister/", "date": DATE,
+    },
+    "301231": {  # YF-111 – Pacification
+        "attenuation_pct": ("65", "70"), "source": "yeastflow-catalogue", "printed": "65-70",
+        "url": "https://yeastflow.com/our-strains/yf-111-pacification/", "date": DATE,
+    },
+    "301232": {  # YF-112 – Vermonter
+        "attenuation_pct": ("78", "82"), "source": "yeastflow-catalogue", "printed": "78-82",
+        "url": "https://yeastflow.com/our-strains/yf-112-vermonter/", "date": DATE,
+    },
+    "301233": {  # YF-114 – Crazy Hazy
+        "attenuation_pct": ("75", "80"), "source": "yeastflow-catalogue", "printed": "75-80",
+        "url": "https://yeastflow.com/our-strains/yf-114-crazy-hazy/", "date": DATE,
+    },
+    "302340": {  # YF-116 – St. Hedwig
+        "attenuation_pct": ("75", "80"), "source": "yeastflow-catalogue", "printed": "75-80",
+        "url": "https://yeastflow.com/our-strains/yf-116-st-hedwig/", "date": DATE,
+    },
+    "301320": {  # YF-201 – St. Cölibate
+        "attenuation_pct": ("78", "85"), "source": "yeastflow-catalogue", "printed": "78-85",
+        "url": "https://yeastflow.com/our-strains/yf-201-st-colibate/", "date": DATE,
+    },
+    "301330": {  # YF-202 – Priest D’vel
+        "attenuation_pct": ("74", "82"), "source": "yeastflow-catalogue", "printed": "74-82",
+        "url": "https://yeastflow.com/our-strains/yf-202-priest-dvel/", "date": DATE,
+    },
+    "301340": {  # YF-203 – Father Tibi
+        "attenuation_pct": ("78", "85"), "source": "yeastflow-catalogue", "printed": "78-85",
+        "url": "https://yeastflow.com/our-strains/yf-203-father-tibi/", "date": DATE,
+    },
+    "301350": {  # YF-204 – Priest D’vill
+        "attenuation_pct": ("75", "80"), "source": "yeastflow-catalogue", "printed": "75-80",
+        "url": "https://yeastflow.com/our-strains/yf-204-priest-dvill/", "date": DATE,
+    },
+    "301360": {  # YF-205 – Holy Cölibate
+        "attenuation_pct": ("75", "80"), "source": "yeastflow-catalogue", "printed": "75-80",
+        "url": "https://yeastflow.com/our-strains/yf-205-holy-colibate/", "date": DATE,
+    },
+    "301370": {  # YF-206 – Double Agent
+        "attenuation_pct": ("80", "85"), "source": "yeastflow-catalogue", "printed": "80-85",
+        "url": "https://yeastflow.com/our-strains/yf-206-double-agent/", "date": DATE,
+    },
+    "301380": {  # YF-207 – Wit’n a minute
+        "attenuation_pct": ("74", "78"), "source": "yeastflow-catalogue", "printed": "74-78",
+        "url": "https://yeastflow.com/our-strains/yf-207-witn-a-minute/", "date": DATE,
+    },
+    "301390": {  # YF-208 – Priest Passion
+        "attenuation_pct": ("76", "80"), "source": "yeastflow-catalogue", "printed": "76-80",
+        "url": "https://yeastflow.com/our-strains/yf-208-priest-passion/", "date": DATE,
+    },
+    "301400": {  # YF-301 – Pils’ing them softly
+        "attenuation_pct": ("80", "84"), "source": "yeastflow-catalogue", "printed": "80-84",
+        "url": "https://yeastflow.com/our-strains/yf-301-pilsing-them-softly/", "date": DATE,
+    },
+    "301410": {  # YF-302 – Californithologist
+        "attenuation_pct": ("67", "71"), "source": "yeastflow-catalogue", "printed": "67-71",
+        "url": "https://yeastflow.com/our-strains/yf-302-californithologist/", "date": DATE,
+    },
+    "301420": {  # YF-303 – Yeastoberfest
+        "attenuation_pct": ("65", "73"), "source": "yeastflow-catalogue", "printed": "65-73",
+        "url": "https://yeastflow.com/our-strains/yf-303-yeastoberfest/", "date": DATE,
+    },
+    "301430": {  # YF-304 – Bockster
+        "attenuation_pct": ("70", "74"), "source": "yeastflow-catalogue", "printed": "70-74",
+        "url": "https://yeastflow.com/our-strains/yf-304-bockster/", "date": DATE,
+    },
+    "301234": {  # YF-305 – Mistr Pilsner
+        "attenuation_pct": ("72", "77"), "source": "yeastflow-catalogue", "printed": "72-77",
+        "url": "https://yeastflow.com/our-strains/yf-305-mistr-pilsner/", "date": DATE,
+    },
+    "301235": {  # YF-306 – Herr Schnellager
+        "attenuation_pct": ("73", "82"), "source": "yeastflow-catalogue", "printed": "73-82",
+        "url": "https://yeastflow.com/our-strains/yf-306-herr-schnellager/", "date": DATE,
+    },
+    "301440": {  # YF-401 – Mr. Weizen
+        "attenuation_pct": ("74", "79"), "source": "yeastflow-catalogue", "printed": "74-79",
+        "url": "https://yeastflow.com/our-strains/yf-401-mr-weizen/", "date": DATE,
+    },
+    "301450": {  # YF-402 – Herr Weizen
+        "attenuation_pct": ("73", "77"), "source": "yeastflow-catalogue", "printed": "73-77",
+        "url": "https://yeastflow.com/our-strains/yf-402-herr-weizen/", "date": DATE,
+    },
+    "302390": {  # YF-403 – Frau Weizen
+        "attenuation_pct": ("73", "80"), "source": "yeastflow-catalogue", "printed": "73-80",
+        "url": "https://yeastflow.com/our-strains/yf-403-frau-weizen/", "date": DATE,
+    },
+    "301237": {  # YF-501 – Kingster
+        "attenuation_pct": ("77", "83"), "source": "yeastflow-catalogue", "printed": "77-83",
+        "url": "https://yeastflow.com/our-strains/yf-501-kingster/", "date": DATE,
+    },
+    "301238": {  # YF-502 – Farmster
+        "attenuation_pct": ("74", "79"), "source": "yeastflow-catalogue", "printed": "74-79",
+        "url": "https://yeastflow.com/our-strains/yf-502-farmster/", "date": DATE,
+    },
+    "301239": {  # YF-503 – Hotspur Viking
+        "attenuation_pct": ("78", "83"), "source": "yeastflow-catalogue", "printed": "78-83",
+        "url": "https://yeastflow.com/our-strains/yf-503-hotspur-viking/", "date": DATE,
+    },
+    # Lallemand: product pages of the catalogue (spec table "Attenuation"); Suava has no figure
+    # there, so its technical data sheet linked from that page is used.
+    "300010": {  # LalBrew Abbaye™
+        "attenuation_pct": ("77", "83"), "source": "lallemand-catalogue", "printed": "77-83%",
+        "url": "https://www.lallemandbrewing.com/en/continental-europe/products/abbaye-belgian-ale-yeast/", "date": DATE,
+    },
+    "300020": {  # LalBrew Belle Saison™
+        "attenuation_pct": ("86", "94"), "source": "lallemand-catalogue", "printed": "86-94%",
+        "url": "https://www.lallemandbrewing.com/en/continental-europe/products/belle-saison-beer-yeast/", "date": DATE,
+    },
+    "300030": {  # LalBrew BRY-97™
+        "attenuation_pct": ("78", "84"), "source": "lallemand-catalogue", "printed": "78-84%",
+        "url": "https://www.lallemandbrewing.com/en/continental-europe/products/bry-97-west-coast-ale-yeast/", "date": DATE,
+    },
+    "300050": {  # LalBrew Diamond™
+        "attenuation_pct": ("77", "83"), "source": "lallemand-catalogue", "printed": "77-83%",
+        "url": "https://www.lallemandbrewing.com/en/continental-europe/products/diamond-lager-yeast/", "date": DATE,
+    },
+    "300160": {  # LalBrew Farmhouse™
+        "attenuation_pct": ("78", "84"), "source": "lallemand-catalogue", "printed": "78-84%",
+        "url": "https://www.lallemandbrewing.com/en/continental-europe/products/lalbrew-farmhouse/", "date": DATE,
+    },
+    "302400": {  # LalBrew® House Ale
+        "attenuation_pct": ("78", "86"), "source": "lallemand-catalogue", "printed": "78-86%",
+        "url": "https://www.lallemandbrewing.com/en/continental-europe/products/lalbrew-house-ale/", "date": DATE,
+    },
+    "300080": {  # LalBrew Munich Classic™
+        "attenuation_pct": ("76", "83"), "source": "lallemand-catalogue", "printed": "76-83%",
+        "url": "https://www.lallemandbrewing.com/en/continental-europe/products/munich-classic-wheat-beer-yeast/", "date": DATE,
+    },
+    "300110": {  # LalBrew New England™
+        "attenuation_pct": ("78", "83"), "source": "lallemand-catalogue", "printed": "78-83%",
+        "url": "https://www.lallemandbrewing.com/en/continental-europe/products/lalbrew-new-england/", "date": DATE,
+    },
+    "300090": {  # LalBrew Nottingham™
+        "attenuation_pct": ("78", "84"), "source": "lallemand-catalogue", "printed": "78-84%",
+        "url": "https://www.lallemandbrewing.com/en/continental-europe/products/nottingham-high-performance-ale-yeast/", "date": DATE,
+    },
+    "302180": {  # LalBrew NovaLager™
+        "attenuation_pct": ("78", "84"), "source": "lallemand-catalogue", "printed": "78-84%",
+        "url": "https://www.lallemandbrewing.com/en/continental-europe/products/lalbrew-novalager/", "date": DATE,
+    },
+    "300150": {  # WildBrew Philly Sour™
+        "attenuation_pct": ("74", "82"), "source": "lallemand-catalogue", "printed": "74-82%",
+        "url": "https://www.lallemandbrewing.com/en/continental-europe/products/wildbrew-philly-sour/", "date": DATE,
+    },
+    "302330": {  # LalBrew Pomona™
+        "attenuation_pct": ("75", "84"), "source": "lallemand-catalogue", "printed": "75-84%",
+        "url": "https://www.lallemandbrewing.com/en/continental-europe/products/lalbrew-pomona/", "date": DATE,
+    },
+    "300140": {  # LalBrew Verdant IPA™
+        "attenuation_pct": ("75", "82"), "source": "lallemand-catalogue", "printed": "75-82%",
+        "url": "https://www.lallemandbrewing.com/en/continental-europe/products/lalbrew-verdant-ipa/", "date": DATE,
+    },
+    "300130": {  # LalBrew Voss™
+        "attenuation_pct": ("76", "82"), "source": "lallemand-catalogue", "printed": "76-82%",
+        "url": "https://www.lallemandbrewing.com/en/continental-europe/products/lalbrew-voss-kveik-ale-yeast/", "date": DATE,
+    },
+    "300100": {  # LalBrew Windsor™
+        "attenuation_pct": ("65", "72"), "source": "lallemand-catalogue", "printed": "65-72%",
+        "url": "https://www.lallemandbrewing.com/en/continental-europe/products/windsor-british-style-beer-yeast/", "date": DATE,
+    },
+    "300070": {  # LalBrew Wit™
+        "attenuation_pct": ("75", "82"), "source": "lallemand-catalogue", "printed": "75-82%",
+        "url": "https://www.lallemandbrewing.com/en/continental-europe/products/belgian-wit-style-ale-yeast/", "date": DATE,
+    },
+    "302410": {  # WLP079 Suava Ale Yeast (technical data sheet linked from the catalogue page)
+        "attenuation_pct": ("72", "82"), "source": "lallemand-catalogue", "printed": "72% - 82%",
+        "url": "https://admin.lallemandbrewing.com/wp-content/uploads/2026/08/WL-Dry-Yeast-Tech-Sheets-2026-Suava_041426-4-2-1.pdf", "date": DATE,
+    },
+    # Fermentis: data sheets linked from hopline (box "Apparent attenuation"); fermentis.com product
+    # pages where hopline links none (T-58, URL from the user) or another strain's sheet (BE-256,
+    # S-33).
+    "301000": {  # SafAle BE-134
+        "attenuation_pct": ("89", "93"), "source": "fermentis-datasheets", "printed": "89-93%",
+        "url": "https://distributors.fermentis.com/download/135/english/166/safale-be-134-en.pdf", "date": DATE,
+    },
+    "301020": {  # SafAle S-04
+        "attenuation_pct": ("74", "82"), "source": "fermentis-datasheets", "printed": "74-82%",
+        "url": "https://distributors.fermentis.com/download/135/english/167/safale-s-04-en.pdf", "date": DATE,
+    },
+    "301030": {  # SafAle US-05
+        "attenuation_pct": ("78", "82"), "source": "fermentis-datasheets", "printed": "78-82%",
+        "url": "https://distributors.fermentis.com/download/135/english/171/safale-us-05-en.pdf", "date": DATE,
+    },
+    "301060": {  # SafAle WB-06
+        "attenuation_pct": ("86", "90"), "source": "fermentis-datasheets", "printed": "86-90%",
+        "url": "https://distributors.fermentis.com/download/135/english/173/safale-wb-06-en.pdf", "date": DATE,
+    },
+    "301090": {  # SafLager S-189
+        "attenuation_pct": ("80", "84"), "source": "fermentis-datasheets", "printed": "80-84%",
+        "url": "https://distributors.fermentis.com/download/135/english/175/saflager-s-189-en.pdf", "date": DATE,
+    },
+    "301080": {  # SafLager S-23
+        "attenuation_pct": ("80", "84"), "source": "fermentis-datasheets", "printed": "80-84%",
+        "url": "https://distributors.fermentis.com/download/135/english/172/saflager-s-23-en.pdf", "date": DATE,
+    },
+    "301100": {  # SafLager W-34/70
+        "attenuation_pct": ("80", "84"), "source": "fermentis-datasheets", "printed": "80-84%",
+        "url": "https://distributors.fermentis.com/download/135/english/177/saflager-w34-70-en.pdf", "date": DATE,
+    },
+    "301010": {  # SafAle BE-256
+        "attenuation_pct": ("82", "86"), "source": "fermentis-datasheets", "printed": "82-86%",
+        "url": "https://fermentis.com/en/product/safale-be-256/", "date": DATE,
+    },
+    "301070": {  # SafAle K-97
+        "attenuation_pct": ("80", "84"), "source": "fermentis-datasheets", "printed": "80-84%",
+        "url": "https://fermentis.com/en/product/safale-k-97/", "date": DATE,
+    },
+    "301050": {  # SafAle S-33
+        "attenuation_pct": ("68", "72"), "source": "fermentis-datasheets", "printed": "68-72%",
+        "url": "https://fermentis.com/en/product/safale-s-33/", "date": DATE,
+    },
+    "302010": {  # SafAle T-58
+        "attenuation_pct": ("72", "78"), "source": "fermentis-datasheets", "printed": "72-78%",
+        "url": "https://fermentis.com/en/product/safale-t%e2%80%9158/", "date": DATE,
+    },
+    "301110": {  # SafAle W-68
+        "attenuation_pct": ("78", "84"), "source": "fermentis-datasheets", "printed": "78-84%",
+        "url": "https://fermentis.com/en/product/safale-w-68/", "date": DATE,
+    },
+    # Mangrove Jack's: product pages linked from hopline; the Yeast Range booklet (linked from
+    # hopline's M84 page) where hopline links none or another strain's page (M20, M47 404, M84).
+    "300200": {  # M44 US West Coast
+        "attenuation_pct": ("77", "85"), "source": "mangrovejacks-datasheets", "printed": "High (77 - 85%)",
+        "url": "https://mangrovejacks.com/collections/craft-series-yeasts/products/m44-us-west-coast-yeast-10g", "date": DATE,
+    },
+    "300210": {  # M29 French Saison
+        "attenuation_pct": ("85", "95"), "source": "mangrovejacks-datasheets", "printed": "Very High (85 - 95%)",
+        "url": "https://mangrovejacks.com/collections/craft-series-yeasts/products/m29-french-sasion-yeast-10-g", "date": DATE,
+    },
+    "300220": {  # M21 Belgian Wit
+        "attenuation_pct": ("70", "75"), "source": "mangrovejacks-datasheets", "printed": "Medium (70 - 75%)",
+        "url": "https://mangrovejacks.com/collections/craft-series-yeasts/products/belgian-wit-m21-yeast-10g", "date": DATE,
+    },
+    "300240": {  # M66 Hophead Ale
+        "attenuation_pct": ("74", "82"), "source": "mangrovejacks-datasheets", "printed": "Medium (74-82 %)",
+        "url": "https://mangrovejacks.com/collections/craft-series-yeasts/products/m66-hophead-ale-yeast-10g", "date": DATE,
+    },
+    "302270-H": {  # M15 Empire Ale
+        "attenuation_pct": ("70", "75"), "source": "mangrovejacks-datasheets", "printed": "Low-Medium (70 - 75%)",
+        "url": "https://mangrovejacks.com/collections/craft-series-yeasts/products/m15-empire-ale-yeast-10-g", "date": DATE,
+    },
+    "302220-H": {  # M54 Californian Lager
+        "attenuation_pct": ("77", "82"), "source": "mangrovejacks-datasheets", "printed": "High (77 - 82%)",
+        "url": "https://mangrovejacks.com/collections/craft-series-yeasts/products/californian-lager-m54-yeast-10g", "date": DATE,
+    },
+    "302230-H": {  # M41 Belgian Ale
+        "attenuation_pct": ("82", "92"), "source": "mangrovejacks-datasheets", "printed": "Very High (82 - 92%)",
+        "url": "https://mangrovejacks.com/collections/craft-series-yeasts/products/belgian-ale-yeast-10g", "date": DATE,
+    },
+    "302240-H": {  # M31 Belgian Tripel
+        "attenuation_pct": ("82", "92"), "source": "mangrovejacks-datasheets", "printed": "Very High (82 - 92%)",
+        "url": "https://mangrovejacks.com/collections/craft-series-yeasts/products/belgian-tripel-m31-yeast-10g", "date": DATE,
+    },
+    "302260-H": {  # M36 Liberty Bell Ale
+        "attenuation_pct": ("74", "78"), "source": "mangrovejacks-datasheets", "printed": "High (74 - 78%)",
+        "url": "https://mangrovejacks.com/collections/craft-series-yeasts/products/liberty-bell-ale-m36-yeast-10g", "date": DATE,
+    },
+    "302280-H": {  # M42 New World Strong Ale
+        "attenuation_pct": ("77", "82"), "source": "mangrovejacks-datasheets", "printed": "High (77 - 82%)",
+        "url": "https://mangrovejacks.com/collections/craft-series-yeasts/products/new-world-strong-ale-m42-yeast-10g", "date": DATE,
+    },
+    "302200-H": {  # M20 Bavarian Wheat (Yeast Range booklet)
+        "attenuation_pct": ("70", "75"), "source": "mangrovejacks-datasheets", "printed": "70 - 75%",
+        "url": "https://help.mangrovejacks.com/hc/en-us/article_attachments/13551379984785/Mangrove_Jack_s_Yeast_Range.pdf", "date": DATE,
+    },
+    "302210-H": {  # M47 Belgian Abbey (Yeast Range booklet)
+        "attenuation_pct": ("73", "77"), "source": "mangrovejacks-datasheets", "printed": "73 - 77%",
+        "url": "https://help.mangrovejacks.com/hc/en-us/article_attachments/13551379984785/Mangrove_Jack_s_Yeast_Range.pdf", "date": DATE,
+    },
+    "302250-H": {  # M84 Bohemian Lager (Yeast Range booklet)
+        "attenuation_pct": ("72", "76"), "source": "mangrovejacks-datasheets", "printed": "72 - 76%",
+        "url": "https://help.mangrovejacks.com/hc/en-us/article_attachments/13551379984785/Mangrove_Jack_s_Yeast_Range.pdf", "date": DATE,
+    },
+    # Gozdawa: Brewfather figures as the user gave them on 2026-10-11 (no URL); one figure is
+    # stored as [a,a].
+    "301491": {  # Czech Pilsner 18
+        "attenuation_pct": ("76", "76"), "source": "brewfather", "printed": "76",
+        "url": None, "date": DATE,
+    },
+    "301571": {  # Old German Altbier
+        "attenuation_pct": ("78", "78"), "source": "brewfather", "printed": "78%",
+        "url": None, "date": DATE,
+    },
+    "301531": {  # Porter&Kvass
+        "attenuation_pct": ("72", "72"), "source": "brewfather", "printed": "72",
+        "url": None, "date": DATE,
+    },
+    "301541": {  # Pure Ale
+        "attenuation_pct": ("75", "75"), "source": "brewfather", "printed": "75",
+        "url": None, "date": DATE,
+    },
+    "301561": {  # "Rochefort" Trappist Ale
+        "attenuation_pct": ("77", "77"), "source": "brewfather", "printed": "77",
+        "url": None, "date": DATE,
+    },
+    "301482": {  # Conan "New England"
+        "attenuation_pct": ("76", "76"), "source": "brewfather", "printed": "76",
+        "url": None, "date": DATE,
+    },
+    "301540": {  # Noble Saison
+        "attenuation_pct": ("83", "83"), "source": "brewfather", "printed": "83",
+        "url": None, "date": DATE,
+    },
+    "301551": {  # Real Scotland
+        "attenuation_pct": ("71", "71"), "source": "brewfather", "printed": "71",
+        "url": None, "date": DATE,
+    },
 }
