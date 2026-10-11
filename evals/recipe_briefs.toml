@@ -1,0 +1,419 @@
+# Recipe test briefs (P0): 20 natural-language recipe requests, each with the outcome a
+# correct pipeline must produce for the first three steps (style, deviations, what the user asked for).
+# Later phases score against this file (RECIPE-ROADMAP P4 and P5).
+#
+# Style ranges are NOT copied here: whatever reads a brief gets them from ref.beer_style
+# (source bjcp-2021). The only numbers in this file are the ones the user stated.
+# Brief and requirements: docs/work/test-briefs/brief.md
+# Checked by: tests/test_recipe_briefs.py
+#
+# Fields of every [[brief]] (empty values are "", [] or {}):
+#   id          b01, b02, ...
+#   request     the user's words, English, one to three sentences
+#   why         what this brief tests
+#   style       expected best-fit BJCP 2021 code, the base style (adjuncts are ignored)
+#   alt_styles  other acceptable codes, only where the request is genuinely ambiguous
+#   deviations  { kind, what, from }; kind is ingredient, number, mismatch or conflict
+#   stated      only numbers the user stated: batch_l, abv, og, ibu, srm
+#   hints       words from the RECIPE-ROADMAP §7 hint table
+#   wanted      ingredients the user asked for
+#   excluded    ingredients the user ruled out
+#   inventory   ingredients the user says they have
+#   guidance    style guidance on (true) or off (false)
+#   needs       generic ingredients the recipe will need: fermentables, hops, yeast, water_salts
+
+[[brief]]
+id = "b01"
+request = "I want a classic West Coast IPA that is properly bitter. Make it 20 litres at about 6.5 % ABV."
+why = "Hop-forward IPA with the bitter hint and two stated numbers that sit inside the style."
+style = "21A"
+alt_styles = []
+deviations = []
+stated = { batch_l = 20, abv = 6.5 }
+hints = ["bitter"]
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pale ale malt", "crystal malt"]
+hops = ["Columbus", "Centennial", "Simcoe"]
+yeast = ["American ale yeast"]
+water_salts = ["gypsum"]
+
+[[brief]]
+id = "b02"
+request = "Brew me a hazy IPA that is really juicy and hoppy, with a soft mouthfeel from oats."
+why = "Hazy IPA: the juicy/hoppy hints raise late and dry hops, and flaked oats are typical."
+style = "21C"
+alt_styles = []
+deviations = []
+stated = {}
+hints = ["juicy", "hoppy"]
+wanted = ["flaked oats"]
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pilsner malt", "wheat malt", "flaked oats"]
+hops = ["Citra", "Mosaic", "Galaxy"]
+yeast = ["New England ale yeast"]
+water_salts = ["calcium chloride", "gypsum"]
+
+[[brief]]
+id = "b03"
+request = "I'd like an oatmeal stout that is full and chewy, something for cold winter evenings."
+why = "Full/chewy hints on a style that traditionally uses flaked oats."
+style = "16B"
+alt_styles = []
+deviations = []
+stated = {}
+hints = ["full", "chewy"]
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["Maris Otter", "flaked oats", "crystal malt", "chocolate malt", "roasted barley"]
+hops = ["East Kent Goldings"]
+yeast = ["English ale yeast"]
+water_salts = ["calcium chloride"]
+
+[[brief]]
+id = "b04"
+request = "Can you make me a milk stout? Sweet, smooth and not too roasty."
+why = "Milk stout means 16A, and lactose is needed although the user never names it."
+style = "16A"
+alt_styles = []
+deviations = []
+stated = {}
+hints = []
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pale ale malt", "crystal malt", "chocolate malt", "roasted barley", "lactose"]
+hops = ["East Kent Goldings"]
+yeast = ["English ale yeast"]
+water_salts = ["calcium chloride"]
+
+[[brief]]
+id = "b05"
+request = "I'd like a 4 % imperial stout, something I can drink a few pints of."
+why = "Name says imperial stout, the number says Irish stout: the pipeline names the mismatch."
+style = "15B"
+alt_styles = ["20C"]
+deviations = [
+  { kind = "mismatch", what = "name 'imperial stout' with ABV 4", from = "20C ABV range" },
+]
+stated = { abv = 4 }
+hints = []
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pale ale malt", "flaked barley", "roasted barley"]
+hops = ["East Kent Goldings"]
+yeast = ["Irish ale yeast"]
+water_salts = []
+
+[[brief]]
+id = "b06"
+request = "A crisp, dry American lager for summer, the kind you drink ice cold after mowing the lawn. I'd like to use rice like the big brewers do."
+why = "Lager with the dry/crisp hints, and flaked rice in a style that traditionally uses it."
+style = "1B"
+alt_styles = []
+deviations = []
+stated = {}
+hints = ["crisp", "dry"]
+wanted = ["flaked rice"]
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pilsner malt", "flaked rice"]
+hops = ["Magnum"]
+yeast = ["American lager yeast"]
+water_salts = []
+
+[[brief]]
+id = "b07"
+request = "I want a cream ale with corn in it, light and easy for a barbecue."
+why = "Flaked corn in a style that traditionally uses it."
+style = "1C"
+alt_styles = []
+deviations = []
+stated = {}
+hints = []
+wanted = ["flaked corn"]
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pilsner malt", "flaked corn"]
+hops = ["Willamette"]
+yeast = ["American ale yeast"]
+water_salts = []
+
+[[brief]]
+id = "b08"
+request = "German pils, but I want it really bitter, around 50 IBU. I have no Saaz, so pick another noble-type hop. Only 10 litres."
+why = "Stated IBU above the style range, an excluded hop and a small batch."
+style = "5D"
+alt_styles = []
+deviations = [
+  { kind = "number", what = "IBU 50", from = "5D IBU range" },
+]
+stated = { batch_l = 10, ibu = 50 }
+hints = ["bitter"]
+wanted = []
+excluded = ["Saaz"]
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pilsner malt"]
+hops = ["Magnum", "Hallertau Mittelfrüh", "Tettnang"]
+yeast = ["German lager yeast"]
+water_salts = []
+
+[[brief]]
+id = "b09"
+request = "Make me a Märzen for autumn, malty and toasty with a clean finish."
+why = "Amber lager with the malty hint (Munich and Vienna share up)."
+style = "6A"
+alt_styles = []
+deviations = []
+stated = {}
+hints = ["malty"]
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pilsner malt", "Munich malt", "Vienna malt"]
+hops = ["Hallertau Mittelfrüh"]
+yeast = ["German lager yeast"]
+water_salts = []
+
+[[brief]]
+id = "b10"
+request = "I have a bag of dark candi sugar, some Munich malt and a pack of abbey yeast. What Belgian dubbel can I brew with that?"
+why = "Belgian style built around the user's stated inventory, with candi sugar."
+style = "26B"
+alt_styles = []
+deviations = []
+stated = {}
+hints = []
+wanted = []
+excluded = []
+inventory = ["candi sugar", "Munich malt", "abbey ale yeast"]
+guidance = true
+[brief.needs]
+fermentables = ["pilsner malt", "Munich malt", "Special B", "candi sugar"]
+hops = ["Styrian Golding"]
+yeast = ["abbey ale yeast"]
+water_salts = []
+
+[[brief]]
+id = "b11"
+request = "I want a saison that is bone dry but also full and chewy in the mouth."
+why = "Contradictory hints: the right outcome is to name the conflict, not to pick one side."
+style = "25B"
+alt_styles = []
+deviations = [
+  { kind = "conflict", what = "'bone dry' vs 'full and chewy'", from = "the request itself" },
+]
+stated = {}
+hints = ["dry", "full", "chewy"]
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pilsner malt", "wheat malt"]
+hops = ["Styrian Golding", "Saaz"]
+yeast = ["saison yeast"]
+water_salts = []
+
+[[brief]]
+id = "b12"
+request = "A simple blonde ale with some honey in it, easy drinking for friends who don't like craft beer."
+why = "Honey is an ingredient deviation on the base style 18A, not a reason for 31B."
+style = "18A"
+alt_styles = []
+deviations = [
+  { kind = "ingredient", what = "honey", from = "18A ingredients" },
+]
+stated = {}
+hints = []
+wanted = ["honey"]
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pale ale malt", "Vienna malt", "honey"]
+hops = ["Cascade"]
+yeast = ["American ale yeast"]
+water_salts = []
+
+[[brief]]
+id = "b13"
+request = "A traditional Bavarian hefeweizen, 15 litres please."
+why = "Wheat style named by its common name, with a non-default batch size."
+style = "10A"
+alt_styles = []
+deviations = []
+stated = { batch_l = 15 }
+hints = []
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["wheat malt", "pilsner malt"]
+hops = ["Hallertau Mittelfrüh"]
+yeast = ["weizen yeast"]
+water_salts = []
+
+[[brief]]
+id = "b14"
+request = "I'd like a light, tart Berliner Weisse at 3 %, a real session beer for hot days."
+why = "Sour wheat style with the session hint and a stated ABV inside the range."
+style = "23A"
+alt_styles = []
+deviations = []
+stated = { abv = 3 }
+hints = ["session"]
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["wheat malt", "pilsner malt"]
+hops = ["Hallertau Mittelfrüh"]
+yeast = ["German ale yeast", "Lactobacillus"]
+water_salts = []
+
+[[brief]]
+id = "b15"
+request = "I've got Maris Otter, some crystal malt and East Kent Goldings at home. Can you turn that into a proper English best bitter? 23 litres."
+why = "British style from the user's stated inventory, with a 23 litre batch."
+style = "11B"
+alt_styles = []
+deviations = []
+stated = { batch_l = 23 }
+hints = []
+wanted = []
+excluded = []
+inventory = ["Maris Otter", "crystal malt", "East Kent Goldings"]
+guidance = true
+[brief.needs]
+fermentables = ["Maris Otter", "crystal malt"]
+hops = ["East Kent Goldings", "Fuggle"]
+yeast = ["English ale yeast"]
+water_salts = ["gypsum"]
+
+[[brief]]
+id = "b16"
+request = "An American pale ale, but no Citra and no Mosaic please, I'm tired of them."
+why = "Hop-forward style with two excluded hops that are the obvious picks."
+style = "18B"
+alt_styles = []
+deviations = []
+stated = {}
+hints = []
+wanted = []
+excluded = ["Citra", "Mosaic"]
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pale ale malt", "crystal malt"]
+hops = ["Cascade", "Centennial"]
+yeast = ["American ale yeast"]
+water_salts = ["gypsum"]
+
+[[brief]]
+id = "b17"
+request = "I want a schwarzbier at 7 % ABV for the winter."
+why = "Dark lager with a stated ABV above the style range."
+style = "8B"
+alt_styles = []
+deviations = [
+  { kind = "number", what = "ABV 7", from = "8B ABV range" },
+]
+stated = { abv = 7 }
+hints = []
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pilsner malt", "Munich malt", "Carafa Special"]
+hops = ["Hallertau Mittelfrüh"]
+yeast = ["German lager yeast"]
+water_salts = []
+
+[[brief]]
+id = "b18"
+request = "An Irish red ale, but darker than usual, about 20 SRM. Don't worry about the style guidelines, just brew it the way I ask."
+why = "Guidance off: the SRM above the range is accepted and listed, not argued."
+style = "15A"
+alt_styles = []
+deviations = [
+  { kind = "number", what = "SRM 20", from = "15A SRM range" },
+]
+stated = { srm = 20 }
+hints = ["darker"]
+wanted = []
+excluded = []
+inventory = []
+guidance = false
+[brief.needs]
+fermentables = ["pale ale malt", "crystal malt", "roasted barley"]
+hops = ["East Kent Goldings"]
+yeast = ["Irish ale yeast"]
+water_salts = []
+
+[[brief]]
+id = "b19"
+request = "A wee heavy, rich and malty, with some honey added. Make it a bit stronger than most. 10 litres."
+why = "Honey as an ingredient deviation, with the malty and stronger hints and a small batch."
+style = "17C"
+alt_styles = []
+deviations = [
+  { kind = "ingredient", what = "honey", from = "17C ingredients" },
+]
+stated = { batch_l = 10 }
+hints = ["malty", "stronger"]
+wanted = ["honey"]
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["Maris Otter", "crystal malt", "roasted barley", "honey"]
+hops = ["East Kent Goldings"]
+yeast = ["Scottish ale yeast"]
+water_salts = []
+
+[[brief]]
+id = "b20"
+request = "An American brown ale with a bit of lactose for a fuller, rounder body."
+why = "Lactose as an ingredient deviation outside stouts, with the full hint."
+style = "19C"
+alt_styles = []
+deviations = [
+  { kind = "ingredient", what = "lactose", from = "19C ingredients" },
+]
+stated = {}
+hints = ["full"]
+wanted = ["lactose"]
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pale ale malt", "crystal malt", "chocolate malt", "lactose"]
+hops = ["Cascade"]
+yeast = ["American ale yeast"]
+water_salts = []

@@ -1,6 +1,6 @@
 # Recipe test briefs (P0) — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: test-briefs
 
@@ -46,7 +46,7 @@ Every `[[brief]]` has exactly these keys; empty values are `""`, `[]` or `{}`:
 | `excluded` | list | ingredients the user ruled out |
 | `inventory` | list | ingredients the user says they have |
 | `guidance` | bool | style guidance on (`true`, default) or off |
-| `needs` | inline table | `{ fermentables = [...], hops = [...], yeast = [...], water_salts = [...] }`, generic names (`"flaked oats"`, `"Saaz"`, `"abbey ale yeast"`) — the four keys are the only allowed ones, which is how R11 is enforced by shape |
+| `needs` | table (`[brief.needs]` sub-table) | `{ fermentables = [...], hops = [...], yeast = [...], water_salts = [...] }`, generic names (`"flaked oats"`, `"Saaz"`, `"abbey ale yeast"`) — the four keys are the only allowed ones, which is how R11 is enforced by shape |
 
 The six adjuncts use these exact names in `needs.fermentables`, so the test can count them:
 `flaked oats`, `candi sugar`, `flaked corn`, `flaked rice`, `lactose`, `honey`.
@@ -87,12 +87,12 @@ on 2026-10-11 and stay out of the file.
 
 ### Task 1: Write the 20 briefs and the test that checks them
 Why: R1–R12, A1–A4, A7.
-- [ ] Create `evals/recipe_briefs.toml`: a short header comment (what the file is, that style
+- [x] Create `evals/recipe_briefs.toml`: a short header comment (what the file is, that style
   ranges come from `ref.beer_style`, link to `docs/work/test-briefs/brief.md`), then the 20
   briefs from the spread table above in the format above. Requests read like a user typing:
   1–3 sentences, English, no style codes unless the user would say them. Each `deviations`
   entry names what and from what. No fruit, spice, herb, coffee, vanilla, cacao or wood anywhere.
-- [ ] Write `tests/test_recipe_briefs.py`. Module-level: `BRIEFS = tomllib.load(...)["brief"]`;
+- [x] Write `tests/test_recipe_briefs.py`. Module-level: `BRIEFS = tomllib.load(...)["brief"]`;
   the explicit code sets `LAGERS`, `BELGIAN`, `WHEAT_OR_SOUR`, `HOP_FORWARD`,
   `STOUT_OR_PORTER`; `ADJUNCTS` (the six names); `HINT_ROWS` (the seven §7 rows as word sets);
   `NON_GRAVITY_WORDS` (fruit names, `fruit`, `spice`, `cinnamon`, `coriander`, `herb`, `coffee`,
@@ -110,15 +110,15 @@ Why: R1–R12, A1–A4, A7.
     `request`, `wanted` or any `needs` list; every `wanted` item appears in `needs`). Each
     asserts against `coverage()` with the measured count in the message.
   - `test_print_coverage`: prints `coverage(BRIEFS)` so `pytest -s` shows the A3 numbers.
-- [ ] Check each bucket set and each expected code against the DB before relying on them:
+- [x] Check each bucket set and each expected code against the DB before relying on them:
   `docker exec -i supabase-db psql -U postgres -d postgres -c "select code, name from ref.beer_style where guide = 'BJCP' order by code"`.
-- [ ] Run `.venv/bin/python -m pytest -s tests/test_recipe_briefs.py -v`, expect 10 passed and
+- [x] Run `.venv/bin/python -m pytest -s tests/test_recipe_briefs.py -v`, expect 10 passed and
   the coverage dict meeting every A3 minimum.
-- [ ] Prove the checks bite: temporarily delete one brief, and separately change one adjunct
+- [x] Prove the checks bite: temporarily delete one brief, and separately change one adjunct
   name; each run must fail with the count in the message. Restore the file.
-- [ ] A4: `grep -nE '[0-9]+(\.[0-9]+)? *(–|-|to) *[0-9]' evals/recipe_briefs.toml` finds no
+- [x] A4: `grep -nE '[0-9]+(\.[0-9]+)? *(–|-|to) *[0-9]' evals/recipe_briefs.toml` finds no
   range; every number in the file is in a `stated` table, an `id`, or the user's own words.
-- [ ] Run the whole suite: `.venv/bin/python -m pytest -q`, expect 61 passed (51 + 10).
+- [x] Run the whole suite: `.venv/bin/python -m pytest -q`, expect 61 passed (51 + 10).
 Done when: the file holds 20 briefs, the 10 new tests pass, the suite passes.
 Commit: `Add 20 recipe test briefs with coverage test`
 
@@ -159,3 +159,4 @@ Commit: `Record P0 test briefs in PROJECT and roadmap`
 ## Approved exceptions
 
 ## Deviations
+- 2026-10-11 · Task 1: `needs` is written as a `[brief.needs]` sub-table, not an inline table — the one-line inline form ran past 150 characters; the parsed shape is the same.
