@@ -202,6 +202,8 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- Planned `ba-guide-docs` ([`docs/work/ba-guide-docs/plan.md`](docs/work/ba-guide-docs/plan.md)):
+  one docs-only task.
 - Wrote brief for `ba-guide-docs` ([`docs/work/ba-guide-docs/`](docs/work/ba-guide-docs/brief.md)):
   the RECIPE-ROADMAP "Later · BA as a selectable guide" item and the DATABASE.md §9 BA
   style-family trigger are out of date against D1.

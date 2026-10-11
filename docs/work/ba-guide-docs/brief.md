@@ -77,8 +77,9 @@ A3. `docs/DATABASE.md` §9 still has the "A style family for BA styles" row, wit
     "`category_code`", "10" and the STYLE-PROFILES §3 link, and does not contain
     "if BA becomes a selectable guide"; its trigger is "when a BA style needs a style profile
     (D1: step 2 can pick a BA style)" (R3).
-A4. `grep -rn -i "selectable guide\|if BA becomes" --include=*.md . | grep -v docs/finished`
-    returns nothing (R4).
+A4. `grep -rn -i "selectable guide\|if BA becomes" --include=*.md . | grep -v "^./docs/finished/\|^./docs/work/ba-guide-docs/"`
+    returns exactly one hit: the PROJECT.md §8 progress-log entry for this brief, which records
+    the old wording as history (R4).
 A5. PROJECT.md §8 has a 2026-10-xx entry naming `ba-guide-docs` with a link to its folder (R5).
 A6. `git diff main --stat` on the branch touches only `docs/RECIPE-ROADMAP.md`,
     `docs/DATABASE.md`, `PROJECT.md` and `docs/work/ba-guide-docs/` (scope).
@@ -91,3 +92,4 @@ None. Answered by the user 2026-10-11:
    profile (D1: step 2 can pick a BA style)" (R3).
 
 ## Deviations
+- 2026-10-11 · A4: the grep now leaves out `docs/work/ba-guide-docs/` and allows exactly one hit, the PROJECT.md §8 log entry for this brief — as first written it matched that history entry and this folder's own files, so it could never pass (user decision, 2026-10-11).
