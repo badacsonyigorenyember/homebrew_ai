@@ -135,14 +135,14 @@ Commit: `Apply user review to test briefs` (skip the commit if nothing changed, 
 
 ### Task 3: Record P0 in PROJECT.md and RECIPE-ROADMAP
 Why: R13, A6.
-- [ ] `docs/RECIPE-ROADMAP.md` §8: P0 row reads "20 test briefs …" with ✅ done and the date,
+- [x] `docs/RECIPE-ROADMAP.md` §8: P0 row reads "20 test briefs …" with ✅ done and the date,
   links `../evals/recipe_briefs.toml`, and says D7 and D9 moved to P3 (P3's "Do" cell gains
   "Settle D7, D9"). §9 table: note "decided in P3" on D7 and D9. Do not touch §3–§7.
-- [ ] `PROJECT.md`: §4 Scripts row gains the briefs file and test with the measured test count;
+- [x] `PROJECT.md`: §4 Scripts row gains the briefs file and test with the measured test count;
   §7 D7 and D9 rows note "belongs to P3 (moved from P0, <date>)", status stays `open`; §8 dated
   entry (newest first) linking `docs/work/test-briefs/`, with the measured A3 counts and the
   suite result. §2, §3 and §6 unchanged.
-- [ ] Run `.venv/bin/python -m pytest -q`, expect 61 passed.
+- [x] Run `.venv/bin/python -m pytest -q`, expect 61 passed.
 Done when: both docs show P0 done with measured numbers and the link.
 Commit: `Record P0 test briefs in PROJECT and roadmap`
 
