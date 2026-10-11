@@ -202,6 +202,18 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- Shipped `ba-guide-docs` ([`docs/work/ba-guide-docs/`](docs/work/ba-guide-docs/verification.md)),
+  merged to `main`: RECIPE-ROADMAP §8 and DATABASE.md §9 now agree with D1 (BA is a step-2
+  guide, not a future option). Verified 9/9 spot checks, 61/61 tests.
+- Implemented ba-guide-docs ([docs/work/ba-guide-docs/](docs/work/ba-guide-docs/plan.md)):
+  RECIPE-ROADMAP §8 moves BA from Later into P4 step 2 per D1; DATABASE.md §9 BA style-family
+  row now triggered by a BA style needing a profile (still not built: 169 BA rows,
+  category_code NULL).
+- Planned `ba-guide-docs` ([`docs/work/ba-guide-docs/plan.md`](docs/work/ba-guide-docs/plan.md)):
+  one docs-only task.
+- Wrote brief for `ba-guide-docs` ([`docs/work/ba-guide-docs/`](docs/work/ba-guide-docs/brief.md)):
+  the RECIPE-ROADMAP "Later · BA as a selectable guide" item and the DATABASE.md §9 BA
+  style-family trigger are out of date against D1.
 - Shipped `test-briefs` ([`docs/finished/test-briefs/`](docs/finished/test-briefs/verification.md)),
   merged to `main`: P0 is done. [`evals/recipe_briefs.toml`](evals/recipe_briefs.toml) holds
   the 20 user-approved recipe test briefs across 16 BJCP categories, checked by

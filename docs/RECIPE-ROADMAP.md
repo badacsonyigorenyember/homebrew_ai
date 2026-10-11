@@ -291,12 +291,12 @@ flowchart LR
 | **P1** | `ref` + `corpus` schemas ([DATABASE.md](DATABASE.md)). Load styles (116 + 169), malts, hops, hopline yeasts, water salts, the corpus with quality gates ([STYLE-PROFILES.md](STYLE-PROFILES.md) §2). | row counts match sources · 10 rows spot-checked per table |
 | **P2** | Maths library with unit tests | tests pass against Palmer's and OBC's worked examples |
 | **P3** | Tag vocabulary · ingredient tags · usage effects · envelopes for the test styles · `style_profile`. Settle D7, D9. | the Citra table (§5) reproduces from SQL |
-| **P4** | Steps 0–3 | ≥ 18/20 briefs: right style, right deviations |
+| **P4** | Steps 0–3. Step 2 picks the style from BJCP 2021 or BA 2026 per D1 (§9): BJCP preferred, BA where it describes the beer better or the user is asked, and one guide only when the user sets BJCP only or BA only | ≥ 18/20 briefs: right style, right deviations |
 | **P5** | Steps 4–11 | ≥ 16/20 validate · **0 invented ingredients** · LLM calls ≤ 2 + tie-breaks |
 | **P7** | Doc → calc pass per book, then ingest the rest into `kb`, retrieval eval | recall@5 measured, above an agreed bar |
 | **P6** | Steps 12–15 | every recipe has water, mash, ferment, package |
 | **P8** | Step 16 + interface (D5) | you can brew from the sheet |
-| **Later** | BA as a selectable guide · inventory-first mode · substitutions · batch log → feedback | |
+| **Later** | inventory-first mode · substitutions · batch log → feedback | |
 
 ---
 
