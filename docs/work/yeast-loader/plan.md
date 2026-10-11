@@ -163,18 +163,18 @@ Commit: `Fetch hopline yeast pages`
 ### Task 2: Yeast source and `ref.yeast.field_source`
 Why: every row needs its real source; attenuation will come from a second source, so provenance
 is per field.
-- [ ] `db/010_ref_schema.sql`: add `field_source jsonb not null  -- which source each field was taken from`
+- [x] `db/010_ref_schema.sql`: add `field_source jsonb not null  -- which source each field was taken from`
   to `create table ref.yeast`, and after the fermentable one add
   `alter table ref.yeast add column if not exists field_source jsonb not null;`
   (`ref.yeast` has 0 rows, measured 2026-10-11).
-- [ ] `db/011_ref_sources.sql`: add
+- [x] `db/011_ref_sources.sql`: add
   `('hopline-yeasts', 'Hopline yeast product pages', 'website, fetched <the "fetched" date in hopline_yeasts.json>', 'Hopline', null, 'https://www.hopline.hu/alapanyagok/elesztok/szaraz-eleszto', 'Dry and liquid yeast pages (szaraz-eleszto, folyekony-eleszto)')`,
   remove the `brewtarget-default-data` row from the insert list, and under the corrections add
   (0 ingredients reference it, measured 2026-10-11):
   `delete from ref.source s where s.slug = 'brewtarget-default-data' and not exists (select 1 from ref.ingredient i where i.source_id = s.id);`
-- [ ] Apply both twice as `postgres`:
+- [x] Apply both twice as `postgres`:
   `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/010_ref_schema.sql` (then `011`).
-- [ ] Check after each apply: `select slug from ref.source order by id` → 11 rows, includes
+- [x] Check after each apply: `select slug from ref.source order by id` → 11 rows, includes
   `hopline-yeasts`, no `brewtarget-default-data`; `\d ref.yeast` shows `field_source jsonb not null`.
   Suite still passes.
 Done when: both files apply twice without error and give those rows.

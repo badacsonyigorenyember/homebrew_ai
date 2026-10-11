@@ -49,11 +49,11 @@ insert into ref.source (slug, title, edition, publisher, licence, url, notes) va
      'Figures supplied by the user', null,
      null, null, null,
      'Hand-entered figures where no source states one; the user''s wording is kept in raw'),
-    ('brewtarget-default-data',
-     'Brewtarget default ingredient data', 'DefaultContent003 and DefaultContent004',
-     'Brewtarget project', 'GPL-3.0',
-     'https://github.com/Brewtarget/brewtarget',
-     'BeerJSON files DefaultContent003-Ingredients-Hops-Yeasts.json and DefaultContent004-MoreYeasts.json'),
+    ('hopline-yeasts',
+     'Hopline yeast product pages', 'website, fetched 2026-10-11',
+     'Hopline', null,
+     'https://www.hopline.hu/alapanyagok/elesztok/szaraz-eleszto',
+     'Dry and liquid yeast pages (szaraz-eleszto, folyekony-eleszto)'),
     ('water-chemistry',
      'Standard atomic masses', 'IUPAC standard atomic weights 2021',
      'IUPAC', null, null,
@@ -75,4 +75,10 @@ delete from ref.source s
 -- while nothing references them.
 delete from ref.source s
  where s.slug in ('hops-json', 'hopslist')
+   and not exists (select 1 from ref.ingredient i where i.source_id = s.id);
+
+-- The Brewtarget yeast files were replaced by hopline-yeasts; remove the source while nothing
+-- references it.
+delete from ref.source s
+ where s.slug = 'brewtarget-default-data'
    and not exists (select 1 from ref.ingredient i where i.source_id = s.id);

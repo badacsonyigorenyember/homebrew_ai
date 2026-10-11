@@ -78,7 +78,8 @@ create table if not exists ref.yeast (
     flocculation          text check (flocculation in
                               ('very low', 'low', 'medium low', 'medium',
                                'medium high', 'high', 'very high')),
-    alcohol_tolerance_pct numeric(4, 1)
+    alcohol_tolerance_pct numeric(4, 1),
+    field_source          jsonb not null  -- which source each field was taken from
 );
 
 create table if not exists ref.water_salt (
@@ -111,6 +112,9 @@ alter table ref.water_salt
 -- Per-field provenance for fermentables (ref.fermentable had 0 rows when this was added,
 -- so NOT NULL without a default works).
 alter table ref.fermentable add column if not exists field_source jsonb not null;
+
+-- Per-field provenance for yeasts (ref.yeast had 0 rows when this was added).
+alter table ref.yeast add column if not exists field_source jsonb not null;
 
 -- Columns removed by the database review (docs/DATABASE-REVIEW.md §5.1, 2026-10-11)
 
