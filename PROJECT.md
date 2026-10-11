@@ -192,9 +192,15 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- `yeast-loader` change request ([`docs/work/yeast-loader/plan.md`](docs/work/yeast-loader/plan.md)):
+  no Hungarian outside `raw`. The one Hungarian value, Brewline `302170` "Bajor Búza", is now
+  `Bavarian Wheat` (row renamed in place, same id); the `hopline-yeasts` source notes and the
+  report are in English, page quotes kept as printed. New test checks the names, type,
+  flocculation and `field_source` values. Loader run twice: 119 rows, 119/113/114/93 filled
+  (temp, flocculation, alcohol, attenuation), unchanged. 47 tests pass.
 - `yeast-loader` Task 6, user answers ([`docs/work/yeast-loader/plan.md`](docs/work/yeast-loader/plan.md)):
   8 Brewline products get the user's Brewfather figures (`[a,a]`, source `brewfather`; "german
-  wheat" taken as Bajor Búza), YF-666 gets `[80,100]` as `user-supplied` (page prints
+  wheat" taken as Brewline Bavarian Wheat `302170`), YF-666 gets `[80,100]` as `user-supplied` (page prints
   `800-100`); the unused `brewline-catalogue` source is removed (16 sources, applied twice).
   Run twice, same result: 119 rows, 93 with attenuation, every entry matches the DB; 26 without,
   reasons in [`report.md`](docs/work/yeast-loader/report.md). 46 tests pass.

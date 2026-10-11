@@ -5,7 +5,8 @@ YEASTS: main SKU -> (producer, product id, name). The producer is the brand in h
 product id is set only where hopline's name prints one, written in the maker's form (US-05,
 M20, YF-101), else None. The name is the strain as the maker sells it, product id included,
 without the producer word, "élesztő", "Yeast", "kveik" and the pack size, with hopline's
-spelling fixed. Brewline, hopline's own repack brand, has its own rows and no codes; each
+spelling fixed. Names are English: a Hungarian product name is translated (Brewline
+"Bajor Búza" -> Bavarian Wheat; user request 2026-10-11). Brewline, hopline's own repack brand, has its own rows and no codes; each
 Brewline comment names the strain its page says it copies (user decision 2026-10-11).
 
 PACK_SIZES: 2 g SKU -> the 12 g SKU of the same Brewline product. Its page is kept in raw only.
@@ -29,7 +30,7 @@ YEASTS: dict[str, tuple[str, str | None, str]] = {
     "300121": ("Brewline", None, "Köln"),  # Brewline Köln élesztő 12g (names no strain)
     "301011": ("Brewline", None, "Abbey Monk Ale"),  # Brewline Abbey Monk Ale élesztő - 12g (copies BE-256)
     "302310": ("Brewline", None, "Pure Hornindal"),  # Brewline Pure Hornindal kveik (names no strain)
-    "302170": ("Brewline", None, "Bajor Búza"),  # Brewline Bajor Búza 12g (copies WB-06)
+    "302170": ("Brewline", None, "Bavarian Wheat"),  # Brewline Bajor Búza 12g (copies WB-06)
     "301650": ("Brewline", None, "Belgian Wit"),  # Brewline Belgian Wit 12g (copies T-58)
     "301021": ("Brewline", None, "British Ale"),  # Brewline British Ale 12g (copies S-04)
     "301601": ("Brewline", None, "U.S. West Coast Ale"),  # Brewline U.S West Coast Ale 12g (copies US-05 and BRY-97)
@@ -174,7 +175,7 @@ BREWLINE_COPIES: dict[str, list[str]] = {
     "301492": ["301491"],  # Czech Lager -> Gozdawa Czech Pilsner 18 (CP18)
     "300091": ["300090"],  # High Performance Ale -> Nottingham
     "301011": ["301010"],  # Abbey Monk Ale -> SafAle BE-256
-    "302170": ["301060"],  # Bajor Búza -> SafAle WB-06
+    "302170": ["301060"],  # Bavarian Wheat -> SafAle WB-06
     "301650": ["302010"],  # Belgian Wit -> SafAle T-58
     "301021": ["301020"],  # British Ale -> SafAle S-04
     "301601": ["301030", "300030"],  # U.S. West Coast Ale -> SafAle US-05 and BRY-97
@@ -546,7 +547,7 @@ ATTENUATION: dict[str, dict] = {
         "attenuation_pct": ("78", "78"), "source": "brewfather", "printed": "Belgian wit 78",
         "url": None, "date": DATE,
     },
-    "302170": {  # Brewline Bajor Búza (Brewfather: "german wheat")
+    "302170": {  # Brewline Bavarian Wheat (Brewfather: "german wheat")
         "attenuation_pct": ("73", "73"), "source": "brewfather", "printed": "german wheat 73",
         "url": None, "date": DATE,
     },

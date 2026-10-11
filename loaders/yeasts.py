@@ -230,8 +230,13 @@ def build(hopline: dict) -> list[Yeast]:
     return yeasts
 
 
-# Figures the report compares between two pages' data blocks.
-COMPARED_PARAMS = ("Stílus", "Hőmérséklet", "Flokkuláció", "Alkoholtolarencia")
+# Figures the report compares between two pages' data blocks: hopline's label -> English.
+COMPARED_PARAMS = {
+    "Stílus": "style family",
+    "Hőmérséklet": "temperature",
+    "Flokkuláció": "flocculation",
+    "Alkoholtolarencia": "alcohol tolerance",
+}
 
 # A figure at the start of a description line: "18 - 22 °C", "17-22°C", "16 - 32C", "30°C";
 # what follows (a note in brackets) is ignored. Used only for the report's comparison.
@@ -243,12 +248,16 @@ ANOTHER_STRAINS_DESCRIPTION = {
     "American amber ales, sweet stouts); the data-block figures are loaded",
 }
 
-LACTOBACILLUS = "Lactobacillust tartalmaz!"
+LACTOBACILLUS = "Lactobacillust tartalmaz!"  # "contains Lactobacillus!"
+
+# The Norse Nectar temperature lines end with this note (in Hungarian); the report says in
+# English what it means.
+KVEIK_NOTE = "ezek a törzsek a magas hőmérséklethez alkalmazkodtak"
 
 # Attenuation entries the report explains (user decisions 2026-10-11).
 ATTENUATION_NOTES = {
     "302170": "Brewfather's \"german wheat\" (73), one of the figures the user gave for "
-    "Brewline, is taken as this product (Bajor Búza, Bavarian wheat).",
+    "Brewline, is taken as this product (Bavarian Wheat).",
     "301242": "the YeastFlow page prints \"800-100\"; the user confirmed it means 80-100, so "
     "[80,100] is stored with source user-supplied and the printed text kept in raw.",
 }
@@ -297,10 +306,11 @@ def data_block_temperature(params: dict) -> Range | None:
 
 
 def param_differences(a: dict, b: dict) -> list[str]:
-    """The COMPARED_PARAMS on which two data blocks differ, as "key: a vs b"."""
+    """The COMPARED_PARAMS on which two data blocks differ, as "label: a vs b" (the label in
+    English, the values as printed)."""
     return [
-        f"{key}: {a.get(key)!r} vs {b.get(key)!r}"
-        for key in COMPARED_PARAMS
+        f"{label}: {a.get(key)!r} vs {b.get(key)!r}"
+        for key, label in COMPARED_PARAMS.items()
         if a.get(key) != b.get(key)
     ]
 
@@ -313,8 +323,16 @@ def report(hopline: dict) -> str:
     products = {product["sku"]: product for product in hopline["products"]}
 
     def title(sku: str) -> str:
+        """The yeast's English name from YEASTS (a 2 g pack: its 12 g product's), else
+        hopline's page name (skipped products)."""
+        if sku in YEASTS:
+            name = f"{YEASTS[sku][0]} {YEASTS[sku][2]}"
+        elif sku in PACK_SIZES:
+            name = f"{YEASTS[PACK_SIZES[sku]][0]} {YEASTS[PACK_SIZES[sku]][2]} 2 g"
+        else:
+            name = products[sku]["name"]
         note = ANOTHER_STRAINS_DESCRIPTION.get(sku)
-        return f"{products[sku]['name']} (`{sku}`)" + (f"; {note}" if note else "")
+        return f"{name} (`{sku}`)" + (f"; {note}" if note else "")
 
     temperature, flocc, alcohol = [], [], []
     for sku, product in products.items():
@@ -336,8 +354,9 @@ def report(hopline: dict) -> str:
         if params.get("Flokkuláció") and table and table.get("Flokkuláció"):
             if flocculation(params, None) != flocculation({}, table):
                 flocc.append(
-                    f"- {title(sku)}: data block {params['Flokkuláció']!r}, "
-                    f"description {table['Flokkuláció']!r}"
+                    f"- {title(sku)}: data block {params['Flokkuláció']!r} "
+                    f"({flocculation(params, None)}), description {table['Flokkuláció']!r} "
+                    f"({flocculation({}, table)})"
                 )
 
         described = (table or {}).get("Alkoholtolerancia", (table or {}).get("Alkohol tolerancia"))
@@ -359,7 +378,19 @@ def report(hopline: dict) -> str:
         "",
         f"## Data block and description disagree: temperature ({len(temperature)})",
         "",
+        "Values are quoted as the pages print them.",
+        "",
         *temperature,
+        *(
+            [
+                "",
+                f'The bracketed note on the Norse Nectar lines ("{KVEIK_NOTE}, ...") says the '
+                "strains are adapted to high temperatures, are best used above the figure it "
+                "gives and work slowly below it.",
+            ]
+            if any(KVEIK_NOTE in line for line in temperature)
+            else []
+        ),
         "",
         f"## Data block and description disagree: flocculation ({len(flocc)})",
         "",
@@ -419,7 +450,7 @@ def report(hopline: dict) -> str:
     for source, count in sorted(by_source.items()):
         lines.append(f"- {source}: {count}")
 
-    lines += ["", f"## Pages that say \"{LACTOBACILLUS}\"", ""]
+    lines += ["", f"## Pages that say the culture contains Lactobacillus (\"{LACTOBACILLUS}\")", ""]
     for sku, product in products.items():
         if LACTOBACILLUS in ((product["details"] or {}).get("text") or ""):
             lines.append(f"- {title(sku)}")

@@ -1,3 +1,4 @@
+import re
 from decimal import Decimal as D
 
 import pytest
@@ -5,7 +6,16 @@ from psycopg.types.range import Range
 
 from loaders.common import name_key
 from loaders.yeast_products import ATTENUATION, PACK_SIZES, SKIPPED, YEASTS
-from loaders.yeasts import build, flocculation, make_yeast, parse_range, tolerance, type_of
+from loaders.yeasts import (
+    FLOCCULATION,
+    TYPES,
+    build,
+    flocculation,
+    make_yeast,
+    parse_range,
+    tolerance,
+    type_of,
+)
 
 
 def r(lo, hi):
@@ -232,7 +242,7 @@ def test_yeast_map():
     assert not [
         sku for sku in ATTENUATION if YEASTS[sku][0] in ("Norse Nectar", "YeasterBunny")
     ]
-    # User decisions 2026-10-11: Brewfather's "german wheat" is Brewline Bajor Búza; YF-666's
+    # User decisions 2026-10-11: Brewfather's "german wheat" is Brewline Bavarian Wheat; YF-666's
     # printed "800-100" is 80-100, recorded as user-supplied with the printed text kept.
     assert ATTENUATION["302170"]["source"] == "brewfather"
     assert ATTENUATION["302170"]["attenuation_pct"] == ("73", "73")
@@ -293,3 +303,32 @@ def test_unknown_sku_raises():
     hopline = {"forms": {"dry": ["999999"], "liquid": []}, "products": [unknown]}
     with pytest.raises(ValueError, match="999999"):
         build(hopline)
+
+
+# Letters Hungarian uses and English, German and the makers' brand names don't (ö and ü are
+# left out: Köln, Kölschermeister and St. Cölibate are German or the maker's own spelling).
+HUNGARIAN_LETTERS = set("áéíóőúű")
+# Hungarian words hopline's yeast pages use, which would show a value copied untranslated.
+HUNGARIAN_WORDS = {
+    "élesztő", "eleszto", "bajor", "búza", "buza", "belga", "amerikai", "sör", "száraz",
+    "folyékony", "alacsony", "közepes", "magas", "nagyon", "semleges", "gyümölcsös",
+}
+
+
+def hungarian(text: str) -> bool:
+    lower = text.lower()
+    words = set(re.findall(r"\w+", lower))
+    return bool(HUNGARIAN_LETTERS & set(lower)) or bool(HUNGARIAN_WORDS & words)
+
+
+def test_no_hungarian_outside_raw():
+    # User request 2026-10-11: every value written outside raw is English. raw keeps the
+    # hopline pages and the attenuation entries' printed text as they are (provenance).
+    assert hungarian("Bajor Búza") and hungarian("Közepes") and not hungarian("Köln")
+    written = [text for entry in YEASTS.values() for text in entry if text is not None]
+    written += [value for value in TYPES.values() if value is not None]
+    written += list(FLOCCULATION.values())
+    us05 = make_yeast("Fermentis", "US-05", "SafAle US-05", "dry", US05, [], US05_ATTENUATION)
+    written += [us05.name, us05.producer, us05.product_id, us05.type, us05.form, us05.flocculation]
+    written += [*us05.field_source, *us05.field_source.values()]
+    assert [text for text in written if hungarian(text)] == []

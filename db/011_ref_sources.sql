@@ -53,7 +53,7 @@ insert into ref.source (slug, title, edition, publisher, licence, url, notes) va
      'Hopline yeast product pages', 'website, fetched 2026-10-11',
      'Hopline', null,
      'https://www.hopline.hu/alapanyagok/elesztok/szaraz-eleszto',
-     'Dry and liquid yeast pages (szaraz-eleszto, folyekony-eleszto)'),
+     'Dry yeast page (this URL) and liquid yeast page (https://www.hopline.hu/alapanyagok/elesztok/folyekony-eleszto)'),
     ('yeastflow-catalogue',
      'YeastFlow strain catalogue', 'website, fetched 2026-10-11',
      'YeastFlow', null,
@@ -93,6 +93,18 @@ update ref.source set edition = 'IUPAC standard atomic weights 2021'
 update ref.source set notes = 'Yeast attenuation for Gozdawa and Brewline strains, as the user read them'
  where slug = 'brewfather'
    and notes is distinct from 'Yeast attenuation for Gozdawa and Brewline strains, as the user read them';
+
+update ref.source set notes = 'Dry yeast page (this URL) and liquid yeast page (https://www.hopline.hu/alapanyagok/elesztok/folyekony-eleszto)'
+ where slug = 'hopline-yeasts'
+   and notes is distinct from 'Dry yeast page (this URL) and liquid yeast page (https://www.hopline.hu/alapanyagok/elesztok/folyekony-eleszto)';
+
+-- Brewline "Bajor Búza" is named in English (user request 2026-10-11). Renaming the row keeps
+-- its id, so the yeast loader's upsert updates it instead of adding a second row.
+update ref.ingredient
+   set name = 'Bavarian Wheat', name_key = 'bavarianwheat'
+ where kind = 'yeast' and producer_key = 'brewline' and name_key = 'bajorbuza'
+   and not exists (select 1 from ref.ingredient
+                    where kind = 'yeast' and producer_key = 'brewline' and name_key = 'bavarianwheat');
 
 -- The two malts.json sources were replaced by the malt sources above; remove them while
 -- nothing references them.

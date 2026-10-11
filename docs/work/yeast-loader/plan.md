@@ -1,6 +1,6 @@
 # Yeast loader (hopline.hu yeasts) — implementation plan
 
-Stage: verify
+Stage: review
 Source: [`docs/FILL-REF-README.md`](../../FILL-REF-README.md) (P1a index, item 6), re-scoped by
 the user on 2026-10-11 (see Deviations)
 Branch: yeast-loader
@@ -54,7 +54,7 @@ Gozdawa figures from Brewfather, as the user gave them: Czech Pilsner 18 `301491
 German Altbier `301571` 78, Porter&Kvass `301531` 72, Pure Ale `301541` 75, "Rochefort" Trappist
 Ale `301561` 77, Conan "New England" `301482` 76, Noble Saison `301540` 83, Real Scotland
 `301551` 71. Gozdawa W-34/70 `301471` has no figure and stays `NULL`. Brewline figures from
-Brewfather, as the user gave them: Belgian Wit `301650` 78, Bajor Búza `302170` 73 (the user's
+Brewfather, as the user gave them: Belgian Wit `301650` 78, Bavarian Wheat `302170` 73 (the user's
 "german wheat"), British Ale `301021` 75, Czech Lager `301492` 76, German Lager `301101` 81, High
 Performance Ale `300091` 81, Köln `300121` 78, U.S. West Coast Ale `301601` 80. Brewfather gives one
 figure, so each is stored as the point range `[a,a]`, not widened into a guessed range; the
@@ -114,10 +114,10 @@ named by the user, so nothing waits on the user any more).
 | `loaders/fetch_hopline.py` | changed | `div_content`, `long_description`, `ajax_listing`, `--yeasts` mode |
 | `tests/test_fetch_hopline.py` | changed | 2 new tests |
 | `db/010_ref_schema.sql` | changed | `ref.yeast.field_source jsonb not null` |
-| `db/011_ref_sources.sql` | changed | `hopline-yeasts` source; remove unused `brewtarget-default-data`; 5 attenuation sources (Task 6) |
+| `db/011_ref_sources.sql` | changed | `hopline-yeasts` source (notes in English); remove unused `brewtarget-default-data`; 5 attenuation sources (Task 6); rename the `Bajor Búza` row to `Bavarian Wheat` |
 | `loaders/yeast_products.py` | new | `YEASTS` (119), `PACK_SIZES` (2), `SKIPPED` (8), `BREWLINE_COPIES` (8, report only), later `ATTENUATION` |
 | `loaders/yeasts.py` | new | `Yeast`, `parse_range`, `tolerance`, `flocculation`, `TYPES`, `make_yeast`, `build`, `report`, `load`, CLI |
-| `tests/test_yeasts.py` | new | 10 tests on inline fixtures |
+| `tests/test_yeasts.py` | new | 11 tests on inline fixtures |
 | `docs/work/yeast-loader/report.md` | new | data block vs description disagreements, the strain each Brewline page says it copies, yeasts without attenuation |
 | `docs/FILL-REF-README.md` | changed | item 6 and its source-file rows describe the new input (in the plan commit) |
 | `docs/DATABASE.md` | changed | `yeast` row: source and count |
@@ -260,7 +260,8 @@ Why: the explicit map decides what each product is, so nothing is merged or name
     `Nottingham`, `M20 Bavarian Wheat`, `YF-101 Queen of Hearts`, `Hornindal`,
     `YB-208 Tormodgarden`, `W-34/70` (Gozdawa `301471`). The 10 Brewline rows: `301101` German
     Lager, `301492` Czech Lager, `300091` High Performance Ale, `300121` Köln, `301011` Abbey Monk
-    Ale, `302310` Pure Hornindal, `302170` Bajor Búza, `301650` Belgian Wit, `301021` British Ale,
+    Ale, `302310` Pure Hornindal, `302170` Bavarian Wheat (hopline's "Bajor Búza",
+    translated, user request 2026-10-11), `301650` Belgian Wit, `301021` British Ale,
     `301601` U.S. West Coast Ale. Each Brewline line's comment names the strain its page says it
     copies (W-34/70, Gozdawa CP18, Nottingham, BE-256, WB-06, T-58, S-04, "US-05 and BRY-97";
     Köln and Pure Hornindal name none).
@@ -347,7 +348,7 @@ Why: attenuation sets FG; hopline has none. Sources as in the Approach table (us
   Czech Pilsner 18 entry `76` → `[76,76]` with source `brewfather`; without an entry it stays
   `None` and is not in `field_source`); `test_yeast_map` also checks every `ATTENUATION` key is
   in `YEASTS`, every `source` is one of the 5 slugs or `user-supplied`, no Norse Nectar or YeasterBunny SKU
-  has an entry, Bajor Búza is `brewfather` 73 and YF-666 `user-supplied` [80,100] with
+  has an entry, Bavarian Wheat is `brewfather` 73 and YF-666 `user-supplied` [80,100] with
   `printed` `800-100`. Suite passes (10 in `test_yeasts.py`).
 - [x] Run the loader twice; `count(attenuation_pct)` = number of `ATTENUATION` entries both
   times (measured 93: 119 − 17 Norse Nectar − 1 YeasterBunny − 8 with no figure in their source), other counts
@@ -373,6 +374,7 @@ Commit: `Add yeast attenuation from maker catalogues`
 | A new hopline product never loads silently | `tests/test_yeasts.py::test_unknown_sku_raises` | 5 |
 | Re-running doesn't duplicate | load-twice counts | 5, 6 |
 | Attenuation only from a named source, as printed (one figure → `[a,a]`), `field_source` per source | `tests/test_yeasts.py::test_attenuation_fill` | 6 |
+| No Hungarian outside `raw`: names, type, flocculation, `field_source` | `tests/test_yeasts.py::test_no_hungarian_outside_raw` | change request |
 
 ## Approved exceptions
 
@@ -431,7 +433,7 @@ Commit: `Add yeast attenuation from maker catalogues`
   source. Task 4's `SafBrew BR-8` and `M36 Liberty Bell Ale` were checked on fermentis.com and
   mangrovejacks.com: both names are right, no change.
 - 2026-10-11 · Task 6: the user gave Brewfather figures for 8 Brewline products, loaded as `[a,a]`
-  under `brewfather` like the Gozdawa ones; "german wheat" is taken as Bajor Búza `302170`
+  under `brewfather` like the Gozdawa ones; "german wheat" is taken as Bavarian Wheat `302170`
   (noted in the report); Abbey Monk Ale and Pure Hornindal got none and stay `NULL`. The
   `brewline-catalogue` source, now used by no yeast, is removed from `011_ref_sources.sql` and
   deleted while nothing references it (16 sources). YF-666's printed `800-100` is stored as
@@ -441,3 +443,20 @@ Commit: `Add yeast attenuation from maker catalogues`
   Brewtarget as the yeast source and D8 as open; it now names hopline's yeasts with attenuation
   from the makers' sources and Brewfather, and lists D8 as decided, as PROJECT.md does (the user
   chose to update it in this work).
+- 2026-10-11 · Tasks 4–6, change request after verification: every value written to the database
+  outside `raw` is English — the user asked "Don´t use Hungarian words, instead translate
+  everything to english. Like Bajor búza". Listed first (DB query and the map, checking
+  áéíóőúű and Hungarian words): the only Hungarian value was the name of Brewline `302170`
+  "Bajor Búza", now `Bavarian Wheat` (Brewline has no English name of its own; Mangrove Jack's
+  sells the same style as "M20 Bavarian Wheat"; the page says it is WB-06, a Bavarian wheat
+  strain). `type`, `form`, `flocculation`, `product_id` and `field_source` were already English.
+  `Köln`, `Kölschermeister` and `St.`/`Holy Cölibate` are German or the maker's own spelling, not
+  Hungarian, and stay. `raw`, the attenuation entries' `printed` text, the hopline names in the
+  map's comments, and the Hungarian keys the parser matches (`Stílus` values in `TYPES`,
+  flocculation words, page labels) stay as the source prints them. `db/011_ref_sources.sql`
+  renames the existing row (keeps its id, so the loader's upsert updates it instead of adding a
+  120th) and rewrites the `hopline-yeasts` notes, which named the pages by their Hungarian URL
+  slugs. The report names yeasts by their English names, labels the compared fields in English,
+  glosses flocculation words with the schema value and explains the Norse Nectar temperature
+  note; values it quotes from the pages stay as printed. New `test_no_hungarian_outside_raw`
+  (seen failing on "Bajor Búza" first). Loader run twice: 119 rows, 119/113/114/93, same as before.
