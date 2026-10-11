@@ -9,7 +9,7 @@ Values are quoted as the pages print them.
 - Brewline Czech Lager (`301492`): data block '9 – 20 °C', description '8 - 20 °C'
 - Fermentis SafAle K-97 (`301070`): data block '15 – 20 °C', description '18 - 28 °C'
 - Gozdawa Czech Pilsner 18 (`301491`): data block '9 – 20 °C', description '8 - 20 °C'
-- Gozdawa Porter&Kvass (`301531`): data block '16 – 32 °C', description '22-26 °C (max tartomány: 16 - 32 °C)'
+- Gozdawa Porter&Kvass (`301531`): data block '16 – 32 °C', description '22-26 °C (max tartomány: 16 - 32 °C)' ("max tartomány": max range)
 - Fermentis SafBrew BR-8 (`302190`): data block '15 – 25 °C', description '12 - 15 °C'
 - Gozdawa Conan "New England" (`301482`): data block '16 – 22 °C', description '18 - 24 °C'
 - Gozdawa Mead 10g (`301591`): data block '22 – 26 °C', description '18 - 25 °C'
@@ -58,13 +58,13 @@ The bracketed note on the Norse Nectar lines ("ezek a törzsek a magas hőmérs�
 - Czech Lager (`301492`) copies Czech Pilsner 18 (`301491`): same data block figures.
 - High Performance Ale (`300091`) copies Nottingham (`300090`): temperature: '10 – 22 °C' vs '10 – 25 °C'.
 - Köln (`300121`): its page names no strain.
-- Abbey Monk Ale (`301011`) copies SafAle BE-256 (`301010`): style family: 'Belga Ale' vs 'Saison'; temperature: '18 – 26 °C' vs '18 – 28 °C'.
+- Abbey Monk Ale (`301011`) copies SafAle BE-256 (`301010`): style family: 'Belga Ale' (Belgian ale) vs 'Saison'; temperature: '18 – 26 °C' vs '18 – 28 °C'.
 - Pure Hornindal (`302310`): its page names no strain.
-- Bavarian Wheat (`302170`) copies SafAle WB-06 (`301060`): flocculation: None vs 'Alacsony'; alcohol tolerance: None vs '9 – 11 v/v%'.
-- Belgian Wit (`301650`) copies SafAle T-58 (`302010`): flocculation: None vs 'Közepes'; alcohol tolerance: None vs '9 – 11 v/v%'.
-- British Ale (`301021`) copies SafAle S-04 (`301020`): flocculation: None vs 'Magas'; alcohol tolerance: None vs '9 – 11 v/v%'.
-- U.S. West Coast Ale (`301601`) copies SafAle US-05 (`301030`): style family: 'West Coast Ale' vs 'Ale'; flocculation: None vs 'Közepes'; alcohol tolerance: None vs '9 – 11 v/v%'.
-- U.S. West Coast Ale (`301601`) copies BRY-97 (`300030`): temperature: '18 – 28 °C' vs '15 – 22 °C'; flocculation: None vs 'Magas'; alcohol tolerance: None vs '11 – 13 v/v%'.
+- Bavarian Wheat (`302170`) copies SafAle WB-06 (`301060`): flocculation: None vs 'Alacsony' (low); alcohol tolerance: None vs '9 – 11 v/v%'.
+- Belgian Wit (`301650`) copies SafAle T-58 (`302010`): flocculation: None vs 'Közepes' (medium); alcohol tolerance: None vs '9 – 11 v/v%'.
+- British Ale (`301021`) copies SafAle S-04 (`301020`): flocculation: None vs 'Magas' (high); alcohol tolerance: None vs '9 – 11 v/v%'.
+- U.S. West Coast Ale (`301601`) copies SafAle US-05 (`301030`): style family: 'West Coast Ale' vs 'Ale'; flocculation: None vs 'Közepes' (medium); alcohol tolerance: None vs '9 – 11 v/v%'.
+- U.S. West Coast Ale (`301601`) copies BRY-97 (`300030`): temperature: '18 – 28 °C' vs '15 – 22 °C'; flocculation: None vs 'Magas' (high); alcohol tolerance: None vs '11 – 13 v/v%'.
 
 ## Pack sizes whose data block differs from the 12 g page's
 

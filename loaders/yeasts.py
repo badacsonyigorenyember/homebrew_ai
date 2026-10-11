@@ -238,6 +238,21 @@ COMPARED_PARAMS = {
     "Alkoholtolarencia": "alcohol tolerance",
 }
 
+# Hungarian style families the report quotes from the pages -> English, printed beside the
+# quote: 'Belga Ale' (Belgian ale). Flocculation words get theirs from FLOCCULATION.
+STYLE_FAMILIES_EN = {
+    "Belga Ale": "Belgian ale",
+    "Belga Wit": "Belgian wit",
+    "Bajor búza": "Bavarian wheat",
+    "Amerikai búza": "American wheat",
+}
+
+# Hungarian phrases inside a quoted description line -> English, printed after the quote.
+# The Norse Nectar note (KVEIK_NOTE) is explained in a paragraph of its own instead.
+DESCRIPTION_PHRASES_EN = {
+    "max tartomány": "max range",
+}
+
 # A figure at the start of a description line: "18 - 22 °C", "17-22°C", "16 - 32C", "30°C";
 # what follows (a note in brackets) is ignored. Used only for the report's comparison.
 LEADING_TEMPERATURE = re.compile(NUMBER + r"(?:\s*[-–]\s*" + NUMBER + r")?\s*°?C")
@@ -305,11 +320,33 @@ def data_block_temperature(params: dict) -> Range | None:
     return temp_c
 
 
+def value_quote(value: str | None) -> str:
+    """A data-block value as printed, with its English beside it when it is a Hungarian style
+    family or flocculation word: 'Belga Ale' (Belgian ale), 'Közepes' (medium)."""
+    if value is None:
+        return "None"
+    english = STYLE_FAMILIES_EN.get(value) or FLOCCULATION.get(value.lower())
+    if english is None or english == value.lower():
+        return repr(value)
+    return f"{value!r} ({english})"
+
+
+def description_quote(printed: str) -> str:
+    """A description line as printed, followed by the English of any Hungarian phrase in
+    DESCRIPTION_PHRASES_EN: '22-26 °C (max tartomány: 16 - 32 °C)' ("max tartomány": max range)."""
+    glosses = [
+        f'"{phrase}": {english}'
+        for phrase, english in DESCRIPTION_PHRASES_EN.items()
+        if phrase in printed
+    ]
+    return repr(printed) + (f" ({'; '.join(glosses)})" if glosses else "")
+
+
 def param_differences(a: dict, b: dict) -> list[str]:
     """The COMPARED_PARAMS on which two data blocks differ, as "label: a vs b" (the label in
-    English, the values as printed)."""
+    English, the values as printed with an English gloss where they are Hungarian)."""
     return [
-        f"{label}: {a.get(key)!r} vs {b.get(key)!r}"
+        f"{label}: {value_quote(a.get(key))} vs {value_quote(b.get(key))}"
         for key, label in COMPARED_PARAMS.items()
         if a.get(key) != b.get(key)
     ]
@@ -348,7 +385,7 @@ def report(hopline: dict) -> str:
             if figure != block:
                 temperature.append(
                     f"- {title(sku)}: data block {params.get('Hőmérséklet', block)!r}, "
-                    f"description {printed!r}"
+                    f"description {description_quote(printed)}"
                 )
 
         if params.get("Flokkuláció") and table and table.get("Flokkuláció"):

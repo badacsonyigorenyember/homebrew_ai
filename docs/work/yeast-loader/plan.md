@@ -460,3 +460,12 @@ Commit: `Add yeast attenuation from maker catalogues`
   glosses flocculation words with the schema value and explains the Norse Nectar temperature
   note; values it quotes from the pages stay as printed. New `test_no_hungarian_outside_raw`
   (seen failing on "Bajor Búza" first). Loader run twice: 119 rows, 119/113/114/93, same as before.
+- 2026-10-11 · Task 5, re-review note 1: the report now prints an English gloss beside the
+  Hungarian page values it quotes, the quote kept as printed: style families from the explicit
+  `STYLE_FAMILIES_EN` map (`'Belga Ale' (Belgian ale)`), flocculation words in the Brewline and
+  pack-size comparisons from `FLOCCULATION` (`'Közepes' (medium)`, as the flocculation section
+  already did), and phrases inside a quoted description line from `DESCRIPTION_PHRASES_EN`
+  (`("max tartomány": max range)`). Scanning the regenerated report found no other unglossed
+  Hungarian quote: the Norse Nectar note has its explaining paragraph and the "Lactobacillust
+  tartalmaz!" heading says what it means. New `test_report_glosses_hungarian_quotes`. Loader
+  run: 119 rows, 119/113/114/93, unchanged; 48 tests pass.

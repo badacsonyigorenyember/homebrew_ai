@@ -10,8 +10,10 @@ from loaders.yeasts import (
     FLOCCULATION,
     TYPES,
     build,
+    description_quote,
     flocculation,
     make_yeast,
+    param_differences,
     parse_range,
     tolerance,
     type_of,
@@ -332,3 +334,20 @@ def test_no_hungarian_outside_raw():
     written += [us05.name, us05.producer, us05.product_id, us05.type, us05.form, us05.flocculation]
     written += [*us05.field_source, *us05.field_source.values()]
     assert [text for text in written if hungarian(text)] == []
+
+
+def test_report_glosses_hungarian_quotes():
+    # Re-review note 2026-10-11: a Hungarian value the report quotes keeps its printed text and
+    # gets its English beside it; English values are quoted alone.
+    abbey = {"Stílus": "Belga Ale", "Flokkuláció": "Közepes"}
+    be256 = {"Stílus": "Saison", "Flokkuláció": "Közepes"}
+    assert param_differences(abbey, be256) == ["style family: 'Belga Ale' (Belgian ale) vs 'Saison'"]
+    wheat = {"Stílus": "Bajor búza"}
+    wb06 = {"Stílus": "Bajor búza", "Flokkuláció": "Alacsony"}
+    assert param_differences(wheat, wb06) == ["flocculation: None vs 'Alacsony' (low)"]
+    assert param_differences({"Flokkuláció": "low"}, {}) == ["flocculation: 'low' vs None"]
+    assert (
+        description_quote("22-26 °C (max tartomány: 16 - 32 °C)")
+        == "'22-26 °C (max tartomány: 16 - 32 °C)' (\"max tartomány\": max range)"
+    )
+    assert description_quote("17-22°C") == "'17-22°C'"
