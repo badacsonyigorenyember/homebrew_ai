@@ -1,6 +1,6 @@
 # Recipe test briefs (P0) — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: test-briefs
 
