@@ -194,6 +194,13 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- `slim-ref` Task 4 ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): installed
+  `vector` 0.8.0 in schema `extensions` (created as `postgres`; owner `supabase_admin`, like the
+  other 8 extensions) and created the `kb` schema from review §5.4 in `db/014_kb.sql` (applied
+  twice, no error): schema and empty `kb.chunk` owned by `postgres`, `embedding vector(1024)`
+  (bge-m3), indexes `chunk_embedding_idx` (HNSW), `chunk_fts_idx` (GIN), `chunk_source_id_idx`;
+  `ref.source.file_path` (text) added. Created now, empty, by user decision ("Everything in §5");
+  P7 fills it. Suite: 33 passed.
 - `slim-ref` Task 3 ([`docs/work/slim-ref/plan.md`](docs/work/slim-ref/plan.md)): created
   the `corpus` schema from review §5.3 in `db/013_corpus.sql` (applied twice, no error):
   schema owned by `postgres`, 7 empty tables owned by `postgres` (`recipe`, `recipe_item`,

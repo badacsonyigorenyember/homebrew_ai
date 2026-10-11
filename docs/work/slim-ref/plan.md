@@ -169,13 +169,13 @@ Commit: `Add corpus schema`
 
 ### Task 4: Install pgvector and create the `kb` schema
 Why: review §4.3 (`kb.document` merged into `ref.source`) / §5.4; user decision.
-- [ ] Write `db/014_kb.sql`: header comment, then
+- [x] Write `db/014_kb.sql`: header comment, then
   `create extension if not exists vector with schema extensions;` (comment: `vector` is a
   supautils privileged extension, so `postgres` may create it), then review §5.4 verbatim.
-- [ ] Apply twice with `-v ON_ERROR_STOP=1` → no error. **If `create extension` fails with a
+- [x] Apply twice with `-v ON_ERROR_STOP=1` → no error. **If `create extension` fails with a
   permission error, stop:** report `blocked` with the error. Do not retry as `supabase_admin`
   (OPERATIONS.md §4); the user decides.
-- [ ] Check:
+- [x] Check:
   - `Q "select extversion, extnamespace::regnamespace, extowner::regrole from pg_extension where extname = 'vector'"`
     → `0.8.0|extensions|…`; record the owner as measured (`supabase_admin`, like the other 8
     extensions, is expected and fine).
@@ -184,7 +184,7 @@ Why: review §4.3 (`kb.document` merged into `ref.source`) / §5.4; user decisio
   - `Q "select indexname, indexdef ~ 'hnsw', indexdef ~ 'gin' from pg_indexes where schemaname = 'kb' order by 1"`
     → `chunk_embedding_idx|t|f`, `chunk_fts_idx|f|t`, `chunk_pkey…`, `chunk_source_id_idx…`
   - `Q "select data_type from information_schema.columns where table_schema = 'ref' and table_name = 'source' and column_name = 'file_path'"` → `text`
-- [ ] PROJECT.md §8: dated line (with the measured extension owner).
+- [x] PROJECT.md §8: dated line (with the measured extension owner).
 Done when: `vector` 0.8.0 in `extensions`, `kb.chunk` owned by `postgres` with HNSW and GIN.
 Commit: `Add kb schema with pgvector`
 
