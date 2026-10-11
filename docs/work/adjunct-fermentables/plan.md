@@ -1,6 +1,6 @@
 # Adjunct fermentables — implementation plan
 
-Stage: verify
+Stage: shipped
 Brief: [brief.md](brief.md)
 Branch: adjunct-fermentables
 
