@@ -1,6 +1,6 @@
 # Apply the database review (slim `ref`, create all schemas) — implementation plan
 
-Stage: implementing
+Stage: review
 Source: [`docs/DATABASE-REVIEW.md`](../../DATABASE-REVIEW.md) (committed on `main` in `8b41df1`)
 Branch: slim-ref
 
