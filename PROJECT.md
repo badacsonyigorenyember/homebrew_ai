@@ -192,6 +192,10 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- Planned `test-briefs` ([`docs/work/test-briefs/plan.md`](docs/work/test-briefs/plan.md)):
+  20 briefs in `evals/recipe_briefs.toml` (TOML, read with the standard library), checked by
+  `tests/test_recipe_briefs.py` against `ref.beer_style` and the brief's coverage minimums,
+  then the user's review, then the P0 status in PROJECT.md and RECIPE-ROADMAP.
 - Wrote brief for `test-briefs` ([`docs/work/test-briefs/`](docs/work/test-briefs/brief.md)):
   P0's 20 test briefs, written fresh in English, covering the adjunct fermentables oats, candi
   sugar, corn, rice, lactose and honey, with no fruit and no non-gravity extras (user decisions).
