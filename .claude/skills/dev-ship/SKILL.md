@@ -17,6 +17,8 @@ First read `.claude/skills/dev-flow/conventions.md` and `docs/work/<slug>/verifi
 3. Run the regression suite again now, on the branch. It must pass. Earlier results don't
    count.
 4. Nothing of this work is left uncommitted (`git status`). Unrelated user changes may stay.
+5. `verification.md` has the `## Part 1: Summary` written by dev-verify. In direct mode, show
+   it to the user exactly as written and get their approval after they have seen it.
 
 ## Steps
 

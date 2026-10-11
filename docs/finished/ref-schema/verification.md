@@ -4,36 +4,44 @@ Overall: ✅ all 11 checks and 9 tests pass
 
 Branch `ref-schema` at 4e578bb, against `main`. Run 2026-10-09.
 
-## Part 1: Where to look
+## Part 1: Summary
 
-**Start here:** `docker exec -it supabase-db psql -U postgres -d postgres`, then `\dt ref.*` and
-`select slug, edition, licence from ref.source;`. You should see 7 tables in `ref`, all owned by
-`postgres`, and 8 source rows, each with an edition. All other `ref` tables are empty: the
-loaders that fill them are later work items.
+🎯 **Goal:** give every P1a loader a shared base: `ref` tables, a source row per dataset, and helpers for units, ranges, names and DB access.
 
-**Database**
-- New schema `ref` with 7 tables (`db/010_ref_schema.sql`): `source`, `beer_style`,
-  `ingredient`, and the per-kind detail tables `fermentable`, `hop`, `yeast`, `water_salt`.
-  Ranges are `numrange`; every data row has a `source_id` and a whole `raw jsonb`.
-- Natural keys `beer_style (guide, edition, code)` and `ingredient (kind, producer_key,
-  name_key)`; all their columns are `NOT NULL`, so a re-run upsert always hits `ON CONFLICT`.
-- All 4 detail tables reference `ref.ingredient` with `on delete cascade`.
-- 8 rows added to `ref.source` (`db/011_ref_sources.sql`); `water-chemistry` edition is
-  `IUPAC standard atomic weights 2021`, the two hop-list sources carry licence `unknown`.
-- Both files end with `ALTER`/`UPDATE` statements that bring an older copy of the schema up to
-  date, and both can be re-applied without changing anything.
+🛠️ **How:** idempotent `.sql` files applied with `psql` as `postgres`, plus plain Python helpers in `loaders/` with unit tests.
 
-**Scripts**
-- `loaders/common.py`: shared helpers for every loader. Turns source values into `Decimal`,
-  `numrange` bounds (open-ended when one side is missing, `NULL` when both are), °C from °F,
-  and accent-folded name keys; also reads Brewtarget BeerJSON with its `//` header.
-- `loaders/db.py`: one connection path (pooler, as `postgres.<tenant>`, reading only 4 `.env`
-  variables), a `source_id` lookup that fails loudly, and `upsert_ingredient`, which updates
-  the existing row on the natural key instead of adding a duplicate.
+🤔 **Why this way:** versioned SQL keeps the objects owned by `postgres`, and natural-key upserts let a loader re-run without duplicating rows.
 
-**Files and config**
-- `requirements.txt` (`psycopg[binary]`, `pytest`), `pytest.ini`, `loaders/__init__.py`,
-  `tests/test_common.py` (8 tests). PROJECT.md §4 and §8 updated.
+🏁 **Result:** schema `ref` with 7 tables and 8 `ref.source` rows is live; the data tables are empty and ready for the loaders.
+
+### 🚦 Steps
+
+- ⏭️ 📝 **Brief:** skipped, because the plan already existed (split out of the `fill-ref` README).
+- ✅ 🗺️ **Plan:** written in an earlier session and approved here as written (8a56563).
+- ⚠️ 🔨 **Implement:** all 3 tasks done (806fb29, 212056a, 7ac4ae5), plus one round of review fixes (4e578bb).
+  - ⚠️ psycopg treats a missing range bound as open, so `test_to_range_open_ended` can't catch a wrong bracket on that side.
+  - ⚠️ `loaders/db.py` has no unit tests, only command checks, as the plan specified.
+  - ⚠️ 5 sources have licence `NULL` (not checked yet), and some editions are copy dates.
+- ⚠️ 🔍 **Review:** ready for testing with no must-fix, but 3 should-fix: nullable key columns, cascade on one table only, and no edition year for `water-chemistry`. 🔧 all fixed in 4e578bb
+  - ⚠️ `name_key` drops ß and Æ, so a fully non-Latin name gives an empty key.
+  - ⚠️ DATABASE.md shows `characteristic_ingredients` as `text[]`; the plan and schema use `text`.
+- ✅ 🧪 **Verify:** every check passed on the live DB, including the 3 fixes and re-applying both SQL files. 🧮 spot checks ✅ 11/11 · 🧪 tests ✅ 9/9
+
+👀 **Start here:** `docker exec -it supabase-db psql -U postgres -d postgres`, then `\dt ref.*` and `select slug, edition, licence from ref.source;`. You should see 7 tables in `ref`, all owned by `postgres`, and 8 source rows, each with an edition.
+
+📁 **Changed files:**
+- `PROJECT.md`
+- `db/010_ref_schema.sql`
+- `db/011_ref_sources.sql`
+- `docs/finished/ref-schema/plan.md`
+- `docs/finished/ref-schema/review.md`
+- `docs/finished/ref-schema/verification.md`
+- `loaders/__init__.py`
+- `loaders/common.py`
+- `loaders/db.py`
+- `pytest.ini`
+- `requirements.txt`
+- `tests/test_common.py`
 
 ## Part 2: Spot checks
 

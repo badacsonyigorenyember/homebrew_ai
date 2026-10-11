@@ -88,6 +88,8 @@ Work folder: docs/work/<slug>/   Branch: <slug>
 Your job: <the step, e.g. "Implement Task 3 only" or "Fix review findings 1 and 4">
 Input: <requirement text, or path of the user's doc>
 User decisions so far: <answers and feedback, verbatim>
+Flow so far: <dev-verify only: each earlier step, run or skipped, with its result and every
+warning or error its report named>
 End with the Report block from the conventions.
 ```
 
@@ -111,11 +113,11 @@ continue?". Keep going.
 
 - After step 4: the must-fix and should-fix findings, one line each. Ask about the should-fix
   ones.
-- After step 5: read `verification.md` and show the Overall line and Part 1 (Goal, How, Why
-  this way, Result, Start here, Changed files) as written there. Then one count line for the
-  passing results, e.g. `Spot checks: 11/11 pass · Regression tests: 9/9 pass`. Don't list
-  passing rows. List only the failing rows, under their table's header, copied exactly as
-  written there; don't merge, shorten or reformat them. Then ask to ship.
+- After step 5, always before /dev-ship: read `verification.md` and show the Overall line and
+  Part 1 (the emoji summary: goal, how, why, result, one line per step, start here, changed
+  files) exactly as written there. Then list only the failing rows of Parts 2 and 3, under their
+  table's header, copied exactly; don't list passing rows. Then ask to ship. If Part 1 is
+  missing, resume dev-verify to write it before asking.
 - At the end (after shipping, or wherever the user stops the flow): merge sha, branch, the paths
   of brief, plan and verification, and the flow summary below. After shipping, dev-ship has
   moved the folder, so those paths are under `docs/finished/<slug>/`.

@@ -12,17 +12,48 @@ First read `.claude/skills/dev-flow/conventions.md`, `plan.md`, `review.md` and 
 without a brief, the plan's `Source:` doc: its acceptance criteria, Done-when lines and review
 focus are what you check). Set `Stage: verify`. Collect the changes with `git diff --stat main...<slug>`.
 
-## Part 1: Where to look
+## Part 1: Summary
 
-For a human starting a manual check. Each of the first four is a few words or one sentence:
+Readable at a glance: every line starts with emojis, and the status emoji says whether it went
+well. Write it **last**, after Parts 2 and 3 have run, because it includes their results. It is
+what the user sees before they approve shipping.
 
-- **Goal:** what the work set out to do.
-- **How:** how it was achieved.
-- **Why this way:** why it was done like this rather than another way.
-- **Result:** what exists or works now, with summarised counts where they matter.
-- **Start here:** the one place to look first, and what you should see there.
-- **Changed files:** every path from `git diff --stat main...<slug>`, one per line, paths only.
-  Don't describe the changes.
+Status emojis: ✅ went well · ⚠️ passed with warnings · ❌ a problem (a failure, a must-fix, an
+error), even if it was fixed later; then say `🔧 fixed in <sha>` · ⏭️ skipped.
+
+```markdown
+## Part 1: Summary
+
+🎯 **Goal:** <a few words or one sentence: what the work set out to do>
+
+🛠️ **How:** <one sentence: how it was achieved>
+
+🤔 **Why this way:** <one sentence: why this way rather than another>
+
+🏁 **Result:** <one sentence: what exists or works now, with counts where they matter>
+
+### 🚦 Steps
+
+- ⏭️ 📝 **Brief:** <1–2 sentences: what happened, or why it was skipped>
+- ✅ 🗺️ **Plan:** <1–2 sentences>
+- ⚠️ 🔨 **Implement:** <1–2 sentences: tasks done, fix rounds>
+  - ⚠️ <each warning or error, one short line>
+- ❌ 🔍 **Review:** <1–2 sentences: verdict, findings> 🔧 fixed in <sha>
+- ✅ 🧪 **Verify:** <1–2 sentences> 🧮 spot checks ✅ N/N · 🧪 tests ✅ M/M
+
+👀 **Start here:** <the one place to look first, and what you should see there>
+
+📁 **Changed files:**
+- `<path>`
+```
+
+- One line per step, in flow order, every step listed (`⏭️` with the reason if it did not run).
+- The step lines come from `brief.md` / `plan.md` (ticks, `## Deviations`), `review.md`,
+  `git log main..<slug>`, this run's Parts 2 and 3, and the *Flow so far* notes in your prompt
+  (warnings and errors the earlier subagents reported). Name every warning or error you find
+  there, one sub-bullet each under the step's line; don't drop any to make a step look green.
+- 📁 **Changed files:** every path from `git diff --stat main...<slug>`, one per line, paths
+  only. Don't describe the changes.
 
 ## Part 2: Spot checks
 
@@ -69,12 +100,12 @@ Top of the file: one line, `Overall: ✅ all N checks and M tests pass` or `Over
 failed: C3, test_x`. Commit `verification.md` and `plan.md` (`Add verification: <slug>`).
 
 Do not fix failures here. Subagent mode: report `done` with the Overall line and the failed IDs
-with their Cause in Summary. Direct mode: show the Overall line, Part 1 as written, and a count
-line (`Spot checks: N/N pass · Regression tests: M/M pass`); list only the failing rows, not the
-passing ones. `verification.md` itself keeps every row.
+with their Cause in Summary. Direct mode: show the Overall line and Part 1 as written; then list
+only the failing rows of Parts 2 and 3, not the passing ones. `verification.md` itself keeps
+every row.
 
 ## Re-verify
 
 After fixes, append `## Re-verify <date>` with every check and the whole suite run again (same
-format, earlier results kept above for history), and rewrite the top `Overall:` line from the
-new run.
+format, earlier results kept above for history), and rewrite the top `Overall:` line and Part 1
+from the new run (the earlier ❌ stays, with its 🔧 fix).
