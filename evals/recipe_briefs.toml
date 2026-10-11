@@ -245,9 +245,7 @@ request = "A simple blonde ale where the honey really shines through, I want to 
 why = "Honey as a stated, prominent feature: the right outcome is 31B on an 18A base, said to the user."
 style = "31B"
 alt_styles = ["18A"]
-deviations = [
-  { kind = "ingredient", what = "prominent honey", from = "18A ingredients: makes it a 31B on an 18A base" },
-]
+deviations = []
 stated = {}
 hints = []
 wanted = ["honey"]
@@ -319,19 +317,21 @@ water_salts = ["gypsum"]
 
 [[brief]]
 id = "b16"
-request = "An American pale ale, but no Citra and no Mosaic please, I'm tired of them."
-why = "Hop-forward style with two excluded hops that are the obvious picks."
+request = "An American pale ale with a bit of rice for a crisper finish, but no Citra and no Mosaic please, I'm tired of them."
+why = "Hop-forward style with two excluded hops that are the obvious picks, and rice as a minor ingredient deviation."
 style = "18B"
 alt_styles = []
-deviations = []
+deviations = [
+  { kind = "ingredient", what = "rice", from = "18B ingredients" },
+]
 stated = {}
-hints = []
-wanted = []
+hints = ["crisp"]
+wanted = ["flaked rice"]
 excluded = ["Citra", "Mosaic"]
 inventory = []
 guidance = true
 [brief.needs]
-fermentables = ["pale ale malt", "crystal malt"]
+fermentables = ["pale ale malt", "crystal malt", "flaked rice"]
 hops = ["Cascade", "Centennial"]
 yeast = ["American ale yeast"]
 water_salts = ["gypsum"]

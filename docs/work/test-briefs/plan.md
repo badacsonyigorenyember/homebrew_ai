@@ -66,19 +66,19 @@ The six adjuncts use these exact names in `needs.fermentables`, so the test can 
 | b09 | 6A Märzen | lager, `malty` | | |
 | b10 | 26B Belgian Dubbel | Belgian | candi sugar (typical) | inventory ("I have …") |
 | b11 | 25B Saison | Belgian, `dry` + `full`/`chewy` | | conflict: bone dry vs full and chewy |
-| b12 | 31B Alternative Sugar Beer, alt 18A | prominent honey makes it a specialty | honey | ingredient deviation (31B on an 18A base) |
+| b12 | 31B Alternative Sugar Beer, alt 18A | prominent honey makes it a specialty | honey | no deviation |
 | b13 | 10A Weissbier | wheat | | 15 L |
 | b14 | 23A Berliner Weisse | sour, `session` | | ABV 3 stated |
 | b15 | 11B Best Bitter | | | inventory; 23 L |
-| b16 | 18B American Pale Ale | hop-forward | | excludes Citra and Mosaic |
+| b16 | 18B American Pale Ale | hop-forward, `crisp` | flaked rice | ingredient deviation; excludes Citra and Mosaic |
 | b17 | 8B Schwarzbier | lager | | ABV 7 (range 4.4–5.4): number deviation |
 | b18 | 15A Irish Red Ale | `darker` | | guidance off; SRM 20 (range 9–14), accepted and listed |
 | b19 | 17C Wee Heavy | `malty`, `stronger` | honey | ingredient deviation; 10 L |
 | b20 | 19C American Brown Ale | `full` | lactose | ingredient deviation |
 
 Counts this gives (the test measures the real file): 16 BJCP categories; 3 stouts/porters;
-4 lagers; 2 Belgian; 2 wheat/sour; 3 hop-forward; every adjunct ≥ 1 (oats 2, lactose 2,
-honey 2); 3 ingredient deviations, 3 number deviations (b08, b17, b18), 1 mismatch, 1 guidance
+4 lagers; 2 Belgian; 2 wheat/sour; 3 hop-forward; every adjunct ≥ 1 (oats 2, lactose 2, rice 2,
+honey 2); 3 ingredient deviations (b16, b19, b20), 3 number deviations (b08, b17, b18), 1 mismatch, 1 guidance
 off, 1 conflict; 2 exclusions, 2 inventories; every §7 hint row ≥ 1; batch sizes 10, 15, 20,
 23 L; no fruit and no non-gravity extras. Ranges quoted above were read from `ref.beer_style`
 on 2026-10-11 and stay out of the file.
@@ -165,3 +165,7 @@ Commit: `Record P0 test briefs in PROJECT and roadmap`
   deviation stays kind `ingredient`, so R7 keeps 3. b19, b20 stay base style; b14 keeps
   Lactobacillus under `needs.yeast` (read as the culture slot). Test unchanged: it never
   enforced the base-style rule.
+- 2026-10-11 · Task 2: b12's deviation removed (the re-labelling to 31B is not a deviation);
+  b16 reworded to add a bit of rice, an ingredient deviation on 18B, so R7 ingredient
+  deviations are b16, b19, b20 — user review. b16 also gains the `crisp` hint and needs flaked
+  rice (rice now in 2 briefs).
