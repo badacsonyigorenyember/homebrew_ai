@@ -241,7 +241,7 @@ Commit: `Parse hopline yeast pages`
 
 ### Task 4: The hopline SKU → yeast map
 Why: the explicit map decides what each product is, so nothing is merged or named on a guess.
-- [ ] `loaders/yeast_products.py`, one line per SKU with hopline's product name as a comment:
+- [x] `loaders/yeast_products.py`, one line per SKU with hopline's product name as a comment:
   - `YEASTS: dict[str, tuple[str, str | None, str]]`: main SKU → (producer, product id, name),
     119 entries. Producer is the brand in hopline's name (`SafAle`/`SafLager` → Fermentis,
     `Lalbrew` → Lallemand, `Mangrove's Jack` → Mangrove Jack's, `Brewline` → Brewline).
@@ -263,14 +263,14 @@ Why: the explicit map decides what each product is, so nothing is merged or name
     Ale), `301600` → `301601` (U.S. West Coast Ale). The 2 g page is kept in `raw` only.
   - `SKIPPED: dict[str, str]`: 8 non-beer yeasts with the reason: whiskey `301580`, `301560`,
     `301570`; cider `301581`, `300250`; mead `301591`, `300230`; sake `301241`.
-- [ ] Add `test_yeast_map` to `tests/test_yeasts.py`: 119 `YEASTS` (10 with producer
+- [x] Add `test_yeast_map` to `tests/test_yeasts.py`: 119 `YEASTS` (10 with producer
   `Brewline`), 2 `PACK_SIZES`, 8 `SKIPPED`, no SKU in two of them, every `PACK_SIZES` value is
   in `YEASTS`, and
   `(name_key(producer), name_key(name))` unique across `YEASTS` (two colliding would make the
   upsert overwrite one yeast with another).
-- [ ] Check against the file (a one-off command, not a test): every SKU in `hopline_yeasts.json`
+- [x] Check against the file (a one-off command, not a test): every SKU in `hopline_yeasts.json`
   is in exactly one map, and every `YEASTS` SKU is in the file. Producer counts as in Approach.
-- [ ] Suite passes (8 in `test_yeasts.py`).
+- [x] Suite passes (8 in `test_yeasts.py`).
 Done when: the maps cover all 129 SKUs.
 Commit: `Map hopline yeast products`
 

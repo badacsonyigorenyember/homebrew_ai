@@ -3,6 +3,8 @@ from decimal import Decimal as D
 import pytest
 from psycopg.types.range import Range
 
+from loaders.common import name_key
+from loaders.yeast_products import PACK_SIZES, SKIPPED, YEASTS
 from loaders.yeasts import flocculation, make_yeast, parse_range, tolerance, type_of
 
 
@@ -209,3 +211,17 @@ def test_description_fills_gaps():
     assert suava.temp_c == r("24", "30")
     assert suava.type is None
     assert "type" not in suava.field_source
+
+
+def test_yeast_map():
+    assert len(YEASTS) == 119
+    assert sum(producer == "Brewline" for producer, _, _ in YEASTS.values()) == 10
+    assert len(PACK_SIZES) == 2
+    assert len(SKIPPED) == 8
+    assert not set(YEASTS) & set(PACK_SIZES)
+    assert not set(YEASTS) & set(SKIPPED)
+    assert not set(PACK_SIZES) & set(SKIPPED)
+    assert set(PACK_SIZES.values()) <= set(YEASTS)
+    # Two yeasts with the same key would make the upsert overwrite one with the other.
+    keys = [(name_key(producer), name_key(name)) for producer, _, name in YEASTS.values()]
+    assert len(set(keys)) == len(keys)
