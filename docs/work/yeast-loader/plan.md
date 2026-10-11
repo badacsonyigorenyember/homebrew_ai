@@ -1,6 +1,6 @@
 # Yeast loader (hopline.hu yeasts) — implementation plan
 
-Stage: approved
+Stage: implementing
 Source: [`docs/FILL-REF-README.md`](../../FILL-REF-README.md) (P1a index, item 6), re-scoped by
 the user on 2026-10-11 (see Deviations)
 Branch: yeast-loader
@@ -125,15 +125,16 @@ Not committed (in `shared/rag-files/pending/`, git-ignored): `hopline_yeasts.jso
 
 ### Task 1: Fetch the hopline yeast pages
 Why: hopline decides which yeasts are loaded; this captures its pages as raw data.
-- [ ] In `loaders/fetch_hopline.py` (standard library only, as now):
+- [x] In `loaders/fetch_hopline.py` (standard library only, as now):
   - `div_content(html: str, marker: str) -> str | None`: the div walk now inside
     `short_description`, taking the class name as `marker`; `short_description` becomes
     `div_content(html, SHORT_DESCRIPTION)`. Malt and hop output must not change.
   - `long_description(html: str) -> dict | None`: from `div_content(html, "long-description__content")`
-    (`None` when absent): `{"table": <first table, read as spec_table reads one>, "labels": {<strong> text without the trailing colon: the text after it up to </p>}, "text": visible_text(...)}`.
+    (`None` when absent): `{"table": <first table, read as spec_table reads one (shared helper `table_dict`)>, "labels": {<strong> text without the trailing colon: the text after it (a leading colon dropped) up to the next `<br`, `</p>` or `<strong>`; labels with no text after them left out}, "text": visible_text(...)}`.
     The description starts with a `<style>` block whose CSS mentions `table` and `.mobile-head`;
     it must not end up in `text`.
-  - `product_page` also returns `details = long_description(html)`.
+  - the `--yeasts` product records also carry `details = long_description(html)` (added in
+    the yeast fetch, not in `product_page`, so malt and hop output stays unchanged).
   - `ajax_listing(category_url: str) -> list[tuple[str, str]]`: GET
     `category_url + "?action=cat_art_list&ajax=1&ajax_nodesign=1&filter=&page=" + str(n)` for
     n = 1, 2, …, read `json.loads(body)["product_list_content"]` with `listing_links`, stop when
@@ -142,7 +143,7 @@ Why: hopline decides which yeasts are loaded; this captures its pages as raw dat
     `YEAST_LISTINGS = {"dry": …/alapanyagok/elesztok/szaraz-eleszto, "liquid": …/alapanyagok/elesztok/folyekony-eleszto}`
     with `ajax_listing` and writes
     `{"fetched", "listings": YEAST_LISTINGS, "forms": {"dry": [sku…], "liquid": [sku…]}, "products": [{"sku", "url", "name", "spec", "table", "params", "details"}, …]}`.
-- [ ] Write the tests first (`tests/test_fetch_hopline.py`, inline HTML) and see them fail:
+- [x] Write the tests first (`tests/test_fetch_hopline.py`, inline HTML) and see them fail:
   - `test_ajax_listing_body`: a JSON body `{"filter_box_content": "…", "product_list_content": "<two product__name-link anchors>"}`
     through the same parse `ajax_listing` uses (factor it as `ajax_links(body: str)`) → both
     `(sku, url)` pairs in order.
@@ -152,8 +153,8 @@ Why: hopline decides which yeasts are loaded; this captures its pages as raw dat
     → `table == {"Stílus": "Ale", "Aroma": "semleges", "Flokkuláció": "közepes", "Alkoholtolerancia": "9-11 %"}`,
     `labels == {"Ideális hőmérséklet": "18 - 28 °C", "Adagolás": "5-8g/10l"}`, `text` contains
     `Ideális hőmérséklet` and not `mobile-head`; a page without the div → `None`.
-- [ ] Implement; `.venv/bin/python -m pytest tests/test_fetch_hopline.py -v` → 6 passed; suite passes.
-- [ ] Run `.venv/bin/python -m loaders.fetch_hopline --yeasts shared/rag-files/pending/hopline_yeasts.json`.
+- [x] Implement; `.venv/bin/python -m pytest tests/test_fetch_hopline.py -v` → 6 passed; suite passes.
+- [x] Run `.venv/bin/python -m loaders.fetch_hopline --yeasts shared/rag-files/pending/hopline_yeasts.json`.
   Expect 129 products (forms dry 90, liquid 39, no SKU in both), every `name` and `params` set,
   `details` set on all. If the count is not 129, stop and report (the shop changed since 2026-10-11).
 Done when: 6 passed and the JSON holds 129 products.
@@ -393,3 +394,12 @@ Commit: `Add yeast attenuation from maker catalogues`
   no attenuation source ("we can skipp norse nectar", "leave out the yeasterbunny"); read as: still
   loaded, attenuation `NULL`. Gozdawa W-34/70 has no figure and stays `NULL`. Single figures are
   stored as `[a,a]`. The user also confirmed the 2 g packs join their 12 g product.
+- 2026-10-11 · Task 1: `details` is added to the product records in the `--yeasts` fetch, not
+  returned by `product_page` — malt pages' long descriptions hold a header-less table that
+  `table_dict` rejects, so putting it in `product_page` would break the malt fetch. Labels end
+  at the next `<br`, `</p>` or `<strong>` (not only `</p>`): many yeast descriptions separate
+  their lines with `<br />`. `div_content` returns the content after the opening tag (the
+  spec-table output is unchanged, 8 malt and hop pages compared). Measured label coverage with
+  this rule: `Ideális hőmérséklet` 123, `Ajánlott sörtípusok` 125, `Adagolás` 128; two pages
+  split the temperature label oddly (M54 `302220-H` → `Ideális hőmérséklet: 1` = `8 - 20 °C`,
+  M84 `302250-H` → `Erjesztési hőmérséklet`), left raw for Task 5's report to handle.
