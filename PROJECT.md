@@ -202,6 +202,10 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-11
+- Implemented ba-guide-docs ([docs/work/ba-guide-docs/](docs/work/ba-guide-docs/plan.md)):
+  RECIPE-ROADMAP §8 moves BA from Later into P4 step 2 per D1; DATABASE.md §9 BA style-family
+  row now triggered by a BA style needing a profile (still not built: 169 BA rows,
+  category_code NULL).
 - Planned `ba-guide-docs` ([`docs/work/ba-guide-docs/plan.md`](docs/work/ba-guide-docs/plan.md)):
   one docs-only task.
 - Wrote brief for `ba-guide-docs` ([`docs/work/ba-guide-docs/`](docs/work/ba-guide-docs/brief.md)):

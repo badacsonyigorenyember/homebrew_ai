@@ -448,4 +448,4 @@ Not built; each comes with the feature or source that needs it.
 | `app.batch` + `tasting` | batch log feature |
 | `app.inventory.best_before` | when a step reads it |
 | `ref.beer_style.co2_vol` | P6 (step 15), together with a source that states it (e.g. Palmer ch. 11) |
-| A style family for BA styles | if BA becomes a selectable guide: `category_code` is `NULL` for all 169 BA rows (the source has none), so the thin-style family fallback ([STYLE-PROFILES.md](STYLE-PROFILES.md) §3) would use BA's `category` text (10 origin families, e.g. *British Origin Ale Styles*) |
+| A style family for BA styles | when a BA style needs a style profile (D1: step 2 can pick a BA style): `category_code` is `NULL` for all 169 BA rows (the source has none), so the thin-style family fallback ([STYLE-PROFILES.md](STYLE-PROFILES.md) §3) would use BA's `category` text (10 origin families, e.g. *British Origin Ale Styles*) |

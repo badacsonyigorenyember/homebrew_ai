@@ -1,6 +1,6 @@
 # Bring BA "later" notes in line with D1 — implementation plan
 
-Stage: approved
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: ba-guide-docs
 
@@ -28,25 +28,25 @@ match on the text.
 
 ### Task 1: RECIPE-ROADMAP and DATABASE.md agree with D1
 Why: R1–R5, A1–A6.
-- [ ] `docs/RECIPE-ROADMAP.md` §8 table, Later row. Replace
+- [x] `docs/RECIPE-ROADMAP.md` §8 table, Later row. Replace
       `| **Later** | BA as a selectable guide · inventory-first mode · substitutions · batch log → feedback | |`
       with
       `| **Later** | inventory-first mode · substitutions · batch log → feedback | |`
-- [ ] Same table, P4 row. Replace the "Do" cell `Steps 0–3` with
+- [x] Same table, P4 row. Replace the "Do" cell `Steps 0–3` with
       `Steps 0–3. Step 2 picks the style from BJCP 2021 or BA 2026 per D1 (§9): BJCP preferred, BA where it describes the beer better or the user is asked, and one guide only when the user sets BJCP only or BA only`.
       Leave the "Done when" cell (`≥ 18/20 briefs: right style, right deviations`) as it is.
-- [ ] `docs/DATABASE.md` §9, row "A style family for BA styles". In the "When" cell replace
+- [x] `docs/DATABASE.md` §9, row "A style family for BA styles". In the "When" cell replace
       `if BA becomes a selectable guide:` with
       `when a BA style needs a style profile (D1: step 2 can pick a BA style):`.
       Keep the rest of the cell word for word (the `category_code` NULL for all 169 BA rows, the
       STYLE-PROFILES §3 link, the 10 origin families example).
-- [ ] PROJECT.md §8, under `### 2026-10-11` (or a new dated heading at the top if the date has
+- [x] PROJECT.md §8, under `### 2026-10-11` (or a new dated heading at the top if the date has
       moved on), add an entry above the existing `ba-guide-docs` lines:
       `Implemented ba-guide-docs ([docs/work/ba-guide-docs/](docs/work/ba-guide-docs/plan.md)): RECIPE-ROADMAP §8 moves BA from Later into P4 step 2 per D1; DATABASE.md §9 BA style-family row now triggered by a BA style needing a profile (still not built: 169 BA rows, category_code NULL).`
       Do not write the phrases "selectable guide" or "if BA becomes" in new entries, so the A4
       check stays clean. No status column changes (no status cell describes these docs).
-- [ ] Run the checks below; each must give the stated result.
-- [ ] Set `Stage: review` in this plan, tick the steps.
+- [x] Run the checks below; each must give the stated result.
+- [x] Set `Stage: review` in this plan, tick the steps.
 
 Checks (from the brief's acceptance criteria):
 - A1: `grep -n "selectable" docs/RECIPE-ROADMAP.md` → no output, exit 1.
@@ -79,3 +79,4 @@ checks in Task 1 cover the acceptance criteria.
 
 ## Deviations
 - 2026-10-11 · Task 1: the A4 check leaves out `docs/work/ba-guide-docs/` and expects exactly one hit, the PROJECT.md §8 log entry for the brief — the brief's first A4 could never pass (user decision; brief.md updated).
+- 2026-10-11 · Task 1: run the A4 check with `command grep` (GNU grep) — in the Claude Code shell `grep` is a ugrep wrapper that prints paths without `./`, so the `^./docs/...` filter does not match; with GNU grep the check gives the stated one hit.
