@@ -209,6 +209,11 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-12
+- Planned `m0-harness` ([`docs/work/m0-harness/plan.md`](docs/work/m0-harness/plan.md)): 7 tasks.
+  Record the G0 decisions and add a `stack` test marker; add the run-log columns and
+  `pg_jsonschema`; JSON Schema contracts for steps 0–3 in `shared/contracts/`; pure graders;
+  workflow export to `n8n/workflows/`; the `Recipe pipeline` webhook with a step 1 stub and run
+  logging; the eval runner and the G0 baseline run. Nothing built yet.
 - Wrote draft briefs for all 13 WORKFLOW-ROADMAP work items in `docs/work/` (none approved, no
   branches yet): [`m0-harness`](docs/work/m0-harness/brief.md),
   [`m1-read-request`](docs/work/m1-read-request/brief.md),
