@@ -21,3 +21,29 @@ DB change is in `db/015_app.sql`.
 | 7 | note | n8n/workflows/recipe-pipeline.json ("Step 1 · log ok", "Step 1 · log failure") | If a node after the step call fails (the log insert, `Finish run`), or `$json.error` is ever undefined (the `run_step_error_check` constraint then rejects the failure row), the workflow errors with no `run_step` row. The run keeps `finished_at = null`, and no Respond node runs. | The runner still reports the brief as failed ("run not finished ok"), so nothing passes silently. But the reason is only in the n8n execution log, not in `app.run_step`. An n8n error workflow could be considered when steps get real logic. |
 | 8 | note | evals/workflows.py:31, :55 | `read_text()` / `write_text()` are called without `encoding="utf-8"`, while the files contain non-ASCII ("·") because of `ensure_ascii=False`. | This works under the current UTF-8 locale and breaks only under a non-UTF-8 one. |
 | 9 | note | evals/grade.py `subject_key` | For `number`/`mismatch`, a subject that names two quantities resolves to the first in `QUANTITIES` order. For `conflict`, two texts with no hint words both give an empty frozenset and therefore match. | No brief in `recipe_briefs.toml` hits either case (checked: all 9 expected deviations resolve to the intended key). This is worth knowing when M3 output is graded. |
+
+## Re-review 2026-10-12
+
+Diff: 92e457f..9db876d (fix round 1)  ·  Verdict: ready for testing
+
+Checked: findings 1–6 against the fix commit, and the fix diff for new problems. Measured on
+2026-10-12: `pytest` gives 115 passed with the stack up, and `pytest -m "not stack"` gives
+91 passed, 24 deselected, which matches the new PROJECT.md §4 row. The fix commit is one line
+with no trailers, and it touches only files that belong to this work (`loaders/db.py` gets the
+optional `connect_timeout` that plan Task 2 allowed). No workflow, SQL or secret changes.
+
+| # | Earlier finding | Status | Evidence |
+|---|---|---|---|
+| 1 | runner guard untested | resolved | Mutation, measured: with `"passed": run_ok and graded["passed"]` changed to `graded["passed"]`, 2 tests in `tests/test_run.py` fail. With the `stored["finished"] and stored["ok"]` check removed (`if False:`), `test_unfinished_run_is_not_passed` fails. The `or` assertion is now an `and` on the last table row. `evals/run.py` was restored afterwards (`git status` clean). |
+| 2 | Execute Workflow version not confirmed | resolved | Deviations line added (Task 6), and OPERATIONS §5 marks the "publish sub-workflows too" advice as unverified, with measurement deferred to M1. |
+| 3 | unrecorded differences (a)–(c) | resolved | Three dated Deviations lines in plan.md cover `test_good_examples`/`test_bad_examples`, `test_b01_logs_step_1` posting "a pale ale", and b01 red on `stated`, `hints` and `wanted`. |
+| 4 | step 1 has no `not_run` | resolved | `totals()` gives step 1 `not_run`, `format_totals()` prints it for all three steps, and `test_not_run_steps_count_as_failed` asserts it. |
+| 5 | conftest copies `connect()` | resolved | `stack_down_reason()` calls `loaders.db.connect(connect_timeout=3)` and catches `OSError`/`KeyError` too. Measured with `ENV_FILE` pointed at a missing file and at a file with only one key: both return `"Postgres"` (skip), and neither raises. Callers of `connect()` with no argument still work (stack tests pass). |
+| 6 | stale §4 Scripts row | resolved | The row now gives the measured counts above, and says that stack tests are skipped when the stack is down. A §8 entry for the fixes was added. |
+
+New in the fix diff:
+
+| # | Severity | Where | Finding | Why it matters |
+|---|---|---|---|---|
+| 10 | note | tests/test_run.py `test_unfinished_run_is_not_passed`; evals/run.py:85 | The test stubs `read_run` with `finished: False, ok: False`, so each half of the check is covered only by the other. Measured: with the check reduced to `if not stored["ok"]:` or to `if not stored["finished"]:`, all `tests/test_run.py` tests still pass. | Removing the whole check is caught (finding 1). A mistake in one half could be missed, for example a run that finished as failed while the HTTP answer said `ok`. A second stub (`finished: True, ok: False`) would cover it. |
+| 11 | note | evals/results/2026-10-12-m0.json | The saved G0 baseline was written before the fix, so its `totals.step1` has no `not_run` key (the runs there all have a step 1 row, so the value would be 0). | Nothing reads the results files back today (`grep` checked). A later comparison script would need to allow for the missing key, or the baseline could be re-saved. |
