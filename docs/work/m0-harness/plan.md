@@ -192,7 +192,7 @@ Commit: `Add JSON Schema contracts for steps 0-3`
 ### Task 4: graders score a run against a brief
 Why: R7; A6. The step 3 rule ("same kind, same subject") is written here, in code, as
 WORKFLOW-ROADMAP §3 asks.
-- [ ] `evals/__init__.py` (empty) and `evals/grade.py`. Pure functions, no I/O:
+- [x] `evals/__init__.py` (empty) and `evals/grade.py`. Pure functions, no I/O:
       - `grade_step1(brief: dict, output: dict | None) -> dict[str, bool]`. Keys: `stated`,
         `hints`, `wanted`, `excluded`, `inventory`, `guidance`. Lists compare as sets of
         trimmed, lower-cased strings. `stated` compares the same keys with numbers equal within
@@ -215,7 +215,7 @@ WORKFLOW-ROADMAP §3 asks.
       - `grade_run(brief, steps: dict[int, dict | None]) -> dict` gives
         `{"step1": {...fields, "ok": all}, "step2": bool, "step3": bool, "passed": all three}`.
         A step without a passed `run_step` row is graded with output None.
-- [ ] Write `tests/test_grade.py`. Each case uses a real brief from `evals/recipe_briefs.toml`
+- [x] Write `tests/test_grade.py`. Each case uses a real brief from `evals/recipe_briefs.toml`
       where one fits:
       `test_step1_all_fields_right`; `test_step1_each_field_can_fail` (one wrong field →
       only that field False); `test_step1_order_and_case_ignored`;
@@ -227,7 +227,7 @@ WORKFLOW-ROADMAP §3 asks.
       `test_conflict_subject_is_hint_rows` (b11);
       `test_step3_extra_deviation_fails`; `test_step3_missing_deviation_fails`;
       `test_step3_none_expected_none_found_passes`.
-- [ ] Run `.venv/bin/pytest tests/test_grade.py`, expect all pass. Run the full suite.
+- [x] Run `.venv/bin/pytest tests/test_grade.py`, expect all pass. Run the full suite.
 Done when: the graders exist and the tests pass without the stack
 (`.venv/bin/pytest -m "not stack"`).
 Commit: `Add pure graders for steps 1-3 with tests`

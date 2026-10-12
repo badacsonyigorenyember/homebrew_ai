@@ -220,6 +220,10 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-12
+- `m0-harness` task 4: pure graders in `evals/grade.py` (steps 1-3 and `grade_run`) with 16 unit
+  tests in `tests/test_grade.py`. A deviation matches on same kind and same subject (quantity for
+  number/mismatch, hint rows for conflict, whole word for ingredient). Suite: 104 passed; without
+  the stack 85 passed, 19 deselected (measured).
 - `m0-harness` task 3: eight JSON Schema contracts in `shared/contracts/` (`step0`-`step3`, input and
   output), each with a legal absent/unknown/conflict slot. `pg_jsonschema` accepts draft 2020-12.
   Measured: 88 passed with the stack up (16 new in `tests/test_contracts.py`).
