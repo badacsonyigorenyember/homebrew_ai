@@ -220,6 +220,11 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-12
+- `m1-read-request` Task 3: `db/020_step1.sql` adds `app.step1_read_answer(request, content,
+  contract)` (parse, drop repeated words, contract check, every `stated` number must be written in
+  the request); `app.brief.profile_id` is nullable and `app.run_step.llm` exists (both SQL files
+  applied twice on the stack); the step 1 output contract gains `uniqueItems` and `maxItems`.
+  `.venv/bin/pytest`: 135 passed. Plan: [`docs/work/m1-read-request/plan.md`](docs/work/m1-read-request/plan.md).
 - `m1-read-request` Task 2: `evals/grade.py` grades `named` and compares ingredient words after
   normalising (case, accents, hyphens, spacing) and a two-pair naming-synonym list; a form word
   is never dropped (`rice` != `flaked rice`). `.venv/bin/pytest -m "not stack"`: 100 passed.

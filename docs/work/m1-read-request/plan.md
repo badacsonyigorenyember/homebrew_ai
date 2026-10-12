@@ -157,17 +157,17 @@ Commit: `Grade named and compare words by the R9 rule`
 
 ### Task 3: one SQL function checks a model answer against the contract and the request
 Why: R2, R3, R4; A4 (check part). DB changes as `.sql` applied with `psql` as `postgres`.
-- [ ] `db/015_app.sql`: in the `create table` text, `app.brief.profile_id` without `not null`
+- [x] `db/015_app.sql`: in the `create table` text, `app.brief.profile_id` without `not null`
       (comment: "null until step 0 builds profiles, M4") and `app.run_step.llm jsonb` (comment:
       "LLM steps: model, think, tries, tokens, llm_ms, done_reason, first_errors"). At the end:
       ```sql
       alter table app.brief alter column profile_id drop not null;
       alter table app.run_step add column if not exists llm jsonb;
       ```
-- [ ] `shared/contracts/step1.output.schema.json`: `uniqueItems: true` on `hints`, `wanted`,
+- [x] `shared/contracts/step1.output.schema.json`: `uniqueItems: true` on `hints`, `wanted`,
       `excluded`, `inventory`, `unknown`; `maxItems` 11 on `hints`, 20 on the others. The stub
       output still passes.
-- [ ] `db/020_step1.sql` (header like `015_app.sql`: purpose, apply command, idempotent):
+- [x] `db/020_step1.sql` (header like `015_app.sql`: purpose, apply command, idempotent):
       `create or replace function app.step1_read_answer(request text, content text, contract json)
       returns table (brief jsonb, errors text[]) language plpgsql`. In this order:
       1. `content::jsonb` in a `begin … exception` block; on failure return
@@ -181,21 +181,21 @@ Why: R2, R3, R4; A4 (check part). DB changes as `.sql` applied with `psql` as `p
       Return the cleaned brief and the errors. Comment: words for numbers ("twenty") and unit
       conversions are not recognised, so such a `stated` value fails the check (R3: only
       numbers the user wrote).
-- [ ] Apply both files twice:
+- [x] Apply both files twice:
       `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/015_app.sql`
       and the same for `db/020_step1.sql`. Check the catalog: `profile_id` nullable, `llm`
       present, the function owned by `postgres`.
-- [ ] Write `tests/test_step1_check.py` (all `stack`; the contract read from the repo file):
+- [x] Write `tests/test_step1_check.py` (all `stack`; the contract read from the repo file):
       `test_good_answer_passes` (b01's expected brief as content → `[]`, brief unchanged);
       `test_made_up_number_fails` (A4: b01's request, `stated.abv = 7` → one error naming
       `stated.abv`); `test_written_forms_of_a_number_match` (`1.060` matches `1.06`, `6,5 %`
       matches `6.5`); `test_not_json_fails` (`{"named": ` → `answer is not JSON`);
       `test_repeated_words_dropped` (`hints ["bitter","bitter"]` → `["bitter"]`, no error);
       `test_contract_errors_reported` (hint `funky` → an error).
-- [ ] `tests/test_contracts.py`: bad example `step1.output` with `wanted: ["oats", "oats"]`.
-- [ ] `docs/DATABASE.md`: `brief.profile_id` nullable and why, `run_step.llm`, the function in
+- [x] `tests/test_contracts.py`: bad example `step1.output` with `wanted: ["oats", "oats"]`.
+- [x] `docs/DATABASE.md`: `brief.profile_id` nullable and why, `run_step.llm`, the function in
       one line.
-- [ ] Run `.venv/bin/pytest`, expect all pass. PROJECT.md §8 entry.
+- [x] Run `.venv/bin/pytest`, expect all pass. PROJECT.md §8 entry.
 Done when: both SQL files apply twice cleanly and the 6 new tests pass.
 Commit: `Add step 1 answer check in SQL`
 

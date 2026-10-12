@@ -332,7 +332,7 @@ erDiagram
     }
     brief {
         bigint id PK
-        bigint profile_id FK
+        bigint profile_id FK "null until step 0, M4"
         text request_text
         jsonb brief "step 1 output"
         bool guidance_on
@@ -390,6 +390,7 @@ erDiagram
         int ms
         int tokens
         text error "set iff ok = false"
+        jsonb llm "LLM steps: model, think, tries, tokens, ms"
     }
 ```
 
@@ -397,10 +398,12 @@ erDiagram
 |---|---|
 | `brewer_profile` | equipment + water, stored once (step 0); the 6 source-water ions are typed columns |
 | `inventory` | "use what I have" scoring in steps 6–9 |
-| `brief` | the parsed request, so a recipe can be regenerated |
+| `brief` | the parsed request, so a recipe can be regenerated; `profile_id` is null until step 0 builds profiles (M4) |
 | `recipe` + `recipe_item` | the recipe **as rows**, with ratio (`pct`) **and** amount; typed results `og…srm`; `batch_l` and `efficiency_pct` snapshot the profile used, so editing the profile never changes an old recipe; `calc_version` names the maths that produced the numbers |
 | `recipe_deviation` | the Deviations box: what is out of style, and whether you or the model asked for it |
-| `run` + `run_step` | one log row per pipeline step and try: input, output, time, tokens. Debugging and evals. A run exists before its brief (step 1 writes it), so `run.brief_id` can be null; `finished_at` / `ok` stay null until the run ends; a failed step always says why (`error` is set exactly when `ok` is false) |
+| `run` + `run_step` | one log row per pipeline step and try: input, output, time, tokens. Debugging and evals. A run exists before its brief (step 1 writes it), so `run.brief_id` can be null; `finished_at` / `ok` stay null until the run ends; a failed step always says why (`error` is set exactly when `ok` is false); `llm` holds an LLM step's model, thinking, tries, tokens, time and first-try errors |
+
+Function `app.step1_read_answer(request, content, contract)` (db/020_step1.sql) checks a model's step 1 answer: parses it, drops repeated words, validates it against the contract, and requires every `stated` number to be written in the request. |
 
 Later (§9): `batch`, `tasting`, `inventory.best_before`.
 

@@ -126,6 +126,7 @@ BAD = [
     ("step1.input", {"run_id": 1, "request": ""}),
     ("step1.output", {**BRIEF, "hints": ["funky"]}),
     ("step1.output", {**BRIEF, "stated": {"abv": 45}}),
+    ("step1.output", {**BRIEF, "wanted": ["oats", "oats"]}),
     ("step2.output", {k: v for k, v in STEP2_OUT.items() if k != "unknown_reason"}),
     ("step3.output", {**GOOD["step3.output"], "deviations": [
         {**GOOD["step3.output"]["deviations"][0], "kind": "typo"}]}),
