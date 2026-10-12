@@ -121,7 +121,7 @@ Commit: `Record G0 decisions and mark stack tests`
 
 ### Task 2: the run log can record a run before step 1, and every failure has its error
 Why: R2, R3; A2, A3.
-- [ ] `db/015_app.sql`: near the top, `create extension if not exists pg_jsonschema with schema
+- [x] `db/015_app.sql`: near the top, `create extension if not exists pg_jsonschema with schema
       extensions;` with a comment ("step contract checks, docs/work/m0-harness"). In the
       `create table` text, show the new columns too, so the file reads as the current design.
       At the end, add idempotent alters for the live tables:
@@ -134,21 +134,21 @@ Why: R2, R3; A2, A3.
       alter table app.run_step drop constraint if exists run_step_error_check;
       alter table app.run_step add  constraint run_step_error_check check (ok = (error is null));
       ```
-- [ ] Apply twice:
+- [x] Apply twice:
       `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/015_app.sql`.
       Both runs give no error. Then check the catalog: the extension is in `extensions`, the 4
       new columns exist, `brief_id` is nullable, and the tables are owned by `postgres`.
-- [ ] Write `tests/test_run_log.py` (all `stack`; each test in a transaction that is rolled
+- [x] Write `tests/test_run_log.py` (all `stack`; each test in a transaction that is rolled
       back):
       `test_run_starts_without_brief` (insert `app.run (model, eval_id)` with no `brief_id`
       succeeds); `test_failed_step_needs_error` (`ok = false, error = null` raises
       `psycopg.errors.CheckViolation`); `test_passed_step_has_no_error` (`ok = true` with an
       error raises the same); `test_jsonschema_errors_available` (`select
       extensions.jsonschema_validation_errors('{"type":"object"}', '1')` returns one error).
-- [ ] `docs/DATABASE.md`: the `run` / `run_step` diagram entries and the table row get the new
+- [x] `docs/DATABASE.md`: the `run` / `run_step` diagram entries and the table row get the new
       columns, with a one-line why (a run exists before its brief; a failure always says why).
       The extensions note also gets `pg_jsonschema`.
-- [ ] Run `.venv/bin/pytest`, expect all pass.
+- [x] Run `.venv/bin/pytest`, expect all pass.
 Done when: the SQL file applies twice cleanly, and the 4 tests pass.
 Commit: `Add run-log columns and pg_jsonschema`
 

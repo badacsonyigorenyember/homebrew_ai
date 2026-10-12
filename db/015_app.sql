@@ -7,6 +7,9 @@
 
 create schema if not exists app;
 
+-- step contract checks, docs/work/m0-harness
+create extension if not exists pg_jsonschema with schema extensions;
+
 create table if not exists app.brewer_profile (
     id              bigint generated always as identity primary key,
     name            text not null default 'default',
@@ -85,10 +88,13 @@ create index if not exists recipe_deviation_recipe_id_idx on app.recipe_deviatio
 
 create table if not exists app.run (
     id         bigint generated always as identity primary key,
-    brief_id   bigint not null references app.brief (id),
-    recipe_id  bigint references app.recipe (id),
-    model      text   not null,
-    started_at timestamptz not null default now()
+    brief_id    bigint references app.brief (id),   -- null until step 1 writes the brief
+    recipe_id   bigint references app.recipe (id),
+    model       text   not null,
+    eval_id     text,                                -- 'b01' when sent by the eval runner
+    started_at  timestamptz not null default now(),
+    finished_at timestamptz,                         -- null = still running or crashed
+    ok          boolean                              -- null until finished
 );
 
 create table if not exists app.run_step (
@@ -100,5 +106,16 @@ create table if not exists app.run_step (
     ok     boolean  not null,
     ms     integer  not null,
     tokens integer,
-    primary key (run_id, step, try)
+    error  text,                             -- why a step failed; null when it passed
+    primary key (run_id, step, try),
+    constraint run_step_error_check check (ok = (error is null))
 );
+
+-- Run-log changes for tables created before m0-harness (no-ops on a fresh install).
+alter table app.run alter column brief_id drop not null;
+alter table app.run add column if not exists eval_id     text;
+alter table app.run add column if not exists finished_at timestamptz;
+alter table app.run add column if not exists ok          boolean;
+alter table app.run_step add column if not exists error  text;
+alter table app.run_step drop constraint if exists run_step_error_check;
+alter table app.run_step add  constraint run_step_error_check check (ok = (error is null));

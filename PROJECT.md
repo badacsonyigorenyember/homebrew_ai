@@ -220,6 +220,10 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-12
+- `m0-harness` task 2: `db/015_app.sql` now installs `pg_jsonschema` and gives `app.run` a nullable
+  `brief_id` plus `eval_id`, `finished_at`, `ok`, and `app.run_step` an `error` column with a check
+  (failed step has an error, passed one has none). Applied twice without error; owner `postgres`.
+  Measured: 72 passed with the stack up (4 new in `tests/test_run_log.py`).
 - `m0-harness` task 1: recorded the G0 decisions in §4 (and in WORKFLOW-ROADMAP G0). Added the
   `stack` pytest marker with a `tests/conftest.py` that skips those tests when Postgres or n8n is
   down. Measured: 68 passed with the stack up, 67 passed + 1 deselected with `-m "not stack"`, and
