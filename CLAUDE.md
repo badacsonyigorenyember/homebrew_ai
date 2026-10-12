@@ -63,7 +63,8 @@ not hoped for. Mark anything unverified as such.
 - [`.claude/hooks/guard.sh`](.claude/hooks/guard.sh) blocks deleting Docker volumes, writes to
   the Postgres data directory, and printing `.env` files. Don't work around it. If a blocked
   action is really needed, ask the user to run it.
-- Project skills: `retrieval-evaluation-metrics` and `rag-evaluation-frameworks` (PROJECT.md §6.6).
+- Project skills: `retrieval-evaluation-metrics` and `rag-evaluation-frameworks` (PROJECT.md §6.6),
+  and `find-docs`, which goes with [`.claude/rules/context7.md`](.claude/rules/context7.md).
 - Delivery workflow: `dev-flow` runs brief → plan → implement → review → verify → ship with one
   subagent per step; each step is also its own skill (`dev-brief`, `dev-plan`, `dev-implement`,
   `dev-review`, `dev-verify`, `dev-ship`). Work lives in `docs/work/<slug>/` and moves to `docs/finished/<slug>/` once it

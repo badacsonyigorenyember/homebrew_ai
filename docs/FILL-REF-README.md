@@ -1,16 +1,19 @@
 # Fill `ref` (phase P1, first half): index
 
-This folder is an **index, not a work item**. It has no `plan.md`, so don't run `/dev-flow`
-on `fill-ref` itself. Run it on one of the work items below. Each one has its own folder,
-branch and `plan.md` (`Stage: draft`, waiting for your approval).
+> **Status:** done. All 8 work items below shipped (2026-10-09 → 2026-10-11) and P1a is
+> complete ([PROJECT.md](../PROJECT.md) §4). Kept as the record of how P1a was split; it was
+> moved here from `docs/work/fill-ref/README.md` on 2026-10-11.
+
+This file is an **index, not a work item**: don't run `/dev-flow` on `fill-ref` itself. Each
+work item below had its own folder, branch and `plan.md`, now in `docs/finished/<slug>/`.
 
 **Goal of the whole set:** bring the database back up, then load the curated reference data
 (styles, malts, hops, yeasts, water salts) into a new `ref` schema. Every row is sourced and
 in SI units, and every loader can be re-run.
 
-**Spec:** [`docs/DATABASE.md`](../../DATABASE.md) §2, §6, §7 steps 1–2 ·
-[`docs/RECIPE-ROADMAP.md`](../../RECIPE-ROADMAP.md) §8 (P1) ·
-[`docs/STYLE-FIT.md`](../../STYLE-FIT.md) §2 (what tagging will need later, so `raw` keeps it).
+**Spec:** [`docs/DATABASE.md`](DATABASE.md) §2, §6, §7 steps 1–2 ·
+[`docs/RECIPE-ROADMAP.md`](RECIPE-ROADMAP.md) §8 (P1) ·
+[`docs/STYLE-FIT.md`](STYLE-FIT.md) §2 (what tagging will need later, so `raw` keeps it).
 
 Split on 2026-10-09 from `docs/superpowers/plans/2026-10-09-fill-ref.md`, which was written
 before the dev-flow skills existed. Its content now lives in the plans below. The original is
@@ -23,11 +26,11 @@ edit PROJECT.md, so parallel branches would conflict.
 
 | # | Slug (folder + branch) | Was task | What it delivers | Depends on | Needs from you |
 |---|---|---|---|---|---|
-| 1 | [`recover-stack`](../../finished/recover-stack/plan.md) | 1 | `supabase-db`, `-kong`, `-pooler` running again; compose file back in the repo (D6) | — | One `sudo rmdir` command |
-| 2 | [`ref-schema`](../../finished/ref-schema/plan.md) | 2, 3 | `loaders/` package with shared helpers, `ref` schema, 8 source rows, DB helpers | 1 | — |
-| 3 | [`style-loader`](../../finished/style-loader/plan.md) | 4 | 116 BJCP 2021 + 169 BA 2026 styles in `ref.beer_style` | 2 | Re-add `styles.json`, `ba_styles.json` |
-| 4 | [`malt-loader`](../../finished/malt-loader/plan.md) | 5 | The 74 Weyermann, Viking and Simpsons malts hopline.hu sells, figures from the maltster catalogues, in `ref.fermentable` | 2 | The 3 maltster PDFs (in `~/Downloads`) |
-| 5 | [`hop-loader`](../../finished/hop-loader/plan.md) | 6 | The 90 hops hopline.hu sells (85 varieties + 5 LUPOMAX), figures from hopline's pages, in `ref.hop` | 2 | — |
+| 1 | [`recover-stack`](finished/recover-stack/plan.md) | 1 | `supabase-db`, `-kong`, `-pooler` running again; compose file back in the repo (D6) | — | One `sudo rmdir` command |
+| 2 | [`ref-schema`](finished/ref-schema/plan.md) | 2, 3 | `loaders/` package with shared helpers, `ref` schema, 8 source rows, DB helpers | 1 | — |
+| 3 | [`style-loader`](finished/style-loader/plan.md) | 4 | 116 BJCP 2021 + 169 BA 2026 styles in `ref.beer_style` | 2 | Re-add `styles.json`, `ba_styles.json` |
+| 4 | [`malt-loader`](finished/malt-loader/plan.md) | 5 | The 74 Weyermann, Viking and Simpsons malts hopline.hu sells, figures from the maltster catalogues, in `ref.fermentable` | 2 | The 3 maltster PDFs (in `~/Downloads`) |
+| 5 | [`hop-loader`](finished/hop-loader/plan.md) | 6 | The 90 hops hopline.hu sells (85 varieties + 5 LUPOMAX), figures from hopline's pages, in `ref.hop` | 2 | — |
 | 6 | [`yeast-loader`](finished/yeast-loader/plan.md) | 7 | The 119 yeasts hopline.hu sells (dry and liquid pages; Brewline as its own producer, non-beer yeasts skipped), in `ref.yeast` | 2 | — (attenuation sources named by the user 2026-10-11) |
 | 7 | [`water-salts`](finished/water-salts/plan.md) | 8 | 8 brewing salts with computed ion contributions | 2 | — |
 | 8 | [`ref-spotcheck`](finished/ref-spotcheck/plan.md) | 9 | Spot-check pack run, measured counts recorded in PROJECT.md and DATABASE.md | 3–7 | Spot-check 10 rows per table |
@@ -41,12 +44,12 @@ Each step gets its own work item(s) when it is reached.
 
 | # | Work | Why now / why later | Needs from you |
 |---|---|---|---|
-| 1 | **Recover the stack** (`recover-stack`, resolves D6) | Nothing can be loaded until the DB is back. | Run one `sudo` command |
-| 2 | **P0 test briefs**: 20 briefs | Can run alongside P1a. Briefs decide which styles get envelopes first (P3). | You write or approve them |
-| 3 | **P1a: fill `ref`** (`ref-schema` … `ref-spotcheck`) | Everything downstream picks from it. | Re-add the source files (table below) |
+| 1 | **Recover the stack** (`recover-stack`, resolves D6; ✅ done 2026-10-09) | Nothing can be loaded until the DB is back. | Run one `sudo` command |
+| 2 | **P0 test briefs**: 20 briefs (✅ done 2026-10-11, [`test-briefs`](finished/test-briefs/plan.md)) | Can run alongside P1a. Briefs decide which styles get envelopes first (P3). | You write or approve them |
+| 3 | **P1a: fill `ref`** (`ref-schema` … `ref-spotcheck`; ✅ done 2026-10-11) | Everything downstream picks from it. | Re-add the source files (table below) |
 | 4 | **P2: maths library**, starting with the doc → calc pass on *How to Brew* | Gravity, IBU, SRM and ABV are needed before any recipe step. `how_to_brew.pdf` is already in `pending/`. | — |
 | 5 | **P1b: fill `corpus`** ← archive dump, `name_map`, profile job → `style_profile`, `style_grist`, `style_hop_use`, `style_ingredient` (tables created empty by `slim-ref`) | Ratios (D7). Mapping names to `ref` needs `ref` filled first. | Settle D7 |
-| 6 | **P3: tags, envelopes, `fermentable.role`** (tables created empty by `slim-ref`; usage effects and cut points are code, [DATABASE.md](../../DATABASE.md) §8) | Needs `ref` + `corpus`. | Review envelopes (D9) |
+| 6 | **P3: tags, envelopes, `fermentable.role`** (tables created empty by `slim-ref`; usage effects and cut points are code, [DATABASE.md](DATABASE.md) §8) | Needs `ref` + `corpus`. | Review envelopes (D9) |
 | 7 | **P4–P5: the recipe workflow** (steps 0–11) | **Not yet.** It needs 3–6, and D3 (n8n vs SQL vs Python service) must be decided first. | Decide D3 |
 | 8 | **P7: books → `kb`**, *How to Brew* → *Water* → *Yeast* | After each book's doc → calc pass, so only prose is embedded. *Water* feeds P6 (step 12), *Yeast* feeds steps 6 and 14. | Re-add the PDFs |
 
@@ -89,8 +92,8 @@ Not loaded in P1a: `beer_faults.json` (later), BJCP/BA PDFs (P3), books (P7).
 
 ## Schema changes since the split
 
-[`slim-ref`](../../finished/slim-ref/plan.md) (shipped 2026-10-11) applied the database review
-([`DATABASE-REVIEW.md`](../../DATABASE-REVIEW.md)): 7 `ref` columns dropped (`beer_style.edition`,
+[`slim-ref`](finished/slim-ref/plan.md) (shipped 2026-10-11) applied the database review
+([`DATABASE-REVIEW.md`](DATABASE-REVIEW.md)): 7 `ref` columns dropped (`beer_style.edition`,
 `co2_vol`; `fermentable.potential_sg`, `type`; `hop.beta_pct`, `oils_pct`;
 `water_salt.molar_mass`), the style key is now `(source_id, code)`, and every `ref`, `corpus`,
 `kb` and `app` table exists, empty where not loaded. `yeast-loader` needed no change;
@@ -99,7 +102,7 @@ Not loaded in P1a: `beer_faults.json` (later), BJCP/BA PDFs (P3), books (P7).
 ## What changed from the original plan
 
 - **One branch per work item** (the slug) instead of one `p1-ref` branch, and commits follow
-  [`conventions.md`](../../../.claude/skills/dev-flow/conventions.md) (one line, no trailer).
+  [`conventions.md`](../.claude/skills/dev-flow/conventions.md) (one line, no trailer).
   PROJECT.md updates follow the conventions too.
 - **`recover-stack` starts the three existing containers with `docker start`** instead of
   `docker compose up -d --no-deps db kong supavisor`. Their bind mounts already point at the

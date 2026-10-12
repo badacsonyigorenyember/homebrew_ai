@@ -5,7 +5,8 @@ How the running stack behaves and the traps already hit. Linked from `CLAUDE.md`
 
 ## 1. State of the stack after the reset
 
-*Checked 2026-10-09.*
+*Checked 2026-10-09, re-checked 2026-10-11 (`searxng` still `Exited (127)`, every other
+service up).*
 
 - The containers belong to compose project `aihomebrewassistant`, with working directory
   this repo's root. Every one has restart policy `unless-stopped`, so they come back after a
@@ -116,8 +117,9 @@ How the running stack behaves and the traps already hit. Linked from `CLAUDE.md`
   boot. **Do not set `HSA_OVERRIDE_GFX_VERSION`.** It would break the working discrete GPU.
   Check `docker logs ollama | grep "inference compute"` for `compute=gfx1201`, and
   `docker exec ollama ollama ps` for `100% GPU`.
-- Models pulled *(checked 2026-10-08)*: `gemma4:12b-it-q8_0`, `gemma4:12b`, `qwen3.8:27b`, plus
-  the embedding model `bge-m3`.
+- Models pulled *(checked 2026-10-11)*: `gemma4:12b-it-q8_0`, `gemma4:12b`, `qwen3.8:27b` (also
+  listed as `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_M`, same model ID), plus the embedding model
+  `bge-m3`.
 
 ## 7. Claude Code guardrails
 

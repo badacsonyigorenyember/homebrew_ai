@@ -195,7 +195,7 @@ erDiagram
 | `fermentable` | extract (% dbfg, as the sources state it), colour (EBC range), max % of grist, `role`, `fermentability` (`full` / `normal` / `none`), `field_source` | hopline malt pages + Weyermann, Viking, Simpsons catalogues; hopline flake and sugar pages + Palmer, *How to Brew* Tables 18.5 and 24.1 (adjuncts) | 81: 74 malts + 7 adjuncts (4 flakes, brown candi sugar, lactose, honey); 81 with extract, 74 with EBC, 63 with `max_pct`; fermentability `normal` 78, `full` 2, `none` 1; `role` empty until P3 |
 | `hop` | origins, purpose, alpha range, total oil, `field_source` | hopline hop pages; values hopline lacks (4 hops' alpha/oil, Enigma's purpose) from Beer Maverick through the hop loader | 90 (all with alpha and total oil) |
 | `yeast` | product id, type, form, attenuation range, temperature range, flocculation, alcohol tolerance | hopline dry and liquid yeast pages; attenuation from the makers' catalogues and data sheets (Brewfather for Gozdawa and Brewline) | 119 (dry 81, liquid 38; 93 with attenuation) |
-| `water_salt` | formula, ions per gram | computed from atomic masses | empty, P1 (`water-salts`) |
+| `water_salt` | formula, ions per gram | computed from IUPAC atomic masses (`loaders/water_salts.py`) | 8 |
 | `misc` | `category` (spice, fruit, wood, vanilla, …), **no gravity data** | corpus `misc` names, by hand | empty, P3 |
 | `tag` · `tag_synonym` | facet, name, parent ("citrusy" → citrus) · source word → tag | hop descriptors, malt roles, yeast families | empty, P3 |
 | `ingredient_tag` | ingredient ↔ tag, `reviewed` (false = derived by code); no weight, match strength comes from the tag tree | derived by code from the ingredient's own data ([STYLE-FIT.md](STYLE-FIT.md) §2) | empty, P3 |
@@ -211,8 +211,8 @@ reads them; beta stays in `raw`), `water_salt.molar_mass` (computed in code).
 
 **Rules for `ref`**
 - Every loaded row is sourced: `beer_style` and `ingredient` have `source_id` (and the source
-  has an edition); the kind tables are sourced through their `ingredient` row, and malts and
-  hops record each field's source in `field_source`. The style-fit vocabulary (`tag`,
+  has an edition); the kind tables are sourced through their `ingredient` row, and fermentables,
+  hops and yeasts record each field's source in `field_source`. The style-fit vocabulary (`tag`,
   `tag_synonym`, `sensory_dimension`, …) is hand-made and reviewed; envelopes and rules carry
   their guideline `quote` instead.
 - Units are SI (kg, L, °C, SG, EBC). Conversion happens only at display.
@@ -406,7 +406,7 @@ Later (§9): `batch`, `tasting`, `inventory.best_before`.
 |---|---|---|---|---|
 | `postgres` (owner, migrations) | all | all | all | all |
 | loader scripts | write | write | write | — |
-| pipeline (n8n / service) | read | read | read | **read + write** |
+| pipeline (n8n) | read | read | read | **read + write** |
 | Supabase MCP (Claude Code) | read | read | read | read |
 
 - All objects are owned by `postgres` and created from `.sql` files in the repo
@@ -421,7 +421,7 @@ All tables exist (§1). This is the order they get data in.
 
 | # | Step | Tables filled | Done when |
 |---|---|---|---|
-| 1 | Styles | `ref.source`, `ref.beer_style` ← both style JSONs | ✅ 285 rows (BJCP 116 + BA 169), 16 sources, 0 rows without a source; 10 rows per table spot-checked against the sources, no errors (2026-10-11, `ref-spotcheck`). `co2_vol` was dropped: no source has it; back in P6 |
+| 1 | Styles | `ref.source`, `ref.beer_style` ← both style JSONs | ✅ 285 rows (BJCP 116 + BA 169), 18 sources, 0 rows without a source; 10 rows per table spot-checked against the sources, no errors (2026-10-11, `ref-spotcheck`). `co2_vol` was dropped: no source has it; back in P6 |
 | 2 | Ingredients | `ref.ingredient` + kind tables ← malts, hops, hopline yeasts, salts | ✅ malts 74, adjuncts 7, hops 90, yeasts 119, salts 8 (298 ingredients), 0 without a source; 10 rows per table spot-checked, no errors (2026-10-11). Adjuncts (2026-10-11): 4 flakes (oats, corn, rice, barley), brown candi sugar and lactose from hopline, honey from Palmer, extract from Palmer Tables 18.5/24.1. Gaps: the malts are grain malts from three maltsters only; no malt extracts, and other hopline adjuncts (rye, wheat, chit flakes, white candi, fructose) are not loaded; `fermentable.role` stays empty until P3; 8 hop values were entered by hand from Beer Maverick (`hop.field_source` = `beermaverick`): alpha and oil of Delta, Lotus and Sterling, Mount Hood's oil and Enigma's purpose; all 8 checked against beermaverick.com by the user, all match (2026-10-11) |
 | 3 | Style-fit vocabulary | `ref.tag`, `tag_synonym`, `ingredient_tag`, `misc`, `fermentable.role` | every hop has ≥ 1 character tag |
 | 4 | Corpus | `corpus.recipe`, `recipe_item` ← archive dump · `name_map` · profile job → `style_profile`, `style_grist`, `style_hop_use`, `style_ingredient` | ≥ 90 % of grist mass mapped to a role for the test styles |
@@ -442,7 +442,8 @@ sees them with the logic that uses them (PROJECT.md §6.8; review §4.3):
 | Hint knobs (hint word → knob + direction, ~20 entries, each with its book source) | `ref.hint_knob` | a dict in the targets step ([RECIPE-ROADMAP.md](RECIPE-ROADMAP.md) §7) |
 | Sensory intensity cut points (calibrated on the corpus) | columns on `ref.sensory_dimension` | the style-fit code ([STYLE-FIT.md](STYLE-FIT.md) §4) |
 | Source weights (corpus 1, books 3, own batches 5…) | `corpus.source_weight` | the profile job ([STYLE-PROFILES.md](STYLE-PROFILES.md) §4) |
-| Potential SG from extract, molar mass and ion contributions | `fermentable.potential_sg`, `water_salt.molar_mass` | the maths library (tested) |
+| Potential SG from extract | `fermentable.potential_sg` | the maths library (tested) |
+| Salt molar mass | `water_salt.molar_mass` | `loaders/water_salts.py` (tested), which stores only the result, `water_salt.ion_mg_per_l_per_g` |
 
 ---
 

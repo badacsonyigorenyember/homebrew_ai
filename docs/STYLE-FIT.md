@@ -49,9 +49,9 @@ flowchart LR
 
 | Kind | Uses | Rule (code) | Example |
 |---|---|---|---|
-| Hop | origin, flavour text, notes, alpha, oils | origin → origin tag · descriptor dictionary (*grapefruit → citrus*, *mango → tropical*, *pine → resin*) · alpha → purpose | Citra → `US` `citrus` `tropical` |
+| Hop | origins, purpose, page description, alpha, oil | origin → origin tag · descriptor dictionary (*grapefruit → citrus*, *mango → tropical*, *pine → resin*) · purpose as loaded (`ref.hop.purpose`, from hopline) | Citra → `US` `citrus` `tropical` |
 | Fermentable | EBC, name keywords | role from **colour (EBC) + name keywords** (`ref.fermentable.role`): base · kilned · crystal · roast · adjunct · sugar | Carafa III → `roast` |
-| Yeast | type, notes, attenuation, temperature | family from type (`lager`, `american-ale`, `belgian`, `wheat`, `kveik`, `brett`, `lacto`) · character from notes (*banana, clove, clean, fruity*) | WLP001 → `american-ale` `clean` |
+| Yeast | type, notes, attenuation, temperature | family from type (`lager`, `american-ale`, `belgian`, `wheat`, `kveik`, `brett`, `lacto`) · character from notes (*banana, clove, clean, fruity*) | SafAle US-05 → `american-ale` `clean` |
 | Misc | type, name | category → sensation (*spice*, *fruit*, *wood*) | cinnamon → `spice` |
 
 - **The descriptor dictionary is the only hand-made part** (~150 words → tags, in
