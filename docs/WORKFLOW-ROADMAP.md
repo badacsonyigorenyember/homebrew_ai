@@ -57,7 +57,7 @@ names and dev-ship's move to `docs/finished/` assume `<slug>` is one folder name
 
 | # | Slug (brief) | Builds | Needs first | Checkpoint |
 |---|---|---|---|---|
-| M0 | [`m0-harness`](work/m0-harness/brief.md) | G0 decisions; eval harness that sends each brief to the pipeline and scores the result (red at first); `app.run` / `app.run_step` logging; contracts for steps 0–3 and one stub step | — | **G0** |
+| M0 | [`m0-harness`](finished/m0-harness/brief.md) | G0 decisions; eval harness that sends each brief to the pipeline and scores the result (red at first); `app.run` / `app.run_step` logging; contracts for steps 0–3 and one stub step | — | **G0** |
 | M1 | [`m1-read-request`](work/m1-read-request/brief.md) | Step 1: request → LLM → brief JSON, checked by code; D2 benchmark | m0 | **G1** |
 | M2 | [`m2-best-fit-style`](work/m2-best-fit-style/brief.md) | Step 2: score all 285 styles (name, stated numbers, words), per D1 | m1 | **G2** |
 | S1 | [`s1-maths`](work/s1-maths/brief.md) | Gravity, ABV, IBU (Tinseth), colour (Morey), solvers, from the doc→calc pass on *How to Brew* | m0 | **G-M** |
@@ -99,7 +99,7 @@ must be settled first, because it decides how every later step is tested.
 
 **Bar:** one dummy step runs end to end: pytest sends a brief, n8n logs a `run_step` row, pytest
 reads and scores it.
-**Measured (2026-10-12, [`m0-harness`](work/m0-harness/plan.md)):** met. The 20-brief run is red as
+**Measured (2026-10-12, [`m0-harness`](finished/m0-harness/plan.md)):** met. The 20-brief run is red as
 designed: step 1 0/20, steps 2 and 3 0/20 (20 not run), briefs 0/20; every run finished with
 one logged step 1 row. Saved in `evals/results/2026-10-12-m0.json`.
 
