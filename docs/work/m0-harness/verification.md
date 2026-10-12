@@ -153,7 +153,7 @@ docker exec supabase-db psql -U postgres -d postgres -tAc "select count(*) from 
 
 | Expected | Actual | Result |
 |---|---|---|
-| 0 bad runs (measured before my C3 run existed; the C3 failure run was removed afterwards); 3 files | not re-run in this round (see C12); in the first round it was 1 while the C3 failure run existed, which is the expected failure; 3 files: check-contract, recipe-pipeline, step-1-read-request. After cleanup 21 rows remain (the 20 baseline runs plus 1 earlier b01 run). | ✅ pass |
+| 0 bad runs (measured before my C3 run existed; the C3 failure run was removed afterwards); 3 files | not re-run in this round; in the first round it was 1 while the C3 failure run existed, which is the expected failure; 3 files: check-contract, recipe-pipeline, step-1-read-request. After cleanup 21 rows remain (the 20 baseline runs plus 1 earlier b01 run). | ✅ pass |
 
 ### ✅ C8 · Containers healthy after the A7 stop/start
 
@@ -207,7 +207,7 @@ docker exec supabase-db psql -U postgres -d postgres -tAc "delete from app.run w
 
 | Expected | Actual | Result |
 |---|---|---|
-| my 2 runs (C2, C3) deleted; 1 `editor-%` row; 23 rows total (21 eval runs + editor run + 1 other eval run already there) | `DELETE 2`; `1`; `23` | ✅ pass |
+| my 2 runs (C2, C3) deleted; 1 `editor-%` row; 23 rows total (not itemised; the first round left 21 rows, plus the user's editor run 129 and one more eval-id run, id 99 `b01`, seen in the list) | `DELETE 2`; `1`; `23` | ✅ pass |
 
 ## Part 3: Regression tests
 
