@@ -220,6 +220,10 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-12
+- `m1-read-request` Task 2: `evals/grade.py` grades `named` and compares ingredient words after
+  normalising (case, accents, hyphens, spacing) and a two-pair naming-synonym list; a form word
+  is never dropped (`rice` != `flaked rice`). `.venv/bin/pytest -m "not stack"`: 100 passed.
+  Plan: [`docs/work/m1-read-request/plan.md`](docs/work/m1-read-request/plan.md).
 - `m1-read-request` Task 1: the 20 recipe briefs gain `named` (the style words the user wrote) and
   hold ingredient words as the user wrote them (b02 `oats`, b06/b16 `rice`, b07 `corn`, b10
   `dark candi sugar`, `abbey yeast`); `test_words_are_the_users` checks it. Suite without stack:

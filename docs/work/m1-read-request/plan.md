@@ -137,7 +137,7 @@ Commit: `Add named and user words to the recipe briefs`
 
 ### Task 2: the grader scores `named` and compares words the R9 way
 Why: R9, R1; A8.
-- [ ] `evals/grade.py`: `STEP1_FIELDS` gains `named` (first). New `normalise(word) -> str`:
+- [x] `evals/grade.py`: `STEP1_FIELDS` gains `named` (first). New `normalise(word) -> str`:
       NFKD and drop combining marks, lower case, hyphens to spaces, runs of whitespace to one
       space, trimmed. New `SYNONYMS`, a short list of pairs of naming variants only, each
       mapped to its first word: `("crystal malt", "caramel malt")`, `("east kent goldings",
@@ -145,13 +145,13 @@ Why: R9, R1; A8.
       `_clean_set` becomes "normalise, then map synonyms". `named`: equal after `normalise`,
       and `null` equals only a missing expectation (every brief has one, so `null` is wrong).
       `hints` keep the plain set compare.
-- [ ] `tests/test_grade.py`: `right_step1` copies `named`. New
+- [x] `tests/test_grade.py`: `right_step1` copies `named`. New
       `test_form_word_is_a_different_ingredient` (`rice` vs `flaked rice` → False),
       `test_case_and_spacing_ignored` (`Flaked  Rice` vs `flaked rice` → True),
       `test_synonym_pair_counts_as_equal` (`caramel malt` vs `crystal malt` → True),
       `test_accents_ignored_in_named` (`Marzen` vs `Märzen` → True),
       `test_named_null_is_wrong` (b05 with `named: null` → `named` False only).
-- [ ] Run `.venv/bin/pytest tests/test_grade.py tests/test_run.py`, expect all pass.
+- [x] Run `.venv/bin/pytest tests/test_grade.py tests/test_run.py`, expect all pass.
 Done when: the A8 cases pass and the runner table lists `named` among step 1 fields.
 Commit: `Grade named and compare words by the R9 rule`
 
