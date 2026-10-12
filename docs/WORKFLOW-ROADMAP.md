@@ -99,6 +99,9 @@ must be settled first, because it decides how every later step is tested.
 
 **Bar:** one dummy step runs end to end: pytest sends a brief, n8n logs a `run_step` row, pytest
 reads and scores it.
+**Measured (2026-10-12, [`m0-harness`](work/m0-harness/plan.md)):** met. The 20-brief run is red as
+designed: step 1 0/20, steps 2 and 3 0/20 (20 not run), briefs 0/20; every run finished with
+one logged step 1 row. Saved in `evals/results/2026-10-12-m0.json`.
 
 ### G1 · Step 1 reads requests well enough, and which model (D2)
 

@@ -1,6 +1,6 @@
 # M0 · Pipeline foundations — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: m0-harness
 
@@ -334,7 +334,7 @@ Commit: `Add recipe pipeline with step 1 stub and run log`
 
 ### Task 7: the runner sends the briefs and prints the graded table (G0 bar)
 Why: R6, R8; A3, A5, and the G0 bar.
-- [ ] `evals/run.py` (stdlib only: `argparse`, `json`, `urllib.request`, `tomllib`):
+- [x] `evals/run.py` (stdlib only: `argparse`, `json`, `urllib.request`, `tomllib`):
       - `send(request, brief_id, model=None, url=PIPELINE_URL, timeout=600) -> dict`. A non-200
         answer or a timeout returns `{"ok": False, "error": ...}` instead of raising, so one bad
         brief doesn't stop the run.
@@ -352,19 +352,19 @@ Why: R6, R8; A3, A5, and the G0 bar.
         the table and totals. `--save` writes `evals/results/<YYYY-MM-DD>-<label>.json` with
         date, label, model, the results and the totals. Exit code 0 only when every brief
         passed.
-- [ ] Write `tests/test_run.py`: `test_not_run_steps_count_as_failed` and
+- [x] Write `tests/test_run.py`: `test_not_run_steps_count_as_failed` and
       `test_failed_run_is_reported_failed` (no stack; build results from made-up run dicts);
       `test_runner_reports_bad_request_as_failed` (stack, A3): `run_brief` on b01 with its
       `request` set to `""` gives `passed = False`, and an error that contains `step1.input`.
-- [ ] Run `python -m evals.run --brief b01`. Expect 1 row, step 1 red on `wanted`, run ok. Then
+- [x] Run `python -m evals.run --brief b01`. Expect 1 row, step 1 red on `wanted`, run ok. Then
       `python -m evals.run --save --label m0`. Expect 20 rows, step 1 0/20, steps 2 and 3 0/20
       (20 not run), briefs 0/20, exit code 1 (A5).
-- [ ] Check in the DB that every run of the saved file has `finished_at` set and one step 1 row
+- [x] Check in the DB that every run of the saved file has `finished_at` set and one step 1 row
       with `ok = true`.
-- [ ] PROJECT.md: §4 Orchestration row (3 workflows, published, measured) and Scripts row
+- [x] PROJECT.md: §4 Orchestration row (3 workflows, published, measured) and Scripts row
       (`evals/` harness and its tests). §8 entry with the measured G0 result. WORKFLOW-ROADMAP
       G0: the measured bar line. Commit `evals/results/<date>-m0.json` (G0 is a checkpoint).
-- [ ] Run `.venv/bin/pytest`, expect all pass.
+- [x] Run `.venv/bin/pytest`, expect all pass.
 Done when: the saved 20-brief run shows the red table with totals, and the suite passes.
 Commit: `Add eval runner and G0 baseline run`
 
