@@ -299,10 +299,10 @@ Commit: `Build step 1 with the LLM call, check and retry`
 
 ### Task 5: the benchmark tool runs one model configuration and summarises it
 Why: R6; A6 (tooling).
-- [ ] `evals/run.py`: `send(..., think=False, timeout=...)` puts `think` in the body;
+- [x] `evals/run.py`: `send(..., think=False, timeout=...)` puts `think` in the body;
       `run_brief(conn, brief, model=None, think=False, timeout=1800)`; `read_run` also returns
       step 1's `llm`; CLI `--think`, `--timeout` (default 1800 s). Results keep `llm`.
-- [ ] `evals/benchmark.py` (stdlib only):
+- [x] `evals/benchmark.py` (stdlib only):
       - `NUM_CTX = 8192`, `OLLAMA = "http://localhost:11434"`.
       - `unload_all()`: for each model in `docker exec ollama ollama ps`, `ollama stop <name>`.
       - `load(model)`: `POST /api/generate {"model", "prompt": "", "options": {"num_ctx": NUM_CTX}}`
@@ -323,13 +323,13 @@ Why: R6; A6 (tooling).
         `--save`, merge it into `evals/results/<date>-m1-benchmark.json` under `"<tag>|think"`
         or `"<tag>|no-think"`, with the sha256 of the prompt and the contract and every result.
         `--table PATH` prints `markdown_table` for a saved file.
-- [ ] Write `tests/test_benchmark.py` (no stack): `test_bar_needs_every_run` ([19, 19, 18] →
+- [x] Write `tests/test_benchmark.py` (no stack): `test_bar_needs_every_run` ([19, 19, 18] →
       False; [20, 19, 19] → True); `test_failed_run_counts_every_field_wrong`;
       `test_best_is_quality_before_speed` (more all-right but slower wins);
       `test_tie_broken_by_worst_run_then_speed`; `test_processor_split_parses_ollama_ps` (a
       captured `ollama ps` text with two models); `test_percentile_nearest_rank`.
       `tests/test_run.py`: `test_send_puts_think_in_body` (monkeypatched `urlopen`).
-- [ ] Run `.venv/bin/pytest`, expect all pass. Run
+- [x] Run `.venv/bin/pytest`, expect all pass. Run
       `.venv/bin/python -m evals.benchmark --model gemma4:12b --runs 1` as a dry run; expect a
       summary with a split and times.
 Done when: the tests pass and the dry run prints a summary.

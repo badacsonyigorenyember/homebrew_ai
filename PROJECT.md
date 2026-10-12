@@ -220,6 +220,13 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-12
+- `m1-read-request` Task 5: `evals/benchmark.py` runs one model configuration (unload all, load at
+  `num_ctx` 8192, read the CPU/GPU split from `ollama ps`, run the 20 briefs N times through the
+  pipeline, summarise per-field accuracy, median/p90 LLM time, retries; `--save` merges into
+  `evals/results/<date>-m1-benchmark.json` with prompt and contract sha256; `--table` prints the
+  markdown table). `evals/run.py` gained `--think`, `--timeout` and keeps step 1's `llm`. Suite:
+  150 passed. Dry run, `gemma4:12b` no-think, 1 run: 16/20 right, 100% GPU, median 1.6 s, p90 2.2 s,
+  1 retry (not the benchmark; Task 6 does that). The dry run left 20 more `app.run` / `app.brief` rows.
 - `m1-read-request` Task 4: step 1 is real. `Step 1 · read request` reads `shared/prompts/step1.system.md`
   and the output contract, calls Ollama `/api/chat` (HTTP Request; contract as `format`, temperature 0,
   seed 42, `num_ctx` 8192), checks the answer with `app.step1_read_answer` and retries once with the
