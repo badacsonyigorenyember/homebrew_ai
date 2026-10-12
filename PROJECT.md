@@ -202,6 +202,13 @@ Several of these are lessons from the first build (see §9).
 
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
+### 2026-10-12
+- `dev-flow` now sets a model per subagent: Opus for brief, plan and review (judgment work;
+  review stays at least as strong as the code's author), Sonnet for implement, verify and ship
+  (specified by the plan; implement runs most often, so most of the cost saving is there). The
+  orchestrator stays on the session model. Not yet measured: whether Sonnet raises the number
+  of review fix rounds.
+
 ### 2026-10-11
 - Shipped `adjunct-fermentables` ([`docs/finished/adjunct-fermentables/`](docs/finished/adjunct-fermentables/verification.md)),
   merged to `main`: `python -m loaders.fetch_hopline --adjuncts` and `loaders/adjuncts.py` (with

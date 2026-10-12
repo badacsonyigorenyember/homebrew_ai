@@ -58,14 +58,17 @@ with the reason in plain words:
 
 ## Steps
 
-| # | Skill | Subagents | Gate |
-|---|---|---|---|
-| 1 | dev-brief | one | **user approves brief** → commit |
-| 2 | dev-plan | one | **user approves plan** → commit |
-| 3 | dev-implement | **one per task**, in order, never in parallel | questions only |
-| 4 | dev-review | one | must-fix → back to 3, then re-review |
-| 5 | dev-verify | one | ❌ `Cause: code` → back to 3, then re-verify; ❌ `Cause: decision` → ask the user; all ✅ → **user approves shipping** |
-| 6 | dev-ship | one | — |
+| # | Skill | Subagents | Model | Gate |
+|---|---|---|---|---|
+| 1 | dev-brief | one | opus | **user approves brief** → commit |
+| 2 | dev-plan | one | opus | **user approves plan** → commit |
+| 3 | dev-implement | **one per task**, in order, never in parallel | sonnet | questions only |
+| 4 | dev-review | one | opus | must-fix → back to 3, then re-review |
+| 5 | dev-verify | one | sonnet | ❌ `Cause: code` → back to 3, then re-verify; ❌ `Cause: decision` → ask the user; all ✅ → **user approves shipping** |
+| 6 | dev-ship | one | sonnet | — |
+
+Judgment steps (brief, plan, review) run on Opus; review stays at least as strong as the model
+that wrote the code. Steps the plan already specifies (implement, verify, ship) run on Sonnet.
 
 Fix loops (4 → 3 → 4 and 5 → 3 → 5) run at most 2 rounds each. If findings or failures remain
 after that, show them to the user and ask: fix again, accept as they are, or stop.
@@ -78,8 +81,8 @@ Right before each dispatch, write one line in chat naming the skill and its job:
 
 When you resume a subagent with SendMessage instead, write `**Resumed: /<skill>** · <why>`.
 
-Agent tool, `subagent_type: general-purpose`, not in the background, never `isolation:
-worktree`. The prompt:
+Agent tool, `subagent_type: general-purpose`, `model:` the step's Model from the Steps table,
+not in the background, never `isolation: worktree`. The prompt:
 
 ```
 You are a dev-flow subagent. Load the project skill `<skill>` with the Skill tool (or read
