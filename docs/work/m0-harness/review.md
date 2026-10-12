@@ -47,3 +47,42 @@ New in the fix diff:
 |---|---|---|---|---|
 | 10 | note | tests/test_run.py `test_unfinished_run_is_not_passed`; evals/run.py:85 | The test stubs `read_run` with `finished: False, ok: False`, so each half of the check is covered only by the other. Measured: with the check reduced to `if not stored["ok"]:` or to `if not stored["finished"]:`, all `tests/test_run.py` tests still pass. | Removing the whole check is caught (finding 1). A mistake in one half could be missed, for example a run that finished as failed while the HTTP answer said `ok`. A second stub (`finished: True, ok: False`) would cover it. |
 | 11 | note | evals/results/2026-10-12-m0.json | The saved G0 baseline was written before the fix, so its `totals.step1` has no `not_run` key (the runs there all have a step 1 row, so the value would be 0). | Nothing reads the results files back today (`grep` checked). A later comparison script would need to allow for the missing key, or the baseline could be re-saved. |
+
+## Re-review 2026-10-12 (Task 8 scope change)
+
+Diff: 29b132b..61e5cd2 (plan revision 02d308f, implementation 61e5cd2)  ·  Verdict: ready for testing
+
+Checked: the brief/plan revision against the user's request (sticky notes with ready-to-paste
+JSON, the user pins), R11 and A9 against plan Task 8, the implementation against Task 8, and
+the earlier reviewed work for regressions. Measured on 2026-10-12:
+
+- `pytest` gives 122 passed with the stack up; `pytest -m "not stack"` gives 94 passed,
+  28 deselected. Both match the PROJECT.md §4 row and the plan's expectation (115 + 7).
+- n8n (MCP `get_workflow_details`, read-only): all three workflows have
+  `versionId == activeVersionId`, the draft and active node lists are the same, and each has one
+  `Test data` sticky note with the JSON from the plan's sample table. Connections are unchanged.
+- The repo files equal `shape()` of a fresh `export_all()` in full (not only node names and
+  connections). `pinData` is `{}` for all three, so the user has not pinned yet.
+- No `app.run` row has an `eval_id` like `editor-%` (the implementer's editor-b01 run was removed).
+  `grep -i -E "password|token|secret|authorization|cookie|api.?key"` on the three workflow files
+  finds nothing.
+- Revision: brief scope item, R11, A9 and a Deviations line, and plan Task 8, Files table,
+  Critical-behaviour rows and Deviations line all say the same thing, and match the user's
+  choice (notes only, the user pins). The approved A7 exception is now recorded under Approved
+  exceptions. Both commits are one line with no trailers, and they touch only files in the
+  plan's Files table and this work's docs. `db/015_app.sql` changes a `--` comment only, so
+  there is nothing to apply.
+- Tests: `test_test_data_notes` fails if a note is missing, duplicated, holds a different sample,
+  or a sub-workflow's input names drift from the sample. `test_webhook_ignores_pin` asserts both
+  `eval_id = 'b02'` and the posted request, which a pinned b01 sample would break. The pipeline
+  contract check builds the step 1 input from `body.request` + `run_id: 0`; that deviation is
+  recorded and correct, because `step1.input` has `additionalProperties: false` and `brief_id`
+  is not part of it.
+- Earlier findings 1–6 stay resolved. OPERATIONS §5's "unverified" note about which version
+  Execute Workflow runs still holds (draft = active again).
+
+| # | Severity | Where | Finding | Why it matters |
+|---|---|---|---|---|
+| 12 | note | A9; tests/test_pipeline.py `test_webhook_ignores_pin` | The A9 parts that depend on the pin are not met yet: no workflow has `pinData` (measured), so the test passes without testing anything, and the user's editor check has not happened. The plan's "For re-verify" paragraph covers this: the user pins and runs the pipeline sample, and verification then runs the suite with the pin present. | If verification ran before the user pins, A9 would look covered when it is not. |
+| 13 | note | n8n/workflows/*.json | The re-export dropped parameters whose values are n8n defaults (webhook `authentication: none`, trigger `inputSource`, the `string` input type, `operation: read`, `binaryPropertyName: data`, `errorType`, Set `mode: manual`, Execute Workflow `source` / `mode`) and added `settings.binaryMode: "separate"`. Runtime behaviour is unchanged: the files equal the live export and the suite passes. | Someone reading the files no longer sees some settings spelled out, for example that the webhook has no auth. That fact is in OPERATIONS and the n8n MCP trigger info. |
+| 14 | note | tests/test_workflows.py:52 | `test_test_data_notes` treats `nodes[0]` as the trigger. That holds in all three files today (checked). If the node order changed, the test would fail with a `KeyError` rather than pass by mistake. | No silent gap. It is only a less clear failure message. |
