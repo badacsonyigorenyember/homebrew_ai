@@ -2,12 +2,14 @@
 
 Requirements R1-R3 and R5-R11 of docs/work/test-briefs/brief.md. Each coverage test fails
 with the measured count in its message. `pytest -s` prints the whole coverage dict.
-test_style_codes_exist_in_ref reads the live DB and fails when the stack is not running.
+test_style_codes_exist_in_ref reads the live DB and is skipped when the stack is not running.
 """
 
 import re
 import tomllib
 from pathlib import Path
+
+import pytest
 
 from loaders.db import connect
 
@@ -143,6 +145,7 @@ def test_twenty_briefs_with_every_field():
             assert d["what"].strip() and d["from"].strip(), f"{bid}: deviation without what/from"
 
 
+@pytest.mark.stack
 def test_style_codes_exist_in_ref():
     with connect() as conn:
         rows = conn.execute(

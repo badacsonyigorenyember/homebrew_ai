@@ -1,6 +1,6 @@
 # M0 · Pipeline foundations — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: m0-harness
 
@@ -92,7 +92,7 @@ tables are empty, and `app.run` / `app.run_step` columns match `db/015_app.sql`.
 
 ### Task 1: the G0 decisions are recorded, and stack tests skip cleanly
 Why: R1, R9; A1, A7.
-- [ ] PROJECT.md §4: replace the sentence "How the parts are split inside n8n, including where
+- [x] PROJECT.md §4: replace the sentence "How the parts are split inside n8n, including where
       the deterministic maths (P2) runs, is discussed when the pipeline is built." with a
       **Pipeline build (G0, decided <date>)** note. It lists the five decisions from the Approach,
       each with a one-line *why* (the brief's reasons): SQL functions + Postgres node, Code
@@ -100,20 +100,20 @@ Why: R1, R9; A1, A7.
       JSON Schema files in `shared/contracts/`, checked with `pg_jsonschema` on both sides;
       workflows edited in n8n and exported to `n8n/workflows/`; eval results in
       `evals/results/`, committed at checkpoints.
-- [ ] `docs/WORKFLOW-ROADMAP.md` §2 G0: replace "*Leaning, for you to decide:*…" with the
+- [x] `docs/WORKFLOW-ROADMAP.md` §2 G0: replace "*Leaning, for you to decide:*…" with the
       decisions (one line each) and a link to PROJECT.md §4. Leave the **Bar** line; Task 7 adds
       the measured result.
-- [ ] `pytest.ini`: add `markers = stack: needs the running stack (Postgres and n8n)`.
-- [ ] `tests/conftest.py`: a session-cached `stack_up()` is true when `loaders.db.connect()`
+- [x] `pytest.ini`: add `markers = stack: needs the running stack (Postgres and n8n)`.
+- [x] `tests/conftest.py`: a session-cached `stack_up()` is true when `loaders.db.connect()`
       succeeds (pass `connect_timeout=3`; add an optional `connect_timeout` argument to
       `connect` only if needed) **and** `GET http://localhost:5678/healthz` answers 200 within
       3 s. In `pytest_collection_modifyitems`, add
       `pytest.mark.skip(reason="stack not running: <which part>")` to every item marked `stack`
       when it is false.
-- [ ] `tests/test_recipe_briefs.py`: mark `test_style_codes_exist_in_ref` with
+- [x] `tests/test_recipe_briefs.py`: mark `test_style_codes_exist_in_ref` with
       `@pytest.mark.stack`, and change the docstring's "fails when the stack is not running" to
       "is skipped when…".
-- [ ] Run `.venv/bin/pytest`, expect 68 passed (stack up). Run
+- [x] Run `.venv/bin/pytest`, expect 68 passed (stack up). Run
       `.venv/bin/pytest -m "not stack"`, expect 67 passed, 1 deselected.
 Done when: §4 holds the five decisions, each with its *why*, and both pytest runs give the stated
 counts.

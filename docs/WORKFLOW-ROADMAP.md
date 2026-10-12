@@ -89,10 +89,13 @@ must be settled first, because it decides how every later step is tested.
 | B. JavaScript in Code nodes | only by running the workflow with pinned data | logic sits inside workflow JSON | Hard to unit test; the first build's lesson (§6.8) argues against hidden logic |
 | C. Python in Code nodes | same as B | same as B | n8n 2.23.4 runs Python only through an external task runner, which this stack doesn't have |
 
-*Leaning, for you to decide:* **A** for maths and scoring, Code nodes only for glue (reshaping
-JSON). Also decide here: how pytest triggers a run (webhook vs. `n8n execute`) and reads the
-result back (`app.run_step` rows), and what a step contract looks like (JSON Schema per step,
-with the "none / unknown / conflict" slot, PROJECT.md §6.3).
+*Decided 2026-10-12* (details and reasons in [PROJECT.md §4](../PROJECT.md)):
+- **A** for maths and scoring: SQL functions in `db/*.sql`, Code nodes only for glue.
+- pytest starts a run through a webhook and reads `app.run` / `app.run_step` back.
+- A step contract is a JSON Schema file in `shared/contracts/`, with its none / unknown / conflict
+  slot, checked with `pg_jsonschema`.
+- Workflows are exported from n8n into `n8n/workflows/`.
+- Eval results go to `evals/results/<date>-<milestone>.json`, committed at checkpoints.
 
 **Bar:** one dummy step runs end to end: pytest sends a brief, n8n logs a `run_step` row, pytest
 reads and scores it.

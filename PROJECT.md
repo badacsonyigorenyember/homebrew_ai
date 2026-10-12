@@ -121,8 +121,19 @@ decision in §7 replaces it. How to operate the stack safely is in
 **Pipeline and interface (was D3 and D5, decided 2026-10-11):** the recipe pipeline lives in
 n8n, with as many of its parts there as possible; there is no Python service (the Python in
 `loaders/` stays for one-off extract/load jobs). The user talks to the assistant through n8n's
-chat trigger. How the parts are split inside n8n, including where the deterministic maths (P2)
-runs, is discussed when the pipeline is built. *Why: the user's call.*
+chat trigger. *Why: the user's call.*
+
+**Pipeline build (G0, decided 2026-10-12):**
+- Deterministic logic is SQL functions in `db/*.sql`, called from n8n's Postgres node; Code nodes
+  only reshape JSON. *Why: pytest can call the functions directly, and the data is already in Postgres.*
+- A webhook (`POST /webhook/recipe-pipeline`) starts a run; tests read `app.run` and `app.run_step`
+  back. *Why: the database is the record, and the same path serves the eval runner and the chat trigger later.*
+- Step contracts are JSON Schema files in `shared/contracts/`, checked with `pg_jsonschema` by n8n
+  and by tests. *Why: one validator on both sides, and n8n already sees that folder.*
+- Workflows are edited in n8n and exported to `n8n/workflows/` (`python -m evals.workflows`).
+  *Why: the visual editor stays the place to build, and the repo still holds a reviewable copy.*
+- Eval results are saved as `evals/results/<date>-<milestone>.json`, committed at checkpoints only.
+  *Why: a history of measured results without a commit for every run.*
 
 **Hardware:** Ryzen 9 9900X · Radeon RX 9070 XT (16 GB VRAM, RDNA 4 / gfx1201) · 32 GB RAM.
 
@@ -209,6 +220,10 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-12
+- `m0-harness` task 1: recorded the G0 decisions in §4 (and in WORKFLOW-ROADMAP G0). Added the
+  `stack` pytest marker with a `tests/conftest.py` that skips those tests when Postgres or n8n is
+  down. Measured: 68 passed with the stack up, 67 passed + 1 deselected with `-m "not stack"`, and
+  1 skipped when n8n's health URL was pointed at a dead port.
 - Planned `m0-harness` ([`docs/work/m0-harness/plan.md`](docs/work/m0-harness/plan.md)): 7 tasks.
   Record the G0 decisions and add a `stack` test marker; add the run-log columns and
   `pg_jsonschema`; JSON Schema contracts for steps 0–3 in `shared/contracts/`; pure graders;
