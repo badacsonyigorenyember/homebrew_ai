@@ -234,7 +234,7 @@ Commit: `Add pure graders for steps 1-3 with tests`
 
 ### Task 5: workflows can be exported into the repo
 Why: R10; A8 (the comparison runs in Task 6, once workflows exist).
-- [ ] `evals/workflows.py`:
+- [x] `evals/workflows.py`:
       - `export_all() -> list[dict]` runs
         `docker exec n8n n8n export:workflow --all --pretty` and parses the JSON array. If
         stdout carries log lines and is not pure JSON, export with
@@ -250,12 +250,12 @@ Why: R10; A8 (the comparison runs in Task 6, once workflows exist).
       - CLI `python -m evals.workflows` writes each shaped workflow to `n8n/workflows/` with
         `json.dumps(..., indent=2, ensure_ascii=False)` and a trailing newline, and prints the
         paths.
-- [ ] Write `tests/test_workflows.py`: `test_shape_drops_volatile_fields` and
+- [x] Write `tests/test_workflows.py`: `test_shape_drops_volatile_fields` and
       `test_file_name` (no stack, made-up workflow dicts); `test_repo_files_match_n8n` (stack):
       for every workflow in `export_all()`, a file `n8n/workflows/<file_name>` exists, and
       `node_graph` is equal; no file without a workflow. With no workflows in n8n yet, it passes
       on both being empty.
-- [ ] Run `.venv/bin/pytest tests/test_workflows.py`, expect all pass.
+- [x] Run `.venv/bin/pytest tests/test_workflows.py`, expect all pass.
 Done when: the CLI runs (0 workflows today) and the 3 tests pass.
 Commit: `Add n8n workflow export to the repo`
 

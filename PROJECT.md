@@ -220,6 +220,11 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-12
+- `m0-harness` task 5: `evals/workflows.py` exports n8n workflows into `n8n/workflows/`
+  (`python -m evals.workflows`), with 3 tests in `tests/test_workflows.py`. Export goes through
+  `--output` to a file in `shared/`, because stdout carries log lines. With 0 workflows n8n exits 1
+  with "No workflows found", which the code treats as an empty list. Suite: 107 passed (measured).
+  The file-output path is not yet exercised with a real workflow (Task 6).
 - `m0-harness` task 4: pure graders in `evals/grade.py` (steps 1-3 and `grade_run`) with 16 unit
   tests in `tests/test_grade.py`. A deviation matches on same kind and same subject (quantity for
   number/mismatch, hint rows for conflict, whole word for ingredient). Suite: 104 passed; without
