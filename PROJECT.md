@@ -220,6 +220,10 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-12
+- `m1-read-request` Task 1: the 20 recipe briefs gain `named` (the style words the user wrote) and
+  hold ingredient words as the user wrote them (b02 `oats`, b06/b16 `rice`, b07 `corn`, b10
+  `dark candi sugar`, `abbey yeast`); `test_words_are_the_users` checks it. Suite without stack:
+  95 passed.
 - Approved brief and planned `m1-read-request` ([`docs/work/m1-read-request/`](docs/work/m1-read-request/),
   [plan](docs/work/m1-read-request/plan.md)): step 1 reads the request with one Ollama call
   (JSON schema in `format`, temperature 0, seed 42), one SQL check (contract + no invented

@@ -1,6 +1,6 @@
 # M1 · Step 1: read the request, and choose the chat model (D2) — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: m1-read-request
 
@@ -114,7 +114,7 @@ than name the style go (classic, traditional, proper, simple, crisp, dry, light,
 
 ### Task 1: the 20 briefs use the user's own ingredient words and name the style
 Why: R8, R1; A7.
-- [ ] `evals/recipe_briefs.toml`: add `named = "<value>"` after `request` in every brief, with
+- [x] `evals/recipe_briefs.toml`: add `named = "<value>"` after `request` in every brief, with
       the values in the table above. Change b02 `wanted` to `["oats"]`, b06 `["rice"]`, b07
       `["corn"]`, b16 `["rice"]`, b10 `inventory` to `["dark candi sugar", "Munich malt",
       "abbey yeast"]`. `needs` stays as it is. Header: add a `named` line to the field list
@@ -123,15 +123,15 @@ Why: R8, R1; A7.
       form words (flaked, ground, malted…) kept", and point the brief link to
       `docs/finished/test-briefs/brief.md` (WORKFLOW-ROADMAP §3 asks for this fix with the first
       brief change).
-- [ ] `tests/test_recipe_briefs.py`: add `named` to `FIELDS` and require a non-empty string.
+- [x] `tests/test_recipe_briefs.py`: add `named` to `FIELDS` and require a non-empty string.
       New `test_words_are_the_users`: each `named`, `wanted`, `excluded` and `inventory` item
       appears in its `request` (case-insensitive, accents kept). In
       `test_no_fruit_or_non_gravity_extras`, a `wanted` word passes when it appears as a whole
       word inside some `needs` item (`oats` in `flaked oats`).
-- [ ] Run `.venv/bin/pytest tests/test_recipe_briefs.py`, expect all pass. Run
+- [x] Run `.venv/bin/pytest tests/test_recipe_briefs.py`, expect all pass. Run
       `.venv/bin/pytest -m "not stack"`; `tests/test_grade.py` may now fail on b02/b06/b16
       wording only if a test hard-codes the old words: fix such a test to the new words.
-- [ ] PROJECT.md §8 entry.
+- [x] PROJECT.md §8 entry.
 Done when: all 20 briefs have `named`, the five briefs hold the R8 words, and the suite passes.
 Commit: `Add named and user words to the recipe briefs`
 
