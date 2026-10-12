@@ -220,6 +220,10 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-12
+- Revised plan `m0-harness` (docs/work/m0-harness/plan.md): Task 8 adds a `Test data` sticky
+  note with ready-to-paste JSON (b01's request) to each n8n workflow; the user pins it and runs the
+  workflow in the editor. Pipeline editor runs are logged as `eval_id = 'editor-b01'`. Scope
+  change agreed by the user before shipping; re-review and re-verify follow.
 - `m0-harness` review fixes: tests now fail if the runner counts a failed or unfinished run as
   passed (checked by mutating `evals/run.py`); `totals()` reports step 1 `not_run`; the test skip
   check reuses `loaders.db.connect`; plan deviations recorded; §4 Scripts test count corrected.

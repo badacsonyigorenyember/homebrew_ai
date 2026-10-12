@@ -1,6 +1,6 @@
 # M0 · Pipeline foundations — implementation plan
 
-Stage: verify
+Stage: approved
 Brief: [brief.md](brief.md)
 Branch: m0-harness
 
@@ -53,6 +53,20 @@ task builds on recorded decisions.
   of b04, whose request states nothing (measured). So the stub copies the request text into
   `wanted`, and every brief fails at least that field.
 
+- **Test data in the n8n editor (Task 8, added 2026-10-12).** Each of the three workflows gets
+  a sticky note `Test data` with ready-to-paste JSON for its trigger. The user pins that JSON on
+  the trigger in the editor, clicks "Execute workflow" and watches each node's input and output
+  (for `Recipe pipeline`, the step 1 sub-execution too). The implementer pins nothing: the user
+  asked to do that, and the MCP cannot set pinned data. The note, not the pin, is the versioned
+  test data: it is a node, so it is in the exported repo file. `shape()` keeps dropping
+  `pinData`, so a user's pin changes no repo file and needs no re-export. The pipeline sample
+  carries `brief_id: "editor-b01"`, which `Run settings` already copies into `eval_id`, so
+  editor runs are told apart from eval runs (`b01`…`b20`) and removed with one
+  `delete … where eval_id like 'editor-%'` (steps cascade). No workflow logic changes. Webhook
+  calls ignore pinned data (n8n docs say so; a new test measures it while the user's pin
+  exists). After adding the notes, all three workflows are published, so the draft that is
+  exported is again what runs.
+
 Measured while planning (2026-10-12): n8n 2.23.4, no workflows. Credentials: `Postgres account`
 (`fDjeFLjBj3r9berH`, settings unverified) and `Ollama account`. n8n reaches `supabase-db:5432`
 over `aihomebrewassistant_default` (TCP connect from the n8n container; the host aliases are
@@ -87,6 +101,12 @@ tables are empty, and `app.run` / `app.run_step` columns match `db/015_app.sql`.
 | `evals/run.py` | new | the runner (R6, R8) |
 | `tests/test_run.py` | new | runner summary (unit), runner against n8n (stack) |
 | `evals/results/<date>-m0.json` | new | the G0 checkpoint run (A5) |
+| `tests/test_workflows.py` | changed (Task 8) | test-data notes: present, parse, match the triggers and the step 1 contract |
+| `tests/test_pipeline.py` | changed (Task 8) | a webhook call ignores a pin |
+| `n8n/workflows/*.json` | changed (Task 8) | re-exported with each workflow's `Test data` sticky note |
+| `db/015_app.sql` | changed (Task 8) | the `eval_id` comment names `editor-b01` (comment only, nothing to apply) |
+| `docs/OPERATIONS.md` | changed (Task 8) | §5: running a workflow from the editor, and removing editor runs |
+| `PROJECT.md` | changed (Task 8) | §8 entry |
 
 ## Tasks
 
@@ -368,6 +388,104 @@ Why: R6, R8; A3, A5, and the G0 bar.
 Done when: the saved 20-brief run shows the red table with totals, and the suite passes.
 Commit: `Add eval runner and G0 baseline run`
 
+### Task 8: each workflow carries test data the user can pin and run in the n8n editor
+Why: R11, R10; A9. Scope change approved by the user on 2026-10-12. Load `using-n8n-skills-official`
+and `n8n-workflow-lifecycle-official` first.
+
+Measured while planning (2026-10-12): `n8n export:workflow` includes `pinData` (`{}` for all three
+workflows today), and `shape()` drops it. The MCP `update_workflow` cannot set pinned data, but
+`addNode` can add a sticky note. Sub-workflow executions are saved (`Step 1 · read request` has
+60, mode `integrated`). `Recipe pipeline` has `versionId` ≠ `activeVersionId` (`84fa85ff…` /
+`a350a3e9…`): the active nodes equal the draft apart from defaults the editor adds
+(`options: {}`, the Execute Workflow `source` / `mode`) and the sticky note's position. The other
+two also have `versionId` ≠ `activeVersionId`. No `app.run` row has an `eval_id` outside
+`b01`…`b20`.
+
+The samples (`<b01>` = b01's `request` from `evals/recipe_briefs.toml`, written out in full):
+
+| Workflow | Pin on node | Sample JSON (one item; the editor adds the `json` wrapper itself) | Why this workflow needs one |
+|---|---|---|---|
+| `Recipe pipeline` | `POST recipe-pipeline` | `[{"headers": {"content-type": "application/json"}, "params": {}, "query": {}, "body": {"request": "<b01>", "brief_id": "editor-b01"}}]` | The entry point: one editor run shows the whole run, including the step 1 sub-execution. Writes a real run log, tagged `editor-b01`. |
+| `Step 1 · read request` | `When Executed by Another Workflow` | `[{"run_id": 0, "request": "<b01>"}]` | M1 replaces the stub here and will build and debug it on its own; without a pin its trigger has no input in the editor. `run_id: 0` belongs to no run (ids start at 1), and the workflow writes no rows. |
+| `Check contract` | `When Executed by Another Workflow` | `[{"contract": "step1.input", "value": {"run_id": 0, "request": "<b01>"}}]` | Every step calls it. The sample shows a pass; with `request` set to `""` it shows the error text a failed step logs. Read-only (a `select`). |
+
+- [ ] Tests first (TDD), before the notes exist:
+      - `tests/test_workflows.py::test_test_data_notes` (no stack, parametrized over the three
+        repo files): exactly one node named `Test data` of type `n8n-nodes-base.stickyNote`; its
+        `content` has exactly one ` ```json ` fenced block; that block parses to the sample in the
+        table above (the expected samples are a dict in the test, with `<b01>` read from
+        `recipe_briefs.toml`). For the two sub-workflows, the sample's keys equal the trigger's
+        `workflowInputs` names, so a later input change without a note change fails. For the
+        pipeline, no header is `authorization`, `cookie` or `x-api-key` (case-insensitive).
+      - `tests/test_workflows.py::test_test_data_meets_contracts` (stack, parametrized): each
+        sample's step 1 input (`body` + `run_id: 0` for the pipeline, the sample itself for
+        Step 1, `value` for Check contract) gives `[]` from `jsonschema_validation_errors`
+        against `shared/contracts/step1.input.schema.json`.
+      - `tests/test_pipeline.py::test_webhook_ignores_pin` (stack): POST
+        `{"request": "a dry stout", "brief_id": "b02"}` through the existing `post` fixture. The
+        run has `eval_id = 'b02'`, and the step 1 row has `input.request == "a dry stout"`. Its
+        docstring says it proves something only while the user's pin is on `Recipe pipeline`.
+      - Run `.venv/bin/pytest tests/test_workflows.py tests/test_pipeline.py`. Expect the 3
+        `test_test_data_notes` cases to fail (no notes yet); the others pass.
+- [ ] Note `versionId` and `activeVersionId` of all three workflows (MCP `get_workflow_details`).
+- [ ] Add the note to each workflow with MCP `update_workflow` `addNode`: name `Test data`, type
+      `n8n-nodes-base.stickyNote`, typeVersion 1, below the trigger and clear of the other nodes
+      and notes, wide enough for the JSON (about 520 × 340). Content, in this order:
+      `### Test data · editor run`; one line: pin this on `<node>` (open the node, use the
+      output panel's edit / mock-data control, paste the JSON, save), then *Execute workflow*;
+      what it does (pipeline: "runs for real and writes `app.run` with `eval_id = 'editor-b01'`;
+      remove with `delete from app.run where eval_id like 'editor-%'`; set `request` to `""` to
+      see the failure path; webhook calls ignore the pin"; sub-workflows: "writes nothing";
+      Check contract: "set `request` to `""` to see a failure"); then the fenced JSON block from
+      the table, on one or a few lines. After each update, `get_workflow_details`: the
+      `connections` are unchanged and the only new node is `Test data`.
+- [ ] Publish all three with `publish_workflow`: `Check contract`, then `Step 1 · read request`,
+      then `Recipe pipeline`. Then `versionId == activeVersionId` for each. Why publish: the
+      notes do not change execution, but the drafts already differ from the active versions, and
+      the repo file is the exported draft. Publishing makes the repo file exactly what runs (R10)
+      and settles the open "which version does Execute Workflow run" question for this work.
+- [ ] Run the pipeline sample the way the editor would: MCP `execute_workflow` on
+      `eMkkdBar6NIqUa1g` with `executionMode: "manual"` and `inputs` = `{type: "webhook",
+      webhookData: {method: "POST", body: <the sample's body>}}`. Then `get_execution`
+      (`includeData: true`): status `success`, and `Step 1 · read request` returned the stub output
+      with `wanted[0]` = `<b01>`. `search_executions` on `xmIkYM80AJ6ynxML` and
+      `CDfsbxzbagphdnVH` from that start time shows the sub-executions. In the DB: one new
+      `app.run` with `eval_id = 'editor-b01'`, `ok = true`, `finished_at` set, and one step 1 row
+      with `ok = true`.
+- [ ] Remove that run:
+      `docker exec supabase-db psql -U postgres -d postgres -c "delete from app.run where eval_id like 'editor-%'"`.
+      Expect `DELETE 1`; its `app.run_step` rows go with it (`on delete cascade`).
+- [ ] Run `.venv/bin/python -m evals.workflows`. Expect 3 files, each gaining only its `Test data`
+      node (plus the editor defaults the draft already had). Read the diff: no other node or
+      connection change. `grep -i -E "password|token|secret|authorization|cookie|api.?key"` on the
+      three files finds only credential names and ids.
+- [ ] Pins and the repo: `shape()` keeps dropping `pinData` (`test_shape_drops_volatile_fields`
+      stays as is), and `test_repo_files_match_n8n` keeps comparing node names and connections.
+      So a pin the user sets changes no repo file and needs no re-export; the note is the
+      versioned copy of the sample. Editing a note is a workflow change: re-export, as for any
+      other node.
+- [ ] `db/015_app.sql`: change the `eval_id` comment to
+      `-- 'b01' from the eval runner, 'editor-b01' from an n8n editor run`. Comment only: do not
+      re-apply.
+- [ ] `docs/OPERATIONS.md` §5, a bullet **Running a workflow from the editor**: each workflow's
+      `Test data` note and the node to pin it on; a pipeline run writes a real run log tagged
+      `editor-b01`, and the step 1 sub-execution opens from the `Step 1 · read request` node;
+      remove editor runs with the `delete` above; webhook calls ignore pins
+      (`test_webhook_ignores_pin`); pins are not exported, so no re-export after pinning, but a
+      changed note needs one; keep `brief_id` starting with `editor-` when changing the sample.
+- [ ] PROJECT.md §8: dated entry for Task 8 with the measured results.
+- [ ] Run `.venv/bin/pytest`, expect all pass (115 + 7 new). Run `.venv/bin/pytest -m "not stack"`,
+      expect 94 passed, none failed.
+Done when: the three workflows carry their `Test data` notes, are published with
+`versionId == activeVersionId`, their repo files match, the pipeline sample ran once as
+`editor-b01` (then removed), and the suite passes.
+Commit: `Add editor test-data notes to the n8n workflows`
+
+For re-verify: the user pins the `Recipe pipeline` sample and runs it once in the editor before
+verification (A9 is the user's view of the nodes and the sub-execution). Verification then runs
+the suite with that pin present, so `test_webhook_ignores_pin` measures the pin being ignored,
+and records whether `pinData` was present (`export_all()`).
+
 ## Critical behaviour and its tests
 
 | Behaviour | Test | Task |
@@ -383,11 +501,15 @@ Commit: `Add eval runner and G0 baseline run`
 | A missing step output fails every graded field | `tests/test_grade.py::test_step1_missing_output_fails_every_field` | 4 |
 | Repo workflow files match n8n | `tests/test_workflows.py::test_repo_files_match_n8n` | 5, 6 |
 | The default suite passes without the stack | `tests/conftest.py` skip, checked as A7 in verification | 1 |
+| A webhook call runs on the posted request, never on a pinned sample (else every eval would grade b01) | `tests/test_pipeline.py::test_webhook_ignores_pin` (meaningful while the user's pin exists) | 8 |
+| Each test-data note holds a sample its trigger accepts: the right input names, the b01 request, `editor-b01` for the pipeline, no secret header | `tests/test_workflows.py::test_test_data_notes`, `::test_test_data_meets_contracts` | 8 |
+| A user's pin never changes the repo files (`pinData` is dropped on export) | `tests/test_workflows.py::test_shape_drops_volatile_fields` | 5, 8 |
 
 ## Approved exceptions
 
-None yet. Pending (question 3 in the plan's report): verification may stop and start the `n8n`
-and `supabase-pooler` containers (`docker stop` / `docker start`, no recreate) to check A7.
+- Verification (A7): may stop and start the `n8n` and `supabase-pooler` containers
+  (`docker stop` / `docker start`, no recreate) to run `pytest` with the stack down. Approved by
+  the user with the plan.
 
 ## Deviations
 - 2026-10-12 · Plan: `test_style_codes_exist_in_ref` fails today when the stack is down, rather
@@ -417,3 +539,10 @@ and `supabase-pooler` containers (`docker stop` / `docker start`, no recreate) t
 - 2026-10-12 · Review fixes: tests for `run_ok and` and the unfinished-run check (both seen to fail
   with the code mutated); `totals()` step 1 now has `not_run`; `tests/conftest.py` uses
   `loaders.db.connect(connect_timeout=3)` and skips when the env file or a key is missing.
+- 2026-10-12 · Task 8 (new): scope change approved by the user after verification — test data
+  in n8n, so the workflows can be run and inspected in the editor ("Can we somehow have test data
+  in n8n? … see the flow and states and data progress"). Each workflow gets a `Test data` sticky
+  note with JSON the user pins on its trigger; the implementer pins nothing (user's choice). The
+  pipeline sample is tagged `brief_id: "editor-b01"`, so editor runs are told apart and removed by
+  `eval_id`. Pins stay out of the repo files (`shape()` unchanged); the three workflows are
+  published after the notes are added. Stage back to `draft`; re-review and re-verify follow.
