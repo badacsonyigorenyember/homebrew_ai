@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step0.output",
+  "description": "Step 0, load settings: brewhouse numbers, water, units and inventory. Absent: a water ion of null is unknown; ingredient_id null means the item is not in the catalogue.",
+  "type": "object",
+  "required": [
+    "batch_l",
+    "efficiency_pct",
+    "boil_off_l_h",
+    "losses_l",
+    "grain_abs_l_kg",
+    "water",
+    "units",
+    "inventory"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "batch_l": {
+      "type": "number"
+    },
+    "efficiency_pct": {
+      "type": "number"
+    },
+    "boil_off_l_h": {
+      "type": "number"
+    },
+    "losses_l": {
+      "type": "number"
+    },
+    "grain_abs_l_kg": {
+      "type": "number"
+    },
+    "water": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ca",
+        "mg",
+        "na",
+        "so4",
+        "cl",
+        "hco3"
+      ],
+      "properties": {
+        "ca": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "mg": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "na": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "so4": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "cl": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "hco3": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "units": {
+      "enum": [
+        "metric",
+        "us"
+      ]
+    },
+    "inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "raw_name",
+          "ingredient_id",
+          "amount",
+          "unit"
+        ],
+        "properties": {
+          "raw_name": {
+            "type": "string"
+          },
+          "ingredient_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "amount": {
+            "type": "number"
+          },
+          "unit": {
+            "enum": [
+              "g",
+              "kg",
+              "ml",
+              "l",
+              "pack"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

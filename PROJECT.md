@@ -107,13 +107,13 @@ decision in §7 replaces it. How to operate the stack safely is in
 |---|---|---|---|
 | Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)). All schemas built 2026-10-11 ([`slim-ref`](docs/finished/slim-ref/plan.md)): `ref` 15 tables, `corpus` 7, `kb` 1, `app` 8, all 31 owned by `postgres`; design in [`docs/DATABASE.md`](docs/DATABASE.md). **P1a `ref` load done.** Measured 2026-10-11: `ref.source` 18 rows; `ref.beer_style` 285, BJCP 2021 116 + BA 2026 169 ([`style-loader`](docs/finished/style-loader/plan.md)); `ref.ingredient` 298, 0 without a source: `ref.fermentable` 81 = 74 grain malts from Weyermann, Viking and Simpsons ([`malt-loader`](docs/finished/malt-loader/plan.md)) + 7 adjuncts (flaked oats, corn, rice and barley, brown candi sugar and lactose from `hopline-adjuncts`, honey from `palmer-how-to-brew`; extract from Palmer Tables 18.5/24.1), `fermentability` `normal` 78 · `full` 2 (candi, honey) · `none` 1 (lactose) ([`adjunct-fermentables`](docs/finished/adjunct-fermentables/plan.md)); `ref.hop` 90, all from `hopline-hops`, 8 values from Beer Maverick ([`hop-loader`](docs/finished/hop-loader/plan.md)); `ref.yeast` 119 from `hopline-yeasts`, 93 with attenuation from the makers' sources, Brewfather and the user ([`yeast-loader`](docs/finished/yeast-loader/plan.md)); `ref.water_salt` 8, ion mg/L per g computed from IUPAC atomic masses ([`water-salts`](docs/finished/water-salts/plan.md)). Fermentables, hops and yeasts name each filled field's source in `field_source`. Every other table is empty until its phase. 10 random rows per loaded table spot-checked by the user against the sources, no errors ([`ref-spotcheck`](docs/finished/ref-spotcheck/plan.md), pack `db/checks/ref_spotcheck.sql`); the 7 adjuncts came after it and were checked in their own verification (16/16). Known gaps: `fermentable.role` stays empty until P3; no malt extracts, and the other hopline adjuncts (rye, wheat and chit flakes, white candi, fructose) are not loaded; `beer_style.co2_vol` was dropped (no source has it; back in P6). *Why this schema (was D4): each typed column is read by a pipeline step and everything else stays in `raw`; behaviour (usage effects, hint knobs, cut points, source weights) lives in code; all tables were created up front, empty, by user decision.* |
 | Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | 🟡 `vector` 0.8.0 installed in schema `extensions`; `kb.chunk` created with HNSW + GIN indexes, empty (2026-10-11, [`slim-ref`](docs/finished/slim-ref/plan.md), shipped) |
-| Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, no workflows |
+| Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, 3 workflows published (measured 2026-10-12): `Recipe pipeline` (webhook `POST /webhook/recipe-pipeline`, logs to `app.run` / `app.run_step`), `Step 1 · read request` (stub) and `Check contract` (pg_jsonschema check); exported to `n8n/workflows/` ([`m0-harness`](docs/work/m0-harness/plan.md)) |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
 | LLM runtime | **Ollama** (ROCm) | Local chat and embedding models | 🟢 running |
 | Chat model | `gemma4:12b-it-q8_0` *(also pulled: `qwen3.8:27b`)* | Reasoning, extraction, recipe drafting | ⚠️ to be re-evaluated (§7) |
 | Embedding model | `bge-m3` (1024-dim) | Chunk and query embeddings | 🟢 pulled |
 | Web search | **SearXNG** + `webarm` service | Lookups for what the books do not cover | 🔴 `searxng` down since 2026-10-08 (`settings.yml` lost in the reset, [`OPERATIONS.md`](docs/OPERATIONS.md) §1); recovery has an approved brief on branch `recover-searxng` (2026-10-09), not planned or merged. `webarm` running. Optional |
-| Scripts | Python (`.venv`), `psycopg` 3, `pytest` (`requirements.txt`) | One-off extract/load jobs, evals | 🟡 `loaders/` package, 68 tests pass (measured 2026-10-11; the style-code test in `tests/test_recipe_briefs.py` needs the running DB). Shared helpers `loaders/common.py` (8 tests) and DB helpers `loaders/db.py` (`connect`, `source_id`, `upsert_ingredient`) ([`ref-schema`](docs/finished/ref-schema/plan.md)); hopline fetcher `loaders/fetch_hopline.py` (`python -m loaders.fetch_hopline OUT.json` for malts, `--hops`, `--yeasts`, `--adjuncts`; 7 tests). Loaders, each with an explicit SKU map where it reads hopline: styles `loaders/styles.py` (`python -m loaders.styles --bjcp PATH --ba PATH`, 4 tests, [`style-loader`](docs/finished/style-loader/plan.md)); malts `loaders/malts.py` + `loaders/malt_products.py` (`python -m loaders.malts --hopline PATH --catalogue PATH`, 9 tests, [`malt-loader`](docs/finished/malt-loader/plan.md)); hops `loaders/hops.py` + `loaders/hop_products.py` (`python -m loaders.hops --hopline PATH --report PATH`, Beer Maverick fill `BEERMAVERICK`, 9 tests, [`hop-loader`](docs/finished/hop-loader/plan.md)); yeasts `loaders/yeasts.py` + `loaders/yeast_products.py` (`python -m loaders.yeasts --hopline PATH --report PATH`, attenuation in `ATTENUATION`, 12 tests, [`yeast-loader`](docs/finished/yeast-loader/plan.md)); water salts `loaders/water_salts.py` (`python -m loaders.water_salts`, 3 tests, [`water-salts`](docs/finished/water-salts/plan.md)); adjuncts `loaders/adjuncts.py` + `loaders/adjunct_products.py` (`python -m loaders.adjuncts --hopline PATH`, Palmer rows as printed, PPG → extract % as PPG / 46 × 100, 6 tests, [`adjunct-fermentables`](docs/finished/adjunct-fermentables/plan.md)). Every loader gives the same rows when run twice. Read-only check pack `db/checks/ref_spotcheck.sql`; recipe test briefs `evals/recipe_briefs.toml` (20 briefs, P0) checked by `tests/test_recipe_briefs.py` (10 tests, [`test-briefs`](docs/finished/test-briefs/plan.md)) |
+| Scripts | Python (`.venv`), `psycopg` 3, `pytest` (`requirements.txt`) | One-off extract/load jobs, evals | 🟡 `loaders/` package; `pytest` gives 122 passed with the stack up and 94 passed, 28 deselected with `-m "not stack"` (measured 2026-10-12; stack tests are skipped when Postgres or n8n is down). Shared helpers `loaders/common.py` (8 tests) and DB helpers `loaders/db.py` (`connect`, `source_id`, `upsert_ingredient`) ([`ref-schema`](docs/finished/ref-schema/plan.md)); hopline fetcher `loaders/fetch_hopline.py` (`python -m loaders.fetch_hopline OUT.json` for malts, `--hops`, `--yeasts`, `--adjuncts`; 7 tests). Loaders, each with an explicit SKU map where it reads hopline: styles `loaders/styles.py` (`python -m loaders.styles --bjcp PATH --ba PATH`, 4 tests, [`style-loader`](docs/finished/style-loader/plan.md)); malts `loaders/malts.py` + `loaders/malt_products.py` (`python -m loaders.malts --hopline PATH --catalogue PATH`, 9 tests, [`malt-loader`](docs/finished/malt-loader/plan.md)); hops `loaders/hops.py` + `loaders/hop_products.py` (`python -m loaders.hops --hopline PATH --report PATH`, Beer Maverick fill `BEERMAVERICK`, 9 tests, [`hop-loader`](docs/finished/hop-loader/plan.md)); yeasts `loaders/yeasts.py` + `loaders/yeast_products.py` (`python -m loaders.yeasts --hopline PATH --report PATH`, attenuation in `ATTENUATION`, 12 tests, [`yeast-loader`](docs/finished/yeast-loader/plan.md)); water salts `loaders/water_salts.py` (`python -m loaders.water_salts`, 3 tests, [`water-salts`](docs/finished/water-salts/plan.md)); adjuncts `loaders/adjuncts.py` + `loaders/adjunct_products.py` (`python -m loaders.adjuncts --hopline PATH`, Palmer rows as printed, PPG → extract % as PPG / 46 × 100, 6 tests, [`adjunct-fermentables`](docs/finished/adjunct-fermentables/plan.md)). Every loader gives the same rows when run twice. Read-only check pack `db/checks/ref_spotcheck.sql`; eval harness `evals/` (`grade.py` graders, `run.py` runner, `workflows.py` export; `python -m evals.run`, G0 baseline in `evals/results/2026-10-12-m0.json`, [`m0-harness`](docs/work/m0-harness/plan.md)); recipe test briefs `evals/recipe_briefs.toml` (20 briefs, P0) checked by `tests/test_recipe_briefs.py` (10 tests, [`test-briefs`](docs/finished/test-briefs/plan.md)) |
 | Dev tooling | Claude Code: Supabase MCP (read-only, `.mcp.json`), official n8n MCP (local scope) + `n8n-skills` plugin, guard hook (`.claude/hooks/guard.sh`), `find-docs` skill + `.claude/rules/context7.md` (current library docs through the `ctx7` CLI), `database-schema-designer` skill (`.agents/skills/`, `skills-lock.json`) | Building and inspecting the stack; schema changes go through SQL files applied as `postgres` | 🟢 |
 | Delivery workflow | Project skills `dev-flow` (orchestrator) + `dev-brief`, `dev-plan`, `dev-implement`, `dev-review`, `dev-verify`, `dev-ship` (`.claude/skills/`) | Brief → plan → build → review → verify → merge, one subagent per step, work in `docs/work/<slug>/` | 🟢 in use; 12 items shipped 2026-10-09 → 2026-10-11, each recorded in `docs/finished/<slug>/`; nothing in progress in `docs/work/` (checked 2026-10-11) |
 | Eval guidance | Project skills `retrieval-evaluation-metrics`, `rag-evaluation-frameworks` (`.claude/skills/`) | Reference for building the retrieval test set and regression gate (§6.6) | 🟢 installed, not yet used |
@@ -121,8 +121,19 @@ decision in §7 replaces it. How to operate the stack safely is in
 **Pipeline and interface (was D3 and D5, decided 2026-10-11):** the recipe pipeline lives in
 n8n, with as many of its parts there as possible; there is no Python service (the Python in
 `loaders/` stays for one-off extract/load jobs). The user talks to the assistant through n8n's
-chat trigger. How the parts are split inside n8n, including where the deterministic maths (P2)
-runs, is discussed when the pipeline is built. *Why: the user's call.*
+chat trigger. *Why: the user's call.*
+
+**Pipeline build (G0, decided 2026-10-12):**
+- Deterministic logic is SQL functions in `db/*.sql`, called from n8n's Postgres node; Code nodes
+  only reshape JSON. *Why: pytest can call the functions directly, and the data is already in Postgres.*
+- A webhook (`POST /webhook/recipe-pipeline`) starts a run; tests read `app.run` and `app.run_step`
+  back. *Why: the database is the record, and the same path serves the eval runner and the chat trigger later.*
+- Step contracts are JSON Schema files in `shared/contracts/`, checked with `pg_jsonschema` by n8n
+  and by tests. *Why: one validator on both sides, and n8n already sees that folder.*
+- Workflows are edited in n8n and exported to `n8n/workflows/` (`python -m evals.workflows`).
+  *Why: the visual editor stays the place to build, and the repo still holds a reviewable copy.*
+- Eval results are saved as `evals/results/<date>-<milestone>.json`, committed at checkpoints only.
+  *Why: a history of measured results without a commit for every run.*
 
 **Hardware:** Ryzen 9 9900X · Radeon RX 9070 XT (16 GB VRAM, RDNA 4 / gfx1201) · 32 GB RAM.
 
@@ -209,6 +220,71 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-12
+- Shipped `m0-harness` ([`docs/work/m0-harness/`](docs/work/m0-harness/)): G0 decisions, the eval
+  harness (`evals/`), `app.run` / `app.run_step` logging with `pg_jsonschema`, 8 contracts in
+  `shared/contracts/`, and three published n8n workflows exported to `n8n/workflows/`, each with
+  a `Test data` note. Verified 12/12 checks and 122 tests (94 without the stack); regression
+  suite re-run on the branch before merging. Shipped without republishing or re-exporting
+  `Recipe pipeline`; the 8 px note-position drift from the user's pin stays as recorded in
+  verification.md.
+- `m0-harness` task 8: each workflow has a `Test data` sticky note with ready-to-paste JSON
+  (b01's request; the pipeline sample uses `brief_id: "editor-b01"`). The user pins it in the
+  editor; nothing is pinned yet. All three workflows were republished (`versionId ==
+  activeVersionId` for each) and re-exported. The pipeline sample ran once through MCP
+  `execute_workflow` (manual): execution 2665 `success`, step 1 returned the stub output with
+  `wanted[0]` = b01's request, sub-executions 2666 (step 1) and 2667/2668 (Check contract) ran;
+  one `app.run` `editor-b01` (`ok`, finished, one step 1 row `ok`) was then deleted. New tests:
+  3 note checks, 3 contract checks, `test_webhook_ignores_pin`; `pytest` 122 passed, `-m "not
+  stack"` 94 passed. All tasks done; review is next.
+- Revised plan `m0-harness` (docs/work/m0-harness/plan.md): Task 8 adds a `Test data` sticky
+  note with ready-to-paste JSON (b01's request) to each n8n workflow; the user pins it and runs the
+  workflow in the editor. Pipeline editor runs are logged as `eval_id = 'editor-b01'`. Scope
+  change agreed by the user before shipping; re-review and re-verify follow.
+- `m0-harness` review fixes: tests now fail if the runner counts a failed or unfinished run as
+  passed (checked by mutating `evals/run.py`); `totals()` reports step 1 `not_run`; the test skip
+  check reuses `loaders.db.connect`; plan deviations recorded; §4 Scripts test count corrected.
+- `m0-harness` task 7: `evals/run.py` sends each brief to the pipeline webhook, reads the run
+  back from `app.run` / `app.run_step`, grades it and prints the table and totals
+  (`python -m evals.run [--brief b01] [--model NAME] [--save --label m0]`). **G0 result
+  (measured):** the saved 20-brief run `evals/results/2026-10-12-m0.json` is red as designed: every
+  run finished ok with one step 1 row (20/20), step 1 0/20, steps 2 and 3 0/20 (20 not run
+  each), briefs 0/20, exit code 1. `tests/test_run.py` has 3 tests (2 unit, 1 stack: an empty
+  request is reported failed with `step1.input`). All tasks of `m0-harness` are done; review is next.
+- `m0-harness` task 6: three workflows built through the n8n MCP, published, and exported to
+  `n8n/workflows/` (first real use of the export path: the `--output` file route works, 3 files
+  with credential ids and names only, no secrets). `Recipe pipeline` starts a run, calls the step 1
+  stub, logs `run_step` (ok or failure with its error), finishes the run and answers
+  `{run_id, ok, failed_step?, error?}`. `Check contract` reads the contract file and calls
+  `jsonschema_validation_errors`. The `Postgres account` credential connects as
+  `postgres` / database `postgres` (measured). `tests/test_pipeline.py` (3 stack tests: b01 logs
+  step 1, empty request logs a failure naming `step1.input`, a request with quotes, commas, `%`,
+  `$1` and a newline is kept verbatim) pass. An Execute Workflow error output carries the message
+  as a plain string in `$json.error`. Suite: 110 passed (measured).
+- `m0-harness` task 5: `evals/workflows.py` exports n8n workflows into `n8n/workflows/`
+  (`python -m evals.workflows`), with 3 tests in `tests/test_workflows.py`. Export goes through
+  `--output` to a file in `shared/`, because stdout carries log lines. With 0 workflows n8n exits 1
+  with "No workflows found", which the code treats as an empty list. Suite: 107 passed (measured).
+  The file-output path is not yet exercised with a real workflow (Task 6).
+- `m0-harness` task 4: pure graders in `evals/grade.py` (steps 1-3 and `grade_run`) with 16 unit
+  tests in `tests/test_grade.py`. A deviation matches on same kind and same subject (quantity for
+  number/mismatch, hint rows for conflict, whole word for ingredient). Suite: 104 passed; without
+  the stack 85 passed, 19 deselected (measured).
+- `m0-harness` task 3: eight JSON Schema contracts in `shared/contracts/` (`step0`-`step3`, input and
+  output), each with a legal absent/unknown/conflict slot. `pg_jsonschema` accepts draft 2020-12.
+  Measured: 88 passed with the stack up (16 new in `tests/test_contracts.py`).
+- `m0-harness` task 2: `db/015_app.sql` now installs `pg_jsonschema` and gives `app.run` a nullable
+  `brief_id` plus `eval_id`, `finished_at`, `ok`, and `app.run_step` an `error` column with a check
+  (failed step has an error, passed one has none). Applied twice without error; owner `postgres`.
+  Measured: 72 passed with the stack up (4 new in `tests/test_run_log.py`).
+- `m0-harness` task 1: recorded the G0 decisions in §4 (and in WORKFLOW-ROADMAP G0). Added the
+  `stack` pytest marker with a `tests/conftest.py` that skips those tests when Postgres or n8n is
+  down. Measured: 68 passed with the stack up, 67 passed + 1 deselected with `-m "not stack"`, and
+  1 skipped when n8n's health URL was pointed at a dead port.
+- Planned `m0-harness` ([`docs/work/m0-harness/plan.md`](docs/work/m0-harness/plan.md)): 7 tasks.
+  Record the G0 decisions and add a `stack` test marker; add the run-log columns and
+  `pg_jsonschema`; JSON Schema contracts for steps 0–3 in `shared/contracts/`; pure graders;
+  workflow export to `n8n/workflows/`; the `Recipe pipeline` webhook with a step 1 stub and run
+  logging; the eval runner and the G0 baseline run. Nothing built yet.
 - Wrote draft briefs for all 13 WORKFLOW-ROADMAP work items in `docs/work/` (none approved, no
   branches yet): [`m0-harness`](docs/work/m0-harness/brief.md),
   [`m1-read-request`](docs/work/m1-read-request/brief.md),

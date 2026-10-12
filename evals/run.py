@@ -1,0 +1,167 @@
+"""Send each recipe brief to the pipeline, read the run back from the database, grade it.
+
+    python -m evals.run [--brief b01] [--model NAME] [--save --label m0]
+
+Design: docs/work/m0-harness/plan.md Task 7. The database is the record; the HTTP answer
+is only the handle (it is 200 even when the run failed, so `ok` is read from the body).
+"""
+
+import argparse
+import datetime
+import json
+import sys
+import tomllib
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+from evals import grade
+from loaders.db import connect
+
+ROOT = Path(__file__).resolve().parent.parent
+BRIEFS_FILE = ROOT / "evals" / "recipe_briefs.toml"
+RESULTS_DIR = ROOT / "evals" / "results"
+PIPELINE_URL = "http://localhost:5678/webhook/recipe-pipeline"
+GRADED_STEPS = (2, 3)
+
+
+def load_briefs() -> list[dict]:
+    return tomllib.loads(BRIEFS_FILE.read_text(encoding="utf-8"))["brief"]
+
+
+def send(request, brief_id, model=None, url=PIPELINE_URL, timeout=600) -> dict:
+    """POST one request. A bad answer or a timeout comes back as {"ok": False, "error": ...}."""
+    body = {"request": request, "brief_id": brief_id}
+    if model:
+        body["model"] = model
+    req = urllib.request.Request(
+        url, data=json.dumps(body).encode("utf-8"), method="POST",
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            if response.status != 200:
+                return {"ok": False, "error": f"HTTP {response.status}"}
+            return json.loads(response.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, ValueError, OSError) as exc:
+        return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+
+
+def read_run(conn, run_id) -> dict:
+    """The app.run row and the outputs of its passed steps (latest try of each)."""
+    row = conn.execute(
+        "select finished_at, ok from app.run where id = %s", (run_id,)
+    ).fetchone()
+    steps = {}
+    for step, output in conn.execute(
+        "select distinct on (step) step, output from app.run_step "
+        "where run_id = %s and ok order by step, try desc", (run_id,)
+    ).fetchall():
+        steps[step] = output
+    conn.commit()
+    return {"finished": bool(row and row[0]), "ok": bool(row and row[1]), "steps": steps}
+
+
+def grade_result(brief: dict, answer: dict, steps: dict) -> dict:
+    """Grade one run. `answer` holds run_id, ok and error; a run that is not ok never passes."""
+    graded = grade.grade_run(brief, steps)
+    ran = {n: n in steps for n in (1, *GRADED_STEPS)}
+    run_ok = bool(answer.get("ok"))
+    return {
+        "id": brief["id"], "run_id": answer.get("run_id"), "run_ok": run_ok,
+        "error": answer.get("error"), "failed_step": answer.get("failed_step"),
+        "step1": graded["step1"], "step2": graded["step2"], "step3": graded["step3"],
+        "ran": ran, "passed": run_ok and graded["passed"],
+    }
+
+
+def run_brief(conn, brief: dict, model=None) -> dict:
+    answer = send(brief["request"], brief["id"], model)
+    steps, run_ok = {}, bool(answer.get("ok"))
+    if answer.get("run_id") is not None:
+        stored = read_run(conn, answer["run_id"])
+        steps = stored["steps"]
+        if not (stored["finished"] and stored["ok"]):
+            run_ok = False
+            answer = {**answer, "error": answer.get("error") or "run not finished ok"}
+    return grade_result(brief, {**answer, "ok": run_ok}, steps)
+
+
+def table(results: list[dict]) -> str:
+    def cell(r, n):
+        if not r["ran"][n]:
+            return "not run"
+        return "pass" if r[f"step{n}"] else "FAIL"
+
+    lines = [f"{'brief':<6} {'run':<8} {'step 1':<26} {'step 2':<8} {'step 3':<8} result"]
+    for r in results:
+        if r["run_ok"]:
+            run_col = "ok"
+        else:
+            run_col = f"failed at step {r['failed_step'] or '?'}: {r['error']}"
+        if not r["ran"][1]:
+            step1 = "not run"
+        elif r["step1"]["ok"]:
+            step1 = "pass"
+        else:
+            step1 = "fail: " + ",".join(f for f, v in r["step1"].items() if f != "ok" and not v)
+        lines.append(f"{r['id']:<6} {'ok' if r['run_ok'] else 'FAILED':<8} {step1:<26} "
+                     f"{cell(r, 2):<8} {cell(r, 3):<8} {'pass' if r['passed'] else 'FAIL'}"
+                     + ("" if r["run_ok"] else f"  [{run_col}]"))
+    return "\n".join(lines)
+
+
+def totals(results: list[dict]) -> dict:
+    n = len(results)
+    out = {"step1": {"passed": sum(r["ran"][1] and r["step1"]["ok"] for r in results), "total": n,
+                     "not_run": sum(not r["ran"][1] for r in results)}}
+    for step in GRADED_STEPS:
+        out[f"step{step}"] = {
+            "passed": sum(r["ran"][step] and r[f"step{step}"] for r in results), "total": n,
+            "not_run": sum(not r["ran"][step] for r in results),
+        }
+    out["briefs"] = {"passed": sum(r["passed"] for r in results), "total": n}
+    return out
+
+
+def format_totals(t: dict) -> str:
+    parts = []
+    for step in (1, *GRADED_STEPS):
+        s = t[f"step{step}"]
+        parts.append(f"step {step} {s['passed']}/{s['total']} ({s['not_run']} not run)")
+    parts.append(f"briefs {t['briefs']['passed']}/{t['briefs']['total']}")
+    return "; ".join(parts)
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(prog="python -m evals.run")
+    parser.add_argument("--brief", help="run only this brief id, e.g. b01")
+    parser.add_argument("--model")
+    parser.add_argument("--save", action="store_true", help="write evals/results/<date>-<label>.json")
+    parser.add_argument("--label", default="run")
+    args = parser.parse_args(argv)
+
+    briefs = [b for b in load_briefs() if not args.brief or b["id"] == args.brief]
+    if not briefs:
+        parser.error(f"no brief {args.brief}")
+    conn = connect()
+    try:
+        results = [run_brief(conn, b, args.model) for b in briefs]
+    finally:
+        conn.close()
+    t = totals(results)
+    print(table(results))
+    print(format_totals(t))
+    if args.save:
+        date = datetime.date.today().isoformat()
+        path = RESULTS_DIR / f"{date}-{args.label}.json"
+        RESULTS_DIR.mkdir(exist_ok=True)
+        doc = {"date": date, "label": args.label, "model": args.model or "pipeline default",
+               "results": results, "totals": t}
+        path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        print(f"saved {path}")
+    return 0 if t["briefs"]["passed"] == t["briefs"]["total"] else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step1.input",
+  "description": "Step 1, read request: turns the user's text into a brief. No absent slot: the input is the user's text.",
+  "type": "object",
+  "required": [
+    "run_id",
+    "request"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "request": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

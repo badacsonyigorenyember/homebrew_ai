@@ -109,6 +109,32 @@ service up).*
   ```
 
   Files exported from the container are root-owned: `docker exec n8n chown 1000:1000 <path>`.
+- **The pipeline webhook** is `POST http://localhost:5678/webhook/recipe-pipeline` with body
+  `{"request": "...", "brief_id": "b01", "model": "..."}` (`brief_id` and `model` optional). It
+  answers after the run ends with `{run_id, ok, failed_step?, error?}`; the record is in
+  `app.run` and `app.run_step`. No auth for now (revisit with the chat trigger, M8). The three
+  workflows must be **published**. Publish a sub-workflow after editing it too (unverified: we did not
+  measure whether Execute Workflow runs the draft or the published version; today draft = published
+  for all three). Run `python -m evals.workflows` after every workflow change, then commit the files.
+- **Running a workflow from the editor.** Each workflow has a `Test data` sticky note with
+  ready-to-paste JSON: pin it on `POST recipe-pipeline` (`Recipe pipeline`) or on `When Executed
+  by Another Workflow` (`Step 1 · read request`, `Check contract`), then click *Execute workflow*.
+  A pipeline run writes a real run log tagged `editor-b01`; open the step 1 sub-execution from the
+  `Step 1 · read request` node. Remove editor runs with
+  `docker exec supabase-db psql -U postgres -d postgres -c "delete from app.run where eval_id like 'editor-%'"`
+  (steps cascade). Webhook calls ignore pins (`test_webhook_ignores_pin`). Pins are not exported,
+  so no re-export after pinning, but an edited note is a workflow change and needs one. Keep
+  `brief_id` starting with `editor-` when changing the sample.
+- **The `Postgres account` credential** connects as `postgres` to database `postgres` on
+  `supabase-db:5432` (measured 2026-10-12 with `select current_user, current_database()`), so
+  the `app` tables and `extensions.jsonschema_validation_errors` are reachable. The password was
+  entered in the n8n UI by the user.
+- **Exporting workflows into the repo:** `python -m evals.workflows` writes
+  `n8n/workflows/<name>.json`. It runs `n8n export:workflow --all --output=/data/shared/.n8n-export.json`
+  (stdout has log lines, so the file route is used), reads `shared/.n8n-export.json` and removes
+  it. Archived workflows are skipped. With no workflows n8n exits 1 with "No workflows found"; the tool treats that as empty.
+  `n8n/` is root-owned (docker-created); `n8n/workflows/` was created with a one-off
+  `docker run --user 0 --entrypoint mkdir/chown -v $PWD/n8n:/w n8nio/n8n:latest`.
 
 ## 6. Ollama (ROCm)
 

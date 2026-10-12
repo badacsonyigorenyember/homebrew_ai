@@ -1,6 +1,6 @@
 # M0 · Pipeline foundations: where code lives, the test harness, run logging
 
-Status: draft
+Status: approved
 Slug: m0-harness · Branch: m0-harness
 Roadmap: [WORKFLOW-ROADMAP.md](../../WORKFLOW-ROADMAP.md) M0, checkpoint **G0**
 
@@ -26,6 +26,10 @@ In:
 - The eval harness: a runner that sends briefs and reads results, and pure grader functions with
   unit tests that run without the stack.
 - Workflows kept in the repo as files, so they are versioned and reviewable.
+- Test data in n8n: each workflow carries a sticky note with ready-to-paste JSON for its
+  trigger (b01's request), which the user pins in the editor, so "Execute workflow" runs it and
+  each node's input and output can be inspected, including inside the sub-workflows (added
+  2026-10-12).
 
 Out:
 - Any real step logic (M1 onward). The chat trigger (M8). Contracts for steps 4–16 (each
@@ -57,6 +61,11 @@ R9. Tests that need the running stack are marked so the default `pytest` run sti
     without it, as `test_style_codes_exist_in_ref` does today.
 R10. Each workflow built in this work is saved in the repo as a file, and the file matches what
     runs in n8n (Open question 4).
+R11. Each workflow built in this work has a `Test data` sticky note holding a sample its trigger
+    accepts (b01's request; for the pipeline webhook, `brief_id` `editor-b01`). The user pins
+    it; webhook calls ignore pins. Pipeline runs started from the editor are told apart from eval
+    runs by `eval_id` and can be removed. The notes are in the repo files with no secrets; pins
+    are not, so pinning needs no re-export.
 
 ## Constraints
 - Readable over optimal (PROJECT.md §6.8): someone opening a workflow or SQL file understands
@@ -90,6 +99,11 @@ A6. Grader unit tests pass without the stack, including: a deviation with the sa
 A7. `pytest` with the stack stopped passes, skipping only the marked tests (R9).
 A8. The workflow files in the repo match the workflows in n8n (compared by node names and
     connections) (R10).
+A9. Each workflow's `Test data` note holds JSON that, pinned on its trigger, runs the workflow
+    with "Execute workflow" in the editor. For `Recipe pipeline` the run is logged with
+    `eval_id = 'editor-b01'`, and each node and the step 1 sub-execution show their input and
+    output (checked by the user). With the user's pin present, a webhook POST runs on the posted
+    request (test). The repo files hold the notes and no secret (R10, R11).
 
 ## Open questions
 1. Where does deterministic logic live? — options: a) SQL functions in `db/*.sql`, called from
@@ -111,3 +125,7 @@ A8. The workflow files in the repo match the workflows in n8n (compared by node 
    committed at checkpoints only; b) print only — recommend a: G1–G6 compare runs.
 
 ## Deviations
+- 2026-10-12 · Scope: added test data in n8n (scope item, R11, A9; plan Task 8) — the user asked
+  to run the workflows in the editor and watch the data move from node to node, and asked for it
+  in this work rather than a later one. They chose a sticky note with ready-to-paste JSON in each
+  workflow, which they pin themselves; the pipeline sample is tagged `editor-b01`.

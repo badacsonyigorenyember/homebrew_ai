@@ -283,6 +283,8 @@ Defined in [`db/014_kb.sql`](../db/014_kb.sql). Empty until P7.
 - No separate document table: title, edition and licence live in `ref.source`.
 - `vector` 0.8.0 is installed in schema `extensions` (owner `supabase_admin`, like the other
   extensions; created by `postgres` as a supautils privileged extension).
+- `pg_jsonschema` 0.3.3 is installed in schema `extensions` the same way (created in
+  `db/015_app.sql`). Step contracts are checked with `extensions.jsonschema_validation_errors`.
 - Hybrid retrieval: HNSW index on `embedding` (cosine) + GIN on `fts`, fused; plus an index on
   `source_id` to delete or re-ingest one book.
 - Only prose is stored here. Tables and formulas found in a book go through the
@@ -371,9 +373,12 @@ erDiagram
     }
     run {
         bigint id PK
-        bigint brief_id FK
+        bigint brief_id FK "null until step 1"
         bigint recipe_id FK
         text model
+        text eval_id "eval brief id"
+        timestamptz finished_at
+        bool ok
     }
     run_step {
         bigint run_id PK
@@ -384,6 +389,7 @@ erDiagram
         bool ok
         int ms
         int tokens
+        text error "set iff ok = false"
     }
 ```
 
@@ -394,7 +400,7 @@ erDiagram
 | `brief` | the parsed request, so a recipe can be regenerated |
 | `recipe` + `recipe_item` | the recipe **as rows**, with ratio (`pct`) **and** amount; typed results `og…srm`; `batch_l` and `efficiency_pct` snapshot the profile used, so editing the profile never changes an old recipe; `calc_version` names the maths that produced the numbers |
 | `recipe_deviation` | the Deviations box: what is out of style, and whether you or the model asked for it |
-| `run` + `run_step` | one log row per pipeline step and try: input, output, time, tokens. Debugging and evals |
+| `run` + `run_step` | one log row per pipeline step and try: input, output, time, tokens. Debugging and evals. A run exists before its brief (step 1 writes it), so `run.brief_id` can be null; `finished_at` / `ok` stay null until the run ends; a failed step always says why (`error` is set exactly when `ok` is false) |
 
 Later (§9): `batch`, `tasting`, `inventory.best_before`.
 

@@ -1,0 +1,507 @@
+{
+  "date": "2026-10-12",
+  "label": "m0",
+  "model": "pipeline default",
+  "results": [
+    {
+      "id": "b01",
+      "run_id": 35,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": false,
+        "hints": false,
+        "wanted": false,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b02",
+      "run_id": 36,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": true,
+        "hints": false,
+        "wanted": false,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b03",
+      "run_id": 37,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": true,
+        "hints": false,
+        "wanted": false,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b04",
+      "run_id": 38,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": true,
+        "hints": true,
+        "wanted": false,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b05",
+      "run_id": 39,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": false,
+        "hints": true,
+        "wanted": false,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b06",
+      "run_id": 40,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": true,
+        "hints": false,
+        "wanted": false,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b07",
+      "run_id": 41,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": true,
+        "hints": true,
+        "wanted": false,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b08",
+      "run_id": 42,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": false,
+        "hints": false,
+        "wanted": false,
+        "excluded": false,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b09",
+      "run_id": 43,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": true,
+        "hints": false,
+        "wanted": false,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b10",
+      "run_id": 44,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": true,
+        "hints": true,
+        "wanted": false,
+        "excluded": true,
+        "inventory": false,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b11",
+      "run_id": 45,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": true,
+        "hints": false,
+        "wanted": false,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b12",
+      "run_id": 46,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": true,
+        "hints": true,
+        "wanted": false,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b13",
+      "run_id": 47,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": false,
+        "hints": true,
+        "wanted": false,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b14",
+      "run_id": 48,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": false,
+        "hints": false,
+        "wanted": false,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b15",
+      "run_id": 49,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": false,
+        "hints": true,
+        "wanted": false,
+        "excluded": true,
+        "inventory": false,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b16",
+      "run_id": 50,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": true,
+        "hints": false,
+        "wanted": false,
+        "excluded": false,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b17",
+      "run_id": 51,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": false,
+        "hints": true,
+        "wanted": false,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b18",
+      "run_id": 52,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": false,
+        "hints": false,
+        "wanted": false,
+        "excluded": true,
+        "inventory": true,
+        "guidance": false,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b19",
+      "run_id": 53,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": false,
+        "hints": false,
+        "wanted": false,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    },
+    {
+      "id": "b20",
+      "run_id": 54,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "stated": true,
+        "hints": false,
+        "wanted": false,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": false
+      },
+      "step2": false,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": false,
+        "3": false
+      },
+      "passed": false
+    }
+  ],
+  "totals": {
+    "step1": {
+      "passed": 0,
+      "total": 20
+    },
+    "step2": {
+      "passed": 0,
+      "total": 20,
+      "not_run": 20
+    },
+    "step3": {
+      "passed": 0,
+      "total": 20,
+      "not_run": 20
+    },
+    "briefs": {
+      "passed": 0,
+      "total": 20
+    }
+  }
+}

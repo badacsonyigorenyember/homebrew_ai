@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step2.input",
+  "description": "Step 2, choose style: picks a style from the brief. No absent slot. brief is a step1.output, already checked.",
+  "type": "object",
+  "required": [
+    "run_id",
+    "brief",
+    "guide_preference"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "brief": {
+      "type": "object"
+    },
+    "guide_preference": {
+      "enum": [
+        "any",
+        "bjcp",
+        "ba"
+      ]
+    }
+  }
+}
