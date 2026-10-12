@@ -109,7 +109,7 @@ GOOD = {
         "units": "metric",
         "inventory": [{"raw_name": "mystery malt", "ingredient_id": None, "amount": 1, "unit": "kg"}],
     },
-    "step1.input": {"run_id": 1, "request": "a dry stout"},
+    "step1.input": {"run_id": 1, "request": "a dry stout", "model": "gemma4:12b", "think": False},
     "step1.output": BRIEF,
     "step2.input": {"run_id": 1, "brief": BRIEF, "guide_preference": "any"},
     "step2.output": STEP2_OUT,
@@ -123,7 +123,9 @@ GOOD = {
     },
 }
 BAD = [
-    ("step1.input", {"run_id": 1, "request": ""}),
+    ("step1.input", {"run_id": 1, "request": "", "model": "gemma4:12b", "think": False}),
+    ("step1.input", {"run_id": 1, "request": "a dry stout", "model": "", "think": False}),
+    ("step1.input", {"run_id": 1, "request": "a dry stout", "model": "gemma4:12b"}),
     ("step1.output", {**BRIEF, "hints": ["funky"]}),
     ("step1.output", {**BRIEF, "stated": {"abv": 45}}),
     ("step1.output", {**BRIEF, "wanted": ["oats", "oats"]}),

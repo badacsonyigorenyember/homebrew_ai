@@ -204,7 +204,7 @@ Why: R1, R2, R4, R5; A3, A4 (wiring), A5. Load the n8n skills first
 (`using-n8n-skills-official`, `n8n-workflow-lifecycle-official`, `n8n-node-configuration-official`,
 `n8n-error-handling-official`, `n8n-agents-official`) and follow the MCP order: SDK reference →
 `get_node_types` → validate → update → check `connections` → publish.
-- [ ] `shared/prompts/step1.system.md`: one clear system prompt (no examples taken from the
+- [x] `shared/prompts/step1.system.md`: one clear system prompt (no examples taken from the
       briefs). It says what each field holds, as R1 does: `named` (the style words the user
       wrote, origin words kept, describing words dropped, or null); `stated` (only `batch_l`,
       `abv`, `og`, `ibu`, `srm`, only numbers the user wrote, no conversion); `hints` (only
@@ -214,12 +214,12 @@ Why: R1, R2, R4, R5; A3, A4 (wiring), A5. Load the n8n skills first
       of the style name are not ingredients; "I have no X" means excluded); `guidance` (false
       only when the user says to ignore the style); `unknown` (anything asked for that fits no
       field). Answer in JSON only.
-- [ ] Write `tests/test_prompt.py` (no stack): the prompt names all 8 output fields and all 11
+- [x] Write `tests/test_prompt.py` (no stack): the prompt names all 8 output fields and all 11
       hint words; no run of 5 consecutive words from any brief's `request` appears in it
       (case-insensitive).
-- [ ] `shared/contracts/step1.input.schema.json`: add required `model` (string, `minLength: 1`)
+- [x] `shared/contracts/step1.input.schema.json`: add required `model` (string, `minLength: 1`)
       and `think` (boolean). Update `tests/test_contracts.py` examples to match.
-- [ ] Workflow `Step 1 · read request` (`xmIkYM80AJ6ynxML`): trigger inputs gain `model`
+- [x] Workflow `Step 1 · read request` (`xmIkYM80AJ6ynxML`): trigger inputs gain `model`
       (string) and `think` (boolean). Replace `Stub: copy request` with, in order:
       *Read file* `/data/shared/prompts/step1.system.md` → *Extract from File* (text) "Prompt";
       *Read file* + *Extract from File* (JSON) "Step 1 contract" for
@@ -249,7 +249,7 @@ Why: R1, R2, R4, R5; A3, A4 (wiring), A5. Load the n8n skills first
       Update the sticky note (no longer a stub: what each part does, the retry, writes
       nothing) and the `Test data` sample to
       `[{"run_id": 0, "request": "<b01>", "model": "gemma4:12b-it-q8_0", "think": false}]`.
-- [ ] Workflow `Recipe pipeline` (`eMkkdBar6NIqUa1g`): `Run settings` gains
+- [x] Workflow `Recipe pipeline` (`eMkkdBar6NIqUa1g`): `Run settings` gains
       `think: body.think ?? false`; `Step 1 · input` and the Execute Workflow mapping pass
       `model` and `think`. `Step 1 · log ok` logs `output = brief`, `tokens =
       llm.prompt_tokens + llm.output_tokens`, `llm` as jsonb. New Postgres node
@@ -263,16 +263,16 @@ Why: R1, R2, R4, R5; A3, A4 (wiring), A5. Load the n8n skills first
       → `Finish run`. Update the per-step sticky note (step 1 now saves the brief).
       The `Check contract` sample in `check-contract.json` gains `model` and `think` (it checks
       `step1.input`).
-- [ ] Validate, update, check `connections`, publish all three changed workflows. **Measure**
+- [x] Validate, update, check `connections`, publish all three changed workflows. **Measure**
       which version an Execute Workflow node runs: before publishing `Step 1 · read request`,
       run the pipeline once on its draft and see in the execution whether the new nodes ran.
       Record the answer in OPERATIONS §5 (m0 left it unverified).
-- [ ] Retry wiring (A4, R2) through MCP `test_workflow` on `Step 1 · read request`, which pins
+- [x] Retry wiring (A4, R2) through MCP `test_workflow` on `Step 1 · read request`, which pins
       the HTTP and Postgres nodes: (a) "Check answer" pinned with an error, "Check second
       answer" with none → the workflow returns `llm.tries = 2` and `first_errors`; (b) both
       pinned with errors → it stops with `step 1 answer failed twice` naming both. Record the
       two execution ids in the plan's Deviations if anything differs.
-- [ ] Tests:
+- [x] Tests:
       `tests/test_workflows.py`: `SAMPLES` / `STEP1_INPUT` carry `model` and `think`; new
       `test_num_ctx_matches_benchmark` (no stack): the `num_ctx` in the exported "Build model
       request" node equals `evals.benchmark.NUM_CTX` (create `evals/benchmark.py` now with
@@ -285,13 +285,13 @@ Why: R1, R2, R4, R5; A3, A4 (wiring), A5. Load the n8n skills first
       `input.request` and `app.brief.request_text` (no longer `wanted[0]`). New
       `test_unknown_word_goes_to_unknown` (A3): "A pale ale, and make it funky." → `ok`, no
       hint `funky`, some `unknown` item contains `funky`.
-- [ ] Run `.venv/bin/python -m evals.workflows`; read the diff: no secrets, only the intended
+- [x] Run `.venv/bin/python -m evals.workflows`; read the diff: no secrets, only the intended
       nodes changed. Run `.venv/bin/pytest`, expect all pass.
-- [ ] Smoke pass on the default model: `.venv/bin/python -m evals.run`. Expect 20 finished
+- [x] Smoke pass on the default model: `.venv/bin/python -m evals.run`. Expect 20 finished
       runs (step 1 graded, steps 2–3 not run). Fix wiring bugs. Prompt wording may change only
       as a general rule that quotes no brief (`test_prompt.py`); note each change for
       `benchmark.md`. Then the prompt is frozen.
-- [ ] `docs/OPERATIONS.md` §5: webhook body `think`, the step 1 call (Ollama URL, fixed
+- [x] `docs/OPERATIONS.md` §5: webhook body `think`, the step 1 call (Ollama URL, fixed
       options), the Execute Workflow version answer. PROJECT.md §4 Orchestration row and §8.
 Done when: the workflows run published, their files match n8n, A3 and A5 tests pass, the retry
 wiring behaved as in (a) and (b), and the smoke pass finished 20 runs.
@@ -394,3 +394,8 @@ Commit: `Decide D2 and make it the step 1 default`
 ## Approved exceptions
 
 ## Deviations
+- 2026-10-12 · Task 4: Execute Workflow runs the published version, so the order was: publish `Recipe pipeline` first (probe run failed at the old published stub's input check, proving it), then `Step 1`, then `Check contract` — measured, recorded in OPERATIONS §5.
+- 2026-10-12 · Task 4: the retry cases (a) and (b) ran as MCP executions 2820 (success, `tries = 2`, `first_errors` set) and 2823 (stops with `step 1 answer failed twice: try 1: first error; try 2: second error; another`); nothing differed from the plan.
+- 2026-10-12 · Task 4: `test_request_kept_verbatim` uses `a "pale", ale; some % off $one\nsecond line` instead of `50% off $1`: the model read "50" as ABV, the check refused it twice (R2/R3 working), and the test is about storing the text verbatim.
+- 2026-10-12 · Task 4: smoke pass changed the prompt twice, both general rules quoting no brief (for `benchmark.md`): (1) `hints`: a word only when the user wrote it or a direct form, no inference from purpose or occasion, other wishes to `unknown`; (2) `stated`: match each number to the unit written beside it (litres, %, IBU, SRM, gravity). Step 1 went from 15/20 to 17/20 on `gemma4:12b-it-q8_0`; remaining failures (b04, b05 hints, b08 stated) are left to the benchmark. Prompt frozen. The smoke runs left 40 `app.run` rows (`b01`..`b20`) and 40 `app.brief` rows.
+- 2026-10-12 · Task 4: workflows were edited with MCP `update_workflow` operations; `validate_workflow` ran on an SDK rendering of `Step 1` (valid, 17 nodes counted), as the MCP has no from-code update. `Ask model` nodes have no credential (Ollama needs none).

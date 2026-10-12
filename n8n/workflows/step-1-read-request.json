@@ -12,6 +12,13 @@
             },
             {
               "name": "request"
+            },
+            {
+              "name": "model"
+            },
+            {
+              "name": "think",
+              "type": "boolean"
             }
           ]
         }
@@ -37,7 +44,7 @@
           "mappingMode": "defineBelow",
           "value": {
             "contract": "step1.input",
-            "value": "={{ { run_id: $json.run_id, request: $json.request } }}"
+            "value": "={{ { run_id: $json.run_id, request: $json.request, model: $json.model, think: $json.think } }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -76,22 +83,6 @@
     },
     {
       "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={{ { named: null, stated: {}, hints: [], wanted: [$(\"When Executed by Another Workflow\").item.json.request], excluded: [], inventory: [], guidance: true, unknown: [] } }}",
-        "options": {}
-      },
-      "id": "fc9f994a-bb57-4b64-8fbf-6289ae69270c",
-      "name": "Stub: copy request",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        448,
-        0
-      ],
-      "notes": "M0 stub. Copies the request into wanted so that grading is red. M1 replaces this node with the real step 1."
-    },
-    {
-      "parameters": {
         "workflowId": {
           "__rl": true,
           "mode": "id",
@@ -102,7 +93,7 @@
           "mappingMode": "defineBelow",
           "value": {
             "contract": "step1.output",
-            "value": "={{ $json }}"
+            "value": "={{ $json.brief }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -141,23 +132,8 @@
     },
     {
       "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={{ $(\"Stub: copy request\").item.json }}",
-        "options": {}
-      },
-      "id": "0ed9045f-601b-4583-bf0a-401ce8526e18",
-      "name": "Return step 1 output",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        896,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "content": "### Step 1 stub (M0)\nChecks its input, builds an output, checks the output, returns it. The stub copies the request into `wanted`, so every brief fails grading until M1 replaces the middle node. A failed check stops this workflow with the contract error.",
-        "height": 200,
+        "content": "### Step 1 · read request\nChecks its input, reads the system prompt and the step 1 contract from `shared/`, and asks Ollama (`POST /api/chat`, the contract as `format`, temperature 0, seed 42). `app.step1_read_answer` checks the answer against the contract and the request. A bad answer is sent back once with its errors; a second bad answer stops this workflow with `step 1 answer failed twice`. A good answer is checked against the output contract again and returned with `llm` (model, tries, tokens, ms). Writes nothing: the pipeline logs and saves.",
+        "height": 280,
         "width": 300,
         "color": 4
       },
@@ -180,10 +156,350 @@
         200
       ],
       "parameters": {
-        "content": "### Test data · editor run\nPin this on `When Executed by Another Workflow` (open the node, use the output panel's edit / mock-data control, paste the JSON, save), then click *Execute workflow*.\nWrites nothing (`run_id: 0` belongs to no run).\n\n```json\n[{\"run_id\": 0, \"request\": \"I want a classic West Coast IPA that is properly bitter. Make it 20 litres at about 6.5 % ABV.\"}]\n```",
+        "content": "### Test data · editor run\nPin this on `When Executed by Another Workflow` (open the node, use the output panel's edit / mock-data control, paste the JSON, save), then click *Execute workflow*.\nCalls the model for real. Writes nothing (`run_id: 0` belongs to no run).\n\n```json\n[{\"run_id\": 0, \"request\": \"I want a classic West Coast IPA that is properly bitter. Make it 20 litres at about 6.5 % ABV.\", \"model\": \"gemma4:12b-it-q8_0\", \"think\": false}]\n```",
         "color": 5,
         "width": 520,
         "height": 340
+      }
+    },
+    {
+      "id": "33be58a1-9c5a-4f6d-914c-53873d1410cf",
+      "name": "Read prompt file",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        0
+      ],
+      "parameters": {
+        "operation": "read",
+        "fileSelector": "/data/shared/prompts/step1.system.md",
+        "options": {}
+      }
+    },
+    {
+      "id": "373f29c1-1cdd-40a8-8435-7161838c317b",
+      "name": "Prompt",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        0
+      ],
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "prompt",
+        "options": {}
+      }
+    },
+    {
+      "id": "72931fbb-3bb0-4f47-b948-c3a79c626012",
+      "name": "Read contract file",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        896,
+        0
+      ],
+      "parameters": {
+        "operation": "read",
+        "fileSelector": "/data/shared/contracts/step1.output.schema.json",
+        "options": {}
+      }
+    },
+    {
+      "id": "4a3277b3-14bd-4c12-9b0b-dd2830aa6bb6",
+      "name": "Step 1 contract",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        0
+      ],
+      "parameters": {
+        "operation": "fromJson",
+        "destinationKey": "schema",
+        "options": {}
+      }
+    },
+    {
+      "id": "e93cdec3-9622-4aa8-8250-fbf25c5ab151",
+      "name": "Build model request",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1344,
+        0
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { model: $(\"When Executed by Another Workflow\").item.json.model, think: $(\"When Executed by Another Workflow\").item.json.think, stream: false, format: $(\"Step 1 contract\").item.json.schema, options: { temperature: 0, seed: 42, num_ctx: 8192, num_predict: 4096 }, messages: [{ role: \"system\", content: $(\"Prompt\").item.json.prompt }, { role: \"user\", content: $(\"When Executed by Another Workflow\").item.json.request }] } }}",
+        "options": {}
+      },
+      "notes": "Ollama /api/chat body. The contract file is sent as `format`, so the model is held to the schema the check uses. Fixed options for a repeatable answer (R5); num_ctx must match evals/benchmark.py NUM_CTX."
+    },
+    {
+      "id": "285e2c69-839c-4e63-afef-5601123a0862",
+      "name": "Ask model",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1568,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/chat",
+        "authentication": "none",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "timeout": 1800000
+        }
+      }
+    },
+    {
+      "id": "bb0e4769-9fd4-4049-83c3-db7da2392216",
+      "name": "Check answer",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1792,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select brief, coalesce(errors, '{}') as errors from app.step1_read_answer($1, $2, $3::json)",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.request, $json.message.content, JSON.stringify($(\"Step 1 contract\").item.json.schema)] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "ab7185c0-9072-4707-bf8d-fd1aa32a5f47",
+      "name": "Answer ok?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2016,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.errors.length === 0 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "2ae05f8d-6337-4486-b5cb-4dfe7f784b02",
+      "name": "Return first answer",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2464,
+        -120
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { brief: $(\"Check answer\").item.json.brief, llm: { model: $(\"Build model request\").item.json.model, think: $(\"Build model request\").item.json.think, tries: 1, prompt_tokens: $(\"Ask model\").item.json.prompt_eval_count ?? 0, output_tokens: $(\"Ask model\").item.json.eval_count ?? 0, llm_ms: Math.round(($(\"Ask model\").item.json.total_duration - $(\"Ask model\").item.json.load_duration) / 1e6), done_reason: $(\"Ask model\").item.json.done_reason } } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "53e37946-05f9-42af-9898-8e1a93e9f764",
+      "name": "Build retry request",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2240,
+        200
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { ...$(\"Build model request\").item.json, messages: [...$(\"Build model request\").item.json.messages, { role: \"assistant\", content: $(\"Ask model\").item.json.message.content }, { role: \"user\", content: \"That answer failed these checks: \" + $(\"Check answer\").item.json.errors.join(\"; \") + \". Answer the same request again, as JSON in the same shape.\" }] } }}",
+        "options": {}
+      },
+      "notes": "R2: one retry. The first request plus the model's answer and the error list as a second turn."
+    },
+    {
+      "id": "d1b00a23-12e7-43d2-9a44-e98dffc09014",
+      "name": "Ask model again",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2464,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/chat",
+        "authentication": "none",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "timeout": 1800000
+        }
+      }
+    },
+    {
+      "id": "a1adf418-ec87-4bba-9fe7-ed46ccf9ed1e",
+      "name": "Check second answer",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2688,
+        200
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select brief, coalesce(errors, '{}') as errors from app.step1_read_answer($1, $2, $3::json)",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.request, $json.message.content, JSON.stringify($(\"Step 1 contract\").item.json.schema)] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "9e409340-80e8-4a06-9cc5-6ad682a3736b",
+      "name": "Second answer ok?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2912,
+        200
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.errors.length === 0 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "815d6e82-2a81-4969-91fb-f1e8995beb70",
+      "name": "Check step 1 output (retry)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        3136,
+        120
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "step1.output",
+            "value": "={{ $json.brief }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "1a3c8ddd-48d0-46e7-b68d-88f1d504f301",
+      "name": "Return second answer",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3360,
+        120
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { brief: $(\"Check second answer\").item.json.brief, llm: { model: $(\"Build model request\").item.json.model, think: $(\"Build model request\").item.json.think, tries: 2, prompt_tokens: ($(\"Ask model\").item.json.prompt_eval_count ?? 0) + ($(\"Ask model again\").item.json.prompt_eval_count ?? 0), output_tokens: ($(\"Ask model\").item.json.eval_count ?? 0) + ($(\"Ask model again\").item.json.eval_count ?? 0), llm_ms: Math.round(($(\"Ask model\").item.json.total_duration - $(\"Ask model\").item.json.load_duration + $(\"Ask model again\").item.json.total_duration - $(\"Ask model again\").item.json.load_duration) / 1e6), done_reason: $(\"Ask model again\").item.json.done_reason, first_errors: $(\"Check answer\").item.json.errors } } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "a638a411-79da-4631-a895-d36d4c2e81ae",
+      "name": "Fail after two tries",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        3136,
+        300
+      ],
+      "parameters": {
+        "errorMessage": "=step 1 answer failed twice: try 1: {{ $(\"Check answer\").item.json.errors.join(\"; \") }}; try 2: {{ $(\"Check second answer\").item.json.errors.join(\"; \") }}"
       }
     }
   ],
@@ -203,18 +519,102 @@
       "main": [
         [
           {
-            "node": "Stub: copy request",
+            "node": "Read prompt file",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Stub: copy request": {
+    "Read prompt file": {
+      "main": [
+        [
+          {
+            "node": "Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prompt": {
+      "main": [
+        [
+          {
+            "node": "Read contract file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read contract file": {
+      "main": [
+        [
+          {
+            "node": "Step 1 contract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 1 contract": {
+      "main": [
+        [
+          {
+            "node": "Build model request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build model request": {
+      "main": [
+        [
+          {
+            "node": "Ask model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask model": {
+      "main": [
+        [
+          {
+            "node": "Check answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check answer": {
+      "main": [
+        [
+          {
+            "node": "Answer ok?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer ok?": {
       "main": [
         [
           {
             "node": "Check step 1 output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build retry request",
             "type": "main",
             "index": 0
           }
@@ -225,7 +625,69 @@
       "main": [
         [
           {
-            "node": "Return step 1 output",
+            "node": "Return first answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build retry request": {
+      "main": [
+        [
+          {
+            "node": "Ask model again",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask model again": {
+      "main": [
+        [
+          {
+            "node": "Check second answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check second answer": {
+      "main": [
+        [
+          {
+            "node": "Second answer ok?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Second answer ok?": {
+      "main": [
+        [
+          {
+            "node": "Check step 1 output (retry)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fail after two tries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check step 1 output (retry)": {
+      "main": [
+        [
+          {
+            "node": "Return second answer",
             "type": "main",
             "index": 0
           }

@@ -110,12 +110,13 @@ service up).*
 
   Files exported from the container are root-owned: `docker exec n8n chown 1000:1000 <path>`.
 - **The pipeline webhook** is `POST http://localhost:5678/webhook/recipe-pipeline` with body
-  `{"request": "...", "brief_id": "b01", "model": "..."}` (`brief_id` and `model` optional). It
+  `{"request": "...", "brief_id": "b01", "model": "...", "think": false}` (`brief_id`, `model` and `think` optional; defaults `gemma4:12b-it-q8_0` and `false`). It
   answers after the run ends with `{run_id, ok, failed_step?, error?}`; the record is in
   `app.run` and `app.run_step`. No auth for now (revisit with the chat trigger, M8). The three
-  workflows must be **published**. Publish a sub-workflow after editing it too (unverified: we did not
-  measure whether Execute Workflow runs the draft or the published version; today draft = published
-  for all three). Run `python -m evals.workflows` after every workflow change, then commit the files.
+  workflows must be **published**. Publish a sub-workflow after editing it too: an Execute Workflow
+  node runs the **published** version of the workflow it calls, not the draft (measured 2026-10-12: the
+  pipeline's draft was published first, and its call to the still-published old `Step 1` ran the old
+  nodes). Run `python -m evals.workflows` after every workflow change, then commit the files.
 - **Running a workflow from the editor.** Each workflow has a `Test data` sticky note with
   ready-to-paste JSON: pin it on `POST recipe-pipeline` (`Recipe pipeline`) or on `When Executed
   by Another Workflow` (`Step 1 · read request`, `Check contract`), then click *Execute workflow*.
@@ -125,6 +126,12 @@ service up).*
   (steps cascade). Webhook calls ignore pins (`test_webhook_ignores_pin`). Pins are not exported,
   so no re-export after pinning, but an edited note is a workflow change and needs one. Keep
   `brief_id` starting with `editor-` when changing the sample.
+- **Step 1 calls Ollama** with an HTTP Request node: `POST http://ollama:11434/api/chat` (n8n and
+  Ollama share the compose network), body `{model, think, stream: false, format: <step 1 output
+  contract>, options: {temperature: 0, seed: 42, num_ctx: 8192, num_predict: 4096}, messages}`,
+  timeout 30 min. The system prompt is `shared/prompts/step1.system.md`, read by the workflow from
+  `/data/shared`. The n8n `Ollama Chat Model` node is not used (no `seed`, no JSON schema, no token
+  counts). `num_ctx` must equal `evals/benchmark.py` `NUM_CTX` (`test_num_ctx_matches_benchmark`).
 - **The `Postgres account` credential** connects as `postgres` to database `postgres` on
   `supabase-db:5432` (measured 2026-10-12 with `select current_user, current_database()`), so
   the `app` tables and `extensions.jsonschema_validation_errors` are reachable. The password was
