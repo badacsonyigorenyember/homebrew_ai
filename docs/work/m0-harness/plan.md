@@ -1,6 +1,6 @@
 # M0 · Pipeline foundations — implementation plan
 
-Stage: verify
+Stage: shipped
 Brief: [brief.md](brief.md)
 Branch: m0-harness
 

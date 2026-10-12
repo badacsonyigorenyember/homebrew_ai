@@ -220,6 +220,13 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-12
+- Shipped `m0-harness` ([`docs/work/m0-harness/`](docs/work/m0-harness/)): G0 decisions, the eval
+  harness (`evals/`), `app.run` / `app.run_step` logging with `pg_jsonschema`, 8 contracts in
+  `shared/contracts/`, and three published n8n workflows exported to `n8n/workflows/`, each with
+  a `Test data` note. Verified 12/12 checks and 122 tests (94 without the stack); regression
+  suite re-run on the branch before merging. Shipped without republishing or re-exporting
+  `Recipe pipeline`; the 8 px note-position drift from the user's pin stays as recorded in
+  verification.md.
 - `m0-harness` task 8: each workflow has a `Test data` sticky note with ready-to-paste JSON
   (b01's request; the pipeline sample uses `brief_id: "editor-b01"`). The user pins it in the
   editor; nothing is pinned yet. All three workflows were republished (`versionId ==
