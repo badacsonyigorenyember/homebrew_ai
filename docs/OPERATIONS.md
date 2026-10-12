@@ -116,6 +116,15 @@ service up).*
   workflows must be **published**. Publish a sub-workflow after editing it too (unverified: we did not
   measure whether Execute Workflow runs the draft or the published version; today draft = published
   for all three). Run `python -m evals.workflows` after every workflow change, then commit the files.
+- **Running a workflow from the editor.** Each workflow has a `Test data` sticky note with
+  ready-to-paste JSON: pin it on `POST recipe-pipeline` (`Recipe pipeline`) or on `When Executed
+  by Another Workflow` (`Step 1 · read request`, `Check contract`), then click *Execute workflow*.
+  A pipeline run writes a real run log tagged `editor-b01`; open the step 1 sub-execution from the
+  `Step 1 · read request` node. Remove editor runs with
+  `docker exec supabase-db psql -U postgres -d postgres -c "delete from app.run where eval_id like 'editor-%'"`
+  (steps cascade). Webhook calls ignore pins (`test_webhook_ignores_pin`). Pins are not exported,
+  so no re-export after pinning, but an edited note is a workflow change and needs one. Keep
+  `brief_id` starting with `editor-` when changing the sample.
 - **The `Postgres account` credential** connects as `postgres` to database `postgres` on
   `supabase-db:5432` (measured 2026-10-12 with `select current_user, current_database()`), so
   the `app` tables and `extensions.jsonschema_validation_errors` are reachable. The password was

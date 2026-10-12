@@ -3,16 +3,7 @@
   "name": "Step 1 · read request",
   "nodes": [
     {
-      "id": "18a2c559-ce34-46a9-a981-bbee90607f91",
-      "name": "When Executed by Another Workflow",
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "typeVersion": 1.2,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
-        "inputSource": "workflowInputs",
         "workflowInputs": {
           "values": [
             {
@@ -20,24 +11,22 @@
               "type": "number"
             },
             {
-              "name": "request",
-              "type": "string"
+              "name": "request"
             }
           ]
         }
-      }
+      },
+      "id": "18a2c559-ce34-46a9-a981-bbee90607f91",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
     },
     {
-      "id": "a2ff06df-1e72-45d7-a422-810185dc6bbd",
-      "name": "Check step 1 input",
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.3,
-      "position": [
-        224,
-        0
-      ],
       "parameters": {
-        "source": "database",
         "workflowId": {
           "__rl": true,
           "mode": "id",
@@ -74,10 +63,23 @@
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
         },
-        "mode": "once"
-      }
+        "options": {}
+      },
+      "id": "a2ff06df-1e72-45d7-a422-810185dc6bbd",
+      "name": "Check step 1 input",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        0
+      ]
     },
     {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { named: null, stated: {}, hints: [], wanted: [$(\"When Executed by Another Workflow\").item.json.request], excluded: [], inventory: [], guidance: true, unknown: [] } }}",
+        "options": {}
+      },
       "id": "fc9f994a-bb57-4b64-8fbf-6289ae69270c",
       "name": "Stub: copy request",
       "type": "n8n-nodes-base.set",
@@ -86,23 +88,10 @@
         448,
         0
       ],
-      "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={{ { named: null, stated: {}, hints: [], wanted: [$(\"When Executed by Another Workflow\").item.json.request], excluded: [], inventory: [], guidance: true, unknown: [] } }}"
-      },
       "notes": "M0 stub. Copies the request into wanted so that grading is red. M1 replaces this node with the real step 1."
     },
     {
-      "id": "7beb254f-da90-48f6-a36d-180d374a3c3c",
-      "name": "Check step 1 output",
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.3,
-      "position": [
-        672,
-        0
-      ],
       "parameters": {
-        "source": "database",
         "workflowId": {
           "__rl": true,
           "mode": "id",
@@ -139,10 +128,23 @@
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
         },
-        "mode": "once"
-      }
+        "options": {}
+      },
+      "id": "7beb254f-da90-48f6-a36d-180d374a3c3c",
+      "name": "Check step 1 output",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        0
+      ]
     },
     {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $(\"Stub: copy request\").item.json }}",
+        "options": {}
+      },
       "id": "0ed9045f-601b-4583-bf0a-401ce8526e18",
       "name": "Return step 1 output",
       "type": "n8n-nodes-base.set",
@@ -150,26 +152,38 @@
       "position": [
         896,
         0
-      ],
-      "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={{ $(\"Stub: copy request\").item.json }}"
-      }
+      ]
     },
     {
+      "parameters": {
+        "content": "### Step 1 stub (M0)\nChecks its input, builds an output, checks the output, returns it. The stub copies the request into `wanted`, so every brief fails grading until M1 replaces the middle node. A failed check stops this workflow with the contract error.",
+        "height": 200,
+        "width": 300,
+        "color": 4
+      },
       "id": "23b8799d-fa00-488c-ba94-5006e4aaeb83",
       "name": "Sticky Note 4b5752a3",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -50,
-        -50
+        -96,
+        -224
+      ]
+    },
+    {
+      "id": "81c10a7c-2b40-4815-a435-226473f267c3",
+      "name": "Test data",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        200
       ],
       "parameters": {
-        "content": "### Step 1 stub (M0)\nChecks its input, builds an output, checks the output, returns it. The stub copies the request into `wanted`, so every brief fails grading until M1 replaces the middle node. A failed check stops this workflow with the contract error.",
-        "color": 4,
-        "width": 300,
-        "height": 200
+        "content": "### Test data · editor run\nPin this on `When Executed by Another Workflow` (open the node, use the output panel's edit / mock-data control, paste the JSON, save), then click *Execute workflow*.\nWrites nothing (`run_id: 0` belongs to no run).\n\n```json\n[{\"run_id\": 0, \"request\": \"I want a classic West Coast IPA that is properly bitter. Make it 20 litres at about 6.5 % ABV.\"}]\n```",
+        "color": 5,
+        "width": 520,
+        "height": 340
       }
     }
   ],
@@ -221,6 +235,7 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "availableInMCP": true
+    "availableInMCP": true,
+    "binaryMode": "separate"
   }
 }

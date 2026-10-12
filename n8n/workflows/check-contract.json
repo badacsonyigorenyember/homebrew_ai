@@ -3,21 +3,11 @@
   "name": "Check contract",
   "nodes": [
     {
-      "id": "0c58e8aa-64f4-492f-b1a4-a2a225a5f48f",
-      "name": "When Executed by Another Workflow",
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "typeVersion": 1.2,
-      "position": [
-        0,
-        96
-      ],
       "parameters": {
-        "inputSource": "workflowInputs",
         "workflowInputs": {
           "values": [
             {
-              "name": "contract",
-              "type": "string"
+              "name": "contract"
             },
             {
               "name": "value",
@@ -25,9 +15,21 @@
             }
           ]
         }
-      }
+      },
+      "id": "0c58e8aa-64f4-492f-b1a4-a2a225a5f48f",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        96
+      ]
     },
     {
+      "parameters": {
+        "fileSelector": "=/data/shared/contracts/{{ $json.contract }}.schema.json",
+        "options": {}
+      },
       "id": "e372691c-eb06-45a1-a19b-0b0a0568f368",
       "name": "Read contract file",
       "type": "n8n-nodes-base.readWriteFile",
@@ -35,13 +37,14 @@
       "position": [
         224,
         96
-      ],
-      "parameters": {
-        "operation": "read",
-        "fileSelector": "=/data/shared/contracts/{{ $json.contract }}.schema.json"
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "fromJson",
+        "destinationKey": "schema",
+        "options": {}
+      },
       "id": "3798df49-4ae1-4d1e-98f9-dc01c5105942",
       "name": "Parse contract JSON",
       "type": "n8n-nodes-base.extractFromFile",
@@ -49,14 +52,16 @@
       "position": [
         448,
         96
-      ],
-      "parameters": {
-        "operation": "fromJson",
-        "binaryPropertyName": "data",
-        "destinationKey": "schema"
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select coalesce(extensions.jsonschema_validation_errors($1::json, $2::json), '{}') as errors",
+        "options": {
+          "queryReplacement": "={{ [JSON.stringify($json.schema), JSON.stringify($(\"When Executed by Another Workflow\").item.json.value)] }}"
+        }
+      },
       "id": "84f49d25-efcb-48f2-b0b8-4953fe9b8ee8",
       "name": "Validate against schema",
       "type": "n8n-nodes-base.postgres",
@@ -65,13 +70,6 @@
         672,
         96
       ],
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "select coalesce(extensions.jsonschema_validation_errors($1::json, $2::json), '{}') as errors",
-        "options": {
-          "queryReplacement": "={{ [JSON.stringify($json.schema), JSON.stringify($(\"When Executed by Another Workflow\").item.json.value)] }}"
-        }
-      },
       "credentials": {
         "postgres": {
           "id": "fDjeFLjBj3r9berH",
@@ -80,14 +78,6 @@
       }
     },
     {
-      "id": "d9e29ce0-d6a1-431e-b4ef-a8a5cfa77eb1",
-      "name": "No errors?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        896,
-        96
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -108,20 +98,20 @@
             }
           ],
           "combinator": "and"
-        }
-      }
+        },
+        "options": {}
+      },
+      "id": "d9e29ce0-d6a1-431e-b4ef-a8a5cfa77eb1",
+      "name": "No errors?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        96
+      ]
     },
     {
-      "id": "d691eb3f-ab8d-4554-bc8c-0f8929a633a1",
-      "name": "Return ok",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        1120,
-        0
-      ],
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -131,10 +121,22 @@
               "type": "boolean"
             }
           ]
-        }
-      }
+        },
+        "options": {}
+      },
+      "id": "d691eb3f-ab8d-4554-bc8c-0f8929a633a1",
+      "name": "Return ok",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        0
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "=contract {{ $(\"When Executed by Another Workflow\").item.json.contract }}: {{ $json.errors.join(\"; \") }}"
+      },
       "id": "e9eb63a8-de9b-48ab-9203-f4e6a5473ffd",
       "name": "Fail with the errors",
       "type": "n8n-nodes-base.stopAndError",
@@ -142,26 +144,38 @@
       "position": [
         1120,
         192
-      ],
-      "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "=contract {{ $(\"When Executed by Another Workflow\").item.json.contract }}: {{ $json.errors.join(\"; \") }}"
-      }
+      ]
     },
     {
+      "parameters": {
+        "content": "### Check contract\nChecks `value` against `shared/contracts/<contract>.schema.json` with the pg_jsonschema extension, the same function the tests call. Returns `{ok: true}`, or stops with `contract <name>: <errors>`. Every step calls this on its input and its output.",
+        "height": 216,
+        "width": 300,
+        "color": 4
+      },
       "id": "ea3dfc9c-e994-4e38-843c-6cb8254dae6a",
       "name": "Sticky Note 24cb344a",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -50,
-        -50
+        -48,
+        -160
+      ]
+    },
+    {
+      "id": "3d87f2d4-c37e-4a44-be2b-b9f826a30885",
+      "name": "Test data",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        320
       ],
       "parameters": {
-        "content": "### Check contract\nChecks `value` against `shared/contracts/<contract>.schema.json` with the pg_jsonschema extension, the same function the tests call. Returns `{ok: true}`, or stops with `contract <name>: <errors>`. Every step calls this on its input and its output.",
-        "color": 4,
-        "width": 300,
-        "height": 200
+        "content": "### Test data · editor run\nPin this on `When Executed by Another Workflow` (open the node, use the output panel's edit / mock-data control, paste the JSON, save), then click *Execute workflow*.\nRead-only. Set `request` to `\"\"` to see a failure.\n\n```json\n[{\"contract\": \"step1.input\", \"value\": {\"run_id\": 0, \"request\": \"I want a classic West Coast IPA that is properly bitter. Make it 20 litres at about 6.5 % ABV.\"}}]\n```",
+        "color": 5,
+        "width": 520,
+        "height": 340
       }
     }
   ],
@@ -231,6 +245,7 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "availableInMCP": true
+    "availableInMCP": true,
+    "binaryMode": "separate"
   }
 }

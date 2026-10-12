@@ -1,10 +1,74 @@
+import json
+import re
+import tomllib
 from pathlib import Path
 
 import pytest
 
 from evals import workflows
 
-REPO_DIR = Path(__file__).resolve().parent.parent / "n8n" / "workflows"
+ROOT = Path(__file__).resolve().parent.parent
+REPO_DIR = ROOT / "n8n" / "workflows"
+CONTRACTS = ROOT / "shared" / "contracts"
+with (ROOT / "evals" / "recipe_briefs.toml").open("rb") as _f:
+    B01 = next(b for b in tomllib.load(_f)["brief"] if b["id"] == "b01")["request"]
+
+# The sample each workflow's `Test data` sticky note must carry (plan Task 8).
+SAMPLES = {
+    "recipe-pipeline.json": [{
+        "headers": {"content-type": "application/json"}, "params": {}, "query": {},
+        "body": {"request": B01, "brief_id": "editor-b01"},
+    }],
+    "step-1-read-request.json": [{"run_id": 0, "request": B01}],
+    "check-contract.json": [{
+        "contract": "step1.input", "value": {"run_id": 0, "request": B01},
+    }],
+}
+STEP1_INPUT = {
+    "recipe-pipeline.json": lambda s: {"run_id": 0, "request": s[0]["body"]["request"]},
+    "step-1-read-request.json": lambda s: s[0],
+    "check-contract.json": lambda s: s[0]["value"],
+}
+
+
+def _repo(name: str) -> dict:
+    return json.loads((REPO_DIR / name).read_text())
+
+
+def _sample_in_note(name: str):
+    notes = [n for n in _repo(name)["nodes"] if n["name"] == "Test data"]
+    assert len(notes) == 1, "exactly one node named Test data"
+    assert notes[0]["type"] == "n8n-nodes-base.stickyNote"
+    blocks = re.findall(r"```json\n(.*?)```", notes[0]["parameters"]["content"], re.S)
+    assert len(blocks) == 1, "exactly one json fenced block"
+    return json.loads(blocks[0])
+
+
+@pytest.mark.parametrize("name", SAMPLES)
+def test_test_data_notes(name):
+    sample = _sample_in_note(name)
+    assert sample == SAMPLES[name]
+    trigger = _repo(name)["nodes"][0]
+    if name == "recipe-pipeline.json":
+        assert not {h.lower() for h in sample[0]["headers"]} & {"authorization", "cookie", "x-api-key"}
+    else:
+        declared = [v["name"] for v in trigger["parameters"]["workflowInputs"]["values"]]
+        assert set(sample[0]) == set(declared)
+
+
+@pytest.mark.stack
+@pytest.mark.parametrize("name", SAMPLES)
+def test_test_data_meets_contracts(name):
+    from loaders.db import connect
+
+    value = STEP1_INPUT[name](_sample_in_note(name))
+    schema = (CONTRACTS / "step1.input.schema.json").read_text(encoding="utf-8")
+    with connect() as conn:
+        errors = conn.execute(
+            "select extensions.jsonschema_validation_errors(%s::json, %s::json)",
+            (schema, json.dumps(value)),
+        ).fetchone()[0]
+    assert errors == []
 
 
 def test_shape_drops_volatile_fields():
@@ -36,8 +100,6 @@ def test_file_name():
 
 @pytest.mark.stack
 def test_repo_files_match_n8n():
-    import json
-
     in_n8n = {workflows.file_name(w["name"]): w for w in workflows.export_all()}
     in_repo = {p.name: p for p in REPO_DIR.glob("*.json")} if REPO_DIR.exists() else {}
     assert set(in_n8n) == set(in_repo), "run python -m evals.workflows"

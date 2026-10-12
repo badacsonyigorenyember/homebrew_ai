@@ -99,3 +99,15 @@ def test_request_kept_verbatim(conn, post):
     steps = _step_rows(conn, answer["run_id"])
     assert steps[0][5]["request"] == request
     assert steps[0][6]["wanted"][0] == request
+
+
+def test_webhook_ignores_pin(conn, post):
+    """A webhook call uses its own body, not data pinned in the editor.
+
+    Proves something only while the user's pin is on `Recipe pipeline`'s webhook node.
+    """
+    answer = post({"request": "a dry stout", "brief_id": "b02"})
+    assert answer["ok"] is True
+    run_id = answer["run_id"]
+    assert conn.execute("select eval_id from app.run where id = %s", (run_id,)).fetchone() == ("b02",)
+    assert _step_rows(conn, run_id)[0][5]["request"] == "a dry stout"

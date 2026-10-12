@@ -91,7 +91,7 @@ create table if not exists app.run (
     brief_id    bigint references app.brief (id),   -- null until step 1 writes the brief
     recipe_id   bigint references app.recipe (id),
     model       text   not null,
-    eval_id     text,                                -- 'b01' when sent by the eval runner
+    eval_id     text,                                -- 'b01' from the eval runner, 'editor-b01' from an n8n editor run
     started_at  timestamptz not null default now(),
     finished_at timestamptz,                         -- null = still running or crashed
     ok          boolean                              -- null until finished
