@@ -11,6 +11,9 @@ Do not invoke those, and ignore "REQUIRED SUB-SKILL" or similar directives insid
 
 - One piece of work = one folder `docs/work/<slug>/` and one branch `<slug>`.
   `<slug>` is short kebab-case naming the outcome (`fill-ref`, `hop-loader`). No date.
+  Work items from [`docs/WORKFLOW-ROADMAP.md`](../../../docs/WORKFLOW-ROADMAP.md) start with their
+  roadmap id: `m<N>-` for a milestone, `s<N>-` for a side track (`m1-read-request`,
+  `s1-maths`). The folder stays flat, never a subfolder: the slug is also the branch name.
   The orchestrator picks it and passes it on; a step skill picks it only when run directly.
 - Files in the folder:
 

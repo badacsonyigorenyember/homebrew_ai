@@ -4,7 +4,7 @@
 > is trying to do, how it is built, and how far along it is. If code and this file
 > disagree, one of them is wrong. Fix it, and record the fix in the [Progress log](#8-progress-log).
 >
-> Last updated: **2026-10-11**
+> Last updated: **2026-10-12**
 
 ---
 
@@ -64,6 +64,8 @@ the knowledge base or to a clearly labelled assumption.
 
 Agreed 2026-10-08. Full design, diagrams and worked examples:
 [`docs/RECIPE-ROADMAP.md`](docs/RECIPE-ROADMAP.md). Database: [`docs/DATABASE.md`](docs/DATABASE.md).
+Build order in n8n, with checkpoints and brief checks (proposal, 2026-10-12):
+[`docs/WORKFLOW-ROADMAP.md`](docs/WORKFLOW-ROADMAP.md).
 
 The approach is **proportions first, quantities last**, and **compute first**: the LLM reads the
 request (step 1) and writes the recipe sheet (step 16). Everything in between is SQL or
@@ -207,6 +209,28 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-12
+- Wrote draft briefs for all 13 WORKFLOW-ROADMAP work items in `docs/work/` (none approved, no
+  branches yet): [`m0-harness`](docs/work/m0-harness/brief.md),
+  [`m1-read-request`](docs/work/m1-read-request/brief.md),
+  [`m2-best-fit-style`](docs/work/m2-best-fit-style/brief.md),
+  [`m3-deviations`](docs/work/m3-deviations/brief.md),
+  [`m4-targets-blueprint`](docs/work/m4-targets-blueprint/brief.md),
+  [`m5-choose-ingredients`](docs/work/m5-choose-ingredients/brief.md),
+  [`m6-compute-validate`](docs/work/m6-compute-validate/brief.md),
+  [`m7-process`](docs/work/m7-process/brief.md),
+  [`m8-recipe-sheet-chat`](docs/work/m8-recipe-sheet-chat/brief.md),
+  [`s1-maths`](docs/work/s1-maths/brief.md), [`s2-corpus`](docs/work/s2-corpus/brief.md),
+  [`s3-style-fit`](docs/work/s3-style-fit/brief.md), [`s4-books-kb`](docs/work/s4-books-kb/brief.md).
+  Slugs carry the roadmap id (`m<N>-`, `s<N>-`), folders stay flat; the rule is in
+  `.claude/skills/dev-flow/conventions.md`. Writing them fixed the order: m3 waits for
+  s1 → s2 → s3 (ingredient deviations need `level()`), and `fermentable.role` moves to s2 (the
+  corpus name map needs it).
+- Wrote [`docs/WORKFLOW-ROADMAP.md`](docs/WORKFLOW-ROADMAP.md), a **proposal** (nothing built
+  or decided): milestones M0–M8 for building the recipe pipeline in n8n test-first, 8
+  checkpoints (G0 where code lives and how tests reach n8n, through G7), and a brief check per
+  milestone. Measured on `evals/recipe_briefs.toml`: the 20 briefs cover steps 1–3 as they
+  are; 10 gaps listed for later milestones (e.g. only 5 state a batch size, `needs` names
+  Special B and Lactobacillus which are not in `ref`, no held-out briefs). `pytest` 68 passed.
 - `dev-flow` now sets a model per subagent: Opus for brief, plan and review (judgment work;
   review stays at least as strong as the code's author), Sonnet for implement, verify and ship
   (specified by the plan; implement runs most often, so most of the cost saving is there). The
