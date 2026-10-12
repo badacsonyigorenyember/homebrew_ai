@@ -1,37 +1,44 @@
 # Verification: m0-harness
 
-Overall: ✅ all 8 checks and 115 tests pass (A7 with the stack stopped: 91 passed, 24 skipped, none failed)
+Overall: ✅ all 12 checks and 122 tests pass (A7 with the stack stopped: 94 passed, 28 skipped, none failed). Re-verified after the Task 8 scope change, with the user's pin on `Recipe pipeline` present.
 
-Date: 2026-10-12  ·  Branch: m0-harness at 3328572
+Date: 2026-10-12  ·  Branch: m0-harness at 6870022
 
 ## Part 1: Summary
 
-🎯 **Goal:** Record the G0 decisions and build the test harness: a webhook pipeline in n8n that logs each step, contracts, graders and a runner.
+🎯 **Goal:** Record the G0 decisions and build the test harness: a webhook pipeline in n8n that logs each step, contracts, graders and a runner; plus sample test data in the n8n editor.
 
-🛠️ **How:** SQL run-log columns plus `pg_jsonschema`, 8 JSON Schema contracts, pure Python graders, 3 n8n workflows exported to the repo, and an eval runner that reads `app.run` / `app.run_step` back.
+🛠️ **How:** SQL run-log columns plus `pg_jsonschema`, 8 JSON Schema contracts, pure Python graders, 3 n8n workflows exported to the repo, an eval runner that reads `app.run` / `app.run_step` back, and a `Test data` sticky note with ready-to-paste JSON in each workflow.
 
-🤔 **Why this way:** Everything is testable with the tools the repo already has (pytest, psycopg, Postgres), and the database is the single record of a run.
+🤔 **Why this way:** Everything is testable with the tools the repo already has (pytest, psycopg, Postgres), the database is the single record of a run, and pins stay in n8n so pinning needs no re-export.
 
-🏁 **Result:** The runner sends 20 briefs through n8n; step 1 logs `ok = true` for each, grading is red (0/20) on purpose, the baseline is saved in `evals/results/2026-10-12-m0.json`, and 115 tests pass (91 without the stack).
+🏁 **Result:** The runner sends 20 briefs through n8n; step 1 logs `ok = true`, grading is red (0/20) on purpose, the baseline is saved in `evals/results/2026-10-12-m0.json`; all three workflows carry a note, and 122 tests pass (94 without the stack).
 
 ### 🚦 Steps
 
-- ⏭️ 📝 **Brief:** Skipped as a step: the brief was already on disk from an earlier session; the user approved it as written (10daee8).
-- ✅ 🗺️ **Plan:** 7 tasks, approved. One fact correction recorded: `test_style_codes_exist_in_ref` failed with the stack down, so it was marked as a stack test.
-- ⚠️ 🔨 **Implement:** 7 tasks plus one review-fix round (9db876d), all ticked.
+- ⏭️ 📝 **Brief:** Skipped as a step: the brief was already on disk from an earlier session; the user approved it as written (10daee8). The scope change (R11/A9) was added later (02d308f).
+- ✅ 🗺️ **Plan:** 7 tasks approved (8d171ea), then a revision adding Task 8 (02d308f). One fact correction recorded: `test_style_codes_exist_in_ref` failed with the stack down, so it was marked as a stack test.
+- ⚠️ 🔨 **Implement:** 8 tasks plus one review-fix round (9db876d), all ticked.
   - ⚠️ Task 1: no failing-test-first for conftest; the skip path was checked by hand.
   - ⚠️ Task 2: `-m "not stack"` was not run.
-  - ⚠️ Task 3: `test_examples` split into two tests (later recorded as a deviation).
+  - ⚠️ Task 3: `test_examples` split into two tests (recorded as a deviation).
   - ⚠️ Task 5: `n8n/` is root-owned; `n8n/workflows/` was created with a one-off `docker run --user 0` on the n8n image.
   - ⚠️ Task 6: draft-vs-published was not measured (deferred to M1); `test_pipeline` tests not seen failing first; the webhook returns 200 even when `ok = false`.
   - ⚠️ Task 6 deviations: `$json.error` is a string, `Start run` returns `id::int`, `export_all` skips archived workflows, credential checked through a temporary archived workflow.
   - ⚠️ Task 7: b01 fails on `stated`, `hints` and `wanted`, not only `wanted`; `test_run` tests not seen failing first.
-- ❌ 🔍 **Review:** Round 1: fixes needed (1 must-fix: runner tests did not catch a failed run counted as passed; 5 should-fix). 🔧 fixed in 9db876d. Round 2 (3328572): ready for testing, with notes #10 and #11.
+  - ⚠️ Task 8: `test_webhook_ignores_pin` passed from the start (meaningful only with a pin; now measured, see Part 3); `db/015_app.sql` comment changed but not re-applied; the re-export picked up editor defaults (dropped default params, added `binaryMode`).
+  - ⚠️ Task 8 deviation: the pipeline sample's contract test builds the step 1 input from `body.request` plus `run_id` 0.
+- ❌ 🔍 **Review:** Round 1: fixes needed (1 must-fix: runner tests did not catch a failed run counted as passed; 5 should-fix). 🔧 fixed in 9db876d. Round 2 (3328572) and round 3 for Task 8 (6870022): ready for testing.
   - ⚠️ Note #10: each half of the finished-and-ok check is covered only by the other half.
   - ⚠️ Note #11: the G0 baseline file lacks the step 1 `not_run` key.
-- ✅ 🧪 **Verify:** All acceptance criteria hold, including A7 with `n8n` and `supabase-pooler` stopped; both were started again and are healthy. 🧮 spot checks ✅ 8/8 · 🧪 tests ✅ 115/115
+  - ⚠️ Note #12: pin-dependent A9 parts were open until the user pinned; closed in this run (C10, C11, Part 3).
+  - ⚠️ Note #13: the re-export dropped default parameters and added `binaryMode`; behaviour unchanged.
+  - ⚠️ Note #14: the notes test takes `nodes[0]` as the trigger.
+- ⚠️ 🧪 **Verify:** All acceptance criteria hold, including A7 with `n8n` and `supabase-pooler` stopped (both started again, healthy, healthz 200) and A9 with the user's pin present. 🧮 spot checks ✅ 12/12 · 🧪 tests ✅ 122/122
+  - ⚠️ The user's pin save moved the `Test data` note 8 px and made `Recipe pipeline`'s draft differ from its published version; the repo file is not re-exported (names and connections still match).
+  - ⚠️ A9's editor view (node and sub-execution input/output) is the user's check; I did not see it.
 
-👀 **Start here:** `python -m evals.run --brief b01` prints one row: run `ok`, step 1 `fail: stated,hints,wanted`, steps 2 and 3 `not run`.
+👀 **Start here:** Open `Recipe pipeline` in the n8n editor (pin already set) and run "Execute workflow": each node and the `Step 1 · read request` sub-execution show their input and output. From the terminal, `python -m evals.run --brief b01` prints one row: run `ok`, step 1 `fail: stated,hints,wanted`, steps 2 and 3 `not run`.
 
 📁 **Changed files:**
 - `PROJECT.md`
@@ -42,6 +49,7 @@ Date: 2026-10-12  ·  Branch: m0-harness at 3328572
 - `docs/work/m0-harness/brief.md`
 - `docs/work/m0-harness/plan.md`
 - `docs/work/m0-harness/review.md`
+- `docs/work/m0-harness/verification.md`
 - `evals/__init__.py`
 - `evals/grade.py`
 - `evals/results/2026-10-12-m0.json`
@@ -69,6 +77,7 @@ Date: 2026-10-12  ·  Branch: m0-harness at 3328572
 - `tests/test_run_log.py`
 - `tests/test_workflows.py`
 
+
 ## Part 2: Spot checks
 
 ### ✅ C1 · G0 decisions recorded with a why each (A1)
@@ -89,7 +98,7 @@ sed -n '/Pipeline build (G0/,/^$/p' PROJECT.md | grep -c "Why:"
 
 | Expected | Actual | Result |
 |---|---|---|
-| one run, step 1 try 1 ok = true | `83\|b01\|t\|t\|1\|1\|t`; table row `b01 ok fail: stated,hints,wanted / not run / not run FAIL` | ✅ pass |
+| one run, step 1 try 1 ok = true | `140\|b01\|t\|t\|1\|1\|t` (re-run this verification, with the user's pin on `Recipe pipeline` present); table row `b01 ok fail: stated,hints,wanted / not run / not run FAIL` | ✅ pass |
 
 ### ✅ C3 · Forced failure is logged and reported as failed (A3)
 
@@ -102,7 +111,7 @@ docker exec supabase-db psql -U postgres -d postgres -tAc "select r.id,r.ok,s.ok
 
 | Expected | Actual | Result |
 |---|---|---|
-| passed = False; step row ok = false with error naming step1.input | `False False contract step1.input: "" is shorter than 1 character`; row `84\|f\|f\|contract step1.input: "" is shorter than 1 character` | ✅ pass |
+| passed = False; step row ok = false with error naming step1.input | `False False contract step1.input: "" is shorter than 1 character`; row `141\|f\|f\|contract step1.input: "" is shorter than 1 character` | ✅ pass |
 
 ### ✅ C4 · Contract files for steps 0-3 exist (A4)
 
@@ -144,7 +153,7 @@ docker exec supabase-db psql -U postgres -d postgres -tAc "select count(*) from 
 
 | Expected | Actual | Result |
 |---|---|---|
-| 0 bad runs (measured before my C3 run existed; the C3 failure run was removed afterwards); 3 files | 1 while run 84 (my C3 failure run) existed, which is the expected failure; 3 files: check-contract, recipe-pipeline, step-1-read-request. After cleanup 21 rows remain (the 20 baseline runs plus 1 earlier b01 run). | ✅ pass |
+| 0 bad runs (measured before my C3 run existed; the C3 failure run was removed afterwards); 3 files | not re-run in this round (see C12); in the first round it was 1 while the C3 failure run existed, which is the expected failure; 3 files: check-contract, recipe-pipeline, step-1-read-request. After cleanup 21 rows remain (the 20 baseline runs plus 1 earlier b01 run). | ✅ pass |
 
 ### ✅ C8 · Containers healthy after the A7 stop/start
 
@@ -154,13 +163,59 @@ docker ps --format '{{.Names}} {{.Status}}' | grep -E 'n8n|pooler'; curl -s -o /
 
 | Expected | Actual | Result |
 |---|---|---|
-| both Up, n8n healthz 200 | `n8n Up 43 seconds`, `supabase-pooler Up 43 seconds (healthy)`, `200` | ✅ pass |
+| both Up, n8n healthz 200 | `n8n Up 25 seconds`, `supabase-pooler Up 25 seconds (healthy)`, `200` (after this round's stop/start) | ✅ pass |
+
+### ✅ C9 · Each workflow has one `Test data` note with JSON, no secret (A9, R11)
+
+```bash
+.venv/bin/pytest -q tests/test_workflows.py -k "test_data"; grep -i -c -E "password|token|secret|authorization|cookie|api.?key" n8n/workflows/*.json
+```
+
+| Expected | Actual | Result |
+|---|---|---|
+| 6 tests pass (3 notes, 3 contract); 0 secret matches per file | 6 passed (`test_test_data_notes` ×3, `test_test_data_meets_contracts` ×3); `step-1-read-request.json:0`, `check-contract.json:0`, `recipe-pipeline.json:0` | ✅ pass |
+
+### ✅ C10 · User's pin is on `Recipe pipeline` only; repo files match n8n (A8, A9)
+
+```bash
+.venv/bin/python -c "from evals.workflows import export_all; print({w['name']:list(w.get('pinData') or {}) for w in export_all()})"; .venv/bin/pytest -q tests/test_workflows.py::test_repo_files_match_n8n
+```
+
+| Expected | Actual | Result |
+|---|---|---|
+| Pin on `POST recipe-pipeline` only; names + connections of the 3 repo files equal n8n | `{'Recipe pipeline': ['POST recipe-pipeline'], 'Check contract': [], 'Step 1 · read request': []}`; `test_repo_files_match_n8n` passed. Pin holds 1 item: `body.request` = b01's request, `brief_id` `editor-b01`. | ✅ pass |
+
+Note: the repo files do not equal `shape()` of a fresh export in full any more. `Recipe pipeline`'s `Test data` note position is `[0, 368]` in n8n and `[0, 360]` in the repo (the user moved it when pinning); nothing else differs, and `pinData` is not in the file, as intended. The pin save also made the draft differ from the published version again (`versionId` ≠ `activeVersionId` on `Recipe pipeline`; the other two are equal). The files were not re-exported (outside this verification); the A8 comparison (names and connections) holds.
+
+### ✅ C11 · The user's editor run is logged with `eval_id = 'editor-b01'` and its step 1 row (A9)
+
+```bash
+docker exec supabase-db psql -U postgres -d postgres -c "select id,eval_id,ok,finished_at is not null fin,(select count(*) from app.run_step s where s.run_id=r.id) steps from app.run r where eval_id like 'editor-%' order by id"
+```
+
+| Expected | Actual | Result |
+|---|---|---|
+| the user's editor run(s): finished, ok, one step 1 row | 1 row: run 129, `editor-b01`, `ok = t`, `fin = t`, 1 step (step 1, ok = true) | ✅ pass |
+
+Run 129 belongs to the user and was left in place. The user's own check (each node's and the step 1 sub-execution's input and output are visible in the editor) is theirs; I have not seen the editor.
+
+### ✅ C12 · My check runs removed; only the user's editor run and eval baseline remain
+
+```bash
+docker exec supabase-db psql -U postgres -d postgres -tAc "delete from app.run where id in (140,141) returning id; select count(*) from app.run where eval_id like 'editor-%'; select count(*) from app.run"
+```
+
+| Expected | Actual | Result |
+|---|---|---|
+| my 2 runs (C2, C3) deleted; 1 `editor-%` row; 23 rows total (21 eval runs + editor run + 1 other eval run already there) | `DELETE 2`; `1`; `23` | ✅ pass |
 
 ## Part 3: Regression tests
 
-Command: `.venv/bin/pytest -q`  ·  Result: ✅ 115 passed (stack up)
+Command: `.venv/bin/pytest -q`  ·  Result: ✅ 122 passed (stack up, user's pin on `Recipe pipeline`)
 
-A7, stack stopped (`docker stop n8n supabase-pooler`, then `.venv/bin/pytest -q`): ✅ 91 passed, 24 skipped, 0 failed. The skipped ones are the `stack`-marked tests (reason "stack not running: Postgres"). Also `.venv/bin/pytest -q -m "not stack"` with the stack up: ✅ 91 passed, 24 deselected. Both containers were started again with `docker start` (no recreate).
+**Pin state when `test_webhook_ignores_pin` ran: present.** `export_all()` showed `pinData` on `Recipe pipeline` node `POST recipe-pipeline` (1 item: `body.request` = b01's request, `brief_id` `editor-b01`) before and after the test runs; `Check contract` and `Step 1 · read request` have none. The test passed (posted `b02` request kept, `eval_id = 'b02'`), so the pin was ignored by the webhook.
+
+A7, stack stopped (`docker stop n8n supabase-pooler`, then `.venv/bin/pytest -q`): ✅ 94 passed, 28 skipped, 0 failed. The skipped ones are the `stack`-marked tests. Also `.venv/bin/pytest -q -m "not stack"` with the stack up: ✅ 94 passed, 28 deselected. Both containers were started again with `docker start` (no recreate): `n8n Up`, `supabase-pooler Up (healthy)`, healthz 200.
 
 | Test | Protects | Result |
 |---|---|---|
@@ -175,5 +230,8 @@ A7, stack stopped (`docker stop n8n supabase-pooler`, then `.venv/bin/pytest -q`
 | tests/test_grade.py::test_step1_missing_output_fails_every_field | A missing step output fails every graded field | ✅ |
 | tests/test_workflows.py::test_repo_files_match_n8n | Repo workflow files match n8n (A8) | ✅ |
 | tests/conftest.py skip logic | The default suite passes without the stack (A7) | ✅ |
+| tests/test_pipeline.py::test_webhook_ignores_pin | A webhook call runs on the posted request, never on the pinned sample (measured with the pin present) | ✅ |
+| tests/test_workflows.py::test_test_data_notes (×3), ::test_test_data_meets_contracts (×3) | Each note holds a sample its trigger accepts, with the b01 request, `editor-b01`, no secret header | ✅ |
+| tests/test_workflows.py::test_shape_drops_volatile_fields | A user's pin never changes the repo files | ✅ |
 
 Failures: none.
