@@ -1,6 +1,6 @@
 # M0 · Pipeline foundations: where code lives, the test harness, run logging
 
-Status: draft
+Status: approved
 Slug: m0-harness · Branch: m0-harness
 Roadmap: [WORKFLOW-ROADMAP.md](../../WORKFLOW-ROADMAP.md) M0, checkpoint **G0**
 
