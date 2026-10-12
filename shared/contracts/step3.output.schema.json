@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step3.output",
+  "description": "Step 3, find deviations: where the request leaves the style. Absent: kind conflict marks contradicting wishes; unrated lists ingredients level() cannot rate.",
+  "type": "object",
+  "required": [
+    "deviations",
+    "unrated",
+    "guidance"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "deviations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "subject",
+          "from",
+          "level",
+          "requested_by",
+          "because"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "ingredient",
+              "number",
+              "mismatch",
+              "conflict"
+            ]
+          },
+          "subject": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "level": {
+            "enum": [
+              "out_of_style",
+              "changes_style",
+              null
+            ]
+          },
+          "requested_by": {
+            "enum": [
+              "user",
+              "model"
+            ]
+          },
+          "because": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "unrated": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "guidance": {
+      "type": "boolean"
+    }
+  }
+}

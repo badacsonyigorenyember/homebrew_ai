@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step1.output",
+  "description": "Step 1, read request: the brief. Absent: named is null when no style is named; unknown holds words that fit no field.",
+  "type": "object",
+  "required": [
+    "named",
+    "stated",
+    "hints",
+    "wanted",
+    "excluded",
+    "inventory",
+    "unknown",
+    "guidance"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "named": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stated": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "batch_l": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "abv": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "og": {
+          "type": "number",
+          "minimum": 1.0,
+          "maximum": 1.2
+        },
+        "ibu": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200
+        },
+        "srm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    "hints": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "bitter",
+          "hoppy",
+          "juicy",
+          "dry",
+          "crisp",
+          "full",
+          "chewy",
+          "malty",
+          "darker",
+          "stronger",
+          "session"
+        ]
+      }
+    },
+    "wanted": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "excluded": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "inventory": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unknown": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "guidance": {
+      "type": "boolean"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step0.input",
+  "description": "Step 0, load settings: reads the profile and inventory for a run. Absent: profile_id null means the default profile.",
+  "type": "object",
+  "required": [
+    "run_id",
+    "profile_id"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "profile_id": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    }
+  }
+}

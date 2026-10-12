@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step2.output",
+  "description": "Step 2, choose style: the chosen style and why. Absent: style null with unknown_reason; mismatch null when the named style and the numbers agree.",
+  "type": "object",
+  "required": [
+    "style",
+    "unknown_reason",
+    "alt_styles",
+    "candidates",
+    "scores",
+    "mismatch",
+    "guide_reason"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "style": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "guide",
+        "code",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "guide": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "unknown_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "alt_styles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "guide",
+          "code",
+          "score"
+        ],
+        "properties": {
+          "guide": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "scores": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "mismatch": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "named",
+        "range",
+        "chosen"
+      ],
+      "properties": {
+        "named": {
+          "type": "string"
+        },
+        "range": {
+          "type": "string"
+        },
+        "chosen": {
+          "type": "string"
+        }
+      }
+    },
+    "guide_reason": {
+      "type": "string"
+    }
+  }
+}

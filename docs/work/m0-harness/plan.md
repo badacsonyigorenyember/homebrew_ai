@@ -155,7 +155,7 @@ Commit: `Add run-log columns and pg_jsonschema`
 ### Task 3: contracts for steps 0–3 exist, each with a legal "absent" slot
 Why: R5; A4. Field lists follow the draft briefs m1 R1, m2 R1/R8 and m3 R1. They are first
 versions: M1–M3 may change them, with a deviation in their own plan.
-- [ ] Write 8 files `shared/contracts/step<N>.<input|output>.schema.json`. Each has `$schema`,
+- [x] Write 8 files `shared/contracts/step<N>.<input|output>.schema.json`. Each has `$schema`,
       `title`, a `description` that says what the step does and where its slot for absent,
       unknown or conflict is, `type: object`, `required` (all listed fields) and
       `additionalProperties: false`. Every input has `run_id` (integer). Use no `$ref` to other
@@ -172,7 +172,7 @@ versions: M1–M3 may change them, with a deviation in their own plan.
       | step2.output | `style` ({`id` integer, `guide`, `code`, `name`} or null); `unknown_reason` (string or null); `alt_styles` (array of codes); `candidates` (≤ 5 × {`guide`, `code`, `score` number}); `scores` (object of signal → number); `mismatch` ({`named`, `range`, `chosen`} or null); `guide_reason` (string) | `style: null` with `unknown_reason`; `mismatch: null` |
       | step3.input | `run_id`, `brief` (object, step1.output), `style` (object, step2.output) | none |
       | step3.output | `deviations` [{`kind` (`ingredient`\|`number`\|`mismatch`\|`conflict`), `subject`, `from`, `level` (`out_of_style`\|`changes_style`\|null), `requested_by` (`user`\|`model`), `because`}]; `unrated` (array of strings); `guidance` (boolean) | `kind: conflict`; `unrated` = ingredients `level()` cannot rate (unknown) |
-- [ ] Write `tests/test_contracts.py`:
+- [x] Write `tests/test_contracts.py`:
       - `test_contract_files_complete` (no stack): exactly the 8 files exist. Each parses, has
         `$schema`, `title`, `description`, `required` covering every property, and
         `additionalProperties: false`. Every input requires `run_id`.
@@ -185,7 +185,7 @@ versions: M1–M3 may change them, with a deviation in their own plan.
         `step1.input` with `request: ""`, `step1.output` with hint `funky` and with
         `stated.abv = 45`, `step2.output` without `unknown_reason`, `step3.output` with kind
         `typo`. Examples are small dicts in the test.
-- [ ] Run `.venv/bin/pytest tests/test_contracts.py`, expect all pass. Run the full suite.
+- [x] Run `.venv/bin/pytest tests/test_contracts.py`, expect all pass. Run the full suite.
 Done when: 8 contract files, and the 4 tests pass.
 Commit: `Add JSON Schema contracts for steps 0-3`
 

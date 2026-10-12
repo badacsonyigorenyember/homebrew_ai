@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step3.input",
+  "description": "Step 3, find deviations: compares brief and style. No absent slot. brief is a step1.output and style a step2.output, both already checked.",
+  "type": "object",
+  "required": [
+    "run_id",
+    "brief",
+    "style"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "brief": {
+      "type": "object"
+    },
+    "style": {
+      "type": "object"
+    }
+  }
+}
