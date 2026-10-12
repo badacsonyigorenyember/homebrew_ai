@@ -1,0 +1,236 @@
+{
+  "id": "CDfsbxzbagphdnVH",
+  "name": "Check contract",
+  "nodes": [
+    {
+      "id": "0c58e8aa-64f4-492f-b1a4-a2a225a5f48f",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        96
+      ],
+      "parameters": {
+        "inputSource": "workflowInputs",
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "contract",
+              "type": "string"
+            },
+            {
+              "name": "value",
+              "type": "object"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "e372691c-eb06-45a1-a19b-0b0a0568f368",
+      "name": "Read contract file",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        96
+      ],
+      "parameters": {
+        "operation": "read",
+        "fileSelector": "=/data/shared/contracts/{{ $json.contract }}.schema.json"
+      }
+    },
+    {
+      "id": "3798df49-4ae1-4d1e-98f9-dc01c5105942",
+      "name": "Parse contract JSON",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        96
+      ],
+      "parameters": {
+        "operation": "fromJson",
+        "binaryPropertyName": "data",
+        "destinationKey": "schema"
+      }
+    },
+    {
+      "id": "84f49d25-efcb-48f2-b0b8-4953fe9b8ee8",
+      "name": "Validate against schema",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        672,
+        96
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select coalesce(extensions.jsonschema_validation_errors($1::json, $2::json), '{}') as errors",
+        "options": {
+          "queryReplacement": "={{ [JSON.stringify($json.schema), JSON.stringify($(\"When Executed by Another Workflow\").item.json.value)] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "d9e29ce0-d6a1-431e-b4ef-a8a5cfa77eb1",
+      "name": "No errors?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        96
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.errors.length === 0 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "d691eb3f-ab8d-4554-bc8c-0f8929a633a1",
+      "name": "Return ok",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ok",
+              "name": "ok",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "e9eb63a8-de9b-48ab-9203-f4e6a5473ffd",
+      "name": "Fail with the errors",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        192
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "=contract {{ $(\"When Executed by Another Workflow\").item.json.contract }}: {{ $json.errors.join(\"; \") }}"
+      }
+    },
+    {
+      "id": "ea3dfc9c-e994-4e38-843c-6cb8254dae6a",
+      "name": "Sticky Note 24cb344a",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -50,
+        -50
+      ],
+      "parameters": {
+        "content": "### Check contract\nChecks `value` against `shared/contracts/<contract>.schema.json` with the pg_jsonschema extension, the same function the tests call. Returns `{ok: true}`, or stops with `contract <name>: <errors>`. Every step calls this on its input and its output.",
+        "color": 4,
+        "width": 300,
+        "height": 200
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Read contract file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read contract file": {
+      "main": [
+        [
+          {
+            "node": "Parse contract JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse contract JSON": {
+      "main": [
+        [
+          {
+            "node": "Validate against schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate against schema": {
+      "main": [
+        [
+          {
+            "node": "No errors?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No errors?": {
+      "main": [
+        [
+          {
+            "node": "Return ok",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fail with the errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  }
+}

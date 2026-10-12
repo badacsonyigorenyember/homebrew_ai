@@ -265,14 +265,14 @@ Why: R2, R3, R4, R10; A2, A3, A8. Load the `n8n-skills` skills before building
 `n8n-subworkflows-official`, `n8n-error-handling-official`, `n8n-node-configuration-official`).
 Follow the n8n MCP order: SDK reference → suggested nodes → `get_node_types` → validate → create
 → check `connections` after every create or update → publish.
-- [ ] **Check the Postgres credential first.** Build `Check contract` (below) and run it
+- [x] **Check the Postgres credential first.** Build `Check contract` (below) and run it
       through the MCP `test_workflow` with a temporary query `select current_user,
       current_database(), inet_server_addr()`. Expect `postgres`, `postgres`, the `supabase-db`
       address. If not, stop and ask the user to fix `Postgres account` in the n8n UI: host
       `supabase-db`, port 5432, database `postgres`, user `postgres`, password =
       `POSTGRES_PASSWORD` from `.env`. **The user enters the password**; never read or type it.
       Record what it connects as in OPERATIONS §5.
-- [ ] Workflow **`Check contract`** (trigger *When Executed by Another Workflow*, inputs
+- [x] Workflow **`Check contract`** (trigger *When Executed by Another Workflow*, inputs
       `contract` string and `value` object):
       *Read file* `/data/shared/contracts/{{contract}}.schema.json` → *Extract from File* (JSON)
       → Postgres
@@ -281,13 +281,13 @@ Follow the n8n MCP order: SDK reference → suggested nodes → `get_node_types`
       strings: a comma-separated parameter list splits JSON on its commas. Confirm the option
       with `get_node_types`. Then *If* errors is empty: return `{ok: true}`; else *Stop and
       Error* with `contract <contract>: <errors joined by "; ">`.
-- [ ] Workflow **`Step 1 · read request`** (stub; trigger inputs `run_id`, `request`): call
+- [x] Workflow **`Step 1 · read request`** (stub; trigger inputs `run_id`, `request`): call
       `Check contract` with `step1.input` → *Set* "Stub: copy request" builds the step 1 output:
       `named: null, stated: {}, hints: [], wanted: [request], excluded: [], inventory: [],
       guidance: true, unknown: []` → call `Check contract` with `step1.output` → return the
       output. A sticky note says: stub for M0; it copies the request into `wanted` so grading is
       red; M1 replaces the middle node.
-- [ ] Workflow **`Recipe pipeline`**:
+- [x] Workflow **`Recipe pipeline`**:
       *Webhook* (`POST`, path `recipe-pipeline`, respond with *Respond to Webhook*) → *Set*
       "Run settings": `request = body.request ?? ""`, `eval_id = body.brief_id ?? null`,
       `model = body.model ?? "gemma4:12b-it-q8_0"` → Postgres "Start run":
@@ -303,14 +303,14 @@ Follow the n8n MCP order: SDK reference → suggested nodes → `get_node_types`
       Error output → Postgres "Step 1 · log failure": the same insert with `output` null,
       `ok = false` and `error` = the error message. Read its real path from one failed execution
       (`get_execution`), and write the path into this plan as a deviation if it is not
-      `$json.error.message`. → "Finish run (failed)" with `ok = false` → *Respond*
+      `$json.error.message`. (Measured: it is the plain string `$json.error`.) → "Finish run (failed)" with `ok = false` → *Respond*
       `{run_id, ok: false, failed_step: 1, error}`.
       A sticky note explains the per-step block (set input + start time → call → log ok / log
       failure → finish) that steps 2–16 copy, and that a failure ends the run.
-- [ ] Validate, create, check `connections`, and publish all three. `Recipe pipeline` must be
+- [x] Validate, create, check `connections`, and publish all three. `Recipe pipeline` must be
       published for its production webhook. Publish the two sub-workflows too, and confirm in an
       execution which version the *Execute Workflow* node runs.
-- [ ] Write `tests/test_pipeline.py` (all `stack`; POST with `urllib.request`, read through
+- [x] Write `tests/test_pipeline.py` (all `stack`; POST with `urllib.request`, read through
       `loaders.db.connect()`):
       `test_b01_logs_step_1` (A2): POST b01's request with `brief_id = "b01"`. The response has
       `ok: true`. One `app.run` row with that id, `eval_id = 'b01'`, a model, `finished_at` set,
@@ -322,11 +322,11 @@ Follow the n8n MCP order: SDK reference → suggested nodes → `get_node_types`
       contains `step1.input`.
       `test_request_kept_verbatim`: a request with quotes, commas, a `%`, `$1` and a newline
       comes back unchanged in `input.request` and in `output.wanted[0]`.
-- [ ] Run `python -m evals.workflows`. Expect 3 files in `n8n/workflows/`. Read them: no
+- [x] Run `python -m evals.workflows`. Expect 3 files in `n8n/workflows/`. Read them: no
       credential secrets, only credential ids and names.
-- [ ] `docs/OPERATIONS.md` §5: the webhook URL and body, `python -m evals.workflows` after every
+- [x] `docs/OPERATIONS.md` §5: the webhook URL and body, `python -m evals.workflows` after every
       workflow change, and what the Postgres credential connects as.
-- [ ] Run `.venv/bin/pytest`, expect all pass, including `test_repo_files_match_n8n` with 3
+- [x] Run `.venv/bin/pytest`, expect all pass, including `test_repo_files_match_n8n` with 3
       workflows.
 Done when: the 3 workflows run published in n8n, their files are in the repo and match, and
 `tests/test_pipeline.py` passes.
@@ -393,3 +393,14 @@ and `supabase-pooler` containers (`docker stop` / `docker start`, no recreate) t
 - 2026-10-12 · Plan: `test_style_codes_exist_in_ref` fails today when the stack is down, rather
   than being skipped as brief R9 says. Task 1 marks it `stack` so that A7 can hold. This is a fact
   correction, not a scope change.
+- 2026-10-12 · Task 6: the Execute Workflow error output carries the message as a plain string in
+  `$json.error`, not `$json.error.message` — measured from one failed execution; the log-failure
+  and respond expressions use `$json.error`.
+- 2026-10-12 · Task 6: `export_all()` skips archived workflows — the MCP has no delete, and the
+  archived temporary credential-check workflow (Postgres credential check) would otherwise be
+  exported as a fourth file. Implementation detail only.
+- 2026-10-12 · Task 6: `Start run` returns `id::int`, because the Postgres node returns bigint as
+  text and the step 1 trigger input `run_id` is a number.
+- 2026-10-12 · Task 6: the Postgres credential was checked with a temporary one-node workflow run
+  through `execute_workflow` (then archived), because `test_workflow` pins credentialed nodes and
+  would not have run the query. Result: `postgres`, `postgres`, `172.19.0.13`.

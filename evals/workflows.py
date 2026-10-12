@@ -28,7 +28,8 @@ def export_all() -> list[dict]:
             if "No workflows found" in run.stdout + run.stderr:
                 return []
             raise RuntimeError(f"n8n export failed: {run.stdout}{run.stderr}")
-        return json.loads(host_file.read_text())
+        workflows = json.loads(host_file.read_text())
+        return [w for w in workflows if not w.get("isArchived")]  # archived = deleted in the UI
     finally:
         subprocess.run(["docker", "exec", "n8n", "rm", "-f", CONTAINER_FILE],
                        capture_output=True)

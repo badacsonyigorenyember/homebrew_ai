@@ -107,7 +107,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 |---|---|---|---|
 | Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)). All schemas built 2026-10-11 ([`slim-ref`](docs/finished/slim-ref/plan.md)): `ref` 15 tables, `corpus` 7, `kb` 1, `app` 8, all 31 owned by `postgres`; design in [`docs/DATABASE.md`](docs/DATABASE.md). **P1a `ref` load done.** Measured 2026-10-11: `ref.source` 18 rows; `ref.beer_style` 285, BJCP 2021 116 + BA 2026 169 ([`style-loader`](docs/finished/style-loader/plan.md)); `ref.ingredient` 298, 0 without a source: `ref.fermentable` 81 = 74 grain malts from Weyermann, Viking and Simpsons ([`malt-loader`](docs/finished/malt-loader/plan.md)) + 7 adjuncts (flaked oats, corn, rice and barley, brown candi sugar and lactose from `hopline-adjuncts`, honey from `palmer-how-to-brew`; extract from Palmer Tables 18.5/24.1), `fermentability` `normal` 78 · `full` 2 (candi, honey) · `none` 1 (lactose) ([`adjunct-fermentables`](docs/finished/adjunct-fermentables/plan.md)); `ref.hop` 90, all from `hopline-hops`, 8 values from Beer Maverick ([`hop-loader`](docs/finished/hop-loader/plan.md)); `ref.yeast` 119 from `hopline-yeasts`, 93 with attenuation from the makers' sources, Brewfather and the user ([`yeast-loader`](docs/finished/yeast-loader/plan.md)); `ref.water_salt` 8, ion mg/L per g computed from IUPAC atomic masses ([`water-salts`](docs/finished/water-salts/plan.md)). Fermentables, hops and yeasts name each filled field's source in `field_source`. Every other table is empty until its phase. 10 random rows per loaded table spot-checked by the user against the sources, no errors ([`ref-spotcheck`](docs/finished/ref-spotcheck/plan.md), pack `db/checks/ref_spotcheck.sql`); the 7 adjuncts came after it and were checked in their own verification (16/16). Known gaps: `fermentable.role` stays empty until P3; no malt extracts, and the other hopline adjuncts (rye, wheat and chit flakes, white candi, fructose) are not loaded; `beer_style.co2_vol` was dropped (no source has it; back in P6). *Why this schema (was D4): each typed column is read by a pipeline step and everything else stays in `raw`; behaviour (usage effects, hint knobs, cut points, source weights) lives in code; all tables were created up front, empty, by user decision.* |
 | Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | 🟡 `vector` 0.8.0 installed in schema `extensions`; `kb.chunk` created with HNSW + GIN indexes, empty (2026-10-11, [`slim-ref`](docs/finished/slim-ref/plan.md), shipped) |
-| Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, no workflows |
+| Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, 3 workflows published (measured 2026-10-12): `Recipe pipeline` (webhook `POST /webhook/recipe-pipeline`, logs to `app.run` / `app.run_step`), `Step 1 · read request` (stub) and `Check contract` (pg_jsonschema check); exported to `n8n/workflows/` ([`m0-harness`](docs/work/m0-harness/plan.md)) |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
 | LLM runtime | **Ollama** (ROCm) | Local chat and embedding models | 🟢 running |
 | Chat model | `gemma4:12b-it-q8_0` *(also pulled: `qwen3.8:27b`)* | Reasoning, extraction, recipe drafting | ⚠️ to be re-evaluated (§7) |
@@ -220,6 +220,16 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-12
+- `m0-harness` task 6: three workflows built through the n8n MCP, published, and exported to
+  `n8n/workflows/` (first real use of the export path: the `--output` file route works, 3 files
+  with credential ids and names only, no secrets). `Recipe pipeline` starts a run, calls the step 1
+  stub, logs `run_step` (ok or failure with its error), finishes the run and answers
+  `{run_id, ok, failed_step?, error?}`. `Check contract` reads the contract file and calls
+  `jsonschema_validation_errors`. The `Postgres account` credential connects as
+  `postgres` / database `postgres` (measured). `tests/test_pipeline.py` (3 stack tests: b01 logs
+  step 1, empty request logs a failure naming `step1.input`, a request with quotes, commas, `%`,
+  `$1` and a newline is kept verbatim) pass. An Execute Workflow error output carries the message
+  as a plain string in `$json.error`. Suite: 110 passed (measured).
 - `m0-harness` task 5: `evals/workflows.py` exports n8n workflows into `n8n/workflows/`
   (`python -m evals.workflows`), with 3 tests in `tests/test_workflows.py`. Export goes through
   `--output` to a file in `shared/`, because stdout carries log lines. With 0 workflows n8n exits 1

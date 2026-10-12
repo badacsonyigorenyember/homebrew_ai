@@ -1,0 +1,226 @@
+{
+  "id": "xmIkYM80AJ6ynxML",
+  "name": "Step 1 · read request",
+  "nodes": [
+    {
+      "id": "18a2c559-ce34-46a9-a981-bbee90607f91",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "inputSource": "workflowInputs",
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "run_id",
+              "type": "number"
+            },
+            {
+              "name": "request",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "a2ff06df-1e72-45d7-a422-810185dc6bbd",
+      "name": "Check step 1 input",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        0
+      ],
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "step1.input",
+            "value": "={{ { run_id: $json.run_id, request: $json.request } }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "mode": "once"
+      }
+    },
+    {
+      "id": "fc9f994a-bb57-4b64-8fbf-6289ae69270c",
+      "name": "Stub: copy request",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        0
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { named: null, stated: {}, hints: [], wanted: [$(\"When Executed by Another Workflow\").item.json.request], excluded: [], inventory: [], guidance: true, unknown: [] } }}"
+      },
+      "notes": "M0 stub. Copies the request into wanted so that grading is red. M1 replaces this node with the real step 1."
+    },
+    {
+      "id": "7beb254f-da90-48f6-a36d-180d374a3c3c",
+      "name": "Check step 1 output",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        0
+      ],
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "step1.output",
+            "value": "={{ $json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "mode": "once"
+      }
+    },
+    {
+      "id": "0ed9045f-601b-4583-bf0a-401ce8526e18",
+      "name": "Return step 1 output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        0
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $(\"Stub: copy request\").item.json }}"
+      }
+    },
+    {
+      "id": "23b8799d-fa00-488c-ba94-5006e4aaeb83",
+      "name": "Sticky Note 4b5752a3",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -50,
+        -50
+      ],
+      "parameters": {
+        "content": "### Step 1 stub (M0)\nChecks its input, builds an output, checks the output, returns it. The stub copies the request into `wanted`, so every brief fails grading until M1 replaces the middle node. A failed check stops this workflow with the contract error.",
+        "color": 4,
+        "width": 300,
+        "height": 200
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Check step 1 input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check step 1 input": {
+      "main": [
+        [
+          {
+            "node": "Stub: copy request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stub: copy request": {
+      "main": [
+        [
+          {
+            "node": "Check step 1 output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check step 1 output": {
+      "main": [
+        [
+          {
+            "node": "Return step 1 output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  }
+}

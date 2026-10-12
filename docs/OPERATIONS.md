@@ -109,10 +109,20 @@ service up).*
   ```
 
   Files exported from the container are root-owned: `docker exec n8n chown 1000:1000 <path>`.
+- **The pipeline webhook** is `POST http://localhost:5678/webhook/recipe-pipeline` with body
+  `{"request": "...", "brief_id": "b01", "model": "..."}` (`brief_id` and `model` optional). It
+  answers after the run ends with `{run_id, ok, failed_step?, error?}`; the record is in
+  `app.run` and `app.run_step`. No auth for now (revisit with the chat trigger, M8). The three
+  workflows must be **published**: a sub-workflow edit needs `publish_workflow` too, and run
+  `python -m evals.workflows` after every workflow change, then commit the files.
+- **The `Postgres account` credential** connects as `postgres` to database `postgres` on
+  `supabase-db:5432` (measured 2026-10-12 with `select current_user, current_database()`), so
+  the `app` tables and `extensions.jsonschema_validation_errors` are reachable. The password was
+  entered in the n8n UI by the user.
 - **Exporting workflows into the repo:** `python -m evals.workflows` writes
   `n8n/workflows/<name>.json`. It runs `n8n export:workflow --all --output=/data/shared/.n8n-export.json`
   (stdout has log lines, so the file route is used), reads `shared/.n8n-export.json` and removes
-  it. With no workflows n8n exits 1 with "No workflows found"; the tool treats that as empty.
+  it. Archived workflows are skipped. With no workflows n8n exits 1 with "No workflows found"; the tool treats that as empty.
   `n8n/` is root-owned (docker-created); `n8n/workflows/` was created with a one-off
   `docker run --user 0 --entrypoint mkdir/chown -v $PWD/n8n:/w n8nio/n8n:latest`.
 
