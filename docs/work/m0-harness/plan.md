@@ -404,3 +404,16 @@ and `supabase-pooler` containers (`docker stop` / `docker start`, no recreate) t
 - 2026-10-12 · Task 6: the Postgres credential was checked with a temporary one-node workflow run
   through `execute_workflow` (then archived), because `test_workflow` pins credentialed nodes and
   would not have run the query. Result: `postgres`, `postgres`, `172.19.0.13`.
+- 2026-10-12 · Task 3: `test_examples` became two parametrized tests, `test_good_examples` and
+  `test_bad_examples` — one assertion style per test reads better. Same coverage.
+- 2026-10-12 · Task 6: the item "confirm in an execution which version the Execute Workflow node
+  runs" was not done. Draft = published for all three workflows (measured in review), so nothing
+  depends on it today; OPERATIONS §5 now marks the "publish sub-workflows too" advice as unverified.
+  Measure it when M1 first edits a sub-workflow.
+- 2026-10-12 · Task 6: `test_b01_logs_step_1` posts `"a pale ale"`, not b01's request — it only
+  checks that step 1 is logged, which does not depend on the text.
+- 2026-10-12 · Task 7: b01 was expected to be red on `wanted` only; it is red on `stated`, `hints`
+  and `wanted`, because b01 states `batch_l` and `abv` and the stub returns `stated: {}`.
+- 2026-10-12 · Review fixes: tests for `run_ok and` and the unfinished-run check (both seen to fail
+  with the code mutated); `totals()` step 1 now has `not_run`; `tests/conftest.py` uses
+  `loaders.db.connect(connect_timeout=3)` and skips when the env file or a key is missing.

@@ -25,7 +25,7 @@ def _read_env() -> dict[str, str]:
     return values
 
 
-def connect() -> psycopg.Connection:
+def connect(connect_timeout: int | None = None) -> psycopg.Connection:
     """A connection as postgres.<POOLER_TENANT_ID> through the pooler on localhost."""
     env = _read_env()
     return psycopg.connect(
@@ -35,6 +35,7 @@ def connect() -> psycopg.Connection:
         user=f"postgres.{env['POOLER_TENANT_ID']}",
         password=env["POSTGRES_PASSWORD"],
         autocommit=False,
+        connect_timeout=connect_timeout,
     )
 
 

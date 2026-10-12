@@ -6,7 +6,7 @@ from functools import lru_cache
 import psycopg
 import pytest
 
-from loaders.db import _read_env
+from loaders.db import connect
 
 N8N_HEALTH_URL = "http://localhost:5678/healthz"
 
@@ -14,17 +14,9 @@ N8N_HEALTH_URL = "http://localhost:5678/healthz"
 @lru_cache(maxsize=1)
 def stack_down_reason() -> str | None:
     """None when Postgres and n8n both answer, otherwise which part is down."""
-    env = _read_env()
     try:
-        psycopg.connect(
-            host="localhost",
-            port=env["POSTGRES_PORT"],
-            dbname=env["POSTGRES_DB"],
-            user=f"postgres.{env['POOLER_TENANT_ID']}",
-            password=env["POSTGRES_PASSWORD"],
-            connect_timeout=3,
-        ).close()
-    except psycopg.Error:
+        connect(connect_timeout=3).close()
+    except (psycopg.Error, OSError, KeyError):  # an unreadable env file or a missing key counts too
         return "Postgres"
     try:
         with urllib.request.urlopen(N8N_HEALTH_URL, timeout=3) as response:

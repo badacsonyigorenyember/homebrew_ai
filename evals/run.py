@@ -113,7 +113,8 @@ def table(results: list[dict]) -> str:
 
 def totals(results: list[dict]) -> dict:
     n = len(results)
-    out = {"step1": {"passed": sum(r["ran"][1] and r["step1"]["ok"] for r in results), "total": n}}
+    out = {"step1": {"passed": sum(r["ran"][1] and r["step1"]["ok"] for r in results), "total": n,
+                     "not_run": sum(not r["ran"][1] for r in results)}}
     for step in GRADED_STEPS:
         out[f"step{step}"] = {
             "passed": sum(r["ran"][step] and r[f"step{step}"] for r in results), "total": n,
@@ -124,8 +125,8 @@ def totals(results: list[dict]) -> dict:
 
 
 def format_totals(t: dict) -> str:
-    parts = [f"step 1 {t['step1']['passed']}/{t['step1']['total']}"]
-    for step in GRADED_STEPS:
+    parts = []
+    for step in (1, *GRADED_STEPS):
         s = t[f"step{step}"]
         parts.append(f"step {step} {s['passed']}/{s['total']} ({s['not_run']} not run)")
     parts.append(f"briefs {t['briefs']['passed']}/{t['briefs']['total']}")

@@ -23,7 +23,7 @@ def test_not_run_steps_count_as_failed():
     results = [_result("b01", steps={1: {"stated": {}, "hints": [], "wanted": ["x"],
                                          "excluded": [], "inventory": [], "guidance": True}})]
     totals = run.totals(results)
-    assert totals["step1"] == {"passed": 0, "total": 1}
+    assert totals["step1"] == {"passed": 0, "total": 1, "not_run": 0}
     assert totals["step2"] == {"passed": 0, "total": 1, "not_run": 1}
     assert totals["step3"] == {"passed": 0, "total": 1, "not_run": 1}
     assert totals["briefs"] == {"passed": 0, "total": 1}
@@ -35,7 +35,39 @@ def test_failed_run_is_reported_failed():
     results = [_result("b01", run_ok=False, error="contract step1.input: bad")]
     assert results[0]["passed"] is False
     assert run.totals(results)["briefs"]["passed"] == 0
-    assert "failed at step" in run.table(results) or "contract step1.input" in run.table(results)
+    row = run.table(results).splitlines()[-1]
+    assert "failed at step" in row and "contract step1.input" in row
+
+
+def _all_pass(monkeypatch):
+    """Make grading give a pass, so only the run's own state decides `passed`."""
+    ok = {"ok": True}
+    monkeypatch.setattr(
+        run.grade, "grade_run",
+        lambda brief, steps: {"step1": ok, "step2": True, "step3": True, "passed": True},
+    )
+
+
+def test_failed_run_with_good_steps_is_not_passed(monkeypatch):
+    _all_pass(monkeypatch)
+    good = _result("b01", run_ok=True)
+    bad = _result("b01", run_ok=False, error="boom")
+    assert good["passed"] is True
+    assert bad["passed"] is False
+
+
+def test_unfinished_run_is_not_passed(monkeypatch):
+    """The HTTP answer says ok, but the stored run never finished: the runner trusts the database."""
+    _all_pass(monkeypatch)
+    brief = next(b for b in BRIEFS if b["id"] == "b01")
+    monkeypatch.setattr(run, "send", lambda *a, **k: {"ok": True, "run_id": 7})
+    monkeypatch.setattr(
+        run, "read_run", lambda conn, run_id: {"finished": False, "ok": False, "steps": {1: {}}}
+    )
+    result = run.run_brief(None, brief)
+    assert result["run_ok"] is False
+    assert result["passed"] is False
+    assert result["error"] == "run not finished ok"
 
 
 @pytest.mark.stack
