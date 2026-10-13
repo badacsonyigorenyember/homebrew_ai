@@ -21,3 +21,33 @@ DB changes are `.sql` files.
 | 7 | note | PROJECT.md §4 Scripts row | The row still says "`pytest` gives 122 passed … (measured 2026-10-12)" and "`tests/test_recipe_briefs.py` (10 tests)". Now 206 pass and the brief tests number 11. The new step 2 and style-pair test files are not listed. The row is dated, so it is stale rather than false. | The status column is behind the measured state. |
 | 8 | note | docs/work/m2-best-fit-style/plan.md Deviations | Two lines describe the name-matching script that Task 2 later removed (the `same_word` 0.85 threshold, and "pairs proposed by Claude …" before the delegation). | History only. The current plan text is right. |
 | 9 | note | — | Process: Tasks 1, 2, 3 and 5 partly skipped writing the test first (implementer's note). The critical-behaviour tests listed in the plan all exist, and each fails if its behaviour breaks: checked by reading the assertions. | No gap in what is tested. |
+
+## Re-review 2026-10-13
+
+Diff: 86e173c..2f56b5a (fixes for findings 1-4)  ·  Verdict: fixes needed
+
+Checked: the fix commit against findings 1-4; the deployed `app.step2_best_style`,
+`app.adjunct_cue` and `app.style_name_covers` match `db/022_step2.sql` by md5 and are owned by
+`postgres`; `.venv/bin/pytest` 215 passed (rerun here); the logged b12 step 2 output (run 899).
+To check the new scoring for regressions, the pre-fix function was rebuilt as a session-only
+`pg_temp` copy (`NO_NAME_FACTOR` 1, no `covers` condition) and both were run on all 22 distinct
+step 2 inputs logged in `app.run_step` and on 27 probe briefs. On the 22 logged inputs only b05
+changes (its pale lagers leave `alt_styles`, as intended). Commit is one line, no secrets.
+
+Earlier findings:
+- **1 (A4 example): fixed.** A4 and its Deviations line now use the smoke porter;
+  `test_smoke_porter_keeps_the_ba_style` checks `smoke-porter` is kept and the reason names 32A.
+- **2 (bar test looser than A1): fixed.** `test_briefs_reach_the_bar` checks the picked
+  `style.code` against `style` + `alt_styles`, as `evals/grade.py` does.
+- **3 (b05 margin, pale lager alternatives): fixed for b05, but the rule breaks the mismatch case
+  in general.** See new finding 10.
+- **4 (prominence wording): partly fixed.** Word forms now count and a damper far from the
+  adjunct no longer vetoes, but see new findings 11 and 12.
+
+| # | Severity | Where | Finding | Why it matters |
+|---|---|---|---|---|
+| 10 | must-fix | db/022_step2.sql:354-355 | `NO_NAME_FACTOR` halves numbers and words for every style that shares no word with the name. That is exactly the style a mismatch needs: the named style is ruled out by a number and the fitting style has another name. b05 works only because 15B happens to share "stout". Same shape, other styles (pre-fix → now): "a 5% barleywine" 8B + mismatch 22C → **unknown**; "a 4% tripel" 1A + mismatch 26C → **unknown**; "a classic German pils at 80 IBU" 22A + mismatch 5D → **unknown**; "an 8% kolsch" 9C + mismatch 5B → **5B, no mismatch**; "a 4% doppelbock" → **9A, no mismatch**; "an 8% berliner weisse" → **23A, no mismatch**. "A 9% roasty lager" now picks the BA catch-all `other-strong-ale-or-lager` at exactly MIN_SCORE (1.00), on the word "lager" alone. | R4 ("a stated number that rules out the named style produces the mismatch") now holds only when the fitting style shares a name word, and R8's unknown result is returned for requests that name a real style. The rule fixes b05 rather than the general case, which the user ruled out. The pre-fix picks for these probes were weak too, but they were picks with the mismatch reported. Possible fixes, for the user to choose: apply the factor only when choosing `alt_styles` (pick, unknown and mismatch as before; b05's margin stays 0.05), or drop it and accept finding 3. |
+| 11 | should-fix | db/022_step2.sql:229-231 | `adjunct_cue` returns the captured stem, not the word in the request. The logged b12 run (899) gives the reason `honey is prominent in the request ("shin")`; "taste" would show as "tast". | The reason quotes text that is not in the request. Capturing the whole word (`'\m(' \|\| cue \|\| '\w*)'`) would fix it. |
+| 12 | should-fix | db/022_step2.sql:222 | The damper check also looks after the adjunct (`adj \|\| gap \|\| damp`), where a damper almost always belongs to the next item, and DAMPER_GAP = 2 is the exact edge of the new test. Measured: "Plenty of honey and some citrus." → not prominent; "Lots of honey and a little lemon zest." → not; "Honey forward and some citrus." → not; "I want some citrus and honey forward." → not, while the tested "I want some citrus hops and honey forward." (3 words between) → prominent. | Finding 4's case (a damper that belongs to another ingredient) still vetoes in ordinary wordings. R7 misses them; the gap was set where the test passes rather than from a general rule. |
+| 13 | note | tests/test_step2_pick.py:79-88 | `test_b05_wins_clearly_and_lists_no_pale_lager` requires a lead of ≥ 0.1; the measured lead is 0.12. It adds the hint `session` to copy step 1's wrong b05 output. | The threshold is set from one measurement of one brief; small weight changes will trip it. |
+| 14 | note | db/022_step2.sql:63-75 | `style_name_covers` is stricter than the name score: one extra word in `named` that no style name holds ("classic German pils") means no style covers it, so no mismatch can be reported for it. ("Dry Irish stout" still reports 15B, through BA Irish-Style Dry Stout and its pair.) The b21 case it was written for is right. | Depends on step 1 keeping adjectives out of `named`; not measured. |
