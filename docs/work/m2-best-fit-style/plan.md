@@ -38,20 +38,19 @@ Branch: m2-best-fit-style
     names BA (`\mBA\M`, upper case only, or "Brewers Association"), and null when it names both
     or neither. Null means `any`.
   - *No restriction (`any`).* Both guides are scored together and the best total wins, with no
-    margin for either. If the winner is a BA style that has a BJCP pair in the reviewed pair
+    margin for either. If the winner is a BA style that has a BJCP pair in the decided pair
     list, the BJCP style is returned instead (German-Style Koelsch → 5B). Equal totals go BJCP
     first, then by code.
   - *Restricted.* Only that guide is scored and the pair list is not used.
   - `guide_reason` says where the guide came from (field, request text, or none) and, under
     `any`, whether the pair list changed the pick.
-- **The pair list is reviewed by the user once.** Claude reads each style's full guideline
-  content in `ref.beer_style` (sensory sections, ingredients, history, comments, vital
-  statistics) and proposes a BJCP style only where the BA style is the same beer: same or very
-  similar sensory profile, ingredients and process, compatible vitals. Names are not used (user's
-  rule). The proposals, with a confidence and a reason per row, are a review table in
-  `style-pairs.md`, and you fill its `confirm` column (`ok`, another BJCP code, or `drop`). Only
-  the confirmed pairs go into `db/021_style_pairs.sql` as `app.style_pair()`, a `values` list.
-  Not every BA style gets a pair. Step 2's picking function is built only after this review.
+- **The pair list is decided once, by Claude (user's delegation, 2026-10-13).** Claude reads
+  each style's full guideline content in `ref.beer_style` and pairs a BA style with the BJCP
+  style it looks, smells and tastes like (colour, aroma, flavour, mouthfeel; ingredients and
+  process back this up). Vitals only veto a pair when the ABV or IBU ranges don't overlap.
+  Names are not used. The decided list, with a reason per row, is `style-pairs.md`; its pairs go
+  into `db/021_style_pairs.sql` as `app.style_pair()`, a `values` list. Not every BA style gets
+  a pair. Step 2's picking function is built only after this list.
 - **Specialty rule (R7).** After the base pick: a `wanted` item that has a row in the specialty
   list for the chosen guide (honey → BJCP 31B, BA `specialty-honey-beer`) and that the request
   makes prominent picks the specialty code, with the base style first in `alt_styles`.
@@ -140,9 +139,9 @@ water_salts = []
 | `evals/recipe_briefs.toml` | changed | b21, b22; header: `style` may be a BA 2026 code |
 | `tests/test_recipe_briefs.py` | changed | 22 briefs; codes exist in `bjcp-2021` or `ba-2026` |
 | `docs/work/m2-best-fit-style/brief.md` | changed | user's answers, R2/R6/A1/A4/A6 (done while planning, committed with this plan) |
-| `docs/work/m2-best-fit-style/style-pairs.md` | new | pairs proposed by Claude from the guideline content, confirmed by the user |
-| `db/021_style_pairs.sql` | new | `app.style_pair()`: the reviewed pairs |
-| `tests/test_style_pairs.py` | new | the SQL list matches the reviewed file; its codes exist (stack) |
+| `docs/work/m2-best-fit-style/style-pairs.md` | new | pairs decided by Claude on sensory similarity (user's delegation) |
+| `db/021_style_pairs.sql` | new | `app.style_pair()`: the decided pairs |
+| `tests/test_style_pairs.py` | new | the SQL list matches the decided file; its codes exist (stack) |
 | `db/022_step2.sql` | new | signal functions, alias and specialty lists, `app.step2_best_style` |
 | `tests/test_step2_signals.py` | new | each signal on its own (A6), alias sources (A7) |
 | `tests/test_step2_pick.py` | new | A1 (SQL level), A2, A3, A4, A5, contract |
@@ -176,54 +175,53 @@ Why: user decision on Open question 2, R6; A1 (b21, b22).
 Done when: 22 briefs load and the brief tests pass.
 Commit: `Add two BA briefs for step 2`
 
-### Task 2: Claude proposes BA ↔ BJCP pairs from the guideline content, for your review
-Why: R6 (equivalent styles go to BJCP); user decisions "reviewed list" and "Claude only" (pairs
-judged by characteristics, sensory profile and ingredients, not by name; no scoring script).
+### Task 2: Claude decides the BA ↔ BJCP pairs from the guideline content
+Why: R6 (equivalent styles go to BJCP); user decisions "Claude only" (pairs judged by look,
+smell and taste, not by name; no scoring script) and, on 2026-10-13, delegation of the final
+decision to Claude (no row-by-row review).
 - [x] Read every style's full guideline content from `ref.beer_style` (read-only `psql`): overall
       impression, aroma, appearance, flavour, mouthfeel, ingredients, history, comments, style
       comparison, commercial examples, OG/FG/ABV/IBU/SRM. 169 BA and 116 BJCP rows, read by
       family (lagers; British and Irish ales; North American ales; German, Belgian and other
       ales; hybrid and specialty).
-- [x] For each BA style decide whether a BJCP style is the same beer (same or very similar
-      sensory profile, ingredients and process, compatible vitals). Strict: a narrower or
-      broader neighbour, a regional variant with a different character, a BA style spanning two
-      BJCP styles, or a specific case inside a BJCP catch-all is not a pair. b21's
+- [x] For each BA style pick the BJCP style with the most similar sensory profile (colour,
+      aroma, flavour, mouthfeel), one code at most. Neighbours, regional variants and specific
+      styles inside a BJCP catch-all pair when they taste alike. Vitals only veto when the ABV or
+      IBU ranges don't overlap (a one-unit miss at the edge counts as touching; a missing range
+      neither vetoes nor helps). The user's four confirmed catch-all pairs stay. b21's
       `session-india-pale-ale` and b22's `mexican-style-amber-lager` stay unpaired (the evals
       expect the BA pick).
-- [x] Rewrite `style-pairs.md`: intro with the rules and counts, then one row per BA style (169)
-      in sections low → medium → high confidence: BA code · BA name · proposed BJCP code and
-      name or `—` · confidence · reason naming the shared or differing features · ABV and IBU of
-      both · **confirm** (empty; you write `ok`, another BJCP code, or `drop`).
+- [x] Rewrite `style-pairs.md` as the decided list: intro with the user's rule, the delegation
+      and the counts, then one row per BA style (169), sorted by BA code: BA code · BA name ·
+      BJCP code and name or `—` · sensory reason (and the vitals gap when that is why it is
+      unpaired) · ABV and IBU of both.
 - [x] Remove the name-matching `loaders/style_pairs.py` and its tests: no script proposes
       pairs any more, and Task 3 needs no part of it (its check reads `style-pairs.md` directly).
 - [x] Run `.venv/bin/pytest`, expect all pass.
 - [x] PROJECT.md §4 Scripts row (script removed) and §8 entry with the counts.
-- [x] Commit, then **stop and report `needs-input`**: ask the user to fill the `confirm` column
-      of every row of `style-pairs.md`. Task 3 starts only after the review.
-Done when: `style-pairs.md` lists all 169 BA styles with a proposal, confidence and reason, and
-the suite passes.
-Commit: `Propose style pairs from guideline content`
+Done when: `style-pairs.md` lists all 169 BA styles with a decision and a reason, and the suite
+passes.
+Commit: `Decide style pairs by sensory similarity`
 
-### Task 3: the reviewed pairs are a versioned SQL list
-Why: R6; user decision "reviewed list". Needs the user's filled `style-pairs.md`.
-- [ ] `db/021_style_pairs.sql` (header: purpose, "reviewed by the user on <date> in
-      docs/work/m2-best-fit-style/style-pairs.md", apply command, idempotent):
-      `create or replace function app.style_pair() returns table (ba_code text, bjcp_code text)
-      language sql immutable` returning a `values` list with exactly the confirmed pairs (a
-      paired row marked `ok`, or any row given a BJCP code in `confirm`), one per line, each with
-      a `-- <BA name> = <BJCP name>` comment. No other row (`drop`, and `ok` on a `—` row, give
-      none).
+### Task 3: the decided pairs are a versioned SQL list
+Why: R6; the pair list decided in Task 2.
+- [ ] `db/021_style_pairs.sql` (header: purpose, "decided by Claude on sensory similarity,
+      delegated by the user on 2026-10-13, in docs/work/m2-best-fit-style/style-pairs.md",
+      apply command, idempotent): `create or replace function app.style_pair() returns table
+      (ba_code text, bjcp_code text) language sql immutable` returning a `values` list with
+      exactly the rows of `style-pairs.md` that have a BJCP code, one per line, each with a
+      `-- <BA name> = <BJCP name>` comment. No `—` row.
 - [ ] Apply twice: `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1
       < db/021_style_pairs.sql`. Check `pg_proc`: owned by `postgres`.
 - [ ] New `tests/test_style_pairs.py` (stack): `test_pair_codes_exist` (each `ba_code` is a
       `ba-2026` code, each `bjcp_code` a `bjcp-2021` code); `test_each_ba_style_paired_once`;
-      `test_pair_list_matches_review` (the rows equal the confirmed pairs of `style-pairs.md`,
-      read by path relative to this work folder or, after shipping,
-      `docs/finished/m2-best-fit-style/`; every row's `confirm` is filled).
+      `test_pair_list_matches_file` (the rows equal the paired rows of `style-pairs.md`, read by
+      path relative to this work folder or, after shipping, `docs/finished/m2-best-fit-style/`;
+      the file has all 169 BA codes).
 - [ ] Run `.venv/bin/pytest tests/test_style_pairs.py`, expect all pass. `docs/DATABASE.md` §5:
       one line for `app.style_pair()`. PROJECT.md §8 entry with the number of pairs.
-Done when: the SQL list holds exactly the reviewed pairs and its tests pass.
-Commit: `Add the reviewed BA to BJCP style pairs`
+Done when: the SQL list holds exactly the decided pairs and its tests pass.
+Commit: `Add the decided BA to BJCP style pairs`
 
 ### Task 4: each step 2 signal is a tested SQL function
 Why: R3, R4, R5, R6 (guide words), R7 (prominence); A6, A7. DB changes as `.sql` applied with
@@ -334,7 +332,7 @@ Why: R1, R2, R4, R6, R7, R8; A1 (SQL level), A2, A3, A4, A5.
          (top 5 rows as scored: `guide, code, score` rounded to 2), `scores` of the base pick
          (`name`, `numbers`, `words`, `total`, rounded to 2), `mismatch`, `guide_reason`
          (where the guide came from; under `any`, "both guides scored, best fit <code>" and, when
-         the pair list was used, "<BA code> is the same style as <BJCP code> (reviewed pair),
+         the pair list was used, "<BA code> is the same style as <BJCP code> (style pair),
          BJCP used"), `reason` (one sentence: base pick and its strongest signal; with a
          specialty pick, the adjunct and the cue that made it prominent).
 - [ ] Apply twice (command as in Task 4).
@@ -438,7 +436,7 @@ Why: G2; A1, A2.
 - [ ] `docs/WORKFLOW-ROADMAP.md`: G2 **Measured** line (counts, A2 cases, results file); §3
       M2 rows: BA briefs added (b21, b22). PROJECT.md §5 D1 paragraph: rewrite it to the
       user's rule as built (both guides scored, best fit wins, equivalent styles go to BJCP
-      through the reviewed pair list, BJCP-only / BA-only from the `guide` field or the request
+      through the decided pair list, BJCP-only / BA-only from the `guide` field or the request
       text, the field wins), replacing "BJCP 2021 is preferred …" and "Step 2 is not built
       yet"; keep a one-line *why* (the user's call, 2026-10-13). §8 entry with the measured
       numbers.
@@ -451,7 +449,7 @@ Commit: `Measure G2 for step 2`
 
 | Behaviour | Test | Task |
 |---|---|---|
-| Only the user-reviewed pairs map a BA style to BJCP | `tests/test_style_pairs.py::test_pair_list_matches_review`, `::test_pair_codes_exist`, `::test_each_ba_style_paired_once` | 3 |
+| Only the decided pairs in `style-pairs.md` map a BA style to BJCP | `tests/test_style_pairs.py::test_pair_list_matches_file`, `::test_pair_codes_exist`, `::test_each_ba_style_paired_once` | 3 |
 | Under `any`, a BA winner with a pair returns the BJCP style; BA only keeps the BA style | `tests/test_step2_pick.py::test_ba_winner_with_pair_returns_bjcp` | 5 |
 | The `guide` field wins over the request text; the request text restricts when the field is absent | `::test_ba_only_field_b01`, `::test_ba_only_from_request_b01`, `::test_field_beats_request_text`; `tests/test_step2_signals.py::test_guide_named_in_request` | 4, 5 |
 | A stated number that rules out the named style changes the pick and reports the mismatch | `tests/test_step2_pick.py::test_b05_irish_stout_with_mismatch` | 5 |
@@ -479,3 +477,4 @@ Commit: `Measure G2 for step 2`
   tests keep the `stack` marker. Recorded in brief.md too.
 - 2026-10-13 · Task 2: `same_word` ratio threshold 0.85, not 0.8 — at 0.8 `mexican` matched `american` (ratio 0.80) and proposed 1B American Lager for the Mexican amber lager; `koelsch`/`kolsch` is 0.92.
 - 2026-10-13 · Task 2: pairs proposed by Claude reading the guidelines, not by a name-matching script — user's request
+- 2026-10-13 · Task 2: pairs decided by Claude on sensory similarity (vitals only veto when ABV or IBU ranges don't overlap); user delegated the decision, no row review — user's request

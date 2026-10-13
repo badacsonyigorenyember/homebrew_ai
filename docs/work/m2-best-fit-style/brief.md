@@ -25,8 +25,8 @@ In:
   (5B Kölsch and German-Style Koelsch, 26B and Belgian-Style Dubbel), the BJCP one is used. The
   user can restrict the pick to BJCP only or BA only, in the request text or with the webhook's
   `guide` field.
-- A BA ↔ BJCP pair list of equivalent styles: proposed by a script, reviewed by the user once,
-  kept as a versioned SQL file.
+- A BA ↔ BJCP pair list of equivalent styles: decided by Claude on sensory similarity (the user
+  delegated it), kept as a versioned SQL file.
 - The R3 rule: the base style by default; the specialty code when the request makes an adjunct a
   stated, prominent feature, with the base style as the alternative (b12 → 31B, alt 18A).
 - A mismatch output when the best fit is not the named style (b05).
@@ -50,7 +50,7 @@ R4. Number signal: each stated ABV, OG, IBU or SRM inside the style's range scor
 R5. Word signal: hint and flavour words count against the style's text (overall impression,
     aroma, flavour, mouthfeel) and `raw.tags`, e.g. "roasty", "hoppy", "malty".
 R6. Guide choice: with no restriction both guides are scored and the best fit wins, BJCP or BA,
-    with no margin for either. When the winner has an equivalent in the other guide (the reviewed
+    with no margin for either. When the winner has an equivalent in the other guide (the decided
     pair list), the BJCP style is returned. "BJCP only" or "BA only" scores only that guide; it
     comes from the webhook's `guide` field (`any`, `bjcp`, `ba`; default `any`) or from the
     request text ("BA style", "per BJCP"), read by code, and the field wins when both are given.
@@ -65,8 +65,9 @@ R9. The step logs its input, output and timing in `run_step` (step 2).
 ## Constraints
 - PROJECT.md §6.1 and §6.7: style ranges are read by SQL, never by the LLM.
 - §6.8: one readable scoring function; signals and weights visible in it, not in a config table.
-- The BA ↔ BJCP pair list is reviewed by the user before step 2 uses it. Not every BA style needs
-  a pair.
+- The BA ↔ BJCP pair list is fixed before step 2 uses it: Claude decides it on look, aroma and
+  taste, vitals only veto when ABV or IBU ranges don't overlap (user's delegation, 2026-10-13).
+  Not every BA style needs a pair.
 - `ref.beer_style` columns: `guide`, `code`, `name`, `category`, `category_code`, `og`, `fg`,
   `ibu`, `srm`, `abv` (ranges), `characteristic_ingredients`, `raw` (checked on the catalog
   2026-10-12). BA rows have `category_code` NULL.
@@ -84,7 +85,7 @@ A2. b05 picks 15B with a mismatch naming 20C and its ABV range; b12 picks 31B wi
 A3. Two runs on the same brief give identical output (R2).
 A4. With "BA only", from the `guide` field or from the request text, b01 picks a BA style, and the
     output says why; when the field and the text disagree, the field wins. With no restriction, a
-    BA best fit that has a reviewed BJCP pair returns the BJCP style (German-Style Koelsch → 5B)
+    BA best fit that has a BJCP pair in the list returns the BJCP style (German-Style Koelsch → 5B)
     (R6).
 A5. A request with no beer in it ("something nice") gives the unknown result (R8).
 A6. Unit tests cover each signal on its own: they call each SQL function directly with literal
@@ -109,3 +110,4 @@ Answered by the user on 2026-10-13:
   are M4); no LLM tie-break; b21 and b22 added to A1; A6's "without the stack" now means without
   n8n or the pipeline, since the signals are SQL functions (G0). Step 2 also reads the request
   text, for adjunct prominence (R7) and a named guide (R6).
+- 2026-10-13 · Task 2: pairs decided by Claude on sensory similarity (vitals only veto when ABV or IBU ranges don't overlap); user delegated the decision, no row review — user's request
