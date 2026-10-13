@@ -219,6 +219,7 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-13
+- Planned `m2-best-fit-style` ([`docs/work/m2-best-fit-style/plan.md`](docs/work/m2-best-fit-style/plan.md)).
 - Shipped `m1-read-request` ([`docs/finished/m1-read-request/`](docs/finished/m1-read-request/)): step 1 reads the request with
   one Ollama call checked by SQL, D2 decided (Qwen3.8-27B UD-Q6_K, thinking off). Verified: 8 checks, `pytest` 151 passed;
   merged to `main`.
