@@ -31,3 +31,18 @@ migration file) is what the plan said, applies cleanly to the live DB and to a f
 the model, D2 gone from §7) and A7/A8 (tests) are met in the files; A3 and A5 are stack tests in
 `tests/test_pipeline.py` that dev-verify runs. No change outside the plan's Files table, apart
 from the `Test data` sticky note in `recipe-pipeline.json` moving 8 px.
+
+## Re-review 2026-10-13
+
+Diff: 2a474dc..ab94d94 (1 commit, one-line subject, no body)  ·  Verdict: ready for testing
+
+Checked: findings 1–3 and the fix diff only. `pytest -m "not stack"`: 113 passed (112 + the new
+test); `tests/test_benchmark.py`: 7 passed.
+
+| # | Earlier finding | Result |
+|---|---|---|
+| 1 | per-configuration hashes | Fixed. `add_config()` (evals/benchmark.py:130) stores `prompt_sha256` / `contract_sha256` on each configuration and `main` uses it; the top-level keys are gone and nothing else in the repo reads them. The results file has 7 configurations, each with `ba3a9ca3…` / `e304028c…`, the same values `benchmark.md` records and the sha256 of the repo files now. The backfill is a recorded value, not a measured one, but it is consistent: both files were committed once, in their final form, in 3f76ccf, before any benchmark commit. The backfill is noted in plan.md Deviations and PROJECT.md §8. `test_each_saved_config_keeps_its_own_hashes` would fail if the hashes went back to the top level (KeyError) or were shared between configurations. |
+| 2 | stray `\|` in docs/DATABASE.md | Fixed (line 406 ends at "request."). |
+| 3 | stale Delivery workflow row | Fixed (PROJECT.md:118 "built, D2 decided, in review fixes 2026-10-13"); §8 has a dated entry for the fixes. |
+
+No new findings in the fix diff. Notes 4–7 from the first review stand unchanged.
