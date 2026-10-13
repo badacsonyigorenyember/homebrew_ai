@@ -158,8 +158,9 @@ A7. With a hand-made brief whose wanted honey has role `feature` and a request t
     word, step 2 picks 31B with base 18A as an alternative; with role `background` and the b12
     request text, it picks 18A (R7).
 A8. The b12 specialty reason contains `feature` and no quoted cue word (R8).
-A9. `grep -rn "adjunct_cue\|adjunct_is_prominent\|DAMPER" db tests evals shared n8n` finds nothing,
-    and `pg_proc` has no `app.adjunct_cue` or `app.adjunct_is_prominent` (R9).
+A9. `grep -rn "adjunct_cue\|adjunct_is_prominent\|DAMPER" db tests evals shared n8n` finds only
+    the two `drop function` lines in `db/023_drop_adjunct_rule.sql`, and `pg_proc` has no
+    `app.adjunct_cue` or `app.adjunct_is_prominent` (R9).
 A10. G2 re-run on the real pipeline (`evals.run --save`): step 2 22/22 with b05 15B + mismatch
     20C, b12 31B, b19 17C, b17 8B; step 1 ≥ 21/22 with roles counted; `pytest` all passed (R10).
 
@@ -171,3 +172,4 @@ settings plus a report-only run at temperature 0.8 (R4), 10 held-out wordings wi
 approved with the plan (R5).
 
 ## Deviations
+- 2026-10-13 · A9: the grep may find the two `drop function` lines in `db/023_drop_adjunct_rule.sql`, and nothing else — the drop file R9 asks for has to name the functions (user decision).
