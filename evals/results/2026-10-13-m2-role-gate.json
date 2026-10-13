@@ -1,0 +1,1507 @@
+{
+  "date": "2026-10-13",
+  "label": "m2-role-gate",
+  "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+  "prompt_sha256": "0a8b25cff6fe88b532cc03d62133a807faba1e5ff1ee61aa2e0b723933574bd2",
+  "contract_sha256": "9770115141c153ee077a8d2474238c924dc740885773bf4b57552e0319591e78",
+  "settings": {
+    "gated": {
+      "temperature": 0,
+      "seeds": [
+        42
+      ]
+    },
+    "hot": {
+      "temperature": 0.8,
+      "seeds": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  "runs": 3,
+  "wordings": [
+    {
+      "id": "r01",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "feature",
+      "source": "b12",
+      "request": "A simple blonde ale where the honey really shines through, I want to taste it in every glass. Easy drinking for friends who don't like craft beer.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1236,
+            1237,
+            1238
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14490,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1239,
+            1240,
+            1241
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 13637,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r02",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "feature",
+      "source": "m2 review",
+      "request": "A blonde ale where the honey really shines.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1242,
+            1243,
+            1244
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 11802,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1245,
+            1246,
+            1247
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 11671,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r03",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "feature",
+      "source": "m2 review",
+      "request": "A honey ale that showcases the honey.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1248,
+            1249,
+            1250
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 11675,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1251,
+            1252,
+            1253
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 11693,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r04",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "feature",
+      "source": "m2 review",
+      "request": "Honey-forward, with some citrus hops.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1254,
+            1255,
+            1256
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14720,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1257,
+            1258,
+            1259
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14496,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r05",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "feature",
+      "source": "m2 review",
+      "request": "Plenty of honey and some citrus.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1260,
+            1261,
+            1262
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14506,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1263,
+            1264,
+            1265
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14389,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r06",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "feature",
+      "source": "m2 review",
+      "request": "Lots of honey and a little lemon zest.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1266,
+            1267,
+            1268
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14703,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1269,
+            1270,
+            1271
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14725,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r07",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "feature",
+      "source": "m2 review",
+      "request": "Honey forward and some citrus.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            null,
+            null,
+            null
+          ],
+          "run_ids": [
+            1272,
+            1273,
+            1274
+          ],
+          "right_every_run": false,
+          "consistent": true,
+          "llm_ms": 10222,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1275,
+            1276,
+            1277
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 13320,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r08",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "feature",
+      "source": "m2 review",
+      "request": "I want some citrus and honey forward.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1278,
+            1279,
+            1280
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14459,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1281,
+            1282,
+            1283
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14364,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r09",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "feature",
+      "source": "m2 review",
+      "request": "Honey forward with some citrus.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1284,
+            1285,
+            1286
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 12637,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1287,
+            1288,
+            1289
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 12572,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r10",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "feature",
+      "source": "m2 review",
+      "request": "Lots of honey with a little lemon zest.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1290,
+            1291,
+            1292
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14667,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1293,
+            1294,
+            1295
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14491,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r11",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "feature",
+      "source": "m2 review",
+      "request": "Honey up front with a hint of ginger.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1296,
+            1297,
+            1298
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14445,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1299,
+            1300,
+            1301
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14399,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r12",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "feature",
+      "source": "m2 review",
+      "request": "A honey-forward ale with a touch of spice.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            null,
+            null,
+            null
+          ],
+          "run_ids": [
+            1302,
+            1303,
+            1304
+          ],
+          "right_every_run": false,
+          "consistent": true,
+          "llm_ms": 10464,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            null,
+            null,
+            "feature"
+          ],
+          "run_ids": [
+            1305,
+            1306,
+            1307
+          ],
+          "right_every_run": false,
+          "consistent": false,
+          "llm_ms": 10174,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r13",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "feature",
+      "source": "m2 review",
+      "request": "Plenty of honey, with a little lemon.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1308,
+            1309,
+            1310
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14426,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1311,
+            1312,
+            1313
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14468,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r14",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "feature",
+      "source": "m2 review",
+      "request": "I want the honey to shine with a bit of orange peel.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1314,
+            1315,
+            1316
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14554,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1317,
+            1318,
+            1319
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14339,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r15",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "background",
+      "source": "b19",
+      "request": "A wee heavy, rich and malty, with some honey added. Make it a bit stronger than most. 10 litres.",
+      "word_rule": "background",
+      "settings": {
+        "gated": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1320,
+            1321,
+            1322
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 16294,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "background",
+            "feature",
+            "background"
+          ],
+          "run_ids": [
+            1323,
+            1324,
+            1325
+          ],
+          "right_every_run": false,
+          "consistent": false,
+          "llm_ms": 16511,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r16",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "background",
+      "source": "m2 review",
+      "request": "A 5% blonde ale with honey that is subtle, with the hops up front.",
+      "word_rule": "background",
+      "settings": {
+        "gated": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1326,
+            1327,
+            1328
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14647,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1329,
+            1330,
+            1331
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14513,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r17",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "background",
+      "source": "m2 review",
+      "request": "I want honey that is subtle, with the hops up front.",
+      "word_rule": "background",
+      "settings": {
+        "gated": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1332,
+            1333,
+            1334
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 12602,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1335,
+            1336,
+            1337
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 12448,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r18",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "background",
+      "source": "m2 review",
+      "request": "The honey should be subtle and the hops forward.",
+      "word_rule": "background",
+      "settings": {
+        "gated": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1338,
+            1339,
+            1340
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 15697,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "background",
+            null,
+            "background"
+          ],
+          "run_ids": [
+            1341,
+            1342,
+            1343
+          ],
+          "right_every_run": false,
+          "consistent": false,
+          "llm_ms": 13880,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r19",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "background",
+      "source": "m2 review",
+      "request": "Honey in a slight supporting role while the hops dominate.",
+      "word_rule": "background",
+      "settings": {
+        "gated": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1344,
+            1345,
+            1346
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 12520,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1347,
+            1348,
+            1349
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 12552,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r20",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "background",
+      "source": "m2 review",
+      "request": "A blonde with honey that stays slight, hop flavour forward.",
+      "word_rule": "background",
+      "settings": {
+        "gated": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1350,
+            1351,
+            1352
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 12810,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1353,
+            1354,
+            1355
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 12797,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r21",
+      "set": "clear",
+      "adjunct": "honey",
+      "expected": "background",
+      "source": "m2 review",
+      "request": "A pale ale with honey, but keep it subtle, and citrus hops up front.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1356,
+            1357,
+            1358
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 15021,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1359,
+            1360,
+            1361
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 14998,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r22",
+      "set": "ambiguous",
+      "adjunct": "honey",
+      "expected": "",
+      "source": "m2 review finding 17",
+      "request": "A pale ale with a touch of orange blossom honey that you can taste.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1362,
+            1363,
+            1364
+          ],
+          "right_every_run": null,
+          "consistent": true,
+          "llm_ms": 11868,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1365,
+            1366,
+            1367
+          ],
+          "right_every_run": null,
+          "consistent": true,
+          "llm_ms": 11837,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r23",
+      "set": "ambiguous",
+      "adjunct": "honey",
+      "expected": "",
+      "source": "m2 review finding 17",
+      "request": "A little bit of orange blossom honey, you should taste it.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1368,
+            1369,
+            1370
+          ],
+          "right_every_run": null,
+          "consistent": true,
+          "llm_ms": 11609,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1371,
+            1372,
+            1373
+          ],
+          "right_every_run": null,
+          "consistent": true,
+          "llm_ms": 12236,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "r24",
+      "set": "ambiguous",
+      "adjunct": "honey",
+      "expected": "",
+      "source": "m2 review finding 17",
+      "request": "a touch of wildflower honey I can taste",
+      "word_rule": "background",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1374,
+            1375,
+            1376
+          ],
+          "right_every_run": null,
+          "consistent": true,
+          "llm_ms": 14102,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1377,
+            1378,
+            1379
+          ],
+          "right_every_run": null,
+          "consistent": true,
+          "llm_ms": 11294,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "h01",
+      "set": "held_out",
+      "adjunct": "molasses",
+      "expected": "feature",
+      "source": "held out",
+      "request": "A dark brown porter built around molasses, I want its flavour front and centre.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1380,
+            1381,
+            1382
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 16297,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1383,
+            1384,
+            1385
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 12666,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "h02",
+      "set": "held_out",
+      "adjunct": "molasses",
+      "expected": "background",
+      "source": "held out",
+      "request": "An old ale with a spoonful of molasses for colour.",
+      "word_rule": "background",
+      "settings": {
+        "gated": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1386,
+            1387,
+            1388
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 11646,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1389,
+            1390,
+            1391
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 11399,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "h03",
+      "set": "held_out",
+      "adjunct": "raspberry",
+      "expected": "feature",
+      "source": "held out",
+      "request": "A wheat beer bursting with raspberry, it should taste like fresh fruit.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1392,
+            1393,
+            1394
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 15638,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            null,
+            "feature"
+          ],
+          "run_ids": [
+            1395,
+            1396,
+            1397
+          ],
+          "right_every_run": false,
+          "consistent": false,
+          "llm_ms": 11061,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "h04",
+      "set": "held_out",
+      "adjunct": "cherry",
+      "expected": "background",
+      "source": "held out",
+      "request": "A pale ale with a little cherry in the secondary, but the hops are the point.",
+      "word_rule": "background",
+      "settings": {
+        "gated": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1398,
+            1399,
+            1400
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 18680,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "background",
+            null,
+            null
+          ],
+          "run_ids": [
+            1401,
+            1402,
+            1403
+          ],
+          "right_every_run": false,
+          "consistent": false,
+          "llm_ms": 14397,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "h05",
+      "set": "held_out",
+      "adjunct": "coffee",
+      "expected": "feature",
+      "source": "held out",
+      "request": "A stout where the coffee is the main event, like an iced latte.",
+      "word_rule": "background",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1404,
+            1405,
+            1406
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 12915,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1407,
+            1408,
+            1409
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 11398,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "h06",
+      "set": "held_out",
+      "adjunct": "coffee",
+      "expected": "background",
+      "source": "held out",
+      "request": "A brown ale with a little coffee to dry out the finish.",
+      "word_rule": "background",
+      "settings": {
+        "gated": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1410,
+            1411,
+            1412
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 12510,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1413,
+            1414,
+            1415
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 12449,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "h07",
+      "set": "held_out",
+      "adjunct": "cinnamon",
+      "expected": "feature",
+      "source": "held out",
+      "request": "A winter warmer where cinnamon leads the aroma and the taste.",
+      "word_rule": "feature",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1416,
+            1417,
+            1418
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 11543,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1419,
+            1420,
+            1421
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 11651,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "h08",
+      "set": "held_out",
+      "adjunct": "cinnamon",
+      "expected": "background",
+      "source": "held out",
+      "request": "A dunkel with a pinch of cinnamon that nobody should notice.",
+      "word_rule": "background",
+      "settings": {
+        "gated": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1422,
+            1423,
+            1424
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 11927,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1425,
+            1426,
+            1427
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 11669,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "h09",
+      "set": "held_out",
+      "adjunct": "honey",
+      "expected": "feature",
+      "source": "held out",
+      "request": "A golden ale made to show off wildflower honey.",
+      "word_rule": "background",
+      "settings": {
+        "gated": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1428,
+            1429,
+            1430
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 13842,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "feature",
+            "feature",
+            "feature"
+          ],
+          "run_ids": [
+            1431,
+            1432,
+            1433
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 11661,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    },
+    {
+      "id": "h10",
+      "set": "held_out",
+      "adjunct": "honey",
+      "expected": "background",
+      "source": "held out",
+      "request": "An amber ale with honey added for a drier finish.",
+      "word_rule": "background",
+      "settings": {
+        "gated": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1434,
+            1435,
+            1436
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 12697,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        },
+        "hot": {
+          "roles": [
+            "background",
+            "background",
+            "background"
+          ],
+          "run_ids": [
+            1437,
+            1438,
+            1439
+          ],
+          "right_every_run": true,
+          "consistent": true,
+          "llm_ms": 12742,
+          "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+        }
+      }
+    }
+  ],
+  "gate": {
+    "b12_b19": {
+      "ok": true,
+      "value": "b12 feature and b19 background in every run"
+    },
+    "clear": {
+      "ok": false,
+      "value": "19/21"
+    },
+    "consistent": {
+      "ok": true,
+      "value": "inconsistent: []"
+    },
+    "held_out": {
+      "ok": true,
+      "value": "10/10"
+    },
+    "met": false
+  }
+}

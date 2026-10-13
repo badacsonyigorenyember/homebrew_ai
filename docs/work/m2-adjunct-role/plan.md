@@ -239,19 +239,19 @@ Commit: `Add role measurement tool`
 ### Task 6: Measure and decide the gate — STOP POINT
 Why: R4, R6, A4, A6. Nothing is deleted and step 2's decision is not changed before this task's
 result is in `plan.md`.
-- [ ] Optional prompt check, before freezing. Run
+- [x] Optional prompt check, before freezing. Run
       `python -m evals.roles --sets clear ambiguous --settings gated --runs 1`. You may make at
       most 2 general wording changes to the role paragraph of `shared/prompts/step1.system.md`.
       Never quote a wording or name a specific adjunct case. Record each change as a line in
       Deviations. Held-out wordings are not run here.
-- [ ] Freeze the prompt (commit it if it changed). Check G1:
+- [x] Freeze the prompt (commit it if it changed). Check G1:
       `python -m evals.run --save --label m2-role-g1`. Expect step 1 ≥ 21/22 with roles counted,
       and step 2 22/22 (the word rule still decides).
-- [ ] The measurement, run once with the frozen prompt:
+- [x] The measurement, run once with the frozen prompt:
       `python -m evals.roles --save --label m2-role-gate`. That is 34 wordings × 6 runs ≈ 204
       pipeline calls, roughly an hour. Run it in the background and wait on the saved file, not
       on the process.
-- [ ] Add a `## Gate result` section to this plan, above Deviations. It holds the file path,
+- [x] Add a `## Gate result` section to this plan, above Deviations. It holds the file path,
       each R6 point with its measured value and pass/fail, the verdict, the hot-run summary
       (accuracy, wordings that flipped across seeds), the ambiguous wordings' roles, the word
       rule's score on the same set (for reference), the median step 1 time against 12.5 s, and the
@@ -334,6 +334,26 @@ Commit: `Measure G1 and G2 with adjunct roles`
 ## Approved exceptions
 None.
 
+## Gate result
+Measured 2026-10-13 with the frozen Task 4 prompt (no prompt edit kept): [`evals/results/2026-10-13-m2-role-gate.json`](../../../evals/results/2026-10-13-m2-role-gate.json). **Verdict: NOT MET.**
+
+| R6 point | Measured | Result |
+|---|---|---|
+| b12 and b19 right every run | r01 feature x3, r15 background x3 | pass |
+| Clear-cut right every run (≥20/21) | **19/21** (r07 and r12: step 1 left `wanted` empty and put "honey forward" / "honey-forward" in `unknown`, so no role; 57/63 runs right) | **fail** |
+| Same role in all 3 gated runs, every wording | 34/34 consistent (the 3 gated runs share temperature 0 and seed 42) | pass |
+| Held-out (≥9/10) | 10/10 (30/30 runs) | pass |
+
+- Hot runs (temperature 0.8, seeds 1-3, report only): clear 59/63 runs right, 18/21 wordings right every run; held-out 27/30 runs, 8/10 wordings. Flipped across seeds: r12, r15, r18, h03, h04 (r15 and r18 flipped to `feature` or no item; h03 and h04 lost the item in one or two seeds).
+- Ambiguous wordings (reported, not scored): r22 feature, r23 feature, r24 feature, in all runs.
+- Word rule on the same set (reference): 28/31 scored wordings right (clear 20/21, held-out 8/10). It misses r21 and h05, h09.
+- Step 1 median `llm_ms`: 13.97 s over the wordings (gated), 12.70 s (hot), against 12.5 s.
+- G1 (`evals.run --save --label m2-role-g1`, [`evals/results/2026-10-13-m2-role-g1.json`](../../../evals/results/2026-10-13-m2-role-g1.json)): step 1 21/22 (b05 `hints` only; roles counted) so the step 1 bar holds. Step 2 **21/22**, not the expected 22/22: b05's step 1 gave hint `session`, step 2 picked 15A instead of 15B (the word rule is unchanged; the earlier m2 runs also had a wrong b05 `hints` but still picked 15B).
+- Prompt smoke runs (clear + ambiguous, gated, 1 run): first run 20/21 (r12 failed); one general edit was tried and reverted (see Deviations). Held-out wordings were not run before the freeze.
+
+Task 6 is stopped here for the user's decision. Task 7 is not started and nothing is deleted.
+
 ## Deviations
 - 2026-10-13 · Task 8 / A9: the grep may find the two `drop function` lines in `db/023_drop_adjunct_rule.sql`, and nothing else — the drop file R9 asks for has to name the functions (user decision; brief A9 amended).
 - 2026-10-13 · Task 2: both workflows (`Step 1 · read request` too) were edited in JSON and imported with `n8n import:workflow`, not through the MCP — one route for both, and the export stays the source. `tests/test_contracts.py` (required = properties) and `tests/test_workflows.py` (sample keys = declared inputs) now treat `temperature` and `seed` as optional.
+- 2026-10-13 · Task 6: prompt edit 1 (general: an ingredient inside a describing compound goes to `wanted`, not `unknown`) was tried after the first smoke run left r12 with no wanted item. The re-run lost b19 (r15: wanted empty, everything in `unknown`), so the edit was reverted; the prompt stays as committed in Task 4. 1 of 2 allowed edits used; no further edits.
