@@ -110,7 +110,7 @@ service up).*
 
   Files exported from the container are root-owned: `docker exec n8n chown 1000:1000 <path>`.
 - **The pipeline webhook** is `POST http://localhost:5678/webhook/recipe-pipeline` with body
-  `{"request": "...", "brief_id": "b01", "model": "...", "think": false}` (`brief_id`, `model` and `think` optional; defaults `gemma4:12b-it-q8_0` and `false`). It
+  `{"request": "...", "brief_id": "b01", "model": "...", "think": false}` (`brief_id`, `model` and `think` optional; defaults `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` and `false`). It
   answers after the run ends with `{run_id, ok, failed_step?, error?}`; the record is in
   `app.run` and `app.run_step`. No auth for now (revisit with the chat trigger, M8). The three
   workflows must be **published**. Publish a sub-workflow after editing it too: an Execute Workflow
@@ -150,9 +150,10 @@ service up).*
   boot. **Do not set `HSA_OVERRIDE_GFX_VERSION`.** It would break the working discrete GPU.
   Check `docker logs ollama | grep "inference compute"` for `compute=gfx1201`, and
   `docker exec ollama ollama ps` for `100% GPU`.
-- Models pulled *(checked 2026-10-11)*: `gemma4:12b-it-q8_0`, `gemma4:12b`, `qwen3.8:27b` (also
-  listed as `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_M`, same model ID), plus the embedding model
-  `bge-m3`.
+- Models pulled *(checked 2026-10-13)*: `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` (the chat
+  default, D2), `gemma4:31b-it-qat`, `gemma4:26b-a4b-it-qat`, `gemma4:12b-it-q8_0`, `gemma4:12b`,
+  `qwen3.8:27b` (also listed as `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_M`, same model ID), plus the
+  embedding model `bge-m3`. The Q6_K model runs 36%/64% CPU/GPU on the 16 GB GPU.
 
 ## 7. Claude Code guardrails
 

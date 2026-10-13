@@ -1,6 +1,6 @@
 # M1 · Step 1: read the request, and choose the chat model (D2) — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: m1-read-request
 
@@ -361,16 +361,16 @@ Commit: `Run the D2 benchmark for step 1`
 
 ### Task 7: D2 is decided and the pipeline uses the chosen model
 Why: R7; A1, A6. Only after Task 6 met the bar.
-- [ ] `Recipe pipeline` → `Run settings`: default `model` (and `think`, if thinking on won)
+- [x] `Recipe pipeline` → `Run settings`: default `model` (and `think`, if thinking on won)
       set to the chosen configuration; the `Test data` samples' `model` / `think` likewise
       (and `SAMPLES` in `tests/test_workflows.py`). Publish, `python -m evals.workflows`.
-- [ ] `.venv/bin/pytest` (stack up), expect all pass, now on the chosen model (A3, A5).
-- [ ] PROJECT.md: §4 Chat model row names the chosen tag, quantisation, think setting and
+- [x] `.venv/bin/pytest` (stack up), expect all pass, now on the chosen model (A3, A5).
+- [x] PROJECT.md: §4 Chat model row names the chosen tag, quantisation, think setting and
       measured result, with the *why* (quality first, then speed; link `benchmark.md`); D2
       leaves §7; §8 entry. `docs/WORKFLOW-ROADMAP.md` G1: a **Measured** line; §3 M1 row:
       decided, step 1 outputs the user's words and M5's resolver maps them. OPERATIONS §6:
       the pulled models.
-- [ ] Commit `evals/results/<date>-m1-benchmark.json` (G1 is a checkpoint).
+- [x] Commit `evals/results/<date>-m1-benchmark.json` (G1 is a checkpoint).
 Done when: the pipeline default is the chosen model, the suite passes on it, and D2 is in §4.
 Commit: `Decide D2 and make it the step 1 default`
 

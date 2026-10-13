@@ -58,7 +58,7 @@ names and dev-ship's move to `docs/finished/` assume `<slug>` is one folder name
 | # | Slug (brief) | Builds | Needs first | Checkpoint |
 |---|---|---|---|---|
 | M0 | [`m0-harness`](finished/m0-harness/brief.md) | G0 decisions; eval harness that sends each brief to the pipeline and scores the result (red at first); `app.run` / `app.run_step` logging; contracts for steps 0–3 and one stub step | — | **G0** |
-| M1 | [`m1-read-request`](work/m1-read-request/brief.md) | Step 1: request → LLM → brief JSON, checked by code; D2 benchmark | m0 | **G1** |
+| M1 | [`m1-read-request`](work/m1-read-request/brief.md) | Step 1: request → LLM → brief JSON, checked by code; D2 decided (Qwen3.8-27B UD-Q6_K, thinking off); step 1 outputs the user's words and M5's resolver maps them | m0 | **G1** |
 | M2 | [`m2-best-fit-style`](work/m2-best-fit-style/brief.md) | Step 2: score all 285 styles (name, stated numbers, words), per D1 | m1 | **G2** |
 | S1 | [`s1-maths`](work/s1-maths/brief.md) | Gravity, ABV, IBU (Tinseth), colour (Morey), solvers, from the doc→calc pass on *How to Brew* | m0 | **G-M** |
 | S2 | [`s2-corpus`](work/s2-corpus/brief.md) | Corpus with quality gates, `fermentable.role`, name map → `style_profile` (D7) | s1 | **G-S** (profiles) |
@@ -112,6 +112,7 @@ Step 1's output is graded field by field against each brief's `stated`, `hints`,
 **Bar (proposed):** ≥ 19/20 briefs with every field right on the best model, stable over 3 runs.
 **Decide:** D2. **If no:** is it the prompt, the contract (too many fields at once, §6.2), or a
 brief that is genuinely ambiguous?
+**Measured (2026-10-13, [`m1-read-request`](work/m1-read-request/benchmark.md)):** met. 7 configurations x 3 runs x 20 briefs; `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` with thinking off is 19/20 in every run (12.5 s median), and is the D2 choice. Saved in `evals/results/2026-10-13-m1-benchmark.json`.
 
 ### G2 · Step 2 picks the right style
 

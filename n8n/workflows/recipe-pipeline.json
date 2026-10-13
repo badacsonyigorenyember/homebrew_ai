@@ -22,7 +22,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={{ { request: $json.body?.request ?? \"\", eval_id: $json.body?.brief_id ?? null, model: $json.body?.model ?? \"gemma4:12b-it-q8_0\", think: $json.body?.think ?? false } }}",
+        "jsonOutput": "={{ { request: $json.body?.request ?? \"\", eval_id: $json.body?.brief_id ?? null, model: $json.body?.model ?? \"hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K\", think: $json.body?.think ?? false } }}",
         "options": {}
       },
       "id": "0a2d0b71-b581-4b22-b766-8b7022260189",

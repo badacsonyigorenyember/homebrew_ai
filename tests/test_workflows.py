@@ -13,7 +13,7 @@ CONTRACTS = ROOT / "shared" / "contracts"
 with (ROOT / "evals" / "recipe_briefs.toml").open("rb") as _f:
     B01 = next(b for b in tomllib.load(_f)["brief"] if b["id"] == "b01")["request"]
 
-MODEL = "gemma4:12b-it-q8_0"
+MODEL = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
 
 # The sample each workflow's `Test data` sticky note must carry (plan Task 8).
 SAMPLES = {
