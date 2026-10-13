@@ -219,6 +219,9 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-13
+- `m2-best-fit-style` Task 3: the decided pairs are a versioned SQL list, `app.style_pair()` in [`db/021_style_pairs.sql`](db/021_style_pairs.sql)
+  (151 pairs, one per line with a name comment; applied twice, owned by `postgres`). `tests/test_style_pairs.py` (3 stack tests)
+  checks the codes exist, each BA style is paired once, and the list equals the paired rows of `style-pairs.md`; `pytest` 155 passed.
 - `m2-best-fit-style` Task 2: Claude read the full BJCP 2021 and BA 2026 guideline content in `ref.beer_style` and decided which
   BA styles pair with a BJCP style: by look, aroma and taste, vitals only vetoing when the ABV or IBU ranges don't overlap; names
   not used. The user delegated the decision (2026-10-13, no row review); the name-matching `loaders/style_pairs.py` and its tests

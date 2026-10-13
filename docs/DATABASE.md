@@ -405,6 +405,8 @@ erDiagram
 
 Function `app.step1_read_answer(request, content, contract)` (db/020_step1.sql) checks a model's step 1 answer: parses it, drops repeated words, validates it against the contract, and requires every `stated` number to be written in the request.
 
+Function `app.style_pair()` (db/021_style_pairs.sql) lists the 151 decided BA 2026 to BJCP 2021 style pairs (`ba_code`, `bjcp_code`); step 2 returns the BJCP style when the best fit is a paired BA style.
+
 Later (§9): `batch`, `tasting`, `inventory.best_before`.
 
 ---

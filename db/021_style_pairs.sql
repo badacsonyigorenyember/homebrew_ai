@@ -1,0 +1,167 @@
+-- app.style_pair: the decided BA 2026 to BJCP 2021 style pairs (docs/work/m2-best-fit-style).
+-- Decided by Claude on sensory similarity (look, aroma, taste, mouthfeel), delegated by the user
+-- on 2026-10-13, in docs/work/m2-best-fit-style/style-pairs.md. Step 2 returns the BJCP style
+-- when the best fit is a BA style listed here (R6). BA styles not listed have no pair.
+-- Needs db/015_app.sql (schema app).
+-- Apply as postgres (docs/OPERATIONS.md §4):
+--   docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/021_style_pairs.sql
+-- Idempotent: safe to re-run.
+
+create or replace function app.style_pair()
+returns table (ba_code text, bjcp_code text)
+language sql
+immutable
+as $$
+    values
+        ('adambier', '17B'), -- Adambier = Old Ale
+        ('american-style-amber-lager', '2B'), -- American-Style Amber Lager = International Amber Lager
+        ('american-style-amber-red-ale', '19A'), -- American-Style Amber/Red Ale = American Amber Ale
+        ('american-style-barley-wine-ale', '22C'), -- American-Style Barley Wine Ale = American Barleywine
+        ('american-style-black-ale', '20A'), -- American-Style Black Ale = American Porter
+        ('american-style-brown-ale', '19C'), -- American-Style Brown Ale = American Brown Ale
+        ('american-style-cream-ale', '1C'), -- American-Style Cream Ale = Cream Ale
+        ('american-style-dark-lager', '2C'), -- American-Style Dark Lager = International Dark Lager
+        ('american-style-fruit-beer', '29A'), -- American-Style Fruit Beer = Fruit Beer
+        ('american-style-fruited-sour-ale', '28C'), -- American-Style Fruited Sour Ale = Wild Specialty Beer
+        ('american-style-imperial-porter', '9C'), -- American-Style Imperial Porter = Baltic Porter
+        ('american-style-imperial-stout', '20C'), -- American-Style Imperial Stout = Imperial Stout
+        ('american-style-india-pale-ale', '21A'), -- American-Style India Pale Ale = American IPA
+        ('american-style-india-pale-lager', '21A'), -- American-Style India Pale Lager = American IPA
+        ('american-style-lager', '1B'), -- American-Style Lager = American Lager
+        ('american-style-light-lager', '1A'), -- American-Style Light Lager = American Light Lager
+        ('american-style-pale-ale', '18B'), -- American-Style Pale Ale = American Pale Ale
+        ('american-style-pilsener', '27F'), -- American-Style Pilsener = Historical Beer: Pre-Prohibition Lager
+        ('american-style-sour-ale', '28D'), -- American-Style Sour Ale = Straight Sour Beer
+        ('american-style-stout', '20B'), -- American-Style Stout = American Stout
+        ('american-style-strong-pale-ale', '21A'), -- American-Style Strong Pale Ale = American IPA
+        ('american-style-wheat-beer', '1D'), -- American-Style Wheat Beer = American Wheat Beer
+        ('american-style-wheat-wine-ale', '22D'), -- American-Style Wheat Wine Ale = Wheatwine
+        ('australian-style-pale-ale', '18B'), -- Australian-Style Pale Ale = American Pale Ale
+        ('baltic-style-porter', '9C'), -- Baltic-Style Porter = Baltic Porter
+        ('bamberg-style-bock-rauchbier', '32A'), -- Bamberg-Style Bock Rauchbier = Classic Style Smoked Beer
+        ('bamberg-style-helles-rauchbier', '32A'), -- Bamberg-Style Helles Rauchbier = Classic Style Smoked Beer
+        ('bamberg-style-maerzen-rauchbier', '6B'), -- Bamberg-Style Maerzen Rauchbier = Rauchbier
+        ('bamberg-style-weiss-rauchbier', '32A'), -- Bamberg-Style Weiss Rauchbier = Classic Style Smoked Beer
+        ('belgian-style-blonde-ale', '25A'), -- Belgian-Style Blonde Ale = Belgian Blond Ale
+        ('belgian-style-dubbel', '26B'), -- Belgian-Style Dubbel = Belgian Dubbel
+        ('belgian-style-fruit-beer', '29A'), -- Belgian-Style Fruit Beer = Fruit Beer
+        ('belgian-style-fruit-lambic', '23F'), -- Belgian-Style Fruit Lambic = Fruit Lambic
+        ('belgian-style-lambic', '23D'), -- Belgian-Style Lambic = Lambic
+        ('belgian-style-quadrupel', '26D'), -- Belgian-Style Quadrupel = Belgian Dark Strong Ale
+        ('belgian-style-speciale-belge', '24B'), -- Belgian-Style Speciale Belge = Belgian Pale Ale
+        ('belgian-style-strong-blonde-ale', '25C'), -- Belgian-Style Strong Blonde Ale = Belgian Golden Strong Ale
+        ('belgian-style-strong-dark-ale', '26D'), -- Belgian-Style Strong Dark Ale = Belgian Dark Strong Ale
+        ('belgian-style-tripel', '26C'), -- Belgian-Style Tripel = Belgian Tripel
+        ('belgian-style-witbier', '24A'), -- Belgian-Style Witbier = Witbier
+        ('berliner-style-weisse', '23A'), -- Berliner-Style Weisse = Berliner Weisse
+        ('bernsteinfarbenes-weizen', '10A'), -- Bernsteinfarbenes Weizen = Weissbier
+        ('brett-beer', '28A'), -- Brett Beer = Brett Beer
+        ('british-style-barley-wine-ale', '17D'), -- British-Style Barley Wine Ale = English Barley Wine
+        ('british-style-imperial-stout', '20C'), -- British-Style Imperial Stout = Imperial Stout
+        ('british-style-india-pale-ale', '12C'), -- British-Style India Pale Ale = English IPA
+        ('brown-porter', '13C'), -- Brown Porter = English Porter
+        ('california-common-beer', '19B'), -- California Common Beer = California Common
+        ('chili-pepper-beer', '30A'), -- Chili Pepper Beer = Spice, Herb, or Vegetable Beer
+        ('chocolate-or-cocoa-beer', '30A'), -- Chocolate or Cocoa Beer = Spice, Herb, or Vegetable Beer
+        ('classic-australian-style-pale-ale', '12B'), -- Classic Australian-Style Pale Ale = Australian Sparkling Ale
+        ('classic-english-style-pale-ale', '11C'), -- Classic English-Style Pale Ale = Strong Bitter
+        ('classic-irish-style-dry-stout', '15B'), -- Classic Irish-Style Dry Stout = Irish Stout
+        ('coffee-beer', '30A'), -- Coffee Beer = Spice, Herb, or Vegetable Beer
+        ('contemporary-style-gose', '23G'), -- Contemporary-Style Gose = Gose
+        ('czech-style-amber-lager', '3C'), -- Czech-Style Amber Lager = Czech Amber Lager
+        ('czech-style-dark-lager', '3D'), -- Czech-Style Dark Lager = Czech Dark Lager
+        ('czech-style-pale-lager', '3B'), -- Czech-Style Pale Lager = Czech Premium Pale Lager
+        ('dessert-stout-or-pastry-beer', '30D'), -- Dessert Stout or Pastry Beer = Specialty Spice Beer
+        ('double-hoppy-red-ale', '22B'), -- Double Hoppy Red Ale = American Strong Ale
+        ('dutch-style-kuit-kuyt-or-koyt', '31A'), -- Dutch-Style Kuit, Kuyt or Koyt = Alternative Grain Beer
+        ('english-style-brown-ale', '13B'), -- English-Style Brown Ale = British Brown Ale
+        ('english-style-dark-mild-ale', '13A'), -- English-Style Dark Mild Ale = Dark Mild
+        ('english-style-pale-mild-ale', '13A'), -- English-Style Pale Mild Ale = Dark Mild
+        ('english-style-summer-ale', '12A'), -- English-Style Summer Ale = British Golden Ale
+        ('european-style-dark-lager', '8B'), -- European-Style Dark Lager = Schwarzbier
+        ('experimental-beer', '34C'), -- Experimental Beer = Experimental Beer
+        ('experimental-india-pale-ale', '21B'), -- Experimental India Pale Ale = Specialty IPA
+        ('export', '5C'), -- Export = German Helles Exportbier
+        ('export-style-stout', '16D'), -- Export-Style Stout = Foreign Extra Stout
+        ('extra-special-bitter', '11C'), -- Extra Special Bitter = Strong Bitter
+        ('field-beer', '30A'), -- Field Beer = Spice, Herb, or Vegetable Beer
+        ('finnish-style-sahti', '27I'), -- Finnish-Style Sahti = Historical Beer: Sahti
+        ('franconian-style-rotbier', '7A'), -- Franconian-Style Rotbier = Vienna Lager
+        ('french-style-biere-de-garde', '24C'), -- French-Style Bière de Garde = Bière de Garde
+        ('fruit-wheat-beer', '29A'), -- Fruit Wheat Beer = Fruit Beer
+        ('german-style-altbier', '7B'), -- German-Style Altbier = Altbier
+        ('german-style-doppelbock', '9A'), -- German-Style Doppelbock = Doppelbock
+        ('german-style-eisbock', '9B'), -- German-Style Eisbock = Eisbock
+        ('german-style-heller-bock-maibock', '4C'), -- German-Style Heller Bock/Maibock = Helles Bock
+        ('german-style-koelsch', '5B'), -- German-Style Koelsch = Kolsch
+        ('german-style-leichtbier', '5A'), -- German-Style Leichtbier = German Leichtbier
+        ('german-style-maerzen', '6A'), -- German-Style Maerzen = Marzen
+        ('german-style-oktoberfest-festbier', '4B'), -- German-Style Oktoberfest/Festbier = Festbier
+        ('german-style-pilsener', '5D'), -- German-Style Pilsener = German Pils
+        ('german-style-rye-ale', '27H'), -- German-Style Rye Ale = Historical Beer: Roggenbier
+        ('german-style-schwarzbier', '8B'), -- German-Style Schwarzbier = Schwarzbier
+        ('golden-or-blonde-ale', '18A'), -- Golden or Blonde Ale = Blonde Ale
+        ('grodziskie', '27E'), -- Grodziskie = Historical Beer: Piwo Grodziskie
+        ('herb-and-spice-beer', '30A'), -- Herb and Spice Beer = Spice, Herb, or Vegetable Beer
+        ('imperial-red-ale', '22B'), -- Imperial Red Ale = American Strong Ale
+        ('india-pale-ale', '22A'), -- India Pale Ale = Double IPA
+        ('india-pale-ale-2', '21C'), -- India Pale Ale = Hazy IPA
+        ('international-light-lager', '1B'), -- International Light Lager = American Lager
+        ('international-style-pale-ale', '18B'), -- International-Style Pale Ale = American Pale Ale
+        ('international-style-pilsener', '2A'), -- International-Style Pilsener = International Pale Lager
+        ('irish-style-red-ale', '15A'), -- Irish-Style Red Ale = Irish Red Ale
+        ('italian-style-pilsener', '5D'), -- Italian-Style Pilsener = German Pils
+        ('juicy-or-hazy-india-pale-ale', '21C'), -- Juicy or Hazy India Pale Ale = Hazy IPA
+        ('juicy-or-hazy-strong-pale-ale', '21C'), -- Juicy or Hazy Strong Pale Ale = Hazy IPA
+        ('kellerbier-or-zwickelbier', '27A'), -- Kellerbier or Zwickelbier = Historical Beer: Kellerbier
+        ('kentucky-common-beer', '27B'), -- Kentucky Common Beer = Historical Beer: Kentucky Common
+        ('lager', '1B'), -- Lager = American Lager
+        ('leipzig-style-gose', '23G'), -- Leipzig-Style Gose = Gose
+        ('light-lager', '1A'), -- Light Lager = American Light Lager
+        ('maerzen-oktoberfest', '6A'), -- Maerzen/Oktoberfest = Marzen
+        ('mexican-style-dark-lager', '2C'), -- Mexican-Style Dark Lager = International Dark Lager
+        ('mexican-style-light-lager', '1A'), -- Mexican-Style Light Lager = American Light Lager
+        ('mexican-style-pale-lager', '2A'), -- Mexican-Style Pale Lager = International Pale Lager
+        ('mixed-culture-brett-beer', '28B'), -- Mixed-Culture Brett Beer = Mixed-Fermentation Sour Beer
+        ('munich-style-dunkel', '8A'), -- Munich-Style Dunkel = Munich Dunkel
+        ('munich-style-helles', '4A'), -- Munich-Style Helles = Munich Helles
+        ('new-zealand-style-india-pale-ale', '21A'), -- New Zealand-Style India Pale Ale = American IPA
+        ('new-zealand-style-pale-ale', '18B'), -- New Zealand-Style Pale Ale = American Pale Ale
+        ('oatmeal-stout', '16B'), -- Oatmeal Stout = Oatmeal Stout
+        ('old-ale', '17B'), -- Old Ale = Old Ale
+        ('or-oud-red-ale', '23B'), -- or Oud Red Ale = Flanders Red Ale
+        ('ordinary-bitter', '11A'), -- Ordinary Bitter = Ordinary Bitter
+        ('pilsener', '27F'), -- Pilsener = Historical Beer: Pre-Prohibition Lager
+        ('pumpkin-spice-beer', '30B'), -- Pumpkin Spice Beer = Autumn Seasonal Beer
+        ('pumpkin-squash-beer', '30A'), -- Pumpkin/Squash Beer = Spice, Herb, or Vegetable Beer
+        ('rice-lager', '2A'), -- Rice Lager = International Pale Lager
+        ('robust-porter', '20A'), -- Robust Porter = American Porter
+        ('rye-beer', '31A'), -- Rye Beer = Alternative Grain Beer
+        ('saison', '25B'), -- Saison = Saison
+        ('scotch-ale-or-wee-heavy', '17C'), -- Scotch Ale or Wee Heavy = Wee Heavy
+        ('scottish-style-export-ale', '14C'), -- Scottish-Style Export Ale = Scottish Export
+        ('scottish-style-heavy-ale', '14B'), -- Scottish-Style Heavy Ale = Scottish Heavy
+        ('scottish-style-light-ale', '14A'), -- Scottish-Style Light Ale = Scottish Light
+        ('smoke-beer', '32A'), -- Smoke Beer = Classic Style Smoked Beer
+        ('smoke-porter', '32A'), -- Smoke Porter = Classic Style Smoked Beer
+        ('south-german-style-hefeweizen', '10A'), -- South German-Style Hefeweizen = Weissbier
+        ('south-german-style-kristal-weizen', '10A'), -- South German-Style Kristal Weizen = Weissbier
+        ('south-german-style-weizenbock', '10C'), -- South German-Style Weizenbock = Weizenbock
+        ('special-bitter-or-best-bitter', '11B'), -- Special Bitter or Best Bitter = Best Bitter
+        ('specialty-beer', '31A'), -- Specialty Beer = Alternative Grain Beer
+        ('specialty-honey-beer', '31B'), -- Specialty Honey Beer = Alternative Sugar Beer
+        ('specialty-saison', '25B'), -- Specialty Saison = Saison
+        ('spontaneous-fermented-ale', '23E'), -- Spontaneous Fermented Ale = Gueuze
+        ('strong-ale', '17A'), -- Strong Ale = British Strong Ale
+        ('swedish-style-gotlandsdricke', '32B'), -- Swedish-Style Gotlandsdricke = Specialty Smoked Beer
+        ('sweet-stout-or-cream-stout', '16A'), -- Sweet Stout or Cream Stout = Sweet Stout
+        ('traditional-belgian-style-gueuze', '23E'), -- Traditional Belgian-Style Gueuze = Gueuze
+        ('traditional-german-style-bock', '6C'), -- Traditional German-Style Bock = Dunkles Bock
+        ('vienna-style-lager', '7A'), -- Vienna-Style Lager = Vienna Lager
+        ('weizen', '10B'), -- Weizen = Dunkles Weissbier
+        ('west-coast-style-india-pale-ale', '21A'), -- West Coast-Style India Pale Ale = American IPA
+        ('west-coast-style-pilsener', '21A'), -- West Coast-Style Pilsener = American IPA
+        ('wild-beer', '28B'), -- Wild Beer = Mixed-Fermentation Sour Beer
+        ('wood-and-barrel-aged-beer', '33B'), -- Wood- and Barrel-Aged Beer = Specialty Wood-Aged Beer
+        ('wood-and-barrel-aged-sour-beer', '28C') -- Wood- and Barrel-Aged Sour Beer = Wild Specialty Beer
+$$;

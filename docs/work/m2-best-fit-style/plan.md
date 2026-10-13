@@ -205,20 +205,20 @@ Commit: `Decide style pairs by sensory similarity`
 
 ### Task 3: the decided pairs are a versioned SQL list
 Why: R6; the pair list decided in Task 2.
-- [ ] `db/021_style_pairs.sql` (header: purpose, "decided by Claude on sensory similarity,
+- [x] `db/021_style_pairs.sql` (header: purpose, "decided by Claude on sensory similarity,
       delegated by the user on 2026-10-13, in docs/work/m2-best-fit-style/style-pairs.md",
       apply command, idempotent): `create or replace function app.style_pair() returns table
       (ba_code text, bjcp_code text) language sql immutable` returning a `values` list with
       exactly the rows of `style-pairs.md` that have a BJCP code, one per line, each with a
       `-- <BA name> = <BJCP name>` comment. No `—` row.
-- [ ] Apply twice: `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1
+- [x] Apply twice: `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1
       < db/021_style_pairs.sql`. Check `pg_proc`: owned by `postgres`.
-- [ ] New `tests/test_style_pairs.py` (stack): `test_pair_codes_exist` (each `ba_code` is a
+- [x] New `tests/test_style_pairs.py` (stack): `test_pair_codes_exist` (each `ba_code` is a
       `ba-2026` code, each `bjcp_code` a `bjcp-2021` code); `test_each_ba_style_paired_once`;
       `test_pair_list_matches_file` (the rows equal the paired rows of `style-pairs.md`, read by
       path relative to this work folder or, after shipping, `docs/finished/m2-best-fit-style/`;
       the file has all 169 BA codes).
-- [ ] Run `.venv/bin/pytest tests/test_style_pairs.py`, expect all pass. `docs/DATABASE.md` §5:
+- [x] Run `.venv/bin/pytest tests/test_style_pairs.py`, expect all pass. `docs/DATABASE.md` §5:
       one line for `app.style_pair()`. PROJECT.md §8 entry with the number of pairs.
 Done when: the SQL list holds exactly the decided pairs and its tests pass.
 Commit: `Add the decided BA to BJCP style pairs`
