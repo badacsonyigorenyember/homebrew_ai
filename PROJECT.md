@@ -107,10 +107,10 @@ decision in §7 replaces it. How to operate the stack safely is in
 |---|---|---|---|
 | Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)). All schemas built 2026-10-11 ([`slim-ref`](docs/finished/slim-ref/plan.md)): `ref` 15 tables, `corpus` 7, `kb` 1, `app` 8, all 31 owned by `postgres`; design in [`docs/DATABASE.md`](docs/DATABASE.md). **P1a `ref` load done.** Measured 2026-10-11: `ref.source` 18 rows; `ref.beer_style` 285, BJCP 2021 116 + BA 2026 169 ([`style-loader`](docs/finished/style-loader/plan.md)); `ref.ingredient` 298, 0 without a source: `ref.fermentable` 81 = 74 grain malts from Weyermann, Viking and Simpsons ([`malt-loader`](docs/finished/malt-loader/plan.md)) + 7 adjuncts (flaked oats, corn, rice and barley, brown candi sugar and lactose from `hopline-adjuncts`, honey from `palmer-how-to-brew`; extract from Palmer Tables 18.5/24.1), `fermentability` `normal` 78 · `full` 2 (candi, honey) · `none` 1 (lactose) ([`adjunct-fermentables`](docs/finished/adjunct-fermentables/plan.md)); `ref.hop` 90, all from `hopline-hops`, 8 values from Beer Maverick ([`hop-loader`](docs/finished/hop-loader/plan.md)); `ref.yeast` 119 from `hopline-yeasts`, 93 with attenuation from the makers' sources, Brewfather and the user ([`yeast-loader`](docs/finished/yeast-loader/plan.md)); `ref.water_salt` 8, ion mg/L per g computed from IUPAC atomic masses ([`water-salts`](docs/finished/water-salts/plan.md)). Fermentables, hops and yeasts name each filled field's source in `field_source`. Every other table is empty until its phase. 10 random rows per loaded table spot-checked by the user against the sources, no errors ([`ref-spotcheck`](docs/finished/ref-spotcheck/plan.md), pack `db/checks/ref_spotcheck.sql`); the 7 adjuncts came after it and were checked in their own verification (16/16). Known gaps: `fermentable.role` stays empty until P3; no malt extracts, and the other hopline adjuncts (rye, wheat and chit flakes, white candi, fructose) are not loaded; `beer_style.co2_vol` was dropped (no source has it; back in P6). *Why this schema (was D4): each typed column is read by a pipeline step and everything else stays in `raw`; behaviour (usage effects, hint knobs, cut points, source weights) lives in code; all tables were created up front, empty, by user decision.* |
 | Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | 🟡 `vector` 0.8.0 installed in schema `extensions`; `kb.chunk` created with HNSW + GIN indexes, empty (2026-10-11, [`slim-ref`](docs/finished/slim-ref/plan.md), shipped) |
-| Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, 3 workflows published (measured 2026-10-12): `Recipe pipeline` (webhook `POST /webhook/recipe-pipeline`, logs to `app.run` / `app.run_step`), `Step 1 · read request` (one Ollama call with the contract as `format`, SQL check `app.step1_read_answer`, one retry; [`m1-read-request`](docs/work/m1-read-request/plan.md)) and `Check contract` (pg_jsonschema check); exported to `n8n/workflows/` ([`m0-harness`](docs/finished/m0-harness/plan.md)) |
+| Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, 3 workflows published (measured 2026-10-12): `Recipe pipeline` (webhook `POST /webhook/recipe-pipeline`, logs to `app.run` / `app.run_step`), `Step 1 · read request` (one Ollama call with the contract as `format`, SQL check `app.step1_read_answer`, one retry; [`m1-read-request`](docs/finished/m1-read-request/plan.md)) and `Check contract` (pg_jsonschema check); exported to `n8n/workflows/` ([`m0-harness`](docs/finished/m0-harness/plan.md)) |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
 | LLM runtime | **Ollama** (ROCm) | Local chat and embedding models | 🟢 running |
-| Chat model | `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` (Q6_K), thinking off *(D2, decided 2026-10-13)* | Reasoning, extraction, recipe drafting | 🟢 step 1 default in `Recipe pipeline`; 19/20 briefs right in all 3 runs, 12.5 s median, 36%/64% CPU/GPU (measured, [`benchmark.md`](docs/work/m1-read-request/benchmark.md)). Why: quality first, and only this model met the bar; thinking on scored the same at about 8x the time and added a b08 `wanted` miss. Other pulled models: see OPERATIONS §6 |
+| Chat model | `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` (Q6_K), thinking off *(D2, decided 2026-10-13)* | Reasoning, extraction, recipe drafting | 🟢 step 1 default in `Recipe pipeline`; 19/20 briefs right in all 3 runs, 12.5 s median, 36%/64% CPU/GPU (measured, [`benchmark.md`](docs/finished/m1-read-request/benchmark.md)). Why: quality first, and only this model met the bar; thinking on scored the same at about 8x the time and added a b08 `wanted` miss. Other pulled models: see OPERATIONS §6 |
 | Embedding model | `bge-m3` (1024-dim) | Chunk and query embeddings | 🟢 pulled |
 | Web search | **SearXNG** + `webarm` service | Lookups for what the books do not cover | 🔴 `searxng` down since 2026-10-08 (`settings.yml` lost in the reset, [`OPERATIONS.md`](docs/OPERATIONS.md) §1); recovery has an approved brief on branch `recover-searxng` (2026-10-09), not planned or merged. `webarm` running. Optional |
 | Scripts | Python (`.venv`), `psycopg` 3, `pytest` (`requirements.txt`) | One-off extract/load jobs, evals | 🟡 `loaders/` package; `pytest` gives 122 passed with the stack up and 94 passed, 28 deselected with `-m "not stack"` (measured 2026-10-12; stack tests are skipped when Postgres or n8n is down). Shared helpers `loaders/common.py` (8 tests) and DB helpers `loaders/db.py` (`connect`, `source_id`, `upsert_ingredient`) ([`ref-schema`](docs/finished/ref-schema/plan.md)); hopline fetcher `loaders/fetch_hopline.py` (`python -m loaders.fetch_hopline OUT.json` for malts, `--hops`, `--yeasts`, `--adjuncts`; 7 tests). Loaders, each with an explicit SKU map where it reads hopline: styles `loaders/styles.py` (`python -m loaders.styles --bjcp PATH --ba PATH`, 4 tests, [`style-loader`](docs/finished/style-loader/plan.md)); malts `loaders/malts.py` + `loaders/malt_products.py` (`python -m loaders.malts --hopline PATH --catalogue PATH`, 9 tests, [`malt-loader`](docs/finished/malt-loader/plan.md)); hops `loaders/hops.py` + `loaders/hop_products.py` (`python -m loaders.hops --hopline PATH --report PATH`, Beer Maverick fill `BEERMAVERICK`, 9 tests, [`hop-loader`](docs/finished/hop-loader/plan.md)); yeasts `loaders/yeasts.py` + `loaders/yeast_products.py` (`python -m loaders.yeasts --hopline PATH --report PATH`, attenuation in `ATTENUATION`, 12 tests, [`yeast-loader`](docs/finished/yeast-loader/plan.md)); water salts `loaders/water_salts.py` (`python -m loaders.water_salts`, 3 tests, [`water-salts`](docs/finished/water-salts/plan.md)); adjuncts `loaders/adjuncts.py` + `loaders/adjunct_products.py` (`python -m loaders.adjuncts --hopline PATH`, Palmer rows as printed, PPG → extract % as PPG / 46 × 100, 6 tests, [`adjunct-fermentables`](docs/finished/adjunct-fermentables/plan.md)). Every loader gives the same rows when run twice. Read-only check pack `db/checks/ref_spotcheck.sql`; eval harness `evals/` (`grade.py` graders, `run.py` runner, `workflows.py` export; `python -m evals.run`, G0 baseline in `evals/results/2026-10-12-m0.json`, [`m0-harness`](docs/finished/m0-harness/plan.md)); recipe test briefs `evals/recipe_briefs.toml` (20 briefs, P0) checked by `tests/test_recipe_briefs.py` (10 tests, [`test-briefs`](docs/finished/test-briefs/plan.md)) |
@@ -219,19 +219,19 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-13
-- Shipped `m1-read-request` ([`docs/work/m1-read-request/`](docs/work/m1-read-request/)): step 1 reads the request with
+- Shipped `m1-read-request` ([`docs/finished/m1-read-request/`](docs/finished/m1-read-request/)): step 1 reads the request with
   one Ollama call checked by SQL, D2 decided (Qwen3.8-27B UD-Q6_K, thinking off). Verified: 8 checks, `pytest` 151 passed;
   merged to `main`.
 - `m1-read-request` review fixes: `--save` stores the prompt and contract sha256 per configuration (the
   7 saved ones were backfilled with the hashes `benchmark.md` records as checked before and after), a stray `|` in
-  `docs/DATABASE.md` and the stale Delivery workflow row here are fixed ([`review.md`](docs/work/m1-read-request/review.md)).
+  `docs/DATABASE.md` and the stale Delivery workflow row here are fixed ([`review.md`](docs/finished/m1-read-request/review.md)).
 - `m1-read-request` Task 7: D2 decided (user): `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K`, thinking off, is the
   step 1 default (`Recipe pipeline` `Run settings`, the `Test data` samples and `tests/test_workflows.py`).
   Why: quality first, only configuration family that met the bar, thinking on gave no gain at about 8x
-  the time ([`benchmark.md`](docs/work/m1-read-request/benchmark.md)). Workflows published and
+  the time ([`benchmark.md`](docs/finished/m1-read-request/benchmark.md)). Workflows published and
   re-exported; `pytest` 150 passed with the stack up on the new default. D2 moved from §7 to §4.
 - `m1-read-request` Task 6: D2 benchmark measured, 7 configurations x 3 runs x 20 briefs, same prompt and
-  contract hash ([`benchmark.md`](docs/work/m1-read-request/benchmark.md)). Bar 19/20 in every run:
+  contract hash ([`benchmark.md`](docs/finished/m1-read-request/benchmark.md)). Bar 19/20 in every run:
   `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` meets it with thinking off (12.5 s median, 36%/64% CPU/GPU)
   and with thinking on (96.7 s median); others below (qwen3.8:27b 18/20, gemma4:12b-it-q8_0 and
   gemma4:31b-it-qat 17/20, gemma4:12b 16/20, gemma4:26b-a4b-it-qat 12-13/20). Remaining misses:
@@ -257,22 +257,22 @@ Newest first. One entry per meaningful change: what was done, and why if that is
   `first_errors`; 2823: stops naming both tries). Smoke pass on `gemma4:12b-it-q8_0`, 20 briefs, 20
   finished runs: step 1 15/20 on the first prompt, 17/20 after two general wording changes (hints only
   from words the user wrote; numbers matched to their unit); prompt frozen. `.venv/bin/pytest`: 143
-  passed. Plan: [`docs/work/m1-read-request/plan.md`](docs/work/m1-read-request/plan.md).
+  passed. Plan: [`docs/finished/m1-read-request/plan.md`](docs/finished/m1-read-request/plan.md).
 - `m1-read-request` Task 3: `db/020_step1.sql` adds `app.step1_read_answer(request, content,
   contract)` (parse, drop repeated words, contract check, every `stated` number must be written in
   the request); `app.brief.profile_id` is nullable and `app.run_step.llm` exists (both SQL files
   applied twice on the stack); the step 1 output contract gains `uniqueItems` and `maxItems`.
-  `.venv/bin/pytest`: 135 passed. Plan: [`docs/work/m1-read-request/plan.md`](docs/work/m1-read-request/plan.md).
+  `.venv/bin/pytest`: 135 passed. Plan: [`docs/finished/m1-read-request/plan.md`](docs/finished/m1-read-request/plan.md).
 - `m1-read-request` Task 2: `evals/grade.py` grades `named` and compares ingredient words after
   normalising (case, accents, hyphens, spacing) and a two-pair naming-synonym list; a form word
   is never dropped (`rice` != `flaked rice`). `.venv/bin/pytest -m "not stack"`: 100 passed.
-  Plan: [`docs/work/m1-read-request/plan.md`](docs/work/m1-read-request/plan.md).
+  Plan: [`docs/finished/m1-read-request/plan.md`](docs/finished/m1-read-request/plan.md).
 - `m1-read-request` Task 1: the 20 recipe briefs gain `named` (the style words the user wrote) and
   hold ingredient words as the user wrote them (b02 `oats`, b06/b16 `rice`, b07 `corn`, b10
   `dark candi sugar`, `abbey yeast`); `test_words_are_the_users` checks it. Suite without stack:
   95 passed.
-- Approved brief and planned `m1-read-request` ([`docs/work/m1-read-request/`](docs/work/m1-read-request/),
-  [plan](docs/work/m1-read-request/plan.md)): step 1 reads the request with one Ollama call
+- Approved brief and planned `m1-read-request` ([`docs/finished/m1-read-request/`](docs/finished/m1-read-request/),
+  [plan](docs/finished/m1-read-request/plan.md)): step 1 reads the request with one Ollama call
   (JSON schema in `format`, temperature 0, seed 42), one SQL check (contract + no invented
   numbers) and one retry; the brief is saved in `app.brief`; the grader keeps the user's own
   ingredient words (`rice` ≠ `flaked rice`) and grades a new `named` field; the D2 benchmark
@@ -346,7 +346,7 @@ Newest first. One entry per meaningful change: what was done, and why if that is
   logging; the eval runner and the G0 baseline run. Nothing built yet.
 - Wrote draft briefs for all 13 WORKFLOW-ROADMAP work items in `docs/work/` (none approved, no
   branches yet): [`m0-harness`](docs/finished/m0-harness/brief.md),
-  [`m1-read-request`](docs/work/m1-read-request/brief.md),
+  [`m1-read-request`](docs/finished/m1-read-request/brief.md),
   [`m2-best-fit-style`](docs/work/m2-best-fit-style/brief.md),
   [`m3-deviations`](docs/work/m3-deviations/brief.md),
   [`m4-targets-blueprint`](docs/work/m4-targets-blueprint/brief.md),
