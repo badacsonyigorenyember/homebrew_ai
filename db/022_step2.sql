@@ -190,13 +190,11 @@ $$;
 
 -- The cue word that makes the adjunct prominent in the request, or null. A sentence must name the
 -- adjunct and hold a cue; the adjunct must not be damped. Cues are word stems (shin matches shine,
--- shines, shining), so any form of the word counts. A damper only damps the adjunct when it stands
--- in the same clause (clauses end at , : ; . ! ?) with at most DAMPER_GAP words between damper and
--- adjunct, so "some citrus hops, honey forward" stays prominent. A damper only looks forward: it
--- damps the adjunct when it stands within the same clause, at most DAMPER_GAP words away on either
--- side (before or after), with no conjunction (and, but, or, plus, while) in between, because a
+-- shines, shining), so any form of the word counts. A damper damps the adjunct when it stands in
+-- the same clause (clauses end at , : ; . ! ?), at most DAMPER_GAP words away on either side (before
+-- or after), with no conjunction (and, but, or, plus, while, with) in between, because a
 -- conjunction ends the item the damper belongs to ("the honey should be subtle and the hops forward"
--- is damped, "Plenty of honey and some citrus" and "Honey forward and some citrus" stay prominent).
+-- is damped, "some citrus hops, honey forward" stays prominent, "Plenty of honey and some citrus" and "Honey forward and some citrus" stay prominent).
 -- Edge cases: "some citrus and honey forward" is prominent (the "and" ends the damper's reach),
 -- "some honey that shines" and "some very nice honey" are not. Hyphens read as spaces ("honey-forward").
 -- The reason quotes the cue as written in the request ("shines", not "shin").
@@ -214,7 +212,7 @@ declare
     DAMPER_GAP constant int    := 2;   -- most words allowed between a damper and the adjunct
     adj      text := '\m' || lower(adjunct) || '\M';
     damp     text := '\m(' || array_to_string(DAMPERS, '|') || ')\M';
-    gap      text := '(\s+(?!(and|but|or|plus|while)\M)\w+){0,' || DAMPER_GAP || '}\s+';
+    gap      text := '(\s+(?!(and|but|or|plus|while|with)\M)\w+){0,' || DAMPER_GAP || '}\s+';
     sentence text;
     clause   text;
     cue      text;

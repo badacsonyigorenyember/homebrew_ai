@@ -524,3 +524,4 @@ Commit: `Measure G2 for step 2`
   and "honey that is subtle, with the hops up front" are not prominent; the finding-12 wordings stay
   prominent. "the honey should be subtle but shine" is asserted not prominent again. Finding 16
   (cue searched in the whole sentence) is left as is.
+- 2026-10-13 · Review finding 19 (adds to the Finding 15 line above): "with" also ends a damper's reach, like and/but/or/plus/while, so "Honey forward with some citrus." and "Lots of honey with a little lemon zest." are prominent; every finding-15 wording is still not prominent. Note 20: the comment above `app.adjunct_cue` describes only the two-sided check. User's decision after the third re-review.

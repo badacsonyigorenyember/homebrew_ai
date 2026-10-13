@@ -172,6 +172,8 @@ def test_adjunct_in_other_sentence_is_not(conn):
         "Plenty of honey and some citrus.",
         "Lots of honey and a little lemon zest.",
         "Honey forward and some citrus.",
+        "Honey forward with some citrus.",
+        "Lots of honey with a little lemon zest.",
         "I want some citrus and honey forward.",
     ],
 )
