@@ -177,10 +177,10 @@ Commit: `Add two BA briefs for step 2`
 
 ### Task 2: a script proposes BA ↔ BJCP pairs for your review
 Why: R6 (equivalent styles go to BJCP); user decision "reviewed list".
-- [ ] `loaders/style_pairs.py` (docstring with run command, like `loaders/styles.py`):
+- [x] `loaders/style_pairs.py` (docstring with run command, like `loaders/styles.py`):
       - `name_words(name) -> list[str]`: NFKD with combining marks dropped, lower case,
         non-letters to spaces, drop `style and or the of beer`, `ipa` → `india pale ale`.
-      - `same_word(a, b) -> bool`: equal, or `difflib.SequenceMatcher` ratio ≥ 0.8 (`koelsch` /
+      - `same_word(a, b) -> bool`: equal, or `difflib.SequenceMatcher` ratio ≥ 0.85 (`koelsch` /
         `kolsch`).
       - `propose(ba_rows, bjcp_rows) -> list[dict]`: for each BA style, the BJCP styles whose
         words all match words of the BA name, or the other way round; `match` is `same words`
@@ -190,14 +190,14 @@ Why: R6 (equivalent styles go to BJCP); user decision "reviewed list".
         and writes a markdown file: a short how-to-review note, then one row per BA style (169),
         sorted by BA name: BA code · BA name · proposed BJCP code(s) and name(s) · match · ABV
         BA · ABV BJCP · **decision** (empty; you write `keep`, `drop` or a BJCP code).
-- [ ] Write `tests/test_style_pairs.py` (no stack): `test_koelsch_pairs_with_kolsch`
+- [x] Write `tests/test_style_pairs.py` (no stack): `test_koelsch_pairs_with_kolsch`
       (`German-Style Koelsch` → `5B Kolsch`); `test_dubbel_pairs` (`Belgian-Style Dubbel` →
       26B); `test_no_pair_for_mexican_amber_lager` (BJCP has `International Amber Lager` and
       `Czech Amber Lager` only → empty); `test_ties_are_all_listed`; `test_ipa_spelled_out`.
-- [ ] Run `.venv/bin/pytest tests/test_style_pairs.py`, expect all pass. Run
+- [x] Run `.venv/bin/pytest tests/test_style_pairs.py`, expect all pass. Run
       `.venv/bin/python -m loaders.style_pairs --out docs/work/m2-best-fit-style/style-pairs.md`.
-- [ ] PROJECT.md §4 Scripts row (the new script) and §8 entry with the number of proposed pairs.
-- [ ] Commit, then **stop and report `needs-input`**: ask the user to fill the `decision`
+- [x] PROJECT.md §4 Scripts row (the new script) and §8 entry with the number of proposed pairs.
+- [x] Commit, then **stop and report `needs-input`**: ask the user to fill the `decision`
       column of `style-pairs.md` (keep, drop, or another BJCP code; a BA style with no proposal
       may get a code too). Task 3 starts only after the review.
 Done when: the script tests pass and `style-pairs.md` lists all 169 BA styles.
@@ -474,3 +474,4 @@ Commit: `Measure G2 for step 2`
   from the request text when the `guide` field is not sent (the field wins), so
   `guide_preference` may be null and `app.guide_from_request` is added; no LLM tie-break; A6
   tests keep the `stack` marker. Recorded in brief.md too.
+- 2026-10-13 · Task 2: `same_word` ratio threshold 0.85, not 0.8 — at 0.8 `mexican` matched `american` (ratio 0.80) and proposed 1B American Lager for the Mexican amber lager; `koelsch`/`kolsch` is 0.92.
