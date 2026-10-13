@@ -119,6 +119,7 @@ brief that is genuinely ambiguous?
 **Bar:** ≥ 18/20 briefs where the picked style is `style` or in `alt_styles` (RECIPE-ROADMAP P4),
 b05 reports the 20C/15B mismatch, b12 picks 31B. **If no:** look at which signal misleads (name
 vs. numbers vs. words) before adding signals; consider an LLM tie-break only for real ties.
+**Measured (2026-10-13, [`m2-best-fit-style`](work/m2-best-fit-style/plan.md)):** met, on the real pipeline with the D2 model (`evals.run --save --label m2`): step 2 passes 22/22 (b01-b20 20/20, b21 and b22 right). b05 picks 15B with the 20C mismatch, b12 picks 31B (alternative 18A), b19 keeps 17C. No weight was tuned. Step 1 missed one field (b05 `hints`), which did not change step 2. Saved in `evals/results/2026-10-13-m2.json`.
 
 ### G3 · Step 3 finds the right deviations (P4 done)
 
@@ -177,7 +178,7 @@ the milestone that first needs it, as its own small work item with your review.
 | When | Gap | Why it matters | Proposed fix |
 |---|---|---|---|
 | M1 | Names are generic (`candi sugar`, `abbey ale yeast`) while `ref` names products (Brown Candi Sugar, specific strains) | Step 1 or a resolver must map words to `ref` ids; the grader must know what counts as a match | Decide at G1 whether step 1 outputs words (a code resolver maps them) or ids; grade words against the brief, ids at M5 |
-| M2 | No brief exercises BA 2026 or a "BJCP only / BA only" preference (D1) | D1's BA path would go untested | Add 1–2 briefs where BA describes the beer better, if D1's BA path is built in M2 |
+| M2 | No brief exercises BA 2026 or a "BJCP only / BA only" preference (D1) | D1's BA path would go untested | Done 2026-10-13: b21 and b22 added; the BJCP-only / BA-only setting is tested in `tests/test_step2_pick.py` |
 | M2 | No genuinely ambiguous request where asking back is right | RECIPE-ROADMAP §4: "only ask when genuinely ambiguous" is untested | Optional: one brief that should produce a question |
 | M3 | `deviations[].what` is free text | The grader needs a rule for "same deviation" | Grade on `kind` + the ingredient or number named; write that rule into the harness, not the briefs |
 | M4, M6 | Only 5 briefs state a batch size (b01, b08, b13, b15, b19); none states efficiency or water | Steps 0, 4, 10 and 12 need a brewer profile | One test brewer profile as a fixture (e.g. 20 L, 72 %, a stated tap water), used where a brief states nothing |

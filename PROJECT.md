@@ -161,16 +161,19 @@ Not ingested since the reset. On 2026-10-08 the source files were removed from `
 | Yeast data: hopline.hu dry and liquid yeast lists (`hopline_yeasts.json`, 129 products) | Structured (fetched pages) | Yeast catalogue, 119 yeasts | ✅ loaded into `ref.yeast`: 119 rows (dry 81, liquid 38; YeastFlow 38, Lallemand 18, Norse Nectar 17, Fermentis 13, Mangrove Jack's 13, Brewline 10, Gozdawa 9, YeasterBunny 1), 119 with temperature, 113 with flocculation, 114 with alcohol tolerance, 93 with attenuation (2026-10-11, [`yeast-loader`](docs/finished/yeast-loader/plan.md), shipped); no page states attenuation; it is copied as printed from the sources the user named: YeastFlow catalogue 34, Lallemand catalogue 17, Brewfather figures from the user 16 (Gozdawa 8, Brewline 8), Mangrove Jack's data sheets 13, Fermentis data sheets 12, user-supplied 1 (YF-666, printed "800-100", confirmed 80–100); 10 rows spot-checked against the source, no errors (2026-10-11, [`ref-spotcheck`](docs/finished/ref-spotcheck/plan.md)); none for Norse Nectar and YeasterBunny (user decision) and 8 strains with no figure in their source ([`report.md`](docs/finished/yeast-loader/report.md)). *Why hopline, not Brewtarget's BeerJSON (was D8): the user chose the shop's own yeasts, as for malts and hops (2026-10-11); the Brewtarget files are no longer needed* |
 | AHA recipe-design crash course · Oregon Brew Crew recipe formulation · BJCP exam study guide | Free web / PDF | Design method, rules of thumb, output checklist | ⬜ candidate, not downloaded |
 
-**Style guides (was D1, decided 2026-10-11):** both are used. BJCP 2021 is preferred; BA 2026 is
-used where it describes the requested beer better, or the user is asked which to use. The user
-can also set a preference: BJCP only or BA only. Within a guide, the best-fit style is the
-**base style** by default (adjuncts and extras are ignored). When the request makes an adjunct a
-stated, prominent feature, the specialty code is expected (e.g. 31B Alternative Sugar Beer for a
-honey-forward blonde), with the base style as the alternative; a specialty category is also used
-when no meaningful base style exists ([`test-briefs`](docs/finished/test-briefs/brief.md) R3, agreed
-by the user 2026-10-11). Step 2 is not built yet; it follows this rule (P4). *Why: the user's
-call: BJCP stays first, as in the first build and the test briefs, but a beer BA describes
-better is not forced into BJCP, and the brewer can choose.*
+**Style guides (was D1, decided 2026-10-11, rule revised 2026-10-13):** both guides are scored
+together and the best fit wins, with no head start for either. A BA style that is the same
+beer as a BJCP style (the decided pair list, [`style-pairs.md`](docs/work/m2-best-fit-style/style-pairs.md),
+`app.style_pair()`) is returned as the BJCP style; a BA style paired only with a BJCP catch-all
+keeps the BA style. Equal scores go BJCP first, then by code. BJCP only or BA only comes from
+the webhook's `guide` field, or from the request text when the field is not sent; the field
+wins. Within a guide, the best-fit style is the **base style** by default (adjuncts and extras
+are ignored). When the request makes an adjunct a stated, prominent feature, the specialty code
+is picked (e.g. 31B Alternative Sugar Beer for a honey-forward blonde), with the base style as
+the alternative ([`test-briefs`](docs/finished/test-briefs/brief.md) R3). Step 2 is built
+(`app.step2_best_style`, [`m2-best-fit-style`](docs/work/m2-best-fit-style/plan.md)). *Why: the
+user's call (2026-10-13): the style is loose guidance that helps select resources, so the
+closest style wins whichever guide it is in.*
 
 ---
 
@@ -219,6 +222,7 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-13
+- `m2-best-fit-style` Task 7: G2 measured on the real pipeline (`evals.run --save --label m2`, D2 model, [`evals/results/2026-10-13-m2.json`](evals/results/2026-10-13-m2.json)): step 2 22/22 (b01-b20 20/20, bar 18/20; b21 and b22 right); b05 15B with the 20C mismatch, b12 31B (alternative 18A), b19 17C. Step 1 21/22 (b05 `hints` wrong, step 2 unaffected). No constant tuned. Step 3 not built, so briefs 0/22 overall. §5 style-guide paragraph rewritten to the rule as built; WORKFLOW-ROADMAP G2 Measured line added.
 - `m2-best-fit-style` Task 6: the pipeline runs step 2 and logs it. New sub-workflow `Step 2 · best-fit style` (input check, one `Score styles` SQL call, output check, no writes), published before the pipeline; `Recipe pipeline` gained `guide` in `Run settings` and the step 2 block (input, call with an error output, log ok / log failure, `failed_step: 2`). Edited through the n8n MCP except the pipeline's step 2 call: the MCP drops `onError`, so the pipeline was changed in its JSON and imported with `n8n import:workflow`, then published. Measured: a null `guide_preference` was lost between the workflows (`required property` error) until the sub-workflow read it with `?? null`; after that run 829 logged step 2 with `guide_preference: null`. New tests `test_step_2_logged`, `test_guide_setting_reaches_step_2`, `test_bad_guide_fails_at_step_2`; `pytest` 206 passed.
 - `m2-best-fit-style` Task 5: `app.step2_best_style` in [`db/022_step2.sql`](db/022_step2.sql) picks the style, with step 2's contracts updated
   (`request`, `reason`, null `guide_preference`). User decisions: the number score has a general tightness bonus (a 4 % imperial stout now

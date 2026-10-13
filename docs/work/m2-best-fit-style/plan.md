@@ -427,23 +427,23 @@ Commit: `Run step 2 in the pipeline`
 
 ### Task 7: G2 is measured on the real pipeline
 Why: G2; A1, A2.
-- [ ] `.venv/bin/python -m evals.run --save --label m2` (stack up, D2 model). Read the table:
+- [x] `.venv/bin/python -m evals.run --save --label m2` (stack up, D2 model). Read the table:
       step 2 pass count on b01–b20, and b21, b22. For each step 2 miss, compare with the SQL-level
       result of Task 5: a miss that only happens here comes from step 1's output (note the
       field), not from step 2.
-- [ ] **If the bar is not met** (< 18/20 on b01–b20, or b05 / b12 / b19 wrong, or b21 / b22
+- [x] **If the bar is not met** (< 18/20 on b01–b20, or b05 / b12 / b19 wrong, or b21 / b22
       wrong): tune only the named constants as in Task 5, re-run both the SQL tests and the
       runner, and record each change in Deviations. If that does not reach it, stop and report
       `needs-input` with the misses and the misleading signal per miss; no LLM tie-break and no
       lower bar without you.
-- [ ] `docs/WORKFLOW-ROADMAP.md`: G2 **Measured** line (counts, A2 cases, results file); §3
+- [x] `docs/WORKFLOW-ROADMAP.md`: G2 **Measured** line (counts, A2 cases, results file); §3
       M2 rows: BA briefs added (b21, b22). PROJECT.md §5 D1 paragraph: rewrite it to the
       user's rule as built (both guides scored, best fit wins, equivalent styles go to BJCP
       through the decided pair list, BJCP-only / BA-only from the `guide` field or the request
       text, the field wins), replacing "BJCP 2021 is preferred …" and "Step 2 is not built
       yet"; keep a one-line *why* (the user's call, 2026-10-13). §8 entry with the measured
       numbers.
-- [ ] Commit `evals/results/<date>-m2.json` (G2 is a checkpoint).
+- [x] Commit `evals/results/<date>-m2.json` (G2 is a checkpoint).
 Done when: the saved run shows ≥ 18/20 on b01–b20, b05 / b12 / b19 as in A2, b21 and b22
 right, and the docs carry the measured numbers.
 Commit: `Measure G2 for step 2`
