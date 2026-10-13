@@ -90,3 +90,30 @@ Earlier findings:
 | 16 | should-fix | db/022_step2.sql:233-238 | The cue is searched in the whole sentence, not near the adjunct, so a cue belonging to another item counts once the adjunct is undamped in any clause. With the symmetric check (15) "A pale ale with honey, but keep it subtle, and citrus hops up front." is still prominent ("front"), as it already was at 2f56b5a. | Same failure as 15 for wordings where the damper is in another clause. Not new in this commit; the user decides whether R7 should tie the cue to the adjunct's clause. |
 | 17 | note | db/022_step2.sql:213 | DAMPER_GAP = 2 words misses a damper before a multi-word variety: "A pale ale with a touch of orange blossom honey that you can taste." and "A little bit of orange blossom honey, you should taste it." are prominent (3-4 words between). "a touch of wildflower honey I can taste" is not. Same at 2f56b5a. | Only matters for honey varieties named in two words. |
 | 18 | note | db/022_step2.sql:428-429 | The alternatives window is anchored on the best `alt_total`, which in a mismatch can be the ruled-out named style rather than the pick. "An 8% kolsch": pick 9C, alternatives were `27I, 5B, 10C, 22B`, now `5B` only (Kölsch, which the 8% rules out). Recorded in the finding 10 Deviations line. | Alternatives sit next to the named style, not the pick, in mismatch cases. Coherent with the mismatch message; no requirement covers it. |
+
+## Re-review 2026-10-13 (third)
+
+Diff: bda1e15..996276b (fix for finding 15)  ·  Verdict: ready for testing (should-fix 19 for the user)
+
+Checked: the fix commit against finding 15 only (16, 17 and 18 stay open as recorded); the deployed
+`app.adjunct_cue`, `app.adjunct_is_prominent`, `app.step2_best_style` and `app.style_name_covers`
+bodies equal `db/022_step2.sql` and are owned by `postgres`; `.venv/bin/pytest` 233 passed (rerun
+here). The bda1e15 `adjunct_cue` was rebuilt as a session-only `pg_temp` copy and both were run on
+the 23 wordings of the last round and the test file, 9 new probes, and every distinct logged step 2
+request (22) against every specialty adjunct: the logged requests give the same cue in both
+versions (only b12, "shines"). The SQL-level b12 pick is 31B, alternative 18A, reason quoting
+"shines". Commit is one line, no secrets, DB change is the `.sql` file.
+
+Earlier finding:
+- **15 (damper after the adjunct ignored): fixed as approved.** The check is now
+  `clause !~ (damp || gap || adj) and clause !~ (adj || gap || damp)` with the conjunction-aware
+  `gap`, exactly the rule the user chose. All four finding-15 wordings are not prominent; all four
+  finding-12 and the three finding-4 wordings stay prominent; every test wording gives its expected
+  result; "the honey should be subtle but shine" is not prominent again. Through step 2, "A 5% blonde
+  ale with honey that is subtle, with the hops up front." (b12's brief) now picks 18A, not 31B. The
+  six new parametrized cases would fail on the bda1e15 rule (all six are prominent there).
+
+| # | Severity | Where | Finding | Why it matters |
+|---|---|---|---|---|
+| 19 | should-fix | db/022_step2.sql:230 | New with this commit: a damper right after the adjunct that belongs to the next item, joined by a word that is not in the conjunction list (here "with"), now cancels. Measured, prominent at bda1e15 and not now: "Honey forward with some citrus." and "Lots of honey with a little lemon zest." Still prominent when the gap is over 2 words or a comma separates: "Honey up front with a hint of ginger.", "A honey-forward ale with a touch of spice.", "Plenty of honey, with a little lemon.", "I want the honey to shine with a bit of orange peel." | This is the approved rule working as specified, not an implementation slip; it is the mirror of finding 12 for "with". Adding `with` to the words that end a damper's reach would keep both shapes right, but it changes the approved rule, so it is the user's call. No logged request is affected. |
+| 20 | note | db/022_step2.sql:196 | The comment still opens with "A damper only looks forward:", then describes the two-sided check. | The comment contradicts itself in one sentence; the rest of it is right. |
