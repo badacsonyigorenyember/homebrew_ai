@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "step2.output",
-  "description": "Step 2, choose style: the chosen style and why. Absent: style null with unknown_reason; mismatch null when the named style and the numbers agree.",
+  "description": "Step 2, choose style: the chosen style and why. Absent: style null with unknown_reason; mismatch null when the named style and the numbers agree. reason is one sentence: the pick and its strongest signal.",
   "type": "object",
   "required": [
     "style",
@@ -10,7 +10,8 @@
     "candidates",
     "scores",
     "mismatch",
-    "guide_reason"
+    "guide_reason",
+    "reason"
   ],
   "additionalProperties": false,
   "properties": {
@@ -107,6 +108,9 @@
       }
     },
     "guide_reason": {
+      "type": "string"
+    },
+    "reason": {
       "type": "string"
     }
   }

@@ -51,7 +51,9 @@ R5. Word signal: hint and flavour words count against the style's text (overall 
     aroma, flavour, mouthfeel) and `raw.tags`, e.g. "roasty", "hoppy", "malty".
 R6. Guide choice: with no restriction both guides are scored and the best fit wins, BJCP or BA,
     with no margin for either. When the winner has an equivalent in the other guide (the decided
-    pair list), the BJCP style is returned. "BJCP only" or "BA only" scores only that guide; it
+    pair list), the BJCP style is returned, except when the BJCP side is a catch-all (28A, 30A-D,
+    31A-B, 32A-B, 33A-B, 34A-C): then the specific BA style is kept, because it guides the recipe's
+    resources better (the reason names the catch-all pair). "BJCP only" or "BA only" scores only that guide; it
     comes from the webhook's `guide` field (`any`, `bjcp`, `ba`; default `any`) or from the
     request text ("BA style", "per BJCP"), read by code, and the field wins when both are given.
     The choice and the reason appear in the output.
@@ -80,13 +82,14 @@ R9. The step logs its input, output and timing in `run_step` (step 2).
 ## Acceptance criteria
 A1. The runner shows ≥ 18/20 of b01–b20 with the expected `style` or one of `alt_styles`, and
     b21 and b22 pick their BA style (R1–R7, G2).
-A2. b05 picks 15B with a mismatch naming 20C and its ABV range; b12 picks 31B with 18A as an
+A2. b05 picks 15B with a mismatch naming 20C and its ABV range; b12 picks 31B (or BA `specialty-honey-beer`) with 18A as an
     alternative; b19 picks 17C (R4, R7).
 A3. Two runs on the same brief give identical output (R2).
 A4. With "BA only", from the `guide` field or from the request text, b01 picks a BA style, and the
     output says why; when the field and the text disagree, the field wins. With no restriction, a
-    BA best fit that has a BJCP pair in the list returns the BJCP style (German-Style Koelsch → 5B)
-    (R6).
+    BA best fit that has a BJCP pair in the list returns the BJCP style (German-Style Koelsch → 5B), but a BA style paired with a BJCP catch-all keeps the BA style
+    (a strong stout with vanilla, tonka bean and lots of lactose → `dessert-stout-or-pastry-beer`,
+    not 30D) (R6).
 A5. A request with no beer in it ("something nice") gives the unknown result (R8).
 A6. Unit tests cover each signal on its own: they call each SQL function directly with literal
     inputs, without n8n or the pipeline (they need Postgres, so they keep the `stack` marker)
@@ -111,3 +114,11 @@ Answered by the user on 2026-10-13:
   n8n or the pipeline, since the signals are SQL functions (G0). Step 2 also reads the request
   text, for adjunct prominence (R7) and a named guide (R6).
 - 2026-10-13 · Task 2: pairs decided by Claude on sensory similarity (vitals only veto when ABV or IBU ranges don't overlap); user delegated the decision, no row review — user's request
+- 2026-10-13 · R6, A2, A4, R3 number signal: (1) the user chose "keep the specific BA style" for
+  BA styles paired with a BJCP catch-all (28A, 30A-D, 31A-B, 32A-B, 33A-B, 34A-C): no swap; b12
+  may pick BA `specialty-honey-beer` instead of 31B and the user accepts either. Style guidance
+  is "not so strict": the style helps select resources and is shown to the user (a strict / loose
+  mode is not part of this work). (2) b05 gave 16A, not 15B: all stouts tied on name and the wide
+  BA Sweet Stout range won on position. The number score now adds a tightness bonus
+  `TIGHT / (1 + width / scale)` inside a range, the same formula for every number and style
+  (user: rules must be general). Recorded in plan.md too.

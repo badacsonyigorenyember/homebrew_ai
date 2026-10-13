@@ -21,8 +21,9 @@ Branch: m2-best-fit-style
     words) × (named words matched / named words), the best over the name and its aliases.
     `W_NAME = 4`.
   - *numbers*: per stated `abv`, `og`, `ibu`, `srm` with a range on the style: inside →
-    `1 − 0.5 × |x − mid| / half-width` (0.5 at an edge, 1 at the centre; `0.75` when a bound is
-    open, as in BA's `[40,)`); outside → `−distance / scale` with scale ABV 1.0, OG 0.008,
+    `1 − 0.5 × |x − mid| / half-width + TIGHT / (1 + width / scale)` (0.5 at an edge, 1 at the
+    centre, plus a tightness bonus so a narrow range beats a wide one that merely contains the
+    value; `TIGHT = 1.0`; `0.75` and no bonus when a bound is open, as in BA's `[40,)`); outside → `−distance / scale` with scale ABV 1.0, OG 0.008,
     IBU 10, SRM 5; no range → 0.
   - *words*: the hints (mapped to tag words where the names differ: `juicy` → `hoppy`,
     `darker` → `dark-color`, `stronger` → `high-strength`, `session` → `session-strength`) and
@@ -39,7 +40,9 @@ Branch: m2-best-fit-style
     or neither. Null means `any`.
   - *No restriction (`any`).* Both guides are scored together and the best total wins, with no
     margin for either. If the winner is a BA style that has a BJCP pair in the decided pair
-    list, the BJCP style is returned instead (German-Style Koelsch → 5B). Equal totals go BJCP
+    list, the BJCP style is returned instead (German-Style Koelsch → 5B), unless the BJCP side is a
+    catch-all (`app.bjcp_catch_all()`: 28A, 30A-D, 31A-B, 32A-B, 33A-B, 34A-C); then the BA style is
+    kept and `reason` names the catch-all pair. Equal totals go BJCP
     first, then by code.
   - *Restricted.* Only that guide is scored and the pair list is not used.
   - `guide_reason` says where the guide came from (field, request text, or none) and, under
@@ -297,13 +300,13 @@ Commit: `Add step 2 style signals in SQL`
 
 ### Task 5: one SQL function picks the style, explains it and meets the contract
 Why: R1, R2, R4, R6, R7, R8; A1 (SQL level), A2, A3, A4, A5.
-- [ ] `shared/contracts/step2.input.schema.json`: required `request` (string, `minLength: 1`);
+- [x] `shared/contracts/step2.input.schema.json`: required `request` (string, `minLength: 1`);
       `guide_preference` enum becomes `["any", "bjcp", "ba", null]` (null: the field was not
       sent). `step2.output.schema.json`: required `reason` (string); description mentions it.
       `tests/test_contracts.py`: `step2.input` example gains `request`; a second good example
       with `guide_preference: null`; `STEP2_OUT` gains `reason`; `STYLE.guide` → `"BJCP"`; bad
       examples without `request` and with `guide_preference: "both"`.
-- [ ] Append to `db/022_step2.sql`
+- [x] Append to `db/022_step2.sql`
       `app.step2_best_style(brief jsonb, request text, guide_preference text) returns jsonb`,
       `language plpgsql stable`. `declare` block first: `W_NAME 4`, `WORD_CAP 2`,
       `ALT_MARGIN 0.5`, `MIN_SCORE 1.0`, each with a one-line comment. Then, commented in this
@@ -335,8 +338,8 @@ Why: R1, R2, R4, R6, R7, R8; A1 (SQL level), A2, A3, A4, A5.
          the pair list was used, "<BA code> is the same style as <BJCP code> (style pair),
          BJCP used"), `reason` (one sentence: base pick and its strongest signal; with a
          specialty pick, the adjunct and the cue that made it prominent).
-- [ ] Apply twice (command as in Task 4).
-- [ ] Write `tests/test_step2_pick.py` (all `stack`). Helper `brief_of(b)` builds a step 1
+- [x] Apply twice (command as in Task 4).
+- [x] Write `tests/test_step2_pick.py` (all `stack`). Helper `brief_of(b)` builds a step 1
       brief from the toml's expected fields (`unknown: []`); `pick(b, guide=None, request=None)`
       calls the function with `b["request"]` unless another request is given.
       `test_b05_irish_stout_with_mismatch` (A2: 15B; mismatch names 20C and `ABV 8.0–12.0`);
@@ -361,12 +364,12 @@ Why: R1, R2, R4, R6, R7, R8; A1 (SQL level), A2, A3, A4, A5.
       `unknown_reason` set);
       `test_output_meets_contract` (all 22 and the unknown case validate against
       `step2.output` with `extensions.jsonschema_validation_errors`).
-- [ ] Run `.venv/bin/pytest tests/test_step2_pick.py tests/test_contracts.py`. If
+- [x] Run `.venv/bin/pytest tests/test_step2_pick.py tests/test_contracts.py`. If
       `test_briefs_reach_the_bar` fails, look at which signal misleads (G2 "If no"), and tune
       only the named constants; record each change as a Deviations line with the count before
       and after. If no constant change gets the bar without breaking A2, stop and report
       `needs-input` with the misses (the bar is not lowered).
-- [ ] Run `.venv/bin/pytest`, expect all pass. `docs/DATABASE.md`: the picking function in one
+- [x] Run `.venv/bin/pytest`, expect all pass. `docs/DATABASE.md`: the picking function in one
       line. PROJECT.md §8 entry with the SQL-level count.
 Done when: the step 2 tests and contract tests pass, and the SQL-level count is ≥ 18/20 with
 b21 and b22 right.
@@ -475,6 +478,8 @@ Commit: `Measure G2 for step 2`
   from the request text when the `guide` field is not sent (the field wins), so
   `guide_preference` may be null and `app.guide_from_request` is added; no LLM tie-break; A6
   tests keep the `stack` marker. Recorded in brief.md too.
+- 2026-10-13 · Task 5: number score gains a tightness bonus `TIGHT / (1 + width / scale)` (TIGHT 1.0, same for every number and style; open ranges get none) — b05 gave 16A: all stouts tied on name and BA Sweet Stout's wide range won on position; user's decision, general rule. Task 4 number tests updated (1.2 / 0.7 / 1.2+1+1/3) and `test_tight_range_beats_wide_range` added. Before/after at SQL level: b01–b20 20/20 both; b05 top 16A → 15B.
+- 2026-10-13 · Task 5: BA styles paired with a BJCP catch-all (`app.bjcp_catch_all()`) keep the BA style, no swap; b12 may pick `specialty-honey-beer` (A2 accepts it or 31B) — user's decision ("keep the specific BA style"); `app.adjunct_cue` added so `reason` can name the cue.
 - 2026-10-13 · Task 2: `same_word` ratio threshold 0.85, not 0.8 — at 0.8 `mexican` matched `american` (ratio 0.80) and proposed 1B American Lager for the Mexican amber lager; `koelsch`/`kolsch` is 0.92.
 - 2026-10-13 · Task 2: pairs proposed by Claude reading the guidelines, not by a name-matching script — user's request
 - 2026-10-13 · Task 2: pairs decided by Claude on sensory similarity (vitals only veto when ABV or IBU ranges don't overlap); user delegated the decision, no row review — user's request

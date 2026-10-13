@@ -77,8 +77,18 @@ def test_no_name_scores_zero(conn):
 
 @pytest.mark.stack
 def test_number_at_centre_and_edge(conn):
-    assert number_score(conn, {"abv": 10}, abv="[8,12]")[0] == 1
-    assert number_score(conn, {"abv": 8}, abv="[8,12]")[0] == 0.5
+    # 1 (centre) or 0.5 (edge), plus the tightness bonus 1 / (1 + 4 / 1.0) = 0.2 for a 4-point range
+    assert number_score(conn, {"abv": 10}, abv="[8,12]")[0] == pytest.approx(1.2)
+    assert number_score(conn, {"abv": 8}, abv="[8,12]")[0] == pytest.approx(0.7)
+
+
+@pytest.mark.stack
+def test_tight_range_beats_wide_range(conn):
+    """The same formula for every number: the narrower range around the value scores higher."""
+    tight = number_score(conn, {"abv": 4}, abv="[3.8,5.0]")[0]
+    wide = number_score(conn, {"abv": 4}, abv="[3.2,6.3]")[0]
+    assert tight > wide
+    assert number_score(conn, {"ibu": 30}, ibu="[25,35]")[0] > number_score(conn, {"ibu": 30}, ibu="[10,50]")[0]
 
 
 @pytest.mark.stack
@@ -101,7 +111,7 @@ def test_no_range_scores_zero(conn):
 @pytest.mark.stack
 def test_numbers_add_up(conn):
     score, _ = number_score(conn, {"abv": 10, "ibu": 30}, abv="[8,12]", ibu="[20,40]")
-    assert score == 2
+    assert score == pytest.approx(1.2 + 1 + 1 / 3)
 
 
 @pytest.mark.stack

@@ -219,6 +219,11 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-13
+- `m2-best-fit-style` Task 5: `app.step2_best_style` in [`db/022_step2.sql`](db/022_step2.sql) picks the style, with step 2's contracts updated
+  (`request`, `reason`, null `guide_preference`). User decisions: the number score has a general tightness bonus (a 4 % imperial stout now
+  gives 15B, not 16A), and a BA style paired with a BJCP catch-all keeps the BA style (pastry stout stays BA, not 30D; style guidance
+  is a help to pick resources, not strict). Measured at SQL level: b01-b20 20/20 hit, b21 and b22 right, b05 15B with mismatch 20C,
+  b12 31B (alt 18A), b19 17C, b17 8B; applied twice, owned by `postgres`; `pytest` all passed.
 - `m2-best-fit-style` Task 4: step 2's signals are ten tested SQL functions in [`db/022_step2.sql`](db/022_step2.sql)
   (name match, number fit, hint and unknown words, tags, adjunct prominence, guide named in the request, alias and specialty lists
   with a source per row; applied twice, owned by `postgres`). `tests/test_step2_signals.py` has 25 stack tests; `pytest` 180 passed.
