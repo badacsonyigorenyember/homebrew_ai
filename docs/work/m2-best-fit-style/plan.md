@@ -517,3 +517,10 @@ Commit: `Measure G2 for step 2`
   "Plenty of honey and some citrus", "Honey forward and some citrus" and "some citrus and honey
   forward" are prominent. The old test "the honey should be subtle but shine" (damper after the
   adjunct) now reads prominent and was replaced by "some very nice honey that shines" (not).
+- 2026-10-13 · Review finding 15 (replaces the Finding 12 line above): the damper rule now checks both sides
+  of the adjunct (user's decision after the second re-review): a damper cancels prominence when it is
+  in the same clause, within `DAMPER_GAP = 2` words of the adjunct, before or after, with no
+  conjunction (and, but, or, plus, while) between. "the honey should be subtle and the hops forward"
+  and "honey that is subtle, with the hops up front" are not prominent; the finding-12 wordings stay
+  prominent. "the honey should be subtle but shine" is asserted not prominent again. Finding 16
+  (cue searched in the whole sentence) is left as is.

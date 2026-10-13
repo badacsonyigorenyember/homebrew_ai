@@ -193,10 +193,10 @@ $$;
 -- shines, shining), so any form of the word counts. A damper only damps the adjunct when it stands
 -- in the same clause (clauses end at , : ; . ! ?) with at most DAMPER_GAP words between damper and
 -- adjunct, so "some citrus hops, honey forward" stays prominent. A damper only looks forward: it
--- damps the adjunct when it comes BEFORE it, within the same clause, at most DAMPER_GAP words away,
--- and with no conjunction (and, but, or, plus, while) in between, because a conjunction ends the
--- item the damper belongs to. A damper after the adjunct belongs to the next item and never damps
--- ("Plenty of honey and some citrus", "Honey forward and some citrus" stay prominent).
+-- damps the adjunct when it stands within the same clause, at most DAMPER_GAP words away on either
+-- side (before or after), with no conjunction (and, but, or, plus, while) in between, because a
+-- conjunction ends the item the damper belongs to ("the honey should be subtle and the hops forward"
+-- is damped, "Plenty of honey and some citrus" and "Honey forward and some citrus" stay prominent).
 -- Edge cases: "some citrus and honey forward" is prominent (the "and" ends the damper's reach),
 -- "some honey that shines" and "some very nice honey" are not. Hyphens read as spaces ("honey-forward").
 -- The reason quotes the cue as written in the request ("shines", not "shin").
@@ -227,7 +227,7 @@ begin
         if sentence ~ adj then
             undamped := false;
             for clause in select c from unnest(regexp_split_to_array(sentence, '[,:]')) c loop
-                if clause ~ adj and clause !~ (damp || gap || adj) then
+                if clause ~ adj and clause !~ (damp || gap || adj) and clause !~ (adj || gap || damp) then
                     undamped := true;
                 end if;
             end loop;

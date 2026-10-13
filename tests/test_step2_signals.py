@@ -186,10 +186,26 @@ def test_nearby_damper_still_cancels(conn):
 
 
 @pytest.mark.stack
-def test_damper_after_the_adjunct_never_cancels(conn):
-    """A damper after the adjunct belongs to the next item."""
+def test_damper_after_the_adjunct_in_other_item_does_not_cancel(conn):
+    """A damper after the adjunct that a comma or conjunction separates belongs to the next item."""
     assert prominent(conn, "the honey should shine, a bit of citrus too") is True
     assert prominent(conn, "honey shines and a little spice") is True
+
+
+@pytest.mark.stack
+@pytest.mark.parametrize(
+    "request_text",
+    [
+        "A 5% blonde ale with honey that is subtle, with the hops up front.",
+        "I want honey that is subtle, with the hops up front.",
+        "The honey should be subtle and the hops forward.",
+        "Honey in a slight supporting role while the hops dominate.",
+        "A blonde with honey that stays slight, hop flavour forward.",
+        "the honey should be subtle but shine",
+    ],
+)
+def test_damper_after_the_adjunct_damps_it(conn, request_text):
+    assert prominent(conn, request_text) is False
 
 
 @pytest.mark.stack
