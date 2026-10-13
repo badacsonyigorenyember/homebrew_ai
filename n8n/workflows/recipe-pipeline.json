@@ -22,7 +22,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={{ { request: $json.body?.request ?? \"\", eval_id: $json.body?.brief_id ?? null, model: $json.body?.model ?? \"hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K\", think: $json.body?.think ?? false } }}",
+        "jsonOutput": "={{ { request: $json.body?.request ?? \"\", eval_id: $json.body?.brief_id ?? null, model: $json.body?.model ?? \"hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K\", think: $json.body?.think ?? false, guide: $json.body?.guide ?? null } }}",
         "options": {}
       },
       "id": "0a2d0b71-b581-4b22-b766-8b7022260189",
@@ -178,8 +178,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1344,
-        0
+        1996,
+        -96
       ],
       "credentials": {
         "postgres": {
@@ -199,8 +199,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1568,
-        0
+        2220,
+        -96
       ]
     },
     {
@@ -266,7 +266,7 @@
     },
     {
       "parameters": {
-        "content": "### Per-step block\nEach step is: set its input and start time, call its sub-workflow, then log ok or log the failure, and on to the next step. A failure logs its error, finishes the run with ok = false and responds. Steps 2 to 16 copy this block. Step 1 also logs tokens and the `llm` details (model, tries, ms), then saves the brief in `app.brief` and sets `app.run.brief_id`.",
+        "content": "### Per-step block\nEach step is: set its input and start time, call its sub-workflow, then log ok or log the failure, and on to the next step. A failure logs its error, finishes the run with ok = false and responds. Steps 1 and 2 are built; steps 3 to 16 copy this block. The webhook body's optional `guide` (`any`, `bjcp`, `ba`; null when not sent) goes to step 2. Step 1 also logs tokens and the `llm` details (model, tries, ms), then saves the brief in `app.brief` and sets `app.run.brief_id`.",
         "height": 200,
         "width": 300,
         "color": 4
@@ -318,6 +318,175 @@
           "name": "Postgres account"
         }
       }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { run_id: $(\"Step 1 · input\").item.json.run_id, brief: $(\"Step 1 · read request\").item.json.brief, request: $(\"Step 1 · input\").item.json.request, guide_preference: $(\"Run settings\").item.json.guide, started_at: $now.toISO() } }}",
+        "options": {}
+      },
+      "id": "e3af526e-1377-40db-b16f-2078dd6a77bd",
+      "name": "Step 2 · input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1324,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1EqmT9sq9tWqjJyw",
+          "cachedResultName": "Step 2 · best-fit style"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "brief": "={{ $json.brief }}",
+            "request": "={{ $json.request }}",
+            "guide_preference": "={{ $json.guide_preference }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "brief",
+              "displayName": "brief",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "request",
+              "displayName": "request",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guide_preference",
+              "displayName": "guide_preference",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "560154be-9bbd-477e-8e67-e186c5dbb1d5",
+      "name": "Step 2 · best-fit style",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1548,
+        0
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms) values ($1, 2, 1, $2::jsonb, $3::jsonb, true, round(extract(epoch from clock_timestamp() - $4::timestamptz) * 1000)::int)",
+        "options": {
+          "queryReplacement": "={{ [$(\"Step 2 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 2 · input\").item.json.run_id, brief: $(\"Step 2 · input\").item.json.brief, request: $(\"Step 2 · input\").item.json.request, guide_preference: $(\"Step 2 · input\").item.json.guide_preference }), JSON.stringify($json), $(\"Step 2 · input\").item.json.started_at] }}"
+        }
+      },
+      "id": "27824da7-4d44-4545-93fd-e0f7b8443ff1",
+      "name": "Step 2 · log ok",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1772,
+        -96
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, error) values ($1, 2, 1, $2::jsonb, null, false, round(extract(epoch from clock_timestamp() - $3::timestamptz) * 1000)::int, $4)",
+        "options": {
+          "queryReplacement": "={{ [$(\"Step 2 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 2 · input\").item.json.run_id, brief: $(\"Step 2 · input\").item.json.brief, request: $(\"Step 2 · input\").item.json.request, guide_preference: $(\"Step 2 · input\").item.json.guide_preference }), $(\"Step 2 · input\").item.json.started_at, $json.error] }}"
+        }
+      },
+      "id": "6af819c5-029c-47bd-955c-5dc885a10447",
+      "name": "Step 2 · log failure",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1772,
+        288
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "update app.run set finished_at = now(), ok = false where id = $1 returning id::int as id",
+        "options": {
+          "queryReplacement": "={{ [$(\"Start run\").item.json.id] }}"
+        }
+      },
+      "id": "bae75982-86a1-458c-824a-14d528cb9733",
+      "name": "Finish run (failed, step 2)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1996,
+        288
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { run_id: $json.id, ok: false, failed_step: 2, error: $(\"Step 2 · best-fit style\").item.json.error } }}",
+        "options": {}
+      },
+      "id": "fd6c3e0a-2507-4e84-a9a4-091c9a0e347a",
+      "name": "Respond failed (step 2)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2220,
+        288
+      ]
     }
   ],
   "connections": {
@@ -431,7 +600,69 @@
       "main": [
         [
           {
+            "node": "Step 2 · input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 2 · input": {
+      "main": [
+        [
+          {
+            "node": "Step 2 · best-fit style",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 2 · best-fit style": {
+      "main": [
+        [
+          {
+            "node": "Step 2 · log ok",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Step 2 · log failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 2 · log ok": {
+      "main": [
+        [
+          {
             "node": "Finish run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 2 · log failure": {
+      "main": [
+        [
+          {
+            "node": "Finish run (failed, step 2)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish run (failed, step 2)": {
+      "main": [
+        [
+          {
+            "node": "Respond failed (step 2)",
             "type": "main",
             "index": 0
           }

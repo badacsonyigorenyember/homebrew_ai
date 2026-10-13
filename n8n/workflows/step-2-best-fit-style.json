@@ -1,0 +1,256 @@
+{
+  "id": "1EqmT9sq9tWqjJyw",
+  "name": "Step 2 · best-fit style",
+  "nodes": [
+    {
+      "id": "7afd494c-2efa-4999-8ef0-8768c26827de",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "run_id",
+              "type": "number"
+            },
+            {
+              "name": "brief",
+              "type": "object"
+            },
+            {
+              "name": "request",
+              "type": "string"
+            },
+            {
+              "name": "guide_preference",
+              "type": "any"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "52c635a5-fc6e-4cb4-8014-155c30c865d5",
+      "name": "Check step 2 input",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "step2.input",
+            "value": "={{ { run_id: $json.run_id, brief: $json.brief, request: $json.request, guide_preference: $json.guide_preference ?? null } }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "4db7e3f4-f639-479c-af31-b09ee951e541",
+      "name": "Score styles",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        448,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select app.step2_best_style($1::jsonb, $2, $3) as result",
+        "options": {
+          "queryReplacement": "={{ [JSON.stringify($(\"When Executed by Another Workflow\").item.json.brief), $(\"When Executed by Another Workflow\").item.json.request, $(\"When Executed by Another Workflow\").item.json.guide_preference ?? null] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "63d0fa8b-06ce-44ed-b469-8542bc13221d",
+      "name": "Check step 2 output",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "step2.output",
+            "value": "={{ $json.result }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "9ad47a33-88f2-4574-a010-ef0589ec0ccb",
+      "name": "Return result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        0
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $(\"Score styles\").item.json.result }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "2e3f9450-ba07-4dd6-8320-db3243605452",
+      "name": "Sticky Note 5c9b920a",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -304
+      ],
+      "parameters": {
+        "content": "### Step 2 · best-fit style\nChecks its input, then asks `app.step2_best_style` (SQL) to score every BJCP and BA style on name, numbers and words, and returns the chosen style, alternatives, scores, mismatch and reason. The output is checked against the step 2 contract. Writes nothing: the pipeline logs it.",
+        "color": 4,
+        "width": 300,
+        "height": 220
+      }
+    },
+    {
+      "id": "1da57fd4-b8e0-4a68-b4ba-c95b0a824d01",
+      "name": "Test data",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {
+        "content": "### Test data · editor run\nPin this on `When Executed by Another Workflow` (open the node, use the output panel's edit / mock-data control, paste the JSON, save), then click *Execute workflow*.\nWrites nothing (`run_id: 0` belongs to no run).\n\n```json\n[{\"run_id\": 0, \"brief\": {\"named\": \"West Coast IPA\", \"stated\": {\"batch_l\": 20, \"abv\": 6.5}, \"hints\": [\"bitter\"], \"wanted\": [], \"excluded\": [], \"inventory\": [], \"unknown\": [], \"guidance\": true}, \"request\": \"I want a classic West Coast IPA that is properly bitter. Make it 20 litres at about 6.5 % ABV.\", \"guide_preference\": null}]\n```",
+        "color": 5,
+        "width": 520,
+        "height": 340
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Check step 2 input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check step 2 input": {
+      "main": [
+        [
+          {
+            "node": "Score styles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score styles": {
+      "main": [
+        [
+          {
+            "node": "Check step 2 output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check step 2 output": {
+      "main": [
+        [
+          {
+            "node": "Return result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  }
+}

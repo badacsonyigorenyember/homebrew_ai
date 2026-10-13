@@ -49,7 +49,7 @@ def post(conn):
 def _step_rows(conn, run_id):
     return conn.execute(
         "select step, try, ok, error, ms, input, output, tokens, llm from app.run_step "
-        "where run_id = %s",
+        "where run_id = %s order by step",
         (run_id,),
     ).fetchall()
 
@@ -68,7 +68,7 @@ def test_b01_logs_step_1(conn, post):
     assert model and finished_at is not None
 
     steps = _step_rows(conn, run_id)
-    assert len(steps) == 1
+    assert [s[0] for s in steps] == [1, 2]
     step, attempt, step_ok, error, ms, step_input, output, tokens, llm = steps[0]
     assert (step, attempt, step_ok, error) == (1, 1, True, None)
     assert ms >= 0
@@ -89,6 +89,43 @@ def test_b01_logs_step_1(conn, post):
         (schema, json.dumps(output)),
     ).fetchone()[0]
     assert errors == []
+
+
+def test_step_2_logged(conn, post):
+    """Step 2 is logged with its input, output and time (R9)."""
+    request = "I want a classic West Coast IPA that is properly bitter."
+    answer = post({"request": request})
+    assert answer["ok"] is True
+    steps = _step_rows(conn, answer["run_id"])
+    step, attempt, step_ok, error, ms, step_input, output, _, _ = steps[1]
+    assert (step, attempt, step_ok, error) == (2, 1, True, None)
+    assert ms >= 0
+    assert step_input == {
+        "run_id": answer["run_id"], "brief": steps[0][6], "request": request, "guide_preference": None,
+    }
+    assert output["style"]["code"]
+
+
+def test_guide_setting_reaches_step_2(conn, post):
+    """The webhook's `guide` field restricts step 2 to that guide (A4)."""
+    answer = post({"request": "I want a classic West Coast IPA that is properly bitter.", "guide": "ba"})
+    assert answer["ok"] is True
+    step_2 = _step_rows(conn, answer["run_id"])[1]
+    assert step_2[5]["guide_preference"] == "ba"
+    assert step_2[6]["style"]["guide"] == "BA"
+
+
+def test_bad_guide_fails_at_step_2(conn, post):
+    answer = post({"request": "A pale ale.", "guide": "both"})
+    assert answer["ok"] is False
+    assert answer["failed_step"] == 2
+    run_id = answer["run_id"]
+    assert conn.execute("select ok from app.run where id = %s", (run_id,)).fetchone() == (False,)
+    steps = _step_rows(conn, run_id)
+    assert [s[0] for s in steps] == [1, 2]
+    _, _, step_ok, error, _, _, output, _, _ = steps[1]
+    assert step_ok is False and error and "step2.input" in error
+    assert output is None
 
 
 def test_bad_input_logs_failure(conn, post):

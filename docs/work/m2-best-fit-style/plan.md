@@ -381,7 +381,7 @@ Why: R1, R6, R9; A4 (wiring). Load the n8n skills first (`using-n8n-skills-offic
 `n8n-error-handling-official`) and follow the MCP order: SDK reference → `get_node_types` →
 validate → create / update → check `connections` → publish. Publish the sub-workflow **before**
 the pipeline run that uses it (OPERATIONS §5: Execute Workflow runs the published version).
-- [ ] New workflow `Step 2 · best-fit style`: trigger *When Executed by Another Workflow* with
+- [x] New workflow `Step 2 · best-fit style`: trigger *When Executed by Another Workflow* with
       inputs `run_id` (number), `brief` (object), `request` (string), `guide_preference`
       (any type, so null passes) → *Execute Workflow* "Check step 2 input" (`Check contract`,
       `step2.input`, value `{run_id, brief, request, guide_preference}`) → *Postgres* "Score
@@ -392,7 +392,7 @@ the pipeline run that uses it (OPERATIONS §5: Execute Workflow runs the publish
       (the `result` object itself). A sticky note says what it does and that it writes nothing;
       a `Test data` sticky note with `[{"run_id": 0, "brief": <b01's expected step 1 brief,
       unknown []>, "request": "<b01>", "guide_preference": null}]`.
-- [ ] Workflow `Recipe pipeline` (`eMkkdBar6NIqUa1g`): `Run settings` gains
+- [x] Workflow `Recipe pipeline` (`eMkkdBar6NIqUa1g`): `Run settings` gains
       `guide: $json.body?.guide ?? null` (null = not sent; step 2 then reads the request, else
       `any`). After `Step 1 · save brief`, copy the per-step block: *Set* "Step 2 · input"
       `{run_id, brief: <Step 1 · read request brief>, request, guide_preference: <Run settings
@@ -403,9 +403,9 @@ the pipeline run that uses it (OPERATIONS §5: Execute Workflow runs the publish
       "Step 2 · log failure" (as step 1's, step 2) → "Finish run (failed, step 2)" → "Respond
       failed (step 2)" with `failed_step: 2` and the error. Update the per-step sticky note
       (step 2 runs; `guide` in the body).
-- [ ] Validate, create / update, check `connections`, publish both. `.venv/bin/python -m
+- [x] Validate, create / update, check `connections`, publish both. `.venv/bin/python -m
       evals.workflows`; read the diff: no secrets, only the intended nodes changed.
-- [ ] Tests:
+- [x] Tests:
       `tests/test_workflows.py`: `SAMPLES["step-2-best-fit-style.json"]`; the contract test
       checks each sample against its own input contract (a `CONTRACT_OF` map: pipeline, step 1
       and `Check contract` → `step1.input`, step 2 → `step2.input`).
@@ -417,8 +417,8 @@ the pipeline run that uses it (OPERATIONS §5: Execute Workflow runs the publish
       `output.style.guide == "BA"`. New `test_bad_guide_fails_at_step_2`: `"guide": "both"` →
       answer `ok: false`, `failed_step: 2`, a step 2 row with `ok = false` and an error, run
       `ok = false`.
-- [ ] Run `.venv/bin/pytest`, expect all pass.
-- [ ] `docs/OPERATIONS.md` §5: webhook body gains optional `guide` (`any`, `bjcp`, `ba`; when it
+- [x] Run `.venv/bin/pytest`, expect all pass.
+- [x] `docs/OPERATIONS.md` §5: webhook body gains optional `guide` (`any`, `bjcp`, `ba`; when it
       is not sent, a guide named in the request text restricts the pick, else `any`); four
       workflows to publish; `Step 2 · best-fit style` in the editor-run list. PROJECT.md §4
       Orchestration row (4 workflows, step 2 is SQL) and §8 entry.
@@ -480,6 +480,7 @@ Commit: `Measure G2 for step 2`
   tests keep the `stack` marker. Recorded in brief.md too.
 - 2026-10-13 · Task 5: number score gains a tightness bonus `TIGHT / (1 + width / scale)` (TIGHT 1.0, same for every number and style; open ranges get none) — b05 gave 16A: all stouts tied on name and BA Sweet Stout's wide range won on position; user's decision, general rule. Task 4 number tests updated (1.2 / 0.7 / 1.2+1+1/3) and `test_tight_range_beats_wide_range` added. Before/after at SQL level: b01–b20 20/20 both; b05 top 16A → 15B.
 - 2026-10-13 · Task 5: BA styles paired with a BJCP catch-all (`app.bjcp_catch_all()`) keep the BA style, no swap; b12 may pick `specialty-honey-beer` (A2 accepts it or 31B) — user's decision ("keep the specific BA style"); `app.adjunct_cue` added so `reason` can name the cue.
+- 2026-10-13 · Task 6: the pipeline's step 2 call was added through the JSON file and `n8n import:workflow` (MCP drops `onError`), the sub-workflow reads `guide_preference ?? null` (a null input arrives as missing), and the Execute Workflow input schema types `guide_preference` as string — implementation details.
 - 2026-10-13 · Task 2: `same_word` ratio threshold 0.85, not 0.8 — at 0.8 `mexican` matched `american` (ratio 0.80) and proposed 1B American Lager for the Mexican amber lager; `koelsch`/`kolsch` is 0.92.
 - 2026-10-13 · Task 2: pairs proposed by Claude reading the guidelines, not by a name-matching script — user's request
 - 2026-10-13 · Task 2: pairs decided by Claude on sensory similarity (vitals only veto when ABV or IBU ranges don't overlap); user delegated the decision, no row review — user's request

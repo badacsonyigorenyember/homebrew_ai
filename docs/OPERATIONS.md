@@ -110,16 +110,22 @@ service up).*
 
   Files exported from the container are root-owned: `docker exec n8n chown 1000:1000 <path>`.
 - **The pipeline webhook** is `POST http://localhost:5678/webhook/recipe-pipeline` with body
-  `{"request": "...", "brief_id": "b01", "model": "...", "think": false}` (`brief_id`, `model` and `think` optional; defaults `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` and `false`). It
+  `{"request": "...", "brief_id": "b01", "model": "...", "think": false, "guide": "any"}` (`brief_id`, `model`, `think` and `guide` optional; `guide` is `any`, `bjcp` or `ba`: when it is not sent, a guide named in the request text restricts the pick, else `any`; a bad value fails at step 2; defaults `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` and `false`). It
   answers after the run ends with `{run_id, ok, failed_step?, error?}`; the record is in
-  `app.run` and `app.run_step`. No auth for now (revisit with the chat trigger, M8). The three
+  `app.run` and `app.run_step`. No auth for now (revisit with the chat trigger, M8). The four
   workflows must be **published**. Publish a sub-workflow after editing it too: an Execute Workflow
   node runs the **published** version of the workflow it calls, not the draft (measured 2026-10-12: the
   pipeline's draft was published first, and its call to the still-published old `Step 1` ran the old
   nodes). Run `python -m evals.workflows` after every workflow change, then commit the files.
+- **The MCP cannot set `onError`** (`addNode` accepts the field and drops it). To add a node with
+  an error output to a published workflow, edit its JSON in `n8n/workflows/`, copy it to
+  `shared/`, run `docker exec -e N8N_RUNNERS_BROKER_PORT=5699 -e N8N_RUNNERS_BROKER_LISTEN_ADDRESS=127.0.0.1 n8n n8n import:workflow --input=/data/shared/<file>`
+  (it keeps the id and deactivates the workflow), publish through the MCP and delete the copy.
+- **A null sub-workflow input arrives as missing.** Read it with `?? null` inside the sub-workflow
+  (step 2's `guide_preference`).
 - **Running a workflow from the editor.** Each workflow has a `Test data` sticky note with
   ready-to-paste JSON: pin it on `POST recipe-pipeline` (`Recipe pipeline`) or on `When Executed
-  by Another Workflow` (`Step 1 · read request`, `Check contract`), then click *Execute workflow*.
+  by Another Workflow` (`Step 1 · read request`, `Step 2 · best-fit style`, `Check contract`), then click *Execute workflow*.
   A pipeline run writes a real run log tagged `editor-b01`; open the step 1 sub-execution from the
   `Step 1 · read request` node. Remove editor runs with
   `docker exec supabase-db psql -U postgres -d postgres -c "delete from app.run where eval_id like 'editor-%'"`
