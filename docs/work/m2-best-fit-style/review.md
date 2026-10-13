@@ -51,3 +51,42 @@ Earlier findings:
 | 12 | should-fix | db/022_step2.sql:222 | The damper check also looks after the adjunct (`adj \|\| gap \|\| damp`), where a damper almost always belongs to the next item, and DAMPER_GAP = 2 is the exact edge of the new test. Measured: "Plenty of honey and some citrus." → not prominent; "Lots of honey and a little lemon zest." → not; "Honey forward and some citrus." → not; "I want some citrus and honey forward." → not, while the tested "I want some citrus hops and honey forward." (3 words between) → prominent. | Finding 4's case (a damper that belongs to another ingredient) still vetoes in ordinary wordings. R7 misses them; the gap was set where the test passes rather than from a general rule. |
 | 13 | note | tests/test_step2_pick.py:79-88 | `test_b05_wins_clearly_and_lists_no_pale_lager` requires a lead of ≥ 0.1; the measured lead is 0.12. It adds the hint `session` to copy step 1's wrong b05 output. | The threshold is set from one measurement of one brief; small weight changes will trip it. |
 | 14 | note | db/022_step2.sql:63-75 | `style_name_covers` is stricter than the name score: one extra word in `named` that no style name holds ("classic German pils") means no style covers it, so no mismatch can be reported for it. ("Dry Irish stout" still reports 15B, through BA Irish-Style Dry Stout and its pair.) The b21 case it was written for is right. | Depends on step 1 keeping adjectives out of `named`; not measured. |
+
+## Re-review 2026-10-13 (second)
+
+Diff: 2f56b5a..bda1e15 (fixes for findings 10-12)  ·  Verdict: fixes needed (one must-fix, 15)
+
+Checked: the fix commit against findings 10-12; the deployed `app.step2_best_style`,
+`app.adjunct_cue`, `app.adjunct_is_prominent` and `app.style_name_covers` match `db/022_step2.sql`
+(function bodies compared) and are owned by `postgres`; `.venv/bin/pytest` 227 passed (rerun here);
+the `m2-fix2` results file (step 2 22/22, step 1 21/22). Regression check: the same session-only
+`pg_temp` copy of the pre-2f56b5a pick as last round, run against the current function on the 22
+distinct logged step 2 inputs and 35 probes (the 27 earlier probes plus "German pils", "pils",
+"9% witbier", "8% mild", "4% imperial stout", "9% hefeweizen", "black helles", "4% session IPA"
+with BJCP). The prominence rule was compared across three versions (pre-2f56b5a, 2f56b5a, now)
+on 23 wordings. Commit is one line, no secrets, DB change is the `.sql` file.
+
+Earlier findings:
+- **10 (NO_NAME_FACTOR broke the mismatch): fixed.** Pick and mismatch now equal the pre-fix
+  result on all 22 logged inputs and all probes, except where `style_name_covers` (round 1, by
+  design) drops a partial-name mismatch: "black IPA" no longer names 22A Double IPA, "4% session
+  IPA" (BJCP) no longer names 12C, and "classic German pils" no longer names 5D (finding 14, out of
+  scope). The five finding-10 probes are regression tests and would fail on the 2f56b5a rule.
+  `alt_total` is a general rule: the same scaling for every style, by whether it shares a name
+  word. Only b05 changes among logged inputs (pale lagers leave `alt_styles`); its lead is back
+  to 0.05, as the user accepted with "only for alternatives". See note 18.
+- **11 (reason quotes the stem): fixed.** Measured: "shines", "taste", "stands out", "dominates";
+  the logged b12 request gives "shines". Tested in `test_cue_is_quoted_as_written`.
+- **12 (damper after the adjunct): fixed for the measured cases, but the rule overshoots.** All
+  four finding-12 wordings are now prominent and tested. The "no conjunction between" condition is
+  general (it bounds a damper to its own item) and changed no measured case for the worse. Dropping
+  the after-adjunct check is not: see finding 15. My finding 12 said a damper after the adjunct
+  "almost always belongs to the next item"; that holds only when a conjunction or comma separates
+  them, not when the damper describes the adjunct itself.
+
+| # | Severity | Where | Finding | Why it matters |
+|---|---|---|---|---|
+| 15 | must-fix | db/022_step2.sql:230 (and the comment at 195-202) | A damper after the adjunct never cancels, so a damper that describes the adjunct itself is ignored, and any cue in the sentence (which may belong to another item) makes the adjunct prominent. Measured, prominent now and not prominent in both earlier versions: "I want honey that is subtle, with the hops up front." ("front"); "The honey should be subtle and the hops forward." ("forward"); "Honey in a slight supporting role while the hops dominate."; "A blonde with honey that stays slight, hop flavour forward." Through step 2, "A 5% blonde ale with honey that is subtle, with the hops up front." (wanted honey) picks **31B** with the reason `honey is prominent in the request ("front")`, base 18A. The old assertion "the honey should be subtle but shine" → not prominent was changed to fit the new rule. | A request for subtle honey gets the specialty style: a wrong pick, with a reason quoting a word about the hops. R7 now errs the other way. The rule "a damper cancels only before the adjunct" was the user's choice in round 2, so the fix needs the user's yes. Measured option: apply the same bounded check on both sides, `clause !~ (damp \|\| gap \|\| adj) and clause !~ (adj \|\| gap \|\| damp)` with the conjunction-aware `gap`, so a damper on either side cancels only within DAMPER_GAP words with no and/but/or/plus/while between. On a `pg_temp` copy it gives the expected result on all 19 wordings checked (the four above, every finding-12 and finding-4 wording, every current test wording) and b12 stays "shines"; "subtle but shine" reads not prominent again. `test_damper_after_the_adjunct_never_cancels` keeps passing but its name would no longer be true. |
+| 16 | should-fix | db/022_step2.sql:233-238 | The cue is searched in the whole sentence, not near the adjunct, so a cue belonging to another item counts once the adjunct is undamped in any clause. With the symmetric check (15) "A pale ale with honey, but keep it subtle, and citrus hops up front." is still prominent ("front"), as it already was at 2f56b5a. | Same failure as 15 for wordings where the damper is in another clause. Not new in this commit; the user decides whether R7 should tie the cue to the adjunct's clause. |
+| 17 | note | db/022_step2.sql:213 | DAMPER_GAP = 2 words misses a damper before a multi-word variety: "A pale ale with a touch of orange blossom honey that you can taste." and "A little bit of orange blossom honey, you should taste it." are prominent (3-4 words between). "a touch of wildflower honey I can taste" is not. Same at 2f56b5a. | Only matters for honey varieties named in two words. |
+| 18 | note | db/022_step2.sql:428-429 | The alternatives window is anchored on the best `alt_total`, which in a mismatch can be the ruled-out named style rather than the pick. "An 8% kolsch": pick 9C, alternatives were `27I, 5B, 10C, 22B`, now `5B` only (Kölsch, which the 8% rules out). Recorded in the finding 10 Deviations line. | Alternatives sit next to the named style, not the pick, in mismatch cases. Coherent with the mismatch message; no requirement covers it. |
