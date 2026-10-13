@@ -19,7 +19,7 @@ with BRIEFS_FILE.open("rb") as f:
 
 # The R2 field list. No other key is allowed, so style ranges cannot sneak in (R4).
 FIELDS = {
-    "id", "request", "why", "style", "alt_styles", "deviations", "stated", "hints",
+    "id", "request", "named", "why", "style", "alt_styles", "deviations", "stated", "hints",
     "wanted", "excluded", "inventory", "guidance", "needs",
 }
 STATED_KEYS = {"batch_l", "abv", "og", "ibu", "srm"}
@@ -121,7 +121,7 @@ def test_twenty_briefs_with_every_field():
         bid = b.get("id")
         assert set(b) == FIELDS, f"{bid}: missing {FIELDS - set(b)}, extra {set(b) - FIELDS}"
         assert re.fullmatch(r"b\d\d", b["id"]), f"{bid}: id"
-        for key in ("request", "why", "style"):
+        for key in ("request", "named", "why", "style"):
             assert isinstance(b[key], str) and b[key].strip(), f"{bid}: {key} empty"
         n = sentence_count(b["request"])
         assert 1 <= n <= 3, f"{bid}: request has {n} sentences (need 1 to 3)"
@@ -205,8 +205,20 @@ def test_no_fruit_or_non_gravity_extras():
     assert c["non_gravity_words"] == 0, f"non_gravity_words: {c['non_gravity_words']} (need 0)"
     for b in BRIEFS:
         needed = {item for items in b["needs"].values() for item in items}
-        missing = set(b["wanted"]) - needed
+        missing = {
+            w for w in b["wanted"]
+            if not any(re.search(rf"\b{re.escape(w)}\b", item) for item in needed)
+        }
         assert not missing, f"{b['id']}: wanted but not in needs: {sorted(missing)}"
+
+
+def test_words_are_the_users():
+    for b in BRIEFS:
+        request = b["request"].lower()
+        for key in ("named", "wanted", "excluded", "inventory"):
+            items = [b[key]] if key == "named" else b[key]
+            for item in items:
+                assert item.lower() in request, f"{b['id']}: {key} {item!r} is not in the request"
 
 
 def test_print_coverage():

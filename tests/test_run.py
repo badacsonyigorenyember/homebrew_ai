@@ -1,5 +1,6 @@
 """The eval runner: summary of results (no stack) and a bad request through n8n (stack)."""
 
+import json
 import tomllib
 from pathlib import Path
 
@@ -68,6 +69,30 @@ def test_unfinished_run_is_not_passed(monkeypatch):
     assert result["run_ok"] is False
     assert result["passed"] is False
     assert result["error"] == "run not finished ok"
+
+
+def test_send_puts_think_in_body(monkeypatch):
+    seen = {}
+
+    class Reply:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def read(self):
+            return b'{"ok": true}'
+
+    def fake_urlopen(req, timeout):
+        seen["body"] = json.loads(req.data)
+        return Reply()
+
+    monkeypatch.setattr(run.urllib.request, "urlopen", fake_urlopen)
+    run.send("a pale ale", "b01", "m", think=True)
+    assert seen["body"]["think"] is True and seen["body"]["model"] == "m"
 
 
 @pytest.mark.stack

@@ -110,12 +110,13 @@ service up).*
 
   Files exported from the container are root-owned: `docker exec n8n chown 1000:1000 <path>`.
 - **The pipeline webhook** is `POST http://localhost:5678/webhook/recipe-pipeline` with body
-  `{"request": "...", "brief_id": "b01", "model": "..."}` (`brief_id` and `model` optional). It
+  `{"request": "...", "brief_id": "b01", "model": "...", "think": false}` (`brief_id`, `model` and `think` optional; defaults `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` and `false`). It
   answers after the run ends with `{run_id, ok, failed_step?, error?}`; the record is in
   `app.run` and `app.run_step`. No auth for now (revisit with the chat trigger, M8). The three
-  workflows must be **published**. Publish a sub-workflow after editing it too (unverified: we did not
-  measure whether Execute Workflow runs the draft or the published version; today draft = published
-  for all three). Run `python -m evals.workflows` after every workflow change, then commit the files.
+  workflows must be **published**. Publish a sub-workflow after editing it too: an Execute Workflow
+  node runs the **published** version of the workflow it calls, not the draft (measured 2026-10-12: the
+  pipeline's draft was published first, and its call to the still-published old `Step 1` ran the old
+  nodes). Run `python -m evals.workflows` after every workflow change, then commit the files.
 - **Running a workflow from the editor.** Each workflow has a `Test data` sticky note with
   ready-to-paste JSON: pin it on `POST recipe-pipeline` (`Recipe pipeline`) or on `When Executed
   by Another Workflow` (`Step 1 · read request`, `Check contract`), then click *Execute workflow*.
@@ -125,6 +126,12 @@ service up).*
   (steps cascade). Webhook calls ignore pins (`test_webhook_ignores_pin`). Pins are not exported,
   so no re-export after pinning, but an edited note is a workflow change and needs one. Keep
   `brief_id` starting with `editor-` when changing the sample.
+- **Step 1 calls Ollama** with an HTTP Request node: `POST http://ollama:11434/api/chat` (n8n and
+  Ollama share the compose network), body `{model, think, stream: false, format: <step 1 output
+  contract>, options: {temperature: 0, seed: 42, num_ctx: 8192, num_predict: 4096}, messages}`,
+  timeout 30 min. The system prompt is `shared/prompts/step1.system.md`, read by the workflow from
+  `/data/shared`. The n8n `Ollama Chat Model` node is not used (no `seed`, no JSON schema, no token
+  counts). `num_ctx` must equal `evals/benchmark.py` `NUM_CTX` (`test_num_ctx_matches_benchmark`).
 - **The `Postgres account` credential** connects as `postgres` to database `postgres` on
   `supabase-db:5432` (measured 2026-10-12 with `select current_user, current_database()`), so
   the `app` tables and `extensions.jsonschema_validation_errors` are reachable. The password was
@@ -143,9 +150,10 @@ service up).*
   boot. **Do not set `HSA_OVERRIDE_GFX_VERSION`.** It would break the working discrete GPU.
   Check `docker logs ollama | grep "inference compute"` for `compute=gfx1201`, and
   `docker exec ollama ollama ps` for `100% GPU`.
-- Models pulled *(checked 2026-10-11)*: `gemma4:12b-it-q8_0`, `gemma4:12b`, `qwen3.8:27b` (also
-  listed as `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_M`, same model ID), plus the embedding model
-  `bge-m3`.
+- Models pulled *(checked 2026-10-13)*: `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` (the chat
+  default, D2), `gemma4:31b-it-qat`, `gemma4:26b-a4b-it-qat`, `gemma4:12b-it-q8_0`, `gemma4:12b`,
+  `qwen3.8:27b` (also listed as `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_M`, same model ID), plus the
+  embedding model `bge-m3`. The Q6_K model runs 36%/64% CPU/GPU on the 16 GB GPU.
 
 ## 7. Claude Code guardrails
 

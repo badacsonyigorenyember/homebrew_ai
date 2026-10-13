@@ -29,9 +29,9 @@ def load_briefs() -> list[dict]:
     return tomllib.loads(BRIEFS_FILE.read_text(encoding="utf-8"))["brief"]
 
 
-def send(request, brief_id, model=None, url=PIPELINE_URL, timeout=600) -> dict:
+def send(request, brief_id, model=None, think=False, url=PIPELINE_URL, timeout=1800) -> dict:
     """POST one request. A bad answer or a timeout comes back as {"ok": False, "error": ...}."""
-    body = {"request": request, "brief_id": brief_id}
+    body = {"request": request, "brief_id": brief_id, "think": think}
     if model:
         body["model"] = model
     req = urllib.request.Request(
@@ -59,10 +59,16 @@ def read_run(conn, run_id) -> dict:
     ).fetchall():
         steps[step] = output
     conn.commit()
-    return {"finished": bool(row and row[0]), "ok": bool(row and row[1]), "steps": steps}
+    llm = conn.execute(
+        "select llm from app.run_step where run_id = %s and step = 1 and ok "
+        "order by try desc limit 1", (run_id,)
+    ).fetchone()
+    conn.commit()
+    return {"finished": bool(row and row[0]), "ok": bool(row and row[1]), "steps": steps,
+            "llm": llm[0] if llm else None}
 
 
-def grade_result(brief: dict, answer: dict, steps: dict) -> dict:
+def grade_result(brief: dict, answer: dict, steps: dict, llm=None) -> dict:
     """Grade one run. `answer` holds run_id, ok and error; a run that is not ok never passes."""
     graded = grade.grade_run(brief, steps)
     ran = {n: n in steps for n in (1, *GRADED_STEPS)}
@@ -71,20 +77,20 @@ def grade_result(brief: dict, answer: dict, steps: dict) -> dict:
         "id": brief["id"], "run_id": answer.get("run_id"), "run_ok": run_ok,
         "error": answer.get("error"), "failed_step": answer.get("failed_step"),
         "step1": graded["step1"], "step2": graded["step2"], "step3": graded["step3"],
-        "ran": ran, "passed": run_ok and graded["passed"],
+        "ran": ran, "passed": run_ok and graded["passed"], "llm": llm,
     }
 
 
-def run_brief(conn, brief: dict, model=None) -> dict:
-    answer = send(brief["request"], brief["id"], model)
-    steps, run_ok = {}, bool(answer.get("ok"))
+def run_brief(conn, brief: dict, model=None, think=False, timeout=1800) -> dict:
+    answer = send(brief["request"], brief["id"], model, think, timeout=timeout)
+    steps, llm, run_ok = {}, None, bool(answer.get("ok"))
     if answer.get("run_id") is not None:
         stored = read_run(conn, answer["run_id"])
-        steps = stored["steps"]
+        steps, llm = stored["steps"], stored.get("llm")
         if not (stored["finished"] and stored["ok"]):
             run_ok = False
             answer = {**answer, "error": answer.get("error") or "run not finished ok"}
-    return grade_result(brief, {**answer, "ok": run_ok}, steps)
+    return grade_result(brief, {**answer, "ok": run_ok}, steps, llm)
 
 
 def table(results: list[dict]) -> str:
@@ -137,6 +143,8 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="python -m evals.run")
     parser.add_argument("--brief", help="run only this brief id, e.g. b01")
     parser.add_argument("--model")
+    parser.add_argument("--think", action="store_true", help="let the model think first")
+    parser.add_argument("--timeout", type=int, default=1800, help="seconds per brief")
     parser.add_argument("--save", action="store_true", help="write evals/results/<date>-<label>.json")
     parser.add_argument("--label", default="run")
     args = parser.parse_args(argv)
@@ -146,7 +154,7 @@ def main(argv=None) -> int:
         parser.error(f"no brief {args.brief}")
     conn = connect()
     try:
-        results = [run_brief(conn, b, args.model) for b in briefs]
+        results = [run_brief(conn, b, args.model, args.think, args.timeout) for b in briefs]
     finally:
         conn.close()
     t = totals(results)

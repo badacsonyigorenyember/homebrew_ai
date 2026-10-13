@@ -13,19 +13,23 @@ CONTRACTS = ROOT / "shared" / "contracts"
 with (ROOT / "evals" / "recipe_briefs.toml").open("rb") as _f:
     B01 = next(b for b in tomllib.load(_f)["brief"] if b["id"] == "b01")["request"]
 
+MODEL = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K"
+
 # The sample each workflow's `Test data` sticky note must carry (plan Task 8).
 SAMPLES = {
     "recipe-pipeline.json": [{
         "headers": {"content-type": "application/json"}, "params": {}, "query": {},
         "body": {"request": B01, "brief_id": "editor-b01"},
     }],
-    "step-1-read-request.json": [{"run_id": 0, "request": B01}],
+    "step-1-read-request.json": [{"run_id": 0, "request": B01, "model": MODEL, "think": False}],
     "check-contract.json": [{
-        "contract": "step1.input", "value": {"run_id": 0, "request": B01},
+        "contract": "step1.input",
+        "value": {"run_id": 0, "request": B01, "model": MODEL, "think": False},
     }],
 }
 STEP1_INPUT = {
-    "recipe-pipeline.json": lambda s: {"run_id": 0, "request": s[0]["body"]["request"]},
+    "recipe-pipeline.json": lambda s: {
+        "run_id": 0, "request": s[0]["body"]["request"], "model": MODEL, "think": False},
     "step-1-read-request.json": lambda s: s[0],
     "check-contract.json": lambda s: s[0]["value"],
 }
@@ -69,6 +73,13 @@ def test_test_data_meets_contracts(name):
             (schema, json.dumps(value)),
         ).fetchone()[0]
     assert errors == []
+
+
+def test_num_ctx_matches_benchmark():
+    from evals import benchmark
+
+    nodes = {n["name"]: n for n in _repo("step-1-read-request.json")["nodes"]}
+    assert f"num_ctx: {benchmark.NUM_CTX}" in nodes["Build model request"]["parameters"]["jsonOutput"]
 
 
 def test_shape_drops_volatile_fields():

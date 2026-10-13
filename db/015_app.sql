@@ -38,7 +38,7 @@ create index if not exists inventory_profile_id_idx on app.inventory (profile_id
 
 create table if not exists app.brief (
     id           bigint generated always as identity primary key,
-    profile_id   bigint not null references app.brewer_profile (id),
+    profile_id   bigint references app.brewer_profile (id),   -- null until step 0 builds profiles, M4
     request_text text   not null,
     brief        jsonb  not null,          -- step 1 output, checked against its contract
     guidance_on  boolean not null default true,
@@ -107,6 +107,7 @@ create table if not exists app.run_step (
     ms     integer  not null,
     tokens integer,
     error  text,                             -- why a step failed; null when it passed
+    llm    jsonb,                            -- LLM steps: model, think, tries, tokens, llm_ms, done_reason, first_errors
     primary key (run_id, step, try),
     constraint run_step_error_check check (ok = (error is null))
 );
@@ -119,3 +120,7 @@ alter table app.run add column if not exists ok          boolean;
 alter table app.run_step add column if not exists error  text;
 alter table app.run_step drop constraint if exists run_step_error_check;
 alter table app.run_step add  constraint run_step_error_check check (ok = (error is null));
+
+-- Step 1 (m1-read-request): the brief is saved before step 0 exists; LLM steps log their call.
+alter table app.brief alter column profile_id drop not null;
+alter table app.run_step add column if not exists llm jsonb;

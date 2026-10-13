@@ -32,19 +32,24 @@ def post(conn):
             data=json.dumps(body).encode(),
             headers={"Content-Type": "application/json"},
         )
-        with urllib.request.urlopen(req, timeout=60) as response:
+        with urllib.request.urlopen(req, timeout=600) as response:
             answer = json.load(response)
         run_ids.append(answer["run_id"])
         return answer
 
     yield send
+    brief_ids = [r[0] for r in conn.execute(
+        "select brief_id from app.run where id = any(%s) and brief_id is not null", (run_ids,)
+    ).fetchall()]
     conn.execute("delete from app.run where id = any(%s)", (run_ids,))  # steps cascade
+    conn.execute("delete from app.brief where id = any(%s)", (brief_ids,))
     conn.commit()
 
 
 def _step_rows(conn, run_id):
     return conn.execute(
-        "select step, try, ok, error, ms, input, output from app.run_step where run_id = %s",
+        "select step, try, ok, error, ms, input, output, tokens, llm from app.run_step "
+        "where run_id = %s",
         (run_id,),
     ).fetchall()
 
@@ -55,19 +60,28 @@ def test_b01_logs_step_1(conn, post):
     run_id = answer["run_id"]
 
     run = conn.execute(
-        "select eval_id, model, finished_at, ok from app.run where id = %s", (run_id,)
+        "select eval_id, model, finished_at, ok, brief_id from app.run where id = %s", (run_id,)
     ).fetchall()
     assert len(run) == 1
-    eval_id, model, finished_at, ok = run[0]
+    eval_id, model, finished_at, ok, brief_id = run[0]
     assert (eval_id, ok) == ("b01", True)
     assert model and finished_at is not None
 
     steps = _step_rows(conn, run_id)
     assert len(steps) == 1
-    step, attempt, step_ok, error, ms, step_input, output = steps[0]
+    step, attempt, step_ok, error, ms, step_input, output, tokens, llm = steps[0]
     assert (step, attempt, step_ok, error) == (1, 1, True, None)
     assert ms >= 0
-    assert step_input == {"run_id": run_id, "request": "a pale ale"}
+    assert step_input == {"run_id": run_id, "request": "a pale ale", "model": model, "think": False}
+    assert tokens > 0
+    assert llm["model"] == model and llm["tries"] in (1, 2)
+
+    assert brief_id is not None
+    saved = conn.execute(
+        "select request_text, brief, guidance_on, profile_id from app.brief where id = %s",
+        (brief_id,),
+    ).fetchall()
+    assert saved == [("a pale ale", output, output["guidance"], None)]
 
     schema = (CONTRACTS / "step1.output.schema.json").read_text(encoding="utf-8")
     errors = conn.execute(
@@ -86,19 +100,23 @@ def test_bad_input_logs_failure(conn, post):
     assert conn.execute("select ok from app.run where id = %s", (run_id,)).fetchone() == (False,)
     steps = _step_rows(conn, run_id)
     assert len(steps) == 1
-    _, _, step_ok, error, _, _, output = steps[0]
+    _, _, step_ok, error, _, _, output, _, _ = steps[0]
     assert step_ok is False
     assert "step1.input" in error
     assert output is None
 
 
 def test_request_kept_verbatim(conn, post):
-    request = 'a "pale", ale; 50% off $1\nsecond line'
+    request = 'a "pale", ale; some % off $one\nsecond line'
     answer = post({"request": request})
     assert answer["ok"] is True
     steps = _step_rows(conn, answer["run_id"])
     assert steps[0][5]["request"] == request
-    assert steps[0][6]["wanted"][0] == request
+    saved = conn.execute(
+        "select b.request_text from app.brief b join app.run r on r.brief_id = b.id where r.id = %s",
+        (answer["run_id"],),
+    ).fetchone()
+    assert saved == (request,)
 
 
 def test_webhook_ignores_pin(conn, post):
@@ -111,3 +129,12 @@ def test_webhook_ignores_pin(conn, post):
     run_id = answer["run_id"]
     assert conn.execute("select eval_id from app.run where id = %s", (run_id,)).fetchone() == ("b02",)
     assert _step_rows(conn, run_id)[0][5]["request"] == "a dry stout"
+
+
+def test_unknown_word_goes_to_unknown(conn, post):
+    """A wish that fits no field is kept in `unknown`, never forced into `hints` (A3)."""
+    answer = post({"request": "A pale ale, and make it funky."})
+    assert answer["ok"] is True
+    output = _step_rows(conn, answer["run_id"])[0][6]
+    assert "funky" not in output["hints"]
+    assert any("funky" in item.lower() for item in output["unknown"])

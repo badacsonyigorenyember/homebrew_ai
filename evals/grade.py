@@ -5,8 +5,9 @@ No I/O. Step 1 is graded field by field, step 2 by style code, step 3 by matchin
 """
 
 import re
+import unicodedata
 
-STEP1_FIELDS = ("stated", "hints", "wanted", "excluded", "inventory", "guidance")
+STEP1_FIELDS = ("named", "stated", "hints", "wanted", "excluded", "inventory", "guidance")
 QUANTITIES = ("batch_l", "abv", "og", "ibu", "srm")
 
 # RECIPE-ROADMAP §7 hint rows; the same rows as tests/test_recipe_briefs.py::HINT_ROWS.
@@ -21,8 +22,29 @@ HINT_ROWS = {
 }
 
 
-def _clean_set(items) -> set[str]:
+# Naming variants of the same ingredient, each mapped to its first word. A pair must never
+# differ by a form or condition word (flaked, ground, malted...): `rice` is not `flaked rice`.
+SYNONYMS = (
+    ("crystal malt", "caramel malt"),
+    ("east kent goldings", "ekg"),
+)
+_SYNONYM_OF = {variant: pair[0] for pair in SYNONYMS for variant in pair}
+
+
+def normalise(word) -> str:
+    """Compare words without case, accents, hyphens or spacing differences."""
+    text = unicodedata.normalize("NFKD", str(word))
+    text = "".join(c for c in text if not unicodedata.combining(c))
+    return " ".join(text.lower().replace("-", " ").split())
+
+
+def _plain_set(items) -> set[str]:
     return {str(x).strip().lower() for x in items or []}
+
+
+def _clean_set(items) -> set[str]:
+    words = (normalise(x) for x in items or [])
+    return {_SYNONYM_OF.get(w, w) for w in words}
 
 
 def _whole_word(word: str, text: str) -> bool:
@@ -39,7 +61,11 @@ def grade_step1(brief: dict, output: dict | None) -> dict[str, bool]:
     if output is None:
         return {f: False for f in STEP1_FIELDS}
     result = {}
-    for field in ("hints", "wanted", "excluded", "inventory"):
+    result["named"] = (
+        output.get("named") is not None and normalise(output["named"]) == normalise(brief["named"])
+    )
+    result["hints"] = _plain_set(output.get("hints")) == _plain_set(brief["hints"])
+    for field in ("wanted", "excluded", "inventory"):
         result[field] = _clean_set(output.get(field)) == _clean_set(brief[field])
     try:
         result["stated"] = _stated_equal(output.get("stated") or {}, brief["stated"])

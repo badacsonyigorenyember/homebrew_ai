@@ -172,7 +172,7 @@
         320
       ],
       "parameters": {
-        "content": "### Test data · editor run\nPin this on `When Executed by Another Workflow` (open the node, use the output panel's edit / mock-data control, paste the JSON, save), then click *Execute workflow*.\nRead-only. Set `request` to `\"\"` to see a failure.\n\n```json\n[{\"contract\": \"step1.input\", \"value\": {\"run_id\": 0, \"request\": \"I want a classic West Coast IPA that is properly bitter. Make it 20 litres at about 6.5 % ABV.\"}}]\n```",
+        "content": "### Test data · editor run\nPin this on `When Executed by Another Workflow` (open the node, use the output panel's edit / mock-data control, paste the JSON, save), then click *Execute workflow*.\nRead-only. Set `request` to `\"\"` to see a failure.\n\n```json\n[{\"contract\": \"step1.input\", \"value\": {\"run_id\": 0, \"request\": \"I want a classic West Coast IPA that is properly bitter. Make it 20 litres at about 6.5 % ABV.\", \"model\": \"hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K\", \"think\": false}}]\n```",
         "color": 5,
         "width": 520,
         "height": 340

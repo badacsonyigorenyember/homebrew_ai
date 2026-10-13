@@ -12,7 +12,7 @@ with FILE.open("rb") as f:
 
 
 def right_step1(b):
-    return {"named": None, "stated": dict(b["stated"]), "hints": list(b["hints"]),
+    return {"named": b["named"], "stated": dict(b["stated"]), "hints": list(b["hints"]),
             "wanted": list(b["wanted"]), "excluded": list(b["excluded"]),
             "inventory": list(b["inventory"]), "unknown": [], "guidance": b["guidance"]}
 
@@ -34,6 +34,7 @@ def test_step1_all_fields_right():
 def test_step1_each_field_can_fail():
     b = BRIEFS["b08"]
     wrong = {
+        "named": "x",
         "stated": {"batch_l": 10},
         "hints": [],
         "wanted": ["x"],
@@ -53,6 +54,43 @@ def test_step1_order_and_case_ignored():
     out = right_step1(b)
     out["excluded"] = [" mosaic", "CITRA "]
     assert grade.grade_step1(b, out)["excluded"] is True
+
+
+def test_form_word_is_a_different_ingredient():
+    b = BRIEFS["b16"]
+    out = right_step1(b)
+    out["wanted"] = ["flaked rice"]
+    assert grade.grade_step1(b, out)["wanted"] is False
+
+
+def test_case_and_spacing_ignored():
+    b = BRIEFS["b16"]
+    out = right_step1(b)
+    out["wanted"] = ["Flaked  Rice"]
+    b = {**b, "wanted": ["flaked rice"]}
+    assert grade.grade_step1(b, out)["wanted"] is True
+
+
+def test_synonym_pair_counts_as_equal():
+    b = {**BRIEFS["b16"], "wanted": ["crystal malt"]}
+    out = right_step1(b)
+    out["wanted"] = ["caramel malt"]
+    assert grade.grade_step1(b, out)["wanted"] is True
+
+
+def test_accents_ignored_in_named():
+    b = {**BRIEFS["b09"], "named": "Märzen"}
+    out = right_step1(b)
+    out["named"] = "Marzen"
+    assert grade.grade_step1(b, out)["named"] is True
+
+
+def test_named_null_is_wrong():
+    b = BRIEFS["b05"]
+    out = right_step1(b)
+    out["named"] = None
+    result = grade.grade_step1(b, out)
+    assert [f for f, ok in result.items() if not ok] == ["named"]
 
 
 def test_step1_missing_output_fails_every_field():

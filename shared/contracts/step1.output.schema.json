@@ -68,31 +68,41 @@
           "stronger",
           "session"
         ]
-      }
+      },
+      "uniqueItems": true,
+      "maxItems": 11
     },
     "wanted": {
       "type": "array",
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true,
+      "maxItems": 20
     },
     "excluded": {
       "type": "array",
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true,
+      "maxItems": 20
     },
     "inventory": {
       "type": "array",
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true,
+      "maxItems": 20
     },
     "unknown": {
       "type": "array",
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true,
+      "maxItems": 20
     },
     "guidance": {
       "type": "boolean"

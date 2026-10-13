@@ -5,7 +5,9 @@
   "type": "object",
   "required": [
     "run_id",
-    "request"
+    "request",
+    "model",
+    "think"
   ],
   "additionalProperties": false,
   "properties": {
@@ -15,6 +17,13 @@
     "request": {
       "type": "string",
       "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "think": {
+      "type": "boolean"
     }
   }
 }

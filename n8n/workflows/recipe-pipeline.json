@@ -22,7 +22,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={{ { request: $json.body?.request ?? \"\", eval_id: $json.body?.brief_id ?? null, model: $json.body?.model ?? \"gemma4:12b-it-q8_0\" } }}",
+        "jsonOutput": "={{ { request: $json.body?.request ?? \"\", eval_id: $json.body?.brief_id ?? null, model: $json.body?.model ?? \"hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K\", think: $json.body?.think ?? false } }}",
         "options": {}
       },
       "id": "0a2d0b71-b581-4b22-b766-8b7022260189",
@@ -60,7 +60,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={{ { run_id: $json.id, request: $(\"Run settings\").item.json.request, started_at: $now.toISO() } }}",
+        "jsonOutput": "={{ { run_id: $json.id, request: $(\"Run settings\").item.json.request, model: $(\"Run settings\").item.json.model, think: $(\"Run settings\").item.json.think, started_at: $now.toISO() } }}",
         "options": {}
       },
       "id": "32088e17-d8f2-4a73-8188-afafa0140355",
@@ -84,7 +84,9 @@
           "mappingMode": "defineBelow",
           "value": {
             "run_id": "={{ $json.run_id }}",
-            "request": "={{ $json.request }}"
+            "request": "={{ $json.request }}",
+            "model": "={{ $json.model }}",
+            "think": "={{ $json.think }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -105,6 +107,24 @@
               "display": true,
               "canBeUsedToMatch": true,
               "type": "string"
+            },
+            {
+              "id": "model",
+              "displayName": "model",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "think",
+              "displayName": "think",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
             }
           ],
           "attemptToConvertTypes": false,
@@ -125,9 +145,9 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms) values ($1, 1, 1, $2::jsonb, $3::jsonb, true, round(extract(epoch from clock_timestamp() - $4::timestamptz) * 1000)::int)",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, tokens, llm) values ($1, 1, 1, $2::jsonb, $3::jsonb, true, round(extract(epoch from clock_timestamp() - $4::timestamptz) * 1000)::int, $5, $6::jsonb)",
         "options": {
-          "queryReplacement": "={{ [$(\"Step 1 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 1 · input\").item.json.run_id, request: $(\"Step 1 · input\").item.json.request }), JSON.stringify($json), $(\"Step 1 · input\").item.json.started_at] }}"
+          "queryReplacement": "={{ [$(\"Step 1 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 1 · input\").item.json.run_id, request: $(\"Step 1 · input\").item.json.request, model: $(\"Step 1 · input\").item.json.model, think: $(\"Step 1 · input\").item.json.think }), JSON.stringify($json.brief), $(\"Step 1 · input\").item.json.started_at, $json.llm.prompt_tokens + $json.llm.output_tokens, JSON.stringify($json.llm)] }}"
         }
       },
       "id": "7bf8f76b-70f7-4c47-ab7c-98ad1bca0aef",
@@ -188,7 +208,7 @@
         "operation": "executeQuery",
         "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, error) values ($1, 1, 1, $2::jsonb, null, false, round(extract(epoch from clock_timestamp() - $3::timestamptz) * 1000)::int, $4)",
         "options": {
-          "queryReplacement": "={{ [$(\"Step 1 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 1 · input\").item.json.run_id, request: $(\"Step 1 · input\").item.json.request }), $(\"Step 1 · input\").item.json.started_at, $json.error] }}"
+          "queryReplacement": "={{ [$(\"Step 1 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 1 · input\").item.json.run_id, request: $(\"Step 1 · input\").item.json.request, model: $(\"Step 1 · input\").item.json.model, think: $(\"Step 1 · input\").item.json.think }), $(\"Step 1 · input\").item.json.started_at, $json.error] }}"
         }
       },
       "id": "8ca9e0b2-c897-4a12-b124-65a24e929bf7",
@@ -246,7 +266,7 @@
     },
     {
       "parameters": {
-        "content": "### Per-step block\nEach step is: set its input and start time, call its sub-workflow, then log ok or log the failure, and on to the next step. A failure logs its error, finishes the run with ok = false and responds. Steps 2 to 16 copy this block. Step 1 is a stub for now.",
+        "content": "### Per-step block\nEach step is: set its input and start time, call its sub-workflow, then log ok or log the failure, and on to the next step. A failure logs its error, finishes the run with ok = false and responds. Steps 2 to 16 copy this block. Step 1 also logs tokens and the `llm` details (model, tries, ms), then saves the brief in `app.brief` and sets `app.run.brief_id`.",
         "height": 200,
         "width": 300,
         "color": 4
@@ -261,19 +281,42 @@
       ]
     },
     {
+      "parameters": {
+        "content": "### Test data · editor run\nPin this on `POST recipe-pipeline` (open the node, use the output panel's edit / mock-data control, paste the JSON, save), then click *Execute workflow*.\nRuns for real and writes `app.run` with `eval_id = 'editor-b01'`; remove with `delete from app.run where eval_id like 'editor-%'`. Set `request` to `\"\"` to see the failure path. Webhook calls ignore the pin.\n\n```json\n[{\"headers\": {\"content-type\": \"application/json\"}, \"params\": {}, \"query\": {}, \"body\": {\"request\": \"I want a classic West Coast IPA that is properly bitter. Make it 20 litres at about 6.5 % ABV.\", \"brief_id\": \"editor-b01\"}}]\n```",
+        "height": 340,
+        "width": 520,
+        "color": 5
+      },
       "id": "ff57062e-9906-4eef-87c7-f52fc1f22fe0",
       "name": "Test data",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
         0,
-        360
+        368
+      ]
+    },
+    {
+      "id": "18e165c4-d256-453f-b98f-f157da70209b",
+      "name": "Step 1 · save brief",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1100,
+        0
       ],
       "parameters": {
-        "content": "### Test data · editor run\nPin this on `POST recipe-pipeline` (open the node, use the output panel's edit / mock-data control, paste the JSON, save), then click *Execute workflow*.\nRuns for real and writes `app.run` with `eval_id = 'editor-b01'`; remove with `delete from app.run where eval_id like 'editor-%'`. Set `request` to `\"\"` to see the failure path. Webhook calls ignore the pin.\n\n```json\n[{\"headers\": {\"content-type\": \"application/json\"}, \"params\": {}, \"query\": {}, \"body\": {\"request\": \"I want a classic West Coast IPA that is properly bitter. Make it 20 litres at about 6.5 % ABV.\", \"brief_id\": \"editor-b01\"}}]\n```",
-        "color": 5,
-        "width": 520,
-        "height": 340
+        "operation": "executeQuery",
+        "query": "with b as (insert into app.brief (request_text, brief, guidance_on) values ($1, $2::jsonb, ($2::jsonb ->> 'guidance')::boolean) returning id) update app.run set brief_id = (select id from b) where id = $3 returning brief_id",
+        "options": {
+          "queryReplacement": "={{ [$(\"Step 1 · input\").item.json.request, JSON.stringify($(\"Step 1 · read request\").item.json.brief), $(\"Step 1 · input\").item.json.run_id] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
       }
     }
   ],
@@ -340,17 +383,6 @@
         ]
       ]
     },
-    "Step 1 · log ok": {
-      "main": [
-        [
-          {
-            "node": "Finish run",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Finish run": {
       "main": [
         [
@@ -378,6 +410,28 @@
         [
           {
             "node": "Respond failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 1 · log ok": {
+      "main": [
+        [
+          {
+            "node": "Step 1 · save brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 1 · save brief": {
+      "main": [
+        [
+          {
+            "node": "Finish run",
             "type": "main",
             "index": 0
           }
