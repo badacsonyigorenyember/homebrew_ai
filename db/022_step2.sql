@@ -456,8 +456,8 @@ begin
     style_out := jsonb_build_object('id', base.id, 'guide', base.guide, 'code', base.code, 'name', base.name);
     select sp.adjunct, sp.code, app.adjunct_cue(request, sp.adjunct)
       into spec_item, spec_code, spec_cue
-      from jsonb_array_elements_text(coalesce(brief -> 'wanted', '[]'::jsonb)) w
-      join app.specialty_style() sp on sp.guide = base.guide and lower(w) ~ ('\m' || sp.adjunct || '\M')
+      from jsonb_array_elements(coalesce(brief -> 'wanted', '[]'::jsonb)) w
+      join app.specialty_style() sp on sp.guide = base.guide and lower(w ->> 'item') ~ ('\m' || sp.adjunct || '\M')
      where app.adjunct_cue(request, sp.adjunct) is not null
      order by sp.adjunct
      limit 1;

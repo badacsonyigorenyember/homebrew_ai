@@ -170,28 +170,28 @@ Commit: `Grade wanted items with their role`
 
 ### Task 4: Step 1 gives every wanted item a role
 Why: R1, R2, A1, A2.
-- [ ] `shared/contracts/step1.output.schema.json`: `wanted.items` becomes
+- [x] `shared/contracts/step1.output.schema.json`: `wanted.items` becomes
       `{"type": "object", "required": ["item", "role"], "additionalProperties": false,
       "properties": {"item": {"type": "string", "minLength": 1}, "role": {"enum": ["feature",
       "background"]}}}`. Put `item` before `role`, so the model writes the item first. Keep
       `uniqueItems` and `maxItems`.
-- [ ] `shared/prompts/step1.system.md`: in the `wanted` paragraph, each item is
+- [x] `shared/prompts/step1.system.md`: in the `wanted` paragraph, each item is
       `{"item": <user's words>, "role": ...}`. Define `` `feature` `` and `` `background` `` as in
       R2, with general wording only (no measurement wording, no brief text). Say that
       `background` is the default when the user does not say the ingredient should stand out.
-- [ ] `db/020_step1.sql`: update the header comment (repeats in `wanted` are exact repeats of an
+- [x] `db/020_step1.sql`: update the header comment (repeats in `wanted` are exact repeats of an
       item-and-role object). Re-apply it with the OPERATIONS §4 command.
-- [ ] `db/022_step2.sql` step 7: read the item word with
+- [x] `db/022_step2.sql` step 7: read the item word with
       `jsonb_array_elements(coalesce(brief -> 'wanted', '[]'::jsonb)) w` and
       `lower(w ->> 'item')`. The word rule and the reason stay as they are. Re-apply with the
       OPERATIONS §4 command. The pipeline then keeps picking as before.
-- [ ] Tests: in `tests/test_contracts.py`, `BRIEF.wanted` becomes
+- [x] Tests: in `tests/test_contracts.py`, `BRIEF.wanted` becomes
       `[{"item": "rice", "role": "background"}]`. New bad examples: a plain string item, a missing
       `role`, role `"main"`, an extra key, an exact repeated object. In
       `tests/test_step1_check.py`, `test_role_objects_pass` and `test_plain_string_item_fails`. In
       `tests/test_prompt.py`, `test_prompt_names_every_role` (each role enum value appears in
       backticks).
-- [ ] Run `.venv/bin/pytest`, expect all passed. Then smoke-check one live call:
+- [x] Run `.venv/bin/pytest`, expect all passed. Then smoke-check one live call:
       `python -m evals.run --brief b12`. Step 1 should return honey with a role, and the contract
       should pass.
 Done when: the live b12 run logs `wanted` as `{item, role}` objects, and the suite passes.

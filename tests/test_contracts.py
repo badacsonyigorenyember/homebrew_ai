@@ -93,7 +93,7 @@ def test_schemas_valid(conn):
 
 
 BRIEF = {
-    "named": None, "stated": {}, "hints": [], "wanted": ["rice"], "excluded": [],
+    "named": None, "stated": {}, "hints": [], "wanted": [{"item": "rice", "role": "background"}], "excluded": [],
     "inventory": [], "unknown": ["xyzzy"], "guidance": True,
 }
 STYLE = {"id": 1, "guide": "BJCP", "code": "1A", "name": "American Light Lager"}
@@ -130,7 +130,11 @@ BAD = [
     ("step1.input", {"run_id": 1, "request": "a dry stout", "model": "gemma4:12b", "think": False, "seed": 1.5}),
     ("step1.output", {**BRIEF, "hints": ["funky"]}),
     ("step1.output", {**BRIEF, "stated": {"abv": 45}}),
-    ("step1.output", {**BRIEF, "wanted": ["oats", "oats"]}),
+    ("step1.output", {**BRIEF, "wanted": [{"item": "oats", "role": "background"}] * 2}),
+    ("step1.output", {**BRIEF, "wanted": ["oats"]}),
+    ("step1.output", {**BRIEF, "wanted": [{"item": "oats"}]}),
+    ("step1.output", {**BRIEF, "wanted": [{"item": "oats", "role": "main"}]}),
+    ("step1.output", {**BRIEF, "wanted": [{"item": "oats", "role": "feature", "why": "x"}]}),
     ("step2.input", {"run_id": 1, "brief": BRIEF, "guide_preference": "any"}),
     ("step2.input", {"run_id": 1, "brief": BRIEF, "request": "a dry stout", "guide_preference": "both"}),
     ("step2.output", {k: v for k, v in STEP2_OUT.items() if k != "unknown_reason"}),

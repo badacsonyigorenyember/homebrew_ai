@@ -75,3 +75,25 @@ def test_repeated_words_dropped(conn):
 def test_contract_errors_reported(conn):
     _, errors = check(conn, {**GOOD, "hints": ["funky"]})
     assert len(errors) >= 1
+
+
+@pytest.mark.stack
+def test_role_objects_pass(conn):
+    answer = {**GOOD, "wanted": [{"item": "honey", "role": "feature"}, {"item": "oats", "role": "background"}]}
+    brief, errors = check(conn, answer)
+    assert errors == []
+    assert brief["wanted"] == answer["wanted"]
+
+
+@pytest.mark.stack
+def test_plain_string_item_fails(conn):
+    _, errors = check(conn, {**GOOD, "wanted": ["honey"]})
+    assert len(errors) >= 1
+
+
+@pytest.mark.stack
+def test_exact_repeated_role_object_dropped(conn):
+    item = {"item": "honey", "role": "feature"}
+    brief, errors = check(conn, {**GOOD, "wanted": [item, item]})
+    assert brief["wanted"] == [item]
+    assert errors == []

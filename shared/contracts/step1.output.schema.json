@@ -75,7 +75,24 @@
     "wanted": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "object",
+        "required": [
+          "item",
+          "role"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "item": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "enum": [
+              "feature",
+              "background"
+            ]
+          }
+        }
       },
       "uniqueItems": true,
       "maxItems": 20

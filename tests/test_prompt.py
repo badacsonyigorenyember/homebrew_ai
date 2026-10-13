@@ -47,3 +47,8 @@ def test_prompt_quotes_no_role_wording():
         for i in range(len(words) - 4):
             run = " ".join(words[i:i + 5])
             assert run not in prompt, f"{wording['id']}: {run}"
+
+
+def test_prompt_names_every_role():
+    for role in CONTRACT["properties"]["wanted"]["items"]["properties"]["role"]["enum"]:
+        assert f"`{role}`" in PROMPT, role
