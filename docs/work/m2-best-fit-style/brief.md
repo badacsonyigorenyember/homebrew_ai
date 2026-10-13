@@ -88,8 +88,7 @@ A3. Two runs on the same brief give identical output (R2).
 A4. With "BA only", from the `guide` field or from the request text, b01 picks a BA style, and the
     output says why; when the field and the text disagree, the field wins. With no restriction, a
     BA best fit that has a BJCP pair in the list returns the BJCP style (German-Style Koelsch → 5B), but a BA style paired with a BJCP catch-all keeps the BA style
-    (a strong stout with vanilla, tonka bean and lots of lactose → `dessert-stout-or-pastry-beer`,
-    not 30D) (R6).
+    (a smoke porter with smoked malt → `smoke-porter`, not 32A) (R6).
 A5. A request with no beer in it ("something nice") gives the unknown result (R8).
 A6. Unit tests cover each signal on its own: they call each SQL function directly with literal
     inputs, without n8n or the pipeline (they need Postgres, so they keep the `stack` marker)
@@ -122,3 +121,8 @@ Answered by the user on 2026-10-13:
   BA Sweet Stout range won on position. The number score now adds a tightness bonus
   `TIGHT / (1 + width / scale)` inside a range, the same formula for every number and style
   (user: rules must be general). Recorded in plan.md too.
+- 2026-10-13 · A4 (review finding 1): the catch-all example "a strong stout with vanilla, tonka
+  bean and lots of lactose → dessert-stout-or-pastry-beer" is removed; the user did not want it
+  because its misc items are not in the database. The exception is shown with a request that uses
+  only database items: "A smoke porter with smoked malt." (BA `smoke-porter`, paired with the
+  catch-all 32A, stays BA). No scoring change; the test built on the pastry example is removed.

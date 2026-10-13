@@ -60,6 +60,20 @@ as $$
       from n;
 $$;
 
+-- Does the style's name (or an alias) hold every word the user named? "imperial stout" is covered
+-- by Imperial Stout, "session IPA" by no BJCP style, since none has the word "session".
+create or replace function app.style_name_covers(named text, style_name text, aliases text[])
+returns boolean
+language sql
+immutable
+as $$
+    select cardinality(app.style_words(named)) > 0 and exists (
+        select 1
+          from (select app.style_words(cand) as sw
+                  from unnest(array[style_name] || coalesce(aliases, '{}'::text[])) as cand) c
+         where app.style_words(named) <@ c.sw);
+$$;
+
 -- Stated numbers against a style's ranges. Inside a range: 1 at the centre, 0.5 at an edge, plus a
 -- tightness bonus TIGHT / (1 + width / scale), so a style whose range fits tightly around the
 -- stated value beats a wide range that merely contains it (a 4 % ABV fits Irish Stout 3.8-5.0
@@ -174,32 +188,51 @@ as $$
      where w <> '';
 $$;
 
--- The cue word that makes the adjunct prominent in the request, or null. One sentence must name
--- the adjunct, hold a cue word and hold no damper. Hyphens read as spaces ("honey-forward").
+-- The cue word that makes the adjunct prominent in the request, or null. A sentence must name the
+-- adjunct and hold a cue; the adjunct must not be damped. Cues are word stems (shin matches shine,
+-- shines, shining), so any form of the word counts. A damper only damps the adjunct when it stands
+-- in the same clause (clauses end at , : ; . ! ?) with at most DAMPER_GAP words between damper and
+-- adjunct, so "some citrus hops, honey forward" stays prominent. Hyphens read as spaces
+-- ("honey-forward").
 create or replace function app.adjunct_cue(request text, adjunct text)
 returns text
 language plpgsql
 immutable
 as $$
 declare
-    -- words that make an adjunct prominent
-    CUES    constant text[] := array['shine', 'forward', 'prominent', 'showcase', 'stand out',
-                                     'taste', 'front', 'dominant', 'lots of', 'plenty of'];
+    -- word stems that make an adjunct prominent (regular expression fragments)
+    CUES       constant text[] := array['shin', 'forward', 'prominen', 'showcas', 'stand(s|ing)? out',
+                                        'tast', 'front', 'domina', 'lots of', 'plenty of'];
     -- words that make it minor
-    DAMPERS constant text[] := array['some', 'a bit', 'a little', 'a touch', 'a hint', 'subtle', 'slight'];
+    DAMPERS    constant text[] := array['some', 'a bit', 'a little', 'a touch', 'a hint', 'subtl\w*', 'slight\w*'];
+    DAMPER_GAP constant int    := 2;   -- most words allowed between a damper and the adjunct
+    adj      text := '\m' || lower(adjunct) || '\M';
+    damp     text := '\m(' || array_to_string(DAMPERS, '|') || ')\M';
+    gap      text := '(\s+\w+){0,' || DAMPER_GAP || '}\s+';
     sentence text;
+    clause   text;
     cue      text;
+    found    text;
+    undamped boolean;
 begin
     for sentence in
         select s from unnest(regexp_split_to_array(replace(lower(coalesce(request, '')), '-', ' '), '[.!?;]')) s
     loop
-        if sentence ~ ('\m' || lower(adjunct) || '\M')
-           and sentence !~ ('\m(' || array_to_string(DAMPERS, '|') || ')\M') then
-            foreach cue in array CUES loop
-                if sentence ~ ('\m' || cue || '\M') then
-                    return cue;
+        if sentence ~ adj then
+            undamped := false;
+            for clause in select c from unnest(regexp_split_to_array(sentence, '[,:]')) c loop
+                if clause ~ adj and clause !~ (damp || gap || adj) and clause !~ (adj || gap || damp) then
+                    undamped := true;
                 end if;
             end loop;
+            if undamped then
+                foreach cue in array CUES loop
+                    found := substring(sentence from '\m(' || cue || ')\w*');
+                    if found is not null then
+                        return found;
+                    end if;
+                end loop;
+            end if;
         end if;
     end loop;
     return null;
@@ -255,6 +288,12 @@ $$;
 
 -- Step 2: pick the best-fit style for a step 1 brief. Every weight is a named constant below; the
 -- signals are added in one visible line (the "total" in step 2 of the body).
+-- The user's named style is the strongest evidence. When the name matches at least one scored style
+-- (name score > 0), a style that shares no word with it counts its numbers and words at
+-- NO_NAME_FACTOR, so numbers and hint words alone cannot make an unrelated style (a pale lager for
+-- an imperial stout) a rival or an alternative. When the name matches nothing, nothing is scaled.
+-- The "named style" for a mismatch must hold every word the user named (app.style_name_covers), so
+-- a partial match ("session IPA" against English IPA) is never reported as the style the user named.
 -- guide_preference: 'any', 'bjcp', 'ba' from the webhook, or null when it was not sent.
 create or replace function app.step2_best_style(brief jsonb, request text, guide_preference text)
 returns jsonb
@@ -266,6 +305,8 @@ declare
     WORD_CAP   constant numeric := 2;    -- hint and flavour words together never outweigh a name
     ALT_MARGIN constant numeric := 0.5;  -- a style within 0.5 of the best total is an alternative
     MIN_SCORE  constant numeric := 1.0;  -- below this total nothing fits: unknown
+    NO_NAME_FACTOR constant numeric := 0.5;  -- when the name matches some style, a style sharing no
+                                         -- word with it keeps only this share of its numbers and words
     named      text    := nullif(trim(coalesce(brief ->> 'named', '')), '');
     stated     jsonb   := case when jsonb_typeof(brief -> 'stated') = 'object' then brief -> 'stated' else '{}'::jsonb end;
     words      text[]  := app.brief_words(brief);
@@ -310,7 +351,9 @@ begin
             from (
               select s.id, s.guide, s.code, s.name,
                      x.ns as name_score, n.score as number_score, to_jsonb(n.outside) as outside, y.ws as word_score,
-                     W_NAME * x.ns + n.score + least(y.ws, WORD_CAP) as total,
+                     W_NAME * x.ns + (n.score + least(y.ws, WORD_CAP))
+                         * case when x.ns = 0 and max(x.ns) over () > 0 then NO_NAME_FACTOR else 1 end as total,
+                     x.covers,
                      case when g = 'any' and s.guide = 'BA'
                           then (select p.bjcp_code from app.style_pair() p
                                  where p.ba_code = s.code and p.bjcp_code not in (select code from app.bjcp_catch_all())) end as pair,
@@ -319,9 +362,10 @@ begin
                                  where p.ba_code = s.code and p.bjcp_code in (select code from app.bjcp_catch_all())) end as catch_all
                 from ref.beer_style s
                cross join lateral app.style_number_score(stated, s.abv, s.og, s.ibu, s.srm) n
-               cross join lateral (select app.style_name_score(named, s.name,
-                                          (select array_agg(a.alias) from app.style_alias() a
-                                            where a.guide = s.guide and a.code = s.code))) x(ns)
+               cross join lateral (select app.style_name_score(named, s.name, al.aliases),
+                                          app.style_name_covers(named, s.name, al.aliases)
+                                     from (select (select array_agg(a.alias) from app.style_alias() a
+                                                    where a.guide = s.guide and a.code = s.code)) al(aliases)) x(ns, covers)
                cross join lateral (select app.style_word_score(words, app.style_tags(s.raw),
                                           concat_ws(' ', s.raw ->> 'overallimpression', s.raw ->> 'aroma',
                                                     s.raw ->> 'flavor', s.raw ->> 'mouthfeel'))) y(ws)
@@ -331,7 +375,7 @@ begin
 
     select * into best from jsonb_to_recordset(scored)
         as t(id bigint, guide text, code text, name text, name_score numeric, number_score numeric,
-             outside jsonb, word_score numeric, total numeric, pair text, catch_all text, ord bigint)
+             outside jsonb, word_score numeric, total numeric, covers boolean, pair text, catch_all text, ord bigint)
      order by ord limit 1;
 
     -- 3. Unknown: nothing fits well enough.
@@ -357,7 +401,7 @@ begin
         select t.* into base
           from jsonb_to_recordset(scored)
                as t(id bigint, guide text, code text, name text, name_score numeric, number_score numeric,
-                    outside jsonb, word_score numeric, total numeric, pair text, catch_all text, ord bigint)
+                    outside jsonb, word_score numeric, total numeric, covers boolean, pair text, catch_all text, ord bigint)
          where t.guide = 'BJCP' and t.code = best.pair;
         pair_note := '; ' || best.code || ' is the same style as ' || base.code || ' (style pair), BJCP used';
     elsif best.catch_all is not null then
@@ -383,15 +427,15 @@ begin
     select t.* into named_row
       from jsonb_to_recordset(scored)
            as t(id bigint, guide text, code text, name text, name_score numeric, number_score numeric,
-                outside jsonb, word_score numeric, total numeric, pair text, catch_all text, ord bigint)
-     where t.name_score >= 0.5
+                outside jsonb, word_score numeric, total numeric, covers boolean, pair text, catch_all text, ord bigint)
+     where t.name_score >= 0.5 and t.covers
      order by t.name_score desc, t.ord
      limit 1;
     if named_row.pair is not null then
         select t.* into named_row
           from jsonb_to_recordset(scored)
                as t(id bigint, guide text, code text, name text, name_score numeric, number_score numeric,
-                    outside jsonb, word_score numeric, total numeric, pair text, catch_all text, ord bigint)
+                    outside jsonb, word_score numeric, total numeric, covers boolean, pair text, catch_all text, ord bigint)
          where t.guide = 'BJCP' and t.code = named_row.pair;
     end if;
     if named_row.code is not null and named_row.code <> base_code and jsonb_array_length(named_row.outside) > 0 then
@@ -446,7 +490,7 @@ begin
             'name', round(W_NAME * base.name_score, 2),
             'numbers', round(base.number_score, 2),
             'words', round(least(base.word_score, WORD_CAP), 2),
-            'total', round(W_NAME * base.name_score + base.number_score + least(base.word_score, WORD_CAP), 2)),
+            'total', round(base.total, 2)),
         'mismatch', mismatch,
         'guide_reason', g_reason || case when g = 'any'
             then '; both guides scored, best fit ' || best.code || pair_note else '' end,

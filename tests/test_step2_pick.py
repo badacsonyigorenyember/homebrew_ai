@@ -66,13 +66,32 @@ def test_b12_honey_forward_is_a_honey_specialty(conn):
 
 
 @pytest.mark.stack
-def test_pastry_stout_keeps_the_ba_style(conn):
-    """A BA style paired with a BJCP catch-all (30D) is not swapped."""
-    brief = {"named": "pastry stout", "stated": {"abv": 10}, "hints": [], "wanted": ["vanilla", "tonka bean", "lactose"],
+def test_smoke_porter_keeps_the_ba_style(conn):
+    """A BA style paired with a BJCP catch-all (smoke-porter, 32A) is not swapped."""
+    brief = {"named": "smoke porter", "stated": {}, "hints": [], "wanted": ["smoked malt"],
              "excluded": [], "inventory": [], "unknown": [], "guidance": True}
-    out = run(conn, brief, "A strong 10 % ABV pastry stout with vanilla and tonka bean and lots of lactose.")
-    assert out["style"]["code"] == "dessert-stout-or-pastry-beer"
-    assert "30D" in out["reason"]
+    out = run(conn, brief, "A smoke porter with smoked malt.")
+    assert out["style"]["code"] == "smoke-porter"
+    assert "32A" in out["reason"]
+
+
+@pytest.mark.stack
+def test_b05_wins_clearly_and_lists_no_pale_lager(conn):
+    """Step 1's real b05 brief also carries the hint 'session' (from 'a few pints'). A stout request
+    must not rank pale lagers (3A, 1A) as alternatives, and 15B must lead by more than a hair."""
+    brief = {**brief_of(BRIEFS["b05"]), "hints": ["session"]}
+    out = run(conn, brief, BRIEFS["b05"]["request"])
+    assert out["style"]["code"] == "15B"
+    assert not {"3A", "1A"} & set(out["alt_styles"])
+    scores = [c["score"] for c in out["candidates"]]
+    assert scores[0] - scores[1] >= 0.1
+
+
+@pytest.mark.stack
+def test_unnamed_style_is_not_a_mismatch(conn):
+    """b21 with BJCP only: nobody names English IPA, so the mismatch must not name it."""
+    out = pick(conn, BRIEFS["b21"], guide="bjcp")
+    assert out["mismatch"] is None or "12C" not in out["mismatch"]["named"]
 
 
 @pytest.mark.stack
@@ -97,16 +116,17 @@ def test_b17_number_outside_is_not_a_mismatch(conn):
 
 @pytest.mark.stack
 def test_briefs_reach_the_bar(conn):
+    """Same check as the G2 grader: the picked style (not an alternative) is the brief's style or
+    one of its accepted alt_styles."""
     misses, passed = [], 0
     for b in BRIEFS.values():
         out = pick(conn, b)
-        got = [out["style"]["code"], *out["alt_styles"]] if out["style"] else []
-        ok = b["style"] in got if b["id"] <= "b20" else (out["style"] or {}).get("code") == b["style"]
+        got = (out["style"] or {}).get("code")
+        ok = got in [b["style"], *b["alt_styles"]]
         passed += ok and b["id"] <= "b20"
         if not ok:
-            misses.append(f"{b['id']} wants {b['style']}, got {got}, top 3 {out['candidates'][:3]}")
+            misses.append(f"{b['id']} wants {b['style']} {b['alt_styles']}, got {got}, top 3 {out['candidates'][:3]}")
     assert passed >= 18 and not [m for m in misses if m[:3] in ("b21", "b22")], "\n".join(misses)
-    assert passed >= 18, "\n".join(misses)
 
 
 @pytest.mark.stack

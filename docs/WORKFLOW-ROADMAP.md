@@ -119,7 +119,7 @@ brief that is genuinely ambiguous?
 **Bar:** ≥ 18/20 briefs where the picked style is `style` or in `alt_styles` (RECIPE-ROADMAP P4),
 b05 reports the 20C/15B mismatch, b12 picks 31B. **If no:** look at which signal misleads (name
 vs. numbers vs. words) before adding signals; consider an LLM tie-break only for real ties.
-**Measured (2026-10-13, [`m2-best-fit-style`](work/m2-best-fit-style/plan.md)):** met, on the real pipeline with the D2 model (`evals.run --save --label m2`): step 2 passes 22/22 (b01-b20 20/20, b21 and b22 right). b05 picks 15B with the 20C mismatch, b12 picks 31B (alternative 18A), b19 keeps 17C. No weight was tuned. Step 1 missed one field (b05 `hints`), which did not change step 2. Saved in `evals/results/2026-10-13-m2.json`.
+**Measured (2026-10-13, [`m2-best-fit-style`](work/m2-best-fit-style/plan.md)):** met, on the real pipeline with the D2 model (`evals.run --save --label m2`): step 2 passes 22/22 (b01-b20 20/20, b21 and b22 right). b05 picks 15B with the 20C mismatch, b12 picks 31B (alternative 18A), b19 keeps 17C. No weight was tuned. Step 1 missed one field (b05 `hints`), which did not change step 2. Saved in `evals/results/2026-10-13-m2.json`. Re-run after the review fixes (`--label m2-fix`, `NO_NAME_FACTOR` added): step 2 22/22 again, b05 15B with alternatives 16A and 16B (no pale lager) and the 20C mismatch; saved in `evals/results/2026-10-13-m2-fix.json`.
 
 ### G3 · Step 3 finds the right deviations (P4 done)
 

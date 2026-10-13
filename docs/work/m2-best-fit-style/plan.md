@@ -484,3 +484,21 @@ Commit: `Measure G2 for step 2`
 - 2026-10-13 · Task 2: `same_word` ratio threshold 0.85, not 0.8 — at 0.8 `mexican` matched `american` (ratio 0.80) and proposed 1B American Lager for the Mexican amber lager; `koelsch`/`kolsch` is 0.92.
 - 2026-10-13 · Task 2: pairs proposed by Claude reading the guidelines, not by a name-matching script — user's request
 - 2026-10-13 · Task 2: pairs decided by Claude on sensory similarity (vitals only veto when ABV or IBU ranges don't overlap); user delegated the decision, no row review — user's request
+- 2026-10-13 · A4 (review finding 1): same as in brief.md: the pastry-stout example is replaced by
+  the smoke porter case (`test_smoke_porter_keeps_the_ba_style`); no scoring change.
+- 2026-10-13 · Score, Mismatch (review finding 3): two general changes. (1) New constant
+  `NO_NAME_FACTOR = 0.5`: when the named style matches at least one scored style (name score > 0),
+  a style that shares no word with it counts its numbers and words at half, so a stout request
+  cannot rank pale lagers on numbers and hint words alone (the real b05 brief carries the hint
+  `session`). When the name matches nothing, nothing is scaled. Measured on the real b05 brief:
+  15B 2.12, then Sweet Stout (BA) 2.00, Oatmeal Stout 1.89, 16A 1.83, and 3A drops from 2.07 to
+  1.03 so it is no longer an alternative (`alt_styles` is `["16A","16B"]`). (2) The named style for
+  a mismatch must hold every word the user named (`app.style_name_covers`), so b21 with BJCP only
+  no longer reports "12C English IPA" (the user never named it); b05 still names 20C. All 22 SQL
+  picks unchanged (b01–b20 exact, b21, b22 right).
+- 2026-10-13 · R7 (review finding 4): prominence cues are word stems (`shin`, `showcas`, `prominen`,
+  `tast`, `domina`, `stand(s|ing)? out`, ...), so "shines", "showcases" count. A damper cancels
+  only when it is in the same clause (clauses end at , : ; . ! ?) with at most `DAMPER_GAP = 2`
+  words between it and the adjunct, not anywhere in the sentence. b12 and b19 unchanged.
+- 2026-10-13 · Review finding 2: `test_briefs_reach_the_bar` now checks the picked `style.code`
+  against the brief's `style` + `alt_styles`, as the G2 grader does.

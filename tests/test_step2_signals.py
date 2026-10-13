@@ -162,6 +162,34 @@ def test_adjunct_in_other_sentence_is_not(conn):
 
 @pytest.mark.stack
 @pytest.mark.parametrize(
+    "request_text",
+    [
+        "A blonde ale where the honey really shines.",
+        "a honey ale that showcases the honey",
+        "a honey ale that showcased the honey",
+        "some hops and plenty of citrus, but honey forward",
+        "I want some citrus hops and honey forward",
+    ],
+)
+def test_cue_word_forms_and_distant_dampers_stay_prominent(conn, request_text):
+    assert prominent(conn, request_text) is True
+
+
+@pytest.mark.stack
+def test_nearby_damper_still_cancels(conn):
+    assert prominent(conn, "an ale with some honey that shines") is False
+    assert prominent(conn, "the honey should be subtle but shine") is False
+
+
+@pytest.mark.stack
+def test_name_covers_needs_every_named_word(conn):
+    covers = "select app.style_name_covers(%s, %s, '{}'::text[])"
+    assert one(conn, covers, "imperial stout", "Imperial Stout") is True
+    assert one(conn, covers, "session IPA", "English IPA") is False
+
+
+@pytest.mark.stack
+@pytest.mark.parametrize(
     "request_text, expected",
     [
         ("a German pils per BJCP", "bjcp"),
