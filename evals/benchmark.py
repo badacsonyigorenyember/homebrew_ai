@@ -127,6 +127,12 @@ def sha256(path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def add_config(doc, key, config):
+    """Store one configuration with the hashes of the prompt and contract it ran with."""
+    config = {**config, "prompt_sha256": sha256(PROMPT_FILE), "contract_sha256": sha256(CONTRACT_FILE)}
+    doc["configs"][key] = config
+
+
 def results_path():
     return run.RESULTS_DIR / f"{datetime.date.today().isoformat()}-m1-benchmark.json"
 
@@ -172,8 +178,7 @@ def main(argv=None) -> int:
         run.RESULTS_DIR.mkdir(exist_ok=True)
         doc = (json.loads(path.read_text(encoding="utf-8")) if path.exists()
                else {"date": datetime.date.today().isoformat(), "configs": {}})
-        doc["prompt_sha256"], doc["contract_sha256"] = sha256(PROMPT_FILE), sha256(CONTRACT_FILE)
-        doc["configs"][f"{args.model}|{'think' if args.think else 'no-think'}"] = config
+        add_config(doc, f"{args.model}|{'think' if args.think else 'no-think'}", config)
         path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print(f"saved {path}")
     return 0

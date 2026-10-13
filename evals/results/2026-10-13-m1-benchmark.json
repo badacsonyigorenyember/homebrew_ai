@@ -2076,7 +2076,9 @@
             }
           }
         ]
-      ]
+      ],
+      "prompt_sha256": "ba3a9ca320b9fd6ccbe32a51b925560a54af91049ee035282c5bf9994b753ec9",
+      "contract_sha256": "e304028c1ca1905d0fa566a736fa5c320b850010644f0f67cb7551b327c9f266"
     },
     "gemma4:12b-it-q8_0|no-think": {
       "model": "gemma4:12b-it-q8_0",
@@ -4153,7 +4155,9 @@
             }
           }
         ]
-      ]
+      ],
+      "prompt_sha256": "ba3a9ca320b9fd6ccbe32a51b925560a54af91049ee035282c5bf9994b753ec9",
+      "contract_sha256": "e304028c1ca1905d0fa566a736fa5c320b850010644f0f67cb7551b327c9f266"
     },
     "gemma4:12b|no-think": {
       "model": "gemma4:12b",
@@ -6257,7 +6261,9 @@
             }
           }
         ]
-      ]
+      ],
+      "prompt_sha256": "ba3a9ca320b9fd6ccbe32a51b925560a54af91049ee035282c5bf9994b753ec9",
+      "contract_sha256": "e304028c1ca1905d0fa566a736fa5c320b850010644f0f67cb7551b327c9f266"
     },
     "gemma4:31b-it-qat|no-think": {
       "model": "gemma4:31b-it-qat",
@@ -8334,7 +8340,9 @@
             }
           }
         ]
-      ]
+      ],
+      "prompt_sha256": "ba3a9ca320b9fd6ccbe32a51b925560a54af91049ee035282c5bf9994b753ec9",
+      "contract_sha256": "e304028c1ca1905d0fa566a736fa5c320b850010644f0f67cb7551b327c9f266"
     },
     "gemma4:26b-a4b-it-qat|no-think": {
       "model": "gemma4:26b-a4b-it-qat",
@@ -10411,7 +10419,9 @@
             }
           }
         ]
-      ]
+      ],
+      "prompt_sha256": "ba3a9ca320b9fd6ccbe32a51b925560a54af91049ee035282c5bf9994b753ec9",
+      "contract_sha256": "e304028c1ca1905d0fa566a736fa5c320b850010644f0f67cb7551b327c9f266"
     },
     "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K|no-think": {
       "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
@@ -12488,7 +12498,9 @@
             }
           }
         ]
-      ]
+      ],
+      "prompt_sha256": "ba3a9ca320b9fd6ccbe32a51b925560a54af91049ee035282c5bf9994b753ec9",
+      "contract_sha256": "e304028c1ca1905d0fa566a736fa5c320b850010644f0f67cb7551b327c9f266"
     },
     "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K|think": {
       "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
@@ -14568,9 +14580,9 @@
             }
           }
         ]
-      ]
+      ],
+      "prompt_sha256": "ba3a9ca320b9fd6ccbe32a51b925560a54af91049ee035282c5bf9994b753ec9",
+      "contract_sha256": "e304028c1ca1905d0fa566a736fa5c320b850010644f0f67cb7551b327c9f266"
     }
-  },
-  "prompt_sha256": "ba3a9ca320b9fd6ccbe32a51b925560a54af91049ee035282c5bf9994b753ec9",
-  "contract_sha256": "e304028c1ca1905d0fa566a736fa5c320b850010644f0f67cb7551b327c9f266"
+  }
 }

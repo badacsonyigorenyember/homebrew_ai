@@ -59,3 +59,17 @@ def test_percentile_nearest_rank():
     assert benchmark.percentile(values, 90) == 9
     assert benchmark.percentile(values, 50) == 5
     assert benchmark.percentile([4], 90) == 4
+
+
+def test_each_saved_config_keeps_its_own_hashes(tmp_path, monkeypatch):
+    prompt, contract = tmp_path / "p.md", tmp_path / "c.json"
+    monkeypatch.setattr(benchmark, "PROMPT_FILE", prompt)
+    monkeypatch.setattr(benchmark, "CONTRACT_FILE", contract)
+    doc = {"configs": {}}
+    prompt.write_text("one"), contract.write_text("a")
+    benchmark.add_config(doc, "m|no-think", {})
+    prompt.write_text("two")
+    benchmark.add_config(doc, "m|think", {})
+    first, second = doc["configs"]["m|no-think"], doc["configs"]["m|think"]
+    assert first["prompt_sha256"] != second["prompt_sha256"]
+    assert first["contract_sha256"] == second["contract_sha256"] == benchmark.sha256(contract)
