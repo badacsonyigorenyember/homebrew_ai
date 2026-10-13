@@ -137,7 +137,7 @@ docker exec supabase-db psql -U postgres -d postgres -tAc "select count(*) from 
 ### ✅ C6 · Benchmark table has 7 rows; D2 decided in PROJECT.md (A6)
 
 ```bash
-grep -c '^| \(qwen3.8\|gemma4\|hf.co\)' docs/work/m1-read-request/benchmark.md; awk '/^## 7/{f=1;next} /^## 8/{f=0} f' PROJECT.md | grep -c '^| D2\|\*\*D2'; grep -c 'Chat model.*UD-Q6_K' PROJECT.md
+grep -c '^| .* | \(off\|on\) | ' docs/work/m1-read-request/benchmark.md; awk '/^## 7/{f=1;next} /^## 8/{f=0} f' PROJECT.md | grep -c '^| D2\|\*\*D2'; grep -c 'Chat model.*UD-Q6_K' PROJECT.md
 ```
 
 | Expected | Actual | Result |
