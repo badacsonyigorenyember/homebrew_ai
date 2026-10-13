@@ -192,8 +192,14 @@ $$;
 -- adjunct and hold a cue; the adjunct must not be damped. Cues are word stems (shin matches shine,
 -- shines, shining), so any form of the word counts. A damper only damps the adjunct when it stands
 -- in the same clause (clauses end at , : ; . ! ?) with at most DAMPER_GAP words between damper and
--- adjunct, so "some citrus hops, honey forward" stays prominent. Hyphens read as spaces
--- ("honey-forward").
+-- adjunct, so "some citrus hops, honey forward" stays prominent. A damper only looks forward: it
+-- damps the adjunct when it comes BEFORE it, within the same clause, at most DAMPER_GAP words away,
+-- and with no conjunction (and, but, or, plus, while) in between, because a conjunction ends the
+-- item the damper belongs to. A damper after the adjunct belongs to the next item and never damps
+-- ("Plenty of honey and some citrus", "Honey forward and some citrus" stay prominent).
+-- Edge cases: "some citrus and honey forward" is prominent (the "and" ends the damper's reach),
+-- "some honey that shines" and "some very nice honey" are not. Hyphens read as spaces ("honey-forward").
+-- The reason quotes the cue as written in the request ("shines", not "shin").
 create or replace function app.adjunct_cue(request text, adjunct text)
 returns text
 language plpgsql
@@ -208,7 +214,7 @@ declare
     DAMPER_GAP constant int    := 2;   -- most words allowed between a damper and the adjunct
     adj      text := '\m' || lower(adjunct) || '\M';
     damp     text := '\m(' || array_to_string(DAMPERS, '|') || ')\M';
-    gap      text := '(\s+\w+){0,' || DAMPER_GAP || '}\s+';
+    gap      text := '(\s+(?!(and|but|or|plus|while)\M)\w+){0,' || DAMPER_GAP || '}\s+';
     sentence text;
     clause   text;
     cue      text;
@@ -221,13 +227,13 @@ begin
         if sentence ~ adj then
             undamped := false;
             for clause in select c from unnest(regexp_split_to_array(sentence, '[,:]')) c loop
-                if clause ~ adj and clause !~ (damp || gap || adj) and clause !~ (adj || gap || damp) then
+                if clause ~ adj and clause !~ (damp || gap || adj) then
                     undamped := true;
                 end if;
             end loop;
             if undamped then
                 foreach cue in array CUES loop
-                    found := substring(sentence from '\m(' || cue || ')\w*');
+                    found := substring(sentence from '\m(' || cue || '\w*)');
                     if found is not null then
                         return found;
                     end if;
@@ -288,10 +294,11 @@ $$;
 
 -- Step 2: pick the best-fit style for a step 1 brief. Every weight is a named constant below; the
 -- signals are added in one visible line (the "total" in step 2 of the body).
--- The user's named style is the strongest evidence. When the name matches at least one scored style
+-- The user's named style is the strongest evidence. The pick, "unknown" and the mismatch use the plain
+-- total. Only the choice of alt_styles scales: when the name matches at least one scored style
 -- (name score > 0), a style that shares no word with it counts its numbers and words at
--- NO_NAME_FACTOR, so numbers and hint words alone cannot make an unrelated style (a pale lager for
--- an imperial stout) a rival or an alternative. When the name matches nothing, nothing is scaled.
+-- NO_NAME_FACTOR (alt_total), so numbers and hint words alone cannot make an unrelated style (a pale
+-- lager for an imperial stout) an alternative. When the name matches nothing, nothing is scaled.
 -- The "named style" for a mismatch must hold every word the user named (app.style_name_covers), so
 -- a partial match ("session IPA" against English IPA) is never reported as the style the user named.
 -- guide_preference: 'any', 'bjcp', 'ba' from the webhook, or null when it was not sent.
@@ -351,8 +358,9 @@ begin
             from (
               select s.id, s.guide, s.code, s.name,
                      x.ns as name_score, n.score as number_score, to_jsonb(n.outside) as outside, y.ws as word_score,
+                     W_NAME * x.ns + (n.score + least(y.ws, WORD_CAP)) as total,
                      W_NAME * x.ns + (n.score + least(y.ws, WORD_CAP))
-                         * case when x.ns = 0 and max(x.ns) over () > 0 then NO_NAME_FACTOR else 1 end as total,
+                         * case when x.ns = 0 and max(x.ns) over () > 0 then NO_NAME_FACTOR else 1 end as alt_total,
                      x.covers,
                      case when g = 'any' and s.guide = 'BA'
                           then (select p.bjcp_code from app.style_pair() p
@@ -417,8 +425,8 @@ begin
                 select coalesce(t.pair, t.code) as alt, t.ord,
                        row_number() over (partition by coalesce(t.pair, t.code) order by t.ord) as rn
                   from jsonb_to_recordset(scored)
-                       as t(code text, total numeric, pair text, ord bigint)
-                 where t.total >= best.total - ALT_MARGIN) y
+                       as t(code text, alt_total numeric, pair text, ord bigint)
+                 where t.alt_total >= (select max(a.alt_total) from jsonb_to_recordset(scored) as a(alt_total numeric)) - ALT_MARGIN) y
              where rn = 1 and alt <> base_code
              order by ord limit 4) z;
 

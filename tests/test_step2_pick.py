@@ -76,15 +76,35 @@ def test_smoke_porter_keeps_the_ba_style(conn):
 
 
 @pytest.mark.stack
-def test_b05_wins_clearly_and_lists_no_pale_lager(conn):
-    """Step 1's real b05 brief also carries the hint 'session' (from 'a few pints'). A stout request
-    must not rank pale lagers (3A, 1A) as alternatives, and 15B must lead by more than a hair."""
+def test_b05_picks_15b_and_lists_no_pale_lager(conn):
+    """Step 1's real b05 brief also carries the hint 'session' (from 'a few pints'). The pick is
+    15B and a stout request must not list pale lagers (3A, 1A) as alternatives."""
     brief = {**brief_of(BRIEFS["b05"]), "hints": ["session"]}
     out = run(conn, brief, BRIEFS["b05"]["request"])
     assert out["style"]["code"] == "15B"
     assert not {"3A", "1A"} & set(out["alt_styles"])
-    scores = [c["score"] for c in out["candidates"]]
-    assert scores[0] - scores[1] >= 0.1
+    assert out["alt_styles"]
+
+
+@pytest.mark.stack
+@pytest.mark.parametrize(
+    "named, stated, request_text, mismatch_word",
+    [
+        ("barleywine", {"abv": 5}, "a 5% barleywine", "Barleywine"),
+        ("tripel", {"abv": 4}, "a 4% tripel", "Tripel"),
+        ("kolsch", {"abv": 8}, "an 8% kolsch", "Kolsch"),
+        ("doppelbock", {"abv": 4}, "a 4% doppelbock", "Doppelbock"),
+        ("berliner weisse", {"abv": 8}, "an 8% berliner weisse", "Berliner Weisse"),
+    ],
+)
+def test_number_that_rules_out_the_named_style_gives_a_pick_and_a_mismatch(
+        conn, named, stated, request_text, mismatch_word):
+    """The fitting style often shares no word with the named one; it must still be picked."""
+    brief = {"named": named, "stated": stated, "hints": [], "wanted": [], "excluded": [],
+             "inventory": [], "unknown": [], "guidance": True}
+    out = run(conn, brief, request_text)
+    assert out["style"] is not None
+    assert mismatch_word in out["mismatch"]["named"]
 
 
 @pytest.mark.stack

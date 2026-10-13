@@ -169,6 +169,10 @@ def test_adjunct_in_other_sentence_is_not(conn):
         "a honey ale that showcased the honey",
         "some hops and plenty of citrus, but honey forward",
         "I want some citrus hops and honey forward",
+        "Plenty of honey and some citrus.",
+        "Lots of honey and a little lemon zest.",
+        "Honey forward and some citrus.",
+        "I want some citrus and honey forward.",
     ],
 )
 def test_cue_word_forms_and_distant_dampers_stay_prominent(conn, request_text):
@@ -178,7 +182,28 @@ def test_cue_word_forms_and_distant_dampers_stay_prominent(conn, request_text):
 @pytest.mark.stack
 def test_nearby_damper_still_cancels(conn):
     assert prominent(conn, "an ale with some honey that shines") is False
-    assert prominent(conn, "the honey should be subtle but shine") is False
+    assert prominent(conn, "some very nice honey that shines") is False
+
+
+@pytest.mark.stack
+def test_damper_after_the_adjunct_never_cancels(conn):
+    """A damper after the adjunct belongs to the next item."""
+    assert prominent(conn, "the honey should shine, a bit of citrus too") is True
+    assert prominent(conn, "honey shines and a little spice") is True
+
+
+@pytest.mark.stack
+def test_conjunction_ends_the_damper_reach(conn):
+    """'some citrus and honey forward': the 'and' ends the damper, so honey is prominent;
+    'some honey and citrus that shine' still damps (honey follows the damper directly)."""
+    assert prominent(conn, "some citrus and honey forward") is True
+    assert prominent(conn, "some honey and citrus, forward") is False
+
+
+@pytest.mark.stack
+def test_cue_is_quoted_as_written(conn):
+    assert one(conn, "select app.adjunct_cue(%s, 'honey')", "the honey really shines") == "shines"
+    assert one(conn, "select app.adjunct_cue(%s, 'honey')", "honey you can taste") == "taste"
 
 
 @pytest.mark.stack

@@ -502,3 +502,18 @@ Commit: `Measure G2 for step 2`
   words between it and the adjunct, not anywhere in the sentence. b12 and b19 unchanged.
 - 2026-10-13 · Review finding 2: `test_briefs_reach_the_bar` now checks the picked `style.code`
   against the brief's `style` + `alt_styles`, as the G2 grader does.
+- 2026-10-13 · Review finding 10 (supersedes the finding 3 line above where they differ): `NO_NAME_FACTOR`
+  applies only when choosing `alt_styles` (`alt_total`, compared with the best `alt_total`). The pick,
+  `unknown` and the mismatch use the plain total, as before the factor, so a number that rules out
+  the named style still yields a pick plus mismatch when the fitting style shares no name word
+  (barleywine, tripel, kolsch, doppelbock, berliner weisse; regression test). b05 still picks 15B,
+  but its lead over 3A is about 0.05 again (2.12 vs 2.07), so `test_b05_picks_15b_and_lists_no_pale_lager`
+  asserts the pick and the alternatives (16A, 16B), not a 0.1 lead.
+- 2026-10-13 · Review finding 11: the prominence reason quotes the whole word from the request
+  ("shines"), not the matched stem.
+- 2026-10-13 · Review finding 12 (replaces the R7 damper line above): a damper cancels prominence only
+  when it comes before the adjunct in the same clause, at most `DAMPER_GAP = 2` words away, with no
+  conjunction (and, but, or, plus, while) between; a damper after the adjunct never cancels. So
+  "Plenty of honey and some citrus", "Honey forward and some citrus" and "some citrus and honey
+  forward" are prominent. The old test "the honey should be subtle but shine" (damper after the
+  adjunct) now reads prominent and was replaced by "some very nice honey that shines" (not).
