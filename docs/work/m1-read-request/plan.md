@@ -337,24 +337,24 @@ Commit: `Add model benchmark tool for step 1`
 
 ### Task 6: the six candidates and the best with thinking on are measured (G1)
 Why: R6, R7; A1, A2, A6.
-- [ ] Check free disk (`docker exec ollama df -h /root/.ollama`, about 57 GB needed). Pull, in
+- [x] Check free disk (`docker exec ollama df -h /root/.ollama`, about 57 GB needed). Pull, in
       the background: `docker exec ollama ollama pull gemma4:31b-it-qat`,
       `gemma4:26b-a4b-it-qat`, `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K`. `ollama list` shows
       all three. Only these six chat models are run (brief constraint).
-- [ ] Run `python -m evals.benchmark --model <tag> --runs 3 --save` for `qwen3.8:27b`,
+- [x] Run `python -m evals.benchmark --model <tag> --runs 3 --save` for `qwen3.8:27b`,
       `gemma4:12b-it-q8_0`, `gemma4:12b`, `gemma4:31b-it-qat`, `gemma4:26b-a4b-it-qat`,
       `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` (in the background, one after the other). Then
       `pick_best` over them, and run that tag again with `--think`. All configurations must
       show the same prompt and contract hash.
-- [ ] Write `docs/work/m1-read-request/benchmark.md`: date, machine, prompt and contract hash,
+- [x] Write `docs/work/m1-read-request/benchmark.md`: date, machine, prompt and contract hash,
       the prompt changes from the smoke pass, the `markdown_table`, A2 per configuration (b05
       `abv 4` + `named`, b18 `guidance false`, b08 `excluded Saaz`, `batch_l 10`, `ibu 50`), and
       every failing field of the best configuration with its cause class: **prompt**,
       **contract** or **ambiguous brief** (R7). Synonyms added during this task (only naming
       variants) are listed for your review.
-- [ ] **If no configuration meets the bar:** stop here. Report `needs-input` with
+- [x] **If no configuration meets the bar:** stop here (not needed: two configurations met it). Report `needs-input` with
       `benchmark.md`; the bar is not lowered and the prompt is not changed without you (R7).
-- [ ] PROJECT.md §8 entry with the measured result.
+- [x] PROJECT.md §8 entry with the measured result.
 Done when: `benchmark.md` holds all seven rows and the cause analysis, and the results file is
 saved.
 Commit: `Run the D2 benchmark for step 1`
@@ -399,3 +399,4 @@ Commit: `Decide D2 and make it the step 1 default`
 - 2026-10-12 · Task 4: `test_request_kept_verbatim` uses `a "pale", ale; some % off $one\nsecond line` instead of `50% off $1`: the model read "50" as ABV, the check refused it twice (R2/R3 working), and the test is about storing the text verbatim.
 - 2026-10-12 · Task 4: smoke pass changed the prompt twice, both general rules quoting no brief (for `benchmark.md`): (1) `hints`: a word only when the user wrote it or a direct form, no inference from purpose or occasion, other wishes to `unknown`; (2) `stated`: match each number to the unit written beside it (litres, %, IBU, SRM, gravity). Step 1 went from 15/20 to 17/20 on `gemma4:12b-it-q8_0`; remaining failures (b04, b05 hints, b08 stated) are left to the benchmark. Prompt frozen. The smoke runs left 40 `app.run` rows (`b01`..`b20`) and 40 `app.brief` rows.
 - 2026-10-12 · Task 4: workflows were edited with MCP `update_workflow` operations; `validate_workflow` ran on an SDK rendering of `Step 1` (valid, 17 nodes counted), as the MCP has no from-code update. `Ask model` nodes have no credential (Ollama needs none).
+- 2026-10-13 · Task 6: the results file is `evals/results/2026-10-13-m1-benchmark.json`: the three runs saved on 2026-10-12 (same prompt and contract hash) were merged into it, because `--save` names the file by the day it runs. Two configurations met the bar (Qwen3.8-27B UD-Q6_K, thinking off and on, 19/20 in all runs); Task 7 chooses between them.

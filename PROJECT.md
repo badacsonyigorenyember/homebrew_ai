@@ -219,6 +219,15 @@ Several of these are lessons from the first build (see §9).
 
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
+### 2026-10-13
+- `m1-read-request` Task 6: D2 benchmark measured, 7 configurations x 3 runs x 20 briefs, same prompt and
+  contract hash ([`benchmark.md`](docs/work/m1-read-request/benchmark.md)). Bar 19/20 in every run:
+  `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` meets it with thinking off (12.5 s median, 36%/64% CPU/GPU)
+  and with thinking on (96.7 s median); others below (qwen3.8:27b 18/20, gemma4:12b-it-q8_0 and
+  gemma4:31b-it-qat 17/20, gemma4:12b 16/20, gemma4:26b-a4b-it-qat 12-13/20). Remaining misses:
+  b05 `hints` ("session" inferred) and, with thinking on, b08 `wanted` ("noble-type hop"). D2 stays open
+  until Task 7 chooses. Three models pulled (about 53 GB).
+
 ### 2026-10-12
 - `m1-read-request` Task 5: `evals/benchmark.py` runs one model configuration (unload all, load at
   `num_ctx` 8192, read the CPU/GPU split from `ollama ps`, run the 20 briefs N times through the
