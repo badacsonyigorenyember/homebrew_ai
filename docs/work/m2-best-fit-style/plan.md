@@ -1,6 +1,6 @@
 # M2 · Step 2: pick the best-fit style — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: m2-best-fit-style
 
@@ -160,18 +160,18 @@ water_salts = []
 
 ### Task 1: the briefs include the two BA cases
 Why: user decision on Open question 2, R6; A1 (b21, b22).
-- [ ] `evals/recipe_briefs.toml`: append b21 and b22 exactly as in the Approach. Header: the
+- [x] `evals/recipe_briefs.toml`: append b21 and b22 exactly as in the Approach. Header: the
       `style` line becomes "expected best-fit code: BJCP 2021 (e.g. 21A), or a BA 2026 code
       (e.g. `session-india-pale-ale`) where BA describes the beer better (b21, b22)"; the
       intro line "20 natural-language recipe requests" becomes 22.
-- [ ] `tests/test_recipe_briefs.py`: `test_twenty_briefs_with_every_field` →
+- [x] `tests/test_recipe_briefs.py`: `test_twenty_briefs_with_every_field` →
       `test_briefs_with_every_field`, exactly 22 briefs, ids unique. `test_style_codes_exist_in_ref`
       reads codes from both sources (`s.slug in ('bjcp-2021', 'ba-2026')`). New
       `test_ba_briefs` (stack): exactly b21 and b22 expect a `ba-2026` code. The coverage tests
       stay as they are (BA codes fall in no BJCP bucket); module docstring says 22.
-- [ ] Run `.venv/bin/pytest tests/test_recipe_briefs.py tests/test_grade.py tests/test_run.py`,
+- [x] Run `.venv/bin/pytest tests/test_recipe_briefs.py tests/test_grade.py tests/test_run.py`,
       expect all pass.
-- [ ] PROJECT.md §8 entry.
+- [x] PROJECT.md §8 entry.
 Done when: 22 briefs load and the brief tests pass.
 Commit: `Add two BA briefs for step 2`
 

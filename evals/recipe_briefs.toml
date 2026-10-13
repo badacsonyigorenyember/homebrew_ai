@@ -1,4 +1,4 @@
-# Recipe test briefs (P0): 20 natural-language recipe requests, each with the outcome a
+# Recipe test briefs (P0): 22 natural-language recipe requests, each with the outcome a
 # correct pipeline must produce for the first three steps (style, deviations, what the user asked for).
 # Later phases score against this file (RECIPE-ROADMAP P4 and P5).
 #
@@ -12,8 +12,9 @@
 #   request     the user's words, English, one to three sentences
 #   named       the style words the user wrote, without words that only describe the beer
 #   why         what this brief tests
-#   style       expected best-fit BJCP 2021 code: the base style (adjuncts are ignored), unless the
-#               request makes an adjunct a stated, prominent feature; then the specialty code
+#   style       expected best-fit code: BJCP 2021 (e.g. 21A), or a BA 2026 code
+#               (e.g. `session-india-pale-ale`) where BA describes the beer better (b21, b22).
+#               The base style (adjuncts are ignored), unless the request makes an adjunct a stated, prominent feature; then the specialty code
 #               (e.g. 31B), with the base style in alt_styles
 #   alt_styles  other acceptable codes, only where the request is genuinely ambiguous
 #   deviations  { kind, what, from }; kind is ingredient, number, mismatch or conflict
@@ -442,4 +443,44 @@ guidance = true
 fermentables = ["pale ale malt", "crystal malt", "chocolate malt", "lactose"]
 hops = ["Cascade"]
 yeast = ["American ale yeast"]
+water_salts = []
+
+[[brief]]
+id = "b21"
+request = "A session IPA at 4 %, hoppy but light enough to drink all afternoon."
+named = "session IPA"
+why = "BA 2026 has a session IPA style and BJCP 2021 has none; the stated ABV is below every BJCP IPA (D1, BA path)."
+style = "session-india-pale-ale"
+alt_styles = []
+deviations = []
+stated = { abv = 4 }
+hints = ["hoppy", "session"]
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pale ale malt", "crystal malt"]
+hops = ["Cascade", "Centennial"]
+yeast = ["American ale yeast"]
+water_salts = ["gypsum"]
+
+[[brief]]
+id = "b22"
+request = "I'd like a Mexican amber lager to go with tacos, smooth and a little malty."
+named = "Mexican amber lager"
+why = "BA 2026 has a Mexican amber lager style; BJCP 2021 only has international and Czech amber lagers (D1, BA path, no stated numbers)."
+style = "mexican-style-amber-lager"
+alt_styles = []
+deviations = []
+stated = {}
+hints = ["malty"]
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pilsner malt", "Vienna malt", "crystal malt", "flaked corn"]
+hops = ["Hallertau Mittelfrüh"]
+yeast = ["German lager yeast"]
 water_salts = []

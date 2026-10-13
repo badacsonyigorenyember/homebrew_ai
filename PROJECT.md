@@ -219,6 +219,9 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-13
+- `m2-best-fit-style` Task 1: added briefs b21 (session IPA, BA `session-india-pale-ale`) and b22 (Mexican amber lager,
+  BA `mexican-style-amber-lager`); `tests/test_recipe_briefs.py` now expects 22 briefs and reads codes from both guides. 39 passed in the
+  brief, grade and run tests.
 - Planned `m2-best-fit-style` ([`docs/work/m2-best-fit-style/plan.md`](docs/work/m2-best-fit-style/plan.md)).
 - Shipped `m1-read-request` ([`docs/finished/m1-read-request/`](docs/finished/m1-read-request/)): step 1 reads the request with
   one Ollama call checked by SQL, D2 decided (Qwen3.8-27B UD-Q6_K, thinking off). Verified: 8 checks, `pytest` 151 passed;
