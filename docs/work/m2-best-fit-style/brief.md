@@ -1,6 +1,6 @@
 # M2 · Step 2: pick the best-fit style
 
-Status: draft
+Status: approved
 Slug: m2-best-fit-style · Branch: m2-best-fit-style
 Roadmap: [WORKFLOW-ROADMAP.md](../../WORKFLOW-ROADMAP.md) M2, checkpoint **G2** ·
 [RECIPE-ROADMAP.md](../../RECIPE-ROADMAP.md) §3 step 2, §4 · PROJECT.md §5 (D1 and the R3 rule)
