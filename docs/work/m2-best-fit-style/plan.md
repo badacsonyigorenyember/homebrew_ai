@@ -1,6 +1,6 @@
 # M2 · Step 2: pick the best-fit style — implementation plan
 
-Stage: verify
+Stage: shipped
 Brief: [brief.md](brief.md)
 Branch: m2-best-fit-style
 

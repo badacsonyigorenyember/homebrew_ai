@@ -107,7 +107,7 @@ decision in §7 replaces it. How to operate the stack safely is in
 |---|---|---|---|
 | Database | **Supabase** (self-hosted Postgres 15) | Knowledge base, reference data (styles, ingredients), recipes | 🟢 running again since 2026-10-09 ([`recover-stack`](docs/finished/recover-stack/plan.md)). All schemas built 2026-10-11 ([`slim-ref`](docs/finished/slim-ref/plan.md)): `ref` 15 tables, `corpus` 7, `kb` 1, `app` 8, all 31 owned by `postgres`; design in [`docs/DATABASE.md`](docs/DATABASE.md). **P1a `ref` load done.** Measured 2026-10-11: `ref.source` 18 rows; `ref.beer_style` 285, BJCP 2021 116 + BA 2026 169 ([`style-loader`](docs/finished/style-loader/plan.md)); `ref.ingredient` 298, 0 without a source: `ref.fermentable` 81 = 74 grain malts from Weyermann, Viking and Simpsons ([`malt-loader`](docs/finished/malt-loader/plan.md)) + 7 adjuncts (flaked oats, corn, rice and barley, brown candi sugar and lactose from `hopline-adjuncts`, honey from `palmer-how-to-brew`; extract from Palmer Tables 18.5/24.1), `fermentability` `normal` 78 · `full` 2 (candi, honey) · `none` 1 (lactose) ([`adjunct-fermentables`](docs/finished/adjunct-fermentables/plan.md)); `ref.hop` 90, all from `hopline-hops`, 8 values from Beer Maverick ([`hop-loader`](docs/finished/hop-loader/plan.md)); `ref.yeast` 119 from `hopline-yeasts`, 93 with attenuation from the makers' sources, Brewfather and the user ([`yeast-loader`](docs/finished/yeast-loader/plan.md)); `ref.water_salt` 8, ion mg/L per g computed from IUPAC atomic masses ([`water-salts`](docs/finished/water-salts/plan.md)). Fermentables, hops and yeasts name each filled field's source in `field_source`. Every other table is empty until its phase. 10 random rows per loaded table spot-checked by the user against the sources, no errors ([`ref-spotcheck`](docs/finished/ref-spotcheck/plan.md), pack `db/checks/ref_spotcheck.sql`); the 7 adjuncts came after it and were checked in their own verification (16/16). Known gaps: `fermentable.role` stays empty until P3; no malt extracts, and the other hopline adjuncts (rye, wheat and chit flakes, white candi, fructose) are not loaded; `beer_style.co2_vol` was dropped (no source has it; back in P6). *Why this schema (was D4): each typed column is read by a pipeline step and everything else stays in `raw`; behaviour (usage effects, hint knobs, cut points, source weights) lives in code; all tables were created up front, empty, by user decision.* |
 | Vector search | **pgvector** (HNSW) + Postgres full-text, fused (hybrid RAG) | Retrieval over book chunks | 🟡 `vector` 0.8.0 installed in schema `extensions`; `kb.chunk` created with HNSW + GIN indexes, empty (2026-10-11, [`slim-ref`](docs/finished/slim-ref/plan.md), shipped) |
-| Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, 4 workflows published (measured 2026-10-13): `Recipe pipeline` (webhook `POST /webhook/recipe-pipeline`, logs steps 1 and 2 to `app.run` / `app.run_step`; optional body field `guide`), `Step 1 · read request` (one Ollama call with the contract as `format`, SQL check `app.step1_read_answer`, one retry; [`m1-read-request`](docs/finished/m1-read-request/plan.md)) `Step 2 · best-fit style` (contract checks around one SQL call, `app.step2_best_style`; [`m2-best-fit-style`](docs/work/m2-best-fit-style/plan.md)) and `Check contract` (pg_jsonschema check); exported to `n8n/workflows/` ([`m0-harness`](docs/finished/m0-harness/plan.md)) |
+| Orchestration | **n8n** (with its own Postgres for metadata) | Ingestion and recipe pipelines, agent | 🟢 running, 4 workflows published (measured 2026-10-13): `Recipe pipeline` (webhook `POST /webhook/recipe-pipeline`, logs steps 1 and 2 to `app.run` / `app.run_step`; optional body field `guide`), `Step 1 · read request` (one Ollama call with the contract as `format`, SQL check `app.step1_read_answer`, one retry; [`m1-read-request`](docs/finished/m1-read-request/plan.md)) `Step 2 · best-fit style` (contract checks around one SQL call, `app.step2_best_style`; [`m2-best-fit-style`](docs/finished/m2-best-fit-style/plan.md)) and `Check contract` (pg_jsonschema check); exported to `n8n/workflows/` ([`m0-harness`](docs/finished/m0-harness/plan.md)) |
 | Document parsing | **Docling Serve** (ROCm) | PDF → structured Markdown + `HybridChunker` | 🟢 running |
 | LLM runtime | **Ollama** (ROCm) | Local chat and embedding models | 🟢 running |
 | Chat model | `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` (Q6_K), thinking off *(D2, decided 2026-10-13)* | Reasoning, extraction, recipe drafting | 🟢 step 1 default in `Recipe pipeline`; 19/20 briefs right in all 3 runs, 12.5 s median, 36%/64% CPU/GPU (measured, [`benchmark.md`](docs/finished/m1-read-request/benchmark.md)). Why: quality first, and only this model met the bar; thinking on scored the same at about 8x the time and added a b08 `wanted` miss. Other pulled models: see OPERATIONS §6 |
@@ -163,7 +163,7 @@ Not ingested since the reset. On 2026-10-08 the source files were removed from `
 
 **Style guides (was D1, decided 2026-10-11, rule revised 2026-10-13):** both guides are scored
 together and the best fit wins, with no head start for either. A BA style that is the same
-beer as a BJCP style (the decided pair list, [`style-pairs.md`](docs/work/m2-best-fit-style/style-pairs.md),
+beer as a BJCP style (the decided pair list, [`style-pairs.md`](docs/finished/m2-best-fit-style/style-pairs.md),
 `app.style_pair()`) is returned as the BJCP style; a BA style paired only with a BJCP catch-all
 keeps the BA style. Equal scores go BJCP first, then by code. BJCP only or BA only comes from
 the webhook's `guide` field, or from the request text when the field is not sent; the field
@@ -171,7 +171,7 @@ wins. Within a guide, the best-fit style is the **base style** by default (adjun
 are ignored). When the request makes an adjunct a stated, prominent feature, the specialty code
 is picked (e.g. 31B Alternative Sugar Beer for a honey-forward blonde), with the base style as
 the alternative ([`test-briefs`](docs/finished/test-briefs/brief.md) R3). Step 2 is built
-(`app.step2_best_style`, [`m2-best-fit-style`](docs/work/m2-best-fit-style/plan.md)). *Why: the
+(`app.step2_best_style`, [`m2-best-fit-style`](docs/finished/m2-best-fit-style/plan.md)). *Why: the
 user's call (2026-10-13): the style is loose guidance that helps select resources, so the
 closest style wins whichever guide it is in.*
 
@@ -222,6 +222,7 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-13
+- Shipped `m2-best-fit-style` ([`docs/finished/m2-best-fit-style/`](docs/finished/m2-best-fit-style/plan.md), 2026-10-13): step 2 picks the best-fit style with `app.step2_best_style` and runs in the pipeline. Verified (9 checks, `pytest` 235 passed, re-run on the branch before merge); G2 met, last measured at the third re-review fix (`--label m2-fix3`, [`evals/results/2026-10-13-m2-fix3.json`](evals/results/2026-10-13-m2-fix3.json): step 2 22/22; only a wording fix to the damper reach words came after). **Known limitation, decided by the user after verification:** step 2 judges whether an adjunct is prominent from hand-written word lists (cue, damper and joining words in `app.adjunct_cue`). This is to be replaced in a separate piece of work, where step 1 classifies each adjunct as feature or background. Not planned yet.
 - `m2-best-fit-style` third re-review fix (finding 19, note 20, 2026-10-13): "with" also ends a damper's reach, so "Honey forward with some citrus." stays prominent; finding-15 wordings still not prominent; comment above `app.adjunct_cue` fixed. `pytest` 235 passed; all 22 briefs right at SQL level, b12 still 31B ("shines"); G2 not re-run (no step 2 output changed).
 - `m2-best-fit-style` second re-review fix (finding 15, 2026-10-13): the damper rule now checks both sides of the adjunct: a damper cancels prominence when it is in the same clause, within `DAMPER_GAP` words before or after, with no conjunction between. "honey that is subtle, with the hops up front" and "the honey should be subtle and the hops forward" are not prominent; the finding-12 wordings stay prominent; b12 still picks 31B ("shines"). `pytest` 233 passed; SQL level b01-b20 20/20 exact, b21 and b22 right; G2 re-run (`--label m2-fix3`, [`evals/results/2026-10-13-m2-fix3.json`](evals/results/2026-10-13-m2-fix3.json)): step 2 22/22, step 1 21/22 (b05 `hints`), briefs 0/22 (step 3 not built).
 - `m2-best-fit-style` re-review fixes (findings 10-12): `NO_NAME_FACTOR` now applies only when choosing `alt_styles` (new `alt_total`); the pick, `unknown` and the mismatch use the plain total again, so "a 5% barleywine", "a 4% tripel", "an 8% kolsch", "a 4% doppelbock" and "an 8% berliner weisse" each get a pick plus the mismatch naming the requested style (regression tests); b05 picks 15B (lead back to about 0.05) with alternatives 16A and 16B, no pale lager. The reason quotes the user's word ("shines"), not the stem. A damper cancels prominence only when it comes before the adjunct (superseded by finding 15 above), in the same clause, within `DAMPER_GAP` words and with no conjunction between. `pytest` 227 passed; SQL level b01-b20 20/20 exact, b21 and b22 right; G2 re-run (`--label m2-fix2`, [`evals/results/2026-10-13-m2-fix2.json`](evals/results/2026-10-13-m2-fix2.json)): step 2 22/22, step 1 21/22 (b05 `hints`), briefs 0/22 (step 3 not built).
@@ -242,12 +243,12 @@ Newest first. One entry per meaningful change: what was done, and why if that is
 - `m2-best-fit-style` Task 2: Claude read the full BJCP 2021 and BA 2026 guideline content in `ref.beer_style` and decided which
   BA styles pair with a BJCP style: by look, aroma and taste, vitals only vetoing when the ABV or IBU ranges don't overlap; names
   not used. The user delegated the decision (2026-10-13, no row review); the name-matching `loaders/style_pairs.py` and its tests
-  were removed. [`style-pairs.md`](docs/work/m2-best-fit-style/style-pairs.md): 169 BA styles, 151 paired, 18 unpaired (b21's
+  were removed. [`style-pairs.md`](docs/finished/m2-best-fit-style/style-pairs.md): 169 BA styles, 151 paired, 18 unpaired (b21's
   and b22's BA styles unpaired on purpose).
 - `m2-best-fit-style` Task 1: added briefs b21 (session IPA, BA `session-india-pale-ale`) and b22 (Mexican amber lager,
   BA `mexican-style-amber-lager`); `tests/test_recipe_briefs.py` now expects 22 briefs and reads codes from both guides. 39 passed in the
   brief, grade and run tests.
-- Planned `m2-best-fit-style` ([`docs/work/m2-best-fit-style/plan.md`](docs/work/m2-best-fit-style/plan.md)).
+- Planned `m2-best-fit-style` ([`docs/finished/m2-best-fit-style/plan.md`](docs/finished/m2-best-fit-style/plan.md)).
 - Shipped `m1-read-request` ([`docs/finished/m1-read-request/`](docs/finished/m1-read-request/)): step 1 reads the request with
   one Ollama call checked by SQL, D2 decided (Qwen3.8-27B UD-Q6_K, thinking off). Verified: 8 checks, `pytest` 151 passed;
   merged to `main`.
@@ -376,7 +377,7 @@ Newest first. One entry per meaningful change: what was done, and why if that is
 - Wrote draft briefs for all 13 WORKFLOW-ROADMAP work items in `docs/work/` (none approved, no
   branches yet): [`m0-harness`](docs/finished/m0-harness/brief.md),
   [`m1-read-request`](docs/finished/m1-read-request/brief.md),
-  [`m2-best-fit-style`](docs/work/m2-best-fit-style/brief.md),
+  [`m2-best-fit-style`](docs/finished/m2-best-fit-style/brief.md),
   [`m3-deviations`](docs/work/m3-deviations/brief.md),
   [`m4-targets-blueprint`](docs/work/m4-targets-blueprint/brief.md),
   [`m5-choose-ingredients`](docs/work/m5-choose-ingredients/brief.md),
