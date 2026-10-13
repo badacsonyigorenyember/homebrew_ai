@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PROMPT = (ROOT / "shared" / "prompts" / "step1.system.md").read_text(encoding="utf-8")
 CONTRACT = json.loads((ROOT / "shared" / "contracts" / "step1.output.schema.json").read_text())
 BRIEFS = tomllib.loads((ROOT / "evals" / "recipe_briefs.toml").read_text(encoding="utf-8"))["brief"]
+WORDINGS = tomllib.loads((ROOT / "evals" / "role_wordings.toml").read_text(encoding="utf-8"))["wording"]
 
 
 def _words(text: str) -> list[str]:
@@ -37,3 +38,12 @@ def test_prompt_quotes_no_brief():
         for i in range(len(words) - 4):
             run = " ".join(words[i:i + 5])
             assert run not in prompt, f"{brief['id']}: {run}"
+
+
+def test_prompt_quotes_no_role_wording():
+    prompt = " ".join(_words(PROMPT))
+    for wording in WORDINGS:
+        words = _words(wording["request"])
+        for i in range(len(words) - 4):
+            run = " ".join(words[i:i + 5])
+            assert run not in prompt, f"{wording['id']}: {run}"

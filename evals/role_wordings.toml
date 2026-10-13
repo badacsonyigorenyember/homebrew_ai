@@ -1,0 +1,288 @@
+# Role measurement set for the adjunct role (m2-adjunct-role, brief R5).
+# Each wording asks for one adjunct; `expected` is the role step 1 should give that adjunct.
+# Used by: evals/roles.py. Checked by: tests/test_role_wordings.py.
+#
+# Fields of every [[wording]]:
+#   id        r01.. (clear and ambiguous) or h01.. (held out)
+#   set       clear     scored; the role is clear from the words
+#             ambiguous reported, not scored (expected is "")
+#             held_out  scored; written before the prompt changed
+#   adjunct   the word whose role is scored
+#   expected  feature | background, or "" for ambiguous
+#   source    where the wording came from
+#   request   the user's words
+#
+# HELD-OUT WORDINGS (h01-h10) MUST NEVER BE USED TO TUNE THE PROMPT. They run only in the
+# full measurement, so the prompt cannot be fitted to them.
+
+[[wording]]
+id = "r01"
+set = "clear"
+adjunct = "honey"
+expected = "feature"
+source = "b12"
+request = "A simple blonde ale where the honey really shines through, I want to taste it in every glass. Easy drinking for friends who don't like craft beer."
+
+[[wording]]
+id = "r02"
+set = "clear"
+adjunct = "honey"
+expected = "feature"
+source = "m2 review"
+request = "A blonde ale where the honey really shines."
+
+[[wording]]
+id = "r03"
+set = "clear"
+adjunct = "honey"
+expected = "feature"
+source = "m2 review"
+request = "A honey ale that showcases the honey."
+
+[[wording]]
+id = "r04"
+set = "clear"
+adjunct = "honey"
+expected = "feature"
+source = "m2 review"
+request = "Honey-forward, with some citrus hops."
+
+[[wording]]
+id = "r05"
+set = "clear"
+adjunct = "honey"
+expected = "feature"
+source = "m2 review"
+request = "Plenty of honey and some citrus."
+
+[[wording]]
+id = "r06"
+set = "clear"
+adjunct = "honey"
+expected = "feature"
+source = "m2 review"
+request = "Lots of honey and a little lemon zest."
+
+[[wording]]
+id = "r07"
+set = "clear"
+adjunct = "honey"
+expected = "feature"
+source = "m2 review"
+request = "Honey forward and some citrus."
+
+[[wording]]
+id = "r08"
+set = "clear"
+adjunct = "honey"
+expected = "feature"
+source = "m2 review"
+request = "I want some citrus and honey forward."
+
+[[wording]]
+id = "r09"
+set = "clear"
+adjunct = "honey"
+expected = "feature"
+source = "m2 review"
+request = "Honey forward with some citrus."
+
+[[wording]]
+id = "r10"
+set = "clear"
+adjunct = "honey"
+expected = "feature"
+source = "m2 review"
+request = "Lots of honey with a little lemon zest."
+
+[[wording]]
+id = "r11"
+set = "clear"
+adjunct = "honey"
+expected = "feature"
+source = "m2 review"
+request = "Honey up front with a hint of ginger."
+
+[[wording]]
+id = "r12"
+set = "clear"
+adjunct = "honey"
+expected = "feature"
+source = "m2 review"
+request = "A honey-forward ale with a touch of spice."
+
+[[wording]]
+id = "r13"
+set = "clear"
+adjunct = "honey"
+expected = "feature"
+source = "m2 review"
+request = "Plenty of honey, with a little lemon."
+
+[[wording]]
+id = "r14"
+set = "clear"
+adjunct = "honey"
+expected = "feature"
+source = "m2 review"
+request = "I want the honey to shine with a bit of orange peel."
+
+[[wording]]
+id = "r15"
+set = "clear"
+adjunct = "honey"
+expected = "background"
+source = "b19"
+request = "A wee heavy, rich and malty, with some honey added. Make it a bit stronger than most. 10 litres."
+
+[[wording]]
+id = "r16"
+set = "clear"
+adjunct = "honey"
+expected = "background"
+source = "m2 review"
+request = "A 5% blonde ale with honey that is subtle, with the hops up front."
+
+[[wording]]
+id = "r17"
+set = "clear"
+adjunct = "honey"
+expected = "background"
+source = "m2 review"
+request = "I want honey that is subtle, with the hops up front."
+
+[[wording]]
+id = "r18"
+set = "clear"
+adjunct = "honey"
+expected = "background"
+source = "m2 review"
+request = "The honey should be subtle and the hops forward."
+
+[[wording]]
+id = "r19"
+set = "clear"
+adjunct = "honey"
+expected = "background"
+source = "m2 review"
+request = "Honey in a slight supporting role while the hops dominate."
+
+[[wording]]
+id = "r20"
+set = "clear"
+adjunct = "honey"
+expected = "background"
+source = "m2 review"
+request = "A blonde with honey that stays slight, hop flavour forward."
+
+[[wording]]
+id = "r21"
+set = "clear"
+adjunct = "honey"
+expected = "background"
+source = "m2 review"
+request = "A pale ale with honey, but keep it subtle, and citrus hops up front."
+
+[[wording]]
+id = "r22"
+set = "ambiguous"
+adjunct = "honey"
+expected = ""
+source = "m2 review finding 17"
+request = "A pale ale with a touch of orange blossom honey that you can taste."
+
+[[wording]]
+id = "r23"
+set = "ambiguous"
+adjunct = "honey"
+expected = ""
+source = "m2 review finding 17"
+request = "A little bit of orange blossom honey, you should taste it."
+
+[[wording]]
+id = "r24"
+set = "ambiguous"
+adjunct = "honey"
+expected = ""
+source = "m2 review finding 17"
+request = "a touch of wildflower honey I can taste"
+
+[[wording]]
+id = "h01"
+set = "held_out"
+adjunct = "molasses"
+expected = "feature"
+source = "held out"
+request = "A dark brown porter built around molasses, I want its flavour front and centre."
+
+[[wording]]
+id = "h02"
+set = "held_out"
+adjunct = "molasses"
+expected = "background"
+source = "held out"
+request = "An old ale with a spoonful of molasses for colour."
+
+[[wording]]
+id = "h03"
+set = "held_out"
+adjunct = "raspberry"
+expected = "feature"
+source = "held out"
+request = "A wheat beer bursting with raspberry, it should taste like fresh fruit."
+
+[[wording]]
+id = "h04"
+set = "held_out"
+adjunct = "cherry"
+expected = "background"
+source = "held out"
+request = "A pale ale with a little cherry in the secondary, but the hops are the point."
+
+[[wording]]
+id = "h05"
+set = "held_out"
+adjunct = "coffee"
+expected = "feature"
+source = "held out"
+request = "A stout where the coffee is the main event, like an iced latte."
+
+[[wording]]
+id = "h06"
+set = "held_out"
+adjunct = "coffee"
+expected = "background"
+source = "held out"
+request = "A brown ale with a little coffee to dry out the finish."
+
+[[wording]]
+id = "h07"
+set = "held_out"
+adjunct = "cinnamon"
+expected = "feature"
+source = "held out"
+request = "A winter warmer where cinnamon leads the aroma and the taste."
+
+[[wording]]
+id = "h08"
+set = "held_out"
+adjunct = "cinnamon"
+expected = "background"
+source = "held out"
+request = "A dunkel with a pinch of cinnamon that nobody should notice."
+
+[[wording]]
+id = "h09"
+set = "held_out"
+adjunct = "honey"
+expected = "feature"
+source = "held out"
+request = "A golden ale made to show off wildflower honey."
+
+[[wording]]
+id = "h10"
+set = "held_out"
+adjunct = "honey"
+expected = "background"
+source = "held out"
+request = "An amber ale with honey added for a drier finish."

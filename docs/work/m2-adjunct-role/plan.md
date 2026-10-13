@@ -1,6 +1,6 @@
 # M2 follow-up · Adjunct role from step 1 — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: m2-adjunct-role
 
@@ -91,20 +91,20 @@ The held-out wordings and labels (h01–h10) were approved as written by the use
 
 ### Task 1: The role measurement set is in the repo
 Why: R5, A5. The held-out wordings must be fixed before the prompt changes.
-- [ ] Write `evals/role_wordings.toml` with one `[[wording]]` per row of the table above:
+- [x] Write `evals/role_wordings.toml` with one `[[wording]]` per row of the table above:
       `id`, `set` (`clear` / `ambiguous` / `held_out`), `adjunct`, `expected` (`feature` /
       `background`, or `""` for ambiguous), `source` (`b12`, `b19`, `m2 review`, `m2 review
       finding 17`, `held out`), `request`. For r01 and r15, copy b12's and b19's request text exactly.
       Add a header comment that says what the file is for, and that held-out wordings must never be
       used to tune the prompt.
-- [ ] Write `tests/test_role_wordings.py` (no stack): ids are unique. The counts are 21 clear
+- [x] Write `tests/test_role_wordings.py` (no stack): ids are unique. The counts are 21 clear
       (14 feature, 7 background), 3 ambiguous (expected `""`) and 10 held out (5 feature,
       5 background). Each `adjunct` appears in its request as a whole word (case ignored, hyphens
       read as spaces). r01 and r15 equal b12's and b19's requests. The held-out set includes
       `molasses` and at least three non-specialty adjuncts.
-- [ ] Extend `tests/test_prompt.py::test_prompt_quotes_no_brief` (or add a sibling test) so the
+- [x] Extend `tests/test_prompt.py::test_prompt_quotes_no_brief` (or add a sibling test) so the
       prompt quotes no 5-word run from any measurement wording either.
-- [ ] Run `.venv/bin/pytest tests/test_role_wordings.py tests/test_prompt.py`, expect all passed.
+- [x] Run `.venv/bin/pytest tests/test_role_wordings.py tests/test_prompt.py`, expect all passed.
 Done when: the file holds the 34 wordings with the labels the user approved, and the tests pass.
 Commit: `Add role measurement set`
 
