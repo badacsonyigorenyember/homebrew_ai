@@ -1,4 +1,4 @@
-"""Shape and coverage checks for the 20 recipe test briefs in evals/recipe_briefs.toml.
+"""Shape and coverage checks for the 22 recipe test briefs in evals/recipe_briefs.toml.
 
 Requirements R1-R3 and R5-R11 of docs/work/test-briefs/brief.md. Each coverage test fails
 with the measured count in its message. `pytest -s` prints the whole coverage dict.
@@ -112,10 +112,10 @@ def at_least(c: dict[str, int], key: str, minimum: int) -> None:
     assert c[key] >= minimum, f"{key}: {c[key]} (need >= {minimum})"
 
 
-def test_twenty_briefs_with_every_field():
-    assert len(BRIEFS) == 20, f"briefs: {len(BRIEFS)} (need exactly 20)"
+def test_briefs_with_every_field():
+    assert len(BRIEFS) == 22, f"briefs: {len(BRIEFS)} (need exactly 22)"
     ids = [b.get("id") for b in BRIEFS]
-    assert len(set(ids)) == 20, f"duplicate ids: {sorted(i for i in set(ids) if ids.count(i) > 1)}"
+    assert len(set(ids)) == 22, f"duplicate ids: {sorted(i for i in set(ids) if ids.count(i) > 1)}"
     hint_words = set().union(*HINT_ROWS.values())
     for b in BRIEFS:
         bid = b.get("id")
@@ -150,11 +150,23 @@ def test_style_codes_exist_in_ref():
     with connect() as conn:
         rows = conn.execute(
             "select b.code from ref.beer_style b join ref.source s on s.id = b.source_id"
-            " where s.slug = 'bjcp-2021'"
+            " where s.slug in ('bjcp-2021', 'ba-2026')"
         ).fetchall()
     known = {code for (code,) in rows}
     used = {b["style"] for b in BRIEFS} | {code for b in BRIEFS for code in b["alt_styles"]}
-    assert used - known == set(), f"codes not in ref.beer_style bjcp-2021: {sorted(used - known)}"
+    assert used - known == set(), f"codes not in ref.beer_style (bjcp-2021, ba-2026): {sorted(used - known)}"
+
+
+@pytest.mark.stack
+def test_ba_briefs():
+    with connect() as conn:
+        rows = conn.execute(
+            "select b.code from ref.beer_style b join ref.source s on s.id = b.source_id"
+            " where s.slug = 'ba-2026'"
+        ).fetchall()
+    ba_codes = {code for (code,) in rows}
+    expect_ba = {b["id"] for b in BRIEFS if b["style"] in ba_codes}
+    assert expect_ba == {"b21", "b22"}, f"briefs expecting a ba-2026 code: {sorted(expect_ba)}"
 
 
 def test_style_spread():

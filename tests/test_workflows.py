@@ -27,11 +27,26 @@ SAMPLES = {
         "value": {"run_id": 0, "request": B01, "model": MODEL, "think": False},
     }],
 }
+STEP2_BRIEF = {
+    "named": "West Coast IPA", "stated": {"batch_l": 20, "abv": 6.5}, "hints": ["bitter"],
+    "wanted": [], "excluded": [], "inventory": [], "unknown": [], "guidance": True,
+}
+SAMPLES["step-2-best-fit-style.json"] = [
+    {"run_id": 0, "brief": STEP2_BRIEF, "request": B01, "guide_preference": None}
+]
+# The input contract each sample is checked against.
+CONTRACT_OF = {
+    "recipe-pipeline.json": "step1.input",
+    "step-1-read-request.json": "step1.input",
+    "check-contract.json": "step1.input",
+    "step-2-best-fit-style.json": "step2.input",
+}
 STEP1_INPUT = {
     "recipe-pipeline.json": lambda s: {
         "run_id": 0, "request": s[0]["body"]["request"], "model": MODEL, "think": False},
     "step-1-read-request.json": lambda s: s[0],
     "check-contract.json": lambda s: s[0]["value"],
+    "step-2-best-fit-style.json": lambda s: s[0],
 }
 
 
@@ -66,7 +81,7 @@ def test_test_data_meets_contracts(name):
     from loaders.db import connect
 
     value = STEP1_INPUT[name](_sample_in_note(name))
-    schema = (CONTRACTS / "step1.input.schema.json").read_text(encoding="utf-8")
+    schema = (CONTRACTS / f"{CONTRACT_OF[name]}.schema.json").read_text(encoding="utf-8")
     with connect() as conn:
         errors = conn.execute(
             "select extensions.jsonschema_validation_errors(%s::json, %s::json)",

@@ -95,10 +95,10 @@ BRIEF = {
     "named": None, "stated": {}, "hints": [], "wanted": ["rice"], "excluded": [],
     "inventory": [], "unknown": ["xyzzy"], "guidance": True,
 }
-STYLE = {"id": 1, "guide": "bjcp", "code": "1A", "name": "American Light Lager"}
+STYLE = {"id": 1, "guide": "BJCP", "code": "1A", "name": "American Light Lager"}
 STEP2_OUT = {
     "style": None, "unknown_reason": "no style fits", "alt_styles": [], "candidates": [],
-    "scores": {"hint:dry": 0.5}, "mismatch": None, "guide_reason": "no signal",
+    "scores": {"hint:dry": 0.5}, "mismatch": None, "guide_reason": "no signal", "reason": "no style fits",
 }
 GOOD = {
     "step0.input": {"run_id": 1, "profile_id": None},
@@ -111,7 +111,7 @@ GOOD = {
     },
     "step1.input": {"run_id": 1, "request": "a dry stout", "model": "gemma4:12b", "think": False},
     "step1.output": BRIEF,
-    "step2.input": {"run_id": 1, "brief": BRIEF, "guide_preference": "any"},
+    "step2.input": {"run_id": 1, "brief": BRIEF, "request": "a dry stout", "guide_preference": "any"},
     "step2.output": STEP2_OUT,
     "step3.input": {"run_id": 1, "brief": BRIEF, "style": STEP2_OUT},
     "step3.output": {
@@ -129,6 +129,8 @@ BAD = [
     ("step1.output", {**BRIEF, "hints": ["funky"]}),
     ("step1.output", {**BRIEF, "stated": {"abv": 45}}),
     ("step1.output", {**BRIEF, "wanted": ["oats", "oats"]}),
+    ("step2.input", {"run_id": 1, "brief": BRIEF, "guide_preference": "any"}),
+    ("step2.input", {"run_id": 1, "brief": BRIEF, "request": "a dry stout", "guide_preference": "both"}),
     ("step2.output", {k: v for k, v in STEP2_OUT.items() if k != "unknown_reason"}),
     ("step3.output", {**GOOD["step3.output"], "deviations": [
         {**GOOD["step3.output"]["deviations"][0], "kind": "typo"}]}),
@@ -145,3 +147,9 @@ def test_good_examples(conn, name):
 @pytest.mark.parametrize("name,value", BAD, ids=[f"{n}-{i}" for i, (n, _) in enumerate(BAD)])
 def test_bad_examples(conn, name, value):
     assert len(errors(conn, name, value)) >= 1
+
+
+@pytest.mark.stack
+def test_step2_input_allows_null_guide(conn):
+    value = {**GOOD["step2.input"], "guide_preference": None}
+    assert errors(conn, "step2.input", value) == []

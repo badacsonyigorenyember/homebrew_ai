@@ -405,6 +405,12 @@ erDiagram
 
 Function `app.step1_read_answer(request, content, contract)` (db/020_step1.sql) checks a model's step 1 answer: parses it, drops repeated words, validates it against the contract, and requires every `stated` number to be written in the request.
 
+Function `app.style_pair()` (db/021_style_pairs.sql) lists the 151 decided BA 2026 to BJCP 2021 style pairs (`ba_code`, `bjcp_code`); step 2 returns the BJCP style when the best fit is a paired BA style.
+
+Step 2 signal functions (db/022_step2.sql), each tested alone: `app.style_words`, `app.style_alias`, `app.style_name_score` (name match, 0 to 1), `app.style_number_score` (stated numbers against a style's ranges), `app.brief_words`, `app.style_tags`, `app.style_word_score` (hints and unknown words against tags and text), `app.style_name_covers` (every named word is in the style's name), `app.adjunct_cue` / `app.adjunct_is_prominent`, `app.guide_from_request` and `app.specialty_style`.
+
+Function `app.step2_best_style(brief, request, guide_preference)` (db/022_step2.sql) picks the best-fit style: scores both guides (name, numbers with a tightness bonus, words), returns the BJCP pair of a BA winner unless that pair is a catch-all in `app.bjcp_catch_all()`, applies the specialty and mismatch rules and returns the style, alternatives, scores and reasons.
+
 Later (§9): `batch`, `tasting`, `inventory.best_before`.
 
 ---
