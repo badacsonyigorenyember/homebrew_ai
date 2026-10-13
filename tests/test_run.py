@@ -21,7 +21,7 @@ def _result(brief_id, run_ok=True, error=None, steps=None):
 
 
 def test_not_run_steps_count_as_failed():
-    results = [_result("b01", steps={1: {"stated": {}, "hints": [], "wanted": ["x"],
+    results = [_result("b01", steps={1: {"stated": {}, "hints": [], "wanted": [{"item": "x", "role": "background"}],
                                          "excluded": [], "inventory": [], "guidance": True}})]
     totals = run.totals(results)
     assert totals["step1"] == {"passed": 0, "total": 1, "not_run": 0}

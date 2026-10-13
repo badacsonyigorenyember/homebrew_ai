@@ -81,7 +81,7 @@ def coverage(briefs: list[dict]) -> dict[str, int]:
     batch_sizes = {b["stated"]["batch_l"] for b in briefs if "batch_l" in b["stated"]}
     non_gravity = 0
     for b in briefs:
-        texts = [b["request"], *b["wanted"], *(item for v in b["needs"].values() for item in v)]
+        texts = [b["request"], *(w["item"] for w in b["wanted"]), *(item for v in b["needs"].values() for item in v)]
         non_gravity += sum(len(words(t) & NON_GRAVITY_WORDS) for t in texts)
 
     c = {
@@ -128,7 +128,13 @@ def test_briefs_with_every_field():
         assert isinstance(b["guidance"], bool), f"{bid}: guidance is not a bool"
         for key in ("alt_styles", "hints", "wanted", "excluded", "inventory"):
             assert isinstance(b[key], list), f"{bid}: {key} is not a list"
+            if key == "wanted":
+                continue
             assert all(isinstance(x, str) and x for x in b[key]), f"{bid}: {key} item"
+        for w in b["wanted"]:
+            assert isinstance(w, dict) and set(w) == {"item", "role"}, f"{bid}: wanted item {w!r}"
+            assert isinstance(w["item"], str) and w["item"], f"{bid}: wanted item word"
+            assert w["role"] in ("feature", "background"), f"{bid}: wanted role {w['role']!r}"
         assert set(b["hints"]) <= hint_words, f"{bid}: unknown hints {set(b['hints']) - hint_words}"
         assert set(b["stated"]) <= STATED_KEYS, f"{bid}: stated keys {set(b['stated']) - STATED_KEYS}"
         for key, value in b["stated"].items():
@@ -218,8 +224,8 @@ def test_no_fruit_or_non_gravity_extras():
     for b in BRIEFS:
         needed = {item for items in b["needs"].values() for item in items}
         missing = {
-            w for w in b["wanted"]
-            if not any(re.search(rf"\b{re.escape(w)}\b", item) for item in needed)
+            w["item"] for w in b["wanted"]
+            if not any(re.search(rf"\b{re.escape(w['item'])}\b", item) for item in needed)
         }
         assert not missing, f"{b['id']}: wanted but not in needs: {sorted(missing)}"
 
@@ -229,6 +235,8 @@ def test_words_are_the_users():
         request = b["request"].lower()
         for key in ("named", "wanted", "excluded", "inventory"):
             items = [b[key]] if key == "named" else b[key]
+            if key == "wanted":
+                items = [w["item"] for w in items]
             for item in items:
                 assert item.lower() in request, f"{b['id']}: {key} {item!r} is not in the request"
 

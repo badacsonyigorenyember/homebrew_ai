@@ -26,7 +26,7 @@ def conn():
 def brief_of(b):
     """A step 1 brief built from the expected fields of a test brief."""
     return {
-        "named": b["named"] or None, "stated": b["stated"], "hints": b["hints"], "wanted": b["wanted"],
+        "named": b["named"] or None, "stated": b["stated"], "hints": b["hints"], "wanted": [dict(w) for w in b["wanted"]],
         "excluded": b["excluded"], "inventory": b["inventory"], "unknown": [], "guidance": b["guidance"],
     }
 
@@ -68,7 +68,7 @@ def test_b12_honey_forward_is_a_honey_specialty(conn):
 @pytest.mark.stack
 def test_smoke_porter_keeps_the_ba_style(conn):
     """A BA style paired with a BJCP catch-all (smoke-porter, 32A) is not swapped."""
-    brief = {"named": "smoke porter", "stated": {}, "hints": [], "wanted": ["smoked malt"],
+    brief = {"named": "smoke porter", "stated": {}, "hints": [], "wanted": [{"item": "smoked malt", "role": "background"}],
              "excluded": [], "inventory": [], "unknown": [], "guidance": True}
     out = run(conn, brief, "A smoke porter with smoked malt.")
     assert out["style"]["code"] == "smoke-porter"

@@ -145,25 +145,25 @@ Commit: `Let the webhook set step 1 temperature and seed`
 
 ### Task 3: Briefs carry expected roles and the grader counts them
 Why: R3, A3.
-- [ ] `evals/recipe_briefs.toml`: each `wanted` entry becomes an inline table
+- [x] `evals/recipe_briefs.toml`: each `wanted` entry becomes an inline table
       `{ item = "...", role = "..." }`, with b12 honey `feature`; b02 oats, b06 rice, b07 corn,
       b16 rice, b19 honey, b20 lactose `background`. Update the header comment for `wanted`
       (an item and its role; what each role means, as in R2).
-- [ ] `evals/grade.py`: `wanted` is right when the set of `(clean item, role)` pairs equals the
+- [x] `evals/grade.py`: `wanted` is right when the set of `(clean item, role)` pairs equals the
       brief's set. Clean items with `_clean_set`'s rules, so the synonym and form-word rules still
       apply. A plain-string item or a missing role counts as wrong. `excluded` and `inventory` are
       unchanged.
-- [ ] `tests/test_recipe_briefs.py`: the shape check accepts `wanted` items as tables with exactly
+- [x] `tests/test_recipe_briefs.py`: the shape check accepts `wanted` items as tables with exactly
       `item` (non-empty string) and `role` (`feature` / `background`). `coverage`,
       `test_no_fruit_or_non_gravity_extras` and `test_words_are_the_users` read `item`.
-- [ ] `tests/test_grade.py`: `right_step1` keeps the objects. `test_step1_each_field_can_fail` uses
+- [x] `tests/test_grade.py`: `right_step1` keeps the objects. `test_step1_each_field_can_fail` uses
       `[{"item": "x", "role": "background"}]`. Update the synonym and form-word tests to objects.
       New `test_wrong_role_fails_wanted` (b12 with honey `background` → `wanted` False) and
       `test_right_role_passes_wanted`.
-- [ ] `tests/test_step2_pick.py`: `brief_of` passes the objects through, and the smoke porter brief
+- [x] `tests/test_step2_pick.py`: `brief_of` passes the objects through, and the smoke porter brief
       uses `[{"item": "smoked malt", "role": "background"}]`. `tests/test_run.py`: the fake step 1
       output uses an object item.
-- [ ] Run `.venv/bin/pytest`, expect all passed. Do not run `evals.run` until Task 4 is done (a
+- [x] Run `.venv/bin/pytest`, expect all passed. Do not run `evals.run` until Task 4 is done (a
       live run would grade old-shape answers as wrong).
 Done when: a wrong role fails `wanted` in a unit test, and the suite passes.
 Commit: `Grade wanted items with their role`
