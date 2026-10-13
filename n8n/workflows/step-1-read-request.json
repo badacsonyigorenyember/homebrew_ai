@@ -19,6 +19,14 @@
             {
               "name": "think",
               "type": "boolean"
+            },
+            {
+              "name": "temperature",
+              "type": "number"
+            },
+            {
+              "name": "seed",
+              "type": "number"
             }
           ]
         }
@@ -44,7 +52,7 @@
           "mappingMode": "defineBelow",
           "value": {
             "contract": "step1.input",
-            "value": "={{ { run_id: $json.run_id, request: $json.request, model: $json.model, think: $json.think } }}"
+            "value": "={{ { run_id: $json.run_id, request: $json.request, model: $json.model, think: $json.think, temperature: $json.temperature ?? 0, seed: $json.seed ?? 42 } }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -132,7 +140,7 @@
     },
     {
       "parameters": {
-        "content": "### Step 1 · read request\nChecks its input, reads the system prompt and the step 1 contract from `shared/`, and asks Ollama (`POST /api/chat`, the contract as `format`, temperature 0, seed 42). `app.step1_read_answer` checks the answer against the contract and the request. A bad answer is sent back once with its errors; a second bad answer stops this workflow with `step 1 answer failed twice`. A good answer is checked against the output contract again and returned with `llm` (model, tries, tokens, ms). Writes nothing: the pipeline logs and saves.",
+        "content": "### Step 1 · read request\nChecks its input, reads the system prompt and the step 1 contract from `shared/`, and asks Ollama (`POST /api/chat`, the contract as `format`, temperature 0 and seed 42 unless the input gives them). `app.step1_read_answer` checks the answer against the contract and the request. A bad answer is sent back once with its errors; a second bad answer stops this workflow with `step 1 answer failed twice`. A good answer is checked against the output contract again and returned with `llm` (model, temperature, seed, tries, tokens, ms). Writes nothing: the pipeline logs and saves.",
         "height": 280,
         "width": 300,
         "color": 4
@@ -233,7 +241,7 @@
       ],
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={{ { model: $(\"When Executed by Another Workflow\").item.json.model, think: $(\"When Executed by Another Workflow\").item.json.think, stream: false, format: $(\"Step 1 contract\").item.json.schema, options: { temperature: 0, seed: 42, num_ctx: 8192, num_predict: 4096 }, messages: [{ role: \"system\", content: $(\"Prompt\").item.json.prompt }, { role: \"user\", content: $(\"When Executed by Another Workflow\").item.json.request }] } }}",
+        "jsonOutput": "={{ { model: $(\"When Executed by Another Workflow\").item.json.model, think: $(\"When Executed by Another Workflow\").item.json.think, stream: false, format: $(\"Step 1 contract\").item.json.schema, options: { temperature: $(\"When Executed by Another Workflow\").item.json.temperature ?? 0, seed: $(\"When Executed by Another Workflow\").item.json.seed ?? 42, num_ctx: 8192, num_predict: 4096 }, messages: [{ role: \"system\", content: $(\"Prompt\").item.json.prompt }, { role: \"user\", content: $(\"When Executed by Another Workflow\").item.json.request }] } }}",
         "options": {}
       },
       "notes": "Ollama /api/chat body. The contract file is sent as `format`, so the model is held to the schema the check uses. Fixed options for a repeatable answer (R5); num_ctx must match evals/benchmark.py NUM_CTX."
@@ -327,7 +335,7 @@
       ],
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={{ { brief: $(\"Check answer\").item.json.brief, llm: { model: $(\"Build model request\").item.json.model, think: $(\"Build model request\").item.json.think, tries: 1, prompt_tokens: $(\"Ask model\").item.json.prompt_eval_count ?? 0, output_tokens: $(\"Ask model\").item.json.eval_count ?? 0, llm_ms: Math.round(($(\"Ask model\").item.json.total_duration - $(\"Ask model\").item.json.load_duration) / 1e6), done_reason: $(\"Ask model\").item.json.done_reason } } }}",
+        "jsonOutput": "={{ { brief: $(\"Check answer\").item.json.brief, llm: { model: $(\"Build model request\").item.json.model, think: $(\"Build model request\").item.json.think, temperature: $(\"Build model request\").item.json.options.temperature, seed: $(\"Build model request\").item.json.options.seed, tries: 1, prompt_tokens: $(\"Ask model\").item.json.prompt_eval_count ?? 0, output_tokens: $(\"Ask model\").item.json.eval_count ?? 0, llm_ms: Math.round(($(\"Ask model\").item.json.total_duration - $(\"Ask model\").item.json.load_duration) / 1e6), done_reason: $(\"Ask model\").item.json.done_reason } } }}",
         "options": {}
       }
     },
@@ -485,7 +493,7 @@
       ],
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={{ { brief: $(\"Check second answer\").item.json.brief, llm: { model: $(\"Build model request\").item.json.model, think: $(\"Build model request\").item.json.think, tries: 2, prompt_tokens: ($(\"Ask model\").item.json.prompt_eval_count ?? 0) + ($(\"Ask model again\").item.json.prompt_eval_count ?? 0), output_tokens: ($(\"Ask model\").item.json.eval_count ?? 0) + ($(\"Ask model again\").item.json.eval_count ?? 0), llm_ms: Math.round(($(\"Ask model\").item.json.total_duration - $(\"Ask model\").item.json.load_duration + $(\"Ask model again\").item.json.total_duration - $(\"Ask model again\").item.json.load_duration) / 1e6), done_reason: $(\"Ask model again\").item.json.done_reason, first_errors: $(\"Check answer\").item.json.errors } } }}",
+        "jsonOutput": "={{ { brief: $(\"Check second answer\").item.json.brief, llm: { model: $(\"Build model request\").item.json.model, think: $(\"Build model request\").item.json.think, temperature: $(\"Build model request\").item.json.options.temperature, seed: $(\"Build model request\").item.json.options.seed, tries: 2, prompt_tokens: ($(\"Ask model\").item.json.prompt_eval_count ?? 0) + ($(\"Ask model again\").item.json.prompt_eval_count ?? 0), output_tokens: ($(\"Ask model\").item.json.eval_count ?? 0) + ($(\"Ask model again\").item.json.eval_count ?? 0), llm_ms: Math.round(($(\"Ask model\").item.json.total_duration - $(\"Ask model\").item.json.load_duration + $(\"Ask model again\").item.json.total_duration - $(\"Ask model again\").item.json.load_duration) / 1e6), done_reason: $(\"Ask model again\").item.json.done_reason, first_errors: $(\"Check answer\").item.json.errors } } }}",
         "options": {}
       }
     },

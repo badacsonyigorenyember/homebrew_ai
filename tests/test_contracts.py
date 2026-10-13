@@ -48,7 +48,8 @@ def test_contract_files_complete():
         for key in ("$schema", "title", "description"):
             assert schema.get(key), f"{name}: {key} missing"
         assert schema["type"] == "object"
-        assert set(schema["required"]) == set(schema["properties"]), name
+        optional = {"temperature", "seed"} if name == "step1.input" else set()
+        assert set(schema["required"]) == set(schema["properties"]) - optional, name
         assert schema["additionalProperties"] is False, name
         if name.endswith(".input"):
             assert "run_id" in schema["required"], name
@@ -126,6 +127,7 @@ BAD = [
     ("step1.input", {"run_id": 1, "request": "", "model": "gemma4:12b", "think": False}),
     ("step1.input", {"run_id": 1, "request": "a dry stout", "model": "", "think": False}),
     ("step1.input", {"run_id": 1, "request": "a dry stout", "model": "gemma4:12b"}),
+    ("step1.input", {"run_id": 1, "request": "a dry stout", "model": "gemma4:12b", "think": False, "seed": 1.5}),
     ("step1.output", {**BRIEF, "hints": ["funky"]}),
     ("step1.output", {**BRIEF, "stated": {"abv": 45}}),
     ("step1.output", {**BRIEF, "wanted": ["oats", "oats"]}),
@@ -153,3 +155,9 @@ def test_bad_examples(conn, name, value):
 def test_step2_input_allows_null_guide(conn):
     value = {**GOOD["step2.input"], "guide_preference": None}
     assert errors(conn, "step2.input", value) == []
+
+
+@pytest.mark.stack
+def test_step1_input_allows_temperature_and_seed(conn):
+    value = {**GOOD["step1.input"], "temperature": 0.8, "seed": 1}
+    assert errors(conn, "step1.input", value) == []

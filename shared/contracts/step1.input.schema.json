@@ -24,6 +24,14 @@
     },
     "think": {
       "type": "boolean"
+    },
+    "temperature": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 2
+    },
+    "seed": {
+      "type": "integer"
     }
   }
 }

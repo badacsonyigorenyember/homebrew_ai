@@ -72,7 +72,10 @@ def test_b01_logs_step_1(conn, post):
     step, attempt, step_ok, error, ms, step_input, output, tokens, llm = steps[0]
     assert (step, attempt, step_ok, error) == (1, 1, True, None)
     assert ms >= 0
-    assert step_input == {"run_id": run_id, "request": "a pale ale", "model": model, "think": False}
+    assert step_input == {
+        "run_id": run_id, "request": "a pale ale", "model": model, "think": False,
+        "temperature": 0, "seed": 42,
+    }
     assert tokens > 0
     assert llm["model"] == model and llm["tries"] in (1, 2)
 
@@ -89,6 +92,23 @@ def test_b01_logs_step_1(conn, post):
         (schema, json.dumps(output)),
     ).fetchone()[0]
     assert errors == []
+
+
+def test_default_temperature_and_seed(conn, post):
+    """With no fields sent, step 1 runs at temperature 0, seed 42."""
+    answer = post({"request": "a pale ale"})
+    assert answer["ok"] is True
+    llm = _step_rows(conn, answer["run_id"])[0][8]
+    assert (llm["temperature"], llm["seed"]) == (0, 42)
+
+
+def test_temperature_and_seed_reach_step_1(conn, post):
+    """The webhook's `temperature` and `seed` reach step 1's input and its Ollama call."""
+    answer = post({"request": "a pale ale", "temperature": 0.8, "seed": 1})
+    assert answer["ok"] is True
+    step_1 = _step_rows(conn, answer["run_id"])[0]
+    assert (step_1[5]["temperature"], step_1[5]["seed"]) == (0.8, 1)
+    assert (step_1[8]["temperature"], step_1[8]["seed"]) == (0.8, 1)
 
 
 def test_step_2_logged(conn, post):

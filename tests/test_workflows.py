@@ -72,7 +72,8 @@ def test_test_data_notes(name):
         assert not {h.lower() for h in sample[0]["headers"]} & {"authorization", "cookie", "x-api-key"}
     else:
         declared = [v["name"] for v in trigger["parameters"]["workflowInputs"]["values"]]
-        assert set(sample[0]) == set(declared)
+        optional = {"temperature", "seed"}  # step 1 defaults them; the sample leaves them out
+        assert set(sample[0]) == set(declared) - optional
 
 
 @pytest.mark.stack

@@ -111,34 +111,34 @@ Commit: `Add role measurement set`
 ### Task 2: The webhook can set step 1's temperature and seed
 Why: R4. The report-only run at temperature 0.8 with 3 seeds goes through the real workflow. The
 defaults stay temperature 0 and seed 42 (brief Out: call settings unchanged).
-- [ ] `shared/contracts/step1.input.schema.json`: add optional properties `temperature`
+- [x] `shared/contracts/step1.input.schema.json`: add optional properties `temperature`
       (`number`, 0 to 2) and `seed` (`integer`). Leave them out of `required`, so the existing
       Test data samples stay valid.
-- [ ] `Step 1 · read request` (it has no `onError` node, so the n8n MCP `update_workflow` is
+- [x] `Step 1 · read request` (it has no `onError` node, so the n8n MCP `update_workflow` is
       safe here). The trigger gains the inputs `temperature` (number) and `seed` (number). `Check
       step 1 input` passes them in its `value`. `Build model request` uses
       `temperature: <input> ?? 0, seed: <input> ?? 42` (a missing sub-workflow input arrives as
       missing, OPERATIONS §5). `Return first answer` and `Return second answer` add
       `temperature` and `seed` to `llm`, read from `Build model request`'s `options`, so the log
       shows what was sent. Publish it.
-- [ ] `Recipe pipeline` has `onError` nodes, so use the JSON route in OPERATIONS §5: edit
+- [x] `Recipe pipeline` has `onError` nodes, so use the JSON route in OPERATIONS §5: edit
       `n8n/workflows/recipe-pipeline.json`, copy it to `shared/`, run `import:workflow`, publish
       through the MCP, then delete the copy. `Run settings` adds
       `temperature: $json.body?.temperature ?? 0` and `seed: $json.body?.seed ?? 42`. `Step 1 ·
       input`, the `Step 1 · read request` call's inputs, and both step 1 log nodes' `input` JSON
       carry them. Publish step 1 before the pipeline.
-- [ ] Run `python -m evals.workflows` to re-export the workflows.
-- [ ] `evals/run.py`: `send()` gains keyword arguments `temperature=None, seed=None`, and adds
+- [x] Run `python -m evals.workflows` to re-export the workflows.
+- [x] `evals/run.py`: `send()` gains keyword arguments `temperature=None, seed=None`, and adds
       them to the body only when they are given.
-- [ ] Tests: in `tests/test_contracts.py`, a good `step1.input` with `temperature` 0.8 and `seed`
+- [x] Tests: in `tests/test_contracts.py`, a good `step1.input` with `temperature` 0.8 and `seed`
       1, and a bad one with `seed` 1.5. In `tests/test_pipeline.py`, update
       `test_b01_logs_step_1`'s expected `step_input`, which now holds `temperature: 0, seed: 42`.
       New `test_default_temperature_and_seed` (no fields sent: `llm.temperature == 0`,
       `llm.seed == 42`) and `test_temperature_and_seed_reach_step_1` (sent 0.8 and 1: step 1's
       input and `llm` both show 0.8 and 1).
-- [ ] Update `docs/OPERATIONS.md` §5 (the webhook body line, and the Ollama options line) and the
+- [x] Update `docs/OPERATIONS.md` §5 (the webhook body line, and the Ollama options line) and the
       PROJECT.md §4 `Recipe pipeline` webhook fields.
-- [ ] Run `.venv/bin/pytest`, expect all passed (`test_repo_files_match_n8n` included).
+- [x] Run `.venv/bin/pytest`, expect all passed (`test_repo_files_match_n8n` included).
 Done when: a webhook call with `temperature`/`seed` logs those values in step 1's `llm`, and a
 call without them logs 0 and 42.
 Commit: `Let the webhook set step 1 temperature and seed`
@@ -336,3 +336,4 @@ None.
 
 ## Deviations
 - 2026-10-13 · Task 8 / A9: the grep may find the two `drop function` lines in `db/023_drop_adjunct_rule.sql`, and nothing else — the drop file R9 asks for has to name the functions (user decision; brief A9 amended).
+- 2026-10-13 · Task 2: both workflows (`Step 1 · read request` too) were edited in JSON and imported with `n8n import:workflow`, not through the MCP — one route for both, and the export stays the source. `tests/test_contracts.py` (required = properties) and `tests/test_workflows.py` (sample keys = declared inputs) now treat `temperature` and `seed` as optional.

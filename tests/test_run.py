@@ -94,6 +94,11 @@ def test_send_puts_think_in_body(monkeypatch):
     run.send("a pale ale", "b01", "m", think=True)
     assert seen["body"]["think"] is True and seen["body"]["model"] == "m"
 
+    run.send("a pale ale", "b01")
+    assert "temperature" not in seen["body"] and "seed" not in seen["body"]
+    run.send("a pale ale", "b01", temperature=0.8, seed=1)
+    assert (seen["body"]["temperature"], seen["body"]["seed"]) == (0.8, 1)
+
 
 @pytest.mark.stack
 def test_runner_reports_bad_request_as_failed():

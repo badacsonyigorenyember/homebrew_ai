@@ -22,7 +22,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={{ { request: $json.body?.request ?? \"\", eval_id: $json.body?.brief_id ?? null, model: $json.body?.model ?? \"hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K\", think: $json.body?.think ?? false, guide: $json.body?.guide ?? null } }}",
+        "jsonOutput": "={{ { request: $json.body?.request ?? \"\", eval_id: $json.body?.brief_id ?? null, model: $json.body?.model ?? \"hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K\", think: $json.body?.think ?? false, guide: $json.body?.guide ?? null, temperature: $json.body?.temperature ?? 0, seed: $json.body?.seed ?? 42 } }}",
         "options": {}
       },
       "id": "0a2d0b71-b581-4b22-b766-8b7022260189",
@@ -60,7 +60,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={{ { run_id: $json.id, request: $(\"Run settings\").item.json.request, model: $(\"Run settings\").item.json.model, think: $(\"Run settings\").item.json.think, started_at: $now.toISO() } }}",
+        "jsonOutput": "={{ { run_id: $json.id, request: $(\"Run settings\").item.json.request, model: $(\"Run settings\").item.json.model, think: $(\"Run settings\").item.json.think, temperature: $(\"Run settings\").item.json.temperature, seed: $(\"Run settings\").item.json.seed, started_at: $now.toISO() } }}",
         "options": {}
       },
       "id": "32088e17-d8f2-4a73-8188-afafa0140355",
@@ -86,7 +86,9 @@
             "run_id": "={{ $json.run_id }}",
             "request": "={{ $json.request }}",
             "model": "={{ $json.model }}",
-            "think": "={{ $json.think }}"
+            "think": "={{ $json.think }}",
+            "temperature": "={{ $json.temperature }}",
+            "seed": "={{ $json.seed }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -125,6 +127,24 @@
               "display": true,
               "canBeUsedToMatch": true,
               "type": "boolean"
+            },
+            {
+              "id": "temperature",
+              "displayName": "temperature",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "seed",
+              "displayName": "seed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
             }
           ],
           "attemptToConvertTypes": false,
@@ -147,7 +167,7 @@
         "operation": "executeQuery",
         "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, tokens, llm) values ($1, 1, 1, $2::jsonb, $3::jsonb, true, round(extract(epoch from clock_timestamp() - $4::timestamptz) * 1000)::int, $5, $6::jsonb)",
         "options": {
-          "queryReplacement": "={{ [$(\"Step 1 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 1 · input\").item.json.run_id, request: $(\"Step 1 · input\").item.json.request, model: $(\"Step 1 · input\").item.json.model, think: $(\"Step 1 · input\").item.json.think }), JSON.stringify($json.brief), $(\"Step 1 · input\").item.json.started_at, $json.llm.prompt_tokens + $json.llm.output_tokens, JSON.stringify($json.llm)] }}"
+          "queryReplacement": "={{ [$(\"Step 1 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 1 · input\").item.json.run_id, request: $(\"Step 1 · input\").item.json.request, model: $(\"Step 1 · input\").item.json.model, think: $(\"Step 1 · input\").item.json.think, temperature: $(\"Step 1 · input\").item.json.temperature, seed: $(\"Step 1 · input\").item.json.seed }), JSON.stringify($json.brief), $(\"Step 1 · input\").item.json.started_at, $json.llm.prompt_tokens + $json.llm.output_tokens, JSON.stringify($json.llm)] }}"
         }
       },
       "id": "7bf8f76b-70f7-4c47-ab7c-98ad1bca0aef",
@@ -208,7 +228,7 @@
         "operation": "executeQuery",
         "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, error) values ($1, 1, 1, $2::jsonb, null, false, round(extract(epoch from clock_timestamp() - $3::timestamptz) * 1000)::int, $4)",
         "options": {
-          "queryReplacement": "={{ [$(\"Step 1 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 1 · input\").item.json.run_id, request: $(\"Step 1 · input\").item.json.request, model: $(\"Step 1 · input\").item.json.model, think: $(\"Step 1 · input\").item.json.think }), $(\"Step 1 · input\").item.json.started_at, $json.error] }}"
+          "queryReplacement": "={{ [$(\"Step 1 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 1 · input\").item.json.run_id, request: $(\"Step 1 · input\").item.json.request, model: $(\"Step 1 · input\").item.json.model, think: $(\"Step 1 · input\").item.json.think, temperature: $(\"Step 1 · input\").item.json.temperature, seed: $(\"Step 1 · input\").item.json.seed }), $(\"Step 1 · input\").item.json.started_at, $json.error] }}"
         }
       },
       "id": "8ca9e0b2-c897-4a12-b124-65a24e929bf7",
@@ -266,7 +286,7 @@
     },
     {
       "parameters": {
-        "content": "### Per-step block\nEach step is: set its input and start time, call its sub-workflow, then log ok or log the failure, and on to the next step. A failure logs its error, finishes the run with ok = false and responds. Steps 1 and 2 are built; steps 3 to 16 copy this block. The webhook body's optional `guide` (`any`, `bjcp`, `ba`; null when not sent) goes to step 2. Step 1 also logs tokens and the `llm` details (model, tries, ms), then saves the brief in `app.brief` and sets `app.run.brief_id`.",
+        "content": "### Per-step block\nEach step is: set its input and start time, call its sub-workflow, then log ok or log the failure, and on to the next step. A failure logs its error, finishes the run with ok = false and responds. Steps 1 and 2 are built; steps 3 to 16 copy this block. The webhook body's optional `temperature` and `seed` (defaults 0 and 42) go to step 1. Its optional `guide` (`any`, `bjcp`, `ba`; null when not sent) goes to step 2. Step 1 also logs tokens and the `llm` details (model, tries, ms), then saves the brief in `app.brief` and sets `app.run.brief_id`.",
         "height": 200,
         "width": 300,
         "color": 4

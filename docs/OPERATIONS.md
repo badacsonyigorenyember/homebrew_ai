@@ -110,7 +110,7 @@ service up).*
 
   Files exported from the container are root-owned: `docker exec n8n chown 1000:1000 <path>`.
 - **The pipeline webhook** is `POST http://localhost:5678/webhook/recipe-pipeline` with body
-  `{"request": "...", "brief_id": "b01", "model": "...", "think": false, "guide": "any"}` (`brief_id`, `model`, `think` and `guide` optional; `guide` is `any`, `bjcp` or `ba`: when it is not sent, a guide named in the request text restricts the pick, else `any`; a bad value fails at step 2; defaults `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` and `false`). It
+  `{"request": "...", "brief_id": "b01", "model": "...", "think": false, "guide": "any", "temperature": 0, "seed": 42}` (`brief_id`, `model`, `think`, `guide`, `temperature` and `seed` optional; `temperature` and `seed` go to step 1's Ollama call, defaults 0 and 42; `guide` is `any`, `bjcp` or `ba`: when it is not sent, a guide named in the request text restricts the pick, else `any`; a bad value fails at step 2; defaults `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` and `false`). It
   answers after the run ends with `{run_id, ok, failed_step?, error?}`; the record is in
   `app.run` and `app.run_step`. No auth for now (revisit with the chat trigger, M8). The four
   workflows must be **published**. Publish a sub-workflow after editing it too: an Execute Workflow
@@ -134,7 +134,7 @@ service up).*
   `brief_id` starting with `editor-` when changing the sample.
 - **Step 1 calls Ollama** with an HTTP Request node: `POST http://ollama:11434/api/chat` (n8n and
   Ollama share the compose network), body `{model, think, stream: false, format: <step 1 output
-  contract>, options: {temperature: 0, seed: 42, num_ctx: 8192, num_predict: 4096}, messages}`,
+  contract>, options: {temperature: <input, default 0>, seed: <input, default 42>, num_ctx: 8192, num_predict: 4096}, messages}`,
   timeout 30 min. The system prompt is `shared/prompts/step1.system.md`, read by the workflow from
   `/data/shared`. The n8n `Ollama Chat Model` node is not used (no `seed`, no JSON schema, no token
   counts). `num_ctx` must equal `evals/benchmark.py` `NUM_CTX` (`test_num_ctx_matches_benchmark`).
