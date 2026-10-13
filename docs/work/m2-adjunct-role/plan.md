@@ -199,7 +199,7 @@ Commit: `Add role to step 1 wanted items`
 
 ### Task 5: The role measurement tool
 Why: R4, R6, A4.
-- [ ] `evals/roles.py`, run as `python -m evals.roles [--sets clear ambiguous] [--ids r01 ...]
+- [x] `evals/roles.py`, run as `python -m evals.roles [--sets clear ambiguous] [--ids r01 ...]
       [--settings gated hot] [--runs 3] [--save --label m2-role-gate]`.
       - Settings: `gated` = temperature 0, seed 42 for every run; `hot` = temperature 0.8, seeds
         1, 2, 3. Both are the default.
@@ -225,14 +225,14 @@ Why: R4, R6, A4.
         the summaries per setting, and the gate. It prints a per-wording table and the verdict.
       - Held-out wordings run only in a full run (no `--sets` and no `--ids` given), so a smoke run
         can never show them.
-- [ ] `tests/test_roles.py` (no stack): `scored_role` finds `orange blossom honey`, accepts
+- [x] `tests/test_roles.py` (no stack): `scored_role` finds `orange blossom honey`, accepts
       `raspberries` for `raspberry`, gives `None` when the adjunct is missing and `"mixed"` on
       disagreement. `gate` is met on an all-right fixture, and fails on each point alone: b19
       once `feature`; 2 clear wordings wrong; an ambiguous wording that flips between runs; 2
       held-out wordings wrong. `--sets clear` never selects a held-out wording.
-- [ ] Dry run (not the measurement): `python -m evals.roles --ids r01 r15 --settings gated
+- [x] Dry run (not the measurement): `python -m evals.roles --ids r01 r15 --settings gated
       --runs 1`. Expect a table with 2 rows and no error.
-- [ ] Run `.venv/bin/pytest`, expect all passed.
+- [x] Run `.venv/bin/pytest`, expect all passed.
 Done when: the tool runs end to end on 2 wordings, and the gate logic is covered by unit tests.
 Commit: `Add role measurement tool`
 
