@@ -219,6 +219,9 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-13
+- `m2-best-fit-style` Task 4: step 2's signals are ten tested SQL functions in [`db/022_step2.sql`](db/022_step2.sql)
+  (name match, number fit, hint and unknown words, tags, adjunct prominence, guide named in the request, alias and specialty lists
+  with a source per row; applied twice, owned by `postgres`). `tests/test_step2_signals.py` has 25 stack tests; `pytest` 180 passed.
 - `m2-best-fit-style` Task 3: the decided pairs are a versioned SQL list, `app.style_pair()` in [`db/021_style_pairs.sql`](db/021_style_pairs.sql)
   (151 pairs, one per line with a name comment; applied twice, owned by `postgres`). `tests/test_style_pairs.py` (3 stack tests)
   checks the codes exist, each BA style is paired once, and the list equals the paired rows of `style-pairs.md`; `pytest` 155 passed.

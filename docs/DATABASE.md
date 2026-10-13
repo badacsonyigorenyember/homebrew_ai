@@ -407,6 +407,8 @@ Function `app.step1_read_answer(request, content, contract)` (db/020_step1.sql) 
 
 Function `app.style_pair()` (db/021_style_pairs.sql) lists the 151 decided BA 2026 to BJCP 2021 style pairs (`ba_code`, `bjcp_code`); step 2 returns the BJCP style when the best fit is a paired BA style.
 
+Step 2 signal functions (db/022_step2.sql), each tested alone: `app.style_words`, `app.style_alias`, `app.style_name_score` (name match, 0 to 1), `app.style_number_score` (stated numbers against a style's ranges), `app.brief_words`, `app.style_tags`, `app.style_word_score` (hints and unknown words against tags and text), `app.adjunct_is_prominent`, `app.guide_from_request` and `app.specialty_style`.
+
 Later (§9): `batch`, `tasting`, `inventory.best_before`.
 
 ---

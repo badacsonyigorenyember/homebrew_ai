@@ -226,7 +226,7 @@ Commit: `Add the decided BA to BJCP style pairs`
 ### Task 4: each step 2 signal is a tested SQL function
 Why: R3, R4, R5, R6 (guide words), R7 (prominence); A6, A7. DB changes as `.sql` applied with
 `psql` as `postgres` (OPERATIONS §4).
-- [ ] `db/022_step2.sql` (header like `db/020_step1.sql`: purpose, needs `010_ref_schema.sql`,
+- [x] `db/022_step2.sql` (header like `db/020_step1.sql`: purpose, needs `010_ref_schema.sql`,
       `015_app.sql` and `021_style_pairs.sql`, apply command, idempotent; every function
       `create or replace`, `language sql` or `plpgsql`, `immutable` where it reads no table):
       - `app.style_words(t text) returns text[]`: lower case; accents removed with `translate`
@@ -262,9 +262,9 @@ Why: R3, R4, R5, R6 (guide words), R7 (prominence); A6, A7. DB changes as `.sql`
         honey and molasses → BJCP 31B (source: 31B aroma "e.g., honey, molasses"); honey → BA
         `specialty-honey-beer` (source: its BA name). No other rows (fruit, spice, wood are not
         in this work).
-- [ ] Apply twice (command as in Task 3, file `db/022_step2.sql`). Check `pg_proc`: the new
+- [x] Apply twice (command as in Task 3, file `db/022_step2.sql`). Check `pg_proc`: the new
       functions in `app`, owned by `postgres`.
-- [ ] Write `tests/test_step2_signals.py` (all `stack`; each function called directly with
+- [x] Write `tests/test_step2_signals.py` (all `stack`; each function called directly with
       literal inputs, no pipeline, as A6 now says):
       `test_exact_name_scores_one`; `test_alias_scores_one` (`milk stout` with 16A's aliases);
       `test_partial_name` (`imperial stout` vs `Irish Stout` = 0.25);
@@ -287,9 +287,9 @@ Why: R3, R4, R5, R6 (guide words), R7 (prominence); A6, A7. DB changes as `.sql`
       "BJCP or BA, you choose" → null);
       `test_every_alias_has_a_source` (A7: non-empty `source`, code exists in
       `ref.beer_style` for that guide; same for `app.specialty_style()`).
-- [ ] Run `.venv/bin/pytest tests/test_step2_signals.py`, expect all pass; then
+- [x] Run `.venv/bin/pytest tests/test_step2_signals.py`, expect all pass; then
       `.venv/bin/pytest`, expect all pass.
-- [ ] `docs/DATABASE.md` §5: one line per function group (after the `step1_read_answer` line).
+- [x] `docs/DATABASE.md` §5: one line per function group (after the `step1_read_answer` line).
       PROJECT.md §8 entry.
 Done when: the file applies twice cleanly, the functions are owned by `postgres`, and the signal
 tests pass.
