@@ -271,7 +271,7 @@ model-chosen values stay inside the style range. Your explicit numbers always wi
 flowchart LR
     P0["P0 · Ground rules<br/>test briefs · decisions"] --> P1 & P2 & P7
     P1["P1 · ref + corpus data<br/>styles · malts · hops · yeast<br/>· corpus + quality gates"] --> P3
-    P2["P2 · Maths library<br/>gravity · IBU · SRM · water"] --> P5
+    P2["P2 · Maths library<br/>gravity · IBU · SRM"] --> P5
     P3["P3 · Style envelopes · tags<br/>· style_profile"] --> P4
     P4["P4 · Stage A<br/>steps 0–3"] --> P5
     P5["P5 · Stages B–D<br/>steps 4–11"] --> P6
@@ -294,9 +294,9 @@ flowchart LR
 | **P4** | Steps 0–3. Step 2 picks the style from BJCP 2021 or BA 2026 per D1 (§9): BJCP preferred, BA where it describes the beer better or the user is asked, and one guide only when the user sets BJCP only or BA only | ≥ 18/20 briefs: right style, right deviations |
 | **P5** | Steps 4–11 | ≥ 16/20 validate · **0 invented ingredients** · LLM calls ≤ 2 + tie-breaks |
 | **P7** | Doc → calc pass per book, then ingest the rest into `kb`, retrieval eval | recall@5 measured, above an agreed bar |
-| **P6** | Steps 12–15 | every recipe has water, mash, ferment, package |
+| **P6** | Steps 12–15, with the water functions (moved from P2, 2026-10-14, [`s1-maths`](work/s1-maths/brief.md)) | every recipe has water, mash, ferment, package |
 | **P8** | Step 16 + interface: n8n chat trigger (D5, decided) | you can brew from the sheet |
-| **Later** | inventory-first mode · substitutions · batch log → feedback | |
+| **Later** | inventory-first mode · substitutions · batch log → feedback · whirlpool and dry-hop IBU from a cited model (they count as 0 IBU until then; [`s1-maths`](work/s1-maths/brief.md), 2026-10-14) | |
 
 ---
 
