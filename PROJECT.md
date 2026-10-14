@@ -4,7 +4,7 @@
 > is trying to do, how it is built, and how far along it is. If code and this file
 > disagree, one of them is wrong. Fix it, and record the fix in the [Progress log](#8-progress-log).
 >
-> Last updated: **2026-10-12**
+> Last updated: **2026-10-14**
 
 ---
 
@@ -62,20 +62,22 @@ the knowledge base or to a clearly labelled assumption.
 
 ## 3. How recipe creation works *(current approach)*
 
-Agreed 2026-10-08. Full design, diagrams and worked examples:
+Agreed 2026-10-08; ingredient choice and ratios revised 2026-10-14 (D7). Full design, diagrams and worked examples:
 [`docs/RECIPE-ROADMAP.md`](docs/RECIPE-ROADMAP.md). Database: [`docs/DATABASE.md`](docs/DATABASE.md).
 Build order in n8n, with checkpoints and brief checks (proposal, 2026-10-12):
 [`docs/WORKFLOW-ROADMAP.md`](docs/WORKFLOW-ROADMAP.md).
 
 The approach is **proportions first, quantities last**, and **compute first**: the LLM reads the
-request (step 1) and writes the recipe sheet (step 16). Everything in between is SQL or
-deterministic code, with an LLM tie-break only when scores tie.
+request (step 1), picks the ingredients and proposes their percentages and hop-schedule intent
+(steps 6–9), and writes the recipe sheet (step 16). Every number is SQL or deterministic code:
+targets, scaling, OG/FG/ABV/IBU/SRM and the formulation-rule checks. A broken rule goes back to
+the LLM with the rule, the value and the limit.
 
 ```
  A UNDERSTAND   0 brewer profile (stored) · 1 brief · 2 best-fit style · 3 deviation report
- B DESIGN       4 targets (style range + hint knobs + user's numbers) · 5 blueprint (ratios)
- C CHOOSE       6 yeast · 7 fermentables · 8 hops · 9 extras   (scored by code)
- D COMPUTE      10 calculate amounts, OG/FG/ABV/IBU/SRM · 11 validate, retry max 3×
+ B DESIGN       4 targets (style range + hint knobs + user's numbers) · 5 formulation rules (exact, checked by code)
+ C CHOOSE       6 yeast · 7 fermentables · 8 hops · 9 extras   (LLM picks from the ingredient table, proposes % and hop-schedule intent)
+ D COMPUTE      10 scale to OG/volume, size bittering for IBU, set colour; OG/FG/ABV/IBU/SRM · 11 check rules, violations back to the LLM, retry max 3×
  E PROCESS      12 water · 13 mash + boil · 14 ferment + condition · 15 package
  F DELIVER      16 write + save (reasons, deviations, citations)
 ```
@@ -87,7 +89,13 @@ deterministic code, with an LLM tie-break only when scores tie.
   style). They are not written per ingredient: a deterministic function compares the style's
   sensory envelope with the ingredient's automatically derived tags, its usage and its dose, so
   new ingredients need no rules ([`docs/STYLE-FIT.md`](docs/STYLE-FIT.md)).
-- **Ratios** come from per-style statistics computed over community recipes (D7).
+- **Ratios and choices (was D7, decided 2026-10-14):** there is no ratio corpus. The LLM proposes
+  ingredients, percentages and hop-schedule intent from a detailed ingredient table (what each
+  ingredient is and does); code scales them, computes every number and checks a small set of
+  exact, general formulation rules that name only ingredient roles, style numbers and
+  ingredient-table fields, never an ingredient or a style
+  ([`s2-formulation-rules`](docs/work/s2-formulation-rules/brief.md)). *Why: no ratio corpus;
+  LLM proposes, code scales and checks; revisit if test briefs show a need.*
 - Each step has an input/output contract that code can check, so a failure can be pinned to
   one step.
 
@@ -157,7 +165,7 @@ Not ingested since the reset. On 2026-10-08 the source files were removed from `
 | Brewers Association style guidelines (`ba_styles.json`) | Structured | Styles, 169 rows | ✅ loaded into `ref.beer_style`: 169 rows, 144 with OG (2026-10-09); 10 rows spot-checked against the source, no errors (2026-10-11, [`ref-spotcheck`](docs/finished/ref-spotcheck/plan.md)) |
 | Hop data: hopline.hu hop list (`hopline_hops.json`, 106 products) | Structured (fetched pages) | Hop catalogue, 90 hops | ✅ loaded into `ref.hop`: 90 rows (5 LUPOMAX), purpose aroma 35 / bittering 4 / dual 51, 90 with alpha and total oil, 89 with origin (2026-10-10); Delta, Lotus, Sterling alpha + oil, Mount Hood oil and Enigma purpose come from Beer Maverick (source `beermaverick`), loaded by the hop loader (2026-10-11); 10 rows spot-checked against the source, no errors (2026-10-11, [`ref-spotcheck`](docs/finished/ref-spotcheck/plan.md)); all 8 Beer Maverick values checked against beermaverick.com by the user, all match (2026-10-11) |
 | Fault data (`beer_faults.json`) | Structured | Faults (21) | ⬜ |
-| Brewer's Friend recipes (Kaggle, CC0) | Structured, 179,455 recipes | Per-style ratios (D7) | ⬜ 35,620 (views > 500) in the archive dump, measured 2026-10-08 |
+| Brewer's Friend recipes (Kaggle, CC0) | Structured, 179,455 recipes | Not used: no ratio corpus (D7, decided 2026-10-14) | ⬜ set aside 2026-10-14; 35,620 (views > 500) in the archive dump, measured 2026-10-08 |
 | Yeast data: hopline.hu dry and liquid yeast lists (`hopline_yeasts.json`, 129 products) | Structured (fetched pages) | Yeast catalogue, 119 yeasts | ✅ loaded into `ref.yeast`: 119 rows (dry 81, liquid 38; YeastFlow 38, Lallemand 18, Norse Nectar 17, Fermentis 13, Mangrove Jack's 13, Brewline 10, Gozdawa 9, YeasterBunny 1), 119 with temperature, 113 with flocculation, 114 with alcohol tolerance, 93 with attenuation (2026-10-11, [`yeast-loader`](docs/finished/yeast-loader/plan.md), shipped); no page states attenuation; it is copied as printed from the sources the user named: YeastFlow catalogue 34, Lallemand catalogue 17, Brewfather figures from the user 16 (Gozdawa 8, Brewline 8), Mangrove Jack's data sheets 13, Fermentis data sheets 12, user-supplied 1 (YF-666, printed "800-100", confirmed 80–100); 10 rows spot-checked against the source, no errors (2026-10-11, [`ref-spotcheck`](docs/finished/ref-spotcheck/plan.md)); none for Norse Nectar and YeasterBunny (user decision) and 8 strains with no figure in their source ([`report.md`](docs/finished/yeast-loader/report.md)). *Why hopline, not Brewtarget's BeerJSON (was D8): the user chose the shop's own yeasts, as for malts and hops (2026-10-11); the Brewtarget files are no longer needed* |
 | AHA recipe-design crash course · Oregon Brew Crew recipe formulation · BJCP exam study guide | Free web / PDF | Design method, rules of thumb, output checklist | 🟡 OBC *Recipe Formulation* downloaded 2026-10-14 (`shared/rag-files/pending/obc_recipe_formulation.pdf`); doc→calc done, OG and MCU of its Dubbel and Pils examples tested, its SRM and IBU (Daniels' tables) written up and not tested ([`doc-calc.md`](docs/finished/s1-maths/doc-calc.md)). AHA and BJCP guide ⬜ candidate, not downloaded |
 
@@ -197,7 +205,10 @@ Several of these are lessons from the first build (see §9).
 6. **Measure before and after.** Every change to the recipe pipeline is run against a fixed
    set of test briefs, so improvement is shown, not assumed.
 7. **Compute first.** Anything that can be SQL or deterministic code must be: it is faster,
-   cheaper and testable. The LLM is only for free text in and prose out. Every new source gets
+   cheaper and testable. The LLM handles free text in and prose out, and the recipe choices:
+   it picks ingredients and proposes percentages and hop-schedule intent. Code then scales,
+   computes every number (gravity, IBU, colour, amounts) and checks the formulation rules; the
+   LLM never computes a number. Every new source gets
    a *doc → calculation* pass first: its tables, formulas and rules of thumb become data or
    code, and only the remaining prose goes to RAG.
 8. **Readable over optimal.** Someone opening a workflow, function or file should understand
@@ -212,7 +223,6 @@ Several of these are lessons from the first build (see §9).
 
 | # | Question | Leaning | Status |
 |---|---|---|---|
-| D7 | Where do the recipe ratios (grist %, hop split) come from? | Brewer's Friend corpus through automatic quality gates (no hand curation) → `corpus.style_profile`, thin styles shrunk toward their family, specialty styles use the base style, extra sources weighted (books, DIY Dog, own batches) ([`docs/STYLE-PROFILES.md`](docs/STYLE-PROFILES.md)). Belongs to P3 (moved from P0, 2026-10-11) | open |
 | D9 | Who approves the extracted style sensory envelopes before they enter `ref`? | LLM extracts BJCP prose, code parses BA fields, the user reviews. Belongs to P3 (moved from P0, 2026-10-11) | open |
 
 ---
@@ -222,6 +232,7 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-14
+- Wrote brief for s2-formulation-rules ([`docs/work/s2-formulation-rules/`](docs/work/s2-formulation-rules/brief.md)): fermentable roles, `max_pct` gaps, enzyme activity, minimum boil, substitutes and catalogue descriptions, 13 exact formulation rules checked in code, one reference recipe per test brief. Draft, 8 open questions. With the user's agreement: D7 decided and moved out of §7 (no ratio corpus; LLM proposes, code scales and checks; revisit if test briefs show a need); §3 (intro, stages B–D, the ratios line) and §6.7 reworded so the LLM picks ingredients and proposes percentages and hop-schedule intent while code computes every number and checks the rules; §5 Brewer's Friend row set aside. `s2-corpus` abandoned: its draft brief `docs/work/s2-corpus/` is deleted (last in commit `57638a1`), and [`docs/STYLE-PROFILES.md`](docs/STYLE-PROFILES.md) is marked set aside.
 - Shipped `s1-maths` ([`docs/work/s1-maths/`](docs/finished/s1-maths/plan.md)): the 19 `app.*` maths functions in `db/030_maths.sql` merged to `main`; verification ✅ (9 checks, full `pytest` 333 passed, re-run before merge). The branch also carries a showcase section for `dev-verify` and `dev-flow`.
 - `s1-maths` review fixes: `app.boil_gravity` now takes `postboil_l` (batch + losses, HTB p. 291) instead of `batch_l`, and a JSON `null` field or array argument raises in `og`, `fg`, `ibu`, `grist_mcu`, `solve_grist` and `solve_hops` (both found by review, tests written first). `db/030_maths.sql` applied twice, 19 functions owned by `postgres`; full `pytest` measured 333 passed in 127.9 s ([plan](docs/finished/s1-maths/plan.md)).
 - `s1-maths` Task 8: full `pytest` measured 331 passed in 127.7 s with the stack up (141 passed, 190 deselected with `-m "not stack"`); `tests/test_maths.py` is 79 tests. §4 Database and Scripts rows, §5 *How to Brew*, OBC and pending-files text, RECIPE-ROADMAP §8 P2 and WORKFLOW-ROADMAP G-M updated with these numbers ([plan](docs/finished/s1-maths/plan.md)).

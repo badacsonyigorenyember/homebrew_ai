@@ -1,5 +1,8 @@
 # Style profiles: good ratios from imperfect data
 
+> **Set aside 2026-10-14 (D7):** there is no ratio corpus for now; the LLM proposes and code scales
+> and checks ([PROJECT.md](../PROJECT.md) §3). This design stays for a revisit if test briefs show a need.
+
 > **Status:** design, 2026-10-08. Every number in §1 was measured on the archived corpus
 > (`~/homebrew-archive-2026-10-08/supabase-postgres.dump`, table `corpus.bf_recipes`).
 > Part of [RECIPE-ROADMAP.md](RECIPE-ROADMAP.md) step 5. Decision D7.
