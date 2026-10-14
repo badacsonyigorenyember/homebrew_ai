@@ -40,7 +40,90 @@ Overall: ✅ all 9 checks and 333 tests pass
 - `docs/work/s1-maths/review.md`
 - `tests/test_maths.py`
 
-## Part 2: Spot checks
+## Part 2: Showcase
+
+All functions live in `db/030_maths.sql` (schema `app`, one per formula, source page cited above each). Grists and hops are passed as jsonb arrays.
+
+| Group | Functions | What they do |
+|---|---|---|
+| Gravity, volume, units | `og`, `gravity_points`, `preboil_volume`, `boil_gravity`, `sg_to_plato`, `plato_to_sg`, `srm_from_ebc`, `ebc_from_srm`, `calc_version` | OG from a grist, pre-boil volume and boil gravity, SG/Plato and EBC/SRM conversions, library version |
+| FG and ABV | `fg`, `abv` | FG from attenuation and each fermentable's fermentability; ABV from OG and FG |
+| IBU | `tinseth_utilisation`, `ibu_addition`, `ibu` | Tinseth utilisation, one addition, a whole hop schedule (whirlpool and dry hop count 0 for now) |
+| Colour | `mcu`, `grist_mcu`, `srm` | Malt colour units per item and per grist, Morey SRM |
+| Solvers | `solve_grist`, `solve_hops` | Grist kg for a target OG, hop grams for a target IBU |
+
+```mermaid
+flowchart LR
+  grist[grist] --> og[og] --> fg[fg] --> abv[abv]
+  grist --> mcu[grist_mcu] --> srm[srm]
+  pre[preboil_volume] --> bg[boil_gravity]
+  og --> bg --> ibu[ibu]
+  hops[hops] --> ibu
+  targets[target OG / IBU] --> solvers[solve_grist / solve_hops]
+```
+
+**OG of a 20 L pale ale** (4.5 kg pale malt 80 %, 0.4 kg crystal 74 %, 75 % efficiency)
+
+```bash
+docker exec supabase-db psql -U postgres -d postgres -tAc "select round(app.og('[{\"kg\":4.5,\"extract_pct\":80,\"mashed\":true},{\"kg\":0.4,\"extract_pct\":74,\"mashed\":true}]'::jsonb,75,20),4)"
+```
+
+```text
+1.0561
+```
+
+**ABV of a 1.052 to 1.012 beer**
+
+```bash
+docker exec supabase-db psql -U postgres -d postgres -tAc "select round(app.abv(1.052,1.012),2)"
+```
+
+```text
+5.15
+```
+
+**IBU of the Joe Ale hop schedule** (28 g 8 % at 60 min, 42 g 4 % at 15 min, boil gravity 1.038, 19 L)
+
+```bash
+docker exec supabase-db psql -U postgres -d postgres -tAc "select round(app.ibu('[{\"g\":28,\"alpha_pct\":8,\"minutes\":60,\"usage\":\"boil\"},{\"g\":42,\"alpha_pct\":4,\"minutes\":15,\"usage\":\"boil\"}]'::jsonb,1.038,19),1)"
+```
+
+```text
+41.6
+```
+
+**Boil gravity** (OG 1.060, 22 L post-boil, 25 L pre-boil: the gravity Tinseth needs)
+
+```bash
+docker exec supabase-db psql -U postgres -d postgres -tAc "select round(app.boil_gravity(1.060,22,25),4)"
+```
+
+```text
+1.0528
+```
+
+**Colour of the same grist** (the pale ale above, with malt colours 6 and 120 EBC): MCU, then SRM
+
+```bash
+docker exec supabase-db psql -U postgres -d postgres -tAc "select round(app.grist_mcu('[{\"kg\":4.5,\"ebc\":6},{\"kg\":0.4,\"ebc\":120}]'::jsonb,20),1), round(app.srm(app.grist_mcu('[{\"kg\":4.5,\"ebc\":6},{\"kg\":0.4,\"ebc\":120}]'::jsonb,20)),1)"
+```
+
+```text
+15.9|10.0
+```
+
+**How many kg for OG 1.060?** (90 % pale 80 %, 10 % crystal 74 %, 75 % efficiency, 20 L)
+
+```bash
+docker exec supabase-db psql -U postgres -d postgres -tAc "select round((e->>'kg')::numeric,2) from jsonb_array_elements(app.solve_grist(1.060,'[{\"pct\":90,\"extract_pct\":80,\"mashed\":true},{\"pct\":10,\"extract_pct\":74,\"mashed\":true}]'::jsonb,75,20)) e"
+```
+
+```text
+4.72
+0.52
+```
+
+## Part 3: Spot checks
 
 ### ✅ C1 · Maths functions exist and are owned by postgres (A5)
 
@@ -132,7 +215,7 @@ docker exec supabase-db psql -U postgres -d postgres -tAc "select round(app.og(a
 |---|---|---|
 | 1.0600 ± 0.001 | 1.0600 | ✅ pass |
 
-## Part 3: Regression tests
+## Part 4: Regression tests
 
 Command: `.venv/bin/python -m pytest -q` (about 128 s; use a timeout above 120 s)  ·  Result: ✅ 333 passed
 (`tests/test_maths.py` alone: ✅ 81 passed)
