@@ -1,0 +1,820 @@
+{
+  "date": "2026-10-14",
+  "label": "m2-role-g1",
+  "model": "pipeline default",
+  "results": [
+    {
+      "id": "b01",
+      "run_id": 1532,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 14930,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 92,
+        "prompt_tokens": 1007
+      }
+    },
+    {
+      "id": "b02",
+      "run_id": 1533,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 15484,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 111,
+        "prompt_tokens": 1002
+      }
+    },
+    {
+      "id": "b03",
+      "run_id": 1534,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 10652,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 76,
+        "prompt_tokens": 999
+      }
+    },
+    {
+      "id": "b04",
+      "run_id": 1535,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 11448,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 81,
+        "prompt_tokens": 996
+      }
+    },
+    {
+      "id": "b05",
+      "run_id": 1536,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 10185,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 71,
+        "prompt_tokens": 999
+      }
+    },
+    {
+      "id": "b06",
+      "run_id": 1537,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 18224,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 132,
+        "prompt_tokens": 1012
+      }
+    },
+    {
+      "id": "b07",
+      "run_id": 1538,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 13889,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 100,
+        "prompt_tokens": 996
+      }
+    },
+    {
+      "id": "b08",
+      "run_id": 1539,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 15463,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 111,
+        "prompt_tokens": 1016
+      }
+    },
+    {
+      "id": "b09",
+      "run_id": 1540,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 11853,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 84,
+        "prompt_tokens": 997
+      }
+    },
+    {
+      "id": "b10",
+      "run_id": 1541,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 12391,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 87,
+        "prompt_tokens": 1010
+      }
+    },
+    {
+      "id": "b11",
+      "run_id": 1542,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 11131,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 79,
+        "prompt_tokens": 997
+      }
+    },
+    {
+      "id": "b12",
+      "run_id": 1543,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 13426,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 95,
+        "prompt_tokens": 1010
+      }
+    },
+    {
+      "id": "b13",
+      "run_id": 1544,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 10674,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 76,
+        "prompt_tokens": 994
+      }
+    },
+    {
+      "id": "b14",
+      "run_id": 1545,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 13968,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 100,
+        "prompt_tokens": 1001
+      }
+    },
+    {
+      "id": "b15",
+      "run_id": 1546,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 13785,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 98,
+        "prompt_tokens": 1014
+      }
+    },
+    {
+      "id": "b16",
+      "run_id": 1547,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 15208,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 109,
+        "prompt_tokens": 1010
+      }
+    },
+    {
+      "id": "b17",
+      "run_id": 1548,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 11468,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 82,
+        "prompt_tokens": 995
+      }
+    },
+    {
+      "id": "b18",
+      "run_id": 1549,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 11637,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 82,
+        "prompt_tokens": 1012
+      }
+    },
+    {
+      "id": "b19",
+      "run_id": 1550,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 16774,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 121,
+        "prompt_tokens": 1006
+      }
+    },
+    {
+      "id": "b20",
+      "run_id": 1551,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 14594,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 105,
+        "prompt_tokens": 997
+      }
+    },
+    {
+      "id": "b21",
+      "run_id": 1552,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 13366,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 97,
+        "prompt_tokens": 996
+      }
+    },
+    {
+      "id": "b22",
+      "run_id": 1553,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": false,
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": false
+      },
+      "passed": false,
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 11948,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 85,
+        "prompt_tokens": 998
+      }
+    }
+  ],
+  "totals": {
+    "step1": {
+      "passed": 22,
+      "total": 22,
+      "not_run": 0
+    },
+    "step2": {
+      "passed": 22,
+      "total": 22,
+      "not_run": 0
+    },
+    "step3": {
+      "passed": 0,
+      "total": 22,
+      "not_run": 22
+    },
+    "briefs": {
+      "passed": 0,
+      "total": 22
+    }
+  }
+}
