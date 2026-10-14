@@ -160,11 +160,11 @@ Commit: `Add doc-calc pass for s1-maths`
 
 ### Task 2: Conversions, gravity and volumes
 Why: R1, R2, R6 (forward part), R10, A2, A6, A7.
-- [ ] Create `db/030_maths.sql`, with a header like `db/022_step2.sql` (purpose, needs
+- [x] Create `db/030_maths.sql`, with a header like `db/022_step2.sql` (purpose, needs
   `db/015_app.sql`, apply command, idempotent), then `calc_version`, `sg_to_plato`,
   `plato_to_sg`, `srm_from_ebc`, `ebc_from_srm`, `gravity_points`, `og`, `preboil_volume` and
   `boil_gravity`.
-- [ ] Write tests in `tests/test_maths.py`:
+- [x] Write tests in `tests/test_maths.py`:
   - `test_plato_round_trip`: SG 1.010, 1.050 and 1.100 → °P → SG, each within 0.001 (A7).
   - `test_preboil_volume_example`: 20 L, 60 min, 3 L/h, 2 L → 25 L (A7).
   - `test_og_palmer_dme_example`: 5 lb DME at 42 PPG, not mashed, in 3 gal → 1.070 (p. 53).
@@ -176,7 +176,7 @@ Why: R1, R2, R6 (forward part), R10, A2, A6, A7.
     values, malts mashed at 75 % and candi sugar not mashed. Inputs as in doc-calc.md.
   - `test_efficiency_skips_unmashed`: the same sugar item gives the same OG at 50 % and 100 % efficiency.
   - `test_calc_version_defined` (A6), and `test_bad_volume_raises`.
-- [ ] Apply the file twice, then run `pytest tests/test_maths.py` and expect all to pass.
+- [x] Apply the file twice, then run `pytest tests/test_maths.py` and expect all to pass.
 Done when: the tests pass and `pg_proc` shows the new functions owned by `postgres`.
 Commit: `Add gravity, volume and unit maths with tests`
 
