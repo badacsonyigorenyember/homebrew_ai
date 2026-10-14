@@ -228,10 +228,10 @@ Commit: `Add Morey colour maths with tests`
 
 ### Task 6: Solvers
 Why: R4, R6, R7 edge cases, A3, A4.
-- [ ] Add `solve_grist` and `solve_hops`. Both are closed form, because OG and IBU are linear in
+- [x] Add `solve_grist` and `solve_hops`. Both are closed form, because OG and IBU are linear in
   mass. kg_i = pct_i/Σpct × M, where M = target points × L / Σ(pct_i/Σpct × extract_i × 3.84 × eff_i).
   The hop solver works the same way for grams.
-- [ ] Write tests:
+- [x] Write tests:
   - `test_solve_grist_round_trip`: target 1.060, grist 80 % pale (extract 80 %), 10 % Munich
     (75 %), 10 % crystal (74 %), efficiency 75 %, 20 L → `og` of the result within 0.001 of 1.060 (A4).
   - `test_solve_hops_round_trip`: target 50 IBU, 60/15/0 min boil plus a dry hop, then
@@ -241,7 +241,7 @@ Why: R4, R6, R7 edge cases, A3, A4.
     FG(lactose) > FG(pale) > FG(candi).
   - `test_solve_grist_all_sugar`: 100 % sugar, not mashed, round-trips at any efficiency (edge case).
   - `test_solve_hops_without_boil_addition_raises`, and `test_solve_hops_zero_target`.
-- [ ] Apply twice, then run `pytest tests/test_maths.py`.
+- [x] Apply twice, then run `pytest tests/test_maths.py`.
 Done when: the tests pass.
 Commit: `Add grist and hop solvers with tests`
 

@@ -362,3 +362,95 @@ def test_colour_missing_ebc_raises(conn):
     with pytest.raises(psycopg.Error):
         grist_mcu(conn, [{"kg": 1}], 5)
     conn.rollback()
+
+
+# Solvers (R4, R6, A3, A4): each one inverts the forward function it mirrors.
+def solve_grist(conn, target_og, grist, efficiency, volume_l):
+    return conn.execute("select app.solve_grist(%s, %s::jsonb, %s, %s)",
+                        [Decimal(str(target_og)), json.dumps(grist), Decimal(str(efficiency)),
+                         Decimal(str(volume_l))]).fetchone()[0]
+
+
+def solve_hops(conn, target_ibu, hops, boil_sg, volume_l):
+    return conn.execute("select app.solve_hops(%s, %s::jsonb, %s, %s)",
+                        [Decimal(str(target_ibu)), json.dumps(hops), Decimal(str(boil_sg)),
+                         Decimal(str(volume_l))]).fetchone()[0]
+
+
+def share(pct, extract_pct, mashed=True, fermentability="normal"):
+    return {"pct": pct, "extract_pct": extract_pct, "mashed": mashed,
+            "fermentability": fermentability}
+
+
+@pytest.mark.stack
+def test_solve_grist_round_trip(conn):
+    grist = [share(80, 80), share(10, 75), share(10, 74)]
+    solved = solve_grist(conn, 1.060, grist, 75, 20)
+    assert og(conn, solved, 75, 20) == pytest.approx(1.060, abs=0.001)
+    # shares of mass are kept, and the extra keys come back
+    total = sum(i["kg"] for i in solved)
+    assert [i["kg"] / total * 100 for i in solved] == pytest.approx([80, 10, 10])
+    assert solved[0]["fermentability"] == "normal"
+
+
+@pytest.mark.stack
+def test_solve_grist_normalises_pct(conn):
+    a = solve_grist(conn, 1.050, [share(80, 80), share(20, 75)], 75, 20)
+    b = solve_grist(conn, 1.050, [share(8, 80), share(2, 75)], 75, 20)
+    assert [i["kg"] for i in a] == pytest.approx([i["kg"] for i in b])
+
+
+@pytest.mark.stack
+def test_solve_hops_round_trip(conn):
+    batch, boil_min = 20, 60
+    preboil = one(conn, "select app.preboil_volume(%s, %s, %s, %s)", batch, boil_min, 3, 2)
+    boil_sg = one(conn, "select app.boil_gravity(%s, %s, %s)", 1.060, batch, preboil)
+    hops = [{"share_pct": 50, "alpha_pct": 12, "minutes": 60, "usage": "boil"},
+            {"share_pct": 20, "alpha_pct": 6, "minutes": 15, "usage": "boil"},
+            {"share_pct": 10, "alpha_pct": 6, "minutes": 0, "usage": "boil"},
+            {"share_pct": 20, "alpha_pct": 6, "minutes": 0, "usage": "dry_hop"}]
+    solved = solve_hops(conn, 50, hops, boil_sg, batch)
+    assert ibu(conn, solved, boil_sg, batch) == pytest.approx(50, abs=1)
+    total = sum(i["g"] for i in solved)
+    assert [i["g"] / total * 100 for i in solved] == pytest.approx([50, 20, 10, 20])
+
+
+@pytest.mark.stack
+def test_lactose_raises_fg_candi_lowers_it(conn):
+    pale = share(100, 80)
+
+    def solved_fg(grist):
+        solved = solve_grist(conn, 1.060, grist, 75, 20)
+        assert og(conn, solved, 75, 20) == pytest.approx(1.060, abs=0.001)
+        return fg(conn, solved, 75, 20, 75)
+
+    only_pale = solved_fg([pale])
+    with_lactose = solved_fg([share(90, 80), share(10, 100, False, "none")])
+    with_candi = solved_fg([share(90, 80), share(10, 100, False, "full")])
+    assert with_lactose > only_pale > with_candi
+
+
+@pytest.mark.stack
+@pytest.mark.parametrize("efficiency", [50, 75, 100])
+def test_solve_grist_all_sugar(conn, efficiency):
+    solved = solve_grist(conn, 1.050, [share(100, 100, False, "full")], efficiency, 20)
+    assert og(conn, solved, efficiency, 20) == pytest.approx(1.050, abs=0.001)
+    assert solved[0]["kg"] == pytest.approx(0.050 * 1000 * 20 / 384)
+
+
+@pytest.mark.stack
+def test_solve_hops_without_boil_addition_raises(conn):
+    hops = [{"share_pct": 100, "alpha_pct": 12, "minutes": 0, "usage": "dry_hop"}]
+    with pytest.raises(psycopg.Error):
+        solve_hops(conn, 30, hops, 1.050, 20)
+    conn.rollback()
+
+
+@pytest.mark.stack
+def test_solve_hops_zero_target(conn):
+    hops = [{"share_pct": 70, "alpha_pct": 12, "minutes": 60, "usage": "boil"},
+            {"share_pct": 30, "alpha_pct": 6, "minutes": 0, "usage": "dry_hop"}]
+    assert [i["g"] for i in solve_hops(conn, 0, hops, 1.050, 20)] == [0, 0]
+    # also with no boil addition at all
+    only_dry = [{"share_pct": 100, "alpha_pct": 12, "minutes": 0, "usage": "dry_hop"}]
+    assert solve_hops(conn, 0, only_dry, 1.050, 20)[0]["g"] == 0
