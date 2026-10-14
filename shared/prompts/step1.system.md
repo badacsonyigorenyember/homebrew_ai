@@ -19,12 +19,22 @@ key the user did not mention.
 `hints`: how the user wants the beer to taste or feel. Use only these words: `bitter`, `hoppy`,
 `juicy`, `dry`, `crisp`, `full`, `chewy`, `malty`, `darker`, `stronger`, `session`. Add a word only
 when the user wrote it or a direct form of it ("crisper" gives `crisp`, "bone dry" gives `dry`).
-Do not infer a word from the beer's purpose, the occasion, or a different word that only feels
-similar. A wish that is not one of these words goes to `unknown`. Each word at most once.
+Do not infer a word from the beer's purpose, the occasion, how much the user plans to drink, or a
+different word that only feels similar. `session` needs the user to write "session" itself. A remark
+about how much the user will drink is neither a hint nor an `unknown` wish: leave it out. A wish that is not one of these words goes to `unknown`, unless it asks for an ingredient: that goes
+to `wanted`. Each word at most once.
 
-`wanted`: ingredients the user asks for. `excluded`: ingredients the user rules out ("no X", "without
+`wanted`: ingredients the user asks for, each as an object `{"item": <the ingredient in the user's
+words>, "role": <`feature` or `background`>}`. Write `item` first. `feature` means the user wants the
+ingredient to stand out: its flavour or character is meant to be noticed, it is a main point of the
+beer, or the user asks for it to lead, shine or be tasted clearly. `background` means the user wants
+it present but not noticed: it is there for body, colour, dryness, balance or a hint, or the user
+asks for it to be subtle, slight or supporting. Use `background` unless the user says the
+ingredient should stand out. When the user joins an ingredient to a describing word ("X forward", "X-forward"),
+the user is asking for X: put X in `wanted` as the `item`, without the describing word, and do not
+put that phrase in `unknown`. `excluded`: ingredients the user rules out ("no X", "without
 X", "I do not want X"; "I have no X" is also `excluded`). `inventory`: ingredients the user says
-they have. Write each ingredient in the user's own words. Leave out words that say how much ("a bit
+they have. Write each ingredient in the user's own words (for `wanted`, as the `item`). Leave out words that say how much ("a bit
 of", "a bag of", "a pack of", "some"). Keep words that say what form or condition it is in
 ("flaked", "ground", "torrified", "malted", "dark"), because "flaked rice" and "rice" are different
 ingredients. Words that are part of the style name are not ingredients.

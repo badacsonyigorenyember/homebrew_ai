@@ -6,7 +6,8 @@
 --
 -- Returns the cleaned brief and a list of errors (empty = the answer is good):
 --   1. the text must be JSON;
---   2. exact repeats in the five word lists are dropped (the contract's uniqueItems is then met);
+--   2. exact repeats in the five lists are dropped (the contract's uniqueItems is then met);
+--      `wanted` holds {item, role} objects, so a repeat is an identical object;
 --   3. the brief must match the contract;
 --   4. every number in `stated` must be a number written in the request (R3). Comma decimals
 --      read as points. Words for numbers ("twenty") and unit conversions are not recognised,

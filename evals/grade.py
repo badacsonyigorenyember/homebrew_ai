@@ -47,6 +47,16 @@ def _clean_set(items) -> set[str]:
     return {_SYNONYM_OF.get(w, w) for w in words}
 
 
+def _wanted_pairs(items) -> set[tuple[str, str]] | None:
+    """(clean item, role) pairs. None if any entry is not an {item, role} object with a role."""
+    pairs = set()
+    for x in items or []:
+        if not isinstance(x, dict) or not x.get("role") or "item" not in x:
+            return None
+        pairs.add((_clean_set([x["item"]]).pop(), x["role"]))
+    return pairs
+
+
 def _whole_word(word: str, text: str) -> bool:
     return re.search(rf"\b{re.escape(word.strip().lower())}\b", text.lower()) is not None
 
@@ -65,7 +75,9 @@ def grade_step1(brief: dict, output: dict | None) -> dict[str, bool]:
         output.get("named") is not None and normalise(output["named"]) == normalise(brief["named"])
     )
     result["hints"] = _plain_set(output.get("hints")) == _plain_set(brief["hints"])
-    for field in ("wanted", "excluded", "inventory"):
+    got_wanted = _wanted_pairs(output.get("wanted"))
+    result["wanted"] = got_wanted is not None and got_wanted == _wanted_pairs(brief["wanted"])
+    for field in ("excluded", "inventory"):
         result[field] = _clean_set(output.get(field)) == _clean_set(brief[field])
     try:
         result["stated"] = _stated_equal(output.get("stated") or {}, brief["stated"])

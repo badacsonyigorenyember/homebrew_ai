@@ -21,7 +21,7 @@ def _result(brief_id, run_ok=True, error=None, steps=None):
 
 
 def test_not_run_steps_count_as_failed():
-    results = [_result("b01", steps={1: {"stated": {}, "hints": [], "wanted": ["x"],
+    results = [_result("b01", steps={1: {"stated": {}, "hints": [], "wanted": [{"item": "x", "role": "background"}],
                                          "excluded": [], "inventory": [], "guidance": True}})]
     totals = run.totals(results)
     assert totals["step1"] == {"passed": 0, "total": 1, "not_run": 0}
@@ -93,6 +93,11 @@ def test_send_puts_think_in_body(monkeypatch):
     monkeypatch.setattr(run.urllib.request, "urlopen", fake_urlopen)
     run.send("a pale ale", "b01", "m", think=True)
     assert seen["body"]["think"] is True and seen["body"]["model"] == "m"
+
+    run.send("a pale ale", "b01")
+    assert "temperature" not in seen["body"] and "seed" not in seen["body"]
+    run.send("a pale ale", "b01", temperature=0.8, seed=1)
+    assert (seen["body"]["temperature"], seen["body"]["seed"]) == (0.8, 1)
 
 
 @pytest.mark.stack

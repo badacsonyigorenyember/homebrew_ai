@@ -20,8 +20,11 @@
 #   deviations  { kind, what, from }; kind is ingredient, number, mismatch or conflict
 #   stated      only numbers the user stated: batch_l, abv, og, ibu, srm
 #   hints       words from the RECIPE-ROADMAP §7 hint table
-#   wanted      ingredients the user asked for, in the user's words: amount words
-#               dropped, form words (flaked, ground, malted...) kept
+#   wanted      ingredients the user asked for, each { item, role }. item is in the user's
+#               words: amount words dropped, form words (flaked, ground, malted...) kept.
+#               role is `feature` when the user wants the ingredient to stand out (taste or
+#               aroma up front, "forward", "shine"), else `background` (supporting, subtle,
+#               for body or colour, or no emphasis stated)
 #   excluded    ingredients the user ruled out, in the user's words: amount words
 #               dropped, form words (flaked, ground, malted...) kept
 #   inventory   ingredients the user says they have, in the user's words: amount words
@@ -59,7 +62,7 @@ alt_styles = []
 deviations = []
 stated = {}
 hints = ["juicy", "hoppy"]
-wanted = ["oats"]
+wanted = [{ item = "oats", role = "background" }]
 excluded = []
 inventory = []
 guidance = true
@@ -141,7 +144,7 @@ alt_styles = []
 deviations = []
 stated = {}
 hints = ["crisp", "dry"]
-wanted = ["rice"]
+wanted = [{ item = "rice", role = "background" }]
 excluded = []
 inventory = []
 guidance = true
@@ -161,7 +164,7 @@ alt_styles = []
 deviations = []
 stated = {}
 hints = []
-wanted = ["corn"]
+wanted = [{ item = "corn", role = "background" }]
 excluded = []
 inventory = []
 guidance = true
@@ -265,7 +268,7 @@ alt_styles = ["18A", "specialty-honey-beer"]
 deviations = []
 stated = {}
 hints = []
-wanted = ["honey"]
+wanted = [{ item = "honey", role = "feature" }]
 excluded = []
 inventory = []
 guidance = true
@@ -347,7 +350,7 @@ deviations = [
 ]
 stated = {}
 hints = ["crisp"]
-wanted = ["rice"]
+wanted = [{ item = "rice", role = "background" }]
 excluded = ["Citra", "Mosaic"]
 inventory = []
 guidance = true
@@ -413,7 +416,7 @@ deviations = [
 ]
 stated = { batch_l = 10 }
 hints = ["malty", "stronger"]
-wanted = ["honey"]
+wanted = [{ item = "honey", role = "background" }]
 excluded = []
 inventory = []
 guidance = true
@@ -435,7 +438,7 @@ deviations = [
 ]
 stated = {}
 hints = ["full"]
-wanted = ["lactose"]
+wanted = [{ item = "lactose", role = "background" }]
 excluded = []
 inventory = []
 guidance = true

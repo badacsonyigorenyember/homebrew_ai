@@ -29,11 +29,16 @@ def load_briefs() -> list[dict]:
     return tomllib.loads(BRIEFS_FILE.read_text(encoding="utf-8"))["brief"]
 
 
-def send(request, brief_id, model=None, think=False, url=PIPELINE_URL, timeout=1800) -> dict:
+def send(request, brief_id, model=None, think=False, url=PIPELINE_URL, timeout=1800,
+         temperature=None, seed=None) -> dict:
     """POST one request. A bad answer or a timeout comes back as {"ok": False, "error": ...}."""
     body = {"request": request, "brief_id": brief_id, "think": think}
     if model:
         body["model"] = model
+    if temperature is not None:
+        body["temperature"] = temperature
+    if seed is not None:
+        body["seed"] = seed
     req = urllib.request.Request(
         url, data=json.dumps(body).encode("utf-8"), method="POST",
         headers={"Content-Type": "application/json"},

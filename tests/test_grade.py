@@ -13,7 +13,7 @@ with FILE.open("rb") as f:
 
 def right_step1(b):
     return {"named": b["named"], "stated": dict(b["stated"]), "hints": list(b["hints"]),
-            "wanted": list(b["wanted"]), "excluded": list(b["excluded"]),
+            "wanted": [dict(w) for w in b["wanted"]], "excluded": list(b["excluded"]),
             "inventory": list(b["inventory"]), "unknown": [], "guidance": b["guidance"]}
 
 
@@ -37,7 +37,7 @@ def test_step1_each_field_can_fail():
         "named": "x",
         "stated": {"batch_l": 10},
         "hints": [],
-        "wanted": ["x"],
+        "wanted": [{"item": "x", "role": "background"}],
         "excluded": [],
         "inventory": ["x"],
         "guidance": False,
@@ -59,22 +59,22 @@ def test_step1_order_and_case_ignored():
 def test_form_word_is_a_different_ingredient():
     b = BRIEFS["b16"]
     out = right_step1(b)
-    out["wanted"] = ["flaked rice"]
+    out["wanted"] = [{"item": "flaked rice", "role": "background"}]
     assert grade.grade_step1(b, out)["wanted"] is False
 
 
 def test_case_and_spacing_ignored():
     b = BRIEFS["b16"]
     out = right_step1(b)
-    out["wanted"] = ["Flaked  Rice"]
-    b = {**b, "wanted": ["flaked rice"]}
+    out["wanted"] = [{"item": "Flaked  Rice", "role": "background"}]
+    b = {**b, "wanted": [{"item": "flaked rice", "role": "background"}]}
     assert grade.grade_step1(b, out)["wanted"] is True
 
 
 def test_synonym_pair_counts_as_equal():
-    b = {**BRIEFS["b16"], "wanted": ["crystal malt"]}
+    b = {**BRIEFS["b16"], "wanted": [{"item": "crystal malt", "role": "background"}]}
     out = right_step1(b)
-    out["wanted"] = ["caramel malt"]
+    out["wanted"] = [{"item": "caramel malt", "role": "background"}]
     assert grade.grade_step1(b, out)["wanted"] is True
 
 
@@ -158,3 +158,25 @@ def test_grade_run_combines_steps():
     steps = {1: right_step1(b), 2: style("21A"), 3: {"deviations": []}}
     assert grade.grade_run(copy.deepcopy(b), steps)["passed"] is True
     assert grade.grade_run(b, {1: right_step1(b)})["passed"] is False
+
+
+def test_wrong_role_fails_wanted():
+    b = BRIEFS["b12"]
+    out = right_step1(b)
+    out["wanted"] = [{"item": "honey", "role": "background"}]
+    assert grade.grade_step1(b, out)["wanted"] is False
+
+
+def test_right_role_passes_wanted():
+    b = BRIEFS["b12"]
+    out = right_step1(b)
+    out["wanted"] = [{"item": "Honey", "role": "feature"}]
+    assert grade.grade_step1(b, out)["wanted"] is True
+
+
+def test_plain_string_or_missing_role_fails_wanted():
+    b = BRIEFS["b12"]
+    for bad in (["honey"], [{"item": "honey"}]):
+        out = right_step1(b)
+        out["wanted"] = bad
+        assert grade.grade_step1(b, out)["wanted"] is False
