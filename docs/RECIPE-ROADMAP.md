@@ -271,7 +271,7 @@ model-chosen values stay inside the style range. Your explicit numbers always wi
 flowchart LR
     P0["P0 · Ground rules<br/>test briefs · decisions"] --> P1 & P2 & P7
     P1["P1 · ref + corpus data<br/>styles · malts · hops · yeast<br/>· corpus + quality gates"] --> P3
-    P2["P2 · Maths library<br/>gravity · IBU · SRM · water"] --> P5
+    P2["P2 · Maths library<br/>gravity · IBU · SRM"] --> P5
     P3["P3 · Style envelopes · tags<br/>· style_profile"] --> P4
     P4["P4 · Stage A<br/>steps 0–3"] --> P5
     P5["P5 · Stages B–D<br/>steps 4–11"] --> P6
@@ -289,14 +289,14 @@ flowchart LR
 |---|---|---|
 | **P0** | 20 test briefs (varied styles, deviations, overrides, not just stouts) in [`evals/recipe_briefs.toml`](../evals/recipe_briefs.toml), reviewed by you. D7 and D9 moved to P3; D8 decided. | ✅ done 2026-10-11: 20 briefs in the repo, 16 BJCP categories, all six adjuncts needed, `tests/test_recipe_briefs.py` 10 passed |
 | **P1** | `ref` + `corpus` schemas ([DATABASE.md](DATABASE.md)). Load styles (116 + 169), malts, adjuncts, hops, hopline yeasts, water salts, the corpus with quality gates ([STYLE-PROFILES.md](STYLE-PROFILES.md) §2). | row counts match sources · 10 rows spot-checked per table. **P1a (`ref`) ✅ done 2026-10-11:** 285 styles, 298 ingredients, spot-checked ([PROJECT.md](../PROJECT.md) §4). **P1b (`corpus`)** not started |
-| **P2** | Maths library with unit tests | tests pass against Palmer's and OBC's worked examples |
+| **P2** | Maths library with unit tests | tests pass against Palmer's and OBC's worked examples. **✅ done 2026-10-14** ([`s1-maths`](work/s1-maths/plan.md)): 19 functions in `db/030_maths.sql`, `tests/test_maths.py` 79 passed (full suite 331). Palmer: all 160 Tinseth cells and 140 ABV cells, 7 FG cells, OG, colour and IBU examples. OBC: OG and MCU of both beers; its SRM and IBU are Daniels' model and not tested |
 | **P3** | Tag vocabulary · ingredient tags · usage effects · envelopes for the test styles · `style_profile`. Settle D7, D9. | the Citra table (§5) reproduces from SQL |
 | **P4** | Steps 0–3. Step 2 picks the style from BJCP 2021 or BA 2026 per D1 (§9): BJCP preferred, BA where it describes the beer better or the user is asked, and one guide only when the user sets BJCP only or BA only | ≥ 18/20 briefs: right style, right deviations |
 | **P5** | Steps 4–11 | ≥ 16/20 validate · **0 invented ingredients** · LLM calls ≤ 2 + tie-breaks |
 | **P7** | Doc → calc pass per book, then ingest the rest into `kb`, retrieval eval | recall@5 measured, above an agreed bar |
-| **P6** | Steps 12–15 | every recipe has water, mash, ferment, package |
+| **P6** | Steps 12–15, with the water functions (moved from P2, 2026-10-14, [`s1-maths`](work/s1-maths/brief.md)) | every recipe has water, mash, ferment, package |
 | **P8** | Step 16 + interface: n8n chat trigger (D5, decided) | you can brew from the sheet |
-| **Later** | inventory-first mode · substitutions · batch log → feedback | |
+| **Later** | inventory-first mode · substitutions · batch log → feedback · whirlpool and dry-hop IBU from a cited model (they count as 0 IBU until then; [`s1-maths`](work/s1-maths/brief.md), 2026-10-14) | |
 
 ---
 
