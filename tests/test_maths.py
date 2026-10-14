@@ -143,6 +143,7 @@ def test_bad_volume_raises(conn):
         "select app.og('[{\"kg\":1,\"extract_pct\":80,\"mashed\":true}]'::jsonb, 75, 0)",
         "select app.gravity_points(1, 80, 75, -1)",
         "select app.boil_gravity(1.050, 5, 0)",
+        "select app.boil_gravity(1.050, 0, 6)",
         "select app.preboil_volume(0, 60, 3, 2)",
     ):
         with pytest.raises(psycopg.Error):
@@ -155,6 +156,40 @@ def test_og_missing_field_raises(conn):
     with pytest.raises(psycopg.Error):
         conn.execute("select app.og('[{\"kg\":1,\"mashed\":true}]'::jsonb, 75, 10)")
     conn.rollback()
+
+
+@pytest.mark.stack
+def test_boil_gravity_takes_postboil_volume(conn):
+    # HTB p. 291 divides by the post-boil volume: 20 L batch + 2 L losses = 22 L, 25 L pre-boil.
+    sql = "select app.boil_gravity(og => 1.060, postboil_l => 22, preboil_l => 25)"
+    assert one(conn, sql) == pytest.approx(1.0528, abs=0.0001)
+
+
+@pytest.mark.stack
+def test_null_fields_and_arrays_raise(conn):
+    grist = '[{"kg":1,"extract_pct":80,"mashed":%s,"fermentability":"normal"}]'
+    hops = '[{"g":10,"alpha_pct":10,"minutes":60,"usage":"boil"}]'
+    pct_grist = '[{"pct":%s,"extract_pct":80,"mashed":true}]'
+    share_hops = '[{"share_pct":%s,"alpha_pct":10,"minutes":60,"usage":"boil"}]'
+    for sql in (
+        f"select app.og('{grist % 'null'}'::jsonb, 50, 10)",
+        f"select app.fg('{grist % 'null'}'::jsonb, 50, 10, 75)",
+        f"select app.ibu('{hops.replace('10,', 'null,', 1)}'::jsonb, 1.050, 20)",
+        "select app.grist_mcu('[{\"kg\":1,\"ebc\":null}]'::jsonb, 20)",
+        f"select app.solve_grist(1.050, '{pct_grist % 'null'}'::jsonb, 75, 20)",
+        f"select app.solve_hops(50, '{share_hops % 'null'}'::jsonb, 1.050, 20)",
+        "select app.og('null'::jsonb, 75, 10)",
+        "select app.og(null, 75, 10)",
+        "select app.fg('null'::jsonb, 75, 10, 75)",
+        "select app.ibu('null'::jsonb, 1.050, 20)",
+        "select app.ibu(null, 1.050, 20)",
+        "select app.grist_mcu('null'::jsonb, 20)",
+        "select app.solve_grist(1.050, 'null'::jsonb, 75, 20)",
+        "select app.solve_hops(50, 'null'::jsonb, 1.050, 20)",
+    ):
+        with pytest.raises(psycopg.Error):
+            conn.execute(sql)
+        conn.rollback()
 
 
 # HTB table 9.1, p. 150 (typed from the book, doc-calc section 5).
@@ -404,7 +439,7 @@ def test_solve_grist_normalises_pct(conn):
 def test_solve_hops_round_trip(conn):
     batch, boil_min = 20, 60
     preboil = one(conn, "select app.preboil_volume(%s, %s, %s, %s)", batch, boil_min, 3, 2)
-    boil_sg = one(conn, "select app.boil_gravity(%s, %s, %s)", 1.060, batch, preboil)
+    boil_sg = one(conn, "select app.boil_gravity(%s, %s, %s)", 1.060, batch + 2, preboil)
     hops = [{"share_pct": 50, "alpha_pct": 12, "minutes": 60, "usage": "boil"},
             {"share_pct": 20, "alpha_pct": 6, "minutes": 15, "usage": "boil"},
             {"share_pct": 10, "alpha_pct": 6, "minutes": 0, "usage": "boil"},

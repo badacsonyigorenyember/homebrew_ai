@@ -122,7 +122,7 @@ an ingredient id, are ignored and kept by the solvers).
 | `fg(grist jsonb, efficiency_pct, volume_l, attenuation_pct)` | SG | items also have `fermentability` (`full`/`normal`/`none`) (p. 108, 436) |
 | `abv(og, fg)` | % v/v | Balling form from BYO, via `sg_to_plato` (see above) |
 | `preboil_volume(batch_l, boil_min, boil_off_l_h, losses_l)` | L | batch + losses + boil_off × min/60 |
-| `boil_gravity(og, batch_l, preboil_l)` | SG | 1 + (OG − 1) × batch/preboil (p. 291) |
+| `boil_gravity(og, postboil_l, preboil_l)` | SG | 1 + (OG − 1) × postboil/preboil (p. 291); postboil = batch + losses |
 | `tinseth_utilisation(boil_sg, minutes)` | fraction | p. 80 |
 | `ibu_addition(grams, alpha_pct, minutes, usage, boil_sg, volume_l)` | IBU | `boil` → Tinseth (p. 77–80). `whirlpool`, `dry_hop` → 0, with the R4 comment. Any other usage raises |
 | `ibu(hops jsonb, boil_sg, volume_l)` | IBU | items `{g, alpha_pct, minutes, usage}`. An empty array gives 0 |
@@ -235,7 +235,7 @@ Why: R4, R6, R7 edge cases, A3, A4.
   - `test_solve_grist_round_trip`: target 1.060, grist 80 % pale (extract 80 %), 10 % Munich
     (75 %), 10 % crystal (74 %), efficiency 75 %, 20 L → `og` of the result within 0.001 of 1.060 (A4).
   - `test_solve_hops_round_trip`: target 50 IBU, 60/15/0 min boil plus a dry hop, then
-    `boil_gravity` from `preboil_volume`, `ibu` of the result within 1 of 50 (A4).
+    `boil_gravity` (post-boil = batch + losses) from `preboil_volume`, `ibu` of the result within 1 of 50 (A4).
   - `test_lactose_raises_fg_candi_lowers_it` (A3): three grists, each solved to OG 1.060 at 75 %
     attenuation: 100 % pale, 90 % pale + 10 % lactose, and 90 % pale + 10 % candi. Expect
     FG(lactose) > FG(pale) > FG(candi).
@@ -301,3 +301,5 @@ None.
 - 2026-10-14 · Task 2: add `test_boil_gravity_book_example` (HTB p. 291: 5 gal at 1.050, 6 gal pre-boil → 1.042, 7 gal → 1.036), cited in doc-calc.md section 2. It is a second boil-gravity check beside `test_boil_gravity_joe_ale`.
 - 2026-10-14 · Task 7: evidence for A5. All 19 functions in `db/030_maths.sql` are owned by `postgres`. Workflow `Maths check` (id UlzW3NMJhKZVUVDA, since archived) was run once with `execute_workflow` in manual mode, execution id 12623: `app.ibu` on the Joe Ale metric hops (28 g 8 % 60 min, 42 g 4 % 15 min, Gb 1.038, 19 L) returned 41.563655217631827951010459749021753347368421052631578. The same call in `psql` gives the same digits. `test_workflow` was not used, because it pins credentialed nodes. The credential was bound afterwards with `setNodeCredential`, since `create_workflow_from_code` left it unassigned.
 - 2026-10-14 · Task 5, Approach: `app.srm` takes an MCU number, not a grist and volume (the caller does `app.srm(app.grist_mcu(...))`) — one function per formula; the Approach and signature table now say so.
+- 2026-10-14 · Review fix 1: `app.boil_gravity(og, postboil_l, preboil_l)` — the argument was `batch_l`, but HTB p. 291 divides by the post-boil volume, which is batch + losses with `app.brewer_profile`. Maths unchanged; callers pass `batch + losses`. The old signature is dropped in the SQL file, since CREATE OR REPLACE cannot rename an argument.
+- 2026-10-14 · Review fix 2: the missing-field checks in `og`, `fg`, `ibu`, `grist_mcu`, `solve_grist` and `solve_hops` now use `->>` so a JSON `null` field raises like a missing one, and each of these functions raises when the array argument is not a JSON array (a SQL or JSON `null`).

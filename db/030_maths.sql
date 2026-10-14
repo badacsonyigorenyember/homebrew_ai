@@ -73,11 +73,14 @@ declare
     points numeric := 0;
     g jsonb;
 begin
+    if jsonb_typeof(grist) is distinct from 'array' then
+        raise exception 'og: grist must be a JSON array, got %', grist;
+    end if;
     if volume_l is null or volume_l <= 0 then
         raise exception 'og: volume must be above 0, got %', volume_l;
     end if;
     for g in select * from jsonb_array_elements(grist) loop
-        if g->'kg' is null or g->'extract_pct' is null or g->'mashed' is null then
+        if g->>'kg' is null or g->>'extract_pct' is null or g->>'mashed' is null then
             raise exception 'og: each item needs kg, extract_pct and mashed, got %', g;
         end if;
         points := points + app.gravity_points(
@@ -110,17 +113,20 @@ begin
 end;
 $$;
 
--- Boil gravity: OG points x batch / pre-boil volume (HTB p. 291).
-create or replace function app.boil_gravity(og numeric, batch_l numeric, preboil_l numeric)
+-- Boil gravity: OG points x post-boil volume / pre-boil volume (HTB p. 291). The caller passes the
+-- volume at the end of the boil (batch + kettle and fermenter losses), not the batch volume.
+-- The old signature is dropped because CREATE OR REPLACE cannot rename an argument.
+drop function if exists app.boil_gravity(numeric, numeric, numeric);
+create function app.boil_gravity(og numeric, postboil_l numeric, preboil_l numeric)
 returns numeric
 language plpgsql
 immutable
 as $$
 begin
-    if batch_l is null or batch_l <= 0 or preboil_l is null or preboil_l <= 0 then
-        raise exception 'boil_gravity: volumes must be above 0, got % and %', batch_l, preboil_l;
+    if postboil_l is null or postboil_l <= 0 or preboil_l is null or preboil_l <= 0 then
+        raise exception 'boil_gravity: volumes must be above 0, got % and %', postboil_l, preboil_l;
     end if;
-    return 1 + (og - 1) * batch_l / preboil_l;
+    return 1 + (og - 1) * postboil_l / preboil_l;
 end;
 $$;
 
@@ -140,6 +146,9 @@ declare
     item_points numeric;
     g jsonb;
 begin
+    if jsonb_typeof(grist) is distinct from 'array' then
+        raise exception 'fg: grist must be a JSON array, got %', grist;
+    end if;
     if volume_l is null or volume_l <= 0 then
         raise exception 'fg: volume must be above 0, got %', volume_l;
     end if;
@@ -147,8 +156,8 @@ begin
         raise exception 'fg: attenuation must be between 0 and 100, got %', attenuation_pct;
     end if;
     for g in select * from jsonb_array_elements(grist) loop
-        if g->'kg' is null or g->'extract_pct' is null or g->'mashed' is null
-           or g->'fermentability' is null then
+        if g->>'kg' is null or g->>'extract_pct' is null or g->>'mashed' is null
+           or g->>'fermentability' is null then
             raise exception 'fg: each item needs kg, extract_pct, mashed and fermentability, got %', g;
         end if;
         item_points := app.gravity_points(
@@ -254,8 +263,11 @@ declare
     total numeric := 0;
     h jsonb;
 begin
+    if jsonb_typeof(hops) is distinct from 'array' then
+        raise exception 'ibu: hops must be a JSON array, got %', hops;
+    end if;
     for h in select * from jsonb_array_elements(hops) loop
-        if h->'g' is null or h->'alpha_pct' is null or h->'minutes' is null or h->'usage' is null then
+        if h->>'g' is null or h->>'alpha_pct' is null or h->>'minutes' is null or h->>'usage' is null then
             raise exception 'ibu: each item needs g, alpha_pct, minutes and usage, got %', h;
         end if;
         total := total + app.ibu_addition(
@@ -294,8 +306,11 @@ declare
     total numeric := 0;
     g jsonb;
 begin
+    if jsonb_typeof(grist) is distinct from 'array' then
+        raise exception 'grist_mcu: grist must be a JSON array, got %', grist;
+    end if;
     for g in select * from jsonb_array_elements(grist) loop
-        if g->'kg' is null or g->'ebc' is null then
+        if g->>'kg' is null or g->>'ebc' is null then
             raise exception 'grist_mcu: each item needs kg and ebc, got %', g;
         end if;
         total := total + app.mcu((g->>'kg')::numeric, (g->>'ebc')::numeric, volume_l);
@@ -337,6 +352,9 @@ declare
     g jsonb;
     result jsonb := '[]'::jsonb;
 begin
+    if jsonb_typeof(grist) is distinct from 'array' then
+        raise exception 'solve_grist: grist must be a JSON array, got %', grist;
+    end if;
     if volume_l is null or volume_l <= 0 then
         raise exception 'solve_grist: volume must be above 0, got %', volume_l;
     end if;
@@ -347,7 +365,7 @@ begin
         raise exception 'solve_grist: efficiency must be above 0, got %', efficiency_pct;
     end if;
     for g in select * from jsonb_array_elements(grist) loop
-        if g->'pct' is null or g->'extract_pct' is null or g->'mashed' is null then
+        if g->>'pct' is null or g->>'extract_pct' is null or g->>'mashed' is null then
             raise exception 'solve_grist: each item needs pct, extract_pct and mashed, got %', g;
         end if;
         total_pct := total_pct + (g->>'pct')::numeric;
@@ -391,6 +409,9 @@ declare
     h jsonb;
     result jsonb := '[]'::jsonb;
 begin
+    if jsonb_typeof(hops) is distinct from 'array' then
+        raise exception 'solve_hops: hops must be a JSON array, got %', hops;
+    end if;
     if volume_l is null or volume_l <= 0 then
         raise exception 'solve_hops: volume must be above 0, got %', volume_l;
     end if;
@@ -398,8 +419,8 @@ begin
         raise exception 'solve_hops: target IBU must be 0 or more, got %', target_ibu;
     end if;
     for h in select * from jsonb_array_elements(hops) loop
-        if h->'share_pct' is null or h->'alpha_pct' is null or h->'minutes' is null
-           or h->'usage' is null then
+        if h->>'share_pct' is null or h->>'alpha_pct' is null or h->>'minutes' is null
+           or h->>'usage' is null then
             raise exception 'solve_hops: each item needs share_pct, alpha_pct, minutes and usage, got %', h;
         end if;
         total_share := total_share + (h->>'share_pct')::numeric;

@@ -73,7 +73,8 @@ volume"; the book's example is 250 gal.° / 6 gal. = 1.042 and / 7 gal. = 1.036)
 beer the boil gravity is the extract mass × PPG / boil volume (HTB p. 78).
 
 **What it became.** `app.preboil_volume(batch_l, boil_min, boil_off_l_h, losses_l)` and
-`app.boil_gravity(og, batch_l, preboil_l)`.
+`app.boil_gravity(og, postboil_l, preboil_l)`. The caller passes the post-boil volume, which is
+batch + losses (not the batch volume); the book's 5 gal in the example is its post-boil volume.
 
 | Source | Inputs | Expected | Test |
 |---|---|---|---|
