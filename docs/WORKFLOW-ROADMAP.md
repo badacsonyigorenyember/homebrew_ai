@@ -60,7 +60,7 @@ names and dev-ship's move to `docs/finished/` assume `<slug>` is one folder name
 | M0 | [`m0-harness`](finished/m0-harness/brief.md) | G0 decisions; eval harness that sends each brief to the pipeline and scores the result (red at first); `app.run` / `app.run_step` logging; contracts for steps 0–3 and one stub step | — | **G0** |
 | M1 | [`m1-read-request`](finished/m1-read-request/brief.md) | Step 1: request → LLM → brief JSON, checked by code; D2 decided (Qwen3.8-27B UD-Q6_K, thinking off); step 1 outputs the user's words and M5's resolver maps them | m0 | **G1** |
 | M2 | [`m2-best-fit-style`](finished/m2-best-fit-style/brief.md) | Step 2: score all 285 styles (name, stated numbers, words), per D1 | m1 | **G2** |
-| S1 | [`s1-maths`](work/s1-maths/brief.md) | Gravity, ABV, IBU (Tinseth), colour (Morey), solvers, from the doc→calc pass on *How to Brew* | m0 | **G-M** |
+| S1 | [`s1-maths`](finished/s1-maths/brief.md) | Gravity, ABV, IBU (Tinseth), colour (Morey), solvers, from the doc→calc pass on *How to Brew* | m0 | **G-M** |
 | S2 | [`s2-corpus`](work/s2-corpus/brief.md) | Corpus with quality gates, `fermentable.role`, name map → `style_profile` (D7) | s1 | **G-S** (profiles) |
 | S3 | [`s3-style-fit`](work/s3-style-fit/brief.md) | Tags, envelopes for the briefs' 22 styles (20 + 2 alternates), `level()`, golden set (D9) | s2 | **G-S** |
 | M3 | [`m3-deviations`](work/m3-deviations/brief.md) | Step 3: number, mismatch, conflict and ingredient deviations | m2, s3 | **G3** = RECIPE-ROADMAP P4 done |
@@ -135,7 +135,7 @@ kind (b16 rice, b19 honey, b20 lactose) needs s3's tags and envelopes, so m3 sta
 (e.g. OG ±0.001, IBU ±1, SRM ±1). **If no:** the formula or the unit is wrong; never tune
 constants to fit.
 
-**Measured (2026-10-14, [`s1-maths`](work/s1-maths/plan.md)):** met. `tests/test_maths.py` 79 passed (full suite 331 passed). Palmer: 160/160 Tinseth cells within 0.001, 140/140 table 9.1 ABV cells within 0.1, 7/7 FG cells within 0.002, OG within 0.001, IBU within 1, SRM within 1. OBC: OG and MCU of the Dubbel and Pils tested; its SRM and IBU come from Daniels' tables and are not tested. Same `app.ibu` digits through n8n and `psql`.
+**Measured (2026-10-14, [`s1-maths`](finished/s1-maths/plan.md)):** met. `tests/test_maths.py` 79 passed (full suite 331 passed). Palmer: 160/160 Tinseth cells within 0.001, 140/140 table 9.1 ABV cells within 0.1, 7/7 FG cells within 0.002, OG within 0.001, IBU within 1, SRM within 1. OBC: OG and MCU of the Dubbel and Pils tested; its SRM and IBU come from Daniels' tables and are not tested. Same `app.ibu` digits through n8n and `psql`.
 
 ### G-S · Style fit works from data
 
