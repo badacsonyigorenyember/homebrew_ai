@@ -247,13 +247,13 @@ Commit: `Add grist and hop solvers with tests`
 
 ### Task 7: Check a maths function through n8n's Postgres node
 Why: R8, A5.
-- [ ] Query `pg_proc` for every function in `db/030_maths.sql`. Expect each one owned by `postgres`.
-- [ ] Through the n8n MCP (official server, SDK reference first), create a workflow
+- [x] Query `pg_proc` for every function in `db/030_maths.sql`. Expect each one owned by `postgres`.
+- [x] Through the n8n MCP (official server, SDK reference first), create a workflow
   `Maths check`: a manual trigger and one Postgres node with the existing `Postgres account`
   credential, running the Joe Ale metric `select app.ibu('[…]'::jsonb, 1.038, 19) as ibu`.
   Execute it once with the MCP (`execute_workflow` / `test_workflow`). If the MCP cannot run it,
   use the headless command in OPERATIONS.md §5.
-- [ ] Compare the result with `test_ibu_joe_ale_metric`'s computed value (the same digits).
+- [x] Compare the result with `test_ibu_joe_ale_metric`'s computed value (the same digits).
   Record the execution id and the number in this plan's Deviations (or verification later),
   then archive the workflow. It has no pipeline role, and m6 makes the real calls.
 Done when: the n8n result equals the SQL result from pytest, and the evidence is written down.
@@ -299,3 +299,4 @@ None.
   formula. Its FG row is tested. The brief's Assumptions were updated to match.
 - 2026-10-14 · Task 1: the 131.25 × (OG − FG) ABV form misses 65 of table 9.1's 140 cells (worst 0.194), not 56 as the source check said. The Balling form still fits 140/140 (worst 0.088). Choice unchanged.
 - 2026-10-14 · Task 2: add `test_boil_gravity_book_example` (HTB p. 291: 5 gal at 1.050, 6 gal pre-boil → 1.042, 7 gal → 1.036), cited in doc-calc.md section 2. It is a second boil-gravity check beside `test_boil_gravity_joe_ale`.
+- 2026-10-14 · Task 7: evidence for A5. All 19 functions in `db/030_maths.sql` are owned by `postgres`. Workflow `Maths check` (id UlzW3NMJhKZVUVDA, since archived) was run once with `execute_workflow` in manual mode, execution id 12623: `app.ibu` on the Joe Ale metric hops (28 g 8 % 60 min, 42 g 4 % 15 min, Gb 1.038, 19 L) returned 41.563655217631827951010459749021753347368421052631578. The same call in `psql` gives the same digits. `test_workflow` was not used, because it pins credentialed nodes. The credential was bound afterwards with `setNodeCredential`, since `create_workflow_from_code` left it unassigned.
