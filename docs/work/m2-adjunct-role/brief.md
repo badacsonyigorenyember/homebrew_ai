@@ -173,3 +173,4 @@ approved with the plan (R5).
 
 ## Deviations
 - 2026-10-13 · A9: the grep may find the two `drop function` lines in `db/023_drop_adjunct_rule.sql`, and nothing else — the drop file R9 asks for has to name the functions (user decision).
+- 2026-10-14 · Scope: the general step 1 prompt retune the user allowed after the first gate failed also changed two step 1 rules beyond the role: a remark about how much the user will drink is neither a hint nor an `unknown` wish, and a wish that asks for an ingredient goes to `wanted` instead of `unknown` (user decision; details in plan.md Deviations).

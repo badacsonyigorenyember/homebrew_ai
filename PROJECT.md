@@ -168,9 +168,9 @@ beer as a BJCP style (the decided pair list, [`style-pairs.md`](docs/finished/m2
 keeps the BA style. Equal scores go BJCP first, then by code. BJCP only or BA only comes from
 the webhook's `guide` field, or from the request text when the field is not sent; the field
 wins. Within a guide, the best-fit style is the **base style** by default (adjuncts and extras
-are ignored). When step 1 gives a wanted adjunct the role `feature` (and `background` otherwise), the specialty code
+are ignored). When step 1 gives a wanted adjunct the role `feature`, the specialty code
 is picked (e.g. 31B Alternative Sugar Beer for a honey-forward blonde), with the base style as
-the alternative ([`test-briefs`](docs/finished/test-briefs/brief.md) R3). Step 2 is built
+the alternative; a `background` adjunct leaves the base style ([`test-briefs`](docs/finished/test-briefs/brief.md) R3). Step 2 is built
 (`app.step2_best_style`, [`m2-best-fit-style`](docs/finished/m2-best-fit-style/plan.md)). *Why: the
 user's call (2026-10-13): the style is loose guidance that helps select resources, so the
 closest style wins whichever guide it is in.*
@@ -222,6 +222,7 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-14
+- `m2-adjunct-role` review fixes: recorded the 2026-10-14 step 1 retune (drinking remarks dropped, ingredient wishes to `wanted`) as a brief deviation, and reworded the specialty-style sentence in section 4 so only `feature` picks the specialty code ([review](docs/work/m2-adjunct-role/review.md)). Docs only.
 - `m2-adjunct-role` Task 9: G1 and G2 re-measured with the frozen prompt and the role-based step 2 (`evals.run --save --label m2-role`, [`evals/results/2026-10-14-m2-role.json`](evals/results/2026-10-14-m2-role.json)): step 1 22/22 (roles counted), step 2 22/22; b05 picks 15B with the 20C mismatch (alternatives 16A, 16B), b12 31B (alternative 18A), b19 17C, b17 8B. `pytest` 252 passed. §5 style-guide sentence and the 2026-10-13 known limitation updated; WORKFLOW-ROADMAP G1 and G2 Measured lines added. Plan: [`docs/work/m2-adjunct-role/plan.md`](docs/work/m2-adjunct-role/plan.md).
 - `m2-adjunct-role` Task 8: the adjunct word rule is gone. Removed `app.adjunct_cue` and `app.adjunct_is_prominent` from [`db/022_step2.sql`](db/022_step2.sql), added [`db/023_drop_adjunct_rule.sql`](db/023_drop_adjunct_rule.sql) (applied twice; `pg_proc` holds neither function), deleted their 24 tests and the word-rule column in `evals/roles.py`; the saved gate results keep their `word_rule` values. The grep finds only the two drop lines. `pytest` 252 passed. Plan: [`docs/work/m2-adjunct-role/plan.md`](docs/work/m2-adjunct-role/plan.md).
 - `m2-adjunct-role` Task 7: step 2 now picks the specialty style from the role. A wanted item with a specialty style for the guide and `role = feature` gives 31B (honey) with the base style as first alternative; `background` keeps the base, whatever cue words the request holds. The reason reads `... has the role "feature" in step 1's brief; base style ...`. `request` is read only for guide words (contract description updated). The word-rule functions were removed in Task 8. Suite: 276 passed. Plan: [`docs/work/m2-adjunct-role/plan.md`](docs/work/m2-adjunct-role/plan.md).
