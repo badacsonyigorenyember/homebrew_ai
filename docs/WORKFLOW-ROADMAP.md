@@ -135,6 +135,8 @@ kind (b16 rice, b19 honey, b20 lactose) needs s3's tags and envelopes, so m3 sta
 (e.g. OG ±0.001, IBU ±1, SRM ±1). **If no:** the formula or the unit is wrong; never tune
 constants to fit.
 
+**Measured (2026-10-14, [`s1-maths`](work/s1-maths/plan.md)):** met. `tests/test_maths.py` 79 passed (full suite 331 passed). Palmer: 160/160 Tinseth cells within 0.001, 140/140 table 9.1 ABV cells within 0.1, 7/7 FG cells within 0.002, OG within 0.001, IBU within 1, SRM within 1. OBC: OG and MCU of the Dubbel and Pils tested; its SRM and IBU come from Daniels' tables and are not tested. Same `app.ibu` digits through n8n and `psql`.
+
 ### G-S · Style fit works from data
 
 **Bar:** RECIPE-ROADMAP §5's Citra table reproduces from SQL; envelopes for the 22 brief styles

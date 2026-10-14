@@ -1,6 +1,6 @@
 # S1 · Brewing maths library — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: s1-maths
 
@@ -9,7 +9,7 @@ Branch: s1-maths
 All maths lives in one SQL file, `db/030_maths.sql`, as small `app.*` functions: one function
 per formula, with the source (book, page, table) in a comment above it (R1, R8, §6.8). Per-item
 functions take plain numbers in SI units. The recipe-level functions (`app.og`, `app.fg`,
-`app.ibu`, `app.srm`) and the two solvers take a **jsonb array of items**, the same way n8n's
+`app.ibu`) and the two solvers take a **jsonb array of items**, the same way n8n's
 Postgres node already passes jsonb to `app.step2_best_style`. Where a book formula is defined
 in US units (MCU), the function converts inside, with exact factors. Functions return unrounded
 numbers, and rounding is left to display. Bad input (volume ≤ 0, a missing field, an unknown hop
@@ -127,7 +127,7 @@ an ingredient id, are ignored and kept by the solvers).
 | `ibu_addition(grams, alpha_pct, minutes, usage, boil_sg, volume_l)` | IBU | `boil` → Tinseth (p. 77–80). `whirlpool`, `dry_hop` → 0, with the R4 comment. Any other usage raises |
 | `ibu(hops jsonb, boil_sg, volume_l)` | IBU | items `{g, alpha_pct, minutes, usage}`. An empty array gives 0 |
 | `mcu(kg, ebc, volume_l)` | MCU | (EBC/1.97) × (kg/0.45359237) / (L/3.785411784) (p. 469) |
-| `grist_mcu(grist jsonb, volume_l)` · `srm(grist jsonb, volume_l)` | MCU · SRM | items `{kg, ebc}`. SRM = 1.49 × MCU^0.69 (p. 470) |
+| `grist_mcu(grist jsonb, volume_l)` · `srm(mcu)` | MCU · SRM | items `{kg, ebc}`. SRM = 1.49 × MCU^0.69 (p. 470), called as `app.srm(app.grist_mcu(...))` |
 | `solve_grist(target_og, grist jsonb, efficiency_pct, volume_l)` | jsonb | items `{pct, extract_pct, mashed}` → same items + `kg`. pct is normalised by its sum |
 | `solve_hops(target_ibu, hops jsonb, boil_sg, volume_l)` | jsonb | items `{share_pct, alpha_pct, minutes, usage}` → same items + `g`. Raises if target > 0 and no `boil` item |
 
@@ -261,12 +261,12 @@ Commit: `Record n8n check of maths functions` (docs only)
 
 ### Task 8: Docs and full run
 Why: CLAUDE.md, PROJECT.md §10, G-M.
-- [ ] Run the full `pytest`, and record the measured counts.
-- [ ] PROJECT.md: in §4, the Database row (maths functions in `db/030_maths.sql`, `calc_version`
+- [x] Run the full `pytest`, and record the measured counts.
+- [x] PROJECT.md: in §4, the Database row (maths functions in `db/030_maths.sql`, `calc_version`
   `maths-1`) and the Scripts row (the test count); in §5, the *How to Brew* row (doc → calc for
   gravity, IBU, colour, ABV, °P: link doc-calc.md), the OBC row (downloaded 2026-10-14, doc → calc
   done, OG and MCU tested) and the pending-files sentence; a §8 entry.
-- [ ] RECIPE-ROADMAP §8 P2 "done" line, and WORKFLOW-ROADMAP G-M "Measured" line, each with numbers.
+- [x] RECIPE-ROADMAP §8 P2 "done" line, and WORKFLOW-ROADMAP G-M "Measured" line, each with numbers.
 Done when: the docs state measured results only.
 Commit: `Update docs for s1-maths`
 
@@ -300,3 +300,4 @@ None.
 - 2026-10-14 · Task 1: the 131.25 × (OG − FG) ABV form misses 65 of table 9.1's 140 cells (worst 0.194), not 56 as the source check said. The Balling form still fits 140/140 (worst 0.088). Choice unchanged.
 - 2026-10-14 · Task 2: add `test_boil_gravity_book_example` (HTB p. 291: 5 gal at 1.050, 6 gal pre-boil → 1.042, 7 gal → 1.036), cited in doc-calc.md section 2. It is a second boil-gravity check beside `test_boil_gravity_joe_ale`.
 - 2026-10-14 · Task 7: evidence for A5. All 19 functions in `db/030_maths.sql` are owned by `postgres`. Workflow `Maths check` (id UlzW3NMJhKZVUVDA, since archived) was run once with `execute_workflow` in manual mode, execution id 12623: `app.ibu` on the Joe Ale metric hops (28 g 8 % 60 min, 42 g 4 % 15 min, Gb 1.038, 19 L) returned 41.563655217631827951010459749021753347368421052631578. The same call in `psql` gives the same digits. `test_workflow` was not used, because it pins credentialed nodes. The credential was bound afterwards with `setNodeCredential`, since `create_workflow_from_code` left it unassigned.
+- 2026-10-14 · Task 5, Approach: `app.srm` takes an MCU number, not a grist and volume (the caller does `app.srm(app.grist_mcu(...))`) — one function per formula; the Approach and signature table now say so.
