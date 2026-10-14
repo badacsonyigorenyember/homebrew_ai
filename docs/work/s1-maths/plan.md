@@ -182,15 +182,15 @@ Commit: `Add gravity, volume and unit maths with tests`
 
 ### Task 3: FG and ABV
 Why: R3, R9, A2, A7.
-- [ ] Add `fg` and `abv` to `db/030_maths.sql`, each with its source comment. `abv` calls
+- [x] Add `fg` and `abv` to `db/030_maths.sql`, each with its source comment. `abv` calls
   `sg_to_plato`.
-- [ ] Write tests:
+- [x] Write tests:
   - `test_fg_table_4_3`: the 7 OG cells at 75 % attenuation → FG within 0.002 (p. 55).
   - `test_abv_table_9_1`: all 140 cells of table 9.1, typed into the test as a literal table
     from p. 150, each within 0.1 (A7, R9).
   - `test_fg_all_candi_is_one`, `test_fg_lactose_only_is_og` (`none` keeps all its points),
     and `test_fg_unknown_fermentability_raises`.
-- [ ] Apply twice, then run `pytest tests/test_maths.py`.
+- [x] Apply twice, then run `pytest tests/test_maths.py`.
 Done when: all 140 ABV cells and 7 FG cells pass.
 Commit: `Add FG and ABV maths with tests`
 

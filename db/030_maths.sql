@@ -123,3 +123,77 @@ begin
     return 1 + (og - 1) * batch_l / preboil_l;
 end;
 $$;
+
+-- Final gravity from a grist: items {kg, extract_pct, mashed, fermentability}. Apparent
+-- attenuation = (OG - FG) / (OG - 1) (HTB p. 108), so a normal item leaves (1 - attenuation) of
+-- its gravity points in the beer. Sugars ferment 100 %, lactose not at all (HTB table 24.1,
+-- p. 436): 'full' leaves 0 points, 'none' keeps all of them, 'normal' follows attenuation_pct.
+-- Table 4.3 (p. 55): FG = 1 + 0.25 x (OG - 1) at 75 % (doc-calc section 4).
+create or replace function app.fg(grist jsonb, efficiency_pct numeric, volume_l numeric,
+                                  attenuation_pct numeric)
+returns numeric
+language plpgsql
+immutable
+as $$
+declare
+    points numeric := 0;
+    item_points numeric;
+    g jsonb;
+begin
+    if volume_l is null or volume_l <= 0 then
+        raise exception 'fg: volume must be above 0, got %', volume_l;
+    end if;
+    if attenuation_pct is null or attenuation_pct < 0 or attenuation_pct > 100 then
+        raise exception 'fg: attenuation must be between 0 and 100, got %', attenuation_pct;
+    end if;
+    for g in select * from jsonb_array_elements(grist) loop
+        if g->'kg' is null or g->'extract_pct' is null or g->'mashed' is null
+           or g->'fermentability' is null then
+            raise exception 'fg: each item needs kg, extract_pct, mashed and fermentability, got %', g;
+        end if;
+        item_points := app.gravity_points(
+            (g->>'kg')::numeric,
+            (g->>'extract_pct')::numeric,
+            case when (g->>'mashed')::boolean then efficiency_pct else 100 end,
+            volume_l);
+        points := points + case g->>'fermentability'
+            when 'full'   then 0
+            when 'none'   then item_points
+            when 'normal' then item_points * (1 - attenuation_pct / 100)
+            else null
+        end;
+        if g->>'fermentability' not in ('full', 'none', 'normal') then
+            raise exception 'fg: unknown fermentability %, use full, normal or none',
+                g->>'fermentability';
+        end if;
+    end loop;
+    return 1 + points / 1000;
+end;
+$$;
+
+-- Alcohol by volume, % v/v, from OG and FG. HTB table 9.1 (p. 150) is "based on the work of
+-- Balling" and prints no formula. This is the Balling form published in BYO (Bill Pierce,
+-- "Calculating Alcohol", https://byo.com/articles/calculating-alcohol/), with HTB's own SG to
+-- degrees Plato: RE = 0.1886 OE + 0.8114 AE, ABW = (OE - RE) / (2.0665 - 0.010665 OE),
+-- ABV = 1.259 ABW. It matches all 140 cells of table 9.1 within 0.1 (doc-calc section 5).
+create or replace function app.abv(og numeric, fg numeric)
+returns numeric
+language plpgsql
+immutable
+as $$
+declare
+    oe numeric;
+    ae numeric;
+    re numeric;
+    abw numeric;
+begin
+    if og is null or fg is null or og <= 0 or fg <= 0 then
+        raise exception 'abv: OG and FG must be above 0, got % and %', og, fg;
+    end if;
+    oe := app.sg_to_plato(og);
+    ae := app.sg_to_plato(fg);
+    re := 0.1886 * oe + 0.8114 * ae;
+    abw := (oe - re) / (2.0665 - 0.010665 * oe);
+    return 1.259 * abw;
+end;
+$$;

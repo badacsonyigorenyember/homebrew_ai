@@ -155,3 +155,73 @@ def test_og_missing_field_raises(conn):
     with pytest.raises(psycopg.Error):
         conn.execute("select app.og('[{\"kg\":1,\"mashed\":true}]'::jsonb, 75, 10)")
     conn.rollback()
+
+
+# HTB table 9.1, p. 150 (typed from the book, doc-calc section 5).
+ABV_TABLE_OGS = (1.030, 1.035, 1.040, 1.045, 1.050, 1.055, 1.060, 1.065, 1.070, 1.075)
+ABV_TABLE_9_1 = {  # FG -> printed ABV at each OG above (HTB p. 150)
+    0.998: (4.1, 4.8, 5.4, 6.1, 6.8, 7.4, 8.1, 8.7, 9.4, 10.1),
+    1.000: (3.9, 4.5, 5.2, 5.8, 6.5, 7.1, 7.8, 8.5, 9.1, 9.8),
+    1.002: (3.6, 4.2, 4.9, 5.6, 6.2, 6.9, 7.5, 8.2, 8.9, 9.5),
+    1.004: (3.3, 4.0, 4.6, 5.3, 5.9, 6.6, 7.3, 7.9, 8.6, 9.3),
+    1.006: (3.1, 3.7, 4.4, 5.0, 5.7, 6.3, 7.0, 7.7, 8.3, 9.0),
+    1.008: (2.8, 3.5, 4.1, 4.8, 5.4, 6.1, 6.7, 7.4, 8.0, 8.7),
+    1.010: (2.6, 3.2, 3.8, 4.5, 5.1, 5.8, 6.5, 7.1, 7.8, 8.4),
+    1.012: (2.3, 2.9, 3.6, 4.2, 4.9, 5.5, 6.2, 6.8, 7.5, 8.2),
+    1.014: (2.0, 2.7, 3.3, 4.0, 4.6, 5.3, 5.9, 6.6, 7.2, 7.9),
+    1.016: (1.8, 2.4, 3.1, 3.7, 4.4, 5.0, 5.7, 6.3, 7.0, 7.6),
+    1.018: (1.5, 2.2, 2.8, 3.4, 4.1, 4.7, 5.4, 6.0, 6.7, 7.3),
+    1.020: (1.3, 1.9, 2.5, 3.2, 3.8, 4.5, 5.1, 5.8, 6.4, 7.1),
+    1.022: (1.0, 1.6, 2.3, 2.9, 3.6, 4.2, 4.9, 5.5, 6.2, 6.8),
+    1.024: (0.8, 1.4, 2.0, 2.7, 3.3, 4.0, 4.6, 5.2, 5.9, 6.5),
+}
+
+# HTB table 4.3, p. 55: FG at "75 % fermentability" for each OG.
+FG_TABLE_4_3 = {1.030: 1.007, 1.040: 1.010, 1.050: 1.012, 1.060: 1.015, 1.070: 1.018,
+                1.080: 1.020, 1.090: 1.022}
+
+
+def fg(conn, grist, efficiency, volume_l, attenuation):
+    return one(conn, "select app.fg(%s::jsonb, %s, %s, %s)", json.dumps(grist), efficiency,
+               volume_l, attenuation)
+
+
+def sugar(kg, fermentability, extract_pct=100):
+    return {"kg": kg, "extract_pct": extract_pct, "mashed": False,
+            "fermentability": fermentability}
+
+
+@pytest.mark.stack
+@pytest.mark.parametrize("target_og,printed_fg", FG_TABLE_4_3.items())
+def test_fg_table_4_3(conn, target_og, printed_fg):
+    # Unmashed sugar sized to hit the OG in 10 L: kg = points x L / 384.
+    kg = (target_og - 1) * 1000 * 10 / 384
+    grist = [sugar(kg, "normal")]
+    assert og(conn, grist, 75, 10) == pytest.approx(target_og)
+    assert fg(conn, grist, 75, 10, 75) == pytest.approx(printed_fg, abs=0.002)
+
+
+@pytest.mark.stack
+@pytest.mark.parametrize("fg_key", ABV_TABLE_9_1)
+def test_abv_table_9_1(conn, fg_key):
+    for table_og, printed in zip(ABV_TABLE_OGS, ABV_TABLE_9_1[fg_key]):
+        value = one(conn, "select app.abv(%s, %s)", table_og, fg_key)
+        assert value == pytest.approx(printed, abs=0.1), (table_og, fg_key)
+
+
+@pytest.mark.stack
+def test_fg_all_candi_is_one(conn):
+    assert fg(conn, [sugar(2, "full")], 75, 10, 75) == pytest.approx(1.000)
+
+
+@pytest.mark.stack
+def test_fg_lactose_only_is_og(conn):
+    grist = [sugar(2, "none", extract_pct=100)]
+    assert fg(conn, grist, 75, 10, 75) == pytest.approx(og(conn, grist, 75, 10))
+
+
+@pytest.mark.stack
+def test_fg_unknown_fermentability_raises(conn):
+    with pytest.raises(psycopg.Error):
+        fg(conn, [sugar(1, "sometimes")], 75, 10, 75)
+    conn.rollback()
