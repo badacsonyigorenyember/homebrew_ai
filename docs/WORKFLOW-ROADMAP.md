@@ -113,6 +113,7 @@ Step 1's output is graded field by field against each brief's `stated`, `hints`,
 **Decide:** D2. **If no:** is it the prompt, the contract (too many fields at once, §6.2), or a
 brief that is genuinely ambiguous?
 **Measured (2026-10-13, [`m1-read-request`](finished/m1-read-request/benchmark.md)):** met. 7 configurations x 3 runs x 20 briefs; `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` with thinking off is 19/20 in every run (12.5 s median), and is the D2 choice. Saved in `evals/results/2026-10-13-m1-benchmark.json`.
+**Measured with roles counted (2026-10-14, [`m2-adjunct-role`](work/m2-adjunct-role/plan.md)):** step 1 22/22 on the real pipeline (`evals.run --save --label m2-role`), each wanted item graded as `{item, role}`. Saved in `evals/results/2026-10-14-m2-role.json`.
 
 ### G2 · Step 2 picks the right style
 
@@ -120,6 +121,7 @@ brief that is genuinely ambiguous?
 b05 reports the 20C/15B mismatch, b12 picks 31B. **If no:** look at which signal misleads (name
 vs. numbers vs. words) before adding signals; consider an LLM tie-break only for real ties.
 **Measured (2026-10-13, [`m2-best-fit-style`](finished/m2-best-fit-style/plan.md)):** met, on the real pipeline with the D2 model (`evals.run --save --label m2`): step 2 passes 22/22 (b01-b20 20/20, b21 and b22 right). b05 picks 15B with the 20C mismatch, b12 picks 31B (alternative 18A), b19 keeps 17C. No weight was tuned. Step 1 missed one field (b05 `hints`), which did not change step 2. Saved in `evals/results/2026-10-13-m2.json`. Re-run after the review fixes (`--label m2-fix`, `NO_NAME_FACTOR` added): step 2 22/22 again, b05 15B with alternatives 16A and 16B (no pale lager) and the 20C mismatch; saved in `evals/results/2026-10-13-m2-fix.json`. Re-run after the second review (`--label m2-fix2`, the factor applies to `alt_styles` only): step 2 22/22, same b05 result; saved in `evals/results/2026-10-13-m2-fix2.json`. Re-run after the second re-review (`--label m2-fix3`, the damper rule checks both sides of the adjunct): step 2 22/22, same b05 and b12 results; saved in `evals/results/2026-10-13-m2-fix3.json`.
+**Re-measured with the role-based step 2 (2026-10-14, [`m2-adjunct-role`](work/m2-adjunct-role/plan.md)):** step 2 22/22 (`--label m2-role`); b05 15B with the 20C mismatch, b12 31B (alternative 18A), b19 17C, b17 8B. Saved in `evals/results/2026-10-14-m2-role.json`.
 
 ### G3 · Step 3 finds the right deviations (P4 done)
 

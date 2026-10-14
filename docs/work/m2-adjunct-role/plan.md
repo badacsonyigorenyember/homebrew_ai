@@ -1,6 +1,6 @@
 # M2 follow-up · Adjunct role from step 1 — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: m2-adjunct-role
 
@@ -306,10 +306,10 @@ Commit: `Remove adjunct word rule`
 
 ### Task 9: G1 and G2 measured again, docs current
 Why: R10, A10.
-- [ ] `python -m evals.run --save --label m2-role`. Expect step 2 22/22 with b05 15B and mismatch
+- [x] `python -m evals.run --save --label m2-role`. Expect step 2 22/22 with b05 15B and mismatch
       20C, b12 31B (alternative 18A), b19 17C, b17 8B, and step 1 ≥ 21/22 with roles counted.
-- [ ] `.venv/bin/pytest`, expect all passed. Record the count.
-- [ ] PROJECT.md: rewrite the §5 style-guide sentence on adjuncts (the specialty code is picked
+- [x] `.venv/bin/pytest`, expect all passed. Record the count.
+- [x] PROJECT.md: rewrite the §5 style-guide sentence on adjuncts (the specialty code is picked
       when step 1 gives a wanted adjunct the role `feature`). In the 2026-10-13 "Shipped
       `m2-best-fit-style`" entry, mark the known limitation as resolved by `m2-adjunct-role`. Add a
       §8 line with the measured numbers. `docs/WORKFLOW-ROADMAP.md`: add Measured lines to G1
