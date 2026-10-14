@@ -26,3 +26,15 @@ match the plan table field for field.
 | 8 | note | PROJECT.md:230 | The re-measured Task 6 entry (2026-10-14 work) sits under the `### 2026-10-13` heading, and it replaced the first, NOT MET Task 6 entry rather than adding one (the NOT MET result survives as one sentence in it). | Log order and dates are slightly off; no information lost that the plan and result files do not hold. |
 | 9 | note | docs/work/m2-adjunct-role/plan.md | Checked the orchestrator's concern: compared to the approved plan (f75ee38), the current plan differs only in ticks, `Stage`, the new `## Gate result` and Deviations; Tasks 7–9, the tests table and Approved exceptions are intact. The gate verdict (MET) was in plan.md at af8f36d, before the first step 2 change (20f0a2c) and the deletion (c501c3e), so A6 holds. | Plan is complete and accurate. |
 | 10 | note | tests/test_contracts.py, tests/test_step1_check.py, tests/test_prompt.py | Task 4's tests were not seen failing first. Checked by reading: with the old `items: string` schema, the plain-string bad case would be accepted and the good `BRIEF` (object item) rejected, so `test_bad_examples`, the good-example test and `test_plain_string_item_fails` would fail if the contract change were reverted; `test_prompt_names_every_role` fails if either role leaves the prompt. | The tests do guard the critical behaviour. |
+
+## Re-review 2026-10-14
+
+Diff: cf05347..b7e899c (docs only: `PROJECT.md`, `brief.md`)  ·  Verdict: ready for testing
+
+| # | Severity | Where | Finding | Why it matters |
+|---|---|---|---|---|
+| 1 | fixed | docs/work/m2-adjunct-role/brief.md:176 | Round 1 #1. A dated `Scope` deviation now records both step 1 rule changes (drinking remark is neither hint nor `unknown`; an ingredient wish goes to `wanted`) as a user decision, pointing to plan.md. It matches the plan.md 2026-10-14 Task 6 deviation and `shared/prompts/step1.system.md:22-24`. | Resolved. |
+| 2 | fixed | PROJECT.md:171-173 | Round 1 #2. The sentence now says only `feature` picks the specialty code, and "a `background` adjunct leaves the base style". That matches Task 7 (step 2 keeps the base for `background`). | Resolved. |
+| 3 | note | PROJECT.md:225 | The new §8 entry says the sentence was reworded "in section 4"; it is in §5 Knowledge sources (the Task 9 entry calls it the "§5 style-guide sentence"). | Wrong section number in a log line; the link to the review and the change itself are correct. |
+
+No other changes since cf05347. The commit is one line with no body. Round 1 notes #3–#10 stand as recorded.
