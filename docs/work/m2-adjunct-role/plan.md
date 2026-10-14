@@ -1,6 +1,6 @@
 # M2 follow-up · Adjunct role from step 1 — implementation plan
 
-Stage: review
+Stage: verify
 Brief: [brief.md](brief.md)
 Branch: m2-adjunct-role
 
