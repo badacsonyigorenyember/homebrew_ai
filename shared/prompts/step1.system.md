@@ -20,7 +20,8 @@ key the user did not mention.
 `juicy`, `dry`, `crisp`, `full`, `chewy`, `malty`, `darker`, `stronger`, `session`. Add a word only
 when the user wrote it or a direct form of it ("crisper" gives `crisp`, "bone dry" gives `dry`).
 Do not infer a word from the beer's purpose, the occasion, how much the user plans to drink, or a
-different word that only feels similar. A wish that is not one of these words goes to `unknown`, unless it asks for an ingredient: that goes
+different word that only feels similar. `session` needs the user to write "session" itself. A remark
+about how much the user will drink is neither a hint nor an `unknown` wish: leave it out. A wish that is not one of these words goes to `unknown`, unless it asks for an ingredient: that goes
 to `wanted`. Each word at most once.
 
 `wanted`: ingredients the user asks for, each as an object `{"item": <the ingredient in the user's
@@ -29,7 +30,7 @@ ingredient to stand out: its flavour or character is meant to be noticed, it is 
 beer, or the user asks for it to lead, shine or be tasted clearly. `background` means the user wants
 it present but not noticed: it is there for body, colour, dryness, balance or a hint, or the user
 asks for it to be subtle, slight or supporting. Use `background` unless the user says the
-ingredient should stand out. When the user joins an ingredient to a describing word ("X forward", "X-forward", "X heavy"),
+ingredient should stand out. When the user joins an ingredient to a describing word ("X forward", "X-forward"),
 the user is asking for X: put X in `wanted` as the `item`, without the describing word, and do not
 put that phrase in `unknown`. `excluded`: ingredients the user rules out ("no X", "without
 X", "I do not want X"; "I have no X" is also `excluded`). `inventory`: ingredients the user says
