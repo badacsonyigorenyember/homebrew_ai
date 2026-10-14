@@ -329,7 +329,6 @@ declare
     cand       text;
     style_out  jsonb;
     spec_code  text;
-    spec_cue   text;
     spec_item  text;
     strongest  text;
     reason     text;
@@ -452,13 +451,14 @@ begin
             'chosen', base.code || ' ' || base.name);
     end if;
 
-    -- 7. Specialty: a wanted item that has a specialty style and is prominent in the request.
+    -- 7. Specialty: a wanted item that has a specialty style for this guide and the role "feature"
+    --    (step 1 sets the role). The request is not read here.
     style_out := jsonb_build_object('id', base.id, 'guide', base.guide, 'code', base.code, 'name', base.name);
-    select sp.adjunct, sp.code, app.adjunct_cue(request, sp.adjunct)
-      into spec_item, spec_code, spec_cue
+    select sp.adjunct, sp.code
+      into spec_item, spec_code
       from jsonb_array_elements(coalesce(brief -> 'wanted', '[]'::jsonb)) w
       join app.specialty_style() sp on sp.guide = base.guide and lower(w ->> 'item') ~ ('\m' || sp.adjunct || '\M')
-     where app.adjunct_cue(request, sp.adjunct) is not null
+     where w ->> 'role' = 'feature'
      order by sp.adjunct
      limit 1;
     if spec_code is not null then
@@ -481,7 +481,7 @@ begin
               || case when catch_note <> '' then ' ' || catch_note || '.' else '' end;
     if spec_code is not null then
         reason := 'Picked ' || (style_out ->> 'code') || ' ' || (style_out ->> 'name') || ': ' || spec_item
-                  || ' is prominent in the request ("' || spec_cue || '"); base style ' || base.code || '.';
+                  || ' has the role "feature" in step 1''s brief; base style ' || base.code || '.';
     end if;
 
     return jsonb_build_object(

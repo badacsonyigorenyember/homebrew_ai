@@ -251,7 +251,90 @@ result is in `plan.md`.
       `python -m evals.roles --save --label m2-role-gate`. That is 34 wordings × 6 runs ≈ 204
       pipeline calls, roughly an hour. Run it in the background and wait on the saved file, not
       on the process.
-- [x] Add a `## Gate result
+- [x] Add a `## Gate result` section to this plan, above Deviations. It holds the file path,
+      each R6 point with its measured value and pass/fail, the verdict, the hot-run summary
+      (accuracy, wordings that flipped across seeds), the ambiguous wordings' roles, the word
+      rule's score on the same set (for reference), the median step 1 time against 12.5 s, and the
+      G1 result. Add the same numbers to a PROJECT.md §8 line.
+- [x] Commit the result files, the plan and PROJECT.md.
+- [x] **Stop and ask the user** when any R6 point fails, or when G1 step 1 is below 21/22. In
+      that case leave `Stage: implementing`, report `needs-input` with the Gate result, and do
+      not start Task 7. Do not re-tune the prompt and re-measure without the user's go-ahead.
+      If everything is met, continue with Task 7.
+Done when: `## Gate result` is in `plan.md` and committed, and the verdict is either met (go on) or
+the user has been asked.
+Commit: `Measure adjunct roles against the gate`
+
+### Task 7: Step 2 picks the specialty style from the role
+Why: R7, R8, A7, A8. Only after Task 6 says the gate is met.
+- [x] `db/022_step2.sql` step 7: the specialty adjunct is a `wanted` item whose `item` names an
+      `app.specialty_style()` adjunct for the base's guide, with `w ->> 'role' = 'feature'`. If
+      several items match, use the first adjunct in name order, as now. The `request` stays only
+      for `app.guide_from_request`. The reason becomes
+      `Picked <code> <name>: <adjunct> has the role "feature" in step 1's brief; base style <base>.`
+      Drop `spec_cue`. Update the comment above step 7. Re-apply with the OPERATIONS §4 command.
+- [x] `shared/contracts/step2.input.schema.json` description: `request` is the user's text, used
+      for guide words. The adjunct's role comes from `brief.wanted`.
+- [x] `tests/test_step2_pick.py`: new `test_feature_role_without_cue_word_picks_specialty` (honey
+      `feature`, request "A blonde ale with honey." → 31B, `alt_styles[0] == "18A"`).
+      `test_background_role_keeps_base_even_with_cue_words` (b12's request, honey `background` →
+      18A, no 31B in the pick). `test_b12_reason_cites_the_role` (reason contains `"feature"`, and
+      no `("` quote). Existing b12 and b19 tests stay, and now pass because of the briefs' roles.
+- [x] Run `.venv/bin/pytest`, expect all passed.
+Done when: the role alone moves the pick between 31B and 18A in SQL tests.
+Commit: `Pick specialty style from step 1 role`
+
+### Task 8: The word rule is gone
+Why: R9, A9.
+- [ ] `db/022_step2.sql`: delete `app.adjunct_cue`, `app.adjunct_is_prominent` and their comment
+      block, including the CUES, DAMPERS, joining-word pattern and `DAMPER_GAP`.
+- [ ] New `db/023_drop_adjunct_rule.sql`: a header (purpose, apply command, idempotent) and
+      `drop function if exists app.adjunct_is_prominent(text, text);` then
+      `drop function if exists app.adjunct_cue(text, text);`. Apply it twice with the OPERATIONS §4
+      command, then check `pg_proc`: neither function exists in `app`.
+- [ ] `tests/test_step2_signals.py`: delete the `prominent` helper and every test that calls it
+      or `app.adjunct_cue`.
+- [ ] `evals/roles.py`: remove the word-rule lookup (the saved gate result keeps its
+      `word_rule` values). Remove its test, if Task 5 added one.
+- [ ] `docs/DATABASE.md`: drop the two functions from the step 2 signal-function line.
+- [ ] Run `grep -rn "adjunct_cue\|adjunct_is_prominent\|DAMPER" db tests evals shared n8n`. Expect
+      only the two `drop function` lines in `db/023_drop_adjunct_rule.sql` (A9 as amended
+      2026-10-13).
+- [ ] Run `.venv/bin/pytest`, expect all passed.
+Done when: the functions are gone from the repo and the database, and the suite passes.
+Commit: `Remove adjunct word rule`
+
+### Task 9: G1 and G2 measured again, docs current
+Why: R10, A10.
+- [ ] `python -m evals.run --save --label m2-role`. Expect step 2 22/22 with b05 15B and mismatch
+      20C, b12 31B (alternative 18A), b19 17C, b17 8B, and step 1 ≥ 21/22 with roles counted.
+- [ ] `.venv/bin/pytest`, expect all passed. Record the count.
+- [ ] PROJECT.md: rewrite the §5 style-guide sentence on adjuncts (the specialty code is picked
+      when step 1 gives a wanted adjunct the role `feature`). In the 2026-10-13 "Shipped
+      `m2-best-fit-style`" entry, mark the known limitation as resolved by `m2-adjunct-role`. Add a
+      §8 line with the measured numbers. `docs/WORKFLOW-ROADMAP.md`: add Measured lines to G1
+      (roles counted) and G2.
+Done when: the results file shows the R10 numbers, and the docs cite it.
+Commit: `Measure G1 and G2 with adjunct roles`
+
+## Critical behaviour and its tests
+| Behaviour | Test | Task |
+|---|---|---|
+| Held-out wordings fixed and never in the prompt | `tests/test_role_wordings.py`, `tests/test_prompt.py::test_prompt_quotes_no_brief` (extended) | 1 |
+| Temperature/seed actually reach the Ollama call; defaults stay 0/42 | `tests/test_pipeline.py::test_temperature_and_seed_reach_step_1`, `::test_default_temperature_and_seed` | 2 |
+| A wrong role fails `wanted` (G1 counts roles) | `tests/test_grade.py::test_wrong_role_fails_wanted` | 3 |
+| The contract rejects plain strings, missing or unknown roles, extra keys | `tests/test_contracts.py::test_bad_examples` (new cases), `tests/test_step1_check.py::test_plain_string_item_fails` | 4 |
+| Prompt defines both roles | `tests/test_prompt.py::test_prompt_names_every_role` | 4 |
+| Scored role and the R6 verdict computed correctly | `tests/test_roles.py` (scored role, each gate point failing alone) | 5 |
+| A setting that failed to apply cannot produce a result | `evals/roles.py` stops on an `llm` mismatch (checked in Task 5 dry run) | 5 |
+| Role alone decides specialty vs base | `tests/test_step2_pick.py::test_feature_role_without_cue_word_picks_specialty`, `::test_background_role_keeps_base_even_with_cue_words` | 7 |
+| Reason cites the role | `tests/test_step2_pick.py::test_b12_reason_cites_the_role` | 7 |
+| No regression on the 22 briefs | `tests/test_step2_pick.py::test_briefs_reach_the_bar`, `evals.run --label m2-role` | 7, 9 |
+
+## Approved exceptions
+None.
+
+## Gate result
 Measured 2026-10-14 with the frozen retuned prompt (commit af64d2b): [`evals/results/2026-10-14-m2-role-gate.json`](../../../evals/results/2026-10-14-m2-role-gate.json). **Verdict: MET.**
 
 | R6 point | Measured | Result |
@@ -268,7 +351,7 @@ Measured 2026-10-14 with the frozen retuned prompt (commit af64d2b): [`evals/res
 - G1 ([`evals/results/2026-10-14-m2-role-g1.json`](../../../evals/results/2026-10-14-m2-role-g1.json)): step 1 22/22 (roles counted), step 2 22/22.
 - Earlier attempt, kept for the record: with the Task 4 prompt the gate was NOT MET (clear 19/21: r07 and r12 left `wanted` empty; G1 step 1 21/22, step 2 21/22). Result file [`2026-10-13-m2-role-gate.json`](../../../evals/results/2026-10-13-m2-role-gate.json).
 
-Task 6 is done and the gate is met. Task 7 is not started and nothing is deleted.
+Task 6 is done and the gate is met. Task 7 is done; the word rule is still in the repo until Task 8.
 
 ## Deviations
 - 2026-10-13 · Task 8 / A9: the grep may find the two `drop function` lines in `db/023_drop_adjunct_rule.sql`, and nothing else — the drop file R9 asks for has to name the functions (user decision; brief A9 amended).

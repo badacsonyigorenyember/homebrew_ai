@@ -65,6 +65,33 @@ def test_b12_honey_forward_is_a_honey_specialty(conn):
     assert out["alt_styles"][0] == "18A"
 
 
+def honey_brief(role):
+    b = brief_of(BRIEFS["b12"])
+    b["wanted"] = [{"item": "honey", "role": role}]
+    return b
+
+
+@pytest.mark.stack
+def test_feature_role_without_cue_word_picks_specialty(conn):
+    out = run(conn, honey_brief("feature"), "A blonde ale with honey.")
+    assert out["style"]["code"] == "31B"
+    assert out["alt_styles"][0] == "18A"
+
+
+@pytest.mark.stack
+def test_background_role_keeps_base_even_with_cue_words(conn):
+    out = run(conn, honey_brief("background"), BRIEFS["b12"]["request"])
+    assert out["style"]["code"] == "18A"
+    assert "31B" not in [out["style"]["code"], *out["alt_styles"]]
+
+
+@pytest.mark.stack
+def test_b12_reason_cites_the_role(conn):
+    reason = pick(conn, BRIEFS["b12"])["reason"]
+    assert '"feature"' in reason
+    assert '("' not in reason
+
+
 @pytest.mark.stack
 def test_smoke_porter_keeps_the_ba_style(conn):
     """A BA style paired with a BJCP catch-all (smoke-porter, 32A) is not swapped."""

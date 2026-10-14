@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "step2.input",
-  "description": "Step 2, choose style: picks a style from the brief. No absent slot, except guide_preference null = the webhook did not send a guide (the request text may then name one). brief is a step1.output, already checked; request is the user's text, used for guide words and adjunct prominence.",
+  "description": "Step 2, choose style: picks a style from the brief. No absent slot, except guide_preference null = the webhook did not send a guide (the request text may then name one). brief is a step1.output, already checked; request is the user's text, used for guide words. The adjunct's role comes from brief.wanted.",
   "type": "object",
   "required": [
     "run_id",
