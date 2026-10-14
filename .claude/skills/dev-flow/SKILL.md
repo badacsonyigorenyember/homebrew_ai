@@ -118,8 +118,9 @@ continue?". Keep going.
   ones.
 - After step 5, always before /dev-ship: read `verification.md` and show the Overall line and
   Part 1 (the emoji summary: goal, how, why, result, one line per step, start here, changed
-  files) exactly as written there. Then list only the failing rows of Parts 2 and 3, under their
-  table's header, copied exactly; don't list passing rows. Then ask to ship. If Part 1 is
+  files) exactly as written there, and point to Part 2 (Showcase) for examples of the finished
+  work. Then list only the failing rows of Parts 3 and 4, under their table's header, copied
+  exactly; don't list passing rows. Then ask to ship. If Part 1 is
   missing, resume dev-verify to write it before asking.
 - At the end (after shipping, or wherever the user stops the flow): merge sha, branch, the paths
   of brief, plan and verification, and the flow summary below. After shipping, dev-ship has
