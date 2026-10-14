@@ -225,3 +225,79 @@ def test_fg_unknown_fermentability_raises(conn):
     with pytest.raises(psycopg.Error):
         fg(conn, [sugar(1, "sometimes")], 75, 10, 75)
     conn.rollback()
+
+
+# HTB table 5.5, p. 81 (typed from the book, doc-calc section 6): utilisation by boil time (rows)
+# and boil gravity (columns).
+TINSETH_GRAVITIES = (1.030, 1.040, 1.050, 1.060, 1.070, 1.080, 1.090, 1.100, 1.110, 1.120)
+TINSETH_TABLE_5_5 = {  # minutes -> printed utilisation at each gravity above
+    0: (0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000),
+    5: (0.055, 0.050, 0.046, 0.042, 0.038, 0.035, 0.032, 0.029, 0.027, 0.025),
+    10: (0.100, 0.091, 0.084, 0.076, 0.070, 0.064, 0.058, 0.053, 0.049, 0.045),
+    15: (0.137, 0.125, 0.114, 0.105, 0.096, 0.087, 0.080, 0.073, 0.067, 0.061),
+    20: (0.167, 0.153, 0.140, 0.128, 0.117, 0.107, 0.098, 0.089, 0.081, 0.074),
+    25: (0.192, 0.175, 0.160, 0.147, 0.134, 0.122, 0.112, 0.102, 0.094, 0.085),
+    30: (0.212, 0.194, 0.177, 0.162, 0.148, 0.135, 0.124, 0.113, 0.103, 0.094),
+    35: (0.229, 0.209, 0.191, 0.175, 0.160, 0.146, 0.133, 0.122, 0.111, 0.102),
+    40: (0.242, 0.221, 0.202, 0.185, 0.169, 0.155, 0.141, 0.129, 0.118, 0.108),
+    45: (0.253, 0.232, 0.212, 0.194, 0.177, 0.162, 0.148, 0.135, 0.123, 0.113),
+    50: (0.263, 0.240, 0.219, 0.200, 0.183, 0.168, 0.153, 0.140, 0.128, 0.117),
+    55: (0.270, 0.247, 0.226, 0.206, 0.188, 0.172, 0.157, 0.144, 0.132, 0.120),
+    60: (0.276, 0.252, 0.231, 0.211, 0.193, 0.176, 0.161, 0.147, 0.135, 0.123),
+    70: (0.285, 0.261, 0.238, 0.218, 0.199, 0.182, 0.166, 0.152, 0.139, 0.127),
+    80: (0.291, 0.266, 0.243, 0.222, 0.203, 0.186, 0.170, 0.155, 0.142, 0.130),
+    90: (0.295, 0.270, 0.247, 0.226, 0.206, 0.188, 0.172, 0.157, 0.144, 0.132),
+}
+
+
+def hop(g, alpha_pct, minutes, usage="boil"):
+    return {"g": g, "alpha_pct": alpha_pct, "minutes": minutes, "usage": usage}
+
+
+def ibu(conn, hops, boil_sg, volume_l):
+    return one(conn, "select app.ibu(%s::jsonb, %s, %s)", json.dumps(hops), boil_sg, volume_l)
+
+
+@pytest.mark.stack
+@pytest.mark.parametrize("minutes", TINSETH_TABLE_5_5)
+def test_tinseth_table_5_5(conn, minutes):
+    for gravity, printed in zip(TINSETH_GRAVITIES, TINSETH_TABLE_5_5[minutes]):
+        value = one(conn, "select app.tinseth_utilisation(%s, %s)", gravity, minutes)
+        assert value == pytest.approx(printed, abs=0.001), (minutes, gravity)
+
+
+# Joe Ale (HTB p. 78-79): the metric sum uses 28 g and 42 g, not the 30 g / 45 g in the header.
+JOE_ALE_METRIC = [hop(28, 8, 60), hop(42, 4, 15)]
+
+
+@pytest.mark.stack
+def test_ibu_joe_ale_metric(conn):
+    assert ibu(conn, [JOE_ALE_METRIC[0]], 1.038, 19) == pytest.approx(30.3, abs=1)
+    assert ibu(conn, [JOE_ALE_METRIC[1]], 1.038, 19) == pytest.approx(11.2, abs=1)
+    assert ibu(conn, JOE_ALE_METRIC, 1.038, 19) == pytest.approx(41.5, abs=1)
+
+
+@pytest.mark.stack
+def test_ibu_joe_ale_us(conn):
+    oz = 28.349523125
+    assert ibu(conn, [hop(1 * oz, 8, 60)], 1.038, 5 * GAL) == pytest.approx(30.8, abs=1)
+    assert ibu(conn, [hop(1.5 * oz, 4, 15)], 1.038, 5 * GAL) == pytest.approx(11.4, abs=1)
+
+
+@pytest.mark.stack
+def test_ibu_no_hops_is_zero(conn):
+    assert ibu(conn, [], 1.050, 20) == 0
+
+
+@pytest.mark.stack
+def test_whirlpool_and_dry_hop_add_no_ibu(conn):
+    extra = [hop(50, 12, 20, "whirlpool"), hop(100, 12, 0, "dry_hop")]
+    assert ibu(conn, JOE_ALE_METRIC + extra, 1.038, 19) == pytest.approx(
+        ibu(conn, JOE_ALE_METRIC, 1.038, 19))
+
+
+@pytest.mark.stack
+def test_ibu_unknown_usage_raises(conn):
+    with pytest.raises(psycopg.Error):
+        ibu(conn, [hop(28, 8, 60, "mash")], 1.038, 19)
+    conn.rollback()

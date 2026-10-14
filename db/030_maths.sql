@@ -197,3 +197,71 @@ begin
     return 1.259 * abw;
 end;
 $$;
+
+-- Tinseth utilisation (HTB p. 80): U = f(G) x f(t), f(G) = 1.65 x 0.000125^(Gb - 1) and
+-- f(t) = (1 - e^(-0.04 t)) / 4.15, t in minutes. Gb is the pre-boil gravity (HTB p. 78).
+-- Reproduces all 160 cells of table 5.5 (p. 81) within 0.0005 (doc-calc section 6).
+create or replace function app.tinseth_utilisation(boil_sg numeric, minutes numeric)
+returns numeric
+language plpgsql
+immutable
+as $$
+begin
+    if boil_sg is null or boil_sg < 1 then
+        raise exception 'tinseth_utilisation: boil gravity must be 1 or more, got %', boil_sg;
+    end if;
+    if minutes is null or minutes < 0 then
+        raise exception 'tinseth_utilisation: minutes must be 0 or more, got %', minutes;
+    end if;
+    return 1.65 * power(0.000125, boil_sg - 1) * (1 - exp(-0.04 * minutes)) / 4.15;
+end;
+$$;
+
+-- IBU (mg/L) from one hop addition: grams x alpha% / 100 x U x 1000 / final litres (HTB p. 77-78).
+-- Only 'boil' additions count (Tinseth).
+-- Whirlpool and dry hop count as 0 IBU for now: the book gives no figure for either, and a cited
+-- model for them is a late-game follow-up (docs/RECIPE-ROADMAP.md section 8, Later).
+-- Any other usage raises.
+create or replace function app.ibu_addition(grams numeric, alpha_pct numeric, minutes numeric,
+                                            usage text, boil_sg numeric, volume_l numeric)
+returns numeric
+language plpgsql
+immutable
+as $$
+begin
+    if grams is null or alpha_pct is null or minutes is null or usage is null then
+        raise exception 'ibu_addition: grams, alpha_pct, minutes and usage are required';
+    end if;
+    if volume_l is null or volume_l <= 0 then
+        raise exception 'ibu_addition: volume must be above 0, got %', volume_l;
+    end if;
+    if usage in ('whirlpool', 'dry_hop') then
+        return 0;
+    elsif usage = 'boil' then
+        return grams * alpha_pct / 100 * app.tinseth_utilisation(boil_sg, minutes) * 1000 / volume_l;
+    end if;
+    raise exception 'ibu_addition: unknown hop usage %, use boil, whirlpool or dry_hop', usage;
+end;
+$$;
+
+-- IBU of a hop schedule: items {g, alpha_pct, minutes, usage}. An empty array gives 0.
+create or replace function app.ibu(hops jsonb, boil_sg numeric, volume_l numeric)
+returns numeric
+language plpgsql
+immutable
+as $$
+declare
+    total numeric := 0;
+    h jsonb;
+begin
+    for h in select * from jsonb_array_elements(hops) loop
+        if h->'g' is null or h->'alpha_pct' is null or h->'minutes' is null or h->'usage' is null then
+            raise exception 'ibu: each item needs g, alpha_pct, minutes and usage, got %', h;
+        end if;
+        total := total + app.ibu_addition(
+            (h->>'g')::numeric, (h->>'alpha_pct')::numeric, (h->>'minutes')::numeric,
+            h->>'usage', boil_sg, volume_l);
+    end loop;
+    return total;
+end;
+$$;

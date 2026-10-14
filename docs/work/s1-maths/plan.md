@@ -196,10 +196,10 @@ Commit: `Add FG and ABV maths with tests`
 
 ### Task 4: IBU (Tinseth), whirlpool and dry hop at 0
 Why: R4, A2, A8.
-- [ ] Add `tinseth_utilisation`, `ibu_addition` and `ibu`. Above the 0-IBU rule, add a comment:
+- [x] Add `tinseth_utilisation`, `ibu_addition` and `ibu`. Above the 0-IBU rule, add a comment:
   whirlpool and dry hop count as 0 IBU for now, a cited model is a late-game follow-up
   (RECIPE-ROADMAP §8 Later), and the book gives no figure.
-- [ ] Write tests:
+- [x] Write tests:
   - `test_tinseth_table_5_5`: all 160 cells within 0.001 (p. 81).
   - `test_ibu_joe_ale_metric`: 28 g 8 % 60 min → 30.3 and 42 g 4 % 15 min → 11.2, Gb 1.038,
     19 L, total 41.5, each within 1. `test_ibu_joe_ale_us`: 1 oz and 1.5 oz in 5 gal → 30.8 and 11.4.
@@ -207,7 +207,7 @@ Why: R4, A2, A8.
   - `test_whirlpool_and_dry_hop_add_no_ibu`: Joe Ale plus a 50 g whirlpool and a 100 g dry hop
     gives the same IBU (A8).
   - `test_ibu_unknown_usage_raises`.
-- [ ] Apply twice, then run `pytest tests/test_maths.py`.
+- [x] Apply twice, then run `pytest tests/test_maths.py`.
 Done when: the tests pass.
 Commit: `Add Tinseth IBU maths with tests`
 
