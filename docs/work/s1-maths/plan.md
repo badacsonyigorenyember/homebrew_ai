@@ -1,6 +1,6 @@
 # S1 · Brewing maths library — implementation plan
 
-Stage: verify
+Stage: shipped
 Brief: [brief.md](brief.md)
 Branch: s1-maths
 
