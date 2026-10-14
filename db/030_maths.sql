@@ -265,3 +265,56 @@ begin
     return total;
 end;
 $$;
+
+-- Malt colour units of one fermentable: MCU = °L x lb / gal (HTB p. 469, p. 472). Malt °L is used
+-- as SRM-equivalent (HTB p. 468), so the input is EBC and °L = EBC / 1.97 (doc-calc section 7).
+create or replace function app.mcu(kg numeric, ebc numeric, volume_l numeric)
+returns numeric
+language plpgsql
+immutable
+as $$
+begin
+    if kg is null or ebc is null or volume_l is null then
+        raise exception 'mcu: every input is required';
+    end if;
+    if volume_l <= 0 then
+        raise exception 'mcu: volume must be above 0, got %', volume_l;
+    end if;
+    return (ebc / 1.97) * (kg / 0.45359237) / (volume_l / 3.785411784);
+end;
+$$;
+
+-- MCU of a grist: items {kg, ebc}. An empty array gives 0.
+create or replace function app.grist_mcu(grist jsonb, volume_l numeric)
+returns numeric
+language plpgsql
+immutable
+as $$
+declare
+    total numeric := 0;
+    g jsonb;
+begin
+    for g in select * from jsonb_array_elements(grist) loop
+        if g->'kg' is null or g->'ebc' is null then
+            raise exception 'grist_mcu: each item needs kg and ebc, got %', g;
+        end if;
+        total := total + app.mcu((g->>'kg')::numeric, (g->>'ebc')::numeric, volume_l);
+    end loop;
+    return total;
+end;
+$$;
+
+-- SRM from MCU, Morey: SRM = 1.49 x MCU^0.69 (HTB table B.3, p. 470; Palmer's printed constants).
+-- 0 MCU gives 0 SRM.
+create or replace function app.srm(mcu numeric)
+returns numeric
+language plpgsql
+immutable
+as $$
+begin
+    if mcu is null or mcu < 0 then
+        raise exception 'srm: MCU must be 0 or more, got %', mcu;
+    end if;
+    return 1.49 * power(mcu, 0.69);
+end;
+$$;

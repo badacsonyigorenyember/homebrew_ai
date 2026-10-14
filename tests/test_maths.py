@@ -301,3 +301,64 @@ def test_ibu_unknown_usage_raises(conn):
     with pytest.raises(psycopg.Error):
         ibu(conn, [hop(28, 8, 60, "mash")], 1.038, 19)
     conn.rollback()
+
+
+# Colour. Inputs are given in °L and converted to EBC (x 1.97, HTB p. 469).
+def malt(lb, lovibond):
+    return {"kg": lb * LB, "ebc": lovibond * 1.97}
+
+
+def grist_mcu(conn, grist, gallons):
+    return one(conn, "select app.grist_mcu(%s::jsonb, %s)", json.dumps(grist), gallons * GAL)
+
+
+def srm(conn, mcu):
+    return one(conn, "select app.srm(%s)", mcu)
+
+
+@pytest.mark.stack
+def test_mcu_palmer_simple(conn):
+    assert grist_mcu(conn, [malt(8, 2), malt(2, 4)], 5) == pytest.approx(4.8, abs=0.01)
+
+
+@pytest.mark.stack
+def test_srm_shay_steam(conn):
+    assert srm(conn, 12) == pytest.approx(8, abs=1)
+
+
+@pytest.mark.stack
+def test_srm_port_o_palmer(conn):
+    assert srm(conn, 72) == pytest.approx(28, abs=1)
+
+
+@pytest.mark.stack
+def test_srm_port_o_palmer_more_chocolate(conn):
+    assert srm(conn, 107) == pytest.approx(37, abs=1)
+
+
+@pytest.mark.stack
+def test_mcu_obc_pils(conn):
+    mcu = grist_mcu(conn, [malt(8, 2), malt(1, 4)], 5)
+    assert mcu == pytest.approx(4.0, abs=0.01)
+    assert srm(conn, mcu) == pytest.approx(4, abs=1)
+
+
+@pytest.mark.stack
+def test_mcu_obc_dubbel(conn):
+    # The book prints 43 MCU; its own rows add up to 40.5 (doc-calc section 7).
+    rows = [(4.75, 3), (4.75, 2), (1.25, 8), (0.75, 75), (0.75, 120), (0.75, 30)]
+    grist = [malt(lb, lov) for lb, lov in rows]
+    assert grist_mcu(conn, grist, 5) == pytest.approx(40.5, abs=0.01)
+
+
+@pytest.mark.stack
+def test_ebc_srm_round_trip(conn):
+    back = one(conn, "select app.ebc_from_srm(app.srm_from_ebc(%s))", 37.9)
+    assert back == pytest.approx(37.9)
+
+
+@pytest.mark.stack
+def test_colour_missing_ebc_raises(conn):
+    with pytest.raises(psycopg.Error):
+        grist_mcu(conn, [{"kg": 1}], 5)
+    conn.rollback()

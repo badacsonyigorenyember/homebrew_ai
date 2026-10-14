@@ -213,8 +213,8 @@ Commit: `Add Tinseth IBU maths with tests`
 
 ### Task 5: Colour (MCU, Morey, EBC)
 Why: R5, A2.
-- [ ] Add `mcu`, `grist_mcu` and `srm`.
-- [ ] Write tests. Inputs are given in °L, converted × 1.97 to EBC, and MCU is checked to 0.01:
+- [x] Add `mcu`, `grist_mcu` and `srm`.
+- [x] Write tests. Inputs are given in °L, converted × 1.97 to EBC, and MCU is checked to 0.01:
   - `test_mcu_palmer_simple`: 8 lb at 2 °L + 2 lb at 4 °L in 5 gal → 4.8 MCU (p. 469).
   - `test_srm_shay_steam`: 12 MCU → 8 SRM; `test_srm_port_o_palmer`: 72 MCU → 28 SRM;
     `test_srm_port_o_palmer_more_chocolate`: 107 MCU → 37 SRM (p. 472–473), SRM within 1.
@@ -222,7 +222,7 @@ Why: R5, A2.
   - `test_mcu_obc_dubbel`: 40.5 MCU, recomputed from the book's rows. The book's printed 43 is
     its own arithmetic slip (named in doc-calc.md), so the test asserts 40.5.
   - `test_ebc_srm_round_trip` and `test_colour_missing_ebc_raises`.
-- [ ] Apply twice, then run `pytest tests/test_maths.py`.
+- [x] Apply twice, then run `pytest tests/test_maths.py`.
 Done when: the tests pass.
 Commit: `Add Morey colour maths with tests`
 
