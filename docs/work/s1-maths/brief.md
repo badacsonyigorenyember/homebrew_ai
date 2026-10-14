@@ -87,19 +87,24 @@ R10. Pre-boil volume comes from batch volume, boil time, boil-off rate and losse
 - *How to Brew* in `pending/` is the 4th edition (2017, 612 pages; checked 2026-10-14). It has
   worked examples for gravity points (ch. 4, in PPG and PKL), efficiency (ch. 18, table 18.4),
   IBU (ch. 5, the "Joe Ale" example on Tinseth's table 5.5), colour (appendix B, an MCU example
-  and Morey in table B.3) and ABV (tables 4.3 and 9.1). Whether each one reproduces exactly is
-  *(unverified)* until the doc → calc pass. Most examples are in US units, so the tests convert
-  their inputs with stated factors.
-- The OBC *Recipe Formulation* PDF (2009) was not in `pending/` on 2026-10-14. You download it
-  there before planning. That it has worked Dubbel and Bohemian Pils examples with the inputs
-  needed to recompute them is *(unverified)* (RECIPE-ROADMAP §2 lists them).
+  and Morey in table B.3) and ABV (table 9.1). Checked while planning (2026-10-14): the gravity,
+  IBU, colour and FG examples reproduce. Table 4.3's ABV row disagrees with table 9.1 and matches
+  no formula, so it is recorded in `doc-calc.md` and not tested (its FG row is tested). Most
+  examples are in US units, so the tests convert their inputs with stated factors.
+- The OBC *Recipe Formulation* PDF (2009, 6 pages) is in `pending/` (downloaded 2026-10-14).
+  Checked while planning: its Dubbel and Bohemian Pils examples give enough inputs to recompute
+  OG and MCU. Its SRM and IBU figures come from Daniels' tables (MCU → SRM ranges, stepped hop
+  utilisation), not from Morey or Tinseth, and its IBU example has no boil gravity or volume.
 - Palmer gives no whirlpool or dry-hop IBU figure *(unverified; a text search of the PDF found
   none)*.
 
 ## Acceptance criteria
 A1. `doc-calc.md` lists each formula and worked example used, with page or table (R1).
-A2. Tests for every listed worked example, Palmer's and OBC's (Dubbel, Bohemian Pils), pass
-    within R7's tolerances (R7, G-M).
+A2. Tests for every listed worked example pass within R7's tolerances (R7, G-M): Palmer's, and
+    OBC's OG and MCU for the Dubbel and the Bohemian Pils (Pils 4.0 MCU; Dubbel 40.5 MCU,
+    recomputed from the book's rows, since its printed 35.25 candi row and 43 total are an
+    arithmetic slip). OBC's SRM and IBU figures use Daniels' tables, a different model. They are
+    written up in `doc-calc.md` and not tested.
 A3. A test recipe with 10 % lactose has a higher FG than the same recipe without, and with candi
     sugar a lower one (R3).
 A4. Solving for OG 1.060 and then computing OG from the result gives 1.060 ± 0.001; the same for
@@ -131,3 +136,9 @@ None open. Your answers, 2026-10-14:
   is a late-game follow-up (RECIPE-ROADMAP §8 Later) — your answer to Open question 2.
 - 2026-10-14 · Scope: water chemistry moved from P2 to M7, and RECIPE-ROADMAP §8 was updated to
   match — your answer to Open question 3.
+- 2026-10-14 · A2: OBC's examples are tested for OG and MCU only. Its SRM and IBU figures come from
+  Daniels' tables, not Morey or Tinseth, and are written up in `doc-calc.md` without a test.
+  The Dubbel MCU is tested against the recomputed 40.5, not the book's 43 (arithmetic slip on the
+  candi row). This was your answer while planning.
+- 2026-10-14 · Assumptions: table 4.3's ABV row is not tested. It disagrees with table 9.1 and no
+  formula matches it. ABV is tested on table 9.1 (R9, A7). Found while planning.
