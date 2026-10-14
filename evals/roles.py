@@ -96,12 +96,6 @@ def gate(wordings) -> dict:
     return {**points, "met": all(p["ok"] for p in points.values())}
 
 
-def word_rule(conn, request, adjunct) -> str:
-    on = conn.execute("select app.adjunct_is_prominent(%s, %s)", (request, adjunct)).fetchone()[0]
-    conn.commit()
-    return "feature" if on else "background"
-
-
 def measure(conn, wording, setting, runs) -> dict:
     """Send one wording `runs` times under one setting; read step 1's answer back."""
     cfg = SETTINGS[setting]
@@ -126,14 +120,14 @@ def measure(conn, wording, setting, runs) -> dict:
 
 
 def table(results, settings) -> str:
-    lines = [f"{'id':<5} {'set':<10} {'expect':<10} {'rule':<10} " + " ".join(f"{s:<34}" for s in settings)]
+    lines = [f"{'id':<5} {'set':<10} {'expect':<10} " + " ".join(f"{s:<34}" for s in settings)]
     for w in results:
         cells = []
         for s in settings:
             r = w["settings"][s]
             mark = "" if r["right_every_run"] is None else (" ok" if r["right_every_run"] else " WRONG")
             cells.append(f"{','.join(str(x) for x in r['roles'])}{mark}")
-        lines.append(f"{w['id']:<5} {w['set']:<10} {w['expected'] or '-':<10} {w['word_rule']:<10} "
+        lines.append(f"{w['id']:<5} {w['set']:<10} {w['expected'] or '-':<10} "
                      + " ".join(f"{c:<34}" for c in cells))
     return "\n".join(lines)
 
@@ -161,7 +155,7 @@ def main(argv=None) -> int:
     results = []
     try:
         for w in chosen:
-            row = {**w, "word_rule": word_rule(conn, w["request"], w["adjunct"]), "settings": {}}
+            row = {**w, "settings": {}}
             for s in args.settings:
                 row["settings"][s] = measure(conn, w, s, args.runs)
             results.append(row)

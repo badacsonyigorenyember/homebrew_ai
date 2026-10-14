@@ -286,21 +286,21 @@ Commit: `Pick specialty style from step 1 role`
 
 ### Task 8: The word rule is gone
 Why: R9, A9.
-- [ ] `db/022_step2.sql`: delete `app.adjunct_cue`, `app.adjunct_is_prominent` and their comment
+- [x] `db/022_step2.sql`: delete `app.adjunct_cue`, `app.adjunct_is_prominent` and their comment
       block, including the CUES, DAMPERS, joining-word pattern and `DAMPER_GAP`.
-- [ ] New `db/023_drop_adjunct_rule.sql`: a header (purpose, apply command, idempotent) and
+- [x] New `db/023_drop_adjunct_rule.sql`: a header (purpose, apply command, idempotent) and
       `drop function if exists app.adjunct_is_prominent(text, text);` then
       `drop function if exists app.adjunct_cue(text, text);`. Apply it twice with the OPERATIONS §4
       command, then check `pg_proc`: neither function exists in `app`.
-- [ ] `tests/test_step2_signals.py`: delete the `prominent` helper and every test that calls it
+- [x] `tests/test_step2_signals.py`: delete the `prominent` helper and every test that calls it
       or `app.adjunct_cue`.
-- [ ] `evals/roles.py`: remove the word-rule lookup (the saved gate result keeps its
+- [x] `evals/roles.py`: remove the word-rule lookup (the saved gate result keeps its
       `word_rule` values). Remove its test, if Task 5 added one.
-- [ ] `docs/DATABASE.md`: drop the two functions from the step 2 signal-function line.
-- [ ] Run `grep -rn "adjunct_cue\|adjunct_is_prominent\|DAMPER" db tests evals shared n8n`. Expect
+- [x] `docs/DATABASE.md`: drop the two functions from the step 2 signal-function line.
+- [x] Run `grep -rn "adjunct_cue\|adjunct_is_prominent\|DAMPER" db tests evals shared n8n`. Expect
       only the two `drop function` lines in `db/023_drop_adjunct_rule.sql` (A9 as amended
       2026-10-13).
-- [ ] Run `.venv/bin/pytest`, expect all passed.
+- [x] Run `.venv/bin/pytest`, expect all passed.
 Done when: the functions are gone from the repo and the database, and the suite passes.
 Commit: `Remove adjunct word rule`
 
@@ -351,7 +351,7 @@ Measured 2026-10-14 with the frozen retuned prompt (commit af64d2b): [`evals/res
 - G1 ([`evals/results/2026-10-14-m2-role-g1.json`](../../../evals/results/2026-10-14-m2-role-g1.json)): step 1 22/22 (roles counted), step 2 22/22.
 - Earlier attempt, kept for the record: with the Task 4 prompt the gate was NOT MET (clear 19/21: r07 and r12 left `wanted` empty; G1 step 1 21/22, step 2 21/22). Result file [`2026-10-13-m2-role-gate.json`](../../../evals/results/2026-10-13-m2-role-gate.json).
 
-Task 6 is done and the gate is met. Task 7 is done; the word rule is still in the repo until Task 8.
+Task 6 is done and the gate is met. Task 7 and Task 8 are done; the word rule is gone from the repo and the database.
 
 ## Deviations
 - 2026-10-13 · Task 8 / A9: the grep may find the two `drop function` lines in `db/023_drop_adjunct_rule.sql`, and nothing else — the drop file R9 asks for has to name the functions (user decision; brief A9 amended).
