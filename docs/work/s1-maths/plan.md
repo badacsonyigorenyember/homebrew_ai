@@ -1,6 +1,6 @@
 # S1 · Brewing maths library — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: s1-maths
 
@@ -39,7 +39,7 @@ Task 1 writes them up and confirms each page number.
   row "assuming 75 % fermentability", and all 7 cells are FG = 1 + 0.25 × (OG − 1) within
   ± 0.001. Sugars have 100 % fermentability and lactose is unfermentable (table 24.1, p. 436).
 - **ABV:** table 9.1 (p. 150) is "based on the work of Balling" and gives no formula. The plain
-  `131.25 × (OG − FG)` misses 56 of its 140 cells by more than 0.1 (worst 0.19). The Balling form
+  `131.25 × (OG − FG)` misses 65 of its 140 cells by more than 0.1 (worst 0.19). The Balling form
   published in BYO (Bill Pierce, "Calculating Alcohol", https://byo.com/articles/calculating-alcohol/)
   is RE = 0.1886·OE + 0.8114·AE, then ABW = (OE − RE) / (2.0665 − 0.010665·OE), then ABV = 1.259 × ABW.
   With Palmer's °P formula it reproduces **all 140 cells** within 0.1 (worst 0.088, measured with a
@@ -142,18 +142,18 @@ lb 0.45359237 kg, gal 3.785411784 L, oz 28.349523125 g, PPG → extract % = PPG 
 
 ### Task 1: Write the doc → calc pass
 Why: A1, PROJECT.md §6.7. Every later test cites a row here.
-- [ ] Write `docs/work/s1-maths/doc-calc.md`, with one section per formula (gravity, efficiency
+- [x] Write `docs/work/s1-maths/doc-calc.md`, with one section per formula (gravity, efficiency
   and moisture, °P, FG, ABV, IBU, colour, volumes). For each: the formula, the source page or
   table, what it became (function name), and the worked examples with inputs (as printed),
   expected value, tolerance and test name. Use the findings above and confirm each page and
   number against the PDFs (`pdftotext -layout`, into the scratchpad, not the repo).
-- [ ] Name every case that is not a plain reproduction: the OBC Dubbel MCU sum error, the OBC
+- [x] Name every case that is not a plain reproduction: the OBC Dubbel MCU sum error, the OBC
   SRM and IBU written up as Daniels' model and not tested (brief A2), the table 4.3 ABV row,
   table A.2 against the 259 formula, the Port O' Palmer option 1 ("about 12" MCU, an approximate
   input, so not tested), and the Mt Hood 20 / 30 min conflict.
-- [ ] Record the ABV formula source (BYO URL, author) and the fit: 140/140 cells within 0.1, plus
-  the two BYO variants that do not fit (FG/0.794: 29 misses) and 131.25 (56 misses).
-- [ ] Add `calc_version` = `maths-1`, with the bump rule and a version log.
+- [x] Record the ABV formula source (BYO URL, author) and the fit: 140/140 cells within 0.1, plus
+  the two BYO variants that do not fit (FG/0.794: 29 misses) and 131.25 (65 misses).
+- [x] Add `calc_version` = `maths-1`, with the bump rule and a version log.
 Done when: every formula the functions use has a page, and every example in the "Critical
 behaviour" table below appears in doc-calc.md with its expected value.
 Commit: `Add doc-calc pass for s1-maths`
@@ -297,3 +297,5 @@ None.
   answer, and brief A2 was narrowed in the same change.
 - 2026-10-14 · Task 3: table 4.3's ABV row is not tested. It disagrees with table 9.1 and matches no
   formula. Its FG row is tested. The brief's Assumptions were updated to match.
+- 2026-10-14 · Task 1: the 131.25 × (OG − FG) ABV form misses 65 of table 9.1's 140 cells (worst 0.194), not 56 as the source check said. The Balling form still fits 140/140 (worst 0.088). Choice unchanged.
+- 2026-10-14 · Task 2: add `test_boil_gravity_book_example` (HTB p. 291: 5 gal at 1.050, 6 gal pre-boil → 1.042, 7 gal → 1.036), cited in doc-calc.md section 2. It is a second boil-gravity check beside `test_boil_gravity_joe_ale`.
