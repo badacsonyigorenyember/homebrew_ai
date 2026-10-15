@@ -171,3 +171,6 @@ LLM path for BA).
   ingredients; step 4's corpus popularity bump replaced by `ref.fermentable_style`, fermentables
   only) — the corpus was abandoned (D7) and STYLE-FIT §3 gives flakes and sugars no sensation;
   agreed by the user 2026-10-15.
+- 2026-10-15 · Scope, Constraints, R10: STYLE-FIT.md §6 is now in scope too: its "a style" row
+  becomes "BJCP and BA: LLM extract + your review (BA parser later)" — it said "BA: parsed",
+  which contradicts the decided D9; agreed by the user at plan approval 2026-10-15.
