@@ -5,6 +5,7 @@ Slug: m4-targets-blueprint · Branch: m4-targets-blueprint
 Roadmap: [WORKFLOW-ROADMAP.md](../../WORKFLOW-ROADMAP.md) M4, checkpoint **G4** ·
 [RECIPE-ROADMAP.md](../../RECIPE-ROADMAP.md) §3 steps 0, 4, 5, §7 · [STYLE-PROFILES.md](../../STYLE-PROFILES.md)
 Needs: `m3-deviations`, `s1-maths` and `s2-corpus` shipped
+s2-corpus abandoned 2026-10-14; revisit in this brief
 
 ## Why
 Stage B turns "what the user wants" into numbers to design against: target OG, FG, ABV, IBU and

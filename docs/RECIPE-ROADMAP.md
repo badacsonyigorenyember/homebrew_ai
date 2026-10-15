@@ -296,7 +296,7 @@ flowchart LR
 | **P7** | Doc → calc pass per book, then ingest the rest into `kb`, retrieval eval | recall@5 measured, above an agreed bar |
 | **P6** | Steps 12–15, with the water functions (moved from P2, 2026-10-14, [`s1-maths`](finished/s1-maths/brief.md)) | every recipe has water, mash, ferment, package |
 | **P8** | Step 16 + interface: n8n chat trigger (D5, decided) | you can brew from the sheet |
-| **Later** | inventory-first mode · substitutions · batch log → feedback · whirlpool and dry-hop IBU from a cited model (they count as 0 IBU until then; [`s1-maths`](finished/s1-maths/brief.md), 2026-10-14) | |
+| **Later** | - inventory-first mode<br>- substitutions<br>- batch log → feedback<br>- whirlpool and dry-hop IBU from a cited model (they count as 0 IBU until then; [`s1-maths`](finished/s1-maths/brief.md), 2026-10-14)<br>- an enzyme rule using `enzyme_activity`<br>- the ratio corpus (old s2), revisited only if test-brief results show generic or off recipes<br>- TODO: replace rule 10's uncited linear mash-temperature mapping with a cited model of mash temperature's effect on attenuation (for example *How to Brew*'s mash chapter, via a doc → calc pass) | |
 
 ---
 
@@ -304,7 +304,7 @@ flowchart LR
 
 | # | Question | Recommendation |
 |---|---|---|
-| D7 | Ratio source (decided in P3) | Brewer's Friend corpus through quality gates → `style_profile` with family shrinkage for thin styles, extra weighted sources, AHA/OBC rules of thumb as caps, Beer Analytics as a manual cross-check ([STYLE-PROFILES.md](STYLE-PROFILES.md)) |
+| D7 | Ratio source | Decided 2026-10-14 (see [PROJECT.md](../PROJECT.md) §3): no ratio corpus; the LLM proposes, code scales and checks; revisit if test briefs show a need. Work: [`s2-formulation-rules`](work/s2-formulation-rules/brief.md) |
 | D9 | Who approves style envelopes (decided in P3) | LLM extracts, you review |
 
 D1 (style guide) is decided, 2026-10-11: both guides are used, BJCP 2021 preferred; BA where it

@@ -1,6 +1,6 @@
 # S2 · Formulation rules and ingredient data — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: s2-formulation-rules
 
@@ -90,31 +90,31 @@ those tasks is loaded or committed before the answer.
 
 ### Task 1: Roadmaps and draft briefs record that s2-corpus is gone
 Why: R17, R19, R20, R21 (A13, A16). Docs only, no dependency on code.
-- [ ] `docs/RECIPE-ROADMAP.md` §9: D7 row says decided 2026-10-14, in PROJECT.md §3's words: no
+- [x] `docs/RECIPE-ROADMAP.md` §9: D7 row says decided 2026-10-14, in PROJECT.md §3's words: no
       ratio corpus; the LLM proposes, code scales and checks; revisit if test briefs show a need.
       Link [`s2-formulation-rules`](work/s2-formulation-rules/brief.md).
-- [ ] `docs/RECIPE-ROADMAP.md` §8 table, row **Later**: turn the "Do" cell into a short list
+- [x] `docs/RECIPE-ROADMAP.md` §8 table, row **Later**: turn the "Do" cell into a short list
       (`<br>`-separated bullets in the cell): keep inventory-first mode, substitutions, batch
       log → feedback, whirlpool and dry-hop IBU; add "an enzyme rule using `enzyme_activity`",
       "the ratio corpus (old s2), revisited only if test-brief results show generic or off
       recipes", and "TODO: replace rule 10's uncited linear mash-temperature mapping with a cited
       model of mash temperature's effect on attenuation (for example *How to Brew*'s mash
       chapter, via a doc → calc pass)".
-- [ ] `docs/WORKFLOW-ROADMAP.md` §1 table: S2 row links
+- [x] `docs/WORKFLOW-ROADMAP.md` §1 table: S2 row links
       [`s2-formulation-rules`](work/s2-formulation-rules/brief.md); Builds = "Fermentable roles,
       limits, enzyme activity, minimum boil, substitutes, descriptions; 13 formulation rules and
       the rule check; 22 reference recipes (D7 decided)"; Needs = s1; Checkpoint = "— (brief
       A1–A16)". Mermaid node `S2` label becomes `s2 · Formulation rules + ingredient data (D7)`.
-- [ ] Same file: the `S2 --> S3` edge becomes
+- [x] Same file: the `S2 --> S3` edge becomes
       `S2 -. "s2-corpus abandoned 2026-10-14; revisit in s3" .-> S3`, and the sentence
       "s1 → s2 → s3 is a chain (…)" gets "(s2-corpus abandoned 2026-10-14; revisit in s3)" after
       "chain".
-- [ ] Add exactly the line `s2-corpus abandoned 2026-10-14; revisit in this brief` directly under
+- [x] Add exactly the line `s2-corpus abandoned 2026-10-14; revisit in this brief` directly under
       the `Needs:` line (line 7) of the m4, m5 and s3 briefs. Nothing else in those files.
-- [ ] Run `git diff --stat docs/work/m4-targets-blueprint docs/work/m5-choose-ingredients docs/work/s3-style-fit`,
+- [x] Run `git diff --stat docs/work/m4-targets-blueprint docs/work/m5-choose-ingredients docs/work/s3-style-fit`,
       expect 3 files, 3 insertions, 0 deletions; `test -d docs/work/s2-corpus` fails;
       `grep -n "D7" PROJECT.md` shows no §7 row.
-- [ ] PROJECT.md §8 line.
+- [x] PROJECT.md §8 line.
 Done when: A13 (except the data parts) and A16 hold.
 Commit: `Record D7 and s2-corpus notes in roadmaps`
 
