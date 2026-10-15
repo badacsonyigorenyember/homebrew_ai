@@ -163,6 +163,7 @@ fermentable = [
 ]
 hop = [
   { name = "Willamette", usage = "boil", minutes = 90, g = 20, purpose = "bittering" },
+  { name = "Willamette", usage = "boil", minutes = 15, g = 15, purpose = "hop flavour" },
 ]
 yeast = { producer = "Fermentis", name = "SafAle US-05", ferm_c = 19, purpose = "clean American ale fermentation" }
 
@@ -218,10 +219,10 @@ batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 67
 boil_min = 90
 fermentable = [
-  { producer = "Weyermann", name = "Pilsner Malt", pct = 70, purpose = "pale base" },
+  { producer = "Weyermann", name = "Pilsner Malt", pct = 73, purpose = "pale base" },
   { producer = "Weyermann", name = "Munich Malt Type 2", pct = 17, purpose = "malty depth (in stock)" },
   { producer = "Weyermann", name = "Caramunich Type 3", pct = 3, purpose = "raisin, dark fruit" },
-  { producer = "", name = "Brown Candi Sugar", pct = 10, purpose = "dark candi sugar (in stock): dry body, dark fruit" },
+  { producer = "", name = "Brown Candi Sugar", pct = 7, purpose = "dark candi sugar (in stock): dry body, dark fruit" },
 ]
 hop = [
   { name = "Styrian Golding", usage = "boil", minutes = 90, g = 38, purpose = "bittering" },
@@ -267,6 +268,7 @@ fermentable = [
 ]
 hop = [
   { name = "Cascade", usage = "boil", minutes = 60, g = 25, purpose = "bittering" },
+  { name = "Cascade", usage = "boil", minutes = 15, g = 15, purpose = "hop flavour" },
 ]
 yeast = { producer = "Fermentis", name = "SafAle US-05", ferm_c = 19, purpose = "clean American ale fermentation" }
 

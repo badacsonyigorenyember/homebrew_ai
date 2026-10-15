@@ -441,7 +441,7 @@ Commit: `Add style level function with golden tests`
 
 ### Task 9: Whole recipes: required check and the reference recipes
 Why: R6, R9 (A6, A9).
-- [ ] Add to `db/034_style_level.sql` `app.style_fit_recipe(recipe jsonb) returns jsonb`. Input:
+- [x] Add to `db/034_style_level.sql` `app.style_fit_recipe(recipe jsonb) returns jsonb`. Input:
       the `app.check_recipe` input (style_code, batch, targets, fermentables, hops, yeast).
       Computes `numbers := app.check_recipe(recipe)->'numbers'` for `srm` and `ibu`, the
       recipe's late-hop oil dose (Σ over boil < 30 min, whirlpool and dry hop lines of g ÷
@@ -456,8 +456,8 @@ Why: R6, R9 (A6, A9).
       → "too little" (one-level tolerance). Output: `{"style_code", "lines": [{"kind",
       "ingredient_id", "name", "usage", "level", "because"}], "required": [{"requirement",
       "met", "because"}], "too_little": [{"dimension", "level", "min", "because"}]}`.
-- [ ] Apply twice as `postgres`.
-- [ ] Write `tests/test_style_fit_recipe.py` (stack): `test_15b_needs_roast` (A6: b05's recipe
+- [x] Apply twice as `postgres`.
+- [x] Write `tests/test_style_fit_recipe.py` (stack): `test_15b_needs_roast` (A6: b05's recipe
       with Roasted Barley passes; the same with it swapped for Pale Ale malt fails the roast
       requirement), `test_reference_recipe_lines` (A9: for each of the 22 fixtures, built with
       `tests/test_reference_recipes.py`'s `build_input`, every line has a non-null level and
@@ -467,15 +467,15 @@ Why: R6, R9 (A6, A9).
       only a 60-min bittering hop → "too little" hop aroma; b16's recipe, one level short or
       better, → none), and `test_reference_recipe_totals` (A9: no reference recipe in
       `too_little` except the entries of an `ACCEPTED_TOTALS` dict, empty at first).
-- [ ] Run it. Expected on paper (Task 6): **b07 1C** and **b12 18A** (no late hops: hop
+- [x] Run it. Expected on paper (Task 6): **b07 1C** and **b12 18A** (no late hops: hop
       flavour none vs min low) and **b22** Mexican amber lager (no roast malt: roast none vs
       min low) are "too little"; they go to this stop with the same options (fix the envelope
       or the reference recipe, or accept into `ACCEPTED_TOTALS`).
-- [ ] If a line fails: write each one into `report.md` §6 (recipe, line, level,
+- [x] If a line fails: write each one into `report.md` §6 (recipe, line, level,
       because) and return `needs-input` with options per line: fix the cut point or envelope
       (with the user's agreement), change the reference recipe, or accept it into
       `ACCEPTED_LINES` with the user's reason and date. Commit nothing before the answer.
-- [ ] PROJECT.md §8 line with the result.
+- [x] PROJECT.md §8 line with the result.
 Done when: A6 and A9 hold.
 Commit: `Add recipe style fit and reference-recipe check`
 
@@ -527,3 +527,4 @@ None.
   extract + your review (BA parser later)" — it contradicted D9; user's agreement at plan
   approval (brief Deviations).
 - 2026-10-15 · Task 8: two small helpers were added to `db/034_style_level.sql`, `app.level_word` (the 0–7 words for the because) and `app.tag_under` (tag-tree ancestry); `app.tag_match` restricts a yeast's tags per dimension (esters: tags under fruity or estery; phenols: the cut points' phenolic tags) so a banana yeast is not judged on its phenols — implementation detail, no golden level changed. The 53 golden cases passed as approved on the first run.
+- 2026-10-15 · Task 9: the user's answers at the stop (user-approved). b08 (48.6 IBU vs 22-40) and b18 (18.7 SRM vs 9-14) go into `ACCEPTED_LINES` as the briefs' own deviations (b08 asks about 50 IBU, b18 asks 20 SRM). b10: Brown Candi Sugar 10 → 7 % and Pilsner Malt 70 → 73 % in `tests/fixtures/reference_recipes.toml`, computed SRM 19.2 → 16.7 (26B 10-17), OG unchanged 1.0685. b07 and b12 get a 15-minute flavour addition (b07 Willamette 15 g, IBU 13.7 → 18.5 vs 8-20; b12 Cascade 15 g, IBU 21.3 → 27.7 vs 15-28). b22: the reviewed Mexican-Style Amber Lager roast `min` low → none in `loaders/style_envelopes.toml` (its quote says roast "may be present"), reloaded with `python -m loaders.style_envelopes`; the golden set still passes. `ACCEPTED_TOTALS` stays empty.

@@ -355,3 +355,172 @@ begin
     return jsonb_build_object('level', v_level, 'because', array_to_string(v_notes, ' '));
 end
 $$;
+
+-- Whole recipe (Task 9): every line through app.style_level with the recipe's totals, the
+-- required characteristic ingredients, and the min check on the recipe's late-hop oil dose and
+-- roast index (one-level tolerance, user 2026-10-15). recipe is the app.check_recipe input.
+-- Output: {style_code, lines[{kind, ingredient_id, name, usage, level, because}],
+--          required[{requirement, met, because}], too_little[{dimension, level, min, because}]}
+create or replace function app.style_fit_recipe(recipe jsonb)
+returns jsonb
+language plpgsql
+stable
+as $$
+declare
+    items       jsonb := app.check_recipe_items(recipe);
+    numbers     jsonb := app.check_recipe(recipe) -> 'numbers';
+    v_style     text := recipe ->> 'style_code';
+    st          ref.beer_style%rowtype;
+    v_label     text;
+    v_volume    numeric := (recipe -> 'batch' ->> 'volume_l')::numeric;
+    v_tol       int := (app.style_fit_cut_points() -> 'min_tolerance' ->> 'levels')::int;
+    v_srm       numeric := (numbers ->> 'srm')::numeric;
+    v_ibu       numeric := (numbers ->> 'ibu')::numeric;
+    v_oil       numeric := 0;
+    v_roast     numeric := 0;
+    v_oil_miss  int := 0;
+    v_lines     jsonb := '[]'::jsonb;
+    v_required  jsonb := '[]'::jsonb;
+    v_little    jsonb := '[]'::jsonb;
+    x           jsonb;
+    v_dose      jsonb;
+    v_usage     text;
+    v_late      boolean;
+    v_range     numrange;
+    v_ebc       numrange;
+    v_res       jsonb;
+    r           record;
+    s           record;
+    v_met       boolean;
+    v_what      text;
+    v_pct       numeric;
+    v_lvl       int;
+    v_total     numeric;
+begin
+    select * into st from ref.beer_style b where b.code = v_style;
+    v_label := coalesce(st.name, st.code) || ' (' || st.code || ')';
+
+    -- recipe totals: late-hop oil dose (mL/L) and roast index
+    for x in select * from jsonb_array_elements(items -> 'hops') loop
+        if x ->> 'usage' in ('whirlpool', 'dry_hop')
+           or x ->> 'usage' = 'boil' and (x ->> 'minutes')::numeric < 30 then
+            select h.total_oil_ml_100g into v_range from ref.hop h
+                where h.ingredient_id = (x ->> 'ingredient_id')::bigint;
+            if v_range is null or x ->> 'g' is null then
+                v_oil_miss := v_oil_miss + 1;
+            else
+                v_oil := v_oil + app.oil_dose((x ->> 'g')::numeric / v_volume, v_range);
+            end if;
+        end if;
+    end loop;
+    for x in select * from jsonb_array_elements(items -> 'fermentables') loop
+        if x ->> 'role' = 'roast' and x ->> 'ebc_mid' is not null then
+            v_roast := v_roast + (x ->> 'pct')::numeric * (x ->> 'ebc_mid')::numeric;
+        end if;
+    end loop;
+
+    -- every line through style_level
+    for x in select * from jsonb_array_elements(items -> 'fermentables') loop
+        v_usage := case when (x ->> 'mashed')::boolean then 'mash' else 'boil' end;
+        v_dose := jsonb_build_object('pct', x -> 'pct', 'ibu', v_ibu, 'srm', v_srm);
+        if x ->> 'role' = 'roast' then
+            v_dose := v_dose || jsonb_build_object('roast_index', v_roast);
+        end if;
+        v_res := app.style_level(v_style, (x ->> 'ingredient_id')::bigint, v_usage, v_dose);
+        v_lines := v_lines || jsonb_build_object('kind', 'fermentable', 'ingredient_id', x -> 'ingredient_id',
+            'name', x -> 'name', 'usage', v_usage, 'level', v_res -> 'level', 'because', v_res -> 'because');
+    end loop;
+    for x in select * from jsonb_array_elements(items -> 'hops') loop
+        v_usage := x ->> 'usage';
+        v_late := v_usage in ('whirlpool', 'dry_hop') or v_usage = 'boil' and (x ->> 'minutes')::numeric < 30;
+        v_dose := jsonb_build_object('ibu', v_ibu, 'srm', v_srm);
+        if v_usage = 'boil' then
+            v_dose := v_dose || jsonb_build_object('minutes', x -> 'minutes');
+        end if;
+        if x ->> 'g' is not null then
+            v_dose := v_dose || jsonb_build_object('g_per_l', (x ->> 'g')::numeric / v_volume);
+        end if;
+        if v_late and v_oil_miss = 0 then
+            v_dose := v_dose || jsonb_build_object('oil_ml_per_l', v_oil);
+        end if;
+        v_res := app.style_level(v_style, (x ->> 'ingredient_id')::bigint, v_usage, v_dose);
+        v_lines := v_lines || jsonb_build_object('kind', 'hop', 'ingredient_id', x -> 'ingredient_id',
+            'name', x -> 'name', 'usage', v_usage, 'level', v_res -> 'level', 'because', v_res -> 'because');
+    end loop;
+    x := items -> 'yeast';
+    v_res := app.style_level(v_style, (x ->> 'ingredient_id')::bigint, 'ferment',
+        jsonb_build_object('ferm_c', x -> 'ferm_c', 'ibu', v_ibu, 'srm', v_srm));
+    v_lines := v_lines || jsonb_build_object('kind', 'yeast', 'ingredient_id', x -> 'ingredient_id',
+        'name', x -> 'name', 'usage', 'ferment', 'level', v_res -> 'level', 'because', v_res -> 'because');
+
+    -- required characteristic ingredients
+    for r in
+        select si.*, i.name as ing_name, t.name as tag_name
+        from ref.style_ingredient si
+        left join ref.ingredient i on i.id = si.ingredient_id
+        left join ref.tag t on t.id = si.tag_id
+        where si.style_id = st.id and si.required and si.reviewed
+        order by si.id
+    loop
+        if r.role is not null then
+            v_what := 'a ' || r.role || ' fermentable'
+                || case when r.min_pct is not null then ' of at least ' || r.min_pct || '% of the grist' else '' end;
+            select coalesce(sum((f ->> 'pct')::numeric), 0) into v_pct
+                from jsonb_array_elements(items -> 'fermentables') f where f ->> 'role' = r.role;
+            v_met := v_pct > 0 and v_pct >= coalesce(r.min_pct, 0);
+            v_required := v_required || jsonb_build_object('requirement', v_what, 'met', v_met,
+                'because', case when v_met then 'the recipe has ' || v_pct || '% ' || r.role
+                                else 'the recipe has ' || v_pct || '% ' || r.role end
+                           || ' for ' || v_label || ': ''' || r.quote || '''');
+        elsif r.ingredient_id is not null then
+            v_what := r.ing_name;
+            v_met := exists (select 1 from jsonb_array_elements(items -> 'fermentables') f
+                             where (f ->> 'ingredient_id')::bigint = r.ingredient_id)
+                  or exists (select 1 from jsonb_array_elements(items -> 'hops') h
+                             where (h ->> 'ingredient_id')::bigint = r.ingredient_id)
+                  or (items -> 'yeast' ->> 'ingredient_id')::bigint = r.ingredient_id;
+            v_required := v_required || jsonb_build_object('requirement', v_what, 'met', v_met,
+                'because', case when v_met then v_what || ' is in the recipe' else v_what || ' is not in the recipe' end
+                           || ' for ' || v_label || ': ''' || r.quote || '''');
+        else
+            v_what := 'an ingredient tagged ' || r.tag_name;
+            v_met := exists (
+                select 1 from ref.ingredient_tag it
+                where it.tag_id = r.tag_id
+                  and (it.ingredient_id in (select (f ->> 'ingredient_id')::bigint from jsonb_array_elements(items -> 'fermentables') f)
+                       or it.ingredient_id in (select (h ->> 'ingredient_id')::bigint from jsonb_array_elements(items -> 'hops') h)
+                       or it.ingredient_id = (items -> 'yeast' ->> 'ingredient_id')::bigint));
+            v_required := v_required || jsonb_build_object('requirement', v_what, 'met', v_met,
+                'because', case when v_met then 'the recipe has ' || v_what else 'the recipe has no ' || v_what end
+                           || ' for ' || v_label || ': ''' || r.quote || '''');
+        end if;
+    end loop;
+
+    -- min check on the recipe totals (hops and roast)
+    for s in
+        select * from ref.style_sensory ss
+        where ss.style_id = st.id and ss.reviewed and ss.dimension in ('hop_flavour', 'hop_aroma', 'roast')
+        order by ss.dimension
+    loop
+        if s.dimension = 'roast' then
+            v_lvl := app.intensity_level('roast_index', v_roast);
+            v_total := v_roast;
+        else
+            if v_oil_miss > 0 or v_volume is null then
+                continue;
+            end if;
+            v_lvl := app.intensity_level('oil_ml_per_l', v_oil);
+            v_total := v_oil;
+        end if;
+        if v_lvl < s.min_level - v_tol then
+            v_little := v_little || jsonb_build_object('dimension', s.dimension, 'level', v_lvl, 'min', s.min_level,
+                'because', 'too little ' || replace(s.dimension, '_', ' ') || ': the recipe total is '
+                    || app.level_word(v_lvl) || ', ' || v_label || ' wants at least ' || app.level_word(s.min_level::int)
+                    || ': ''' || s.quote || '''.');
+        end if;
+    end loop;
+
+    return jsonb_build_object('style_code', v_style, 'lines', v_lines, 'required', v_required,
+                              'too_little', v_little);
+end
+$$;

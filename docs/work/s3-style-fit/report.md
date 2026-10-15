@@ -157,3 +157,34 @@ The user approved it 2026-10-15: every theme as drafted, except
   Saaz, and not really available on hopline as well"): `db/035_drop_sterling.sql`, excluded in
   `loaders.hop_products.EXCLUDED` (9908734). Measured after: 89 hops, `ref.ingredient_review` 38
   (the YeastFlow yeasts, no hop).
+
+## 6. Reference recipes against the style fit (Task 9, 2026-10-15)
+
+`app.style_fit_recipe` is written (db/034) and `tests/test_style_fit_recipe.py` exists; nothing is
+committed. Run over the 22 reference recipes (SRM and IBU are the recipe's computed numbers from
+`app.check_recipe`):
+
+### Lines outside b16 rice, b19 honey, b20 lactose
+
+| Recipe | Style | Lines | Level | Because | Measured vs range |
+|---|---|---|---|---|---|
+| b08 | 5D German Pils | Magnum, Hallertau Mittelfrüh | out_of_style | too much bitterness | 48.6 IBU vs 22-40 (brief asks for ~50 IBU: a stated deviation) |
+| b18 | 15A Irish Red Ale | Caramel 100, Roasted Barley, Carafa Special Type 1 | out_of_style | too much colour | 18.7 SRM vs 9-14 (brief asks for 20 SRM: a stated deviation) |
+| b10 | 26B Belgian Dubbel | Caramunich Type 3 | out_of_style | too much colour | 19.2 SRM vs 10-17 (no stated deviation; fixture target says 13.5) |
+
+### Recipe totals more than one level below a style min (`too_little`)
+
+| Recipe | Style | Sensation | Measured | Min |
+|---|---|---|---|---|
+| b07 | 1C Cream Ale | hop flavour | none (0) | low (2) |
+| b12 | 18A Blonde Ale | hop flavour | none (0) | low (2) |
+| b22 | Mexican-Style Amber Lager | roast | none (0) | low (2) |
+
+### Decisions (user, 2026-10-15) and result
+
+1. b08, b18: accepted in `ACCEPTED_LINES` as the briefs' own deviations (about 50 IBU, 20 SRM).
+2. b10: Brown Candi Sugar 10 → 7 %, Pilsner Malt 70 → 73 %. Computed SRM 19.2 → 16.7 (style 10-17); OG 1.0685 unchanged; IBU 19.9 unchanged.
+3. b07: added Willamette, 15 min, 15 g (IBU 13.7 → 18.5, style 8-20; hop flavour now low). b12: added Cascade, 15 min, 15 g (IBU 21.3 → 27.7, style 15-28).
+4. b22 / Mexican-Style Amber Lager: roast `min` low → none (quote: "light roast ... may be present"); reloaded, 26 styles; the 53 golden cases still pass.
+
+After these: `tests/test_style_fit_recipe.py` 5 passed, `ACCEPTED_TOTALS` empty; full `pytest` 530 passed, 1 failed (the known `test_db_enzyme_and_boil`) (measured).

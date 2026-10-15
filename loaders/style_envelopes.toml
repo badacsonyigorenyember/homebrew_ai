@@ -1938,7 +1938,7 @@ quote = "Medium-low to medium-high caramel and bready malt aroma and flavor"
 
 [[style.sensory]]
 dimension = "roast"
-min = "low"
+min = "none"
 max = "low"
 characters = []
 unknown = []
