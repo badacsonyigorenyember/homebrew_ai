@@ -103,6 +103,11 @@ Colour and bitterness are not levels: the recipe's SRM and IBU (s1's `app.srm` a
 via `app.check_recipe`) are compared with the style's `srm` and `ibu` ranges in
 `ref.beer_style`. Above the upper bound → ⚠️ "too much". A style with no range skips the check.
 
+Colour is a lower bound where a fermentable has no sourced colour (Honey, Lactose, Enzyme Malt):
+`app.style_fit_recipe` counts it as 0 EBC, so the SRM is a floor. "Too much" fires only when that
+floor is already above the style's maximum, and the because names the fermentables without colour.
+`app.check_recipe` is unchanged and still returns SRM null for such a recipe.
+
 ---
 
 ## 5. The decision
