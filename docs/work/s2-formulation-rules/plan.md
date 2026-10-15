@@ -1,6 +1,6 @@
 # S2 · Formulation rules and ingredient data — implementation plan
 
-Stage: review
+Stage: verify
 Brief: [brief.md](brief.md)
 Branch: s2-formulation-rules
 
