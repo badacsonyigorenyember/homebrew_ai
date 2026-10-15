@@ -1,6 +1,6 @@
 # S3 · Style fit: tags, envelopes and the level function — implementation plan
 
-Stage: review
+Stage: verify
 Brief: [brief.md](brief.md)
 Branch: s3-style-fit
 
