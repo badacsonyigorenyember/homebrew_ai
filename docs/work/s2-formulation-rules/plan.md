@@ -372,7 +372,7 @@ Commit: `Add formulation rule text and limits`
 
 ### Task 6: The check: inputs, numbers and the grist rules 1–6
 Why: R11, R12, R13, R14, R15 (A8 for rules 1–6, A9, A11, A15).
-- [ ] Write the contracts. Input (`formulation_check.input`), all top-level properties
+- [x] Write the contracts. Input (`formulation_check.input`), all top-level properties
       required, `additionalProperties: false`: `style_code` string; `guidance` boolean;
       `stated` object of optional numbers `og fg abv ibu srm`; `targets` object with required
       numbers `og fg abv ibu srm`; `batch` `{volume_l, efficiency_pct, boil_off_l_h, losses_l}`;
@@ -382,11 +382,11 @@ Why: R11, R12, R13, R14, R15 (A8 for rules 1–6, A9, A11, A15).
       `calc_version`; `numbers` `{og, fg, abv, srm, ibu, attenuation_pct, missing[]}` (each
       number nullable); `results` array of `{rule, status: pass|fail|unknown, message,
       failures: [{text, items: [{ingredient_id, name}], value, limit}], missing: [string]}`.
-- [ ] `tests/test_contracts.py`: add both names to `NAMES`; the `run_id` requirement applies to
+- [x] `tests/test_contracts.py`: add both names to `NAMES`; the `run_id` requirement applies to
       names starting with `step` only; `ABSENT_SLOTS["formulation_check.output"] =
       [("results.status", "enum:unknown"), ("numbers.fg", "null")]`; one good and one bad
       example each.
-- [ ] Create `db/032_formulation_check.sql` (header like `db/030_maths.sql`; needs 010, 015,
+- [x] Create `db/032_formulation_check.sql` (header like `db/030_maths.sql`; needs 010, 015,
       030, 031):
       - `app.ebc_mid(ebc numrange) returns numeric`: midpoint; one bound when the other is
         open; null for null.
@@ -407,8 +407,8 @@ Why: R11, R12, R13, R14, R15 (A8 for rules 1–6, A9, A11, A15).
         target OG, then `og`, `fg` at `mash_attenuation`, `abv`, `grist_mcu` + `srm`, and `ibu`
         via `preboil_volume` and `boil_gravity` when every hop has `g`); results for the rules
         built so far, in rule order.
-- [ ] Apply twice; functions owned by `postgres`.
-- [ ] Write stack tests `tests/test_formulation_check.py` (a passing base recipe built in the
+- [x] Apply twice; functions owned by `postgres`.
+- [x] Write stack tests `tests/test_formulation_check.py` (a passing base recipe built in the
       test from ids looked up by name): for each of rules 1–6 one recipe that passes and one that
       fails exactly that rule (and passes rules 1–6 otherwise) (A8); limits at the boundary pass
       (25 % crystal) and just above fail; `test_failure_names_rule_items_value_limit` and
@@ -419,7 +419,7 @@ Why: R11, R12, R13, R14, R15 (A8 for rules 1–6, A9, A11, A15).
       `test_ebc_mid` (Caraamber `[60,80]` → 70 counts as above 60, Carared `[40,60]` → 50 does
       not, `(,8]` → 8) (A15); `test_bad_input_raises` (unknown id, hop id in fermentables,
       percentages summing to 95).
-- [ ] Run `pytest tests/test_formulation_check.py tests/test_contracts.py`, expect pass.
+- [x] Run `pytest tests/test_formulation_check.py tests/test_contracts.py`, expect pass.
       PROJECT.md §8 line.
 Done when: rules 1–6 return pass, fail and unknown as specified; numbers match s1.
 Commit: `Add recipe check with numbers and grist rules`
