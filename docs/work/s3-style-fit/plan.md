@@ -353,7 +353,7 @@ Commit: `Add style-fit cut points and golden set`
 
 ### Task 7: Usage effects, cut points and intensity in SQL
 Why: R5, R7 (A7).
-- [ ] `db/033_style_fit_effects.sql` (header as `db/031`; `create or replace`):
+- [x] `db/033_style_fit_effects.sql` (header as `db/031`; `create or replace`):
   - `app.usage_effects() returns table (kind text, applies_to text, usage text, min_minutes
     int, max_minutes int, dimension text, carries_character boolean)`: one `values` row per
     STYLE-FIT §3 entry: hop boil ≥ 30 → bitterness (no character); boil 5–29 → bitterness,
@@ -370,16 +370,16 @@ Why: R5, R7 (A7).
   - `app.oil_dose(g_per_l numeric, total_oil numrange) returns numeric` and
     `app.roast_index(pct numeric, ebc numrange) returns numeric`, using the range midpoint
     (`app.ebc_mid` for EBC).
-- [ ] Apply twice as `postgres`; functions owned by `postgres`.
-- [ ] Write tests in `tests/test_style_fit_effects.py` (stack): `test_every_cut_point_has_a_basis`
+- [x] Apply twice as `postgres`; functions owned by `postgres`.
+- [x] Write tests in `tests/test_style_fit_effects.py` (stack): `test_every_cut_point_has_a_basis`
       (A7: every entry's `basis` matches `p\. ?\d+` or starts with `set by the user`),
       `test_thresholds_ascend`, `test_intensity_level_bounds` (below the first → 0, at a
       threshold → that level, above the last → 7), `test_usage_effects_match_style_fit` (dry hop
       → only hop_aroma with character; boil 60 → only bitterness, no character),
       `test_no_corpus_in_style_fit` (A7: no `corpus.` in `db/033_*.sql`, `db/034_*.sql`,
       `loaders/tags.py`, `loaders/style_envelopes.py`).
-- [ ] Run `pytest tests/test_style_fit_effects.py`, expect all pass.
-- [ ] PROJECT.md §8 line.
+- [x] Run `pytest tests/test_style_fit_effects.py`, expect all pass.
+- [x] PROJECT.md §8 line.
 Done when: the tests pass.
 Commit: `Add style-fit usage effects and cut points`
 
@@ -517,6 +517,7 @@ Commit: `Record s3 style fit status`
 None.
 
 ## Deviations
+- 2026-10-15 · Task 7: `test_every_cut_point_has_a_basis` also accepts a basis starting "decided, STYLE-FIT" — the character-match thresholds (0.8 / 0.3) are decided in STYLE-FIT.md §5, not a book figure or a user value. `app.usage_effects()` has 25 rows: crystal and roast each get mash and boil rows; brett, sour and smoke are present/absent (no character).
 - 2026-10-15 · Tasks 6, 8, 9: the user's answers to the cut-point review. Ester base for an ester character is 3, not the proposed 4 (at 4, b05's S-04 is above 15B's medium-low); the warm step is +1 above 21 °C (*How to Brew* p. 443), not above the yeast's `temp_c` midpoint (b05 again), and applies to phenols too; `spicy` counts as phenolic. Step 0 counts reviewed `style_ingredient` rows, so 31B and the BA Specialty Honey Beer are rated. A min check is added with a one-level tolerance: per ingredient for yeasts in `style_level` (Task 8, `test_yeast_too_little`), on recipe totals for hops and roast in `style_fit_recipe` (Task 9, `test_recipe_too_little`, `test_reference_recipe_totals`); b07, b12 and b22 go to Task 9's stop. The user chose it through golden case y02 (US-05 in 10A → ⚠️) and agreed to all of it; STYLE-FIT §4–§5 updated.
 - 2026-10-15 · Task 6: the drafts (`cut-points.md`, `golden-review.md`, the golden fixture) were committed before the user's answer (fa8119d), marked unapproved, so the walk-through could show them; the plan said "commit nothing before the answer". Golden set approved as drafted except y02 (now ⚠️) and u02 (dropped with Sterling).
 - 2026-10-15 · Task 6: the user removed the Sterling hop ("It is from Saaz, and not really available on hopline as well, so I won´t encounter with it"): `db/035_drop_sterling.sql` deletes it (cascade to `ref.hop`, `ingredient_tag`, `ingredient_review`), `loaders.hop_products.EXCLUDED` keeps the loader from re-adding it; the hop counts in `tests/test_hops.py::test_hop_map` and `tests/test_tags.py::test_every_hop_tagged_or_flagged` go 90 → 89; golden case u02 (Sterling) is dropped; flagged ingredients 39 → 38.
