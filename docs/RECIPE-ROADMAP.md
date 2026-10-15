@@ -290,13 +290,13 @@ flowchart LR
 | **P0** | 20 test briefs (varied styles, deviations, overrides, not just stouts) in [`evals/recipe_briefs.toml`](../evals/recipe_briefs.toml), reviewed by you. D7 and D9 moved to P3; D8 decided. | ✅ done 2026-10-11: 20 briefs in the repo, 16 BJCP categories, all six adjuncts needed, `tests/test_recipe_briefs.py` 10 passed |
 | **P1** | `ref` + `corpus` schemas ([DATABASE.md](DATABASE.md)). Load styles (116 + 169), malts, adjuncts, hops, hopline yeasts, water salts, the corpus with quality gates ([STYLE-PROFILES.md](STYLE-PROFILES.md) §2). | row counts match sources · 10 rows spot-checked per table. **P1a (`ref`) ✅ done 2026-10-11:** 285 styles, 298 ingredients, spot-checked ([PROJECT.md](../PROJECT.md) §4). **P1b (`corpus`)** not started |
 | **P2** | Maths library with unit tests | tests pass against Palmer's and OBC's worked examples. **✅ done 2026-10-14** ([`s1-maths`](finished/s1-maths/plan.md)): 19 functions in `db/030_maths.sql`, `tests/test_maths.py` 79 passed (full suite 331). Palmer: all 160 Tinseth cells and 140 ABV cells, 7 FG cells, OG, colour and IBU examples. OBC: OG and MCU of both beers; its SRM and IBU are Daniels' model and not tested |
-| **P3** | Tag vocabulary · ingredient tags · usage effects · envelopes for the test styles · `style_profile`. Settle D9 (D7 settled 2026-10-14, [`s2-formulation-rules`](work/s2-formulation-rules/brief.md)). | the Citra table (§5) reproduces from SQL |
+| **P3** | Tag vocabulary · ingredient tags · usage effects · envelopes for the test styles · `style_profile`. Settle D9 (D7 settled 2026-10-14, [`s2-formulation-rules`](finished/s2-formulation-rules/brief.md)). | the Citra table (§5) reproduces from SQL |
 | **P4** | Steps 0–3. Step 2 picks the style from BJCP 2021 or BA 2026 per D1 (§9): BJCP preferred, BA where it describes the beer better or the user is asked, and one guide only when the user sets BJCP only or BA only | ≥ 18/20 briefs: right style, right deviations |
 | **P5** | Steps 4–11 | ≥ 16/20 validate · **0 invented ingredients** · LLM calls ≤ 2 + tie-breaks |
 | **P7** | Doc → calc pass per book, then ingest the rest into `kb`, retrieval eval | recall@5 measured, above an agreed bar |
 | **P6** | Steps 12–15, with the water functions (moved from P2, 2026-10-14, [`s1-maths`](finished/s1-maths/brief.md)) | every recipe has water, mash, ferment, package |
 | **P8** | Step 16 + interface: n8n chat trigger (D5, decided) | you can brew from the sheet |
-| **Later** | - inventory-first mode<br>- substitutions<br>- batch log → feedback<br>- whirlpool and dry-hop IBU from a cited model (they count as 0 IBU until then; [`s1-maths`](finished/s1-maths/brief.md), 2026-10-14)<br>- an enzyme rule using `enzyme_activity`<br>- the ratio corpus (old s2), revisited only if test-brief results show generic or off recipes<br>- TODO: replace rule 10's uncited linear mash-temperature mapping with a cited model of mash temperature's effect on attenuation (for example *How to Brew*'s mash chapter, via a doc → calc pass)<br>- TODO: multi-step mash profiles (several rests, decoction) and their effect on predicted FG, replacing the single mash temperature in rule 10 and s1's FG ([`s2-formulation-rules`](work/s2-formulation-rules/brief.md), user request 2026-10-15) | |
+| **Later** | - inventory-first mode<br>- substitutions<br>- batch log → feedback<br>- whirlpool and dry-hop IBU from a cited model (they count as 0 IBU until then; [`s1-maths`](finished/s1-maths/brief.md), 2026-10-14)<br>- an enzyme rule using `enzyme_activity`<br>- the ratio corpus (old s2), revisited only if test-brief results show generic or off recipes<br>- TODO: replace rule 10's uncited linear mash-temperature mapping with a cited model of mash temperature's effect on attenuation (for example *How to Brew*'s mash chapter, via a doc → calc pass)<br>- TODO: multi-step mash profiles (several rests, decoction) and their effect on predicted FG, replacing the single mash temperature in rule 10 and s1's FG ([`s2-formulation-rules`](finished/s2-formulation-rules/brief.md), user request 2026-10-15) | |
 
 ---
 
@@ -304,7 +304,7 @@ flowchart LR
 
 | # | Question | Recommendation |
 |---|---|---|
-| D7 | Ratio source | Decided 2026-10-14 (see [PROJECT.md](../PROJECT.md) §3): no ratio corpus; the LLM proposes, code scales and checks; revisit if test briefs show a need. Work: [`s2-formulation-rules`](work/s2-formulation-rules/brief.md) |
+| D7 | Ratio source | Decided 2026-10-14 (see [PROJECT.md](../PROJECT.md) §3): no ratio corpus; the LLM proposes, code scales and checks; revisit if test briefs show a need. Work: [`s2-formulation-rules`](finished/s2-formulation-rules/brief.md) |
 | D9 | Who approves style envelopes (decided in P3) | LLM extracts, you review |
 
 D1 (style guide) is decided, 2026-10-11: both guides are used, BJCP 2021 preferred; BA where it
