@@ -163,7 +163,7 @@ Commit: `Add fermentable formulation columns and tables`
 
 ### Task 3: Loader with roles, limits, enzyme activity and substitutes
 Why: R1, R2, R3, R4, R5, R8 (A1, A2, A3, A4 data side). Not loaded yet.
-- [ ] Create `loaders/fermentable_facts.toml`. One `[[fermentable]]` table per row of the 81,
+- [x] Create `loaders/fermentable_facts.toml`. One `[[fermentable]]` table per row of the 81,
       keyed by `producer` (`""` for the 7 adjuncts) and `name` exactly as in `ref.ingredient`.
       Fields: `role`, `role_source`, `role_note` (chart group and row, or "R1 list"),
       optional `max_pct` + `max_pct_basis` (only the 18), optional `enzyme_activity` +
@@ -171,7 +171,7 @@ Why: R1, R2, R3, R4, R5, R8 (A1, A2, A3, A4 data side). Not loaded yet.
       and (Task 4) `description`, `description_source`, `description_ref`, `style_names`,
       `styles_source`. Then `[[substitute]]` tables: `a = [producer, name]`, `b = [...]`,
       `source`, `note`.
-- [ ] **Roles** (R1). Chart groups, read from the chart PDF (`pdftotext -layout`; page 1 rows
+- [x] **Roles** (R1). Chart groups, read from the chart PDF (`pdftotext -layout`; page 1 rows
       5–6 of 1D are one merged cell, checked as an image): 1A → base, 1B → kilned, 1C → crystal,
       1D → roast, source `malt-substitution-2025`:
       - base (1A): Weyermann Extra Pale Premium Pilsner, Pilsner, Vienna, Pale Ale; Viking
@@ -199,7 +199,7 @@ Why: R1, R2, R3, R4, R5, R8 (A1, A2, A3, A4 data side). Not loaded yet.
 
       Expected counts with Sprau open: base 20, kilned 13, crystal 27, roast 13, adjunct 4,
       sugar 3.
-- [ ] **max_pct** (R2), exactly decision E, `max_pct_source = "user-supplied"` and a
+- [x] **max_pct** (R2), exactly decision E, `max_pct_source = "user-supplied"` and a
       `max_pct_basis` per value: Viking Munich Light 100, Munich Dark 100,
       Lightly Peated 100, Smoked Wheat 100; Caramel 30 and 50 → 20; Caramel 100, 150, 200 → 15;
       Caramel 300, 400, 600 → 10; Flaked Oats 30, Flaked Barley 20, Flaked Corn 20, Honey 20,
@@ -208,12 +208,12 @@ Why: R1, R2, R3, R4, R5, R8 (A1, A2, A3, A4 data side). Not loaded yet.
       *How to Brew* estimate, forum consensus, recipe range, with the page or text where found),
       or `"unplaced"` when nothing supports one. The user confirms them at the Task 4 stop;
       `check()` raises on `"unplaced"`, so nothing loads before that.
-- [ ] **Enzyme activity** (R3) from the Weyermann catalogue's "Enzyme activity:" line per malt
+- [x] **Enzyme activity** (R3) from the Weyermann catalogue's "Enzyme activity:" line per malt
       (none, low, high as printed; medium → normal) with the page as `enzyme_ref`; from the
       Viking text: Munich Light/Dark "clearly reduced" → low (p. 23), Caramel 30–600 "zero" →
       none (p. 24), plus any other Viking page that states a level in words. Every other row has
       no `enzyme_activity`.
-- [ ] **Substitutes** (R5). Chart pairs, source `malt-substitution-2025`, note = group and row
+- [x] **Substitutes** (R5). Chart pairs, source `malt-substitution-2025`, note = group and row
       (19): 1A Pilsner↔Pilsner (row 2), Vienna↔Vienna (4), Pale Ale↔Pale Ale (5); 1B Munich
       Type 1↔Munich Light (1), Munich Type 2↔Munich Dark (2), Melanoidin↔Red Ale (5); 1C
       Carapils↔CaraBody (1), Carahell↔Caramel 30 (5), Carared↔Caramel 50 (7), Caramunich Type
@@ -227,7 +227,7 @@ Why: R1, R2, R3, R4, R5, R8 (A1, A2, A3, A4 data side). Not loaded yet.
       Promise↔Viking Pale Ale, Maris Otter↔Weyermann Pale Ale, Maris Otter↔Viking Pale Ale
       (both Pale Ales, user decision 2026-10-15). 27 pairs in all. None for Viking Caramel 200,
       the smoked malts, Sprau, Crystal T50.
-- [ ] Create `loaders/fermentable_facts.py`: `read(path) -> dict`; `check(data, rows)` raises on
+- [x] Create `loaders/fermentable_facts.py`: `read(path) -> dict`; `check(data, rows)` raises on
       a name not in `ref.ingredient`, a role/enzyme value outside the allowed sets, a source slug
       not in `ref.source`, a `max_pct` on a row that is not one of the 18, a `min_boil_min` above
       60 that `propose_min_boil` did not propose, a pair listed twice or with itself;
@@ -238,14 +238,14 @@ Why: R1, R2, R3, R4, R5, R8 (A1, A2, A3, A4 data side). Not loaded yet.
       `min_boil_min` on every row (60 unless the file says otherwise, source
       `palmer-how-to-brew`). `main()` with `--propose-min-boil` prints the rows the proposal sets
       above 60 and loads nothing. Docstring states the load order.
-- [ ] Write unit tests in `tests/test_fermentable_facts.py`: `test_roles_match_r1` (the full
+- [x] Write unit tests in `tests/test_fermentable_facts.py`: `test_roles_match_r1` (the full
       expected role per row from the lists above, and the counts), `test_max_pct_is_decision_e`
       (exactly the 18 values), `test_substitute_pairs` (exactly the 27 pairs above, no
       duplicates, none for the R5 no-substitute rows), `test_enzyme_medium_is_normal`,
       `test_propose_min_boil` (Pilsner 3.5 base → 90, Pale Ale 6.5 base → 60, crystal 3 → 60,
       no EBC → 60, open range `(,8]` uses 8), `test_every_value_names_a_source`,
       `test_check_rejects_unknown_name`.
-- [ ] Run `pytest tests/test_fermentable_facts.py`, expect pass. PROJECT.md §8 line.
+- [x] Run `pytest tests/test_fermentable_facts.py`, expect pass. PROJECT.md §8 line.
 Done when: the data file holds every decided value and the tests pass; nothing is loaded.
 Commit: `Add fermentable facts loader and decided data`
 
@@ -535,3 +535,8 @@ None.
   options: `max_pct` basis per value with a review stop in Task 4 (no per-value basis given yet);
   rule 10's target FG range as the Approach states; Golden Promise and Maris Otter pair with both
   Pale Ales (27 pairs). Brief R2, R5 and R10 rule 10 clarified to match.
+- 2026-10-15 · Task 3: `check(data, rows, sources, allow_unplaced=False)` takes the ref source slugs and
+  an `allow_unplaced` switch (tests read the file with it on; `load` never does) — the plan's
+  `check(data, rows)` could not both raise on "unplaced" and let Task 3's tests run before the
+  user places the bases. `rows` carries each row's EBC range and existing `max_pct` source.
+  Enzyme page references (`enzyme_ref`) are PDF pages and stay in the TOML (no column for them).

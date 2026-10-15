@@ -1,0 +1,942 @@
+# Hand-checked facts for ref.fermentable (s2-formulation-rules), read by loaders/fermentable_facts.py.
+# One [[fermentable]] per row of the 81, keyed by producer ("" for the 7 adjuncts and sugars) and
+# name exactly as in ref.ingredient. A field that is absent here is not loaded.
+#   role, role_source, role_note   R1: chart group and row, or the R1 list
+#   max_pct, max_pct_source, max_pct_basis   only the 18 values of user decision E; the basis is where
+#                                  the value comes from, or "unplaced" until the user has placed it
+#   enzyme_activity, enzyme_source, enzyme_ref   what the maltster prints (Weyermann "medium" = normal)
+#   min_boil_min                   only user-confirmed values above 60 (none yet)
+# [[substitute]] lists each pair once, either way round.
+
+[[fermentable]]
+producer = "Simpsons Malt"
+name = "Crystal Extra Dark"
+role = "crystal"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+
+[[fermentable]]
+producer = "Simpsons Malt"
+name = "Crystal T50"
+role = "crystal"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+
+[[fermentable]]
+producer = "Simpsons Malt"
+name = "DRC"
+role = "crystal"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+
+[[fermentable]]
+producer = "Simpsons Malt"
+name = "Finest Pale Ale Golden Promise"
+role = "base"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+
+[[fermentable]]
+producer = "Simpsons Malt"
+name = "Finest Pale Ale Maris Otter"
+role = "base"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Black Malt"
+role = "roast"
+role_source = "malt-substitution-2025"
+role_note = "chart 1D row 5-6"
+enzyme_activity = "none"
+enzyme_source = "viking-malt-2023"
+enzyme_ref = "p. 30: 'amylolytic activity of Black Malt is zero'"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "CaraBody Malt"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 1"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Caramel 100 Malt"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 9"
+max_pct = 15
+max_pct_source = "user-supplied"
+max_pct_basis = "How to Brew estimate, printed p. 230: caramel malts are typically added as 5%-15% of the total grain bill (15 is the top of that range)"
+enzyme_activity = "none"
+enzyme_source = "viking-malt-2023"
+enzyme_ref = "p. 24: 'The amylolytic activity of Viking Caramel Malts is zero'"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Caramel 150 Malt"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 11"
+max_pct = 15
+max_pct_source = "user-supplied"
+max_pct_basis = "How to Brew estimate, printed p. 230: caramel malts are typically added as 5%-15% of the total grain bill (15 is the top of that range)"
+enzyme_activity = "none"
+enzyme_source = "viking-malt-2023"
+enzyme_ref = "p. 24: 'The amylolytic activity of Viking Caramel Malts is zero'"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Caramel 200 Malt"
+role = "crystal"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+max_pct = 15
+max_pct_source = "user-supplied"
+max_pct_basis = "How to Brew estimate, printed p. 230: caramel malts are typically added as 5%-15% of the total grain bill (15 is the top of that range)"
+enzyme_activity = "none"
+enzyme_source = "viking-malt-2023"
+enzyme_ref = "p. 24: 'The amylolytic activity of Viking Caramel Malts is zero'"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Caramel 30 Malt"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 5"
+max_pct = 20
+max_pct_source = "user-supplied"
+max_pct_basis = "unplaced"
+enzyme_activity = "none"
+enzyme_source = "viking-malt-2023"
+enzyme_ref = "p. 24: 'The amylolytic activity of Viking Caramel Malts is zero'"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Caramel 300 Malt"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 13"
+max_pct = 10
+max_pct_source = "user-supplied"
+max_pct_basis = "unplaced"
+enzyme_activity = "none"
+enzyme_source = "viking-malt-2023"
+enzyme_ref = "p. 24: 'The amylolytic activity of Viking Caramel Malts is zero'"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Caramel 400 Malt"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 14"
+max_pct = 10
+max_pct_source = "user-supplied"
+max_pct_basis = "unplaced"
+enzyme_activity = "none"
+enzyme_source = "viking-malt-2023"
+enzyme_ref = "p. 24: 'The amylolytic activity of Viking Caramel Malts is zero'"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Caramel 50 Malt"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 7"
+max_pct = 20
+max_pct_source = "user-supplied"
+max_pct_basis = "unplaced"
+enzyme_activity = "none"
+enzyme_source = "viking-malt-2023"
+enzyme_ref = "p. 24: 'The amylolytic activity of Viking Caramel Malts is zero'"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Caramel 600 Malt"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 15"
+max_pct = 10
+max_pct_source = "user-supplied"
+max_pct_basis = "unplaced"
+enzyme_activity = "none"
+enzyme_source = "viking-malt-2023"
+enzyme_ref = "p. 24: 'The amylolytic activity of Viking Caramel Malts is zero'"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Caramel Pale Malt"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 2"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Chocolate Dark Malt"
+role = "roast"
+role_source = "malt-substitution-2025"
+role_note = "chart 1D row 4"
+enzyme_activity = "none"
+enzyme_source = "viking-malt-2023"
+enzyme_ref = "p. 22: 'amylolytic activity ... is zero'"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Chocolate Light Malt"
+role = "roast"
+role_source = "malt-substitution-2025"
+role_note = "chart 1D row 2"
+enzyme_activity = "none"
+enzyme_source = "viking-malt-2023"
+enzyme_ref = "p. 21: 'amylolytic activity ... is zero'"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Cookie Malt"
+role = "roast"
+role_source = "malt-substitution-2025"
+role_note = "chart 1D row 1"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Dextrin Malt"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 4"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Enzyme Malt"
+role = "base"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Golden Ale Malt"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 3"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Lightly Peated Malt"
+role = "base"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+max_pct = 100
+max_pct_source = "user-supplied"
+max_pct_basis = "Viking catalogue, p. 44: 'can be considered as Pilsner Malt with a special aroma' (no limit stated)"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Munich Dark Malt"
+role = "kilned"
+role_source = "malt-substitution-2025"
+role_note = "chart 1B row 2"
+max_pct = 100
+max_pct_source = "user-supplied"
+max_pct_basis = "unplaced"
+enzyme_activity = "low"
+enzyme_source = "viking-malt-2023"
+enzyme_ref = "p. 23: 'clearly reduced enzyme activities compared to Pilsner Malt'"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Munich Light Malt"
+role = "kilned"
+role_source = "malt-substitution-2025"
+role_note = "chart 1B row 1"
+max_pct = 100
+max_pct_source = "user-supplied"
+max_pct_basis = "unplaced"
+enzyme_activity = "low"
+enzyme_source = "viking-malt-2023"
+enzyme_ref = "p. 23: 'clearly reduced enzyme activities compared to Pilsner Malt'"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Pale Ale Malt"
+role = "base"
+role_source = "malt-substitution-2025"
+role_note = "chart 1A row 5"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Pilsner Malt"
+role = "base"
+role_source = "malt-substitution-2025"
+role_note = "chart 1A row 2"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Red Active Malt"
+role = "kilned"
+role_source = "malt-substitution-2025"
+role_note = "chart 1B row 3"
+enzyme_activity = "high"
+enzyme_source = "viking-malt-2023"
+enzyme_ref = "p. 19: 'The strong enzyme activity'"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Red Ale Malt"
+role = "kilned"
+role_source = "malt-substitution-2025"
+role_note = "chart 1B row 5"
+enzyme_activity = "low"
+enzyme_source = "viking-malt-2023"
+enzyme_ref = "p. 20: 'The amylolytic activity of Red Ale Malt is low'"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Roasted Barley"
+role = "roast"
+role_source = "malt-substitution-2025"
+role_note = "chart 1D row 9"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Rye Malt"
+role = "base"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Smoked Malt (cherry wood)"
+role = "kilned"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Smoked Malt (pear wood)"
+role = "kilned"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Smoked Wheat Malt"
+role = "base"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+max_pct = 100
+max_pct_source = "user-supplied"
+max_pct_basis = "Viking catalogue, p. 42: 'even 100% dosages are used' for grodziskie"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Sprau Malt"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Vienna Malt"
+role = "base"
+role_source = "malt-substitution-2025"
+role_note = "chart 1A row 4"
+
+[[fermentable]]
+producer = "Viking Malt"
+name = "Wheat Malt"
+role = "base"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Abbey Malt"
+role = "kilned"
+role_source = "malt-substitution-2025"
+role_note = "chart 1B row 6"
+enzyme_activity = "low"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 38"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Acidulated Malt"
+role = "kilned"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Beech Smoked Barley Malt"
+role = "kilned"
+role_source = "malt-substitution-2025"
+role_note = "chart 1B row 10"
+enzyme_activity = "high"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 9"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Bohemian Pilsner Malt"
+role = "base"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+enzyme_activity = "high"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 33"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Caraamber"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 8"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 20"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Caraaroma"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 14"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 27"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Carabelge"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 6"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 18"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Carabohemian"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 12"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 26"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Carafa Special Type 1"
+role = "roast"
+role_source = "malt-substitution-2025"
+role_note = "chart 1D row 7"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 43"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Carafa Special Type 2"
+role = "roast"
+role_source = "malt-substitution-2025"
+role_note = "chart 1D row 7"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 44"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Carafa Special Type 3"
+role = "roast"
+role_source = "malt-substitution-2025"
+role_note = "chart 1D row 7"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 45"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Carafa Type 1"
+role = "roast"
+role_source = "malt-substitution-2025"
+role_note = "chart 1D row 4"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 40"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Carafa Type 2"
+role = "roast"
+role_source = "malt-substitution-2025"
+role_note = "chart 1D row 5-6"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 41"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Carafa Type 3"
+role = "roast"
+role_source = "malt-substitution-2025"
+role_note = "chart 1D row 6"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 42"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Carahell"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 5"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 17"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Caramunich Type 1"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 9"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 21"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Caramunich Type 2"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 10"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 22"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Caramunich Type 3"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 11"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 23"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Carapils"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 1"
+enzyme_activity = "low"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 16"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Carared"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 7"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 19"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Carawheat"
+role = "crystal"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 14"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Chocolate Wheat Malt"
+role = "roast"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 15"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Eraclea Pilsner Malt"
+role = "base"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+enzyme_activity = "high"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 28"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Extra Pale Premium Pilsner Malt"
+role = "base"
+role_source = "malt-substitution-2025"
+role_note = "chart 1A row 1"
+enzyme_activity = "high"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 2"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Melanoidin Malt"
+role = "kilned"
+role_source = "malt-substitution-2025"
+role_note = "chart 1B row 5"
+enzyme_activity = "low"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 11"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Munich Malt Type 1"
+role = "kilned"
+role_source = "malt-substitution-2025"
+role_note = "chart 1B row 1"
+enzyme_activity = "normal"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 6"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Munich Malt Type 2"
+role = "kilned"
+role_source = "malt-substitution-2025"
+role_note = "chart 1B row 2"
+enzyme_activity = "normal"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 7"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Oak Smoked Wheat Malt"
+role = "base"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+enzyme_activity = "high"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 8"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Pale Ale Malt"
+role = "base"
+role_source = "malt-substitution-2025"
+role_note = "chart 1A row 5"
+enzyme_activity = "high"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 4"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Pilsner Malt"
+role = "base"
+role_source = "malt-substitution-2025"
+role_note = "chart 1A row 2"
+enzyme_activity = "high"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 3"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Roasted Barley"
+role = "roast"
+role_source = "malt-substitution-2025"
+role_note = "chart 1D row 9"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 48"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Rye Malt Pale"
+role = "base"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+enzyme_activity = "high"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 50"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Special W"
+role = "crystal"
+role_source = "malt-substitution-2025"
+role_note = "chart 1C row 13"
+enzyme_activity = "none"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 39"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Spelt Malt"
+role = "base"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+enzyme_activity = "high"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 53"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Vienna Malt"
+role = "base"
+role_source = "malt-substitution-2025"
+role_note = "chart 1A row 4"
+enzyme_activity = "high"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 5"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Wheat Malt Dark"
+role = "kilned"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+enzyme_activity = "normal"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 13"
+
+[[fermentable]]
+producer = "Weyermann"
+name = "Wheat Malt Pale"
+role = "base"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+enzyme_activity = "high"
+enzyme_source = "weyermann-2026"
+enzyme_ref = "p. 12"
+
+[[fermentable]]
+producer = ""
+name = "Brown Candi Sugar"
+role = "sugar"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+max_pct = 20
+max_pct_source = "user-supplied"
+max_pct_basis = "unplaced"
+
+[[fermentable]]
+producer = ""
+name = "Flaked Barley"
+role = "adjunct"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+max_pct = 20
+max_pct_source = "user-supplied"
+max_pct_basis = "unplaced"
+
+[[fermentable]]
+producer = ""
+name = "Flaked Corn"
+role = "adjunct"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+max_pct = 20
+max_pct_source = "user-supplied"
+max_pct_basis = "unplaced"
+
+[[fermentable]]
+producer = ""
+name = "Flaked Oats"
+role = "adjunct"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+max_pct = 30
+max_pct_source = "user-supplied"
+max_pct_basis = "unplaced"
+
+[[fermentable]]
+producer = ""
+name = "Flaked Rice"
+role = "adjunct"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+
+[[fermentable]]
+producer = ""
+name = "Honey"
+role = "sugar"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+max_pct = 20
+max_pct_source = "user-supplied"
+max_pct_basis = "unplaced"
+
+[[fermentable]]
+producer = ""
+name = "Lactose"
+role = "sugar"
+role_source = "user-supplied"
+role_note = "R1 list (user decision Q2, 2026-10-15)"
+max_pct = 10
+max_pct_source = "user-supplied"
+max_pct_basis = "unplaced"
+
+[[substitute]]
+a = ["Weyermann", "Pilsner Malt"]
+b = ["Viking Malt", "Pilsner Malt"]
+source = "malt-substitution-2025"
+note = "chart 1A row 2"
+
+[[substitute]]
+a = ["Weyermann", "Vienna Malt"]
+b = ["Viking Malt", "Vienna Malt"]
+source = "malt-substitution-2025"
+note = "chart 1A row 4"
+
+[[substitute]]
+a = ["Weyermann", "Pale Ale Malt"]
+b = ["Viking Malt", "Pale Ale Malt"]
+source = "malt-substitution-2025"
+note = "chart 1A row 5"
+
+[[substitute]]
+a = ["Weyermann", "Munich Malt Type 1"]
+b = ["Viking Malt", "Munich Light Malt"]
+source = "malt-substitution-2025"
+note = "chart 1B row 1"
+
+[[substitute]]
+a = ["Weyermann", "Munich Malt Type 2"]
+b = ["Viking Malt", "Munich Dark Malt"]
+source = "malt-substitution-2025"
+note = "chart 1B row 2"
+
+[[substitute]]
+a = ["Weyermann", "Melanoidin Malt"]
+b = ["Viking Malt", "Red Ale Malt"]
+source = "malt-substitution-2025"
+note = "chart 1B row 5"
+
+[[substitute]]
+a = ["Weyermann", "Carapils"]
+b = ["Viking Malt", "CaraBody Malt"]
+source = "malt-substitution-2025"
+note = "chart 1C row 1"
+
+[[substitute]]
+a = ["Weyermann", "Carahell"]
+b = ["Viking Malt", "Caramel 30 Malt"]
+source = "malt-substitution-2025"
+note = "chart 1C row 5"
+
+[[substitute]]
+a = ["Weyermann", "Carared"]
+b = ["Viking Malt", "Caramel 50 Malt"]
+source = "malt-substitution-2025"
+note = "chart 1C row 7"
+
+[[substitute]]
+a = ["Weyermann", "Caramunich Type 1"]
+b = ["Viking Malt", "Caramel 100 Malt"]
+source = "malt-substitution-2025"
+note = "chart 1C row 9"
+
+[[substitute]]
+a = ["Weyermann", "Caramunich Type 3"]
+b = ["Viking Malt", "Caramel 150 Malt"]
+source = "malt-substitution-2025"
+note = "chart 1C row 11"
+
+[[substitute]]
+a = ["Weyermann", "Special W"]
+b = ["Viking Malt", "Caramel 300 Malt"]
+source = "malt-substitution-2025"
+note = "chart 1C row 13"
+
+[[substitute]]
+a = ["Weyermann", "Caraaroma"]
+b = ["Viking Malt", "Caramel 400 Malt"]
+source = "malt-substitution-2025"
+note = "chart 1C row 14"
+
+[[substitute]]
+a = ["Weyermann", "Carafa Type 1"]
+b = ["Viking Malt", "Chocolate Dark Malt"]
+source = "malt-substitution-2025"
+note = "chart 1D row 4"
+
+[[substitute]]
+a = ["Weyermann", "Carafa Type 2"]
+b = ["Viking Malt", "Black Malt"]
+source = "malt-substitution-2025"
+note = "chart 1D row 5-6, merged cell"
+
+[[substitute]]
+a = ["Weyermann", "Carafa Type 3"]
+b = ["Viking Malt", "Black Malt"]
+source = "malt-substitution-2025"
+note = "chart 1D row 5-6, merged cell"
+
+[[substitute]]
+a = ["Weyermann", "Roasted Barley"]
+b = ["Viking Malt", "Roasted Barley"]
+source = "malt-substitution-2025"
+note = "chart 1D row 9"
+
+[[substitute]]
+a = ["Weyermann", "Wheat Malt Pale"]
+b = ["Viking Malt", "Wheat Malt"]
+source = "malt-substitution-2025"
+note = "chart 2A row 2"
+
+[[substitute]]
+a = ["Weyermann", "Rye Malt Pale"]
+b = ["Viking Malt", "Rye Malt"]
+source = "malt-substitution-2025"
+note = "chart 2B row 1"
+
+[[substitute]]
+a = ["Weyermann", "Eraclea Pilsner Malt"]
+b = ["Viking Malt", "Pilsner Malt"]
+source = "user-supplied"
+note = "user decision D, 2026-10-14"
+
+[[substitute]]
+a = ["Weyermann", "Bohemian Pilsner Malt"]
+b = ["Viking Malt", "Pilsner Malt"]
+source = "user-supplied"
+note = "user decision D, 2026-10-14"
+
+[[substitute]]
+a = ["Simpsons Malt", "Crystal Extra Dark"]
+b = ["Weyermann", "Caraaroma"]
+source = "user-supplied"
+note = "user decision D, 2026-10-14"
+
+[[substitute]]
+a = ["Simpsons Malt", "DRC"]
+b = ["Weyermann", "Special W"]
+source = "user-supplied"
+note = "user decision D, 2026-10-14"
+
+[[substitute]]
+a = ["Simpsons Malt", "Finest Pale Ale Golden Promise"]
+b = ["Weyermann", "Pale Ale Malt"]
+source = "user-supplied"
+note = "user decision D, 2026-10-14 (both Pale Ales: 2026-10-15)"
+
+[[substitute]]
+a = ["Simpsons Malt", "Finest Pale Ale Golden Promise"]
+b = ["Viking Malt", "Pale Ale Malt"]
+source = "user-supplied"
+note = "user decision D, 2026-10-14 (both Pale Ales: 2026-10-15)"
+
+[[substitute]]
+a = ["Simpsons Malt", "Finest Pale Ale Maris Otter"]
+b = ["Weyermann", "Pale Ale Malt"]
+source = "user-supplied"
+note = "user decision D, 2026-10-14 (both Pale Ales: 2026-10-15)"
+
+[[substitute]]
+a = ["Simpsons Malt", "Finest Pale Ale Maris Otter"]
+b = ["Viking Malt", "Pale Ale Malt"]
+source = "user-supplied"
+note = "user decision D, 2026-10-14 (both Pale Ales: 2026-10-15)"

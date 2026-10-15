@@ -1,9 +1,15 @@
 """Fermentable facts: schema (Task 2), loader and data (Tasks 3-4) of s2-formulation-rules."""
 
+import copy
+
 import psycopg
 import pytest
 
+from loaders import fermentable_facts as ff
 from loaders.db import connect
+
+W, V, S = "Weyermann", "Viking Malt", "Simpsons Malt"
+SOURCES = {"malt-substitution-2025", "user-supplied", "weyermann-2026", "viking-malt-2023", "palmer-how-to-brew"}
 
 
 @pytest.fixture(scope="module")
@@ -59,3 +65,221 @@ def test_schema(conn):
         "select title, edition, publisher from ref.source where slug = 'malt-substitution-2025'"
     ).fetchone()
     assert row == ("PrimeTime Malt Substitution Chart", "2025 (short)", "Hops Shop BG")
+
+
+# --- the data file (no database needed) ---------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def data():
+    return ff.read()
+
+
+def fake_rows(data):
+    """Every row of the file, with no colour and no max_pct, as fetch_rows would return it."""
+    return {
+        (f["producer"], f["name"]): {"ebc": None, "max_pct": None, "max_pct_source": None}
+        for f in data["fermentable"]
+    }
+
+
+def by_key(data):
+    return {(f["producer"], f["name"]): f for f in data["fermentable"]}
+
+
+# R1, written out again here so a typo in the file shows up. Chart groups, then the R1 list.
+EXPECTED_ROLES = {
+    "base": [
+        (W, "Extra Pale Premium Pilsner Malt"), (W, "Pilsner Malt"), (W, "Vienna Malt"), (W, "Pale Ale Malt"),
+        (V, "Pilsner Malt"), (V, "Vienna Malt"), (V, "Pale Ale Malt"),
+        (W, "Wheat Malt Pale"), (W, "Rye Malt Pale"), (W, "Spelt Malt"), (W, "Oak Smoked Wheat Malt"),
+        (W, "Eraclea Pilsner Malt"), (W, "Bohemian Pilsner Malt"),
+        (V, "Wheat Malt"), (V, "Rye Malt"), (V, "Smoked Wheat Malt"), (V, "Lightly Peated Malt"), (V, "Enzyme Malt"),
+        (S, "Finest Pale Ale Golden Promise"), (S, "Finest Pale Ale Maris Otter"),
+    ],
+    "kilned": [
+        (W, "Munich Malt Type 1"), (W, "Munich Malt Type 2"), (W, "Melanoidin Malt"), (W, "Abbey Malt"),
+        (W, "Beech Smoked Barley Malt"), (V, "Munich Light Malt"), (V, "Munich Dark Malt"),
+        (V, "Red Active Malt"), (V, "Red Ale Malt"),
+        (W, "Wheat Malt Dark"), (W, "Acidulated Malt"), (V, "Smoked Malt (cherry wood)"), (V, "Smoked Malt (pear wood)"),
+    ],
+    "crystal": [
+        (W, "Carapils"), (W, "Carahell"), (W, "Carabelge"), (W, "Carared"), (W, "Caraamber"),
+        (W, "Caramunich Type 1"), (W, "Caramunich Type 2"), (W, "Caramunich Type 3"), (W, "Carabohemian"),
+        (W, "Special W"), (W, "Caraaroma"),
+        (V, "CaraBody Malt"), (V, "Caramel Pale Malt"), (V, "Golden Ale Malt"), (V, "Dextrin Malt"),
+        (V, "Caramel 30 Malt"), (V, "Caramel 50 Malt"), (V, "Caramel 100 Malt"), (V, "Caramel 150 Malt"),
+        (V, "Caramel 300 Malt"), (V, "Caramel 400 Malt"), (V, "Caramel 600 Malt"),
+        (W, "Carawheat"), (V, "Caramel 200 Malt"), (S, "Crystal Extra Dark"), (S, "Crystal T50"), (S, "DRC"),
+    ],
+    "roast": [
+        (W, "Carafa Type 1"), (W, "Carafa Type 2"), (W, "Carafa Type 3"), (W, "Carafa Special Type 1"),
+        (W, "Carafa Special Type 2"), (W, "Carafa Special Type 3"), (W, "Roasted Barley"),
+        (V, "Cookie Malt"), (V, "Chocolate Light Malt"), (V, "Chocolate Dark Malt"), (V, "Black Malt"),
+        (V, "Roasted Barley"),
+        (W, "Chocolate Wheat Malt"),
+    ],
+    "adjunct": [("", "Flaked Oats"), ("", "Flaked Barley"), ("", "Flaked Corn"), ("", "Flaked Rice")],
+    "sugar": [("", "Honey"), ("", "Brown Candi Sugar"), ("", "Lactose")],
+}
+
+
+def test_roles_match_r1(data):
+    rows = by_key(data)
+    assert len(rows) == 81
+    counts = {role: len(keys) for role, keys in EXPECTED_ROLES.items()}
+    assert counts == {"base": 20, "kilned": 13, "crystal": 27, "roast": 13, "adjunct": 4, "sugar": 3}
+    for role, keys in EXPECTED_ROLES.items():
+        for key in keys:
+            assert rows[key].get("role") == role, key
+    # Sprau is the only row without a role until the user places it.
+    assert [k for k, f in rows.items() if "role" not in f] == [(V, "Sprau Malt")]
+    chart = {k for k, f in rows.items() if f.get("role_source") == "malt-substitution-2025"}
+    assert len(chart) == 7 + 9 + 22 + 12  # chart groups 1A, 1B, 1C, 1D
+
+
+def test_max_pct_is_decision_e(data):
+    given = {k: f["max_pct"] for k, f in by_key(data).items() if "max_pct" in f}
+    assert given == {
+        (V, "Munich Light Malt"): 100, (V, "Munich Dark Malt"): 100,
+        (V, "Lightly Peated Malt"): 100, (V, "Smoked Wheat Malt"): 100,
+        (V, "Caramel 30 Malt"): 20, (V, "Caramel 50 Malt"): 20,
+        (V, "Caramel 100 Malt"): 15, (V, "Caramel 150 Malt"): 15, (V, "Caramel 200 Malt"): 15,
+        (V, "Caramel 300 Malt"): 10, (V, "Caramel 400 Malt"): 10, (V, "Caramel 600 Malt"): 10,
+        ("", "Flaked Oats"): 30, ("", "Flaked Barley"): 20, ("", "Flaked Corn"): 20,
+        ("", "Honey"): 20, ("", "Brown Candi Sugar"): 20, ("", "Lactose"): 10,
+    }
+    assert {f["max_pct_source"] for f in data["fermentable"] if "max_pct" in f} == {"user-supplied"}
+    assert all(f["max_pct_basis"] for f in data["fermentable"] if "max_pct" in f)
+
+
+def test_substitute_pairs(data):
+    pairs = [frozenset((tuple(s["a"]), tuple(s["b"]))) for s in data["substitute"]]
+    assert len(pairs) == len(set(pairs)) == 27
+    chart = [
+        ("Pilsner Malt", "Pilsner Malt"), ("Vienna Malt", "Vienna Malt"), ("Pale Ale Malt", "Pale Ale Malt"),
+        ("Munich Malt Type 1", "Munich Light Malt"), ("Munich Malt Type 2", "Munich Dark Malt"),
+        ("Melanoidin Malt", "Red Ale Malt"), ("Carapils", "CaraBody Malt"), ("Carahell", "Caramel 30 Malt"),
+        ("Carared", "Caramel 50 Malt"), ("Caramunich Type 1", "Caramel 100 Malt"),
+        ("Caramunich Type 3", "Caramel 150 Malt"), ("Special W", "Caramel 300 Malt"),
+        ("Caraaroma", "Caramel 400 Malt"), ("Carafa Type 1", "Chocolate Dark Malt"),
+        ("Carafa Type 2", "Black Malt"), ("Carafa Type 3", "Black Malt"),
+        ("Roasted Barley", "Roasted Barley"), ("Wheat Malt Pale", "Wheat Malt"), ("Rye Malt Pale", "Rye Malt"),
+    ]
+    expected = {frozenset(((W, a), (V, b))) for a, b in chart}
+    expected |= {
+        frozenset(((W, "Eraclea Pilsner Malt"), (V, "Pilsner Malt"))),
+        frozenset(((W, "Bohemian Pilsner Malt"), (V, "Pilsner Malt"))),
+        frozenset(((S, "Crystal Extra Dark"), (W, "Caraaroma"))),
+        frozenset(((S, "DRC"), (W, "Special W"))),
+    }
+    for golden in ("Finest Pale Ale Golden Promise", "Finest Pale Ale Maris Otter"):
+        expected |= {frozenset(((S, golden), (W, "Pale Ale Malt"))), frozenset(((S, golden), (V, "Pale Ale Malt")))}
+    assert set(pairs) == expected
+    # No substitute for these rows.
+    in_a_pair = {key for pair in pairs for key in pair}
+    for key in [(V, "Caramel 200 Malt"), (V, "Smoked Malt (cherry wood)"), (V, "Smoked Malt (pear wood)"),
+                (V, "Smoked Wheat Malt"), (W, "Beech Smoked Barley Malt"), (W, "Oak Smoked Wheat Malt"),
+                (V, "Sprau Malt"), (S, "Crystal T50")]:
+        assert key not in in_a_pair, key
+    assert {s["source"] for s in data["substitute"]} == {"malt-substitution-2025", "user-supplied"}
+    assert sum(s["source"] == "malt-substitution-2025" for s in data["substitute"]) == 19
+
+
+def test_enzyme_medium_is_normal(data):
+    rows = by_key(data)
+    assert rows[(W, "Munich Malt Type 1")]["enzyme_activity"] == "normal"  # printed "medium", p. 6
+    assert rows[(W, "Wheat Malt Dark")]["enzyme_activity"] == "normal"  # printed "medium", p. 13
+    assert "medium" not in {f.get("enzyme_activity") for f in data["fermentable"]}
+    # Acidulated's line states no level; the Viking rows with only vague words stay empty.
+    for key in [(W, "Acidulated Malt"), (V, "Caramel Pale Malt"), (V, "Golden Ale Malt"), (V, "Dextrin Malt"),
+                (V, "Pilsner Malt"), (V, "Enzyme Malt")]:
+        assert "enzyme_activity" not in rows[key], key
+    # The Viking words the plan names.
+    assert rows[(V, "Munich Light Malt")]["enzyme_activity"] == "low"
+    assert rows[(V, "Caramel 400 Malt")]["enzyme_activity"] == "none"
+    assert rows[(W, "Pilsner Malt")]["enzyme_activity"] == "high"
+
+
+def test_propose_min_boil():
+    assert ff.propose_min_boil("base", (3.0, 4.0)) == 90  # Pilsner, midpoint 3.5
+    assert ff.propose_min_boil("base", (5.5, 7.5)) == 60  # Pale Ale, midpoint 6.5
+    assert ff.propose_min_boil("base", (4, 6)) == 60  # midpoint 5 is not below 5
+    assert ff.propose_min_boil("crystal", (2, 4)) == 60  # only base malts
+    assert ff.propose_min_boil("base", None) == 60
+    assert ff.propose_min_boil("base", (None, None)) == 60
+    assert ff.propose_min_boil("base", (None, 8)) == 60  # open range "(,8]" uses 8
+    assert ff.propose_min_boil("base", (None, 4)) == 90  # open range uses its one bound
+    assert ff.propose_min_boil(None, (3, 4)) == 60  # no role yet
+
+
+def test_every_value_names_a_source(data):
+    ff.check(data, fake_rows(data), SOURCES, allow_unplaced=True)  # sources, enzyme and role fields
+    for f in data["fermentable"]:
+        if "role" in f:
+            assert f["role_source"] and f["role_note"]
+        if "enzyme_activity" in f:
+            assert f["enzyme_source"] and f["enzyme_ref"]
+    for s in data["substitute"]:
+        assert s["source"] and s["note"]
+
+
+def test_check_rejects_unknown_name(data):
+    rows = fake_rows(data)
+    bad = copy.deepcopy(data)
+    bad["fermentable"][0]["name"] = "No Such Malt"
+    with pytest.raises(ValueError, match="not in ref.ingredient"):
+        ff.check(bad, rows, SOURCES, allow_unplaced=True)
+
+
+def test_check_rejects_bad_values(data):
+    rows = fake_rows(data)
+    pilsner = next(i for i, f in enumerate(data["fermentable"]) if f["name"] == "Pilsner Malt" and f["producer"] == W)
+
+    def broken(**changes):
+        bad = copy.deepcopy(data)
+        bad["fermentable"][pilsner].update(changes)
+        return bad
+
+    for changes, message in [
+        ({"role": "malt"}, "role"),
+        ({"enzyme_activity": "medium"}, "enzyme_activity"),
+        ({"role_source": "no-such-source"}, "not in ref.source"),
+        ({"min_boil_min": 90}, "was not proposed"),  # fake rows have no colour, so nothing is proposed
+        ({"max_pct": 100, "max_pct_source": "user-supplied", "max_pct_basis": "x"}, "max_pct"),
+    ]:
+        existing = dict(rows)
+        if "max_pct" in changes:  # a row that already holds a catalogue value is not one of the 18
+            existing[(W, "Pilsner Malt")] = {"ebc": None, "max_pct": 100, "max_pct_source": "weyermann-2026"}
+        with pytest.raises(ValueError, match=message):
+            ff.check(broken(**changes), existing, SOURCES, allow_unplaced=True)
+
+    # A long boil that is proposed passes.
+    rows[(W, "Pilsner Malt")] = {"ebc": (2.5, 4.5), "max_pct": None, "max_pct_source": None}
+    ff.check(broken(min_boil_min=90), rows, SOURCES, allow_unplaced=True)
+
+
+def test_check_rejects_bad_pairs_and_unplaced(data):
+    rows = fake_rows(data)
+    bad = copy.deepcopy(data)
+    bad["substitute"].append({"a": list(bad["substitute"][0]["b"]), "b": list(bad["substitute"][0]["a"]),
+                              "source": "user-supplied", "note": "x"})
+    with pytest.raises(ValueError, match="listed twice"):
+        ff.check(bad, rows, SOURCES, allow_unplaced=True)
+    bad = copy.deepcopy(data)
+    bad["substitute"][0]["b"] = bad["substitute"][0]["a"]
+    with pytest.raises(ValueError, match="itself"):
+        ff.check(bad, rows, SOURCES, allow_unplaced=True)
+    # Loading never accepts a max_pct whose basis is still "unplaced".
+    unplaced = [f for f in data["fermentable"] if f.get("max_pct_basis") == "unplaced"]
+    if unplaced:
+        with pytest.raises(ValueError, match="unplaced"):
+            ff.check(data, rows, SOURCES)
+
+
+@pytest.mark.stack
+def test_file_matches_the_database(conn, data):
+    """The file's names are the 81 rows of ref.fermentable, and every check against the DB passes."""
+    rows = ff.fetch_rows(conn)
+    assert set(by_key(data)) == set(rows) and len(rows) == 81
+    ff.check(data, rows, ff.fetch_sources(conn), allow_unplaced=True)
