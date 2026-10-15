@@ -197,7 +197,7 @@ Commit: `Add style ingredient and ingredient review tables`
 
 ### Task 3: Vocabulary and automatic tagging
 Why: R1, R2, R5's tags (A1, A2).
-- [ ] `loaders/style_fit_vocab.toml`:
+- [x] `loaders/style_fit_vocab.toml`:
   - `[[dimension]]` name + class. Core: `bitterness`, `colour`, `hop_flavour`, `hop_aroma`,
     `malt`, `caramel`, `roast`, `sweetness`, `body`, `esters`, `phenols`, `dryness`;
     specialty: `spice`, `fruit`, `wood`, `smoke`; transforming: `sourness`, `brett_funk`.
@@ -215,7 +215,7 @@ Why: R1, R2, R5's tags (A1, A2).
     style prose uses (citrusy, resiny, earthy, floral, …).
   - `[no_character] words = [...]`: known words with no tag (*semleges*, *keserű*, *komló*,
     *komlós*, …), so they are neither tagged nor flagged.
-- [ ] `loaders/tags.py`, functions a reader can follow: `load_vocab(conn, vocab)` (upsert
+- [x] `loaders/tags.py`, functions a reader can follow: `load_vocab(conn, vocab)` (upsert
       dimensions, tags, synonyms; synonyms not in the file are deleted), `split_words(text)`
       (split on `,`, ` és `, ` and `; strip; `name_key`), `hop_words(raw)` (the "Aroma :" line,
       else the "Komló aroma" list), `yeast_words(raw)`, `fermentable_keywords(name,
@@ -224,8 +224,8 @@ Why: R1, R2, R5's tags (A1, A2).
       role tag + keyword characters, yeast family from Stílus else `ref.yeast.type` + character
       tags; keeps `reviewed = true` rows), `main()` printing counts per kind and flagged.
       Re-runnable; one transaction.
-- [ ] Run `python -m loaders.tags`; write the counts and the flagged list into `report.md` §1.
-- [ ] Write tests in `tests/test_tags.py`: `test_split_words` (Hungarian lists, "és", empty and
+- [x] Run `python -m loaders.tags`; write the counts and the flagged list into `report.md` §1.
+- [x] Write tests in `tests/test_tags.py`: `test_split_words` (Hungarian lists, "és", empty and
       `???`), `test_hop_words_prefers_aroma_line` (Citra gives grapefruit/lime/tropical, not
       floral), and stack tests `test_every_hop_tagged_or_flagged` (A1: each of the 90 hops has
       a character tag or an `ingredient_review` row), `test_retag_is_identical` (A2: run
@@ -234,9 +234,9 @@ Why: R1, R2, R5's tags (A1, A2).
       gains the tag and loses its review row), `test_citra_tags` (Citra: `US`, `citrus`,
       `tropical`, no `floral`), `test_yeast_families` (US-05 `american-ale` with no character,
       a brett-type yeast `brett`, a `sour` Stílus yeast `sour`).
-- [ ] Run `pytest tests/test_tags.py`, expect all pass; break `hop_words` (use both sources)
+- [x] Run `pytest tests/test_tags.py`, expect all pass; break `hop_words` (use both sources)
       once and see `test_citra_tags` fail.
-- [ ] PROJECT.md §8 line with the measured counts.
+- [x] PROJECT.md §8 line with the measured counts.
 Done when: A1 and A2 hold; the flagged count is in `report.md`.
 Commit: `Add style-fit vocabulary and ingredient tagging`
 

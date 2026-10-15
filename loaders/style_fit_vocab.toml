@@ -1,0 +1,572 @@
+# The hand-made vocabulary for style fit (s3-style-fit), read by loaders/tags.py.
+# Everything in ref.tag, ref.tag_synonym and ref.sensory_dimension comes from this file;
+# ref.ingredient_tag is derived from it by code. Add a word here and run `python -m loaders.tags`.
+#
+#   [[dimension]]            a sensation a style envelope can describe; class decides what a
+#                            style's silence means (core: nothing, specialty: out of style,
+#                            transforming: changes the style)
+#   [[tag]]                  facet origin (hop country codes of ref.hop.origins), family (the
+#                            six fermentable roles, the yeast families) or character (a tree:
+#                            a child matches its parent by half, see STYLE-FIT.md §5)
+#   [synonyms]               a word -> a character tag. The key is loaders.common.name_key of the
+#                            word (lower case, no accents, only a-z and 0-9): "Citrusos" is
+#                            citrusos, "fekete bors" is feketebors. Hungarian shop words and the
+#                            English words the style guidelines use.
+#   [no_character]           known words that carry no character: neither tagged nor flagged
+#   [filler]                 words dropped from either end of a phrase before it is looked up
+#   [yeast_family]           the shop's Stílus value (name_key) -> a family tag; a yeast whose
+#                            Stílus is not here falls back to ref.yeast.type
+#   [yeast_family_override]  a yeast name (name_key) -> family, where the shop's Stílus is too
+#                            general (SafAle US-05 is "Ale" there)
+
+# ---------------------------------------------------------------- sensory dimensions
+
+[[dimension]]
+name = "bitterness"
+class = "core"
+[[dimension]]
+name = "colour"
+class = "core"
+[[dimension]]
+name = "hop_flavour"
+class = "core"
+[[dimension]]
+name = "hop_aroma"
+class = "core"
+[[dimension]]
+name = "malt"
+class = "core"
+[[dimension]]
+name = "caramel"
+class = "core"
+[[dimension]]
+name = "roast"
+class = "core"
+[[dimension]]
+name = "sweetness"
+class = "core"
+[[dimension]]
+name = "body"
+class = "core"
+[[dimension]]
+name = "esters"
+class = "core"
+[[dimension]]
+name = "phenols"
+class = "core"
+[[dimension]]
+name = "dryness"
+class = "core"
+[[dimension]]
+name = "spice"
+class = "specialty"
+[[dimension]]
+name = "fruit"
+class = "specialty"
+[[dimension]]
+name = "wood"
+class = "specialty"
+[[dimension]]
+name = "smoke"
+class = "specialty"
+[[dimension]]
+name = "sourness"
+class = "transforming"
+[[dimension]]
+name = "brett_funk"
+class = "transforming"
+
+# ---------------------------------------------------------------- tags: origin
+
+[[tag]]
+facet = "origin"
+name = "US"
+[[tag]]
+facet = "origin"
+name = "DE"
+[[tag]]
+facet = "origin"
+name = "CZ"
+[[tag]]
+facet = "origin"
+name = "GB"
+[[tag]]
+facet = "origin"
+name = "SI"
+[[tag]]
+facet = "origin"
+name = "NZ"
+[[tag]]
+facet = "origin"
+name = "AU"
+[[tag]]
+facet = "origin"
+name = "JP"
+[[tag]]
+facet = "origin"
+name = "FR"
+[[tag]]
+facet = "origin"
+name = "ZA"
+
+# ---------------------------------------------------------------- tags: family
+
+[[tag]]
+facet = "family"
+name = "base"
+[[tag]]
+facet = "family"
+name = "kilned"
+[[tag]]
+facet = "family"
+name = "crystal"
+[[tag]]
+facet = "family"
+name = "roast"
+[[tag]]
+facet = "family"
+name = "adjunct"
+[[tag]]
+facet = "family"
+name = "sugar"
+
+[[tag]]
+facet = "family"
+name = "ale"
+[[tag]]
+facet = "family"
+name = "american-ale"
+parent = "ale"
+[[tag]]
+facet = "family"
+name = "english-ale"
+parent = "ale"
+[[tag]]
+facet = "family"
+name = "belgian"
+parent = "ale"
+[[tag]]
+facet = "family"
+name = "saison"
+parent = "belgian"
+[[tag]]
+facet = "family"
+name = "wheat"
+parent = "belgian"
+[[tag]]
+facet = "family"
+name = "lager"
+[[tag]]
+facet = "family"
+name = "kveik"
+[[tag]]
+facet = "family"
+name = "brett"
+[[tag]]
+facet = "family"
+name = "sour"
+
+# ---------------------------------------------------------------- tags: character
+
+[[tag]]
+facet = "character"
+name = "fruity"
+[[tag]]
+facet = "character"
+name = "citrus"
+parent = "fruity"
+[[tag]]
+facet = "character"
+name = "grapefruit"
+parent = "citrus"
+[[tag]]
+facet = "character"
+name = "lemon"
+parent = "citrus"
+[[tag]]
+facet = "character"
+name = "lime"
+parent = "citrus"
+[[tag]]
+facet = "character"
+name = "orange"
+parent = "citrus"
+[[tag]]
+facet = "character"
+name = "tropical"
+parent = "fruity"
+[[tag]]
+facet = "character"
+name = "stone-fruit"
+parent = "fruity"
+[[tag]]
+facet = "character"
+name = "berry"
+parent = "fruity"
+[[tag]]
+facet = "character"
+name = "melon"
+parent = "fruity"
+[[tag]]
+facet = "character"
+name = "dried-fruit"
+parent = "fruity"
+[[tag]]
+facet = "character"
+name = "orchard-fruit"
+parent = "fruity"
+[[tag]]
+facet = "character"
+name = "estery"
+[[tag]]
+facet = "character"
+name = "banana"
+parent = "estery"
+[[tag]]
+facet = "character"
+name = "floral"
+[[tag]]
+facet = "character"
+name = "herbal"
+[[tag]]
+facet = "character"
+name = "mint"
+parent = "herbal"
+[[tag]]
+facet = "character"
+name = "spicy"
+[[tag]]
+facet = "character"
+name = "pepper"
+parent = "spicy"
+[[tag]]
+facet = "character"
+name = "clove"
+parent = "spicy"
+[[tag]]
+facet = "character"
+name = "phenolic"
+[[tag]]
+facet = "character"
+name = "earthy"
+[[tag]]
+facet = "character"
+name = "grassy"
+[[tag]]
+facet = "character"
+name = "resin"
+[[tag]]
+facet = "character"
+name = "pine"
+parent = "resin"
+[[tag]]
+facet = "character"
+name = "woody"
+[[tag]]
+facet = "character"
+name = "caramel"
+[[tag]]
+facet = "character"
+name = "toffee"
+parent = "caramel"
+[[tag]]
+facet = "character"
+name = "roast"
+[[tag]]
+facet = "character"
+name = "coffee"
+parent = "roast"
+[[tag]]
+facet = "character"
+name = "chocolate"
+parent = "roast"
+[[tag]]
+facet = "character"
+name = "acrid"
+parent = "roast"
+[[tag]]
+facet = "character"
+name = "bready"
+[[tag]]
+facet = "character"
+name = "biscuit"
+[[tag]]
+facet = "character"
+name = "toasty"
+[[tag]]
+facet = "character"
+name = "nutty"
+[[tag]]
+facet = "character"
+name = "smoke"
+[[tag]]
+facet = "character"
+name = "honey"
+[[tag]]
+facet = "character"
+name = "vanilla"
+[[tag]]
+facet = "character"
+name = "coconut"
+[[tag]]
+facet = "character"
+name = "creamy"
+[[tag]]
+facet = "character"
+name = "funky"
+[[tag]]
+facet = "character"
+name = "sour"
+
+# ---------------------------------------------------------------- descriptor dictionary
+
+[synonyms]
+# fruity, general
+gyumolcsos = "fruity"
+gyumolcs = "fruity"
+gyumolcsok = "fruity"
+edesgyumolcs = "fruity"
+edesgyumolcsos = "fruity"
+pirosgyumolcs = "fruity"
+szolo = "fruity"
+feherszolo = "fruity"
+fruity = "fruity"
+fruit = "fruity"
+# citrus
+citrus = "citrus"
+citrusos = "citrus"
+citrusok = "citrus"
+citrusfelek = "citrus"
+citrusy = "citrus"
+bergamot = "citrus"
+grapefruit = "grapefruit"
+grapefruitos = "grapefruit"
+grepfrut = "grapefruit"
+grepfrutos = "grapefruit"
+citromos = "lemon"
+citrom = "lemon"
+citromhej = "lemon"
+lemon = "lemon"
+lime = "lime"
+narancsos = "orange"
+narancs = "orange"
+narancshej = "orange"
+mandarinos = "orange"
+mandarin = "orange"
+mandaris = "orange"
+mandarinhej = "orange"
+orange = "orange"
+# tropical
+tropusi = "tropical"
+tropusigyumolcs = "tropical"
+tropusigyumolcsos = "tropical"
+tropusigyumolcsok = "tropical"
+tropical = "tropical"
+mango = "tropical"
+mangos = "tropical"
+ananasz = "tropical"
+ananaszos = "tropical"
+papaya = "tropical"
+maracuja = "tropical"
+passiogyumolcs = "tropical"
+guava = "tropical"
+guavasargabarack = "tropical"
+kivi = "tropical"
+kivis = "tropical"
+# stone fruit, berries, melon, dried and orchard fruit
+csonthejas = "stone-fruit"
+csonthejasgyumolcs = "stone-fruit"
+csonthejasgyumolcsok = "stone-fruit"
+barack = "stone-fruit"
+barackos = "stone-fruit"
+sargabarack = "stone-fruit"
+sargabarackos = "stone-fruit"
+nektarin = "stone-fruit"
+szilva = "stone-fruit"
+szilvas = "stone-fruit"
+bogyos = "berry"
+bogyosgyumolcs = "berry"
+pirosbogyos = "berry"
+vorosbogyos = "berry"
+eper = "berry"
+epres = "berry"
+afonya = "berry"
+ribizli = "berry"
+feketeribizli = "berry"
+feketeribizlis = "berry"
+egres = "berry"
+berry = "berry"
+dinnye = "melon"
+dinnyes = "melon"
+sargadinnye = "melon"
+sargadinnyes = "melon"
+aszaltgyumolcs = "dried-fruit"
+aszaltgyumolcsos = "dried-fruit"
+aszaltszilva = "dried-fruit"
+driedfruit = "dried-fruit"
+raisins = "dried-fruit"
+alma = "orchard-fruit"
+almas = "orchard-fruit"
+korte = "orchard-fruit"
+kortes = "orchard-fruit"
+zoldgyumolcs = "orchard-fruit"
+zoldgyumolcsos = "orchard-fruit"
+# esters
+esteres = "estery"
+eszteres = "estery"
+ragogumis = "estery"
+estery = "estery"
+banan = "banana"
+bananos = "banana"
+banana = "banana"
+# floral and herbal
+viragos = "floral"
+virag = "floral"
+floral = "floral"
+levendula = "floral"
+jazminos = "floral"
+bodza = "floral"
+bodzas = "floral"
+gyogynovenyes = "herbal"
+herbal = "herbal"
+zsalya = "herbal"
+kakukkfu = "herbal"
+kapor = "herbal"
+citromfu = "herbal"
+zoldtea = "herbal"
+menta = "mint"
+mentas = "mint"
+borsmenta = "mint"
+mentolos = "mint"
+minty = "mint"
+# spice and phenols
+fuszeres = "spicy"
+fuszer = "spicy"
+fuszerekkel = "spicy"
+szerecsendio = "spicy"
+koriander = "spicy"
+spicy = "spicy"
+bors = "pepper"
+borsos = "pepper"
+feketebors = "pepper"
+feketeborsos = "pepper"
+feherbors = "pepper"
+pepper = "pepper"
+peppery = "pepper"
+szegfuszeg = "clove"
+szegfu = "clove"
+clove = "clove"
+fenolos = "phenolic"
+phenolic = "phenolic"
+# earth, grass, resin, wood
+foldes = "earthy"
+earthy = "earthy"
+fuves = "grassy"
+grassy = "grassy"
+gyanta = "resin"
+gyantas = "resin"
+resin = "resin"
+resiny = "resin"
+fenyo = "pine"
+fenyos = "pine"
+pine = "pine"
+piney = "pine"
+fas = "woody"
+cedrus = "woody"
+cedrusos = "woody"
+woody = "woody"
+# malt and sweet notes (also what the keyword scan of fermentable descriptions finds)
+karamell = "caramel"
+caramel = "caramel"
+caramelised = "caramel"
+caramelized = "caramel"
+burntsugar = "caramel"
+vajkaramell = "toffee"
+toffee = "toffee"
+mez = "honey"
+mezes = "honey"
+honey = "honey"
+roast = "roast"
+roasted = "roast"
+coffee = "coffee"
+kave = "coffee"
+cocoa = "chocolate"
+chocolate = "chocolate"
+bread = "bready"
+breadcrumbs = "bready"
+pastry = "bready"
+pastries = "bready"
+biscuit = "biscuit"
+biscuits = "biscuit"
+cookie = "biscuit"
+cookies = "biscuit"
+toasty = "toasty"
+toasted = "toasty"
+popcorn = "toasty"
+nutty = "nutty"
+nuts = "nutty"
+almond = "nutty"
+smoke = "smoke"
+smoky = "smoke"
+smoked = "smoke"
+peat = "smoke"
+peated = "smoke"
+fust = "smoke"
+fustos = "smoke"
+# added after the first run of loaders.tags (words that were flagged and are plain)
+gyogynoveny = "herbal"
+tropicalfruit = "tropical"
+papaja = "tropical"
+drupe = "stone-fruit"
+csonthejasgyumolcsos = "stone-fruit"
+cseresznye = "stone-fruit"
+szeder = "berry"
+malna = "berry"
+edescitrus = "citrus"
+csokolade = "chocolate"
+fahej = "spicy"
+oroltbors = "pepper"
+# other
+vanilia = "vanilla"
+vanilias = "vanilla"
+vanillia = "vanilla"
+vanilla = "vanilla"
+kokusz = "coconut"
+kokuszos = "coconut"
+kremes = "creamy"
+funky = "funky"
+savanyu = "sour"
+sour = "sour"
+
+[no_character]
+words = [
+    "semleges", "neutral", "clean", "tiszta",
+    "keserű", "bitter",
+    "komló", "komlós", "hoppy", "szárított komló",
+]
+
+[filler]
+words = ["erősen", "enyhén", "enyhe", "telt", "friss", "érett", "intenzív", "jegyekkel", "jegyek", "jegy", "ízek", "ízjegyek"]
+
+[yeast_family]
+lager = "lager"
+pilsner = "lager"
+englishale = "english-ale"
+londonale = "english-ale"
+westcoastale = "american-ale"
+eastcoastale = "american-ale"
+ale = "ale"
+kolsch = "ale"
+barleywine = "ale"
+belgaale = "belgian"
+belgawit = "wheat"
+bajorbuza = "wheat"
+amerikaibuza = "wheat"
+saison = "saison"
+farmhouse = "saison"
+kveik = "kveik"
+brett = "brett"
+sour = "sour"
+
+[yeast_family_override]
+safaleus05 = "american-ale"
