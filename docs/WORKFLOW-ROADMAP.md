@@ -143,6 +143,8 @@ constants to fit.
 reviewed by you (D9); the golden set passes; every reference-recipe line rated, 0 unexpected ⚠️/⛔. **If no:** revisit the tag
 vocabulary before adding override rows.
 
+**Measured (2026-10-15, [`s3-style-fit`](work/s3-style-fit/plan.md)):** met. `test_citra_table` passes (Citra table from `app.style_level`); 26 style envelopes reviewed by the user (116 `style_ingredient`, 189 `style_sensory`, 237 `style_character` rows, 0 `style_rule` rows needed); the 53 golden cases pass; all 22 reference recipes are rated and only the briefs' own deviations (b08 IBU, b18 SRM) are flagged. Full `pytest` 531 passed, `-m "not stack"` 171 passed.
+
 ### G4 · Targets follow the brief
 
 **Bar:** for all 20 briefs, every target is inside the style range unless a stated number or

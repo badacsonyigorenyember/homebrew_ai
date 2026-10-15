@@ -1,6 +1,6 @@
 # S3 · Style fit: tags, envelopes and the level function — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: s3-style-fit
 
@@ -481,16 +481,16 @@ Commit: `Add recipe style fit and reference-recipe check`
 
 ### Task 10: Measured status in the docs; full test run
 Why: CLAUDE.md, PROJECT.md §10; G-S.
-- [ ] Run full `pytest` with the stack up and `pytest -m "not stack"`; note counts and time.
-- [ ] Query the counts: `ref.tag`, `tag_synonym`, `ingredient_tag` per kind, `ingredient_review`,
+- [x] Run full `pytest` with the stack up and `pytest -m "not stack"`; note counts and time.
+- [x] Query the counts: `ref.tag`, `tag_synonym`, `ingredient_tag` per kind, `ingredient_review`,
       `sensory_dimension`, `style_sensory`, `style_character`, `style_ingredient`, `style_rule`;
       functions in `db/033`, `db/034` owned by `postgres`.
-- [ ] PROJECT.md §4 Database and Scripts rows (tables, loaders and their run order:
+- [x] PROJECT.md §4 Database and Scripts rows (tables, loaders and their run order:
       `loaders.tags` after the ingredient loaders and `loaders.fermentable_facts`;
       `loaders.style_envelopes` after `loaders.tags`), §8 entry with the G-S result.
       DATABASE.md §2 row counts and the two new tables (ER diagram and table), §7 rows 3 and 5
       done-when with the measured result. WORKFLOW-ROADMAP G-S: measured result.
-- [ ] Re-run the A10 grep.
+- [x] Re-run the A10 grep.
 Done when: the docs show measured numbers; full `pytest` passes.
 Commit: `Record s3 style fit status`
 
@@ -517,6 +517,7 @@ Commit: `Record s3 style fit status`
 None.
 
 ## Deviations
+- 2026-10-15 · Task 10: `tests/test_fermentable_facts.py::test_db_enzyme_and_boil` read `docs/work/s2-formulation-rules/report.md`, which moved to `docs/finished/s2-formulation-rules/` when s2 shipped; the path is fixed (one line, own commit "Fix moved s2 report path in fermentable test") — the user chose "Fix the path". The full suite then passes with no failure.
 - 2026-10-15 · Task 7: `test_every_cut_point_has_a_basis` also accepts a basis starting "decided, STYLE-FIT" — the character-match thresholds (0.8 / 0.3) are decided in STYLE-FIT.md §5, not a book figure or a user value. `app.usage_effects()` has 25 rows: crystal and roast each get mash and boil rows; brett, sour and smoke are present/absent (no character).
 - 2026-10-15 · Tasks 6, 8, 9: the user's answers to the cut-point review. Ester base for an ester character is 3, not the proposed 4 (at 4, b05's S-04 is above 15B's medium-low); the warm step is +1 above 21 °C (*How to Brew* p. 443), not above the yeast's `temp_c` midpoint (b05 again), and applies to phenols too; `spicy` counts as phenolic. Step 0 counts reviewed `style_ingredient` rows, so 31B and the BA Specialty Honey Beer are rated. A min check is added with a one-level tolerance: per ingredient for yeasts in `style_level` (Task 8, `test_yeast_too_little`), on recipe totals for hops and roast in `style_fit_recipe` (Task 9, `test_recipe_too_little`, `test_reference_recipe_totals`); b07, b12 and b22 go to Task 9's stop. The user chose it through golden case y02 (US-05 in 10A → ⚠️) and agreed to all of it; STYLE-FIT §4–§5 updated.
 - 2026-10-15 · Task 6: the drafts (`cut-points.md`, `golden-review.md`, the golden fixture) were committed before the user's answer (fa8119d), marked unapproved, so the walk-through could show them; the plan said "commit nothing before the answer". Golden set approved as drafted except y02 (now ⚠️) and u02 (dropped with Sterling).
