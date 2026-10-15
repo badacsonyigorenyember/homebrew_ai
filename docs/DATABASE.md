@@ -202,7 +202,7 @@ erDiagram
 | `tag` · `tag_synonym` | facet, name, parent ("citrusy" → citrus) · source word → tag | hop descriptors, malt roles, yeast families | empty, P3 |
 | `ingredient_tag` | ingredient ↔ tag, `reviewed` (false = derived by code); no weight, match strength comes from the tag tree | derived by code from the ingredient's own data ([STYLE-FIT.md](STYLE-FIT.md) §2) | empty, P3 |
 | `sensory_dimension` | name, class (core · specialty · transforming) | by hand | empty, P3 |
-| `style_sensory` | per style and dimension: min/max level, quote, `reviewed` | BA: parsed by code · BJCP: LLM extract → **you review** | empty, P3 |
+| `style_sensory` | per style and dimension: min/max level, quote, `reviewed` | BJCP and BA prose: LLM extract (D2 model) → **you review** | empty, P3 |
 | `style_character` | characters a style allows for a dimension (15B hop_aroma: earthy, floral); FK to its `style_sensory` row and to `tag` | same as `style_sensory` | empty, P3 |
 | `style_rule` | style, **exactly one of** ingredient or tag (check constraint), usage, level, cap, quote | by hand, rare | empty, P3 |
 
@@ -237,14 +237,18 @@ reads them; beta stays in `raw`), `water_salt.molar_mass` (computed in code).
 flowchart TD
     A["candidate:<br/>Citra · dry hop · 4 g/L<br/>style 15B"] --> B{"explicit style_rule<br/>for it or its tag?"}
     B -- yes --> Z["use that level"]
-    B -- no --> C["usage effects (code):<br/>dry hop → hop_aroma + character"]
+    B -- no --> B2{"adjunct or sugar?"}
+    B2 -- "named by the style: 👍<br/>not named: ⚠️" --> Z2["use that level"]
+    B2 -- no --> C["usage effects (code):<br/>dry hop → hop_aroma + character"]
     C --> D{"style_sensory 15B<br/>hop_aroma max = low<br/>style_character = earthy, floral"}
     D --> E{"dimension<br/>ruled out?"}
     E -- yes --> F["⛔ changes style"]
-    E -- no --> G{"character match?<br/>dose ≤ corpus p90?"}
+    E -- no --> G{"character match?<br/>dose ≤ envelope max<br/>(cut points)?"}
     G -- "mismatch / too much" --> H["⚠️ out of style"]
     G -- "tags match envelope" --> I["👍 typical"]
-    G -- "no conflict" --> J["➖ allowed"]
+    G -- "no conflict" --> K{"fermentable listed in<br/>fermentable_style?"}
+    K -- yes --> I
+    K -- no --> J["➖ allowed"]
 ```
 
 ✅ *required* comes from the style's characteristic ingredients and is checked at recipe
@@ -441,8 +445,8 @@ All tables exist (§1). This is the order they get data in.
 | 1 | Styles | `ref.source`, `ref.beer_style` ← both style JSONs | ✅ 285 rows (BJCP 116 + BA 169), 18 sources, 0 rows without a source; 10 rows per table spot-checked against the sources, no errors (2026-10-11, `ref-spotcheck`). `co2_vol` was dropped: no source has it; back in P6 |
 | 2 | Ingredients | `ref.ingredient` + kind tables ← malts, hops, hopline yeasts, salts | ✅ malts 74, adjuncts 7, hops 90, yeasts 119, salts 8 (298 ingredients), 0 without a source; 10 rows per table spot-checked, no errors (2026-10-11). Adjuncts (2026-10-11): 4 flakes (oats, corn, rice, barley), brown candi sugar and lactose from hopline, honey from Palmer, extract from Palmer Tables 18.5/24.1. Gaps: the malts are grain malts from three maltsters only; no malt extracts, and other hopline adjuncts (rye, wheat, chit flakes, white candi, fructose) are not loaded; 8 hop values were entered by hand from Beer Maverick (`hop.field_source` = `beermaverick`): alpha and oil of Delta, Lotus and Sterling, Mount Hood's oil and Enigma's purpose; all 8 checked against beermaverick.com by the user, all match (2026-10-11) |
 | 3 | Style-fit vocabulary | `ref.tag`, `tag_synonym`, `ingredient_tag`, `misc`, `fermentable.role` | every hop has ≥ 1 character tag |
-| 4 | Corpus | `corpus.recipe`, `recipe_item` ← archive dump · `name_map` · profile job → `style_profile`, `style_grist`, `style_hop_use`, `style_ingredient` | ≥ 90 % of grist mass mapped to a role for the test styles |
-| 5 | Envelopes | `ref.sensory_dimension`, `style_sensory`, `style_character` for the test styles (BA parsed, BJCP extracted + reviewed); `style_rule` where needed | the Citra table in the roadmap reproduces from SQL + code |
+| 4 | Corpus (not loaded, D7, 2026-10-14; style fit does not use it) | `corpus.recipe`, `recipe_item` ← archive dump · `name_map` · profile job → `style_profile`, `style_grist`, `style_hop_use`, `style_ingredient` | ≥ 90 % of grist mass mapped to a role for the test styles |
+| 5 | Envelopes | `ref.sensory_dimension`, `style_sensory`, `style_character`, `style_ingredient` for the 26 s3 styles (BJCP and BA extracted by the LLM + reviewed); `style_rule` where needed | the Citra table in the roadmap reproduces from SQL + code, and the golden set passes |
 | 6 | Pipeline | `app.*` | a test brief → recipe rows + run_step log |
 | 7 | Books | `kb.chunk` (and `ref.source.file_path`) | after the doc → calculation pass per book |
 
@@ -455,9 +459,9 @@ sees them with the logic that uses them (PROJECT.md §6.8; review §4.3):
 
 | Behaviour | Was planned as | Lives in |
 |---|---|---|
-| Usage effects (dry hop → hop aroma + character, ~20 entries) | `ref.usage_effect` | a dict in the style-fit code ([STYLE-FIT.md](STYLE-FIT.md) §3) |
+| Usage effects (dry hop → hop aroma + character, ~20 entries) | `ref.usage_effect` | `app.usage_effects()` ([STYLE-FIT.md](STYLE-FIT.md) §3) |
 | Hint knobs (hint word → knob + direction, ~20 entries, each with its book source) | `ref.hint_knob` | a dict in the targets step ([RECIPE-ROADMAP.md](RECIPE-ROADMAP.md) §7) |
-| Sensory intensity cut points (calibrated on the corpus) | columns on `ref.sensory_dimension` | the style-fit code ([STYLE-FIT.md](STYLE-FIT.md) §4) |
+| Sensory intensity cut points (from *How to Brew* and OBC, or set by the user) | columns on `ref.sensory_dimension` | `app.style_fit_cut_points()` ([STYLE-FIT.md](STYLE-FIT.md) §4) |
 | Source weights (corpus 1, books 3, own batches 5…) | `corpus.source_weight` | the profile job ([STYLE-PROFILES.md](STYLE-PROFILES.md) §4) |
 | Potential SG from extract | `fermentable.potential_sg` | the maths library (tested) |
 | Salt molar mass | `water_salt.molar_mass` | `loaders/water_salts.py` (tested), which stores only the result, `water_salt.ion_mg_per_l_per_g` |

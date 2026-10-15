@@ -93,10 +93,15 @@ They say how the algorithm behaves, so they are a dict next to their tests, not 
 | esters / phenols | yeast character tag + fermentation temperature |
 | sourness, smoke, spice… | present / absent |
 
-**Level cut points are calibrated on the corpus, not invented,** and live in code next to
-their tests. For example: the median oil dose of styles whose envelope says *hop aroma high*
-vs *low* sets the thresholds. That uses statistics over thousands of recipes, so the noise in
-single recipes doesn't matter ([STYLE-PROFILES.md](STYLE-PROFILES.md)).
+**Level cut points come from the books, not from a corpus.** They are the figures cited in
+*How to Brew* and the OBC *Recipe Formulation* PDF (a doc → calc pass: book figure, page,
+arithmetic). Where the books give none, the user sets the cut point. Each cut point lives in
+code next to its tests with its basis (book and page, or "set by the user"), and is checked
+against the 22 reference recipes.
+
+Colour and bitterness are not levels: the recipe's SRM and IBU (s1's `app.srm` and `app.ibu`,
+via `app.check_recipe`) are compared with the style's `srm` and `ibu` ranges in
+`ref.beer_style`. Above the upper bound → ⚠️ "too much". A style with no range skips the check.
 
 ---
 
@@ -104,19 +109,29 @@ single recipes doesn't matter ([STYLE-PROFILES.md](STYLE-PROFILES.md)).
 
 ```
 level(style, ingredient, usage, dose):
+    0. style has no reviewed envelope                                  → not rated (no level)
     1. explicit override in style_rule (most specific: ingredient > tag > kind)?  → return it
+   1b. ingredient is a fermentable with role adjunct or sugar:
+         named in the style's reviewed characteristic ingredients     → 👍
+         not named                                                    → ⚠️  "not a usual ingredient of <style>"
+         (return; the usage effects below do not apply)
     2. for each sensation the usage drives:
          env = envelope[style][sensation]
          if style is silent on it:
              "transforming" sensation (sourness, brett funk)          → ⛔
              "specialty" sensation (spice, fruit, wood, smoke)        → ⚠️  + "specialty on <base>"
              core sensation (bitterness, aroma, malt…)                → no conflict
+         dose missing → the dose check is skipped and the because says so
          intensity(dose) > env.max                                    → ⚠️  "too much"
          if it carries character and env lists characters:
              match ≥ 0.8 → 👍   ·   0.3–0.8 → ➖   ·   < 0.3 → ⚠️  "wrong character"
     3. combine: any ⛔ → ⛔ · else any ⚠️ → ⚠️ · else any 👍 → 👍 · else ➖
-    4. ➖ but used in ≥ 15 % of the style's corpus recipes → 👍
+    4. ➖, a fermentable, listed for the style in ref.fermentable_style → 👍
+       (no bump for hops or yeasts)
 ```
+
+**Character match = the best pair.** For each (ingredient tag, style character) pair: 1.0 if
+they are the same tag, 0.5 if one is the other's parent, else 0. The match is the highest.
 
 **✅ required** is checked on the whole recipe, not per ingredient: the style's characteristic
 ingredients become role requirements (15B: *roast present*; 21A: *pale base ≥ 70 % of grist*).
@@ -143,7 +158,7 @@ specialty category, no cut points), so "silence means ⛔ / ⚠️ / fine" is da
 | You add… | Work needed | Effect |
 |---|---|---|
 | a hop / malt / yeast | none (auto-tags), unless a word is unknown → one review | levels in all 285 styles at once |
-| a style | one envelope (BA: parsed · BJCP: LLM extract + your review) | levels for every ingredient |
+| a style | one envelope (BJCP and BA: LLM extract + your review (BA parser later)) | levels for every ingredient |
 | a new descriptor word | one row in `tag_synonym` | every ingredient using it gets re-tagged |
 | an exception | one `style_rule` row | only where the envelope can't express it |
 

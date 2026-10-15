@@ -178,7 +178,7 @@ and let code compare the two.
 flowchart LR
     I["🧪 ingredient tags<br/>Citra: US · citrus · tropical"] --> X
     U["⚙️ usage effect<br/>dry hop → hop aroma<br/>+ its character tags"] --> X
-    D["📏 dose vs corpus<br/>g/L vs style p10–p90"] --> X
+    D["📏 dose → intensity<br/>cut points from the books"] --> X
     X{"code compares"}:::code --> L["level<br/>✅ 👍 ➖ ⚠️ ⛔"]
     E["🎯 style envelope<br/>hop aroma: none–low<br/>character: earthy, floral"] --> X
     O["✍️ overrides<br/>few, hand-written"] --> X
@@ -188,11 +188,11 @@ flowchart LR
 
 | Piece | Lives in | Written | Example |
 |---|---|---|---|
-| **Style envelope** | `ref.style_sensory` | once per style: BA fields parsed by code, BJCP prose extracted by LLM, **you review** | 15B: hop aroma *none–low*, character *earthy, floral* |
+| **Style envelope** | `ref.style_sensory` | once per style: BJCP and BA prose extracted by the LLM, **you review** | 15B: hop aroma *none–low*, character *earthy, floral* |
 | **Ingredient tags** | `ref.ingredient_tag` | from the hop's hopline page (description, origin), malt role, yeast family | Citra: *US, citrus, tropical* |
 | **Usage effects** | code (a dict next to its tests) | once, ~20 entries | bittering → bitterness only (character doesn't carry) · late / dry hop → aroma + character |
-| **Dose check** | `corpus.style_profile` | computed | dry hop g/L above the style's p90 → "above typical" |
-| **Overrides** | `ref.style_rule` | by hand, only where the above can't say it | 16A: lactose → 👍 |
+| **Dose check** | code (`db/033_style_fit_effects.sql`) | cut points from the books, or set by you | dry hop oil dose above the envelope's max level → "above typical" |
+| **Overrides** | `ref.style_rule` | by hand, only where the envelope and the adjunct/sugar rule can't say it | (rare; 16A lactose is no longer one: the rule says it) |
 
 ### Worked example: Citra in two stouts
 
@@ -210,12 +210,12 @@ BJCP text: 15B Irish Stout *"Low earthy or floral hop aroma optional"* · 20B Am
 | Level | Triggered when |
 |---|---|
 | ✅ required | named in the style's characteristic ingredients ("Pale base malt") |
-| 👍 typical | its tags match the envelope's character words, or it ranks top in the corpus for the style |
+| 👍 typical | its tags match the envelope's character words; or, for a fermentable, `ref.fermentable_style` lists it for the style; or it is an adjunct or sugar the style's characteristic ingredients name |
 | ➖ allowed | no conflict found |
-| ⚠️ out of style | character mismatch, or intensity/dose above the envelope |
+| ⚠️ out of style | character mismatch, intensity/dose above the envelope, or an adjunct or sugar the style doesn't name |
 | ⛔ changes style | drives a dimension the style rules out (sourness in an IPA) |
 
-At runtime this is **pure SQL/code**. The LLM is used once, offline, to extract BJCP envelopes.
+At runtime this is **pure SQL/code**. The LLM is used once, offline, to extract BJCP and BA envelopes.
 
 ➡️ **Full algorithm**, including automatic tagging so new hops, malts and yeasts need no rules:
 [STYLE-FIT.md](STYLE-FIT.md).
@@ -290,7 +290,7 @@ flowchart LR
 | **P0** | 20 test briefs (varied styles, deviations, overrides, not just stouts) in [`evals/recipe_briefs.toml`](../evals/recipe_briefs.toml), reviewed by you. D7 and D9 moved to P3; D8 decided. | ✅ done 2026-10-11: 20 briefs in the repo, 16 BJCP categories, all six adjuncts needed, `tests/test_recipe_briefs.py` 10 passed |
 | **P1** | `ref` + `corpus` schemas ([DATABASE.md](DATABASE.md)). Load styles (116 + 169), malts, adjuncts, hops, hopline yeasts, water salts, the corpus with quality gates ([STYLE-PROFILES.md](STYLE-PROFILES.md) §2). | row counts match sources · 10 rows spot-checked per table. **P1a (`ref`) ✅ done 2026-10-11:** 285 styles, 298 ingredients, spot-checked ([PROJECT.md](../PROJECT.md) §4). **P1b (`corpus`)** not started |
 | **P2** | Maths library with unit tests | tests pass against Palmer's and OBC's worked examples. **✅ done 2026-10-14** ([`s1-maths`](finished/s1-maths/plan.md)): 19 functions in `db/030_maths.sql`, `tests/test_maths.py` 79 passed (full suite 331). Palmer: all 160 Tinseth cells and 140 ABV cells, 7 FG cells, OG, colour and IBU examples. OBC: OG and MCU of both beers; its SRM and IBU are Daniels' model and not tested |
-| **P3** | Tag vocabulary · ingredient tags · usage effects · envelopes for the test styles · `style_profile`. Settle D9 (D7 settled 2026-10-14, [`s2-formulation-rules`](finished/s2-formulation-rules/brief.md)). | the Citra table (§5) reproduces from SQL |
+| **P3** | Tag vocabulary · ingredient tags · usage effects · envelopes for the test styles · `style_profile`. D9 decided 2026-10-15 (D7 settled 2026-10-14, [`s2-formulation-rules`](finished/s2-formulation-rules/brief.md)). | the Citra table (§5) reproduces from SQL |
 | **P4** | Steps 0–3. Step 2 picks the style from BJCP 2021 or BA 2026 per D1 (§9): BJCP preferred, BA where it describes the beer better or the user is asked, and one guide only when the user sets BJCP only or BA only | ≥ 18/20 briefs: right style, right deviations |
 | **P5** | Steps 4–11 | ≥ 16/20 validate · **0 invented ingredients** · LLM calls ≤ 2 + tie-breaks |
 | **P7** | Doc → calc pass per book, then ingest the rest into `kb`, retrieval eval | recall@5 measured, above an agreed bar |
@@ -305,7 +305,7 @@ flowchart LR
 | # | Question | Recommendation |
 |---|---|---|
 | D7 | Ratio source | Decided 2026-10-14 (see [PROJECT.md](../PROJECT.md) §3): no ratio corpus; the LLM proposes, code scales and checks; revisit if test briefs show a need. Work: [`s2-formulation-rules`](finished/s2-formulation-rules/brief.md) |
-| D9 | Who approves style envelopes (decided in P3) | LLM extracts, you review |
+| D9 | Who approves style envelopes | Decided 2026-10-15 (see [PROJECT.md](../PROJECT.md) §5): the LLM extracts BJCP and BA prose offline, you review every envelope |
 
 D1 (style guide) is decided, 2026-10-11: both guides are used, BJCP 2021 preferred; BA where it
 describes the beer better, or the user is asked; the user can set BJCP only or BA only. Step 2

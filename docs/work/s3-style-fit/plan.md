@@ -1,6 +1,6 @@
 # S3 · Style fit: tags, envelopes and the level function — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: s3-style-fit
 
@@ -106,23 +106,23 @@ before the answer.
 
 ### Task 1: Design docs describe the agreed approach without a corpus
 Why: R10 (A10), the agreed §4/§5 changes. Docs only; no code depends on it.
-- [ ] `docs/STYLE-FIT.md` §4: replace the "calibrated on the corpus" paragraph: cut points come
+- [x] `docs/STYLE-FIT.md` §4: replace the "calibrated on the corpus" paragraph: cut points come
       from figures cited in *How to Brew* and the OBC *Recipe Formulation* PDF (doc → calc
       pass), the user sets any the books don't give, each lives in code with its basis (book
       and page, or "set by the user") and is checked against the 22 reference recipes. Add the
       colour/bitterness note (recipe SRM/IBU from s1 vs the style range). Drop the
       STYLE-PROFILES link.
-- [ ] `docs/STYLE-FIT.md` §5: the pseudo-code gets step 1b, the adjunct/sugar rule (a
+- [x] `docs/STYLE-FIT.md` §5: the pseudo-code gets step 1b, the adjunct/sugar rule (a
       fermentable with role `adjunct` or `sugar`: named in the style's reviewed characteristic
       ingredients → 👍, else ⚠️ "not a usual ingredient of <style>"), and step 4 becomes "➖, a
       fermentable, listed for the style in `ref.fermentable_style` → 👍 (no bump for hops or
       yeasts)". Note that a missing dose skips the dose check and the because says so, and that
       a style with no reviewed envelope is not rated. Add the character-match rule (best pair:
       1.0 same, 0.5 parent/child). The worked example keeps its rows.
-- [ ] `docs/STYLE-FIT.md` §6, row "a style": "one envelope (BA: parsed · BJCP: LLM extract +
+- [x] `docs/STYLE-FIT.md` §6, row "a style": "one envelope (BA: parsed · BJCP: LLM extract +
       your review)" → "one envelope (BJCP and BA: LLM extract + your review (BA parser later))"
       (user's agreement 2026-10-15, brief Deviations).
-- [ ] `docs/RECIPE-ROADMAP.md` §5: diagram node "dose vs corpus" → "dose → intensity (cut
+- [x] `docs/RECIPE-ROADMAP.md` §5: diagram node "dose vs corpus" → "dose → intensity (cut
       points from the books)"; table row **Dose check** → lives in code
       (`db/033_style_fit_effects.sql`); **Overrides** example no longer 16A lactose (now the
       adjunct/sugar rule) but "only where the envelope and the adjunct/sugar rule can't say it";
@@ -131,7 +131,7 @@ Why: R10 (A10), the agreed §4/§5 changes. Docs only; no code depends on it.
       the style's characteristic ingredients name"; ⚠️ row adds "an adjunct or sugar the style
       doesn't name". Also "The LLM is used once, offline, to extract BJCP envelopes" → "BJCP and
       BA envelopes".
-- [ ] `docs/WORKFLOW-ROADMAP.md`: edge `S2 -. "…revisit in s3" .-> S3` → `S2 --> S3`; the chain
+- [x] `docs/WORKFLOW-ROADMAP.md`: edge `S2 -. "…revisit in s3" .-> S3` → `S2 --> S3`; the chain
       sentence drops "(s2-corpus abandoned …; revisit in s3)" and the corpus reasons, and says
       s3 needs s2's fermentable roles and `fermentable_style`; TL;DR "Maths, corpus and tags" →
       "Maths, formulation rules and tags"; S3 row Builds → "Tags, envelopes for 26 styles (22
@@ -139,7 +139,7 @@ Why: R10 (A10), the agreed §4/§5 changes. Docs only; no code depends on it.
       26 s3 styles reviewed by you (D9); the golden set passes; every reference-recipe line
       rated, 0 unexpected ⚠️/⛔" instead of "22 brief styles" and "D7 settled with measured
       profile counts".
-- [ ] `docs/DATABASE.md`: §2 rule diagram node "dose ≤ corpus p90?" → "dose ≤ envelope max
+- [x] `docs/DATABASE.md`: §2 rule diagram node "dose ≤ corpus p90?" → "dose ≤ envelope max
       (cut points)?", plus a node for the adjunct/sugar rule before the usage effects and the
       `fermentable_style` bump after "no conflict"; §2 rows `style_sensory`/`style_character`
       "BA: parsed by code · BJCP: LLM extract" → "BJCP and BA prose: LLM extract (D2 model) →
@@ -147,13 +147,13 @@ Why: R10 (A10), the agreed §4/§5 changes. Docs only; no code depends on it.
       §7 row 5 → envelopes for the 26 s3 styles, done when the Citra table and the golden set
       pass; §8 cut-point row → "from *How to Brew* and OBC, or set by the user" living in
       `app.style_fit_cut_points()`, usage-effects row → `app.usage_effects()`.
-- [ ] `PROJECT.md`: remove the D9 row from §7 (leave the table with a "none open" row) and add
+- [x] `PROJECT.md`: remove the D9 row from §7 (leave the table with a "none open" row) and add
       to §5's style-guides text: "**Style envelopes (was D9, decided 2026-10-15):** the D2 model
       extracts BJCP and BA guideline prose offline, and the user reviews every envelope before
       it enters `ref`; a BA field parser comes later, when all 169 BA styles are wanted. *Why:
       one path for 26 styles is less to build than a parser for 3, and nothing enters `ref`
       unreviewed.*" Add the §8 line.
-- [ ] Run `grep -n -i "corpus\|p90\|revisit in s3" docs/STYLE-FIT.md docs/WORKFLOW-ROADMAP.md`
+- [x] Run `grep -n -i "corpus\|p90\|revisit in s3" docs/STYLE-FIT.md docs/WORKFLOW-ROADMAP.md`
       and read every hit in RECIPE-ROADMAP §5 and DATABASE §2, §7, §8: none describes a corpus
       route for style fit (hits about the abandoned corpus itself, M5 or §3 `corpus` tables are
       fine). `grep -n "D9" PROJECT.md` shows no §7 row.
