@@ -1,6 +1,6 @@
 # S2 · Formulation rules and ingredient data — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: s2-formulation-rules
 
@@ -494,14 +494,14 @@ Commit: `Add reviewed reference recipes for 22 briefs`
 
 ### Task 9: Project status and full test run
 Why: PROJECT.md §10, CLAUDE.md.
-- [ ] Run the full suite `pytest` with the stack up and `pytest -m "not stack"`; note both
+- [x] Run the full suite `pytest` with the stack up and `pytest -m "not stack"`; note both
       counts and the time.
-- [ ] PROJECT.md §4 Database row (role, `max_pct`, new columns and tables, rules and check,
+- [x] PROJECT.md §4 Database row (role, `max_pct`, new columns and tables, rules and check,
       measured counts) and Scripts row (the new loader and test files with counts); §5 malt and
       adjunct rows (descriptions, roles); remove "`fermentable.role` stays empty until P3" where
       it appears in PROJECT.md and DATABASE.md; RECIPE-ROADMAP §8 P3 notes D7 settled. §8 line
       with the measured numbers; "Last updated" date.
-- [ ] Re-check A13: `grep` shows RECIPE-ROADMAP §9 D7 decided, §8 Later list with the 3 items,
+- [x] Re-check A13: `grep` shows RECIPE-ROADMAP §9 D7 decided, §8 Later list with the 3 items,
       the WORKFLOW-ROADMAP S2 link, no D7 in PROJECT.md §7, no `docs/work/s2-corpus/`.
 Done when: PROJECT.md describes what is running, with measured numbers.
 Commit: `Record s2-formulation-rules status`
