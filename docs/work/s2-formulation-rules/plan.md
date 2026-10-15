@@ -431,9 +431,9 @@ Why: R10 rules 8–13, R14 (A8 for rules 8–13, A10, A14).
       - rule 8: count boil additions with `minutes = boil_min` (must be 1); every other addition
         is whirlpool, dry_hop, or boil with `minutes ≤ 15`.
       - rule 9: style ranges from `ref.beer_style` by `style_code`; for each of og, fg, abv,
-        ibu, srm: if not stated (OG and FG count as stated when `stated.abv` is present), the
-        target must be within the tolerance of the range midpoint; a target outside the range
-        fails unless stated or `guidance` is false. A style range that is null → `unknown`
+        ibu, srm: when `guidance` is true and the target is not stated (OG and FG count as stated
+        when `stated.abv` is present), the target must be within the tolerance of the range
+        midpoint; a stated target, or any target with `guidance` false, may sit anywhere. A style range that is null → `unknown`
         naming `ref.beer_style.<field>`.
       - rule 10: mash_c inside 64–69, and the predicted FG inside the target FG range (style FG
         range, or target FG ± 0.002 when FG or ABV is stated). Yeast without `attenuation_pct`
@@ -552,3 +552,4 @@ None.
 - 2026-10-15 · Task 7: rule functions 8-13 take `(items, recipe[, numbers])`; rule 9 skips the midpoint test for every target when `guidance` is false (the plan's rule 9 text allowed an out-of-range SRM only for that case) — implementation detail.
 - 2026-10-15 · Task 8: user request — multi-step mash profiles (several rests, decoction) and their effect on predicted FG added to RECIPE-ROADMAP §8 Later, next to the cited mash-temperature model TODO. Not planned anywhere before (m7-process only outputs mash steps as text). No change to this work's scope: rule 10 and s1 keep one mash temperature.
 - 2026-10-15 · Task 8: the user approved the 22 recipes as drafted and b12 against 18A; no rule failed, so no threshold change and `ACCEPTED_FAILURES` stays empty. Review date recorded in report.md §7.
+- 2026-10-15 · Task 7 (review fix): the rule 9 sentence now starts "When style guidance is on, …", matching the check (guidance off skips the midpoint test); the Task 7 rule 9 bullet above describes that logic. Rule 10's stated-FG/ABV band reads `midpoint_tolerance.fg` instead of 0.002; the mash failure's `limit` is the bound crossed (64 or 69). User's answer to review finding 2, option a.

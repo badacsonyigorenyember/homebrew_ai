@@ -298,3 +298,4 @@ None remain. Questions 5 and 8 were answered on 2026-10-14, and 1, 2, 3, 4, 6, 7
   E, 2026-10-14" when it cannot be placed); R5 — Golden Promise and Maris Otter pair with both
   Weyermann and Viking Pale Ale; R10 rule 10 — the target FG range is the style's FG range, or the
   target FG ± 0.002 when the user stated the FG or the ABV — the user's decision.
+- 2026-10-15 · R10 rule 9 (user decision B), review finding 2: the rule 9 sentence reads "When style guidance is on, a target … that the user did not state is the style's midpoint …"; with guidance off, unstated targets may sit anywhere, which gives the "or guidance is off" clause its effect — the user's answer (option a).

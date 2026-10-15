@@ -360,7 +360,7 @@ def test_rule_8(conn):
 @pytest.mark.stack
 def test_rule_9(conn):
     out = check(conn, recipe(conn, BASE))
-    assert result(out, 9)["status"] == "pass"
+    only_rule_differs(out, 9, "pass")
     # a stated ABV above the range (b17-like): OG and FG count as stated, so they may sit anywhere
     strong = recipe(conn, BASE, stated={"abv": 8.0}, targets={"og": 1.075, "fg": 1.015, "abv": 8.0, "ibu": 21.5, "srm": 4.5})
     assert result(check(conn, strong), 9)["status"] == "pass"
@@ -368,22 +368,23 @@ def test_rule_9(conn):
     off = recipe(conn, BASE)
     off["targets"]["ibu"] = 35
     out = check(conn, off)
-    assert result(out, 9)["status"] == "fail" and "IBU" in result(out, 9)["message"]
+    only_rule_differs(out, 9, "fail")
+    assert "IBU" in result(out, 9)["message"]
     # the same IBU stated passes
     off["stated"] = {"ibu": 35}
-    assert result(check(conn, off), 9)["status"] == "pass"
+    only_rule_differs(check(conn, off), 9, "pass")
     # an out-of-range SRM with guidance off passes
     dark = recipe(conn, BASE, guidance=False)
     dark["targets"]["srm"] = 30
-    assert result(check(conn, dark), 9)["status"] == "pass"
+    only_rule_differs(check(conn, dark), 9, "pass")
     dark["guidance"] = True
-    assert result(check(conn, dark), 9)["status"] == "fail"
+    only_rule_differs(check(conn, dark), 9, "fail")
     # tolerance: OG 0.001 off passes, 0.002 off fails
     near = recipe(conn, BASE)
     near["targets"]["og"] = 1.047
-    assert result(check(conn, near), 9)["status"] == "pass"
+    only_rule_differs(check(conn, near), 9, "pass")
     near["targets"]["og"] = 1.0485
-    assert result(check(conn, near), 9)["status"] == "fail"
+    only_rule_differs(check(conn, near), 9, "fail")
 
 
 @pytest.mark.stack
@@ -392,24 +393,45 @@ def test_rule_9_unknown_without_style_range(conn):
     if code is None:
         pytest.skip("every style has an IBU range")
     out = check(conn, recipe(conn, BASE, style_code=code[0]))
-    assert result(out, 9)["status"] in ("unknown", "fail")
+    assert result(out, 9)["status"] == "unknown"
 
 
 @pytest.mark.stack
 def test_rule_10(conn):
-    assert result(check(conn, recipe(conn, BASE)), 10)["status"] == "pass"
-    for mash in (63, 70):
+    only_rule_differs(check(conn, recipe(conn, BASE)), 10, "pass")
+    # the mash limits themselves pass; one degree outside fails and names the limit it crossed
+    for mash in (64, 69):
+        only_rule_differs(check(conn, recipe(conn, BASE, mash_c=mash)), 10, "pass")
+    for mash, limit in ((63, 64), (70, 69)):
         out = check(conn, recipe(conn, BASE, mash_c=mash))
-        assert result(out, 10)["status"] == "fail" and "between 64 and 69" in result(out, 10)["message"]
+        only_rule_differs(out, 10, "fail")
+        assert "between 64 and 69" in result(out, 10)["message"]
+        failure = result(out, 10)["failures"][0]
+        assert (failure["value"], failure["limit"]) == (mash, limit)
     # predicted FG outside the style range: a strong wort at 80 % attenuation ends above 1.013
     high_fg = recipe(conn, BASE, stated={"og": 1.075}, targets={"og": 1.075, "fg": 1.0105, "abv": 4.65, "ibu": 21.5, "srm": 4.5})
     out = check(conn, high_fg)
-    assert result(out, 10)["status"] == "fail" and "predicted FG" in result(out, 10)["message"]
+    only_rule_differs(out, 10, "fail")
+    assert "predicted FG" in result(out, 10)["message"]
     # stated FG: the range is the target FG +- 0.002
-    stated = recipe(conn, BASE, stated={"fg": 1.020}, targets={"og": 1.046, "fg": 1.020, "abv": 3.4, "ibu": 21.5, "srm": 4.5})
-    assert result(check(conn, stated), 10)["status"] == "fail"
-    stated = recipe(conn, BASE, stated={"fg": 1.009}, targets={"og": 1.046, "fg": 1.009, "abv": 4.8, "ibu": 21.5, "srm": 4.5})
-    assert result(check(conn, stated), 10)["status"] == "pass"
+    # (OG, FG and ABV are all stated, so rule 9 has nothing to check)
+    stated = recipe(conn, BASE, stated={"og": 1.046, "fg": 1.020, "abv": 3.4},
+                    targets={"og": 1.046, "fg": 1.020, "abv": 3.4, "ibu": 21.5, "srm": 4.5})
+    only_rule_differs(check(conn, stated), 10, "fail")
+    stated = recipe(conn, BASE, stated={"og": 1.046, "fg": 1.009, "abv": 4.8},
+                    targets={"og": 1.046, "fg": 1.009, "abv": 4.8, "ibu": 21.5, "srm": 4.5})
+    only_rule_differs(check(conn, stated), 10, "pass")
+    # the band is the midpoint_tolerance.fg limit, not a literal: widen it and the stated 1.020 passes
+    limits = conn.execute("select app.formulation_limits()").fetchone()[0]
+    limits["midpoint_tolerance"]["fg"] = 0.05
+    conn.execute(
+        "create or replace function app.formulation_limits() returns jsonb language sql immutable "
+        "as $f$ select %s::jsonb $f$" % ("'" + json.dumps(limits) + "'"))
+    wide = recipe(conn, BASE, stated={"og": 1.046, "fg": 1.020, "abv": 3.4},
+                  targets={"og": 1.046, "fg": 1.020, "abv": 3.4, "ibu": 21.5, "srm": 4.5})
+    status = result(check(conn, wide), 10)["status"]
+    conn.rollback()
+    assert status == "pass"
 
 
 @pytest.mark.stack
@@ -436,19 +458,23 @@ def test_mash_mapping(conn):
 @pytest.mark.stack
 def test_rule_11(conn):
     assert result(check(conn, recipe(conn, BASE)), 11)["status"] == "pass"
-    out = check(conn, recipe(conn, BASE))
+    only_rule_differs(check(conn, recipe(conn, BASE)), 11, "pass")
     cold = recipe(conn, BASE)
     cold["yeast"]["ferm_c"] = 10
-    r = result(check(conn, cold), 11)
-    assert r["status"] == "fail" and "fermentation temperature" in r["message"]
+    out = check(conn, cold)
+    only_rule_differs(out, 11, "fail")
+    assert "fermentation temperature" in result(out, 11)["message"]
     cold["yeast"]["ferm_c"] = 18
-    assert result(check(conn, cold), 11)["status"] == "pass"
+    only_rule_differs(check(conn, cold), 11, "pass")
     tolerance = conn.execute(
         "select alcohol_tolerance_pct from ref.yeast where ingredient_id = %s", (ing(conn, "yeast", US05),)).fetchone()[0]
     strong = recipe(conn, [(PILSNER, 70), (RICE, 30)], targets={"og": 1.120, "fg": 1.020, "abv": 13, "ibu": 21.5, "srm": 4.5},
                     stated={"abv": 13})
-    r = result(check(conn, strong), 11)
-    assert r["status"] == "fail" and f"{tolerance:.0f} %" in r["message"] and out
+    # state the predicted FG as the target, so rule 10 passes and only rule 11 is left to fail
+    strong["targets"]["fg"] = round(check(conn, strong)["numbers"]["fg"], 4)
+    out = check(conn, strong)
+    only_rule_differs(out, 11, "fail")
+    assert f"{tolerance:.0f} %" in result(out, 11)["message"]
 
 
 @pytest.mark.stack
@@ -467,13 +493,13 @@ def test_rule_12(conn):
 @pytest.mark.stack
 def test_rule_13(conn):
     out = check(conn, recipe(conn, BASE, boil_min=60))
-    r = result(out, 13)
-    assert r["status"] == "fail" and "Pilsner Malt needs at least 90 min" in r["message"]
-    assert result(check(conn, recipe(conn, BASE, boil_min=90)), 13)["status"] == "pass"
+    only_rule_differs(out, 13, "fail")
+    assert "Pilsner Malt needs at least 90 min" in result(out, 13)["message"]
+    only_rule_differs(check(conn, recipe(conn, BASE, boil_min=90)), 13, "pass")
     no_pilsner = recipe(conn, [(VIENNA, 100)], boil_min=60)
-    assert result(check(conn, no_pilsner), 13)["status"] == "pass"
+    only_rule_differs(check(conn, no_pilsner), 13, "pass")
     below_floor = recipe(conn, [(VIENNA, 100)], boil_min=45)
-    assert result(check(conn, below_floor), 13)["status"] == "fail"
+    only_rule_differs(check(conn, below_floor), 13, "fail")
     items = {"fermentables": [{"ingredient_id": 1, "name": "X", "min_boil_min": None}], "hops": []}
     r = conn.execute("select app.check_rule_13(%s::jsonb, %s::jsonb)", (json.dumps(items), json.dumps({"boil_min": 60}))).fetchone()[0]
     assert r["status"] == "unknown" and r["missing"] == ["ref.fermentable.min_boil_min"]

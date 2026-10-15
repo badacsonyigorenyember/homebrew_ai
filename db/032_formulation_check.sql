@@ -478,7 +478,7 @@ $$;
 
 -- Rule 10: mash temperature inside mash_min_c..mash_max_c, and the predicted FG (numbers.fg, from
 -- the mash-adjusted attenuation) inside the target FG range: the style's FG range, or the target
--- FG +- 0.002 when the user stated the FG or the ABV.
+-- FG +- midpoint_tolerance.fg when the user stated the FG or the ABV.
 create or replace function app.check_rule_10(items jsonb, recipe jsonb, numbers jsonb)
 returns jsonb
 language plpgsql
@@ -499,11 +499,13 @@ begin
         failures := failures || app.rule_failure(
             format('Rule 10: the mash temperature is %s °C; it must be between %s and %s °C.',
                    trim_scale(mash), l->>'mash_min_c', l->>'mash_max_c'),
-            '[]'::jsonb, mash, (l->>'mash_max_c')::numeric);
+            '[]'::jsonb, mash,
+            case when mash < (l->>'mash_min_c')::numeric then (l->>'mash_min_c')::numeric
+                 else (l->>'mash_max_c')::numeric end);
     end if;
     if stated ? 'fg' or stated ? 'abv' then
-        lo := (recipe->'targets'->>'fg')::numeric - 0.002;
-        hi := (recipe->'targets'->>'fg')::numeric + 0.002;
+        lo := (recipe->'targets'->>'fg')::numeric - (l->'midpoint_tolerance'->>'fg')::numeric;
+        hi := (recipe->'targets'->>'fg')::numeric + (l->'midpoint_tolerance'->>'fg')::numeric;
     else
         select fg into style_fg from ref.beer_style where code = items->>'style_code';
         if style_fg is null then

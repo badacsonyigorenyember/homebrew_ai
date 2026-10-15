@@ -72,8 +72,8 @@ as $$
         ('8', true, format('A recipe has exactly one bittering addition: a boil addition whose time '
             || 'equals the boil time. Every other hop addition is a boil addition of at most %s min, '
             || 'a whirlpool addition or a dry hop.', j->>'late_hop_max_min')),
-        ('9', true, format('A target OG, FG, ABV, IBU or SRM that the user did not state is the '
-            || 'style''s midpoint, within %s for OG, %s for FG, %s %% for ABV, %s IBU and %s SRM; OG '
+        ('9', true, format('When style guidance is on, a target OG, FG, ABV, IBU or SRM that the user did not '
+            || 'state is the style''s midpoint, within %s for OG, %s for FG, %s %% for ABV, %s IBU and %s SRM; OG '
             || 'and FG count as stated when the user stated the ABV. A target is outside the style''s '
             || 'range only when the user stated it or style guidance is off.',
             tol->>'og', tol->>'fg', tol->>'abv', tol->>'ibu', tol->>'srm')),
