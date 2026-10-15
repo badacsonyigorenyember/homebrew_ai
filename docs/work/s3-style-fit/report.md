@@ -188,3 +188,20 @@ committed. Run over the 22 reference recipes (SRM and IBU are the recipe's compu
 4. b22 / Mexican-Style Amber Lager: roast `min` low → none (quote: "light roast ... may be present"); reloaded, 26 styles; the 53 golden cases still pass.
 
 After these: `tests/test_style_fit_recipe.py` 5 passed, `ACCEPTED_TOTALS` empty; full `pytest` 530 passed, 1 failed (the known `test_db_enzyme_and_boil`) (measured).
+
+## 7. Correction after review (2026-10-15)
+
+The review found that the colour check (R7) never ran on 11 of 22 reference recipes (b02, b03, b04,
+b05, b06, b07, b12, b16, b19, b20, b22): `app.check_recipe` gives SRM null when a fermentable has no
+colour, and the flakes, Honey and Lactose had none. So "every reference-recipe line is rated" in §6
+held for levels but not for colour on those recipes; the earlier "G-S met" relied on the skipped check.
+
+Fix (user-approved): Flaked Barley, Oats, Corn and Rice got a sourced EBC (Simpsons p. 2: <3.2 for
+barley and oats; Briess 0.8 and 1 SRM × 1.97 for corn and rice). Honey, Lactose and Enzyme Malt stay
+without colour, so `app.style_fit_recipe` uses a **lower-bound SRM** (those count as 0 EBC) and flags
+"too much colour" only when even that is above the style maximum. Result over the 22 recipes: one new
+line failed, b19 (26.7 SRM lower bound vs 17C 14-25, Caramunich Type 2 and Roasted Barley). The user
+chose to fix the recipe: Caramunich Type 2 8 → 5 %, Roasted Barley 2 → 1 %, Maris Otter 80 → 84 %,
+Honey 10 % unchanged; lower-bound SRM 18.8, OG 1.100, IBU 26.3. No other recipe is flagged.
+Not verified: colour **below** the range is still not checked, and the SRM of recipes with Honey,
+Lactose or Enzyme Malt is a floor, not a measured value.
