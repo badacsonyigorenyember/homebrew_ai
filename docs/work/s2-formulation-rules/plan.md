@@ -120,7 +120,7 @@ Commit: `Record D7 and s2-corpus notes in roadmaps`
 
 ### Task 2: Schema for the new fermentable data
 Why: R3, R4, R5, R6, R7, R8 (A3 constraints).
-- [ ] Append to `db/010_ref_schema.sql` (idempotent, `if not exists` / `drop … if exists`):
+- [x] Append to `db/010_ref_schema.sql` (idempotent, `if not exists` / `drop … if exists`):
   ```sql
   alter table ref.fermentable
       add column if not exists enzyme_activity text
@@ -147,16 +147,16 @@ Why: R3, R4, R5, R6, R7, R8 (A3 constraints).
       source_id     bigint not null references ref.source (id),
       primary key (ingredient_id, style_id));
   ```
-- [ ] Append to `db/011_ref_sources.sql`'s insert: slug `malt-substitution-2025`, title
+- [x] Append to `db/011_ref_sources.sql`'s insert: slug `malt-substitution-2025`, title
       `PrimeTime Malt Substitution Chart`, edition `2025 (short)`, publisher `Hops Shop BG`
       (printed "© Hops Shop BG, 2025"), url null, notes
       `shared/rag-files/pending/PrimeTime Malt Substitution Chart 2025 short.pdf`.
-- [ ] Apply both files twice as `postgres` (OPERATIONS §4); no errors.
-- [ ] Write stack test `tests/test_fermentable_facts.py::test_schema`: the 4 columns exist, the
+- [x] Apply both files twice as `postgres` (OPERATIONS §4); no errors.
+- [x] Write stack test `tests/test_fermentable_facts.py::test_schema`: the 4 columns exist, the
       two check constraints reject `'medium'` and `30` (inside a rolled-back transaction), both
       tables and the view exist and are owned by `postgres`, the chart source row exists.
-- [ ] Run `pytest tests/test_fermentable_facts.py`, expect pass.
-- [ ] DATABASE.md: `fermentable` row lists the new columns; add rows for the two tables and the
+- [x] Run `pytest tests/test_fermentable_facts.py`, expect pass.
+- [x] DATABASE.md: `fermentable` row lists the new columns; add rows for the two tables and the
       view. PROJECT.md §8 line.
 Done when: the catalog shows the columns, constraints, tables and view, owned by `postgres`.
 Commit: `Add fermentable formulation columns and tables`
