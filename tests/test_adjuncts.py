@@ -85,9 +85,15 @@ def test_build_values_per_adjunct():
         flake = items[name]
         assert flake.extract_dbfg_pct == D(extract)
         assert flake.field_source["extract_dbfg_pct"] == PALMER_SLUG
-        assert flake.ebc is None
         assert flake.fermentability == "normal"
         assert flake.source_slug == HOPLINE
+    # colour: the producer's figure, written with its source (hopline prints none)
+    assert items["Flaked Barley"].ebc == Range(D("0"), D("3.2"), "[]")
+    assert items["Flaked Oats"].ebc == Range(D("0"), D("3.2"), "[]")
+    assert items["Flaked Corn"].ebc == Range(D("1.576"), D("1.576"), "[]")
+    assert items["Flaked Rice"].ebc == Range(D("1.97"), D("1.97"), "[]")
+    for name in ["Flaked Barley", "Flaked Oats", "Flaked Corn", "Flaked Rice"]:
+        assert items[name].field_source["ebc"] == items[name].raw["colour"]["source"]
     assert items["Flaked Rice"].max_pct == D("40")
     assert items["Flaked Rice"].field_source["max_pct"] == HOPLINE
     assert items["Flaked Oats"].max_pct is None

@@ -69,6 +69,19 @@ PRODUCTS: dict[str, tuple[str, str, dict[str, tuple[str, str]]]] = {
     ),
 }
 
+# COLOUR: ingredient name -> (EBC low, EBC high, source slug, what the source prints). Hopline
+# prints no colour for the flakes, so they take the producer's own figure. Honey, Lactose and
+# Enzyme Malt have no sourced colour and stay NULL (user decision 2026-10-15): s3's colour
+# check then counts only the fermentables that have one, and says so.
+COLOUR: dict[str, tuple[str, str, str, str]] = {
+    "Flaked Barley": ("0", "3.2", "simpsons-malt-nov25", "Simpsons nexthop product range Nov 2025, p. 2, Unmalted Adjuncts: Flaked Barley <3.2 EBC"),
+    "Flaked Oats": ("0", "3.2", "simpsons-malt-nov25", "Simpsons nexthop product range Nov 2025, p. 2, Unmalted Adjuncts: Flaked Oats <3.2 EBC"),
+    # 0.8 SRM x 1.97 (app.ebc_from_srm) = 1.576 EBC
+    "Flaked Corn": ("1.576", "1.576", "briess-flakes-web", "https://brewingwithbriess.com/craft-distilling/flakes/ Brewers Yellow Corn Flakes Non-GMO: 0.8 SRM, x 1.97"),
+    # 1 SRM x 1.97 = 1.97 EBC (Briess's product is brown rice flakes)
+    "Flaked Rice": ("1.97", "1.97", "briess-flakes-web", "https://brewingwithbriess.com/craft-distilling/flakes/ Brewers Brown Rice Flakes: 1 SRM, x 1.97"),
+}
+
 PACK_SIZES: dict[str, str] = {
     "400031-cs": "400030-cs",  # Laktóz 1kg
 }

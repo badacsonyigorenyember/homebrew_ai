@@ -22,7 +22,7 @@ import psycopg
 from psycopg.types.json import Jsonb
 from psycopg.types.range import Range
 
-from loaders.adjunct_products import PACK_SIZES, PALMER, PALMER_ONLY, PRODUCTS, SKIPPED
+from loaders.adjunct_products import COLOUR, PACK_SIZES, PALMER, PALMER_ONLY, PRODUCTS, SKIPPED
 from loaders.common import num, to_range
 from loaders.db import connect, source_id, upsert_ingredient
 
@@ -80,6 +80,15 @@ def make_adjunct(
             raise ValueError(f"{name}: no rule for hopline figure {field!r}")
         field_source[field] = HOPLINE
 
+    # Producer colour for the flakes (hopline prints none); a hopline figure above wins.
+    if name in COLOUR and values["ebc"] is None:
+        low, high, slug, printed = COLOUR[name]
+        values["ebc"] = to_range(low, high)
+        field_source["ebc"] = slug
+        extra_raw = {"colour": {"source": slug, "printed": printed}}
+    else:
+        extra_raw = {}
+
     # Palmer prints no colour and no max %, only the extract and a sugar's fermentability.
     if values["extract_dbfg_pct"] is None:
         if "fgdb" in palmer:
@@ -99,6 +108,7 @@ def make_adjunct(
     if extra_pages:
         raw[PACK_PAGES] = extra_pages
     raw[PALMER_SLUG] = palmer
+    raw.update(extra_raw)
 
     return Adjunct(
         name=name,
