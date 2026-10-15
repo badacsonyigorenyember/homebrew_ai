@@ -99,3 +99,26 @@ def test_reference_recipe_totals(conn):
             if (rec["brief"], t["dimension"]) not in ACCEPTED_TOTALS:
                 found.append((rec["brief"], rec["style_code"], t["dimension"], t["level"], t["min"]))
     assert not found, "\n".join(map(str, found))
+
+
+def test_colour_lower_bound(conn):
+    """A fermentable without colour (Honey) counts as 0 EBC: the SRM is a lower bound, said in the
+    because, and 'too much colour' needs even the lower bound above the style maximum."""
+    ok = fit(conn, build_input(conn, recipe("b19")))
+    caramunich = next(x for x in ok["lines"] if x["name"] == "Caramunich Type 2")
+    assert caramunich["level"] != "out_of_style"
+    assert "lower bound, no colour for Honey" in caramunich["because"]
+
+    dark = copy.deepcopy(recipe("b19"))
+    for f in dark["fermentable"]:
+        if f["name"] == "Caramunich Type 2":
+            f["pct"] = 8
+        if f["name"] == "Roasted Barley":
+            f["pct"] = 2
+        if f["name"] == "Finest Pale Ale Maris Otter":
+            f["pct"] = 80
+    lines = {x["name"]: x for x in fit(conn, build_input(conn, dark))["lines"]}
+    for name in ("Caramunich Type 2", "Roasted Barley"):
+        assert lines[name]["level"] == "out_of_style"
+        assert "too much colour: at least" in lines[name]["because"]
+        assert "no colour for Honey" in lines[name]["because"]

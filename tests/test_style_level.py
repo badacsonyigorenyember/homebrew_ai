@@ -153,3 +153,32 @@ def test_unknown_style_raises(conn):
     conn.rollback()
     with pytest.raises(Exception, match="not valid for a hop"):
         conn.execute("select app.style_level('21A', %s, 'mash', '{}')", (ing,))
+
+
+@pytest.mark.stack
+def test_null_srm_names_the_colourless_fermentable(conn):
+    # the recipe SRM is null when a fermentable has no colour: the because says that
+    result = level(conn, "17C", "fermentable", "Roasted Barley", "mash", {"pct": 1, "ibu": 26}, "Viking Malt")
+    assert "a fermentable has no colour" in result["because"]
+    assert "dose not given" not in result["because"].split("colour:")[1]
+
+
+@pytest.mark.stack
+def test_needs_review_only_for_flagged_yeasts(conn):
+    clean = level(conn, "1C", "yeast", "SafAle US-05", "ferment", {"ferm_c": 19}, "Fermentis")
+    assert "needs review" not in clean["because"]
+    conn.execute(
+        """insert into ref.ingredient_review (ingredient_id, reason)
+           select id, 'test' from ref.ingredient where kind = 'yeast' and name = 'SafAle US-05'"""
+    )
+    flagged = level(conn, "1C", "yeast", "SafAle US-05", "ferment", {"ferm_c": 19}, "Fermentis")
+    assert flagged["because"].count("no character tags (needs review).") <= 1
+
+
+@pytest.mark.stack
+def test_too_much_text_is_rounded(conn):
+    result = level(conn, "5D", "hop", "Magnum", "boil", {"minutes": 60, "ibu": 48.638715818210258, "g_per_l": 1}, "")
+    assert "too much bitterness: 49 IBU" in result["because"]
+    result = level(conn, "17C", "fermentable", "Roasted Barley", "mash",
+                   {"pct": 2, "srm": 26.6789, "roast_index": 0}, "Viking Malt")
+    assert "too much colour: 26.7 SRM" in result["because"]

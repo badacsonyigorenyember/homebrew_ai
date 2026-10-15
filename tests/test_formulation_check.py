@@ -263,8 +263,8 @@ def test_missing_inputs_give_null_numbers(conn):
     numbers = check(conn, rec)["numbers"]
     assert numbers["fg"] is None and numbers["abv"] is None
     assert "ref.yeast.attenuation_pct" in numbers["missing"]
-    # a fermentable with no colour leaves SRM null (Flaked Rice has no ebc)
-    numbers = check(conn, recipe(conn, [(PILSNER, 70), (RICE, 30)]))["numbers"]
+    # a fermentable with no colour leaves SRM null (Lactose has no ebc)
+    numbers = check(conn, recipe(conn, [(PILSNER, 70), (("", "Lactose"), 30)]))["numbers"]
     assert numbers["srm"] is None and "ref.fermentable.ebc" in numbers["missing"]
 
 

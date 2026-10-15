@@ -110,8 +110,10 @@ declare
     v_style_chars  text;
     v_warm         int;
     v_range        numrange;
-    v_dose_key     numeric;
-    v_oil          numrange;
+    v_warm_above_c numeric;
+    v_lower_bound  text := (select string_agg(n, ', ') from jsonb_array_elements_text(coalesce(v_dose -> 'srm_lower_bound', '[]'::jsonb)) n);
+    v_oil_range    numrange;
+    v_ebc_range    numrange;
 begin
     select * into st from ref.beer_style b where b.code = v_style_code;
     if not found then
@@ -195,11 +197,22 @@ begin
             if v_range is null or upper(v_range) is null then
                 v_notes := v_notes || (e.dimension || ': ' || v_style_label || ' has no range, check skipped.');
             elsif v_value is null then
-                v_notes := v_notes || (e.dimension || ': dose not given, dose check skipped.');
+                v_notes := v_notes || (case e.dimension
+                    when 'colour' then 'colour: the recipe SRM is not given (a fermentable has no colour), colour check skipped.'
+                    else 'bitterness: the recipe IBU is not given, bitterness check skipped.' end);
             elsif v_value > upper(v_range) then
                 v_levels := v_levels || 'out_of_style'::text;
-                v_notes := v_notes || ('too much ' || e.dimension || ': ' || v_value || ' ' || v_what
+                v_notes := v_notes || ('too much ' || e.dimension || ': '
+                    || case when v_lower_bound is not null and e.dimension = 'colour' then 'at least ' else '' end
+                    || case e.dimension when 'bitterness' then round(v_value)::text else round(v_value, 1)::text end
+                    || ' ' || v_what
+                    || case when v_lower_bound is not null and e.dimension = 'colour'
+                            then ' (lower bound, no colour for ' || v_lower_bound || ')' else '' end
                     || ' is above ' || v_style_label || '''s ' || lower(v_range) || '-' || upper(v_range) || '.');
+            elsif v_lower_bound is not null and e.dimension = 'colour' then
+                v_notes := v_notes || ('colour: at least ' || round(v_value, 1) || ' SRM (lower bound, no colour for '
+                    || v_lower_bound || ') is not above ' || v_style_label || '''s '
+                    || lower(v_range) || '-' || upper(v_range) || '; the rest is unknown.');
             end if;
             continue;
         end if;
@@ -225,9 +238,9 @@ begin
             if v_dose ? 'oil_ml_per_l' then
                 v_value := (v_dose ->> 'oil_ml_per_l')::numeric;
             elsif v_dose ? 'g_per_l' then
-                select h.total_oil_ml_100g into v_oil from ref.hop h where h.ingredient_id = ing.id;
-                if v_oil is not null then
-                    v_value := app.oil_dose((v_dose ->> 'g_per_l')::numeric, v_oil);
+                select h.total_oil_ml_100g into v_oil_range from ref.hop h where h.ingredient_id = ing.id;
+                if v_oil_range is not null then
+                    v_value := app.oil_dose((v_dose ->> 'g_per_l')::numeric, v_oil_range);
                 end if;
             end if;
             v_what := trim(to_char(v_value, 'FM990.0000')) || ' mL/L oil';
@@ -236,9 +249,9 @@ begin
             if v_dose ? 'roast_index' then
                 v_value := (v_dose ->> 'roast_index')::numeric;
             elsif v_dose ? 'pct' then
-                select f.ebc into v_oil from ref.fermentable f where f.ingredient_id = ing.id;
-                if v_oil is not null then
-                    v_value := app.roast_index((v_dose ->> 'pct')::numeric, v_oil);
+                select f.ebc into v_ebc_range from ref.fermentable f where f.ingredient_id = ing.id;
+                if v_ebc_range is not null then
+                    v_value := app.roast_index((v_dose ->> 'pct')::numeric, v_ebc_range);
                 end if;
             end if;
             v_what := 'roast index ' || round(v_value);
@@ -256,7 +269,7 @@ begin
                     v_value := (v_cuts -> 'esters' -> 'no_ester_character' ->> 'level')::numeric;
                 end if;
                 v_warm := (v_cuts -> 'esters' -> 'warm_step' ->> 'step')::int;
-                v_dose_key := (v_cuts -> 'esters' -> 'warm_step' ->> 'above_c')::numeric;
+                v_warm_above_c := (v_cuts -> 'esters' -> 'warm_step' ->> 'above_c')::numeric;
             else
                 if exists (select 1 from jsonb_array_elements_text(v_cuts -> 'phenols' -> 'phenolic_tags' -> 'tags') w
                            where w = any (v_tags)) then
@@ -265,11 +278,11 @@ begin
                     v_value := 0;
                 end if;
                 v_warm := (v_cuts -> 'phenols' -> 'warm_step' ->> 'step')::int;
-                v_dose_key := (v_cuts -> 'phenols' -> 'warm_step' ->> 'above_c')::numeric;
+                v_warm_above_c := (v_cuts -> 'phenols' -> 'warm_step' ->> 'above_c')::numeric;
             end if;
             if v_ferm_c is null then
                 v_notes := v_notes || 'fermentation temperature not given, warm step skipped.'::text;
-            elsif v_ferm_c > v_dose_key then
+            elsif v_ferm_c > v_warm_above_c then
                 v_value := v_value + v_warm;
             end if;
             v_lvl := least(v_value, 7)::int;
@@ -283,7 +296,7 @@ begin
             v_lvl := app.intensity_level(v_scale, v_value);
         end if;
 
-        if v_lvl is null and e.dimension not in ('caramel') and v_scale is not null then
+        if v_lvl is null and v_scale is not null then
             v_notes := v_notes || (e.dimension || ': dose not given, dose check skipped.');
         elsif v_lvl is not null then
             if v_lvl > sens.max_level then
@@ -308,7 +321,9 @@ begin
         if e.carries_character then
             v_match := app.tag_match(ing.id, st.id, e.dimension);
             if v_match is null then
-                if v_char_tags is null then
+                -- said once, and only for an ingredient flagged in ref.ingredient_review
+                if v_char_tags is null and v_review
+                   and not ('no character tags (needs review).' = any (v_notes)) then
                     v_notes := v_notes || 'no character tags (needs review).'::text;
                 end if;
             else
@@ -396,9 +411,27 @@ declare
     v_pct       numeric;
     v_lvl       int;
     v_total     numeric;
+    v_no_colour jsonb := '[]'::jsonb;
+    v_grist     jsonb;
 begin
     select * into st from ref.beer_style b where b.code = v_style;
     v_label := coalesce(st.name, st.code) || ' (' || st.code || ')';
+
+    -- colour lower bound: app.check_recipe leaves srm null when a fermentable has no colour. Here
+    -- those fermentables count as 0 EBC (they can only add colour), so the SRM is a lower bound,
+    -- and the lines say which fermentables had no colour. check_recipe itself is unchanged.
+    if v_srm is null and numbers -> 'missing' ? 'ref.fermentable.ebc' then
+        select coalesce(jsonb_agg(f ->> 'name'), '[]'::jsonb) into v_no_colour
+            from jsonb_array_elements(items -> 'fermentables') f where f ->> 'ebc_mid' is null;
+        select jsonb_agg(jsonb_build_object(
+                   'pct', f -> 'pct', 'extract_pct', f -> 'extract_pct', 'mashed', f -> 'mashed',
+                   'fermentability', f -> 'fermentability', 'ebc', coalesce((f ->> 'ebc_mid')::numeric, 0)))
+            into v_grist from jsonb_array_elements(items -> 'fermentables') f;
+        v_srm := app.srm(app.grist_mcu(
+            app.solve_grist((recipe -> 'targets' ->> 'og')::numeric, v_grist,
+                            (recipe -> 'batch' ->> 'efficiency_pct')::numeric, v_volume),
+            v_volume));
+    end if;
 
     -- recipe totals: late-hop oil dose (mL/L) and roast index
     for x in select * from jsonb_array_elements(items -> 'hops') loop
@@ -422,7 +455,7 @@ begin
     -- every line through style_level
     for x in select * from jsonb_array_elements(items -> 'fermentables') loop
         v_usage := case when (x ->> 'mashed')::boolean then 'mash' else 'boil' end;
-        v_dose := jsonb_build_object('pct', x -> 'pct', 'ibu', v_ibu, 'srm', v_srm);
+        v_dose := jsonb_build_object('pct', x -> 'pct', 'ibu', v_ibu, 'srm', v_srm, 'srm_lower_bound', v_no_colour);
         if x ->> 'role' = 'roast' then
             v_dose := v_dose || jsonb_build_object('roast_index', v_roast);
         end if;
@@ -433,7 +466,7 @@ begin
     for x in select * from jsonb_array_elements(items -> 'hops') loop
         v_usage := x ->> 'usage';
         v_late := v_usage in ('whirlpool', 'dry_hop') or v_usage = 'boil' and (x ->> 'minutes')::numeric < 30;
-        v_dose := jsonb_build_object('ibu', v_ibu, 'srm', v_srm);
+        v_dose := jsonb_build_object('ibu', v_ibu, 'srm', v_srm, 'srm_lower_bound', v_no_colour);
         if v_usage = 'boil' then
             v_dose := v_dose || jsonb_build_object('minutes', x -> 'minutes');
         end if;
@@ -449,7 +482,7 @@ begin
     end loop;
     x := items -> 'yeast';
     v_res := app.style_level(v_style, (x ->> 'ingredient_id')::bigint, 'ferment',
-        jsonb_build_object('ferm_c', x -> 'ferm_c', 'ibu', v_ibu, 'srm', v_srm));
+        jsonb_build_object('ferm_c', x -> 'ferm_c', 'ibu', v_ibu, 'srm', v_srm, 'srm_lower_bound', v_no_colour));
     v_lines := v_lines || jsonb_build_object('kind', 'yeast', 'ingredient_id', x -> 'ingredient_id',
         'name', x -> 'name', 'usage', 'ferment', 'level', v_res -> 'level', 'because', v_res -> 'because');
 
@@ -469,8 +502,7 @@ begin
                 from jsonb_array_elements(items -> 'fermentables') f where f ->> 'role' = r.role;
             v_met := v_pct > 0 and v_pct >= coalesce(r.min_pct, 0);
             v_required := v_required || jsonb_build_object('requirement', v_what, 'met', v_met,
-                'because', case when v_met then 'the recipe has ' || v_pct || '% ' || r.role
-                                else 'the recipe has ' || v_pct || '% ' || r.role end
+                'because', 'the recipe has ' || v_pct || '% ' || r.role
                            || ' for ' || v_label || ': ''' || r.quote || '''');
         elsif r.ingredient_id is not null then
             v_what := r.ing_name;
