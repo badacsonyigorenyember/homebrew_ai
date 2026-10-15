@@ -162,7 +162,7 @@ Commit: `Describe s3 style fit without a corpus`
 
 ### Task 2: Tables for characteristic ingredients and flagged ingredients
 Why: R1, R3, R6.
-- [ ] Append to `db/012_style_fit.sql` (idempotent):
+- [x] Append to `db/012_style_fit.sql` (idempotent):
   ```sql
   -- A style's characteristic ingredients (R3, R6): exactly one of a fermentable role, an
   -- ingredient or a tag (yeast family, hop origin). required = the recipe must have it (✅).
@@ -187,11 +187,11 @@ Why: R1, R3, R6.
       reason        text not null      -- "unknown words: …" or "no descriptor text"
   );
   ```
-- [ ] Apply twice as `postgres` (OPERATIONS.md §4 command), no errors; both tables owned by
+- [x] Apply twice as `postgres` (OPERATIONS.md §4 command), no errors; both tables owned by
       `postgres` (`select tableowner from pg_tables where schemaname = 'ref' and tablename in (…)`).
-- [ ] Write test `tests/test_tags.py::test_schema` (stack): both tables exist; a
+- [x] Write test `tests/test_tags.py::test_schema` (stack): both tables exist; a
       `style_ingredient` row with two of role/ingredient/tag raises `CheckViolation` (rolled back).
-- [ ] PROJECT.md §8 line.
+- [x] PROJECT.md §8 line.
 Done when: the test passes; `ref` has 19 tables, all owned by `postgres`.
 Commit: `Add style ingredient and ingredient review tables`
 
