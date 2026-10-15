@@ -405,9 +405,9 @@ batch = { volume_l = 10, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 68
 boil_min = 60
 fermentable = [
-  { producer = "Simpsons Malt", name = "Finest Pale Ale Maris Otter", pct = 80, purpose = "base malt" },
-  { producer = "Weyermann", name = "Caramunich Type 2", pct = 8, purpose = "rich caramel malt" },
-  { producer = "Viking Malt", name = "Roasted Barley", pct = 2, purpose = "colour" },
+  { producer = "Simpsons Malt", name = "Finest Pale Ale Maris Otter", pct = 84, purpose = "base malt" },
+  { producer = "Weyermann", name = "Caramunich Type 2", pct = 5, purpose = "rich caramel malt" },
+  { producer = "Viking Malt", name = "Roasted Barley", pct = 1, purpose = "colour" },
   { producer = "", name = "Honey", pct = 10, purpose = "the honey the brief asks for" },
 ]
 hop = [
