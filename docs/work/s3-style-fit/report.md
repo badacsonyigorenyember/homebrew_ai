@@ -82,3 +82,36 @@ Nothing was written to `ref`; the draft is `loaders/style_envelopes.toml`, 26 st
   levels, so the model found nothing to extract. It needs hand entries (the role `sugar`, or
   Honey) in review.
 - **specialty-honey-beer** (BA): 1 sensory entry, 2 ingredients; the BA text is thin ("varies").
+
+## 3. Envelope review and load (Task 5, 2026-10-15)
+
+The user went through all 26 styles one at a time against [`envelope-review.md`](envelope-review.md)
+and approved exactly the proposals in it ([`envelope-review-proposals.toml`](envelope-review-proposals.toml)).
+Applied to `loaders/style_envelopes.toml` (every style `reviewed = true`, `unknown` and `problems`
+empty) and `loaders/style_fit_vocab.toml` (34 synonyms; no-character words "cukorka", "konyak",
+"sour beers"; yeast-family overrides `cbc1 = "ale"`, `suavaale = "american-ale"`; the US-05 override kept).
+
+Decisions:
+- Rules R1-R5: all five applied.
+- A (a text that says just "sugar"): only the `ref` sugars that fit the style; no role `sugar` except 31B.
+- B ("clean fermentation profile"): phenols none, esters capped.
+- C (31B and Specialty Honey Beer, "same as the base beer"): the sugar row only, no sensory rows.
+  The test allows 0 sensory rows for those two (plan Deviations).
+- All 26 style packs approved as proposed. Two choices: 16B roast max medium, 19C roast low-medium;
+  25B adds herbal; 21C names the two flakes (Flaked Oats and Flaked Barley), not the adjunct role;
+  Session IPA: base role only.
+- Vocabulary, flagged table and 30 English synonyms approved. YeastFlow 38: family only (no
+  character guessed). US-05 override kept. Acidulated Malt: `sour` dropped through the
+  "sour beers" no-character word.
+- Earlier decisions that still hold: golden set generated and corrected by the user; adjunct/sugar
+  rule; `fermentable_style` bump (fermentables only); cut points from the books; BA through the
+  same LLM path.
+
+Result (measured):
+- `python -m loaders.tags` after the vocabulary change: 239 synonyms; **39 ingredients flagged**
+  (1 hop, Sterling, and 38 YeastFlow yeasts with no descriptor text), as the pack expected.
+- `python -m loaders.style_envelopes` run twice: both print `loaded 26 reviewed styles, skipped 0
+  unreviewed: {'sensory': 189, 'character': 237, 'ingredient': 116, 'rule': 0}`.
+- `ref.style_ingredient` 116 rows, `ref.ingredient_review` 39, `ref.style_rule` 0.
+- Full `pytest`: 451 passed, 1 failed (the known `test_db_enzyme_and_boil`).
+

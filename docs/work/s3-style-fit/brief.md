@@ -166,6 +166,7 @@ by Claude; adjunct/sugar general rule; `fermentable_style` bump; cut points from
 LLM path for BA).
 
 ## Deviations
+- 2026-10-15 · A3: 31B and the Specialty Honey Beer have a reviewed characteristic-ingredient row (a sugar) but no sensory rows, so "each with its quote" holds for their ingredient row only — their text says "same as the base beer"; the user chose "Sugar row only" in the Task 5 review.
 - 2026-10-15 · Scope, R5, R7, R10: STYLE-FIT.md §4 and §5 change (cut points from *How to Brew*
   and OBC instead of the corpus; a general adjunct/sugar rule from the style's characteristic
   ingredients; step 4's corpus popularity bump replaced by `ref.fermentable_style`, fermentables

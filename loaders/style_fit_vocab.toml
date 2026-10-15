@@ -538,11 +538,50 @@ funky = "funky"
 savanyu = "sour"
 sour = "sour"
 
+# added in the s3 envelope review (2026-10-15)
+# flagged shop words (report.md §1)
+edesgyoker = "spicy"        # édesgyökér, licorice: Columbus, Tomahawk
+csillaganizs = "spicy"      # csillagánizs, star anise: Ella
+feherbor = "fruity"         # fehérbor, white wine: Hallertau Blanc, Nelson Sauvin (like fehérszőlő)
+curry = "spicy"             # Lotus
+# English guideline words the draft left unknown and later styles will use again
+toast = "toasty"
+doughy = "bready"
+cracker = "biscuit"
+crackery = "biscuit"
+biscuity = "biscuit"
+roasty = "roast"
+roastedgrain = "roast"
+coffeelike = "coffee"
+chocolaty = "chocolate"
+darkchocolate = "chocolate"
+milkchocolate = "chocolate"
+burnt = "acrid"
+charcoal = "acrid"
+plums = "dried-fruit"
+prunes = "dried-fruit"
+figs = "dried-fruit"
+pomefruit = "orchard-fruit"
+apple = "orchard-fruit"
+peach = "stone-fruit"
+apricot = "stone-fruit"
+citrusfruit = "citrus"
+blackcurrants = "berry"
+flowery = "floral"
+spice = "spicy"
+blackpepper = "pepper"
+caramelizedsugar = "caramel"
+butterscotch = "toffee"
+fruitiness = "fruity"
+fruityesters = "fruity"
+hay = "grassy"
+
 [no_character]
 words = [
     "semleges", "neutral", "clean", "tiszta",
     "keserű", "bitter",
     "komló", "komlós", "hoppy", "szárított komló",
+    "cukorka", "konyak", "sour beers",   # s3 envelope review: candy, cognac, a beer type
 ]
 
 [filler]
@@ -570,3 +609,5 @@ sour = "sour"
 
 [yeast_family_override]
 safaleus05 = "american-ale"
+cbc1 = "ale"                 # CBC-1: Stílus "conditioning", a neutral ale strain
+suavaale = "american-ale"    # Suava Ale: no Stílus; shop text says IPA / Hazy / American IPA

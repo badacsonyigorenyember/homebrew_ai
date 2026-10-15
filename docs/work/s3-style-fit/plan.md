@@ -289,20 +289,20 @@ Commit: `Add style envelope extraction job` (code, prompt, schema, tests; not th
 
 ### Task 5: The user reviews the envelopes; load them — STOP
 Why: R3, R4, D9 (A3).
-- [ ] Return `needs-input` with: the path of `loaders/style_envelopes.toml`, the extraction
+- [x] Return `needs-input` with: the path of `loaders/style_envelopes.toml`, the extraction
       problems, the flagged ingredients from `report.md` §1, and the dictionary
       (`loaders/style_fit_vocab.toml`) for a look. Ask the user to correct each style, set
       `reviewed = true`, and add synonyms or `no_character` words for the flagged words. Load
       nothing before the answer.
-- [ ] After the answer: re-run `python -m loaders.tags` if the vocabulary changed, then
+- [x] After the answer: re-run `python -m loaders.tags` if the vocabulary changed, then
       `python -m loaders.style_envelopes` twice; record the review notes in `report.md` §3.
-- [ ] Write stack tests in `tests/test_style_envelopes.py`: `test_26_styles_reviewed` (A3: each
-      S3 style has ≥ 1 `style_sensory` row, all `reviewed = true`, every quote non-empty and
+- [x] Write stack tests in `tests/test_style_envelopes.py`: `test_26_styles_reviewed` (A3: each
+      S3 style has ≥ 1 `style_sensory` row (31B and specialty-honey-beer 0: they have the sugar row only), all `reviewed = true`, every quote non-empty and
       found in the style's `raw` text; the 3 BA styles included), `test_characteristic_ingredients`
       (each style has ≥ 1 reviewed `style_ingredient` row; 16A names Lactose, 1B Flaked Rice,
       1C Flaked Corn, 21C Flaked Oats, 15B a required `roast` role, 31B the role `sugar` or
       Honey), `test_reload_is_identical`.
-- [ ] PROJECT.md §8 line with the row counts.
+- [x] PROJECT.md §8 line with the row counts.
 Done when: A3 holds.
 Commit: `Load the 26 reviewed style envelopes`
 
@@ -495,6 +495,7 @@ Commit: `Record s3 style fit status`
 None.
 
 ## Deviations
+- 2026-10-15 · Task 5: `test_26_styles_reviewed` allows 0 `style_sensory` rows for 31B and specialty-honey-beer only; every other style needs ≥ 1. Their guideline text says "same as the base beer", so the user chose (Question C, "Sugar row only") a sugar row and no sensory rows. 21C's test keeps "names Flaked Oats" (the user chose to name the two flakes, not the adjunct role).
 - 2026-10-15 · Task 4: `check_answer(lookups, prose, answer)` takes the lookups from `load_lookups(conn)` instead of `conn`, so its unit tests need no database — implementation detail. The prompt also lists what each dimension means and what has no dimension (alcohol, carbonation, astringency), and asks for one continuous quote: the first 20B run used `spice` for alcohol and carbonation and joined two sentences into one quote.
 - 2026-10-15 · Task 1: STYLE-FIT.md §6 "a style" row also corrected to "BJCP and BA: LLM
   extract + your review (BA parser later)" — it contradicted D9; user's agreement at plan

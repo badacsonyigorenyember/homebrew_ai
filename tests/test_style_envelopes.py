@@ -156,3 +156,80 @@ def test_extraction_not_in_pipeline():
         for path in (ROOT / folder).rglob("*"):
             if path.is_file():
                 assert "style_envelope" not in path.read_text(encoding="utf-8", errors="ignore"), path
+
+
+# ---------------------------------------------------------------- stack tests: the loaded envelopes
+
+# 31B and the Specialty Honey Beer say "same as the base beer": only a sugar row (user, 2026-10-15)
+NO_SENSORY_ROWS = {"31B", "specialty-honey-beer"}
+
+
+@pytest.mark.stack
+def test_26_styles_reviewed():
+    with connect() as conn:
+        for code in se.S3_STYLES:
+            style_id, raw = conn.execute("select id, raw from ref.beer_style where code = %s", (code,)).fetchone()
+            prose = se.fold(se.style_prose(raw))
+            rows = conn.execute(
+                "select dimension, reviewed, quote from ref.style_sensory where style_id = %s", (style_id,)
+            ).fetchall()
+            if code in NO_SENSORY_ROWS:
+                assert rows == [], code
+            else:
+                assert rows, f"{code}: no style_sensory row"
+            for dimension, reviewed, quote in rows:
+                assert reviewed, (code, dimension)
+                assert quote.strip(), (code, dimension)
+                assert se.fold(quote) in prose, (code, dimension, quote)
+            for (quote,) in conn.execute("select quote from ref.style_ingredient where style_id = %s", (style_id,)):
+                assert quote.strip() and se.fold(quote) in prose, (code, quote)
+        assert conn.execute(
+            "select count(*) from ref.style_sensory s join ref.beer_style b on b.id = s.style_id "
+            "where b.code = any(%s) and b.guide = 'BA'", (se.S3_STYLES,)).fetchone()[0] > 0
+
+
+@pytest.mark.stack
+def test_characteristic_ingredients():
+    with connect() as conn:
+        def ingredients(code):
+            return conn.execute(
+                "select i.role, g.name, i.tag_id, i.required, t.name from ref.style_ingredient i "
+                "join ref.beer_style b on b.id = i.style_id "
+                "left join ref.ingredient g on g.id = i.ingredient_id "
+                "left join ref.tag t on t.id = i.tag_id where b.code = %s", (code,)).fetchall()
+
+        for code in se.S3_STYLES:
+            rows = ingredients(code)
+            assert rows, f"{code}: no characteristic ingredient"
+            assert conn.execute(
+                "select bool_and(reviewed) from ref.style_ingredient i join ref.beer_style b on b.id = i.style_id "
+                "where b.code = %s", (code,)).fetchone()[0], code
+
+        def names(code):
+            return {row[1] for row in ingredients(code) if row[1]}
+
+        assert "Lactose" in names("16A")
+        assert "Flaked Rice" in names("1B")
+        assert "Flaked Corn" in names("1C")
+        assert "Flaked Oats" in names("21C")
+        assert any(role == "roast" and required for role, _, _, required, _ in ingredients("15B"))
+        assert any(role == "sugar" for role, *_ in ingredients("31B")) or "Honey" in names("31B")
+
+
+@pytest.mark.stack
+def test_reload_is_identical():
+    def snapshot(conn):
+        return [conn.execute(sql).fetchall() for sql in (
+            "select style_id, dimension, min_level, max_level, quote, reviewed from ref.style_sensory order by 1, 2",
+            "select style_id, dimension, tag_id from ref.style_character order by 1, 2, 3",
+            "select style_id, role, ingredient_id, tag_id, required, min_pct, quote, reviewed "
+            "from ref.style_ingredient order by 1, 2, 3, 4, 7",
+            "select style_id, ingredient_id, tag_id, usage, level, max_pct, quote from ref.style_rule order by 1, 2, 3, 4, 5",
+        )]
+
+    with connect() as conn:
+        before = snapshot(conn)
+    with connect() as conn:
+        se.load(conn, se.DEFAULT_TOML)
+    with connect() as conn:
+        assert snapshot(conn) == before
