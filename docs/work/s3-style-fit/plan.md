@@ -242,16 +242,16 @@ Commit: `Add style-fit vocabulary and ingredient tagging`
 
 ### Task 4: Envelope extraction job (offline LLM, checked by code)
 Why: R3, R4.
-- [ ] `loaders/style_envelope.schema.json`: the answer shape, `{"sensory": [{dimension, min,
+- [x] `loaders/style_envelope.schema.json`: the answer shape, `{"sensory": [{dimension, min,
       max, characters[], quote}], "ingredients": [{role | ingredient | tag, required, min_pct,
       quote}]}`; `dimension` is an enum of the non-colour, non-bitterness dimensions; `min`/`max`
       an enum of the scale words.
-- [ ] `loaders/style_envelope_prompt.md`: what to extract, the 0–7 scale words (none 0, very
+- [x] `loaders/style_envelope_prompt.md`: what to extract, the 0–7 scale words (none 0, very
       low 1, low 2, medium-low 3, medium 4, medium-high 5, high 6, very high 7; "moderate" =
       medium), "quote the guideline text verbatim", "leave out a dimension the text does not
       describe", "say 'none' only when the text says none", the role list, and that colour and
       bitterness are not extracted. No ingredient or style name examples beyond the schema.
-- [ ] `loaders/style_envelopes.py`:
+- [x] `loaders/style_envelopes.py`:
   - `style_prose(raw)`: the fields `overallimpression`, `aroma`, `appearance`, `flavor`,
     `mouthfeel`, `comments`, `characteristicingredients`, `entryinstructions` when present,
     labelled.
@@ -274,16 +274,16 @@ Why: R3, R4.
     `style_sensory` (`reviewed = true`), `style_character` and `style_ingredient` rows; an
     optional `[[style.rule]]` table loads into `ref.style_rule`. Unreviewed styles are skipped
     and counted. One transaction; re-runnable.
-- [ ] Write unit tests in `tests/test_style_envelopes.py` on canned answers (no LLM):
+- [x] Write unit tests in `tests/test_style_envelopes.py` on canned answers (no LLM):
       `test_quote_must_be_in_prose`, `test_scale_words_to_numbers`, `test_unknown_character_kept`,
       `test_min_above_max_is_a_problem`, `test_reviewed_style_with_unknown_refused`,
       `test_s3_styles_are_the_26` (the 22 `style` values of `evals/recipe_briefs.toml` + 20C,
       18A, `specialty-honey-beer`, 20B, all in `ref.beer_style`), and
       `test_extraction_not_in_pipeline` (R4: nothing under `n8n/workflows/` or
       `shared/prompts/` mentions `style_envelope`).
-- [ ] Run `python -m loaders.style_envelopes --extract loaders/style_envelopes.toml` with
+- [x] Run `python -m loaders.style_envelopes --extract loaders/style_envelopes.toml` with
       Ollama up; record run time, tries and remaining problems in `report.md` §2. Do not load.
-- [ ] PROJECT.md §8 line.
+- [x] PROJECT.md §8 line.
 Done when: the unit tests pass and the draft for all 26 styles exists (uncommitted).
 Commit: `Add style envelope extraction job` (code, prompt, schema, tests; not the draft)
 
@@ -495,6 +495,7 @@ Commit: `Record s3 style fit status`
 None.
 
 ## Deviations
+- 2026-10-15 · Task 4: `check_answer(lookups, prose, answer)` takes the lookups from `load_lookups(conn)` instead of `conn`, so its unit tests need no database — implementation detail. The prompt also lists what each dimension means and what has no dimension (alcohol, carbonation, astringency), and asks for one continuous quote: the first 20B run used `spice` for alcohol and carbonation and joined two sentences into one quote.
 - 2026-10-15 · Task 1: STYLE-FIT.md §6 "a style" row also corrected to "BJCP and BA: LLM
   extract + your review (BA parser later)" — it contradicted D9; user's agreement at plan
   approval (brief Deviations).

@@ -58,3 +58,27 @@ Choices the user may want to look at in Task 5 (all in `loaders/style_fit_vocab.
   known words (6 yeasts); it is not flagged for unknown words there.
 - The Hungarian *mint* ("as") would have tagged yeast product text as mint; the dictionary has
   only *minty*.
+
+## 2. Envelope extraction (Task 4, 2026-10-15)
+
+`python -m loaders.style_envelopes --extract loaders/style_envelopes.toml` (D2 model
+`hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K`, think off, temperature 0, seed 42, `num_ctx` 8192).
+Nothing was written to `ref`; the draft is `loaders/style_envelopes.toml`, 26 styles, all
+`reviewed = false`, not committed.
+
+- Run time: 3935 s (66 min) for 26 styles; 3 to 324 s per style, about 150 s typical. A first
+  single-style run on 20B (before the prompt got the dimension meanings and the one-passage
+  quote rule) took 348 s and put alcohol and carbonation under `spice`.
+- Tries: 14 styles passed on the first try, 12 needed the second (a quote that was not verbatim, a
+  repeated dimension or min above max; the problem list is sent back). The second try fixed all
+  but two styles.
+- Problems left (the user fixes these in review): **10A** 3 (an ingredient with both role and
+  ingredient set, twice; an ingredient with both ingredient and tag set) and **16B** 2 (`min_pct`
+  on an ingredient that is not a role: oatmeal, malted oats).
+- Unknown words kept for review: 8 to 29 per style (character words not in the dictionary and
+  ingredient names not in `ref`); 313 in all (sum of the `unknown=` column of the run).
+- **31B** (Alternative Sugar Beer): 0 sensory entries and 0 ingredients in 3 s. Its guideline text
+  says "same as the base beer" for every sensation and names no characteristic ingredients with
+  levels, so the model found nothing to extract. It needs hand entries (the role `sugar`, or
+  Honey) in review.
+- **specialty-honey-beer** (BA): 1 sensory entry, 2 ingredients; the BA text is thin ("varies").
