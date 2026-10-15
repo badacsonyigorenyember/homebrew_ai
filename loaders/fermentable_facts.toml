@@ -5,8 +5,13 @@
 #   max_pct, max_pct_source, max_pct_basis   only the 18 values of user decision E; the basis is where
 #                                  the value comes from, or "unplaced" until the user has placed it
 #   enzyme_activity, enzyme_source, enzyme_ref   what the maltster prints (Weyermann "medium" = normal)
-#   min_boil_min                   only user-confirmed values above 60 (none yet)
+#   min_boil_min                   only user-confirmed values above 60 (the 7 of Task 4)
+#   description, description_source, description_ref   one to three English sentences from the
+#                                  source; ref = page of the PDF ("p. N" counts PDF pages, as
+#                                  enzyme_ref does; How to Brew: printed page) or the hopline URL
+#   style_names, styles_source     the style names the source prints, as printed (malts only)
 # [[substitute]] lists each pair once, either way round.
+# [style_names] (last table) maps every printed name, lower case, to one ref.beer_style code or "".
 
 [[fermentable]]
 producer = "Simpsons Malt"
@@ -14,6 +19,18 @@ name = "Crystal Extra Dark"
 role = "crystal"
 role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
+description = "Strongly crystallised, intense malt with dried fruit and burnt sugar flavours. Use in small amounts, under 10 %."
+description_source = "simpsons-malt-2025"
+description_ref = "p. 2"
+style_names = [
+    "Dry Stout",
+    "Milk Stout",
+    "Imperial Stout",
+    "Oatmeal Stout",
+    "Porter",
+    "Barleywine",
+]
+styles_source = "hopline-malts"
 
 [[fermentable]]
 producer = "Simpsons Malt"
@@ -21,6 +38,20 @@ name = "Crystal T50"
 role = "crystal"
 role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
+description = "Tight-specification crystal malt, each batch aiming at 50 L (about 130 EBC) colour, with balanced caramel sweetness. Usage 5-10 %."
+description_source = "simpsons-malt-2025"
+description_ref = "p. 2"
+style_names = [
+    "American Pale Ale",
+    "English Bitter",
+    "Blonde Ale",
+    "Amber Ale",
+    "Red Ale",
+    "Brown Ale",
+    "Scotch Ale",
+    "Porter",
+]
+styles_source = "hopline-malts"
 
 [[fermentable]]
 producer = "Simpsons Malt"
@@ -28,6 +59,22 @@ name = "DRC"
 role = "crystal"
 role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
+description = "Double Roasted Crystal: roasted twice for dried fruit flavours and a red-brown hue. Usage 5-15 %."
+description_source = "simpsons-malt-2025"
+description_ref = "p. 2"
+style_names = [
+    "English Bitter",
+    "Dry Stout",
+    "Milk Stout",
+    "Imperial Stout",
+    "Oatmeal Stout",
+    "Porter",
+    "Red Ale",
+    "Brown Ale",
+    "Barleywine",
+    "Dubbel",
+]
+styles_source = "hopline-malts"
 
 [[fermentable]]
 producer = "Simpsons Malt"
@@ -35,6 +82,13 @@ name = "Finest Pale Ale Golden Promise"
 role = "base"
 role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
+description = "Scottish heritage base malt chosen for its taste, diversity and processability, giving a clean, sweet wort. Suited to Scottish and English beers; usage up to 100 %."
+description_source = "simpsons-malt-2025"
+description_ref = "p. 2"
+style_names = [
+    "Scottish and English beers",
+]
+styles_source = "hopline-malts"
 
 [[fermentable]]
 producer = "Simpsons Malt"
@@ -42,6 +96,19 @@ name = "Finest Pale Ale Maris Otter"
 role = "base"
 role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
+description = "Heritage British base malt with a rich, malty flavour and reliable performance. Usage up to 100 %."
+description_source = "simpsons-malt-2025"
+description_ref = "p. 2"
+style_names = [
+    "IPA",
+    "Brown Ale",
+    "Strong Ale",
+    "Porter",
+    "Stout",
+    "English Bitter",
+    "English Ale",
+]
+styles_source = "hopline-malts"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -52,6 +119,14 @@ role_note = "chart 1D row 5-6"
 enzyme_activity = "none"
 enzyme_source = "viking-malt-2023"
 enzyme_ref = "p. 30: 'amylolytic activity of Black Malt is zero'"
+description = "Pilsner malt roasted above 200 °C for strong colour with no enzyme activity. 1-2 % raises the colour clearly without much flavour change; more than 10 % is rare."
+description_source = "viking-malt-2023"
+description_ref = "p. 30"
+style_names = [
+    "stouts",
+    "porters",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -59,6 +134,9 @@ name = "CaraBody Malt"
 role = "crystal"
 role_source = "malt-substitution-2025"
 role_note = "chart 1C row 1"
+description = "Gently malted, slightly caramelised malt with a soft cereal note and some sweetness. It adds body, especially to pale beers, and supports head retention. Dosage up to 10 %."
+description_source = "viking-malt-2023"
+description_ref = "p. 17"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -72,6 +150,17 @@ max_pct_basis = "How to Brew estimate, printed p. 230: caramel malts are typical
 enzyme_activity = "none"
 enzyme_source = "viking-malt-2023"
 enzyme_ref = "p. 24: 'The amylolytic activity of Viking Caramel Malts is zero'"
+description = "Caramel malt (90-110 EBC) with no enzyme activity. It brings stronger caramel aroma, copper colour and fullness and usually improves foam and head retention. Suits ales, winter beers, dark lagers and stouts."
+description_source = "viking-malt-2023"
+description_ref = "p. 24"
+style_names = [
+    "winter beers",
+    "ale-type beers",
+    "dark lagers",
+    "stouts",
+    "pale lagers",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -85,6 +174,17 @@ max_pct_basis = "How to Brew estimate, printed p. 230: caramel malts are typical
 enzyme_activity = "none"
 enzyme_source = "viking-malt-2023"
 enzyme_ref = "p. 24: 'The amylolytic activity of Viking Caramel Malts is zero'"
+description = "Caramel malt (140-160 EBC) with no enzyme activity. It brings deep caramel aroma, copper-brown colour and fullness and usually improves foam and head retention. Suits ales, winter beers, dark lagers and stouts."
+description_source = "viking-malt-2023"
+description_ref = "p. 24"
+style_names = [
+    "winter beers",
+    "ale-type beers",
+    "dark lagers",
+    "stouts",
+    "pale lagers",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -98,6 +198,17 @@ max_pct_basis = "How to Brew estimate, printed p. 230: caramel malts are typical
 enzyme_activity = "none"
 enzyme_source = "viking-malt-2023"
 enzyme_ref = "p. 24: 'The amylolytic activity of Viking Caramel Malts is zero'"
+description = "Dark caramel malt (180-220 EBC) with no enzyme activity. It brings deep caramel aroma, dark copper-brown colour and fullness and usually improves foam and head retention. Suits winter beers, ales, dark lagers and stouts."
+description_source = "viking-malt-2023"
+description_ref = "p. 24"
+style_names = [
+    "winter beers",
+    "ale-type beers",
+    "dark lagers",
+    "stouts",
+    "pale lagers",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -107,10 +218,21 @@ role_source = "malt-substitution-2025"
 role_note = "chart 1C row 5"
 max_pct = 20
 max_pct_source = "user-supplied"
-max_pct_basis = "unplaced"
+max_pct_basis = "user decision E, 2026-10-14"
 enzyme_activity = "none"
 enzyme_source = "viking-malt-2023"
 enzyme_ref = "p. 24: 'The amylolytic activity of Viking Caramel Malts is zero'"
+description = "Light caramel malt (25-35 EBC) with no enzyme activity. It brings caramel aroma, colour and fullness and usually improves foam and head retention. Suits ales, winter beers and dark lagers, and small amounts can adjust pale lagers."
+description_source = "viking-malt-2023"
+description_ref = "p. 24"
+style_names = [
+    "winter beers",
+    "ale-type beers",
+    "dark lagers",
+    "stouts",
+    "pale lagers",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -120,10 +242,21 @@ role_source = "malt-substitution-2025"
 role_note = "chart 1C row 13"
 max_pct = 10
 max_pct_source = "user-supplied"
-max_pct_basis = "unplaced"
+max_pct_basis = "user decision E, 2026-10-14"
 enzyme_activity = "none"
 enzyme_source = "viking-malt-2023"
 enzyme_ref = "p. 24: 'The amylolytic activity of Viking Caramel Malts is zero'"
+description = "Very dark caramel malt (270-330 EBC) with no enzyme activity. It brings intense caramel aroma, dark colour and fullness and usually improves foam and head retention. Suits winter beers, dark lagers and stouts."
+description_source = "viking-malt-2023"
+description_ref = "p. 24"
+style_names = [
+    "winter beers",
+    "ale-type beers",
+    "dark lagers",
+    "stouts",
+    "pale lagers",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -133,10 +266,21 @@ role_source = "malt-substitution-2025"
 role_note = "chart 1C row 14"
 max_pct = 10
 max_pct_source = "user-supplied"
-max_pct_basis = "unplaced"
+max_pct_basis = "user decision E, 2026-10-14"
 enzyme_activity = "none"
 enzyme_source = "viking-malt-2023"
 enzyme_ref = "p. 24: 'The amylolytic activity of Viking Caramel Malts is zero'"
+description = "Very dark caramel malt (350-450 EBC) with no enzyme activity. The darkest malts of the range add coffee and chocolate nuances to the caramel aroma, plus colour and fullness. Suits winter beers, dark lagers and stouts."
+description_source = "viking-malt-2023"
+description_ref = "p. 24"
+style_names = [
+    "winter beers",
+    "ale-type beers",
+    "dark lagers",
+    "stouts",
+    "pale lagers",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -146,10 +290,21 @@ role_source = "malt-substitution-2025"
 role_note = "chart 1C row 7"
 max_pct = 20
 max_pct_source = "user-supplied"
-max_pct_basis = "unplaced"
+max_pct_basis = "user decision E, 2026-10-14"
 enzyme_activity = "none"
 enzyme_source = "viking-malt-2023"
 enzyme_ref = "p. 24: 'The amylolytic activity of Viking Caramel Malts is zero'"
+description = "Caramel malt (40-60 EBC) with no enzyme activity. It brings caramel aroma, a red-copper colour and fullness and usually improves foam and head retention. Suits ales, winter beers and dark lagers, and small amounts can adjust pale lagers."
+description_source = "viking-malt-2023"
+description_ref = "p. 24"
+style_names = [
+    "winter beers",
+    "ale-type beers",
+    "dark lagers",
+    "stouts",
+    "pale lagers",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -159,10 +314,21 @@ role_source = "malt-substitution-2025"
 role_note = "chart 1C row 15"
 max_pct = 10
 max_pct_source = "user-supplied"
-max_pct_basis = "unplaced"
+max_pct_basis = "user decision E, 2026-10-14"
 enzyme_activity = "none"
 enzyme_source = "viking-malt-2023"
 enzyme_ref = "p. 24: 'The amylolytic activity of Viking Caramel Malts is zero'"
+description = "Darkest caramel malt (550-650 EBC) with no enzyme activity. The darkest malts of the range add coffee and chocolate nuances to the caramel aroma, plus strong colour and fullness. Suits winter beers, dark lagers and stouts."
+description_source = "viking-malt-2023"
+description_ref = "p. 24"
+style_names = [
+    "winter beers",
+    "ale-type beers",
+    "dark lagers",
+    "stouts",
+    "pale lagers",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -170,6 +336,9 @@ name = "Caramel Pale Malt"
 role = "crystal"
 role_source = "malt-substitution-2025"
 role_note = "chart 1C row 2"
+description = "True caramel malt with a very low colour (6-10 EBC), sweet and caramel-like with toffee and fruity notes. It gives a full-bodied beer a clean, round flavour and suits light-coloured beers. Dosage typically up to 30 %."
+description_source = "viking-malt-2023"
+description_ref = "p. 25"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -180,6 +349,15 @@ role_note = "chart 1D row 4"
 enzyme_activity = "none"
 enzyme_source = "viking-malt-2023"
 enzyme_ref = "p. 22: 'amylolytic activity ... is zero'"
+description = "Pilsner malt roasted to 800-1000 EBC, with no enzyme activity and little fermentable extract. It brings roasted dark-chocolate and coffee flavours and strong colour to porters, stouts and dark ales. Normally under 10 %."
+description_source = "viking-malt-2023"
+description_ref = "p. 22"
+style_names = [
+    "porters",
+    "stouts",
+    "dark ales",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -190,6 +368,15 @@ role_note = "chart 1D row 2"
 enzyme_activity = "none"
 enzyme_source = "viking-malt-2023"
 enzyme_ref = "p. 21: 'amylolytic activity ... is zero'"
+description = "Pilsner malt roasted to 350-450 EBC, with no enzyme activity and little fermentable extract. It brings roasted dark-chocolate and coffee flavours and strong colour to porters, stouts and dark ales. Normally under 5-10 %."
+description_source = "viking-malt-2023"
+description_ref = "p. 21"
+style_names = [
+    "porters",
+    "stouts",
+    "dark ales",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -197,6 +384,17 @@ name = "Cookie Malt"
 role = "roast"
 role_source = "malt-substitution-2025"
 role_note = "chart 1D row 1"
+description = "Roasted pilsner malt that stays floury, not glassy. It adds mild roasted cereal flavour with popcorn and biscuit hints and a golden colour; used in Belgian beers, IPAs and dark strong styles. Normally under 20 %."
+description_source = "viking-malt-2023"
+description_ref = "p. 26"
+style_names = [
+    "ales",
+    "lagers",
+    "Belgian beers",
+    "IPAs",
+    "dark strong styles",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -204,6 +402,14 @@ name = "Dextrin Malt"
 role = "crystal"
 role_source = "malt-substitution-2025"
 role_note = "chart 1C row 4"
+description = "Light malt with a sweet malt aroma, toffee, breadcrumbs and cookies, and many dextrins that add fullness and head retention. Modest enzyme activity. Dosage up to 30 %."
+description_source = "viking-malt-2023"
+description_ref = "p. 27"
+style_names = [
+    "ales",
+    "lagers",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -211,6 +417,9 @@ name = "Enzyme Malt"
 role = "base"
 role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
+description = "Malt made to keep as much enzyme activity as possible (diastatic power at least 620 WK). It is recommended when a large part of the mash is adjuncts or non-enzymatic malts, and is also used for grain whisky."
+description_source = "viking-malt-2023"
+description_ref = "p. 46"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -218,6 +427,14 @@ name = "Golden Ale Malt"
 role = "crystal"
 role_source = "malt-substitution-2025"
 role_note = "chart 1C row 3"
+description = "Highly modified 2-row malt with reduced enzymatic potential and a strong malty, cookie, sweet and nutty flavour. It gives a golden hue to ales and lagers. Usage up to 50 %."
+description_source = "viking-malt-2023"
+description_ref = "p. 28"
+style_names = [
+    "ales",
+    "lagers",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -228,6 +445,9 @@ role_note = "R1 list (user decision Q2, 2026-10-15)"
 max_pct = 100
 max_pct_source = "user-supplied"
 max_pct_basis = "Viking catalogue, p. 44: 'can be considered as Pilsner Malt with a special aroma' (no limit stated)"
+description = "Tastes like pilsner malt with a hue of peat and smoke; its enzyme activity is kept. In brewing it can be used like pilsner malt with a special aroma; also used for whisky."
+description_source = "viking-malt-2023"
+description_ref = "p. 44"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -237,10 +457,19 @@ role_source = "malt-substitution-2025"
 role_note = "chart 1B row 2"
 max_pct = 100
 max_pct_source = "user-supplied"
-max_pct_basis = "unplaced"
+max_pct_basis = "Viking catalogue, p. 23: no limit is stated and the text calls it ideal for dark lagers, festival beers and bocks; its Weyermann chart substitute is 'up to 100%' (p. 6 for Munich Type 1, p. 7 for Type 2)"
 enzyme_activity = "low"
 enzyme_source = "viking-malt-2023"
 enzyme_ref = "p. 23: 'clearly reduced enzyme activities compared to Pilsner Malt'"
+description = "Munich malt (20-24 EBC) cured at 110-120 °C for an aromatic, nutty character. It underlines malty flavour and full body in dark lagers, festival beers and bocks; its reduced enzyme activity must be allowed for in the recipe."
+description_source = "viking-malt-2023"
+description_ref = "p. 23"
+style_names = [
+    "dark lagers",
+    "festival beers",
+    "bocks",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -250,10 +479,19 @@ role_source = "malt-substitution-2025"
 role_note = "chart 1B row 1"
 max_pct = 100
 max_pct_source = "user-supplied"
-max_pct_basis = "unplaced"
+max_pct_basis = "Viking catalogue, p. 23: no limit is stated and the text calls it ideal for dark lagers, festival beers and bocks; its Weyermann chart substitute is 'up to 100%' (p. 6 for Munich Type 1, p. 7 for Type 2)"
 enzyme_activity = "low"
 enzyme_source = "viking-malt-2023"
 enzyme_ref = "p. 23: 'clearly reduced enzyme activities compared to Pilsner Malt'"
+description = "Munich malt (14-18 EBC) cured at 110-120 °C for an aromatic, nutty character. It underlines malty flavour and full body in dark lagers, festival beers and bocks; its reduced enzyme activity must be allowed for in the recipe."
+description_source = "viking-malt-2023"
+description_ref = "p. 23"
+style_names = [
+    "dark lagers",
+    "festival beers",
+    "bocks",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -261,13 +499,20 @@ name = "Pale Ale Malt"
 role = "base"
 role_source = "malt-substitution-2025"
 role_note = "chart 1A row 5"
+description = "2-row malt with a malty, sweet and nutty flavour and easy processing, for ales and special lagers. Its colouring power is low, so it can also correct the colour of regular lagers. Usage up to 100 %."
+description_source = "viking-malt-2023"
+description_ref = "p. 12"
 
 [[fermentable]]
 producer = "Viking Malt"
 name = "Pilsner Malt"
+min_boil_min = 90
 role = "base"
 role_source = "malt-substitution-2025"
 role_note = "chart 1A row 2"
+description = "2-row pilsner malt with a malty, slightly nutty and sweet flavour and a low colour. A base malt for all kinds of beer."
+description_source = "viking-malt-2023"
+description_ref = "p. 11"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -278,6 +523,16 @@ role_note = "chart 1B row 3"
 enzyme_activity = "high"
 enzyme_source = "viking-malt-2023"
 enzyme_ref = "p. 19: 'The strong enzyme activity'"
+description = "Single-variety malt cured above 100 °C, with a pure malty, nutty and clean flavour and unusually strong enzyme activity for its colour. It gives a reddish tint for ales, dark lagers, festival beers and bocks. Dosage up to 100 %."
+description_source = "viking-malt-2023"
+description_ref = "p. 19"
+style_names = [
+    "ales",
+    "dark lagers",
+    "festival beers",
+    "bocks",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -288,6 +543,16 @@ role_note = "chart 1B row 5"
 enzyme_activity = "low"
 enzyme_source = "viking-malt-2023"
 enzyme_ref = "p. 20: 'The amylolytic activity of Red Ale Malt is low'"
+description = "Aromatic malt rich in melanoidins, malty and bitter with roasted and nutty notes and a long linger; slightly acidic and low in enzymes. It strengthens reddish colour and aroma in APA, IPA, red ales and dark lagers. Recommended up to 20 %."
+description_source = "viking-malt-2023"
+description_ref = "p. 20"
+style_names = [
+    "APA",
+    "IPA",
+    "Red Ale",
+    "Dark Lagers",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -295,6 +560,14 @@ name = "Roasted Barley"
 role = "roast"
 role_source = "malt-substitution-2025"
 role_note = "chart 1D row 9"
+description = "Roasted barley grain with strong colouring ability. It gives a dry flavour and substantial colour to stouts and porters."
+description_source = "viking-malt-2023"
+description_ref = "p. 31"
+style_names = [
+    "stouts",
+    "porters",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -302,6 +575,15 @@ name = "Rye Malt"
 role = "base"
 role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
+description = "Rye malt with a characteristic rye and honey aroma, reminiscent of rye bread. It gives a golden colour and rye flavour to rye beers and IPAs. Keep it under 7 % to avoid wort separation problems."
+description_source = "viking-malt-2023"
+description_ref = "p. 29"
+style_names = [
+    "Rye Lager",
+    "Rye Ale (Roggenbier)",
+    "IPAs",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -309,6 +591,9 @@ name = "Smoked Malt (cherry wood)"
 role = "kilned"
 role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
+description = "Pilsner-like malt smoked over cherry wood, with a rather strong smoky flavour that depends on the wood. The smoke is relatively mild, so large doses are used, almost like pilsner malt."
+description_source = "viking-malt-2023"
+description_ref = "p. 43"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -316,6 +601,9 @@ name = "Smoked Malt (pear wood)"
 role = "kilned"
 role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
+description = "Pilsner-like malt smoked over pear wood, with a rather strong smoky flavour that depends on the wood. The smoke is relatively mild, so large doses are used, almost like pilsner malt."
+description_source = "viking-malt-2023"
+description_ref = "p. 43"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -326,10 +614,30 @@ role_note = "R1 list (user decision Q2, 2026-10-15)"
 max_pct = 100
 max_pct_source = "user-supplied"
 max_pct_basis = "Viking catalogue, p. 42: 'even 100% dosages are used' for grodziskie"
+description = "Wheat malt smoked over oak, with a delicate smoke aroma and enzyme activity kept. It has no husk, so a filtration aid is needed at high doses; used for grodziskie, even at 100 %."
+description_source = "viking-malt-2023"
+description_ref = "p. 42"
+style_names = [
+    "grodziskie",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
 name = "Sprau Malt"
+role = "adjunct"
+role_source = "user-supplied"
+role_note = "user decision, Task 4 stop, 2026-10-15"
+description = "Malted field bean (a legume grown on barley stubble as natural fertiliser) with properties that suit hop-forward beers. Recommended up to 15 %."
+description_source = "hopline-malts"
+description_ref = "https://www.hopline.hu/Viking-Sprau-Malt"
+style_names = [
+    "IPA",
+    "APA",
+    "NEIPA",
+    "hoppy beers",
+]
+styles_source = "hopline-malts"
 
 [[fermentable]]
 producer = "Viking Malt"
@@ -337,13 +645,30 @@ name = "Vienna Malt"
 role = "base"
 role_source = "malt-substitution-2025"
 role_note = "chart 1A row 4"
+description = "Malt cured hotter than pilsner malt, giving a golden colour, more body and fullness. Subtle flavour of malt, sweetness, baked bread and caramel hints; its enzyme activity is a little lower than pilsner malt. Enhances colour and aroma of light beers and is the base of Vienna lager."
+description_source = "viking-malt-2023"
+description_ref = "p. 14"
+style_names = [
+    "Vienna lager",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Viking Malt"
 name = "Wheat Malt"
+min_boil_min = 90
 role = "base"
 role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
+description = "Husk-free wheat malt with good diastatic power but only modest alpha-amylase. Used mainly for wheat beers at about 50 % of the grist, and at about 20 % in premium lagers for flavour and foam stability."
+description_source = "viking-malt-2023"
+description_ref = "p. 15"
+style_names = [
+    "wheat beers",
+    "top fermented beers",
+    "premium lagers",
+]
+styles_source = "viking-malt-2023"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -354,6 +679,26 @@ role_note = "chart 1B row 6"
 enzyme_activity = "low"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 38"
+description = "Kilned Belgian-type malt with a crunchy, complex aroma of biscuit, honey, nuts and a little chocolate. It adds a copper-golden colour and a full body. Recommended up to 50 %."
+description_source = "weyermann-2026"
+description_ref = "p. 38"
+style_names = [
+    "Belgian Pale Ale",
+    "Belgian Blond Ale",
+    "Season",
+    "Trappist Single",
+    "Belgian IPA",
+    "Biére de Garde",
+    "Belgian Dubbel",
+    "Extra Special Bitter",
+    "Belgian Golden Strong Ale",
+    "Belgian Tripel",
+    "Belgian Dark Strong Ale or Quadrupel",
+    "Barley wine",
+    "Flanders Red Ale",
+    "Oud Bruin",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -361,6 +706,13 @@ name = "Acidulated Malt"
 role = "kilned"
 role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
+description = "Carries natural lactic acid, so it lowers mash pH (1 % lowers it by about 0.1) and helps the mash convert. It adds a fruity-acidic note. Maximum 5 %, and 10 % in sour beers."
+description_source = "weyermann-2026"
+description_ref = "p. 10"
+style_names = [
+    "Sour Beers",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -371,16 +723,51 @@ role_note = "chart 1B row 10"
 enzyme_activity = "high"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 9"
+description = "Barley malt smoked over beech wood, with a pronounced smoke aroma over a malty-sweet base with vanilla and honey notes. Recommended up to 100 % depending on the smoke intensity wanted; 5-10 % already adds noticeable aroma."
+description_source = "weyermann-2026"
+description_ref = "p. 9"
+style_names = [
+    "Pale Lager with Smoke",
+    "Bamberger Rauchbier",
+    "Kellerbier",
+    "Bamberger Maerzen",
+    "Rauchbier",
+    "Rauchbierbock",
+    "Dark wheat",
+    "Wheat Bock",
+    "Bamberg Weisse Rauchbier",
+    "Lichtenhainer",
+    "Old Ale",
+    "Smoked Porter",
+    "Sathi",
+    "Gotlandsdricke",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
 name = "Bohemian Pilsner Malt"
+min_boil_min = 90
 role = "base"
 role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
 enzyme_activity = "high"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 33"
+description = "Pilsner malt from Bohemian barley with a nutty, malty-sweet aroma. A base malt for Bohemian and Czech lager styles, recommended up to 100 %."
+description_source = "weyermann-2026"
+description_ref = "p. 33"
+style_names = [
+    "Czech Pale Lager",
+    "Bohemian Pilsner",
+    "Czech Amber Lager",
+    "Czech Dark Lager",
+    "Bohemian Bock",
+    "Saison",
+    "Wheat Wine",
+    "Gose",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -391,6 +778,28 @@ role_note = "chart 1C row 8"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 20"
+description = "Caramel malt with toffee, caramel and bread notes. It deepens the colour to a dark red shine and steadies the flavour. Recommended up to 20 %."
+description_source = "weyermann-2026"
+description_ref = "p. 20"
+style_names = [
+    "International Amber Lager",
+    "Franconian Red Beer",
+    "Session Pale Ale",
+    "Red IPA",
+    "Session IPA",
+    "Best Bitter",
+    "Strong Bitter",
+    "Dark Mild",
+    "British Brown Ale",
+    "American Brown Ale",
+    "London Brown Ale",
+    "Baltic Porter",
+    "Scotch Ale",
+    "Imperial Red Ale",
+    "Flanders Red Ale",
+    "Oud Bruin",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -401,6 +810,37 @@ role_note = "chart 1C row 14"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 27"
+description = "Caramel malt with the most complex aroma in the Weyermann caramel range: first roasted notes, roasted nuts, dark caramel and dried fruit. It gives a rounded, reddish colour. Recommended up to 15 %."
+description_source = "weyermann-2026"
+description_ref = "p. 27"
+style_names = [
+    "Dark Lager",
+    "Brown IPA",
+    "Scottish Light",
+    "Scottish Heavy",
+    "Scottish Export",
+    "American Red Ale",
+    "Biére de Garde",
+    "Red Ale",
+    "Dark Mild",
+    "British Brown Ale",
+    "American Brown Ale",
+    "English Dark Mild Ale",
+    "English Porter",
+    "Brown Porter",
+    "Robust Porter",
+    "Coconut Porter",
+    "Smoked Porter",
+    "American Porter",
+    "Imperial Porter",
+    "Oatmeal Stout",
+    "American Stout",
+    "Russian Imperial Stout",
+    "Old Ale",
+    "American Strong Ale",
+    "Barley Wine",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -411,6 +851,21 @@ role_note = "chart 1C row 6"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 18"
+description = "Golden-brown caramel malt with caramel, dried fruit and almond notes. It deepens the colour and rounds the aroma of full-bodied beers. Recommended up to 30 %."
+description_source = "weyermann-2026"
+description_ref = "p. 18"
+style_names = [
+    "Belgian Pale Ale",
+    "Trappist Single",
+    "Golden Ale",
+    "American Red Ale",
+    "Biére de Garde",
+    "British Brown Ale",
+    "Belgian Tripel",
+    "Belgian Dark Strong Ale or Quadrupel",
+    "Flanders Red Ale",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -421,6 +876,22 @@ role_note = "chart 1C row 12"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 26"
+description = "Dark caramel malt from Bohemian barley with bread, caramel and toffee notes and a stronger colour. Recommended up to 15 %."
+description_source = "weyermann-2026"
+description_ref = "p. 26"
+style_names = [
+    "Bohemian Pilsener",
+    "Czech Amber Lager",
+    "Czech Dark Lager",
+    "Bock",
+    "Brown IPA",
+    "English Porter",
+    "Foreign Extra Stout",
+    "Old Ale",
+    "American Strong Ale",
+    "Barley wine",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -431,6 +902,37 @@ role_note = "chart 1D row 7"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 43"
+description = "De-husked roasted malt with a fine roast aroma of coffee, cocoa and dark chocolate and very little roasted bitterness. Recommended up to 5 %, up to 15 % in special recipes such as Irish stout."
+description_source = "weyermann-2026"
+description_ref = "p. 43"
+style_names = [
+    "Vienna Lager",
+    "Smoked beer",
+    "Bamberger Maerzen Rauchbier",
+    "International Dark Lager",
+    "Munich Dunkel",
+    "Black IPA",
+    "Brown IPA",
+    "Black Ale",
+    "Altbier",
+    "Best Bitter",
+    "Strong Bitter",
+    "California Common",
+    "Kentucky Common",
+    "Dark Mild",
+    "Pre-Prohibition Porter",
+    "Brown Porter",
+    "Coconut Porter",
+    "Sweet Stout",
+    "Oatmeal Stout",
+    "Tropical Stout",
+    "English Barley Wine",
+    "American Barley Wine",
+    "Imperial Red Ale",
+    "Oud Bruin",
+    "Schwarzbier",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -441,6 +943,27 @@ role_note = "chart 1D row 7"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 44"
+description = "De-husked roasted malt with a fine roast aroma of coffee, cocoa and dark chocolate and little roasted bitterness. Recommended up to 5 %; up to 0.5 % can correct the colour of a light beer."
+description_source = "weyermann-2026"
+description_ref = "p. 44"
+style_names = [
+    "Czech Dark Lager",
+    "Schwarzbier",
+    "Dunkel Weizen",
+    "Weizenbock",
+    "Dark Doppelbock",
+    "Eisbock",
+    "Extra Special Bitter",
+    "Black IPA",
+    "Black Ale",
+    "Baltic Porter",
+    "Irish Stout",
+    "Irish Extra Stout",
+    "American Stout",
+    "Belgian Dark Strong Ale or Quadrupel",
+    "Malt Beverage (nonalcoholic malt beer)",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -451,6 +974,22 @@ role_note = "chart 1D row 7"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 45"
+description = "The darkest de-husked roasted malt, with a fine roast aroma of coffee, cocoa and dark chocolate and little roasted bitterness. Recommended up to 5 %."
+description_source = "weyermann-2026"
+description_ref = "p. 45"
+style_names = [
+    "Schwarzbier",
+    "Black IPA",
+    "Black Ale",
+    "American Porter",
+    "Robust Porter",
+    "Imperial Porter",
+    "Smoked Porter",
+    "Irish Extra Stout",
+    "Foreign Extra Stout",
+    "Imperial Stout",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -461,6 +1000,22 @@ role_note = "chart 1D row 4"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 40"
+description = "Gently roasted malt with high colour intensity and a finely roasted aroma of coffee, cocoa and dark chocolate. Recommended up to 5 %."
+description_source = "weyermann-2026"
+description_ref = "p. 40"
+style_names = [
+    "Dunkel Weizen",
+    "Weizenbock",
+    "Altbier",
+    "British Brown Ale",
+    "American Brown Ale",
+    "British Strong Ale",
+    "Pre-Prohibition Porter",
+    "Sweet Stout",
+    "Oatmeal Stout",
+    "Tropical Stout",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -471,6 +1026,17 @@ role_note = "chart 1D row 5-6"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 41"
+description = "Gently roasted malt with high colour intensity and a roast aroma of coffee, cocoa and dark chocolate. Recommended up to 5 %."
+description_source = "weyermann-2026"
+description_ref = "p. 41"
+style_names = [
+    "English Dark Mild Ale",
+    "English Porter",
+    "Irish Stout",
+    "Irish Extra Stout",
+    "American Stout",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -481,6 +1047,18 @@ role_note = "chart 1D row 6"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 42"
+description = "The darkest Carafa, gently roasted for high colour intensity and an intense roast aroma of coffee, cocoa and dark chocolate. Recommended up to 5 %."
+description_source = "weyermann-2026"
+description_ref = "p. 42"
+style_names = [
+    "American Porter",
+    "Irish Extra Stout",
+    "Foreign Extra Stout",
+    "Imperial Stout",
+    "Russian Imperial Stout",
+    "Altbier",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -491,6 +1069,47 @@ role_note = "chart 1C row 5"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 17"
+description = "Almost fully caramelised malt with a malty-sweet taste and fine caramel notes. It improves foam stability and mouthfeel in full-bodied beers. Recommended 10-15 %."
+description_source = "weyermann-2026"
+description_ref = "p. 17"
+style_names = [
+    "Munich Helles",
+    "Pale Kellerbier",
+    "Dortmunder Export",
+    "India Pale Lager",
+    "International Amber Lager",
+    "Bamberger Maerzen Rauchbier",
+    "Imperial Pilsener",
+    "Cream Ale",
+    "British Golden Ale",
+    "Summer Ale",
+    "English Summer Ale",
+    "Australian Sparkling Ale",
+    "Blonde Ale",
+    "American Pale Ale",
+    "Session Pale Ale",
+    "English IPA",
+    "American IPA",
+    "Belgian IPA",
+    "Double IPA",
+    "Session IPA",
+    "Black IPA",
+    "Ordinary Bitter",
+    "Golden Ale",
+    "Golden Bitter",
+    "English Pale Mild Ale",
+    "English Dark Mild Ale",
+    "Belgian Golden Strong Ale",
+    "Weissbier",
+    "Hefeweizen",
+    "Leichtes Weizen",
+    "Kristal Weizen",
+    "Bernsteinfarbenes Weissbier",
+    "Gueuze",
+    "Gose",
+    "Bamberg Weizen Rauchbier",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -501,6 +1120,27 @@ role_note = "chart 1C row 9"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 21"
+description = "Fully caramelised malt with a pronounced caramel aroma and fine pastry notes. It gives amber to dark copper colour and more malt body."
+description_source = "weyermann-2026"
+description_ref = "p. 21"
+style_names = [
+    "Franconian Red Beer",
+    "Munich Dunkel",
+    "International Dark Lager",
+    "American Pale Ale",
+    "Altbier",
+    "Scottish Light",
+    "Scottish Heavy",
+    "Scottish Export",
+    "California Common",
+    "Kentucky Common",
+    "English Pale Mild Ale",
+    "English Dark Mild Ale",
+    "Bernsteinfarbenes Weissbier",
+    "Fruit Lambic",
+    "Dunkles Weissbier",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -511,6 +1151,37 @@ role_note = "chart 1C row 10"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 22"
+description = "Fully caramelised malt with a pronounced caramel aroma and pastry notes. It gives amber to dark copper colour and more malt body in malt-forward beers."
+description_source = "weyermann-2026"
+description_ref = "p. 22"
+style_names = [
+    "Festival beer",
+    "Maerzen",
+    "Smoked beer",
+    "Kellerbier",
+    "Bamberger Maerzen",
+    "Rauchbier",
+    "Schwarzbier",
+    "Helles Bock",
+    "Dark Bock",
+    "Ice Bock",
+    "Weizenbock",
+    "English Pale Mild Ale",
+    "English Dark Mild Ale",
+    "Brown IPA",
+    "British Strong Ale",
+    "Imperial Red Ale",
+    "Irish Stout",
+    "Oatmeal Stout",
+    "Russian Imperial Stout",
+    "Coconut Porter",
+    "Chocolate Porter",
+    "Brown Porter",
+    "Robust Porter",
+    "Smoked Porter",
+    "Imperial Porter",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -521,6 +1192,27 @@ role_note = "chart 1C row 11"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 23"
+description = "Fully caramelised malt with a pronounced caramel aroma and clear pastry notes. It gives dark copper colour and more malt body. Recommended up to 10 %."
+description_source = "weyermann-2026"
+description_ref = "p. 23"
+style_names = [
+    "Ordinary Bitter",
+    "English Pale Mild Ale",
+    "Extra Special Bitter",
+    "Dark Mild",
+    "British Brown Ale",
+    "American Brown Ale",
+    "English Porter",
+    "Brown Porter",
+    "Robust Porter",
+    "Irish Stout",
+    "Russian Imperial Stout",
+    "Old Ale",
+    "Scotch Ale",
+    "Barley Wine",
+    "Imperial Red Ale",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -531,6 +1223,40 @@ role_note = "chart 1C row 1"
 enzyme_activity = "low"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 16"
+description = "Pale dextrin-rich malt that adds foam stability and body with almost no colour, and a malty-sweet taste with light caramel notes. Recommended 5-10 %; up to 40 % in special recipes such as alcohol-free beer."
+description_source = "weyermann-2026"
+description_ref = "p. 16"
+style_names = [
+    "American (Light) Lager",
+    "International Pale Lager",
+    "Koelsch style beer",
+    "German Leichtbier",
+    "Bavarian Helles",
+    "India Pale Lager",
+    "German Pilsener",
+    "Pre-Prohibition Lager",
+    "American Pilsener",
+    "Imperial Pilsener",
+    "Cream Ale",
+    "British Golden Ale",
+    "Summer Ale",
+    "English Summer Ale",
+    "Australian Sparkling Ale",
+    "Blonde Ale",
+    "Session Pale Ale",
+    "American IPA",
+    "Double IPA",
+    "Session IPA",
+    "Belgian Golden Strong Ale",
+    "Leichtes Weizen",
+    "Gueuze",
+    "Fruit Lambic",
+    "Gose",
+    "Piwo Grodziskie",
+    "Alcohol-reduced beer",
+    "Alcohol-free beer",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -541,6 +1267,31 @@ role_note = "chart 1C row 7"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 19"
+description = "Caramel malt with a malty-sweet taste of caramel, honey and pastry. It deepens the colour to an orange-red shine; combine it with Melanoidin malt for a deep red beer."
+description_source = "weyermann-2026"
+description_ref = "p. 19"
+style_names = [
+    "Vienna Lager",
+    "Franconian Rotbier",
+    "Helles Bock",
+    "American Pale Ale",
+    "Red IPA",
+    "Double IPA",
+    "Ordinary Bitter",
+    "Scottish Light",
+    "Irish Red Ale",
+    "American Red Ale",
+    "English Pale Mild Ale",
+    "Dark Mild",
+    "London Brown Ale",
+    "Imperial Red Ale",
+    "Baltic Porter",
+    "Weissbier",
+    "Smoked Wheat beer",
+    "Bernsteinfarbenes Weissbier",
+    "Flanders Red Ale",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -551,6 +1302,25 @@ role_note = "R1 list (user decision Q2, 2026-10-15)"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 14"
+description = "Caramelised wheat malt with light notes of caramel, almond, bread and pastry and a golden-brown colour. Recommended up to 15 %."
+description_source = "weyermann-2026"
+description_ref = "p. 14"
+style_names = [
+    "American Wheat Beer",
+    "Weissbier",
+    "Bernsteinfarbenes Weizen",
+    "Dunkles Weizen",
+    "Leichtes Weizen",
+    "Weizenbock",
+    "Witbier",
+    "Sathi",
+    "Juicy IPA",
+    "Hazy IPA",
+    "NEIPA",
+    "London Brown Ale",
+    "Wheat Wine",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -561,26 +1331,95 @@ role_note = "R1 list (user decision Q2, 2026-10-15)"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 15"
+description = "Gently roasted wheat malt with high colour and intense dark-chocolate notes, with mild roast, coffee and bread. Recommended up to 5 %."
+description_source = "weyermann-2026"
+description_ref = "p. 15"
+style_names = [
+    "Baltic Porter",
+    "American Porter",
+    "Chocolate Porter",
+    "Imperial Porter",
+    "Irish Extra Stout",
+    "Foreign Extra Stout",
+    "Imperial Stout",
+    "Russian Imperial Stout",
+    "Quadrupel",
+    "Altbier",
+    "Black IPA",
+    "Dunkles Weizen",
+    "Weizenbock",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
 name = "Eraclea Pilsner Malt"
+min_boil_min = 90
 role = "base"
 role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
 enzyme_activity = "high"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 28"
+description = "Pilsner malt from Italian Adriatic barley, malty-sweet with light honey notes, a good yield and excellent foam. A base for crisp Mediterranean beers, recommended up to 100 %."
+description_source = "weyermann-2026"
+description_ref = "p. 28"
+style_names = [
+    "Mediterranean Style Lager",
+    "Mediterranean Style Pilsner",
+    "Italian Lager",
+    "American Lager",
+    "Italian Pilsner",
+    "German Pilsner",
+    "Pre-Prohibition Lager",
+    "Italian Grape Ale",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
 name = "Extra Pale Premium Pilsner Malt"
+min_boil_min = 90
 role = "base"
 role_source = "malt-substitution-2025"
 role_note = "chart 1A row 1"
 enzyme_activity = "high"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 2"
+description = "Very light pilsner malt that gives a particularly pale wort and boiled-wort colour, with a malty-sweet taste and light honey notes. A base malt recommended up to 100 %."
+description_source = "weyermann-2026"
+description_ref = "p. 2"
+style_names = [
+    "American (Light) Lager",
+    "International Pale Lager",
+    "Czech Pale Lager",
+    "Koelsch-style",
+    "German Light Beer",
+    "Light Lagers",
+    "Japanese Lager",
+    "Mexican Lager",
+    "Bavarian Helles",
+    "Pilsener",
+    "American Pilsener",
+    "International Pilsener",
+    "American Cream Ale",
+    "British Golden Ale",
+    "Blonde Ale",
+    "Trappist Single",
+    "Belgian Golden Strong Ale",
+    "Belgian Trippel",
+    "Berliner Weisse",
+    "Leichtes Weizen",
+    "Kristallweizen",
+    "Lambic",
+    "Gueuze",
+    "Fruit Lambic",
+    "Witbier",
+    "Gose",
+    "Lichtenhainer",
+    "Piwo Grodziskie",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -591,6 +1430,38 @@ role_note = "chart 1B row 5"
 enzyme_activity = "low"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 11"
+description = "Malt with pronounced honey and biscuit notes that intensifies and steadies the flavour and gives the beer a dark red shine. Recommended up to 20 %."
+description_source = "weyermann-2026"
+description_ref = "p. 11"
+style_names = [
+    "Light Lager",
+    "International Amber Lager",
+    "Maerzen",
+    "Bamberger Rauchbier",
+    "Vienna Lager",
+    "Kellerbier",
+    "Franconian Rotbier",
+    "Scandinavian Red Lager",
+    "International Dark Lager",
+    "Munich Dunkel",
+    "Dark Bock",
+    "Double Bock",
+    "Session Pale Ale",
+    "Red IPA",
+    "Session IPA",
+    "Scottish Light",
+    "Irish Red Ale",
+    "Belgian Dubbel",
+    "Altbier",
+    "English Porter",
+    "English Barley Wine",
+    "American Strong Ale",
+    "American Barley Wine",
+    "Wheat Wine",
+    "Imperial Red Ale",
+    "Flanders Red Ale",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -601,6 +1472,29 @@ role_note = "chart 1B row 1"
 enzyme_activity = "normal"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 6"
+description = "Munich malt with a pronounced malt aroma of caramel, honey and bread, for malt-forward beers of deeper colour. Recommended up to 100 %."
+description_source = "weyermann-2026"
+description_ref = "p. 6"
+style_names = [
+    "India Pale Lager",
+    "International Amber Lager",
+    "Czech Amber Lager",
+    "Bamberger Maerzen",
+    "Rauchbier",
+    "Munich Dunkel",
+    "Braunbier",
+    "Dark Double Bock",
+    "Imperial Pilsener",
+    "Dark Wheat",
+    "Wheat Bock",
+    "German Rye beer",
+    "Belgian Pale Ale",
+    "Altbier",
+    "American IPA",
+    "Brown IPA",
+    "Imperial Red Ale",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -611,6 +1505,30 @@ role_note = "chart 1B row 2"
 enzyme_activity = "normal"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 7"
+description = "Darker Munich malt with a pronounced malt aroma of caramel, honey and bread, for malt-forward beers of deeper colour. Recommended up to 100 %."
+description_source = "weyermann-2026"
+description_ref = "p. 7"
+style_names = [
+    "Festbier",
+    "Maerzen",
+    "Kellerbeer",
+    "Smoked beer",
+    "Munich Dunkel",
+    "Czech Dark Lager",
+    "Schwarzbier",
+    "Dark Double Bock",
+    "Black IPA",
+    "Imperial PA",
+    "Biére de Garde",
+    "British Brown Ale",
+    "Baltic Porter",
+    "English Porter",
+    "American Porter",
+    "Imperial Porter",
+    "Russian Imperial Stout",
+    "Flanders Red Ale",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -621,6 +1539,23 @@ role_note = "R1 list (user decision Q2, 2026-10-15)"
 enzyme_activity = "high"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 8"
+description = "Wheat malt smoked over oak, with an elegant smoke aroma like fine cigars and light toffee and biscuit notes. Recommended up to 80 %."
+description_source = "weyermann-2026"
+description_ref = "p. 8"
+style_names = [
+    "Weissbier",
+    "Dark wheat",
+    "Wheat bock",
+    "Gueuze",
+    "Fruit Lambic",
+    "Bamberg Weisse Smoked beer",
+    "Lichtenhainer",
+    "Piwo Grodziskie",
+    "Wheat Wine",
+    "Classic Style Smoked beer",
+    "Specialty Smoked beer",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -631,16 +1566,86 @@ role_note = "chart 1A row 5"
 enzyme_activity = "high"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 4"
+description = "Malt for lighter ales and other top-fermented beers, with fine notes of bread and hints of dried fruit and honey. Suited to isothermal mashing; recommended up to 100 %."
+description_source = "weyermann-2026"
+description_ref = "p. 4"
+style_names = [
+    "India Pale Lager",
+    "Cream Ale",
+    "British Golden Ale",
+    "Australian Sparkling Ale",
+    "American Pale Ale",
+    "Belgian Pale Ale",
+    "Summer Ale",
+    "English Summer Ale",
+    "Juicy Pale Ale",
+    "Hazy Pale Ale",
+    "Session Pale Ale",
+    "English IPA",
+    "American IPA",
+    "Belgian IPA",
+    "Brown IPA",
+    "Rye IPA",
+    "White IPA",
+    "Double IPA",
+    "Juicy IPA",
+    "Hazy IPA",
+    "NEIPA",
+    "Session IPA",
+    "Black IPA",
+    "Ordinary Bitter",
+    "Best Bitter",
+    "Strong Bitter",
+    "Extra Special Bitter",
+    "Irish Red Ale",
+    "American Red Ale",
+    "California Common",
+    "Biére de Garde",
+    "English Pale Mild Ale",
+    "Dark Mild",
+    "British Brown Ale",
+    "English Dark Mild Ale",
+    "English Porter",
+    "American Porter",
+    "Brown Porter",
+    "Robust Porter",
+    "Imperial Porter",
+    "Stout",
+    "Imperial Stout",
+    "Scotch Ale",
+    "English Barley Wine",
+    "British Strong Ale",
+    "American Strong Ale",
+    "Belgian Dark Strong Ale or Quadrupel",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
 name = "Pilsner Malt"
+min_boil_min = 90
 role = "base"
 role_source = "malt-substitution-2025"
 role_note = "chart 1A row 2"
 enzyme_activity = "high"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 3"
+description = "Standard pilsner base malt for all beer styles, especially bottom-fermented ones, with a malty-sweet taste and light honey notes. Recommended up to 100 %."
+description_source = "weyermann-2026"
+description_ref = "p. 3"
+style_names = [
+    "Non-alcoholic Beer",
+    "Light Beer",
+    "Pale Lager",
+    "Pils",
+    "Munich-Style Helles",
+    "Strong Lager",
+    "Bock Beer",
+    "Pale Ale",
+    "American-Style India Pale Ale",
+    "Strong Ale",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -651,6 +1656,26 @@ role_note = "chart 1D row 9"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 48"
+description = "Roasted barley grain with intense colouring power and the strongest roast aroma, typically coffee. Recommended up to 5 %, more in special recipes."
+description_source = "weyermann-2026"
+description_ref = "p. 48"
+style_names = [
+    "Scottish Light",
+    "Scottish Heavy",
+    "Scottish Export",
+    "Irish Red Ale",
+    "American Porter",
+    "Baltic Porter",
+    "Robust Porter",
+    "Imperial Porter",
+    "Irish Stout",
+    "Irish Extra Stout",
+    "Sweet Stout",
+    "Tropical Stout",
+    "Imperial Stout",
+    "Russian Imperial Stout",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -661,6 +1686,23 @@ role_note = "R1 list (user decision Q2, 2026-10-15)"
 enzyme_activity = "high"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 50"
+description = "Pale rye malt with a typical rye aroma, malty-sweet with bread and honey notes, and a velvety mouthfeel. Recommended up to 60 % with an adapted, intensive mash programme."
+description_source = "weyermann-2026"
+description_ref = "p. 50"
+style_names = [
+    "Season",
+    "Juicy Pale Ale",
+    "Hazy Pale Ale",
+    "Rye IPA",
+    "Juicy IPA",
+    "Hazy IPA",
+    "NEIPA",
+    "German Rye Beer",
+    "Sathi",
+    "Alternative Grain Beer",
+    "Multigrain beer",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -671,6 +1713,38 @@ role_note = "chart 1C row 13"
 enzyme_activity = "none"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 39"
+description = "Dark brown caramel malt with the most complex aroma of the Weyermann caramel malts: raisins, dark caramel, nuts, pastries and bread. Recommended up to 30 %."
+description_source = "weyermann-2026"
+description_ref = "p. 39"
+style_names = [
+    "Amber Lager",
+    "Dark Lager",
+    "Saison",
+    "Brown IPA",
+    "Black Ale",
+    "Black IPA",
+    "Belgian Dubbel",
+    "Dark Mild",
+    "British Brown Ale",
+    "London Brown Ale",
+    "British Strong Ale",
+    "Old Ale",
+    "English Barley Wine",
+    "Belgian Dark Strong Ale or Quadrupel",
+    "Imperial Red Ale",
+    "English Porter",
+    "American Porter",
+    "Brown Porter",
+    "Robust Porter",
+    "Imperial Porter",
+    "Oatmeal Stout",
+    "Foreign Extra Stout",
+    "American Stout",
+    "Russian Imperial Stout",
+    "Flanders Red Ale",
+    "Oud Bruin",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -681,6 +1755,16 @@ role_note = "R1 list (user decision Q2, 2026-10-15)"
 enzyme_activity = "high"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 53"
+description = "Malt from spelt with a typical malty-sweet taste and light nut notes, for top-fermented and multi-grain beers. Recommended up to 60 %."
+description_source = "weyermann-2026"
+description_ref = "p. 53"
+style_names = [
+    "Special beer",
+    "Top-fermented beer",
+    "Spelt beer",
+    "Multi-grain beer",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -691,6 +1775,40 @@ role_note = "chart 1A row 4"
 enzyme_activity = "high"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 5"
+description = "Malt for gold-coloured beers that adds fullness. Malty-sweet with light honey and nutty notes. Recommended up to 100 %."
+description_source = "weyermann-2026"
+description_ref = "p. 5"
+style_names = [
+    "International Amber Lager",
+    "Czech Amber Lager",
+    "Festbier",
+    "Kellerbier",
+    "Dortmunder Export",
+    "India Pale Lager",
+    "Vienna Lager",
+    "Scandinavian Red",
+    "Franconian Rotbier",
+    "Bamberger Maerzen",
+    "Rauchbier",
+    "Helles Bock",
+    "Dark Bock",
+    "Double Bock",
+    "Imperial Pilsner",
+    "Dark Wheat",
+    "Wheat Bock",
+    "Kölsch Style",
+    "Belgian Pale Ale",
+    "American IPA",
+    "Red IPA",
+    "Biére de Garde",
+    "Altbier",
+    "Baltic Porter",
+    "Oyster Stout",
+    "American Barley wine",
+    "Imperial Red Ale",
+    "Flanders Red Ale",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
@@ -701,16 +1819,65 @@ role_note = "R1 list (user decision Q2, 2026-10-15)"
 enzyme_activity = "normal"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 13"
+description = "Mild, aromatic dark wheat malt with bread, nut, pastry, honey, toffee and caramel notes. Recommended up to 50 %."
+description_source = "weyermann-2026"
+description_ref = "p. 13"
+style_names = [
+    "Amber wheat",
+    "Dunkles Weizen",
+    "Weizenbock",
+    "American Wheat Wine",
+    "Lambic",
+    "Fruit Lambic",
+    "Gueuze",
+    "Witbier",
+    "Wheat Wine",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = "Weyermann"
 name = "Wheat Malt Pale"
+min_boil_min = 90
 role = "base"
 role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
 enzyme_activity = "high"
 enzyme_source = "weyermann-2026"
 enzyme_ref = "p. 12"
+description = "Base malt for light wheat beers and other top-fermented beers, with bread, nut, biscuit, toffee and light caramel notes. Recommended up to 80 %; up to 10 % already gives a full body and foam stability."
+description_source = "weyermann-2026"
+description_ref = "p. 12"
+style_names = [
+    "American Wheat Beer",
+    "Leichtes Weizen",
+    "Weissbeer",
+    "Kristal Weizen",
+    "Bernsteinfarbenes Weizen",
+    "Dark Wheat beer",
+    "Weizenbock",
+    "American Wheat Wine",
+    "Berliner Weisse",
+    "Lambic",
+    "Fruit Lambic",
+    "Gueuze",
+    "Witbier",
+    "Gose",
+    "Lichtenhainer",
+    "Sathi",
+    "Koelsch-style",
+    "Blonde Ale",
+    "Summer Ale",
+    "German Rye Beer",
+    "Juicy Pale Ale",
+    "Hazy Pale Ale",
+    "White IPA",
+    "Juicy IPA",
+    "Hazy IPA",
+    "NEIPA",
+    "Wheat Wine",
+]
+styles_source = "weyermann-2026"
 
 [[fermentable]]
 producer = ""
@@ -720,7 +1887,10 @@ role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
 max_pct = 20
 max_pct_source = "user-supplied"
-max_pct_basis = "unplaced"
+max_pct_basis = "user decision E, 2026-10-14"
+description = "Dark candi sugar (225 EBC) that raises the alcohol without making the beer fuller. A usual dose is 100 g per 10 L. Used in Belgian dark beers, dubbel, tripel and Christmas beers."
+description_source = "hopline-adjuncts"
+description_ref = "https://www.hopline.hu/Barna-kandiscukor-500g-400091-cs"
 
 [[fermentable]]
 producer = ""
@@ -730,7 +1900,10 @@ role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
 max_pct = 20
 max_pct_source = "user-supplied"
-max_pct_basis = "unplaced"
+max_pct_basis = "user decision E, 2026-10-14"
+description = "Unmalted flaked barley that, like most unmalted grains, adds protein for foam and head retention but can make the beer hazy. It is mashed together with the malts."
+description_source = "hopline-adjuncts"
+description_ref = "https://www.hopline.hu/arpa-pehely-250g"
 
 [[fermentable]]
 producer = ""
@@ -740,7 +1913,10 @@ role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
 max_pct = 20
 max_pct_source = "user-supplied"
-max_pct_basis = "unplaced"
+max_pct_basis = "user decision E, 2026-10-14"
+description = "Flaked maize that lightens the body and gives a soft, crisp beer. Used in American ales and Belgian beers and mashed with the malts."
+description_source = "hopline-adjuncts"
+description_ref = "https://www.hopline.hu/kukoricapehely-100g-1169"
 
 [[fermentable]]
 producer = ""
@@ -750,7 +1926,10 @@ role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
 max_pct = 30
 max_pct_source = "user-supplied"
-max_pct_basis = "unplaced"
+max_pct_basis = "Viking catalogue, p. 18: Oat Malt 'up to 20% (30%)' (malted oats, not flakes; the closest printed figure)"
+description = "Flaked oats that add protein for foam and head retention and give a dry, light beer. A high share makes lautering harder, so rice hulls may be needed. Used in NEIPA and other hazy beers."
+description_source = "hopline-adjuncts"
+description_ref = "https://www.hopline.hu/zab-pehely-100g-930"
 
 [[fermentable]]
 producer = ""
@@ -758,6 +1937,9 @@ name = "Flaked Rice"
 role = "adjunct"
 role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
+description = "Flaked rice that lowers the body and gives a clean fermentation. Up to 40 % is possible and most recipes use about 20 %. It lowers protein and foam a little and leaves little yeast nutrient, so yeast nutrient is advised. Used in triple IPA, lager and pils."
+description_source = "hopline-adjuncts"
+description_ref = "https://www.hopline.hu/rizspehely-100g"
 
 [[fermentable]]
 producer = ""
@@ -767,7 +1949,10 @@ role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
 max_pct = 20
 max_pct_source = "user-supplied"
-max_pct_basis = "unplaced"
+max_pct_basis = "How to Brew estimate, printed p. 437: 11%-30% of the fermentables gives a distinct honey flavour (20 is inside that range; the book states no maximum)"
+description = "About 18 % water; 95 % of its carbohydrates are fermentable (mostly fructose and glucose). It adds honey flavour that depends on the nectar source. 3-10 % of the fermentables gives a subtle honey flavour in light beers and 11-30 % a distinct one."
+description_source = "palmer-how-to-brew"
+description_ref = "p. 435 and p. 437"
 
 [[fermentable]]
 producer = ""
@@ -777,7 +1962,10 @@ role_source = "user-supplied"
 role_note = "R1 list (user decision Q2, 2026-10-15)"
 max_pct = 10
 max_pct_source = "user-supplied"
-max_pct_basis = "unplaced"
+max_pct_basis = "user decision E, 2026-10-14"
+description = "Unfermentable milk sugar that makes the beer fuller, creamier and sweeter, and is not fermented away. Added in the last 5 minutes of the boil or dissolved in hot water into the finished beer; 300 g per 20 L is a good starting point. Used in milk stouts, milkshake beers and pastry ales."
+description_source = "hopline-adjuncts"
+description_ref = "https://www.hopline.hu/laktoz-250-g"
 
 [[substitute]]
 a = ["Weyermann", "Pilsner Malt"]
@@ -940,3 +2128,254 @@ a = ["Simpsons Malt", "Finest Pale Ale Maris Otter"]
 b = ["Viking Malt", "Pale Ale Malt"]
 source = "user-supplied"
 note = "user decision D, 2026-10-14 (both Pale Ales: 2026-10-15)"
+
+# Printed style name (lower case) -> one ref.beer_style code (BJCP 2021 number or BA 2026 slug), or "" for dropped.
+# Proposed by Claude, to be approved by the user (Task 4 stop) before it is loaded.
+[style_names]
+"alcohol-free beer" = "non-alcohol-malt-beverage"
+"alcohol-reduced beer" = ""
+"ale-type beers" = ""
+"ales" = ""
+"altbier" = "7B"
+"alternative grain beer" = "31A"
+"amber ale" = "19A"
+"amber lager" = "2B"
+"amber wheat" = "bernsteinfarbenes-weizen"
+"american (light) lager" = "1A"
+"american barley wine" = "22C"
+"american brown ale" = "19C"
+"american cream ale" = "1C"
+"american ipa" = "21A"
+"american lager" = "1B"
+"american pale ale" = "18B"
+"american pilsener" = "american-style-pilsener"
+"american porter" = "20A"
+"american red ale" = "19A"
+"american stout" = "20B"
+"american strong ale" = "22B"
+"american wheat beer" = "1D"
+"american wheat wine" = "22D"
+"american-style india pale ale" = "21A"
+"apa" = "18B"
+"australian sparkling ale" = "12B"
+"baltic porter" = "9C"
+"bamberg weisse rauchbier" = "bamberg-style-weiss-rauchbier"
+"bamberg weisse smoked beer" = "bamberg-style-weiss-rauchbier"
+"bamberg weizen rauchbier" = "bamberg-style-weiss-rauchbier"
+"bamberger maerzen" = "bamberg-style-maerzen-rauchbier"
+"bamberger maerzen rauchbier" = "bamberg-style-maerzen-rauchbier"
+"bamberger rauchbier" = "6B"
+"barley wine" = "17D"
+"barleywine" = "17D"
+"bavarian helles" = "4A"
+"belgian beers" = ""
+"belgian blond ale" = "25A"
+"belgian dark strong ale or quadrupel" = "26D"
+"belgian dubbel" = "26B"
+"belgian golden strong ale" = "25C"
+"belgian ipa" = "21B"
+"belgian pale ale" = "24B"
+"belgian tripel" = "26C"
+"belgian trippel" = "26C"
+"berliner weisse" = "23A"
+"bernsteinfarbenes weissbier" = "bernsteinfarbenes-weizen"
+"bernsteinfarbenes weizen" = "bernsteinfarbenes-weizen"
+"best bitter" = "11B"
+"biére de garde" = "24C"
+"black ale" = "21B"
+"black ipa" = "21B"
+"blonde ale" = "18A"
+"bock" = "traditional-german-style-bock"
+"bock beer" = "traditional-german-style-bock"
+"bocks" = "traditional-german-style-bock"
+"bohemian bock" = "traditional-german-style-bock"
+"bohemian pilsener" = "3B"
+"bohemian pilsner" = "3B"
+"braunbier" = "8A"
+"british brown ale" = "13B"
+"british golden ale" = "12A"
+"british strong ale" = "17A"
+"brown ale" = ""
+"brown ipa" = "21B"
+"brown porter" = "13C"
+"california common" = "19B"
+"chocolate porter" = "20A"
+"classic style smoked beer" = "32A"
+"coconut porter" = "20A"
+"cream ale" = "1C"
+"czech amber lager" = "3C"
+"czech dark lager" = "3D"
+"czech pale lager" = "3A"
+"dark ales" = ""
+"dark bock" = "6C"
+"dark doppelbock" = "9A"
+"dark double bock" = "9A"
+"dark lager" = "2C"
+"dark lagers" = "2C"
+"dark mild" = "13A"
+"dark strong styles" = ""
+"dark wheat" = "10B"
+"dark wheat beer" = "10B"
+"dortmunder export" = "5C"
+"double bock" = "9A"
+"double ipa" = "22A"
+"dry stout" = "15B"
+"dubbel" = "26B"
+"dunkel weizen" = "10B"
+"dunkles weissbier" = "10B"
+"dunkles weizen" = "10B"
+"eisbock" = "9B"
+"english ale" = ""
+"english barley wine" = "17D"
+"english bitter" = "11A"
+"english dark mild ale" = "13A"
+"english ipa" = "12C"
+"english pale mild ale" = "english-style-pale-mild-ale"
+"english porter" = "13C"
+"english summer ale" = "english-style-summer-ale"
+"extra special bitter" = "11C"
+"festbier" = "4B"
+"festival beer" = "4B"
+"festival beers" = "4B"
+"flanders red ale" = "23B"
+"foreign extra stout" = "16D"
+"franconian red beer" = "franconian-style-rotbier"
+"franconian rotbier" = "franconian-style-rotbier"
+"fruit lambic" = "23F"
+"german leichtbier" = "5A"
+"german light beer" = "5A"
+"german pilsener" = "5D"
+"german pilsner" = "5D"
+"german rye beer" = "27H"
+"golden ale" = "12A"
+"golden bitter" = "12A"
+"gose" = "23G"
+"gotlandsdricke" = "swedish-style-gotlandsdricke"
+"grodziskie" = "27E"
+"gueuze" = "23E"
+"hazy ipa" = "21C"
+"hazy pale ale" = "juicy-or-hazy-pale-ale"
+"hefeweizen" = "10A"
+"helles bock" = "4C"
+"hoppy beers" = ""
+"ice bock" = "9B"
+"imperial pa" = "22A"
+"imperial pilsener" = "5D"
+"imperial pilsner" = "5D"
+"imperial porter" = "american-style-imperial-porter"
+"imperial red ale" = "imperial-red-ale"
+"imperial stout" = "20C"
+"india pale lager" = "american-style-india-pale-lager"
+"international amber lager" = "2B"
+"international dark lager" = "2C"
+"international pale lager" = "2A"
+"international pilsener" = "international-style-pilsener"
+"ipa" = "21A"
+"ipas" = "21A"
+"irish extra stout" = "15C"
+"irish red ale" = "15A"
+"irish stout" = "15B"
+"italian grape ale" = "29D"
+"italian lager" = "2A"
+"italian pilsner" = "italian-style-pilsener"
+"japanese lager" = "2A"
+"juicy ipa" = "21C"
+"juicy pale ale" = "juicy-or-hazy-pale-ale"
+"kellerbeer" = "27A"
+"kellerbier" = "27A"
+"kentucky common" = "27B"
+"koelsch style beer" = "5B"
+"koelsch-style" = "5B"
+"kristal weizen" = "south-german-style-kristal-weizen"
+"kristallweizen" = "south-german-style-kristal-weizen"
+"kölsch style" = "5B"
+"lagers" = ""
+"lambic" = "23D"
+"leichtes weizen" = "german-style-leichtes-weizen"
+"lichtenhainer" = "27C"
+"light beer" = "light-lager"
+"light lager" = "light-lager"
+"light lagers" = "light-lager"
+"london brown ale" = "27D"
+"maerzen" = "6A"
+"malt beverage (nonalcoholic malt beer)" = "non-alcohol-malt-beverage"
+"mediterranean style lager" = "2A"
+"mediterranean style pilsner" = "italian-style-pilsener"
+"mexican lager" = "mexican-style-pale-lager"
+"milk stout" = "16A"
+"multi-grain beer" = "31A"
+"multigrain beer" = "31A"
+"munich dunkel" = "8A"
+"munich helles" = "4A"
+"munich-style helles" = "4A"
+"neipa" = "21C"
+"non-alcoholic beer" = "non-alcohol-malt-beverage"
+"oatmeal stout" = "16B"
+"old ale" = "17B"
+"ordinary bitter" = "11A"
+"oud bruin" = "23C"
+"oyster stout" = "15B"
+"pale ale" = "international-style-pale-ale"
+"pale kellerbier" = "27A"
+"pale lager" = "2A"
+"pale lager with smoke" = "32A"
+"pale lagers" = "2A"
+"pils" = "5D"
+"pilsener" = "5D"
+"piwo grodziskie" = "27E"
+"porter" = ""
+"porters" = ""
+"pre-prohibition lager" = "27F"
+"pre-prohibition porter" = "27G"
+"premium lagers" = ""
+"quadrupel" = "26D"
+"rauchbier" = "6B"
+"rauchbierbock" = "bamberg-style-bock-rauchbier"
+"red ale" = "19A"
+"red ipa" = "21B"
+"robust porter" = "robust-porter"
+"russian imperial stout" = "20C"
+"rye ale (roggenbier)" = "27H"
+"rye ipa" = "21B"
+"rye lager" = ""
+"saison" = "25B"
+"sathi" = "27I"
+"scandinavian red" = "7A"
+"scandinavian red lager" = "7A"
+"schwarzbier" = "8B"
+"scotch ale" = "17C"
+"scottish and english beers" = ""
+"scottish export" = "14C"
+"scottish heavy" = "14B"
+"scottish light" = "14A"
+"season" = "25B"
+"session ipa" = "session-india-pale-ale"
+"session pale ale" = "session-beer"
+"smoked beer" = "32A"
+"smoked porter" = "smoke-porter"
+"smoked wheat beer" = "bamberg-style-weiss-rauchbier"
+"sour beers" = "28D"
+"special beer" = ""
+"specialty smoked beer" = "32B"
+"spelt beer" = "31A"
+"stout" = ""
+"stouts" = ""
+"strong ale" = "strong-ale"
+"strong bitter" = "11C"
+"strong lager" = ""
+"summer ale" = "english-style-summer-ale"
+"sweet stout" = "16A"
+"top fermented beers" = ""
+"top-fermented beer" = ""
+"trappist single" = "26A"
+"tropical stout" = "16C"
+"vienna lager" = "7A"
+"weissbeer" = "10A"
+"weissbier" = "10A"
+"weizenbock" = "10C"
+"wheat beers" = "10A"
+"wheat bock" = "10C"
+"wheat wine" = "22D"
+"white ipa" = "21B"
+"winter beers" = "30C"
+"witbier" = "24A"

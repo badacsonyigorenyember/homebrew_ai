@@ -9,7 +9,10 @@ from loaders import fermentable_facts as ff
 from loaders.db import connect
 
 W, V, S = "Weyermann", "Viking Malt", "Simpsons Malt"
-SOURCES = {"malt-substitution-2025", "user-supplied", "weyermann-2026", "viking-malt-2023", "palmer-how-to-brew"}
+SOURCES = {
+    "malt-substitution-2025", "user-supplied", "weyermann-2026", "viking-malt-2023", "palmer-how-to-brew",
+    "simpsons-malt-2025", "hopline-malts", "hopline-adjuncts",
+}
 
 
 @pytest.fixture(scope="module")
@@ -76,9 +79,14 @@ def data():
 
 
 def fake_rows(data):
-    """Every row of the file, with no colour and no max_pct, as fetch_rows would return it."""
+    """Every row of the file, with no max_pct, as fetch_rows would return it. The rows with a
+    confirmed 90-minute boil get a colour that proposes it; the others have none."""
     return {
-        (f["producer"], f["name"]): {"ebc": None, "max_pct": None, "max_pct_source": None}
+        (f["producer"], f["name"]): {
+            "ebc": (3.0, 4.0) if (f["producer"], f["name"]) in LONG_BOILS else None,
+            "max_pct": None,
+            "max_pct_source": None,
+        }
         for f in data["fermentable"]
     }
 
@@ -119,7 +127,7 @@ EXPECTED_ROLES = {
         (V, "Roasted Barley"),
         (W, "Chocolate Wheat Malt"),
     ],
-    "adjunct": [("", "Flaked Oats"), ("", "Flaked Barley"), ("", "Flaked Corn"), ("", "Flaked Rice")],
+    "adjunct": [("", "Flaked Oats"), ("", "Flaked Barley"), ("", "Flaked Corn"), ("", "Flaked Rice"), (V, "Sprau Malt")],
     "sugar": [("", "Honey"), ("", "Brown Candi Sugar"), ("", "Lactose")],
 }
 
@@ -128,12 +136,12 @@ def test_roles_match_r1(data):
     rows = by_key(data)
     assert len(rows) == 81
     counts = {role: len(keys) for role, keys in EXPECTED_ROLES.items()}
-    assert counts == {"base": 20, "kilned": 13, "crystal": 27, "roast": 13, "adjunct": 4, "sugar": 3}
+    assert counts == {"base": 20, "kilned": 13, "crystal": 27, "roast": 13, "adjunct": 5, "sugar": 3}
     for role, keys in EXPECTED_ROLES.items():
         for key in keys:
             assert rows[key].get("role") == role, key
-    # Sprau is the only row without a role until the user places it.
-    assert [k for k, f in rows.items() if "role" not in f] == [(V, "Sprau Malt")]
+    assert all("role" in f for f in rows.values())  # Sprau: adjunct, the user's answer of 2026-10-15
+    assert rows[(V, "Sprau Malt")]["role_source"] == "user-supplied"
     chart = {k for k, f in rows.items() if f.get("role_source") == "malt-substitution-2025"}
     assert len(chart) == 7 + 9 + 22 + 12  # chart groups 1A, 1B, 1C, 1D
 
@@ -151,6 +159,12 @@ def test_max_pct_is_decision_e(data):
     }
     assert {f["max_pct_source"] for f in data["fermentable"] if "max_pct" in f} == {"user-supplied"}
     assert all(f["max_pct_basis"] for f in data["fermentable"] if "max_pct" in f)
+    assert "unplaced" not in {f["max_pct_basis"] for f in data["fermentable"] if "max_pct" in f}
+    decision_e = {k for k, f in by_key(data).items() if f.get("max_pct_basis") == "user decision E, 2026-10-14"}
+    assert decision_e == {
+        (V, "Caramel 30 Malt"), (V, "Caramel 50 Malt"), (V, "Caramel 300 Malt"), (V, "Caramel 400 Malt"),
+        (V, "Caramel 600 Malt"), ("", "Brown Candi Sugar"), ("", "Flaked Barley"), ("", "Flaked Corn"), ("", "Lactose"),
+    }
 
 
 def test_substitute_pairs(data):
@@ -224,6 +238,49 @@ def test_every_value_names_a_source(data):
         assert s["source"] and s["note"]
 
 
+LONG_BOILS = {
+    (V, "Pilsner Malt"), (V, "Wheat Malt"), (W, "Pilsner Malt"), (W, "Extra Pale Premium Pilsner Malt"),
+    (W, "Eraclea Pilsner Malt"), (W, "Bohemian Pilsner Malt"), (W, "Wheat Malt Pale"),
+}
+
+
+def test_style_names_are_mapped(data):
+    mapping = data["style_names"]
+    assert len(mapping) == 247 and sum(code == "" for code in mapping.values()) == 21
+    assert all(name == name.lower() for name in mapping)
+    for f in data["fermentable"]:
+        for printed in f.get("style_names", []):
+            assert printed.lower() in mapping, printed
+        assert ("style_names" in f) == ("styles_source" in f)
+    assert "style_names" not in by_key(data)[("", "Honey")]  # adjuncts print no style list we load
+
+
+def test_descriptions_in_file(data):
+    for f in data["fermentable"]:
+        assert 40 < len(f["description"]) < 500, f["name"]
+        assert f["description_source"] and f["description_ref"]
+    rows = by_key(data)
+    assert rows[(W, "Special W")]["description_ref"] == "p. 39"
+    assert rows[("", "Lactose")]["description_ref"].startswith("https://www.hopline.hu/")
+
+
+def test_long_boils_are_the_confirmed_seven(data):
+    assert {k for k, f in by_key(data).items() if f.get("min_boil_min", 60) > 60} == LONG_BOILS
+
+
+def test_check_rejects_unknown_style(data):
+    rows = fake_rows(data)
+    bad = copy.deepcopy(data)
+    bad["fermentable"][0]["style_names"] = ["No Such Style"]
+    bad["fermentable"][0]["styles_source"] = "user-supplied"
+    with pytest.raises(ValueError, match="not in the \\[style_names\\] table"):
+        ff.check(bad, rows, SOURCES)
+    bad = copy.deepcopy(data)
+    bad["style_names"]["pils"] = "no-such-code"
+    with pytest.raises(ValueError, match="not in ref.beer_style"):
+        ff.check(bad, rows, SOURCES, style_codes={"5D"})
+
+
 def test_check_rejects_unknown_name(data):
     rows = fake_rows(data)
     bad = copy.deepcopy(data)
@@ -245,7 +302,7 @@ def test_check_rejects_bad_values(data):
         ({"role": "malt"}, "role"),
         ({"enzyme_activity": "medium"}, "enzyme_activity"),
         ({"role_source": "no-such-source"}, "not in ref.source"),
-        ({"min_boil_min": 90}, "was not proposed"),  # fake rows have no colour, so nothing is proposed
+        ({"min_boil_min": 120}, "was not proposed"),  # the proposal is 90
         ({"max_pct": 100, "max_pct_source": "user-supplied", "max_pct_basis": "x"}, "max_pct"),
     ]:
         existing = dict(rows)
@@ -271,10 +328,16 @@ def test_check_rejects_bad_pairs_and_unplaced(data):
     with pytest.raises(ValueError, match="itself"):
         ff.check(bad, rows, SOURCES, allow_unplaced=True)
     # Loading never accepts a max_pct whose basis is still "unplaced".
-    unplaced = [f for f in data["fermentable"] if f.get("max_pct_basis") == "unplaced"]
-    if unplaced:
-        with pytest.raises(ValueError, match="unplaced"):
-            ff.check(data, rows, SOURCES)
+    bad = copy.deepcopy(data)
+    next(f for f in bad["fermentable"] if "max_pct" in f)["max_pct_basis"] = "unplaced"
+    with pytest.raises(ValueError, match="unplaced"):
+        ff.check(bad, rows, SOURCES)
+
+
+@pytest.mark.stack
+def test_style_codes_exist(conn, data):
+    codes = ff.fetch_style_codes(conn)
+    assert {c for c in data["style_names"].values() if c} <= codes
 
 
 @pytest.mark.stack
@@ -282,4 +345,114 @@ def test_file_matches_the_database(conn, data):
     """The file's names are the 81 rows of ref.fermentable, and every check against the DB passes."""
     rows = ff.fetch_rows(conn)
     assert set(by_key(data)) == set(rows) and len(rows) == 81
-    ff.check(data, rows, ff.fetch_sources(conn), allow_unplaced=True)
+    ff.check(data, rows, ff.fetch_sources(conn), style_codes=ff.fetch_style_codes(conn))
+
+
+# --- the loaded database (Task 4) ---------------------------------------------------------------
+
+
+def label(producer, name):
+    return f"{producer} {name}".strip()
+
+
+def db_rows(conn, columns):
+    return {
+        label(p, n): rest
+        for p, n, *rest in conn.execute(
+            f"select i.producer, i.name, {columns} from ref.fermentable f "
+            "join ref.ingredient i on i.id = f.ingredient_id"
+        )
+    }
+
+
+@pytest.mark.stack
+def test_db_roles(conn, data):
+    rows = db_rows(conn, "f.role")
+    assert len(rows) == 81 and all(r[0] is not None for r in rows.values())
+    for role, keys in EXPECTED_ROLES.items():
+        for key in keys:
+            assert rows[label(*key)] == [role], key
+    counts = dict(conn.execute("select role, count(*) from ref.fermentable group by role").fetchall())
+    assert counts == {"base": 20, "kilned": 13, "crystal": 27, "roast": 13, "adjunct": 5, "sugar": 3}
+    assert rows["Viking Malt Sprau Malt"] == ["adjunct"]
+
+
+@pytest.mark.stack
+def test_db_max_pct(conn, data):
+    assert conn.execute("select count(*) from ref.fermentable where max_pct is null").fetchone()[0] == 0
+    expected = {label(*k): f["max_pct"] for k, f in by_key(data).items() if "max_pct" in f}
+    assert len(expected) == 18
+    loaded = dict(
+        conn.execute(
+            "select i.producer || ' ' || i.name, f.max_pct from ref.fermentable f join ref.ingredient i "
+            "on i.id = f.ingredient_id where f.field_source->>'max_pct' = 'user-supplied'"
+        ).fetchall()
+    )
+    assert {k.strip(): float(v) for k, v in loaded.items()} == {k: float(v) for k, v in expected.items()}
+    assert all(f["max_pct_basis"] != "unplaced" for f in data["fermentable"] if "max_pct" in f)
+
+
+@pytest.mark.stack
+def test_db_enzyme_and_boil(conn, data):
+    rows = db_rows(conn, "f.min_boil_min, f.enzyme_activity")
+    assert {k for k, (boil, _) in rows.items() if boil > 60} == {label(*k) for k in LONG_BOILS}
+    assert all(boil == 90 for boil, _ in rows.values() if boil > 60)
+    no_enzyme = {k for k, (_, enzyme) in rows.items() if enzyme is None}
+    report = open("docs/work/s2-formulation-rules/report.md", encoding="utf-8").read()
+    section = report.split("## 2.")[1].split("## 3.")[0]
+    listed = {line[2:].strip() for line in section.splitlines() if line.startswith("- ")}
+    assert no_enzyme == listed and len(listed) == 30
+
+
+@pytest.mark.stack
+def test_db_substitutes(conn):
+    pairs = {
+        frozenset((label(a_p, a_n), label(b_p, b_n)))
+        for a_p, a_n, b_p, b_n in conn.execute(
+            "select a.producer, a.name, b.producer, b.name from ref.fermentable_substitute s "
+            "join ref.ingredient a on a.id = s.fermentable_id join ref.ingredient b on b.id = s.substitute_id"
+        )
+    }
+    assert len(pairs) == 27
+    assert frozenset(("Weyermann Eraclea Pilsner Malt", "Viking Malt Pilsner Malt")) in pairs
+    assert frozenset(("Simpsons Malt DRC", "Weyermann Special W")) in pairs
+    assert not any("Simpsons Malt Crystal T50" in pair for pair in pairs)
+    # The view lists every pair from both sides.
+    both = conn.execute(
+        "select count(*) from ref.fermentable_substitutes v join ref.fermentable_substitutes w "
+        "on w.fermentable_id = v.substitute_id and w.substitute_id = v.fermentable_id"
+    ).fetchone()[0]
+    assert both == 54
+    # Pairs do not chain: the view holds exactly the 27 stored pairs, once per direction.
+    assert conn.execute("select count(*) from ref.fermentable_substitutes").fetchone()[0] == 54
+
+
+@pytest.mark.stack
+def test_db_descriptions(conn):
+    missing = conn.execute(
+        "select count(*) from ref.fermentable where description is null or description_ref is null "
+        "or field_source->>'description' is null"
+    ).fetchone()[0]
+    assert missing == 0
+    assert conn.execute("select count(*) from ref.fermentable where description is not null").fetchone()[0] == 81
+    orphans = conn.execute(
+        "select count(*) from ref.fermentable_style y left join ref.beer_style b on b.id = y.style_id "
+        "where b.id is null"
+    ).fetchone()[0]
+    assert orphans == 0
+    assert conn.execute("select count(*) from ref.fermentable_style").fetchone()[0] > 0
+
+
+@pytest.mark.stack
+def test_load_is_idempotent(conn, data):
+    checksum = (
+        "select md5(string_agg(t::text, '|' order by t::text)) from (select f::text from ref.fermentable f "
+        "union all select s::text from ref.fermentable_substitute s "
+        "union all select y::text from ref.fermentable_style y) t"
+    )
+    try:
+        before = conn.execute(checksum).fetchone()[0]
+        ff.load(conn, data)
+        assert conn.execute(checksum).fetchone()[0] == before
+    finally:
+        conn.rollback()

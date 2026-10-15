@@ -251,7 +251,7 @@ Commit: `Add fermentable facts loader and decided data`
 
 ### Task 4: Descriptions and typical styles; review stop; load
 Why: R1 (Sprau), R4, R6, R7, R8 (A1–A6).
-- [ ] **Descriptions** (R6), one to three sentences in English, what the malt adds and causes and
+- [x] **Descriptions** (R6), one to three sentences in English, what the malt adds and causes and
       its recommended use, never copied at length:
       - Weyermann (37): description, sensory, typical styles, recommended addition and enzyme
         activity from `WEYERMANN-PRODUCTS-Brewery-EN.pdf`; `description_ref` = printed page.
@@ -262,17 +262,17 @@ Why: R1 (Sprau), R4, R6, R7, R8 (A1–A6).
       - Adjuncts and sugars (7): summarised in English from the hopline adjunct page text
         (`raw->'hopline-adjuncts'`, Hungarian; URL as ref); Honey from *How to Brew* (printed
         page; PDF page − 26).
-- [ ] **Style names** (R7): each malt's `style_names` as printed (Weyermann's "typically for"
+- [x] **Style names** (R7): each malt's `style_names` as printed (Weyermann's "typically for"
       list, Viking's "Applications" text, Simpsons' hopline "Ajánlott sörtípusok"), with
       `styles_source`. One `[style_names]` table maps every distinct printed name to one
       `ref.beer_style` code (BJCP 2021 or BA 2026) or to `""` (dropped), closest style we use per
       decision H. `check()` raises on a code not in `ref.beer_style` (stack test
       `test_style_codes_exist`).
-- [ ] Run `python -m loaders.fermentable_facts --propose-min-boil`. Write the draft of
+- [x] Run `python -m loaders.fermentable_facts --propose-min-boil`. Write the draft of
       `docs/work/s2-formulation-rules/report.md`: rows with no stated enzyme activity; the
       proposed long boils; the full style name → code table with dropped names marked; the 18
       `max_pct` values with the drafted basis and where it was found.
-- [ ] **Stop (needs-input).** Return to the orchestrator with four questions:
+- [x] **Stop (needs-input).** Return to the orchestrator with four questions:
       1. Sprau Malt's role. Options: a) adjunct, b) base, c) kilned. Recommend a): hopline calls
          it a malted field bean ("malátázott mezei bab"), max 15 %.
       2. Each proposed `min_boil_min` above 60 (the list from the command): confirm or set 60.
@@ -282,16 +282,16 @@ Why: R1 (Sprau), R4, R6, R7, R8 (A1–A6).
          consensus, recipe range); a value the user cannot place gets "user decision E,
          2026-10-14". The source stays `user-supplied` for all 18.
       Load nothing and commit nothing before the answers.
-- [ ] Apply the answers in the TOML (`role` for Sprau; `min_boil_min = 90` only on confirmed
+- [x] Apply the answers in the TOML (`role` for Sprau; `min_boil_min = 90` only on confirmed
       rows; the mapping as approved; the 18 `max_pct_basis` values). Record them in report.md and in plan Deviations if any
       differs from this plan.
-- [ ] Before loading, record the 63 untouched `max_pct` values:
+- [x] Before loading, record the 63 untouched `max_pct` values:
       `select md5(string_agg(ingredient_id || ':' || max_pct || ':' || (field_source->>'max_pct'), ',' order by ingredient_id)) from ref.fermentable where max_pct is not null;`
       Run `python -m loaders.fermentable_facts`; run the same query restricted to the 63 ids
       (`and field_source->>'max_pct' <> 'user-supplied'`), expect the same md5.
-- [ ] Run the loader a second time; this checksum is equal before and after (A6):
+- [x] Run the loader a second time; this checksum is equal before and after (A6):
       `select md5(string_agg(t::text, '|' order by t::text)) from (select f::text from ref.fermentable f union all select s::text from ref.fermentable_substitute s union all select y::text from ref.fermentable_style y) t;`
-- [ ] Write stack tests: `test_db_roles` (81 non-null; the R1 table; Sprau as answered),
+- [x] Write stack tests: `test_db_roles` (81 non-null; the R1 table; Sprau as answered),
       `test_db_max_pct` (81/81; the 18 with `field_source.max_pct = 'user-supplied'` and a
       confirmed basis in the TOML, none `"unplaced"`),
       `test_db_enzyme_and_boil` (A3: rows above 60 equal the confirmed list; rows with no
@@ -301,7 +301,7 @@ Why: R1 (Sprau), R4, R6, R7, R8 (A1–A6).
       substitute), `test_db_descriptions` (A5: 81 with description and its source, every
       `fermentable_style` row joins a style), `test_load_is_idempotent` (A6: checksum, `load()`,
       checksum, rollback).
-- [ ] Run `pytest tests/test_fermentable_facts.py`, expect pass. DATABASE.md fermentable row
+- [x] Run `pytest tests/test_fermentable_facts.py`, expect pass. DATABASE.md fermentable row
       (counts measured), PROJECT.md §8 line.
 Done when: A1–A6 hold on the live DB and the user's four answers are recorded.
 Commit: `Load fermentable facts after user review`
@@ -540,3 +540,12 @@ None.
   `check(data, rows)` could not both raise on "unplaced" and let Task 3's tests run before the
   user places the bases. `rows` carries each row's EBC range and existing `max_pct` source.
   Enzyme page references (`enzyme_ref`) are PDF pages and stay in the TOML (no column for them).
+- 2026-10-15 · Task 4: the user answered the four stop questions with the recommended options:
+  Sprau Malt → `adjunct`; the 7 proposed 90-minute boils confirmed; the style name table
+  approved as proposed (247 names, 21 dropped); the drafted `max_pct` bases confirmed and the 9
+  unplaced ones set to "user decision E, 2026-10-14". Roles are now 81/81 (adjunct 5).
+- 2026-10-15 · Task 4: the loader also loads `description`, `description_ref` and
+  `ref.fermentable_style`, and `check(..., style_codes=None)` takes the `ref.beer_style` codes to
+  check the `[style_names]` table (the plan named the check but not the parameter). `style_names`
+  keys are lower case; a printed name is looked up in lower case. Descriptions of the 7 adjuncts
+  and sugars cite their source page or URL; Weyermann and Viking `description_ref` are PDF pages.

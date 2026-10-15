@@ -3,8 +3,10 @@
 The facts are typed into loaders/fermentable_facts.toml (one [[fermentable]] per row of the 81,
 keyed by producer and name as in ref.ingredient; [[substitute]] for the pairs). This module reads
 the file, checks it, and loads it. It writes only its own columns and tables:
-  ref.fermentable: role, enzyme_activity, min_boil_min, max_pct (only the rows the file gives one)
+  ref.fermentable: role, enzyme_activity, min_boil_min, description, description_ref,
+                   max_pct (only the rows the file gives one)
   ref.fermentable_substitute
+  ref.fermentable_style
 and merges its keys into field_source (`field_source || new`), so it can run again.
 
 LOAD ORDER: run it AFTER loaders.malts and loaders.adjuncts. They rewrite max_pct and
@@ -77,8 +79,17 @@ def fetch_sources(conn) -> set[str]:
     return {slug for (slug,) in conn.execute("select slug from ref.source")}
 
 
-def check(data: dict, rows: dict, sources: set[str], allow_unplaced: bool = False) -> None:
+def fetch_style_codes(conn) -> set[str]:
+    return {code for (code,) in conn.execute("select code from ref.beer_style")}
+
+
+def check(
+    data: dict, rows: dict, sources: set[str], allow_unplaced: bool = False, style_codes: set[str] | None = None
+) -> None:
     """Raise ValueError on the first thing wrong with the file.
+
+    style_codes (the codes of ref.beer_style) turns on the check that every code in the
+    [style_names] table exists.
 
     allow_unplaced lets the tests read a file whose max_pct bases the user has not placed yet;
     loading never allows it.
@@ -107,10 +118,21 @@ def check(data: dict, rows: dict, sources: set[str], allow_unplaced: bool = Fals
             _need(f, "max_pct", ("max_pct_source", "max_pct_basis"), label, sources)
             if f["max_pct_basis"] == UNPLACED and not allow_unplaced:
                 raise ValueError(f"{label}: max_pct_basis is still 'unplaced'")
+        if "description" in f:
+            _need(f, "description", ("description_source", "description_ref"), label, sources)
+        if "style_names" in f:
+            _need(f, "style_names", ("styles_source",), label, sources)
+            for printed in f["style_names"]:
+                if printed.lower() not in data.get("style_names", {}):
+                    raise ValueError(f"{label}: style name {printed!r} is not in the [style_names] table")
         if "min_boil_min" in f and f["min_boil_min"] > 60:
             proposed = propose_min_boil(f.get("role"), rows[key]["ebc"])
             if f["min_boil_min"] != proposed:
                 raise ValueError(f"{label}: min_boil_min {f['min_boil_min']} was not proposed (proposal: {proposed})")
+    if style_codes is not None:
+        for printed, code in data.get("style_names", {}).items():
+            if code != "" and code not in style_codes:
+                raise ValueError(f"style name {printed!r}: code {code!r} is not in ref.beer_style")
     pairs = set()
     for s in data.get("substitute", []):
         a, b = tuple(s["a"]), tuple(s["b"])
@@ -150,6 +172,8 @@ def load(conn, data: dict) -> dict:
     for f in data["fermentable"]:
         ingredient_id = ids[(f["producer"], f["name"])]
         new_sources = {"min_boil_min": BOIL_SOURCE}
+        if "description" in f:
+            new_sources["description"] = f["description_source"]
         if "role" in f:
             new_sources["role"] = f["role_source"]
         if "enzyme_activity" in f:
@@ -164,12 +188,28 @@ def load(conn, data: dict) -> dict:
                set role = %s,
                    enzyme_activity = %s,
                    min_boil_min = %s,
+                   description = %s,
+                   description_ref = %s,
                    max_pct = coalesce(%s, max_pct),
-                   field_source = (field_source - 'role' - 'enzyme_activity' - 'min_boil_min') || %s
+                   field_source = (field_source - 'role' - 'enzyme_activity' - 'min_boil_min' - 'description') || %s
              where ingredient_id = %s
             """,
-            (f.get("role"), f.get("enzyme_activity"), f.get("min_boil_min", 60), max_pct, Jsonb(new_sources), ingredient_id),
+            (
+                f.get("role"), f.get("enzyme_activity"), f.get("min_boil_min", 60),
+                f.get("description"), f.get("description_ref"), max_pct, Jsonb(new_sources), ingredient_id,
+            ),
         )
+    style_ids = dict(conn.execute("select code, id from ref.beer_style"))
+    conn.execute("delete from ref.fermentable_style")
+    styles = 0
+    for f in data["fermentable"]:
+        codes = {data["style_names"][name.lower()] for name in f.get("style_names", [])} - {""}
+        for code in sorted(codes):
+            conn.execute(
+                "insert into ref.fermentable_style (ingredient_id, style_id, source_id) values (%s, %s, %s)",
+                (ids[(f["producer"], f["name"])], style_ids[code], source_ids[f["styles_source"]]),
+            )
+            styles += 1
     conn.execute("delete from ref.fermentable_substitute")
     for s in data["substitute"]:
         first, second = sorted((ids[tuple(s["a"])], ids[tuple(s["b"])]))
@@ -178,7 +218,7 @@ def load(conn, data: dict) -> dict:
             "values (%s, %s, %s, %s)",
             (first, second, source_ids[s["source"]], s["note"]),
         )
-    return {"fermentables": len(data["fermentable"]), "substitutes": len(data["substitute"])}
+    return {"fermentables": len(data["fermentable"]), "substitutes": len(data["substitute"]), "styles": styles}
 
 
 def proposed_long_boils(data: dict, rows: dict) -> list[tuple[str, int]]:
@@ -200,13 +240,16 @@ def main() -> None:
     with connect() as conn:
         rows = fetch_rows(conn)
         if args.propose_min_boil:
-            check(data, rows, fetch_sources(conn), allow_unplaced=True)
+            check(data, rows, fetch_sources(conn), allow_unplaced=True, style_codes=fetch_style_codes(conn))
             for label, minutes in proposed_long_boils(data, rows):
                 print(f"{minutes} min  {label}")
             return
-        check(data, rows, fetch_sources(conn))
+        check(data, rows, fetch_sources(conn), style_codes=fetch_style_codes(conn))
         counts = load(conn, data)
-    print(f"loaded: {counts['fermentables']} fermentables, {counts['substitutes']} substitute pairs")
+    print(
+        f"loaded: {counts['fermentables']} fermentables, {counts['substitutes']} substitute pairs, "
+        f"{counts['styles']} malt-style rows"
+    )
 
 
 if __name__ == "__main__":
