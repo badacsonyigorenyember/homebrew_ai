@@ -62,7 +62,7 @@ names and dev-ship's move to `docs/finished/` assume `<slug>` is one folder name
 | M2 | [`m2-best-fit-style`](finished/m2-best-fit-style/brief.md) | Step 2: score all 285 styles (name, stated numbers, words), per D1 | m1 | **G2** |
 | S1 | [`s1-maths`](finished/s1-maths/brief.md) | Gravity, ABV, IBU (Tinseth), colour (Morey), solvers, from the doc→calc pass on *How to Brew* | m0 | **G-M** |
 | S2 | [`s2-formulation-rules`](finished/s2-formulation-rules/brief.md) | Fermentable roles, limits, enzyme activity, minimum boil, substitutes, descriptions; 13 formulation rules and the rule check; 22 reference recipes (D7 decided) | s1 | — (brief A1–A16) |
-| S3 | [`s3-style-fit`](work/s3-style-fit/brief.md) | Tags, envelopes for 26 styles (22 brief styles, 3 alternates, 20B), `level()`, golden set (D9) | s2 | **G-S** |
+| S3 | [`s3-style-fit`](finished/s3-style-fit/brief.md) | Tags, envelopes for 26 styles (22 brief styles, 3 alternates, 20B), `level()`, golden set (D9) | s2 | **G-S** |
 | M3 | [`m3-deviations`](work/m3-deviations/brief.md) | Step 3: number, mismatch, conflict and ingredient deviations | m2, s3 | **G3** = RECIPE-ROADMAP P4 done |
 | M4 | [`m4-targets-blueprint`](work/m4-targets-blueprint/brief.md) | Steps 0, 4, 5: brewer profile, targets (ranges + hint knobs + stated numbers), blueprint (ratios) | m3, s1, s2 | **G4** |
 | M5 | [`m5-choose-ingredients`](work/m5-choose-ingredients/brief.md) | Steps 6–9: yeast, fermentables, hops, extras, scored by code; the resolver | m4, s3 | **G5** |
@@ -143,7 +143,7 @@ constants to fit.
 reviewed by you (D9); the golden set passes; every reference-recipe line rated, 0 unexpected ⚠️/⛔. **If no:** revisit the tag
 vocabulary before adding override rows.
 
-**Measured (2026-10-15, [`s3-style-fit`](work/s3-style-fit/plan.md)):** met. `test_citra_table` passes (Citra table from `app.style_level`); 26 style envelopes reviewed by the user (116 `style_ingredient`, 189 `style_sensory`, 237 `style_character` rows, 0 `style_rule` rows needed); the 53 golden cases pass; all 22 reference recipes are rated and only the briefs' own deviations (b08 IBU, b18 SRM) are flagged; colour is checked as a lower bound where a fermentable (Honey, Lactose, Enzyme Malt) has no sourced colour, and b19 was changed to fit 17C (re-measured 2026-10-15). Full `pytest` 535 passed, `-m "not stack"` 171 passed.
+**Measured (2026-10-15, [`s3-style-fit`](finished/s3-style-fit/plan.md)):** met. `test_citra_table` passes (Citra table from `app.style_level`); 26 style envelopes reviewed by the user (116 `style_ingredient`, 189 `style_sensory`, 237 `style_character` rows, 0 `style_rule` rows needed); the 53 golden cases pass; all 22 reference recipes are rated and only the briefs' own deviations (b08 IBU, b18 SRM) are flagged; colour is checked as a lower bound where a fermentable (Honey, Lactose, Enzyme Malt) has no sourced colour, and b19 was changed to fit 17C (re-measured 2026-10-15). Full `pytest` 535 passed, `-m "not stack"` 171 passed.
 
 ### G4 · Targets follow the brief
 
