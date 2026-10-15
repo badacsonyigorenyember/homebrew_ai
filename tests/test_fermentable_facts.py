@@ -398,7 +398,7 @@ def test_db_enzyme_and_boil(conn, data):
     assert {k for k, (boil, _) in rows.items() if boil > 60} == {label(*k) for k in LONG_BOILS}
     assert all(boil == 90 for boil, _ in rows.values() if boil > 60)
     no_enzyme = {k for k, (_, enzyme) in rows.items() if enzyme is None}
-    report = open("docs/work/s2-formulation-rules/report.md", encoding="utf-8").read()
+    report = open("docs/finished/s2-formulation-rules/report.md", encoding="utf-8").read()
     section = report.split("## 2.")[1].split("## 3.")[0]
     listed = {line[2:].strip() for line in section.splitlines() if line.startswith("- ")}
     assert no_enzyme == listed and len(listed) == 30
