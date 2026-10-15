@@ -1,0 +1,480 @@
+# Reference recipes for the 22 test briefs in evals/recipe_briefs.toml (s2-formulation-rules, R16).
+# TEST DATA ONLY. Never put these in a prompt, a workflow or a few-shot example: they exist to
+# show that the formulation rules (app.check_recipe) accept a realistic recipe for every brief.
+# Checked by tests/test_reference_recipes.py. Reviewed by the user: see
+# docs/work/s2-formulation-rules/report.md, section 7.
+#
+# Each [[recipe]] is the input of app.check_recipe in a readable form:
+#   brief        the brief id in evals/recipe_briefs.toml
+#   style_code   the brief's style (b12: 18A, see its comment)
+#   guidance     the brief's guidance flag
+#   stated       the brief's stated numbers except batch_l
+#   targets      the style midpoints (ref.beer_style), or the stated numbers; with a stated ABV,
+#                OG and FG are chosen so that app.abv gives that ABV
+#   batch        volume_l is the brief's batch_l or 20; efficiency, boil-off and losses are
+#                fixture assumptions (the same for every recipe), not data about any system
+#   mash_c, boil_min   process settings (the yeast table carries its own ferm_c)
+#   fermentable  producer + name (as in ref.ingredient), pct of the grist, purpose
+#   hop          name, usage (boil | whirlpool | dry_hop), minutes, g, purpose
+#   yeast        producer + name, ferm_c, purpose
+# Only ingredients that exist in the ref tables are used.
+
+# ---------------------------------------------------------------- b01 West Coast IPA
+[[recipe]]
+brief = "b01"
+style_code = "21A"
+guidance = true
+stated = { abv = 6.5 }
+targets = { og = 1.0615, fg = 1.011, abv = 6.5, ibu = 55, srm = 10 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 65
+boil_min = 60
+fermentable = [
+  { producer = "Weyermann", name = "Pale Ale Malt", pct = 92, purpose = "base malt" },
+  { producer = "Weyermann", name = "Caramunich Type 1", pct = 8, purpose = "colour and light caramel body" },
+]
+hop = [
+  { name = "Columbus", usage = "boil", minutes = 60, g = 26, purpose = "bittering" },
+  { name = "Centennial", usage = "boil", minutes = 10, g = 20, purpose = "flavour" },
+  { name = "Simcoe", usage = "whirlpool", minutes = 20, g = 30, purpose = "aroma" },
+  { name = "Simcoe", usage = "dry_hop", minutes = 4320, g = 40, purpose = "dry-hop aroma" },
+]
+yeast = { producer = "Fermentis", name = "SafAle US-05", ferm_c = 19, purpose = "clean American ale fermentation" }
+
+# ---------------------------------------------------------------- b02 hazy IPA
+[[recipe]]
+brief = "b02"
+style_code = "21C"
+guidance = true
+stated = {}
+targets = { og = 1.0725, fg = 1.0125, abv = 7.5, ibu = 42.5, srm = 5 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 65
+boil_min = 90
+fermentable = [
+  { producer = "Weyermann", name = "Pilsner Malt", pct = 60, purpose = "pale base" },
+  { producer = "Weyermann", name = "Wheat Malt Pale", pct = 20, purpose = "haze and body" },
+  { producer = "", name = "Flaked Oats", pct = 20, purpose = "soft mouthfeel" },
+]
+hop = [
+  { name = "Citra", usage = "boil", minutes = 90, g = 30, purpose = "bittering" },
+  { name = "Mosaic", usage = "whirlpool", minutes = 20, g = 60, purpose = "juicy aroma" },
+  { name = "Galaxy", usage = "dry_hop", minutes = 4320, g = 60, purpose = "dry-hop aroma" },
+  { name = "Citra", usage = "dry_hop", minutes = 4320, g = 60, purpose = "dry-hop aroma" },
+]
+yeast = { producer = "Lallemand", name = "New England", ferm_c = 19, purpose = "fruity, hazy ale fermentation" }
+
+# ---------------------------------------------------------------- b03 oatmeal stout
+[[recipe]]
+brief = "b03"
+style_code = "16B"
+guidance = true
+stated = {}
+targets = { og = 1.055, fg = 1.014, abv = 5.05, ibu = 32.5, srm = 31 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 67
+boil_min = 60
+fermentable = [
+  { producer = "Simpsons Malt", name = "Finest Pale Ale Maris Otter", pct = 72, purpose = "base malt" },
+  { producer = "", name = "Flaked Oats", pct = 15, purpose = "full, chewy body" },
+  { producer = "Viking Malt", name = "Caramel 150 Malt", pct = 5, purpose = "dark fruit sweetness" },
+  { producer = "Viking Malt", name = "Chocolate Dark Malt", pct = 5, purpose = "cocoa roast" },
+  { producer = "Weyermann", name = "Roasted Barley", pct = 3, purpose = "dry roast and colour" },
+]
+hop = [
+  { name = "East Kent Golding", usage = "boil", minutes = 60, g = 50, purpose = "bittering" },
+]
+yeast = { producer = "Fermentis", name = "SafAle S-04", ferm_c = 18, purpose = "English ale character" }
+
+# ---------------------------------------------------------------- b04 milk stout
+[[recipe]]
+brief = "b04"
+style_code = "16A"
+guidance = true
+stated = {}
+targets = { og = 1.052, fg = 1.018, abv = 5.0, ibu = 30, srm = 35 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 67
+boil_min = 60
+fermentable = [
+  { producer = "Weyermann", name = "Pale Ale Malt", pct = 76, purpose = "base malt" },
+  { producer = "Weyermann", name = "Caramunich Type 2", pct = 6, purpose = "caramel sweetness" },
+  { producer = "Viking Malt", name = "Chocolate Dark Malt", pct = 6, purpose = "mild chocolate roast" },
+  { producer = "Weyermann", name = "Roasted Barley", pct = 2, purpose = "colour, kept low" },
+  { producer = "", name = "Lactose", pct = 10, purpose = "unfermentable sweetness" },
+]
+hop = [
+  { name = "East Kent Golding", usage = "boil", minutes = 60, g = 45, purpose = "bittering" },
+]
+yeast = { producer = "Fermentis", name = "SafAle S-04", ferm_c = 18, purpose = "English ale character" }
+
+# ---------------------------------------------------------------- b05 4 % "imperial" stout
+[[recipe]]
+brief = "b05"
+style_code = "15B"
+guidance = true
+stated = { abv = 4 }
+targets = { og = 1.0405, fg = 1.0095, abv = 4.0, ibu = 35, srm = 32.5 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 66
+boil_min = 60
+fermentable = [
+  { producer = "Viking Malt", name = "Pale Ale Malt", pct = 75, purpose = "base malt" },
+  { producer = "", name = "Flaked Barley", pct = 20, purpose = "body and head" },
+  { producer = "Weyermann", name = "Roasted Barley", pct = 5, purpose = "dry roast and colour" },
+]
+hop = [
+  { name = "East Kent Golding", usage = "boil", minutes = 60, g = 47, purpose = "bittering" },
+]
+yeast = { producer = "Fermentis", name = "SafAle S-04", ferm_c = 18, purpose = "English ale character" }
+
+# ---------------------------------------------------------------- b06 American lager with rice
+[[recipe]]
+brief = "b06"
+style_code = "1B"
+guidance = true
+stated = {}
+targets = { og = 1.045, fg = 1.007, abv = 4.75, ibu = 13, srm = 2.8 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 64
+boil_min = 90
+fermentable = [
+  { producer = "Weyermann", name = "Pilsner Malt", pct = 75, purpose = "pale base" },
+  { producer = "", name = "Flaked Rice", pct = 25, purpose = "crisp, dry finish" },
+]
+hop = [
+  { name = "Magnum", usage = "boil", minutes = 90, g = 8, purpose = "bittering" },
+]
+yeast = { producer = "Fermentis", name = "SafLager W-34/70", ferm_c = 13, purpose = "clean lager fermentation" }
+
+# ---------------------------------------------------------------- b07 cream ale with corn
+[[recipe]]
+brief = "b07"
+style_code = "1C"
+guidance = true
+stated = {}
+targets = { og = 1.0485, fg = 1.009, abv = 4.9, ibu = 14, srm = 3.5 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 65
+boil_min = 90
+fermentable = [
+  { producer = "Weyermann", name = "Pilsner Malt", pct = 80, purpose = "pale base" },
+  { producer = "", name = "Flaked Corn", pct = 20, purpose = "light body, corn sweetness" },
+]
+hop = [
+  { name = "Willamette", usage = "boil", minutes = 90, g = 20, purpose = "bittering" },
+]
+yeast = { producer = "Fermentis", name = "SafAle US-05", ferm_c = 19, purpose = "clean American ale fermentation" }
+
+# ---------------------------------------------------------------- b08 German pils, 50 IBU, no Saaz, 10 L
+[[recipe]]
+brief = "b08"
+style_code = "5D"
+guidance = true
+stated = { ibu = 50 }
+targets = { og = 1.047, fg = 1.0105, abv = 4.8, ibu = 50, srm = 3 }
+batch = { volume_l = 10, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 67
+boil_min = 90
+fermentable = [
+  { producer = "Weyermann", name = "Pilsner Malt", pct = 100, purpose = "pale base" },
+]
+hop = [
+  { name = "Magnum", usage = "boil", minutes = 90, g = 13, purpose = "bittering" },
+  { name = "Hallertau Mittelfrüh", usage = "boil", minutes = 10, g = 9, purpose = "noble flavour" },
+  { name = "Tettnanger", usage = "whirlpool", minutes = 15, g = 12, purpose = "noble aroma" },
+]
+yeast = { producer = "Fermentis", name = "SafLager W-34/70", ferm_c = 13, purpose = "clean lager fermentation" }
+
+# ---------------------------------------------------------------- b09 Märzen
+[[recipe]]
+brief = "b09"
+style_code = "6A"
+guidance = true
+stated = {}
+targets = { og = 1.057, fg = 1.012, abv = 5.95, ibu = 21, srm = 12.5 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 67
+boil_min = 90
+fermentable = [
+  { producer = "Weyermann", name = "Pilsner Malt", pct = 20, purpose = "pale base" },
+  { producer = "Weyermann", name = "Vienna Malt", pct = 30, purpose = "toasty, malty body" },
+  { producer = "Weyermann", name = "Munich Malt Type 2", pct = 50, purpose = "malty, bready depth" },
+]
+hop = [
+  { name = "Hallertau Mittelfrüh", usage = "boil", minutes = 90, g = 40, purpose = "bittering" },
+  { name = "Hallertau Mittelfrüh", usage = "boil", minutes = 10, g = 15, purpose = "light noble flavour" },
+]
+yeast = { producer = "Fermentis", name = "SafLager W-34/70", ferm_c = 13, purpose = "clean lager fermentation" }
+
+# ---------------------------------------------------------------- b10 Belgian dubbel from inventory
+[[recipe]]
+brief = "b10"
+style_code = "26B"
+guidance = true
+stated = {}
+targets = { og = 1.0685, fg = 1.013, abv = 6.8, ibu = 20, srm = 13.5 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 67
+boil_min = 90
+fermentable = [
+  { producer = "Weyermann", name = "Pilsner Malt", pct = 70, purpose = "pale base" },
+  { producer = "Weyermann", name = "Munich Malt Type 2", pct = 17, purpose = "malty depth (in stock)" },
+  { producer = "Weyermann", name = "Caramunich Type 3", pct = 3, purpose = "raisin, dark fruit" },
+  { producer = "", name = "Brown Candi Sugar", pct = 10, purpose = "dark candi sugar (in stock): dry body, dark fruit" },
+]
+hop = [
+  { name = "Styrian Golding", usage = "boil", minutes = 90, g = 38, purpose = "bittering" },
+]
+yeast = { producer = "Lallemand", name = "Abbaye", ferm_c = 21, purpose = "abbey ale yeast (in stock)" }
+
+# ---------------------------------------------------------------- b11 saison
+[[recipe]]
+brief = "b11"
+style_code = "25B"
+guidance = true
+stated = {}
+targets = { og = 1.0565, fg = 1.005, abv = 6.5, ibu = 27.5, srm = 13.5 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 68
+boil_min = 90
+fermentable = [
+  { producer = "Weyermann", name = "Pilsner Malt", pct = 80, purpose = "pale base" },
+  { producer = "Weyermann", name = "Wheat Malt Pale", pct = 20, purpose = "protein for body and head" },
+]
+hop = [
+  { name = "Styrian Golding", usage = "boil", minutes = 90, g = 42, purpose = "bittering" },
+  { name = "Saaz", usage = "boil", minutes = 10, g = 20, purpose = "spicy flavour" },
+]
+yeast = { producer = "Lallemand", name = "Belle Saison", ferm_c = 26, purpose = "dry, peppery saison fermentation" }
+
+# ---------------------------------------------------------------- b12 blonde ale with honey
+# The brief's style is 31B (Alternative Sugar Beer), which has no vitals in ref.beer_style. The
+# check needs a style with vitals, so this recipe uses the first alternative that has them: 18A.
+[[recipe]]
+brief = "b12"
+style_code = "18A"
+guidance = true
+stated = {}
+targets = { og = 1.046, fg = 1.0105, abv = 4.65, ibu = 21.5, srm = 4.5 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 68
+boil_min = 60
+fermentable = [
+  { producer = "Weyermann", name = "Pale Ale Malt", pct = 66, purpose = "base malt" },
+  { producer = "Weyermann", name = "Vienna Malt", pct = 22, purpose = "light bready sweetness" },
+  { producer = "", name = "Honey", pct = 12, purpose = "the featured honey flavour" },
+]
+hop = [
+  { name = "Cascade", usage = "boil", minutes = 60, g = 25, purpose = "bittering" },
+]
+yeast = { producer = "Fermentis", name = "SafAle US-05", ferm_c = 19, purpose = "clean American ale fermentation" }
+
+# ---------------------------------------------------------------- b13 Bavarian hefeweizen, 15 L
+[[recipe]]
+brief = "b13"
+style_code = "10A"
+guidance = true
+stated = {}
+targets = { og = 1.0485, fg = 1.011, abv = 4.95, ibu = 11.5, srm = 4 }
+batch = { volume_l = 15, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 66
+boil_min = 90
+fermentable = [
+  { producer = "Weyermann", name = "Wheat Malt Pale", pct = 60, purpose = "wheat base" },
+  { producer = "Weyermann", name = "Pilsner Malt", pct = 40, purpose = "enzymes and pale base" },
+]
+hop = [
+  { name = "Hallertau Mittelfrüh", usage = "boil", minutes = 90, g = 17, purpose = "bittering" },
+]
+yeast = { producer = "YeastFlow", name = "YF-401 Mr. Weizen", ferm_c = 19, purpose = "banana and clove weizen character" }
+
+# ---------------------------------------------------------------- b14 Berliner Weisse at 3 %
+[[recipe]]
+brief = "b14"
+style_code = "23A"
+guidance = true
+stated = { abv = 3 }
+targets = { og = 1.0275, fg = 1.004, abv = 3.0, ibu = 5.5, srm = 2.5 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 68
+boil_min = 90
+fermentable = [
+  { producer = "Weyermann", name = "Wheat Malt Pale", pct = 50, purpose = "wheat base" },
+  { producer = "Weyermann", name = "Pilsner Malt", pct = 50, purpose = "pale base" },
+]
+hop = [
+  { name = "Hallertau Mittelfrüh", usage = "boil", minutes = 90, g = 10, purpose = "token bittering" },
+]
+yeast = { producer = "Fermentis", name = "SafAle WB-06", ferm_c = 20, purpose = "clean wheat beer fermentation; the lactic souring is not modelled" }
+
+# ---------------------------------------------------------------- b15 English best bitter from inventory, 23 L
+[[recipe]]
+brief = "b15"
+style_code = "11B"
+guidance = true
+stated = {}
+targets = { og = 1.044, fg = 1.010, abv = 4.2, ibu = 32.5, srm = 12 }
+batch = { volume_l = 23, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 66
+boil_min = 60
+fermentable = [
+  { producer = "Simpsons Malt", name = "Finest Pale Ale Maris Otter", pct = 92, purpose = "base malt (in stock)" },
+  { producer = "Viking Malt", name = "Caramel 150 Malt", pct = 8, purpose = "crystal malt (in stock): colour, toffee" },
+]
+hop = [
+  { name = "East Kent Golding", usage = "boil", minutes = 60, g = 47, purpose = "bittering (in stock)" },
+  { name = "Fuggle", usage = "boil", minutes = 10, g = 20, purpose = "earthy flavour" },
+]
+yeast = { producer = "Fermentis", name = "SafAle S-04", ferm_c = 18, purpose = "English ale character" }
+
+# ---------------------------------------------------------------- b16 American pale ale, rice, no Citra or Mosaic
+[[recipe]]
+brief = "b16"
+style_code = "18B"
+guidance = true
+stated = {}
+targets = { og = 1.0525, fg = 1.0125, abv = 5.35, ibu = 40, srm = 7.5 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 67
+boil_min = 60
+fermentable = [
+  { producer = "Weyermann", name = "Pale Ale Malt", pct = 80, purpose = "base malt" },
+  { producer = "Weyermann", name = "Caramunich Type 1", pct = 5, purpose = "colour and light caramel" },
+  { producer = "", name = "Flaked Rice", pct = 15, purpose = "crisper finish" },
+]
+hop = [
+  { name = "Cascade", usage = "boil", minutes = 60, g = 40, purpose = "bittering" },
+  { name = "Centennial", usage = "boil", minutes = 10, g = 20, purpose = "flavour" },
+  { name = "Cascade", usage = "dry_hop", minutes = 4320, g = 40, purpose = "dry-hop aroma" },
+]
+yeast = { producer = "Fermentis", name = "SafAle US-05", ferm_c = 19, purpose = "clean American ale fermentation" }
+
+# ---------------------------------------------------------------- b17 schwarzbier at 7 %
+[[recipe]]
+brief = "b17"
+style_code = "8B"
+guidance = true
+stated = { abv = 7 }
+targets = { og = 1.0675, fg = 1.0135, abv = 7.0, ibu = 27.5, srm = 24.5 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 68
+boil_min = 90
+fermentable = [
+  { producer = "Weyermann", name = "Pilsner Malt", pct = 72, purpose = "pale base" },
+  { producer = "Weyermann", name = "Munich Malt Type 2", pct = 25, purpose = "malty depth" },
+  { producer = "Weyermann", name = "Carafa Special Type 2", pct = 3, purpose = "dark colour without harsh roast" },
+]
+hop = [
+  { name = "Hallertau Mittelfrüh", usage = "boil", minutes = 90, g = 60, purpose = "bittering" },
+  { name = "Hallertau Mittelfrüh", usage = "boil", minutes = 10, g = 15, purpose = "noble flavour" },
+]
+yeast = { producer = "Fermentis", name = "SafLager W-34/70", ferm_c = 13, purpose = "clean lager fermentation" }
+
+# ---------------------------------------------------------------- b18 Irish red ale, darker, guidance off
+[[recipe]]
+brief = "b18"
+style_code = "15A"
+guidance = false
+stated = { srm = 20 }
+targets = { og = 1.041, fg = 1.012, abv = 4.4, ibu = 23, srm = 20 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 67
+boil_min = 60
+fermentable = [
+  { producer = "Viking Malt", name = "Pale Ale Malt", pct = 86.5, purpose = "base malt" },
+  { producer = "Viking Malt", name = "Caramel 100 Malt", pct = 10, purpose = "red colour, caramel" },
+  { producer = "Viking Malt", name = "Roasted Barley", pct = 2, purpose = "dry roast and dark colour" },
+  { producer = "Weyermann", name = "Carafa Special Type 1", pct = 1.5, purpose = "deeper colour, smooth roast" },
+]
+hop = [
+  { name = "East Kent Golding", usage = "boil", minutes = 60, g = 32, purpose = "bittering" },
+]
+yeast = { producer = "YeastFlow", name = "YF-106 Redshamrock", ferm_c = 19, purpose = "Irish ale character" }
+
+# ---------------------------------------------------------------- b19 wee heavy with honey, 10 L
+[[recipe]]
+brief = "b19"
+style_code = "17C"
+guidance = true
+stated = {}
+targets = { og = 1.100, fg = 1.029, abv = 8.25, ibu = 26, srm = 19.5 }
+batch = { volume_l = 10, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 68
+boil_min = 60
+fermentable = [
+  { producer = "Simpsons Malt", name = "Finest Pale Ale Maris Otter", pct = 80, purpose = "base malt" },
+  { producer = "Weyermann", name = "Caramunich Type 2", pct = 8, purpose = "rich caramel malt" },
+  { producer = "Viking Malt", name = "Roasted Barley", pct = 2, purpose = "colour" },
+  { producer = "", name = "Honey", pct = 10, purpose = "the honey the brief asks for" },
+]
+hop = [
+  { name = "East Kent Golding", usage = "boil", minutes = 60, g = 26, purpose = "bittering" },
+]
+yeast = { producer = "Lallemand", name = "Windsor", ferm_c = 18, purpose = "low-attenuation English ale yeast" }
+
+# ---------------------------------------------------------------- b20 American brown ale with lactose
+[[recipe]]
+brief = "b20"
+style_code = "19C"
+guidance = true
+stated = {}
+targets = { og = 1.0525, fg = 1.013, abv = 5.25, ibu = 25, srm = 26.5 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 66
+boil_min = 60
+fermentable = [
+  { producer = "Weyermann", name = "Pale Ale Malt", pct = 82, purpose = "base malt" },
+  { producer = "Weyermann", name = "Caramunich Type 2", pct = 8, purpose = "caramel sweetness" },
+  { producer = "Viking Malt", name = "Chocolate Dark Malt", pct = 5, purpose = "brown colour, cocoa" },
+  { producer = "", name = "Lactose", pct = 5, purpose = "fuller, rounder body" },
+]
+hop = [
+  { name = "Cascade", usage = "boil", minutes = 60, g = 28, purpose = "bittering" },
+  { name = "Cascade", usage = "boil", minutes = 10, g = 10, purpose = "flavour" },
+]
+yeast = { producer = "Fermentis", name = "SafAle US-05", ferm_c = 19, purpose = "clean American ale fermentation" }
+
+# ---------------------------------------------------------------- b21 session IPA at 4 %
+[[recipe]]
+brief = "b21"
+style_code = "session-india-pale-ale"
+guidance = true
+stated = { abv = 4 }
+targets = { og = 1.0385, fg = 1.0075, abv = 4.0, ibu = 37.5, srm = 7.5 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 66
+boil_min = 60
+fermentable = [
+  { producer = "Weyermann", name = "Pale Ale Malt", pct = 92, purpose = "base malt" },
+  { producer = "Weyermann", name = "Carahell", pct = 8, purpose = "body for a low-gravity beer" },
+]
+hop = [
+  { name = "Cascade", usage = "boil", minutes = 60, g = 28, purpose = "bittering" },
+  { name = "Centennial", usage = "boil", minutes = 10, g = 25, purpose = "flavour" },
+  { name = "Cascade", usage = "whirlpool", minutes = 20, g = 30, purpose = "aroma" },
+  { name = "Centennial", usage = "dry_hop", minutes = 4320, g = 40, purpose = "dry-hop aroma" },
+]
+yeast = { producer = "Fermentis", name = "SafAle US-05", ferm_c = 19, purpose = "clean American ale fermentation" }
+
+# ---------------------------------------------------------------- b22 Mexican amber lager
+[[recipe]]
+brief = "b22"
+style_code = "mexican-style-amber-lager"
+guidance = true
+stated = {}
+targets = { og = 1.0485, fg = 1.011, abv = 4.75, ibu = 18.5, srm = 11 }
+batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
+mash_c = 68
+boil_min = 90
+fermentable = [
+  { producer = "Weyermann", name = "Pilsner Malt", pct = 52, purpose = "pale base" },
+  { producer = "Weyermann", name = "Vienna Malt", pct = 28, purpose = "malty, toasty amber" },
+  { producer = "Weyermann", name = "Caramunich Type 1", pct = 5, purpose = "amber colour, caramel" },
+  { producer = "", name = "Flaked Corn", pct = 15, purpose = "smooth, light body" },
+]
+hop = [
+  { name = "Hallertau Mittelfrüh", usage = "boil", minutes = 90, g = 34, purpose = "bittering" },
+  { name = "Hallertau Mittelfrüh", usage = "boil", minutes = 10, g = 10, purpose = "light noble flavour" },
+]
+yeast = { producer = "Lallemand", name = "NovaLager", ferm_c = 13, purpose = "clean lager fermentation" }

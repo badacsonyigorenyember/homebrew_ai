@@ -460,7 +460,7 @@ Commit: `Add recipe check rules for hops, targets and yeast`
 
 ### Task 8: Reference recipes for the 22 test briefs; review stop
 Why: R16 (A12).
-- [ ] Draft `tests/fixtures/reference_recipes.toml`: one `[[recipe]]` per brief in
+- [x] Draft `tests/fixtures/reference_recipes.toml`: one `[[recipe]]` per brief in
       `evals/recipe_briefs.toml`, fields `brief`, `style_code` (the brief's `style`; for b12,
       whose 31B has no vitals in `ref.beer_style`, the first alternative with vitals, 18A, with
       a comment), `guidance`, `stated` (the brief's numbers except `batch_l`), `targets`
@@ -472,23 +472,23 @@ Why: R16 (A12).
       from `ref` rows, guided by each brief's `needs`, `wanted`, `excluded` and `inventory`, and
       by the descriptions and typical styles from Task 4. A comment at the top: test data only,
       never in a prompt.
-- [ ] Write `tests/test_reference_recipes.py`: every brief has exactly one recipe; names resolve
+- [x] Write `tests/test_reference_recipes.py`: every brief has exactly one recipe; names resolve
       to `ref` rows; the input matches the contract; every rule passes, except entries in an
       explicit `ACCEPTED_FAILURES` dict (brief, rule, user's decision, date), empty until the
       user decides otherwise; no file under `shared/prompts/` or `n8n/workflows/` mentions
       `reference_recipes`.
-- [ ] Run it and add a section to report.md: each recipe as a short table (grist %, hops,
+- [x] Run it and add a section to report.md: each recipe as a short table (grist %, hops,
       yeast, mash, boil, targets, computed numbers) and every rule that does not pass, with its
       message. Also note: under rule 9 as written, hint words ("bitter", "darker") do not move
       a target off the midpoint, so b01's IBU sits at 21A's midpoint.
-- [ ] **Stop (needs-input).** Return to the orchestrator: the user reviews the 22 recipes in
+- [x] **Stop (needs-input).** Return to the orchestrator: the user reviews the 22 recipes in
       report.md; for each failure, options a) change the recipe, b) change the threshold
       (a change to R10, so it also updates the brief and plan Deviations), c) accept the failure
       for that brief. Commit nothing before the answer.
-- [ ] Apply the answers (recipe edits; a threshold change goes into `app.formulation_limits()`
+- [x] Apply the answers (recipe edits; a threshold change goes into `app.formulation_limits()`
       with its test; accepted failures into `ACCEPTED_FAILURES`), re-run, record the review date
       in report.md.
-- [ ] Run `pytest tests/test_reference_recipes.py`, expect pass. PROJECT.md §8 line.
+- [x] Run `pytest tests/test_reference_recipes.py`, expect pass. PROJECT.md §8 line.
 Done when: A12 holds: 22 reviewed recipes, each passing every rule or with the user's decision.
 Commit: `Add reviewed reference recipes for 22 briefs`
 
@@ -550,3 +550,5 @@ None.
   keys are lower case; a printed name is looked up in lower case. Descriptions of the 7 adjuncts
   and sugars cite their source page or URL; Weyermann and Viking `description_ref` are PDF pages.
 - 2026-10-15 · Task 7: rule functions 8-13 take `(items, recipe[, numbers])`; rule 9 skips the midpoint test for every target when `guidance` is false (the plan's rule 9 text allowed an out-of-range SRM only for that case) — implementation detail.
+- 2026-10-15 · Task 8: user request — multi-step mash profiles (several rests, decoction) and their effect on predicted FG added to RECIPE-ROADMAP §8 Later, next to the cited mash-temperature model TODO. Not planned anywhere before (m7-process only outputs mash steps as text). No change to this work's scope: rule 10 and s1 keep one mash temperature.
+- 2026-10-15 · Task 8: the user approved the 22 recipes as drafted and b12 against 18A; no rule failed, so no threshold change and `ACCEPTED_FAILURES` stays empty. Review date recorded in report.md §7.
