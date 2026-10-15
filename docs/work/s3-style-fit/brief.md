@@ -85,8 +85,11 @@ R4. The LLM extraction of guideline prose (BJCP and the 3 BA styles, one path) i
 R5. `level()` follows STYLE-FIT.md §5 as amended: override first; then the adjunct/sugar rule
     for `adjunct` and `sugar` fermentables; then per sensation; then combine; then ➖ → 👍 for a
     fermentable listed for the style in `ref.fermentable_style`. Nothing reads a corpus. A
-    missing dose skips the dose check and the because says so. It returns the level and a
-    because text naming the sensation, quote, number or list used.
+    missing dose skips the dose check and the because says so. A yeast whose ester or phenol
+    level is more than one level below the envelope's min is ⚠️ "too little" (skipped for a
+    needs-review yeast); hop and roast mins are checked only on the recipe total (R9). A style
+    with reviewed characteristic-ingredient rows but no sensory rows is rated. It returns the
+    level and a because text naming the sensation, quote, number or list used.
 R6. "Required" is checked on a whole recipe from the style's characteristic ingredients as role
     requirements (e.g. 15B: roast present).
 R7. The intensity cut points (oil dose → hop aroma/flavour level, roast index → roast level;
@@ -100,8 +103,9 @@ R8. A golden set of ~50 (style, ingredient, usage, dose → level) cases, drafte
     lactose in 16A gives 👍 without an override row.
 R9. Every ingredient line of the 22 reference recipes gets a level in its recipe's
     `style_code`; none is ⚠️ or ⛔ except the brief's own ingredient deviations (b16 rice,
-    b19 honey, b20 lactose), unless you accept it in a listed exception. This is the check on
-    the cut points.
+    b19 honey, b20 lactose), unless you accept it in a listed exception; and no recipe's total
+    late-hop oil dose or roast index is more than one level below its style's min, unless you
+    accept it. This is the check on the cut points.
 R10. D9 moves from PROJECT.md §7 to the relevant section with its *why* (decided: the LLM
     extracts BJCP and BA prose, you review). STYLE-FIT.md §4 and §5 describe the agreed design.
     WORKFLOW-ROADMAP (the s2 → s3 edge and its chain sentence, the S3 row's style count, the G-S
@@ -166,6 +170,7 @@ by Claude; adjunct/sugar general rule; `fermentable_style` bump; cut points from
 LLM path for BA).
 
 ## Deviations
+- 2026-10-15 · R5, R7, R9: the user's cut-point answers change STYLE-FIT §4–§5 again. A min check with a one-level tolerance: more than one level below the envelope's min → ⚠️ "too little", per ingredient for yeasts (esters, phenols; skipped for a needs-review yeast), on recipe totals for hops and roast (never per hop or malt line). Step 0 counts reviewed characteristic-ingredient rows, so 31B and the BA Specialty Honey Beer are rated. Ester/phenol rules: an ester character 3, phenolic character 4 (`spicy` counts), +1 above 21 °C. R9's check now also covers the recipe-total min; b07, b12 and b22 fall below it on paper and go to Task 9's stop. Agreed by the user 2026-10-15 (golden case y02, "one-level tolerance").
 - 2026-10-15 · A3: 31B and the Specialty Honey Beer have a reviewed characteristic-ingredient row (a sugar) but no sensory rows, so "each with its quote" holds for their ingredient row only — their text says "same as the base beer"; the user chose "Sugar row only" in the Task 5 review.
 - 2026-10-15 · Scope, R5, R7, R10: STYLE-FIT.md §4 and §5 change (cut points from *How to Brew*
   and OBC instead of the corpus; a general adjunct/sugar rule from the style's characteristic

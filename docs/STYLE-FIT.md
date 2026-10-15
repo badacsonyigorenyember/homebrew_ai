@@ -90,7 +90,7 @@ They say how the algorithm behaves, so they are a dict next to their tests, not 
 | bitterness | exact: IBU (Tinseth) vs the range, plus BU:GU |
 | hop aroma / flavour | **oil dose** = late + dry hop g/L × total oil (mL/100 g) → level |
 | roast | roast index = Σ % of grist × EBC → level |
-| esters / phenols | yeast character tag + fermentation temperature |
+| esters / phenols | yeast family and character tags + fermentation temperature: esters lager 0 · no ester character 1 · an ester character (a tag under *fruity* or *estery*) 3; phenols 4 for a phenolic character (*clove, pepper, phenolic, spicy*), else 0; each +1 when fermented above 21 °C (*How to Brew* p. 443) |
 | sourness, smoke, spice… | present / absent |
 
 **Level cut points come from the books, not from a corpus.** They are the figures cited in
@@ -109,7 +109,8 @@ via `app.check_recipe`) are compared with the style's `srm` and `ibu` ranges in
 
 ```
 level(style, ingredient, usage, dose):
-    0. style has no reviewed envelope                                  → not rated (no level)
+    0. style has no reviewed envelope (no reviewed style_sensory row
+       and no reviewed characteristic-ingredient row)                 → not rated (no level)
     1. explicit override in style_rule (most specific: ingredient > tag > kind)?  → return it
    1b. ingredient is a fermentable with role adjunct or sugar:
          named in the style's reviewed characteristic ingredients     → 👍
@@ -123,12 +124,24 @@ level(style, ingredient, usage, dose):
              core sensation (bitterness, aroma, malt…)                → no conflict
          dose missing → the dose check is skipped and the because says so
          intensity(dose) > env.max                                    → ⚠️  "too much"
+         yeast only (esters, phenols): intensity < env.min − 1        → ⚠️  "too little"
+             (skipped for a needs-review yeast, and the because says so)
          if it carries character and env lists characters:
              match ≥ 0.8 → 👍   ·   0.3–0.8 → ➖   ·   < 0.3 → ⚠️  "wrong character"
     3. combine: any ⛔ → ⛔ · else any ⚠️ → ⚠️ · else any 👍 → 👍 · else ➖
     4. ➖, a fermentable, listed for the style in ref.fermentable_style → 👍
        (no bump for hops or yeasts)
 ```
+
+**Min check: one-level tolerance.** A level more than one step below the envelope's min is
+⚠️ "too little". Per ingredient this applies to yeasts only, because the yeast is the only source
+of esters and phenols. Hop aroma/flavour and roast are checked against the min only on the whole
+recipe (the recipe's late-hop oil dose and roast index, in `app.style_fit_recipe`), never per
+hop or malt line: one small addition is not "too little" on its own.
+
+A style whose reviewed envelope has characteristic-ingredient rows but no sensory rows (31B, BA
+Specialty Honey Beer: "same as the base beer") is rated: its adjuncts and sugars go through
+step 1b, and every other sensation is silent.
 
 **Character match = the best pair.** For each (ingredient tag, style character) pair: 1.0 if
 they are the same tag, 0.5 if one is the other's parent, else 0. The match is the highest.

@@ -309,7 +309,7 @@ Commit: `Load the 26 reviewed style envelopes`
 
 ### Task 6: Cut points from the books, and the golden set — STOP
 Why: R7, R8 (A4, A5 data). Docs and a fixture; no SQL yet.
-- [ ] Doc → calc pass on `shared/rag-files/pending/how_to_brew.pdf` and
+- [x] Doc → calc pass on `shared/rag-files/pending/how_to_brew.pdf` and
       `obc_recipe_formulation.pdf` (`pdftotext -layout`): every figure on hop rates (late,
       whirlpool, dry hop, per style or intensity word), roast and crystal proportions per style,
       and anything on ester or phenol level against yeast or temperature. Write
@@ -319,13 +319,16 @@ Why: R7, R8 (A4, A5 data). Docs and a fixture; no SQL yet.
       - `oil_ml_per_l`: 7 ascending thresholds of late-hop oil dose (g/L × the hop's
         `total_oil_ml_100g` midpoint ÷ 100); level = how many thresholds the dose reaches.
       - `roast_index`: 7 thresholds of Σ % of grist × EBC midpoint over roast malts.
-      - `esters`: base level per yeast family / character (proposal: `lager` 0, no ester
-        character 1, an ester character 4), + `warm_step` when `ferm_c` is above the midpoint
-        of the yeast's `temp_c`.
-      - `phenols`: base level for a phenolic character (`clove`, `pepper`, `phenolic`), else 0.
+      - `esters`: base level per yeast family / character (approved: `lager` 0, no ester
+        character 1, an ester character 3), + 1 when `ferm_c` is above 21 °C (*How to Brew*
+        p. 443).
+      - `phenols`: base level for a phenolic character (`clove`, `pepper`, `phenolic`, `spicy`)
+        4, else 0; + 1 above 21 °C.
+      - min check (approved): more than one level below the envelope's min → "too little";
+        per ingredient for yeasts, on recipe totals for hops and roast (Tasks 8, 9).
       Check them against the 22 reference recipes and the Citra table on paper (Citra mid oil
       2.25 mL/100 g: whirlpool 2 g/L must stay at or below 20B's max, dry hop 8 g/L above it).
-- [ ] Draft `tests/fixtures/style_fit_golden.toml`, ~50 `[[case]]` with `id`, `style`, `kind`,
+- [x] Draft `tests/fixtures/style_fit_golden.toml`, ~50 `[[case]]` with `id`, `style`, `kind`,
       `producer`, `name`, `usage`, `dose` (inline table), `level` (`required` is not a case
       level), `note`. It must contain: the 6 Citra-table cases (15B and 20B × boil 60 min /
       whirlpool 2 g/L / dry hop 8 g/L); M3's 7 cases (b16 Flaked Rice in 18B, b19 Honey in 17C,
@@ -339,11 +342,12 @@ Why: R7, R8 (A4, A5 data). Docs and a fixture; no SQL yet.
       11B, a case with no dose (because says skipped), a needs-review hop, and a style with no
       envelope (e.g. 21B → `level` absent). Levels come from brewing judgement and the guideline
       text, not from running code (there is none yet).
-- [ ] Return `needs-input`: the gaps in `cut-points.md` for the user to set, and the golden set
-      to correct and approve. Commit nothing before the answer.
-- [ ] After the answer: fill the user's values (basis "set by the user, <date>"), record the
+- [x] Return `needs-input`: the gaps in `cut-points.md` for the user to set, and the golden set
+      to correct and approve. (The drafts were committed before the answer, as unapproved
+      drafts: see Deviations.)
+- [x] After the answer: fill the user's values (basis "set by the user, <date>"), record the
       approval in `report.md` §4 and §5.
-- [ ] PROJECT.md §8 line.
+- [x] PROJECT.md §8 line.
 Done when: every cut point has a basis, and the user approved the golden set.
 Commit: `Add style-fit cut points and golden set`
 
@@ -358,7 +362,8 @@ Why: R5, R7 (A7).
     ferment → esters, phenols; family brett → brett_funk; family sour → sourness; tag smoke
     (any usage) → smoke. `applies_to` is a role, a family or a tag name.
   - `app.style_fit_cut_points() returns jsonb`: the Task 6 values, each entry with its
-    `basis` string (book and page, or "set by the user, <date>"), and `character_match`
+    `basis` string (book and page, or "set by the user, <date>"), `min_tolerance` 1 (basis
+    "set by the user, 2026-10-15"), and `character_match`
     `{typical 0.8, allowed 0.3, basis "STYLE-FIT.md §5"}`.
   - `app.intensity_level(scale text, value numeric) returns smallint`: how many of the scale's
     thresholds `value` reaches (0–7); raises on an unknown scale; null value → null.
@@ -391,8 +396,9 @@ Why: R5, R8 (A4, A5, A8).
     `minutes`, `g_per_l`, `oil_ml_per_l` (wins over `g_per_l`), `pct`, `roast_index` (wins over
     `pct`), `ferm_c`, `ibu`, `srm`. Raises on an unknown style code, ingredient id, or a usage
     not valid for the kind. Steps, each adding a sentence to the because:
-    0. no reviewed `style_sensory` row for the style → level null, "not rated: <style> has no
-       reviewed envelope".
+    0. no reviewed `style_sensory` row and no reviewed `style_ingredient` row for the style →
+       level null, "not rated: <style> has no reviewed envelope" (31B and the BA Specialty
+       Honey Beer have ingredient rows only, so they are rated).
     1. `ref.style_rule` for the style and the ingredient, else one of its tags, with `usage`
        null or equal → that level and quote.
     2. role `adjunct` or `sugar`: a reviewed `style_ingredient` row naming the ingredient or its
@@ -402,7 +408,10 @@ Why: R5, R8 (A4, A5, A8).
        `srm` upper bound; silent style (no `style_sensory` row): transforming → `changes_style`,
        specialty → `out_of_style` ("specialty <dimension> on <style>"), core → no conflict;
        intensity above `max_level` → `out_of_style` ("too much: <value> is <level word>, <style>
-       allows up to <word>: '<quote>'"); missing dose → "dose not given, dose check skipped";
+       allows up to <word>: '<quote>'"); for a yeast only (esters, phenols), intensity more
+       than one level below `min_level` → `out_of_style` ("too little: …, <style> wants at least
+       <word>: '<quote>'"), skipped with "needs review: min check skipped" for a yeast with an
+       `ref.ingredient_review` row; missing dose → "dose not given, dose check skipped";
        character (when the effect carries it): match ≥ 0.8 → `typical`, ≥ 0.3 → `allowed`, else
        `out_of_style` ("wrong character: <tags> vs <characters>: '<quote>'"); an ingredient with
        no character tags → "no character tags (needs review)".
@@ -414,7 +423,9 @@ Why: R5, R8 (A4, A5, A8).
 - [ ] Write tests in `tests/test_style_level.py` (stack), one per step, each using a temporary
       row in a rolled-back transaction where it needs one: `test_unrated_style`,
       `test_override_wins`, `test_adjunct_named_vs_not`, `test_silent_transforming_is_changes_style`,
-      `test_silent_specialty`, `test_too_much`, `test_missing_dose_skips_and_says_so`,
+      `test_silent_specialty`, `test_too_much`, `test_yeast_too_little` (US-05 in 10A ⚠️;
+      Abbaye in 26B, one level short, not ⚠️; a needs-review YeastFlow yeast in 10A skipped and
+      said), `test_missing_dose_skips_and_says_so`,
       `test_wrong_character`, `test_fermentable_style_bump_only_for_fermentables` (A8),
       `test_boil_needs_minutes`, `test_unknown_style_raises`.
 - [ ] Write `tests/test_style_fit_golden.py` (stack): one parametrised test per golden case
@@ -439,9 +450,12 @@ Why: R6, R9 (A6, A9).
       `oil_ml_per_l` for late lines; fermentables: `pct`, `roast_index` for roast lines; yeast:
       `ferm_c`; all: `ibu`, `srm`). Required check: each reviewed `style_ingredient` row with
       `required = true` is met by a fermentable with that role (and ≥ `min_pct` of the grist
-      when set), by that ingredient, or by an ingredient with that tag. Output: `{"style_code",
-      "lines": [{"kind", "ingredient_id", "name", "usage", "level", "because"}], "required":
-      [{"requirement", "met", "because"}]}`.
+      when set), by that ingredient, or by an ingredient with that tag. Min check on the recipe
+      total (user, 2026-10-15): the recipe's late-hop oil dose against the style's `hop_aroma`
+      and `hop_flavour` min, its roast index against the `roast` min; more than one level below
+      → "too little" (one-level tolerance). Output: `{"style_code", "lines": [{"kind",
+      "ingredient_id", "name", "usage", "level", "because"}], "required": [{"requirement",
+      "met", "because"}], "too_little": [{"dimension", "level", "min", "because"}]}`.
 - [ ] Apply twice as `postgres`.
 - [ ] Write `tests/test_style_fit_recipe.py` (stack): `test_15b_needs_roast` (A6: b05's recipe
       with Roasted Barley passes; the same with it swapped for Pale Ale malt fails the roast
@@ -449,8 +463,15 @@ Why: R6, R9 (A6, A9).
       `tests/test_reference_recipes.py`'s `build_input`, every line has a non-null level and
       none is `out_of_style`/`changes_style` except b16 Flaked Rice, b19 Honey, b20 Lactose and
       the entries of an `ACCEPTED_LINES` dict, empty at first), and `test_deviation_lines_are_flagged`
-      (those three lines are `out_of_style`).
-- [ ] Run it. If a line fails: write each one into `report.md` §6 (recipe, line, level,
+      (those three lines are `out_of_style`), `test_recipe_too_little` (an 18B recipe with
+      only a 60-min bittering hop → "too little" hop aroma; b16's recipe, one level short or
+      better, → none), and `test_reference_recipe_totals` (A9: no reference recipe in
+      `too_little` except the entries of an `ACCEPTED_TOTALS` dict, empty at first).
+- [ ] Run it. Expected on paper (Task 6): **b07 1C** and **b12 18A** (no late hops: hop
+      flavour none vs min low) and **b22** Mexican amber lager (no roast malt: roast none vs
+      min low) are "too little"; they go to this stop with the same options (fix the envelope
+      or the reference recipe, or accept into `ACCEPTED_TOTALS`).
+- [ ] If a line fails: write each one into `report.md` §6 (recipe, line, level,
       because) and return `needs-input` with options per line: fix the cut point or envelope
       (with the user's agreement), change the reference recipe, or accept it into
       `ACCEPTED_LINES` with the user's reason and date. Commit nothing before the answer.
@@ -496,6 +517,8 @@ Commit: `Record s3 style fit status`
 None.
 
 ## Deviations
+- 2026-10-15 · Tasks 6, 8, 9: the user's answers to the cut-point review. Ester base for an ester character is 3, not the proposed 4 (at 4, b05's S-04 is above 15B's medium-low); the warm step is +1 above 21 °C (*How to Brew* p. 443), not above the yeast's `temp_c` midpoint (b05 again), and applies to phenols too; `spicy` counts as phenolic. Step 0 counts reviewed `style_ingredient` rows, so 31B and the BA Specialty Honey Beer are rated. A min check is added with a one-level tolerance: per ingredient for yeasts in `style_level` (Task 8, `test_yeast_too_little`), on recipe totals for hops and roast in `style_fit_recipe` (Task 9, `test_recipe_too_little`, `test_reference_recipe_totals`); b07, b12 and b22 go to Task 9's stop. The user chose it through golden case y02 (US-05 in 10A → ⚠️) and agreed to all of it; STYLE-FIT §4–§5 updated.
+- 2026-10-15 · Task 6: the drafts (`cut-points.md`, `golden-review.md`, the golden fixture) were committed before the user's answer (fa8119d), marked unapproved, so the walk-through could show them; the plan said "commit nothing before the answer". Golden set approved as drafted except y02 (now ⚠️) and u02 (dropped with Sterling).
 - 2026-10-15 · Task 6: the user removed the Sterling hop ("It is from Saaz, and not really available on hopline as well, so I won´t encounter with it"): `db/035_drop_sterling.sql` deletes it (cascade to `ref.hop`, `ingredient_tag`, `ingredient_review`), `loaders.hop_products.EXCLUDED` keeps the loader from re-adding it; the hop counts in `tests/test_hops.py::test_hop_map` and `tests/test_tags.py::test_every_hop_tagged_or_flagged` go 90 → 89; golden case u02 (Sterling) is dropped; flagged ingredients 39 → 38.
 - 2026-10-15 · Task 5: `test_26_styles_reviewed` allows 0 `style_sensory` rows for 31B and specialty-honey-beer only; every other style needs ≥ 1. Their guideline text says "same as the base beer", so the user chose (Question C, "Sugar row only") a sugar row and no sensory rows. 21C's test keeps "names Flaked Oats" (the user chose to name the two flakes, not the adjunct role).
 - 2026-10-15 · Task 4: `check_answer(lookups, prose, answer)` takes the lookups from `load_lookups(conn)` instead of `conn`, so its unit tests need no database — implementation detail. The prompt also lists what each dimension means and what has no dimension (alcohol, carbonation, astringency), and asks for one continuous quote: the first 20B run used `spice` for alcohol and carbonation and joined two sentences into one quote.

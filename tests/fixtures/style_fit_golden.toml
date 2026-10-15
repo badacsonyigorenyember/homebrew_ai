@@ -1,7 +1,8 @@
 # Golden set for app.style_level (s3-style-fit, R8, A4, A5, A8).
-# STATUS: DRAFT, NOT APPROVED. Drafted by Claude 2026-10-15 from brewing judgement and the
-# reviewed envelopes; the user corrects and approves it (docs/work/s3-style-fit/golden-review.md).
-# Levels were NOT produced by running code (there is none yet).
+# STATUS: APPROVED by the user 2026-10-15 (docs/work/s3-style-fit/golden-review.md, report.md §5).
+# Drafted by Claude from brewing judgement and the reviewed envelopes; the user approved every
+# theme as drafted except y02 (US-05 in 10A), which they set to out_of_style (the yeast min check).
+# Levels were not produced by running code (there was none yet).
 #
 # Each [[case]]:
 #   id         group letter + number (c Citra table, m M3 cases, a adjunct/sugar rule,
@@ -13,8 +14,6 @@
 #   dose       inline table, any of minutes, g_per_l, pct, ferm_c, ibu, srm (may be empty)
 #   level      required | typical | allowed | out_of_style | changes_style; absent = not rated
 #   note       the "because" a homebrewer can check
-#   depends_on present when the level depends on a cut point or design point still open
-#              (ids from docs/work/s3-style-fit/cut-points.md, or "design: ...")
 # Oil dose = g/L x the hop's ref oil midpoint / 100; roast index = % x EBC midpoint.
 
 # ------------------------------------------------------------------ c · Citra table (A4)
@@ -72,7 +71,6 @@ usage = "whirlpool"
 dose = { g_per_l = 2.0 }
 level = "typical"
 note = "citrus matches 20B's 'citrusy or resiny'; 0.045 mL/L oil is medium, at 20B's max"
-depends_on = "O5"
 
 [[case]]
 id = "c06"
@@ -84,7 +82,6 @@ usage = "dry_hop"
 dose = { g_per_l = 8.0 }
 level = "out_of_style"
 note = "character matches, but 0.18 mL/L oil is very high, above 20B's medium hop aroma"
-depends_on = "O5"
 
 # ------------------------------------------------------------------ m · M3 ingredient cases and 16A lactose (R8)
 [[case]]
@@ -162,8 +159,7 @@ name = "Honey"
 usage = "boil"
 dose = { pct = 12 }
 level = "typical"
-note = "b12: 31B names the role sugar and Honey (reviewed sugar row); 31B has no sensory rows"
-depends_on = "design: step 0 must count reviewed style_ingredient rows as an envelope, else 31B is not rated"
+note = "b12: 31B names the role sugar and Honey (reviewed sugar row); rated although it has no sensory rows"
 
 [[case]]
 id = "m08"
@@ -241,8 +237,7 @@ name = "Honey"
 usage = "boil"
 dose = { pct = 15 }
 level = "typical"
-note = "the BA style requires honey (reviewed sugar row); it has no sensory rows"
-depends_on = "design: step 0 must count reviewed style_ingredient rows as an envelope, else not rated"
+note = "the BA style requires honey (reviewed sugar row); rated although it has no sensory rows"
 
 [[case]]
 id = "a07"
@@ -355,7 +350,7 @@ name = "Munich Classic"
 usage = "ferment"
 dose = { ferm_c = 19 }
 level = "typical"
-note = "weizen yeast: banana matches 10A's esters; esters medium-low and phenols medium are under 10A's high"
+note = "weizen yeast: banana matches 10A's esters; phenols medium; esters medium-low are one level under 10A's min medium, which the one-level tolerance allows"
 
 [[case]]
 id = "y02"
@@ -365,9 +360,8 @@ producer = "Fermentis"
 name = "SafAle US-05"
 usage = "ferment"
 dose = { ferm_c = 19 }
-level = "allowed"
-note = "clean ale yeast: nothing too much, so allowed; the missing banana/clove is caught by 10A's required wheat yeast on the recipe"
-depends_on = "design: level() checks only the max; brewing judgement alone would say out_of_style"
+level = "out_of_style"
+note = "clean ale yeast: esters very low and phenols none, more than one level below 10A's medium (min): too little banana and clove"
 
 [[case]]
 id = "y03"
@@ -378,8 +372,7 @@ name = "Abbaye"
 usage = "ferment"
 dose = { ferm_c = 21 }
 level = "typical"
-note = "Belgian yeast: spicy matches 26B's phenols; phenols medium at 26B's max, esters medium-low"
-depends_on = "P1, P2"
+note = "Belgian yeast: spicy matches 26B's phenols; phenols medium at 26B's max; esters medium-low, one level under 26B's medium (tolerated)"
 
 [[case]]
 id = "y04"
@@ -391,7 +384,6 @@ usage = "ferment"
 dose = { ferm_c = 18 }
 level = "typical"
 note = "b05: fruity matches 15B's esters; medium-low is at 15B's max"
-depends_on = "E3, E4"
 
 [[case]]
 id = "y05"
@@ -425,7 +417,6 @@ usage = "ferment"
 dose = { ferm_c = 19 }
 level = "out_of_style"
 note = "a fruity yeast: esters medium-low, above 21A's 'Low esters optional' (max low)"
-depends_on = "E3"
 
 [[case]]
 id = "y08"
@@ -437,7 +428,6 @@ usage = "ferment"
 dose = { ferm_c = 26 }
 level = "typical"
 note = "b11: citrus and pepper match 25B; warm (26 C) esters medium and phenols medium-high, inside 25B"
-depends_on = "E4, P1, P3"
 
 # ------------------------------------------------------------------ t · transforming and specialty sensations
 [[case]]
@@ -461,7 +451,6 @@ usage = "ferment"
 dose = { ferm_c = 22 }
 level = "typical"
 note = "23A wants sourness; stone-fruit matches 23A's esters; warm esters medium at 23A's max"
-depends_on = "E3, E4"
 
 [[case]]
 id = "t03"
@@ -507,7 +496,6 @@ usage = "mash"
 dose = { pct = 5 }
 level = "out_of_style"
 note = "roast index 5750 is medium, above 15A's low roast: too much"
-depends_on = "R3, R4"
 
 [[case]]
 id = "i02"
@@ -519,7 +507,6 @@ usage = "mash"
 dose = { pct = 2 }
 level = "typical"
 note = "roast index 2300 is low, at 15A's max; coffee/roast matches"
-depends_on = "R2, R3"
 
 [[case]]
 id = "i03"
@@ -531,7 +518,6 @@ usage = "mash"
 dose = { pct = 10 }
 level = "typical"
 note = "the classic dry-stout dose: roast index 11500 is medium, at 15B's max; coffee/roast matches"
-depends_on = "R5"
 
 [[case]]
 id = "i04"
@@ -543,7 +529,6 @@ usage = "mash"
 dose = { pct = 15 }
 level = "out_of_style"
 note = "roast index 17250 is high, above 15B's medium: too much"
-depends_on = "R5, R6"
 
 [[case]]
 id = "i05"
@@ -555,7 +540,6 @@ usage = "mash"
 dose = { pct = 2 }
 level = "out_of_style"
 note = "roast index 2300 is low; 26B: 'Never roasted or burnt'"
-depends_on = "R1"
 
 [[case]]
 id = "i06"
@@ -567,7 +551,6 @@ usage = "mash"
 dose = { pct = 5 }
 level = "typical"
 note = "b20: chocolate matches 19C's roast; index 4500 is medium-low, under 19C's medium"
-depends_on = "R3, R4"
 
 [[case]]
 id = "i07"
@@ -579,7 +562,6 @@ usage = "dry_hop"
 dose = { g_per_l = 8.0 }
 level = "out_of_style"
 note = "IPA-level dry hop: 0.32 mL/L oil is very high, above 18B's medium-high"
-depends_on = "O6, O7"
 
 [[case]]
 id = "i08"
@@ -613,18 +595,6 @@ name = "Citra"
 usage = "dry_hop"
 dose = { g_per_l = 8.0 }
 note = "not rated: 21B (Specialty IPA) has no reviewed envelope"
-
-[[case]]
-id = "u02"
-style = "18B"
-kind = "hop"
-producer = ""
-name = "Sterling"
-usage = "whirlpool"
-dose = { g_per_l = 1.0 }
-level = "allowed"
-note = "Sterling has no character tags (needs review): no character check, said in the because; oil 0.0125 is medium-low"
-depends_on = "design: a needs-review hop is allowed with a note, not unrated"
 
 [[case]]
 id = "u03"

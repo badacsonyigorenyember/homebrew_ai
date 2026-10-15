@@ -115,3 +115,45 @@ Result (measured):
 - `ref.style_ingredient` 116 rows, `ref.ingredient_review` 39, `ref.style_rule` 0.
 - Full `pytest`: 451 passed, 1 failed (the known `test_db_enzyme_and_boil`).
 
+
+## 4. Cut points (Task 6, 2026-10-15)
+
+Doc → calc pass on *How to Brew* (Palmer, 2017) and the OBC *Recipe Formulation* PDF
+(`pdftotext -layout`); figures, pages, arithmetic and the reference-recipe check per cut point in
+[`cut-points.md`](cut-points.md). The drafts were committed unapproved (fa8119d) for the
+walk-through; the user then answered item by item.
+
+Approved by the user 2026-10-15, every value as proposed:
+- Oil dose (mL hop oil per L) O1–O7: 0.003 / 0.008 / 0.012 / 0.025 / 0.05 / 0.08 / 0.15. O1–O6 from
+  HTB pp. 71–72 and its recipes (pp. 394, 399–402); O7 from the p. 72 range, value set by the user.
+- Roast index (Σ % × EBC) R1–R7: 700 / 1500 / 4000 / 5500 / 12000 / 16000 / 22000. R1–R5 from HTB
+  pp. 230–231, 388, 404, 410–413; R6, R7 set by the user.
+- Esters: lager 0, no ester character 1, an ester character 3 (the plan's 4 failed b05), +1 above
+  21 °C (HTB p. 443; the plan's "above the yeast's midpoint" failed b05).
+- Phenols: a phenolic character 4 (`clove`, `pepper`, `phenolic`, and `spicy`), else 0; +1 above
+  21 °C.
+- Min check, one-level tolerance (chosen through golden case y02): more than one level below the
+  envelope's min → ⚠️ "too little"; per ingredient for yeasts (skipped for needs-review yeasts), on
+  recipe totals for hops and roast (Task 9). STYLE-FIT §4–§5 updated.
+- Step 0: a style with reviewed characteristic-ingredient rows but no sensory rows (31B, BA
+  Specialty Honey Beer) is rated.
+
+Paper check against the 22 reference recipes: no recipe above a max. Below a min by more than one
+level: no yeast (b13's YF-401 is needs-review, skipped); recipe totals **b07 1C**, **b12 18A**
+(no late hops, hop flavour min low) and **b22** Mexican amber lager (no roast malt, roast min low)
+→ Task 9's stop point. Citra table holds (whirlpool 2 g/L = 0.045 → medium; dry hop 8 g/L = 0.18
+→ very high).
+
+## 5. Golden set (Task 6, 2026-10-15)
+
+[`tests/fixtures/style_fit_golden.toml`](../../../tests/fixtures/style_fit_golden.toml), shown by
+theme in [`golden-review.md`](golden-review.md): **53 cases** (Citra table 6, M3 cases and 16A
+lactose 8, adjunct/sugar rule 7, `fermentable_style` bump 4, hop character 4, yeast 8,
+transforming/specialty 5, intensity and style ranges 9, not rated / no dose 2).
+
+The user approved it 2026-10-15: every theme as drafted, except
+- **y02** (SafAle US-05 in 10A): ➖ → ⚠️ "too little" banana and clove (the yeast min check);
+- **u02** (Sterling, needs review): dropped. The user removed Sterling from `ref` ("It is from
+  Saaz, and not really available on hopline as well"): `db/035_drop_sterling.sql`, excluded in
+  `loaders.hop_products.EXCLUDED` (9908734). Measured after: 89 hops, `ref.ingredient_review` 38
+  (the YeastFlow yeasts, no hop).
