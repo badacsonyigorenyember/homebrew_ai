@@ -100,6 +100,7 @@ before the answer.
 | `db/034_style_level.sql` | new | `app.tag_match()`, `app.style_level()`, `app.style_fit_recipe()` |
 | `tests/test_tags.py`, `tests/test_style_envelopes.py`, `tests/test_style_fit_effects.py`, `tests/test_style_level.py`, `tests/test_style_fit_golden.py`, `tests/test_style_fit_recipe.py` | new | tests named per task below |
 | `tests/fixtures/style_fit_golden.toml` | new | ~50 approved golden cases (R8) |
+| `db/035_drop_sterling.sql`, `loaders/hop_products.py`, `loaders/hops.py`, `tests/test_hops.py` | new / changed | Sterling removed from `ref` and excluded in the hop loader (user, 2026-10-15) |
 | `docs/work/s3-style-fit/report.md` | new | tagging counts and flagged list, extraction run, review notes, golden approval, reference-recipe results |
 
 ## Tasks
@@ -495,6 +496,7 @@ Commit: `Record s3 style fit status`
 None.
 
 ## Deviations
+- 2026-10-15 · Task 6: the user removed the Sterling hop ("It is from Saaz, and not really available on hopline as well, so I won´t encounter with it"): `db/035_drop_sterling.sql` deletes it (cascade to `ref.hop`, `ingredient_tag`, `ingredient_review`), `loaders.hop_products.EXCLUDED` keeps the loader from re-adding it; the hop counts in `tests/test_hops.py::test_hop_map` and `tests/test_tags.py::test_every_hop_tagged_or_flagged` go 90 → 89; golden case u02 (Sterling) is dropped; flagged ingredients 39 → 38.
 - 2026-10-15 · Task 5: `test_26_styles_reviewed` allows 0 `style_sensory` rows for 31B and specialty-honey-beer only; every other style needs ≥ 1. Their guideline text says "same as the base beer", so the user chose (Question C, "Sugar row only") a sugar row and no sensory rows. 21C's test keeps "names Flaked Oats" (the user chose to name the two flakes, not the adjunct role).
 - 2026-10-15 · Task 4: `check_answer(lookups, prose, answer)` takes the lookups from `load_lookups(conn)` instead of `conn`, so its unit tests need no database — implementation detail. The prompt also lists what each dimension means and what has no dimension (alcohol, carbonation, astringency), and asks for one continuous quote: the first 20B run used `spice` for alcohol and carbonation and joined two sentences into one quote.
 - 2026-10-15 · Task 1: STYLE-FIT.md §6 "a style" row also corrected to "BJCP and BA: LLM

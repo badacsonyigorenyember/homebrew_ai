@@ -4,7 +4,7 @@ import pytest
 from psycopg.types.range import Range
 
 from loaders.common import name_key
-from loaders.hop_products import BEERMAVERICK, HOPS, NULL_FIGURES, PACK_SIZES
+from loaders.hop_products import BEERMAVERICK, EXCLUDED, HOPS, NULL_FIGURES, PACK_SIZES
 from loaders.hops import build, make_hop, origin_codes, parse_figure, purpose_of
 
 
@@ -166,7 +166,8 @@ def test_beermaverick_fills_only_what_hopline_lacks():
 
 
 def test_hop_map():
-    assert len(HOPS) == 90
+    assert len(HOPS) == 89  # 90 hopline hops minus Sterling (EXCLUDED, user 2026-10-15)
+    assert not set(EXCLUDED) & (set(HOPS) | set(PACK_SIZES))
     assert len(PACK_SIZES) == 16
     assert set(PACK_SIZES.values()) <= set(HOPS)
     assert not set(PACK_SIZES) & set(HOPS)
@@ -183,3 +184,12 @@ def test_unknown_sku_raises():
     hopline = {"categories": {"aroma": [], "bittering": [], "dual": []}, "products": [stranger]}
     with pytest.raises(ValueError, match="999999-new"):
         build(hopline)
+
+
+def test_excluded_sku_is_skipped(monkeypatch):
+    sterling = {**CITRA, "sku": "200929", "name": "Sterling komló 1kg"}
+    hopline = {"categories": {"aroma": [], "bittering": [], "dual": []}, "products": [sterling]}
+    monkeypatch.setattr("loaders.hops.HOPS", {})
+    monkeypatch.setattr("loaders.hops.PACK_SIZES", {})
+    assert "200929" in EXCLUDED
+    assert build(hopline) == []

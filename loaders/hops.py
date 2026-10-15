@@ -20,7 +20,7 @@ from psycopg.types.range import Range
 
 from loaders.common import to_range
 from loaders.db import connect, source_id, upsert_ingredient
-from loaders.hop_products import BEERMAVERICK, HOPS, NULL_FIGURES, PACK_SIZES
+from loaders.hop_products import BEERMAVERICK, EXCLUDED, HOPS, NULL_FIGURES, PACK_SIZES
 
 HOPLINE = "hopline-hops"
 BEER_MAVERICK = "beermaverick"
@@ -171,17 +171,19 @@ def make_hop(
 def build(hopline: dict) -> list[Hop]:
     """A Hop for every main SKU in HOPS, with its PACK_SIZES pages as extras.
 
-    hopline is the file `loaders.fetch_hopline --hops` writes. An SKU in neither HOPS nor
-    PACK_SIZES raises ValueError, so a new hopline product never loads without a decision in
-    loaders.hop_products. Hops in NULL_FIGURES are built without hopline's figures, and
+    hopline is the file `loaders.fetch_hopline --hops` writes. An SKU in EXCLUDED is skipped.
+    An SKU in neither HOPS, PACK_SIZES nor EXCLUDED raises ValueError, so a new hopline product
+    never loads without a decision in loaders.hop_products. Hops in NULL_FIGURES are built without hopline's figures, and
     BEERMAVERICK fills the alpha, oil and purpose hopline lacks.
     """
     products = {}
     for product in hopline["products"]:
         sku = product["sku"]
+        if sku in EXCLUDED:
+            continue
         if sku not in HOPS and sku not in PACK_SIZES:
             raise ValueError(
-                f"hopline SKU {sku} ({product['name']}) is in neither HOPS nor PACK_SIZES"
+                f"hopline SKU {sku} ({product['name']}) is in neither HOPS, PACK_SIZES nor EXCLUDED"
             )
         products[sku] = product
 

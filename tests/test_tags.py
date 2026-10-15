@@ -112,7 +112,7 @@ def test_every_hop_tagged_or_flagged(conn):
         from ref.ingredient i where i.kind = 'hop'
         """
     ).fetchall()
-    assert len(rows) == 90
+    assert len(rows) == 89  # Sterling removed (db/035_drop_sterling.sql, user 2026-10-15)
     assert [r[0] for r in rows if not (r[1] or r[2])] == []
 
 
