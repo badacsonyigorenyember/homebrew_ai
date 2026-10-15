@@ -385,7 +385,7 @@ Commit: `Add style-fit usage effects and cut points`
 
 ### Task 8: level() as in STYLE-FIT §5, and the golden set runs
 Why: R5, R8 (A4, A5, A8).
-- [ ] `db/034_style_level.sql`:
+- [x] `db/034_style_level.sql`:
   - `app.tag_match(ingredient_id bigint, style_id bigint, dimension text) returns numeric`:
     best pair over the ingredient's `character` tags and the style's `style_character` tags for
     that dimension (1.0 same, 0.5 parent/child, else 0); null when either side has no tags.
@@ -419,8 +419,8 @@ Why: R5, R8 (A4, A5, A8).
        `allowed`.
     5. a fermentable at `allowed` with a `ref.fermentable_style` row for this style →
        `typical` ("listed for <style> in <source title>").
-- [ ] Apply twice as `postgres`; functions owned by `postgres`.
-- [ ] Write tests in `tests/test_style_level.py` (stack), one per step, each using a temporary
+- [x] Apply twice as `postgres`; functions owned by `postgres`.
+- [x] Write tests in `tests/test_style_level.py` (stack), one per step, each using a temporary
       row in a rolled-back transaction where it needs one: `test_unrated_style`,
       `test_override_wins`, `test_adjunct_named_vs_not`, `test_silent_transforming_is_changes_style`,
       `test_silent_specialty`, `test_too_much`, `test_yeast_too_little` (US-05 in 10A ⚠️;
@@ -428,14 +428,14 @@ Why: R5, R8 (A4, A5, A8).
       said), `test_missing_dose_skips_and_says_so`,
       `test_wrong_character`, `test_fermentable_style_bump_only_for_fermentables` (A8),
       `test_boil_needs_minutes`, `test_unknown_style_raises`.
-- [ ] Write `tests/test_style_fit_golden.py` (stack): one parametrised test per golden case
+- [x] Write `tests/test_style_fit_golden.py` (stack): one parametrised test per golden case
       (A5), `test_citra_table` (A4: the 6 Citra cases exactly), and `test_m3_cases_have_no_rule`
       (no `ref.style_rule` row for the 8 R8 ingredient/style pairs).
-- [ ] Run both files, expect all pass. A golden case that fails is fixed in the data (tags,
+- [x] Run both files, expect all pass. A golden case that fails is fixed in the data (tags,
       envelope, cut point) only if the fix is a plain error; otherwise stop and ask (the golden
       levels are the user's). Break the step order (bump before combine) once and see a test
       fail.
-- [ ] PROJECT.md §8 line.
+- [x] PROJECT.md §8 line.
 Done when: A4, A5 and A8 hold.
 Commit: `Add style level function with golden tests`
 
@@ -526,3 +526,4 @@ None.
 - 2026-10-15 · Task 1: STYLE-FIT.md §6 "a style" row also corrected to "BJCP and BA: LLM
   extract + your review (BA parser later)" — it contradicted D9; user's agreement at plan
   approval (brief Deviations).
+- 2026-10-15 · Task 8: two small helpers were added to `db/034_style_level.sql`, `app.level_word` (the 0–7 words for the because) and `app.tag_under` (tag-tree ancestry); `app.tag_match` restricts a yeast's tags per dimension (esters: tags under fruity or estery; phenols: the cut points' phenolic tags) so a banana yeast is not judged on its phenols — implementation detail, no golden level changed. The 53 golden cases passed as approved on the first run.
