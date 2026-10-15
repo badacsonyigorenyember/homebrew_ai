@@ -426,7 +426,7 @@ Commit: `Add recipe check with numbers and grist rules`
 
 ### Task 7: The check: hop, target, mash, yeast, purpose and boil rules
 Why: R10 rules 8–13, R14 (A8 for rules 8–13, A10, A14).
-- [ ] Add to `db/032_formulation_check.sql`, each a single explicit function taking the
+- [x] Add to `db/032_formulation_check.sql`, each a single explicit function taking the
       resolved items and the recipe:
       - rule 8: count boil additions with `minutes = boil_min` (must be 1); every other addition
         is whirlpool, dry_hop, or boil with `minutes ≤ 15`.
@@ -444,8 +444,8 @@ Why: R10 rules 8–13, R14 (A8 for rules 8–13, A10, A14).
         missing because attenuation is) makes it `unknown`.
       - rule 12: every fermentable, hop and yeast `purpose` non-empty after trimming.
       - rule 13: `boil_min ≥ max(min_boil_min)` and `≥ 60`; a null `min_boil_min` → `unknown`.
-- [ ] `app.check_recipe` returns all 12 checked rules (1–6, 8–13) in order.
-- [ ] Apply twice. Write tests in `tests/test_formulation_check.py`: pass and fail per rule
+- [x] `app.check_recipe` returns all 12 checked rules (1–6, 8–13) in order.
+- [x] Apply twice. Write tests in `tests/test_formulation_check.py`: pass and fail per rule
       8–13 (A8), including rule 9 cases for a stated ABV above the range (b17-like, passes), an
       unstated IBU off the midpoint (fails) and an out-of-range SRM with guidance off (passes);
       `test_rule_10_unknown_without_attenuation` (a yeast with null `attenuation_pct`, e.g.
@@ -453,7 +453,7 @@ Why: R10 rules 8–13, R14 (A8 for rules 8–13, A10, A14).
       `[78,82]`: 64 °C → 82, 69 °C → 78, 66.5 °C → 80, and rule 10's sentence contains
       "uncited assumption") (A14); `test_results_cover_checked_rules` (12 results, numbers
       1–6 and 8–13).
-- [ ] Run `pytest tests/test_formulation_check.py tests/test_formulation_rules.py`, expect pass.
+- [x] Run `pytest tests/test_formulation_check.py tests/test_formulation_rules.py`, expect pass.
       PROJECT.md §8 line.
 Done when: A8, A10 and A14 hold.
 Commit: `Add recipe check rules for hops, targets and yeast`
@@ -549,3 +549,4 @@ None.
   check the `[style_names]` table (the plan named the check but not the parameter). `style_names`
   keys are lower case; a printed name is looked up in lower case. Descriptions of the 7 adjuncts
   and sugars cite their source page or URL; Weyermann and Viking `description_ref` are PDF pages.
+- 2026-10-15 · Task 7: rule functions 8-13 take `(items, recipe[, numbers])`; rule 9 skips the midpoint test for every target when `guidance` is false (the plan's rule 9 text allowed an out-of-range SRM only for that case) — implementation detail.

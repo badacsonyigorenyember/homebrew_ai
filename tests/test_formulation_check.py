@@ -1,4 +1,4 @@
-"""The recipe check (Task 6 of s2-formulation-rules): inputs, numbers and rules 1-6."""
+"""The recipe check (Tasks 6 and 7 of s2-formulation-rules): inputs, numbers and rules 1-6, 8-13."""
 
 import json
 import re
@@ -51,20 +51,20 @@ def ing(conn, kind, producer_name):
     return row[0]
 
 
-def recipe(conn, fermentables, hops=("Magnum", "Saaz"), **over):
+def recipe(conn, fermentables, hops=("Magnum", "Saaz"), boil_min=90, **over):
     """A recipe with the base settings; `fermentables` is a list of ((producer, name), pct)."""
     hop_items = []
     for i, name in enumerate(hops):
         hop_items.append({
             "ingredient_id": hop_id(conn, name),
-            "usage": "boil", "minutes": 60 if i == 0 else 10, "purpose": "bittering" if i == 0 else "flavour",
+            "usage": "boil", "minutes": boil_min if i == 0 else 10, "purpose": "bittering" if i == 0 else "flavour",
             "g": 20,
         })
     base = {
         "style_code": "18A", "guidance": True, "stated": {},
-        "targets": {"og": 1.050, "fg": 1.011, "abv": 5.2, "ibu": 30, "srm": 5},
+        "targets": {"og": 1.046, "fg": 1.0105, "abv": 4.65, "ibu": 21.5, "srm": 4.5},  # 18A midpoints
         "batch": {"volume_l": 20, "efficiency_pct": 72, "boil_off_l_h": 4, "losses_l": 2},
-        "mash_c": 66.5, "boil_min": 60,
+        "mash_c": 66.5, "boil_min": boil_min,
         "fermentables": [
             {"ingredient_id": ing(conn, "fermentable", pn), "pct": pct, "purpose": "grist"}
             for pn, pct in fermentables
@@ -88,6 +88,7 @@ def result(out, rule):
     return next(r for r in out["results"] if r["rule"] == rule)
 
 
+RULES = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13]
 BASE = [(PILSNER, 85), (CARAHELL, 10), (MUNICH1, 5)]
 
 # (rule, label, fermentables, hops) - each fails exactly its own rule among rules 1-6
@@ -116,10 +117,10 @@ PASSING = [
 
 
 @pytest.mark.stack
-def test_base_recipe_passes_rules_1_to_6(conn):
+def test_base_recipe_passes_all_rules(conn):
     out = check(conn, recipe(conn, BASE))
-    assert [r["rule"] for r in out["results"]] == [1, 2, 3, 4, 5, 6]
-    assert [r["status"] for r in out["results"]] == ["pass"] * 6
+    assert [r["rule"] for r in out["results"]] == RULES
+    assert [r["status"] for r in out["results"]] == ["pass"] * 12
     assert out["calc_version"] == conn.execute("select app.calc_version()").fetchone()[0]
 
 
@@ -136,7 +137,7 @@ def test_rule_fails_alone(conn, rule, label, ferm, hops):
 @pytest.mark.parametrize("rule,label,ferm,hops", PASSING, ids=[f"{r}-{l}" for r, l, _, _ in PASSING])
 def test_rule_passes_at_its_limit(conn, rule, label, ferm, hops):
     out = check(conn, recipe(conn, ferm, hops))
-    assert [r["status"] for r in out["results"]] == ["pass"] * 6, label
+    assert [r["status"] for r in out["results"]] == ["pass"] * 12, label
 
 
 @pytest.mark.stack
@@ -237,7 +238,7 @@ def test_numbers_equal_s1(conn):
     expected = s1_numbers(conn, rec)
     for key, value in expected.items():
         assert numbers[key] == pytest.approx(float(value), rel=1e-9), key
-    assert numbers["og"] == pytest.approx(1.050, abs=0.001)
+    assert numbers["og"] == pytest.approx(1.046, abs=0.001)
     assert numbers["attenuation_pct"] == pytest.approx(80)
     assert numbers["missing"] == []
 
@@ -316,3 +317,163 @@ def test_bad_input_raises(conn):
     raises(recipe(conn, [(PILSNER, 50), (PILSNER, 50)]), "appears twice")
     raises({**good, "hops": [{**good["hops"][0], "ingredient_id": good["fermentables"][0]["ingredient_id"]}]},
            "not a hop")
+
+
+# --- Task 7: rules 8-13 ------------------------------------------------------------------------
+
+def hop(conn, name, usage, minutes, purpose="hop", g=20):
+    return {"ingredient_id": hop_id(conn, name), "usage": usage, "minutes": minutes, "purpose": purpose, "g": g}
+
+
+def statuses(out):
+    return {r["rule"]: r["status"] for r in out["results"]}
+
+
+def only_rule_differs(out, rule, status):
+    got = statuses(out)
+    assert got[rule] == status, out["results"]
+    assert {k: v for k, v in got.items() if k != rule} == {k: "pass" for k in got if k != rule}
+
+
+@pytest.mark.stack
+def test_results_cover_checked_rules(conn):
+    out = check(conn, recipe(conn, BASE))
+    assert [r["rule"] for r in out["results"]] == RULES and len(out["results"]) == 12
+
+
+@pytest.mark.stack
+def test_rule_8(conn):
+    mag, saaz = "Magnum", "Saaz"
+    two_bitter = [hop(conn, mag, "boil", 90), hop(conn, saaz, "boil", 90)]
+    none = [hop(conn, saaz, "boil", 10)]
+    mid = [hop(conn, mag, "boil", 90), hop(conn, saaz, "boil", 30)]
+    late = [hop(conn, mag, "boil", 90), hop(conn, saaz, "boil", 15), hop(conn, saaz, "whirlpool", 20),
+            hop(conn, saaz, "dry_hop", 4320)]
+    for hops, status in ((two_bitter, "fail"), (none, "fail"), (mid, "fail"), (late, "pass")):
+        out = check(conn, recipe(conn, BASE, hops=(), **{}) | {"hops": hops})
+        only_rule_differs(out, 8, status)
+    # the 60-minute hop in a 90-minute boil is not the bittering addition
+    out = check(conn, recipe(conn, BASE) | {"hops": [hop(conn, mag, "boil", 60)]})
+    assert statuses(out)[8] == "fail"
+
+
+@pytest.mark.stack
+def test_rule_9(conn):
+    out = check(conn, recipe(conn, BASE))
+    assert result(out, 9)["status"] == "pass"
+    # a stated ABV above the range (b17-like): OG and FG count as stated, so they may sit anywhere
+    strong = recipe(conn, BASE, stated={"abv": 8.0}, targets={"og": 1.075, "fg": 1.015, "abv": 8.0, "ibu": 21.5, "srm": 4.5})
+    assert result(check(conn, strong), 9)["status"] == "pass"
+    # an unstated IBU off the midpoint fails
+    off = recipe(conn, BASE)
+    off["targets"]["ibu"] = 35
+    out = check(conn, off)
+    assert result(out, 9)["status"] == "fail" and "IBU" in result(out, 9)["message"]
+    # the same IBU stated passes
+    off["stated"] = {"ibu": 35}
+    assert result(check(conn, off), 9)["status"] == "pass"
+    # an out-of-range SRM with guidance off passes
+    dark = recipe(conn, BASE, guidance=False)
+    dark["targets"]["srm"] = 30
+    assert result(check(conn, dark), 9)["status"] == "pass"
+    dark["guidance"] = True
+    assert result(check(conn, dark), 9)["status"] == "fail"
+    # tolerance: OG 0.001 off passes, 0.002 off fails
+    near = recipe(conn, BASE)
+    near["targets"]["og"] = 1.047
+    assert result(check(conn, near), 9)["status"] == "pass"
+    near["targets"]["og"] = 1.0485
+    assert result(check(conn, near), 9)["status"] == "fail"
+
+
+@pytest.mark.stack
+def test_rule_9_unknown_without_style_range(conn):
+    code = conn.execute("select code from ref.beer_style where ibu is null limit 1").fetchone()
+    if code is None:
+        pytest.skip("every style has an IBU range")
+    out = check(conn, recipe(conn, BASE, style_code=code[0]))
+    assert result(out, 9)["status"] in ("unknown", "fail")
+
+
+@pytest.mark.stack
+def test_rule_10(conn):
+    assert result(check(conn, recipe(conn, BASE)), 10)["status"] == "pass"
+    for mash in (63, 70):
+        out = check(conn, recipe(conn, BASE, mash_c=mash))
+        assert result(out, 10)["status"] == "fail" and "between 64 and 69" in result(out, 10)["message"]
+    # predicted FG outside the style range: a strong wort at 80 % attenuation ends above 1.013
+    high_fg = recipe(conn, BASE, stated={"og": 1.075}, targets={"og": 1.075, "fg": 1.0105, "abv": 4.65, "ibu": 21.5, "srm": 4.5})
+    out = check(conn, high_fg)
+    assert result(out, 10)["status"] == "fail" and "predicted FG" in result(out, 10)["message"]
+    # stated FG: the range is the target FG +- 0.002
+    stated = recipe(conn, BASE, stated={"fg": 1.020}, targets={"og": 1.046, "fg": 1.020, "abv": 3.4, "ibu": 21.5, "srm": 4.5})
+    assert result(check(conn, stated), 10)["status"] == "fail"
+    stated = recipe(conn, BASE, stated={"fg": 1.009}, targets={"og": 1.046, "fg": 1.009, "abv": 4.8, "ibu": 21.5, "srm": 4.5})
+    assert result(check(conn, stated), 10)["status"] == "pass"
+
+
+@pytest.mark.stack
+def test_rule_10_unknown_without_attenuation(conn):
+    rec = recipe(conn, BASE)
+    rec["yeast"]["ingredient_id"] = ing(conn, "yeast", ("Gozdawa", "W-34/70"))
+    rec["yeast"]["ferm_c"] = 13
+    r = result(check(conn, rec), 10)
+    assert r["status"] == "unknown" and "ref.yeast.attenuation_pct" in r["message"]
+    assert result(check(conn, rec), 11)["status"] == "unknown"
+
+
+@pytest.mark.stack
+def test_mash_mapping(conn):
+    def att(mash):
+        return conn.execute("select app.mash_attenuation('[78,82]'::numrange, %s::numeric)", (mash,)).fetchone()[0]
+
+    assert (float(att(64)), float(att(69)), float(att(66.5))) == (82, 78, 80)
+    text = conn.execute("select sentence from app.formulation_rules() where rule = '10'").fetchone()[0]
+    assert "uncited assumption" in text
+    assert check(conn, recipe(conn, BASE, mash_c=64))["numbers"]["attenuation_pct"] == pytest.approx(82)
+
+
+@pytest.mark.stack
+def test_rule_11(conn):
+    assert result(check(conn, recipe(conn, BASE)), 11)["status"] == "pass"
+    out = check(conn, recipe(conn, BASE))
+    cold = recipe(conn, BASE)
+    cold["yeast"]["ferm_c"] = 10
+    r = result(check(conn, cold), 11)
+    assert r["status"] == "fail" and "fermentation temperature" in r["message"]
+    cold["yeast"]["ferm_c"] = 18
+    assert result(check(conn, cold), 11)["status"] == "pass"
+    tolerance = conn.execute(
+        "select alcohol_tolerance_pct from ref.yeast where ingredient_id = %s", (ing(conn, "yeast", US05),)).fetchone()[0]
+    strong = recipe(conn, [(PILSNER, 70), (RICE, 30)], targets={"og": 1.120, "fg": 1.020, "abv": 13, "ibu": 21.5, "srm": 4.5},
+                    stated={"abv": 13})
+    r = result(check(conn, strong), 11)
+    assert r["status"] == "fail" and f"{tolerance:.0f} %" in r["message"] and out
+
+
+@pytest.mark.stack
+def test_rule_12(conn):
+    for where in ("fermentables", "hops", "yeast"):
+        rec = recipe(conn, BASE)
+        target = rec[where] if where == "yeast" else rec[where][0]
+        target["purpose"] = "   "
+        out = check(conn, rec)
+        only_rule_differs(out, 12, "fail")
+    rec = recipe(conn, BASE)
+    del rec["hops"][1]["purpose"]
+    assert result(check(conn, rec), 12)["status"] == "fail"
+
+
+@pytest.mark.stack
+def test_rule_13(conn):
+    out = check(conn, recipe(conn, BASE, boil_min=60))
+    r = result(out, 13)
+    assert r["status"] == "fail" and "Pilsner Malt needs at least 90 min" in r["message"]
+    assert result(check(conn, recipe(conn, BASE, boil_min=90)), 13)["status"] == "pass"
+    no_pilsner = recipe(conn, [(VIENNA, 100)], boil_min=60)
+    assert result(check(conn, no_pilsner), 13)["status"] == "pass"
+    below_floor = recipe(conn, [(VIENNA, 100)], boil_min=45)
+    assert result(check(conn, below_floor), 13)["status"] == "fail"
+    items = {"fermentables": [{"ingredient_id": 1, "name": "X", "min_boil_min": None}], "hops": []}
+    r = conn.execute("select app.check_rule_13(%s::jsonb, %s::jsonb)", (json.dumps(items), json.dumps({"boil_min": 60}))).fetchone()[0]
+    assert r["status"] == "unknown" and r["missing"] == ["ref.fermentable.min_boil_min"]
