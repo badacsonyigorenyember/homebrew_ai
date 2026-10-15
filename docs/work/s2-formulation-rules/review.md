@@ -33,3 +33,35 @@ and listed every rule's status (the live functions were not changed).
       change.
    Recommend a): it is the only reading in which R10 rule 9's guidance clause does anything, and
    it matches the test the plan asked for.
+
+## Re-review 2026-10-15
+
+Diff: 77c3c28..2464ab8 (fix commit 2464ab8)  ·  Verdict: ready for testing
+
+Checked: the fix diff against findings 1–5, the brief (R9, R10 rules 9 and 10, A8, A9) and plan
+Task 7; the live functions; the commit subject (one line, no body). With the stack up,
+`test_formulation_check.py`, `test_formulation_rules.py`, `test_reference_recipes.py` and
+`test_fermentable_facts.py`: 89 passed (37 + 4 + 26 + 22). Live catalog: `app.check_rule_10` owned by
+`postgres`, reads `midpoint_tolerance`, no `0.002` literal; the rule 9 row of
+`app.formulation_rules()` starts "When style guidance is on"; `app.formulation_limits()` is the
+original body owned by `postgres`, so the test that replaces it was rolled back (the test
+connection has `autocommit=False`). Measured: `ref` 17 tables, 33 in all, all owned by `postgres`;
+`ref.source` 19 rows.
+
+| # | Earlier finding | Status | Evidence |
+|---|---|---|---|
+| 1 | Rule 10 band was a literal `0.002` | resolved | `db/032_formulation_check.sql:507-508` read `midpoint_tolerance.fg`. `test_rule_10` widens the limit to 0.05 in a rolled-back transaction and expects the stated FG 1.020 case to pass. By reading, the old code would fail that assertion (the stated-1.009 case passes, so the predicted FG is within 1.007–1.011, outside 1.018–1.022), so the test now covers the check side of R9. |
+| 2 | Rule 9 sentence vs. guidance-off check | resolved (option a) | Sentence in `db/031_formulation_rules.sql:75-76` now starts "When style guidance is on"; plan Task 7 rule 9 bullet rewritten; dated Deviations lines in `brief.md` and `plan.md`. Text and check now agree. |
+| 3 | Mash below 64 °C reported `limit` 69 | resolved | `limit` is `mash_min_c` when the mash is below it, else `mash_max_c`. `test_rule_10` asserts (value, limit) = (63, 64) and (70, 69). |
+| 4 | Stale PROJECT.md §4 and DATABASE.md facts | resolved | §4 row gives 17 `ref` tables, 33 in all, 19 sources (all measured above); code span closed with a full stop; "`fermentable.role` was filled" removed from Known gaps in both files; §8 entry added. |
+| 5 | Rule 9, 10, 11, 13 tests did not pin other rules | resolved | These tests now use `only_rule_differs` for every case; mash 64 and 69 pass, 63 and 70 fail; the stated-FG rule 10 cases state OG, FG and ABV so rule 9 stays `pass`; the 13 % ABV rule 11 case states the predicted FG so rule 10 passes; `test_rule_9_unknown_without_style_range` now requires `unknown`. |
+
+New findings in the fix diff:
+
+| # | Severity | Where | Finding | Why it matters |
+|---|---|---|---|---|
+| 10 | note | `brief.md:141`, `plan.md:54, 347, 439` | These lines still say "target FG ± 0.002". That is the current value of `midpoint_tolerance.fg`, so the text is accurate. | No action. |
+| 11 | note | `docs/DATABASE.md:35` | The diagram heading still reads "ref · 15 tables"; the table list below it (lines 196-197) already has the two new tables. Not part of finding 4, which named only the Gaps line. | No action needed for this work. |
+| 12 | note | `tests/test_formulation_check.py` (fixes) | As the fixer noted, only the 63 °C limit assertion was seen failing against the old code. By reading, the tolerance-widening case would have failed against the old literal (finding 1); the `unknown`-only assertion and the `only_rule_differs` changes tighten cases the old code already met. | No action. |
+
+Nothing outside findings 1–5 changed, and the diff contains no secrets.
