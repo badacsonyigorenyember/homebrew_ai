@@ -141,3 +141,32 @@ alter table ref.water_salt drop column if exists molar_mass;
 -- none = none of it (lactose). The 74 malts already loaded take the default, normal.
 alter table ref.fermentable add column if not exists fermentability text not null default 'normal'
     check (fermentability in ('full', 'normal', 'none'));
+
+-- Formulation data (s2-formulation-rules, 2026-10-15). Loaded by loaders/fermentable_facts.py.
+alter table ref.fermentable
+    add column if not exists enzyme_activity text
+        check (enzyme_activity in ('none', 'low', 'normal', 'high')),
+    add column if not exists min_boil_min integer check (min_boil_min between 60 and 120),
+    add column if not exists description text,
+    add column if not exists description_ref text;  -- page or URL inside field_source.description
+
+-- One row per substitute pair, stored once (smaller id first); counts both ways, never chains.
+create table if not exists ref.fermentable_substitute (
+    fermentable_id bigint not null references ref.fermentable (ingredient_id) on delete cascade,
+    substitute_id  bigint not null references ref.fermentable (ingredient_id) on delete cascade,
+    source_id      bigint not null references ref.source (id),
+    note           text   not null,  -- chart row ("1C row 9") or "user decision D, 2026-10-14"
+    primary key (fermentable_id, substitute_id),
+    check (fermentable_id < substitute_id));
+
+create or replace view ref.fermentable_substitutes as  -- both directions
+    select fermentable_id, substitute_id, source_id, note from ref.fermentable_substitute
+    union all
+    select substitute_id, fermentable_id, source_id, note from ref.fermentable_substitute;
+
+-- Typical styles a maltster names for a malt, mapped to our style rows.
+create table if not exists ref.fermentable_style (
+    ingredient_id bigint not null references ref.fermentable (ingredient_id) on delete cascade,
+    style_id      bigint not null references ref.beer_style (id),
+    source_id     bigint not null references ref.source (id),
+    primary key (ingredient_id, style_id));

@@ -91,7 +91,11 @@ insert into ref.source (slug, title, edition, publisher, licence, url, notes) va
      'Hopline flake and sugar product pages', 'website, fetched 2026-10-11',
      'Hopline', null,
      'https://www.hopline.hu/alapanyagok/malatak/pelyhek-199',
-     'Flakes (this URL) and the fermentable and non-fermentable sugar pages (https://www.hopline.hu/alapanyagok/cukrok-edesitoszerek-244/erjesztheto-250 and https://www.hopline.hu/alapanyagok/cukrok-edesitoszerek-244/nem-erjesztheto)')
+     'Flakes (this URL) and the fermentable and non-fermentable sugar pages (https://www.hopline.hu/alapanyagok/cukrok-edesitoszerek-244/erjesztheto-250 and https://www.hopline.hu/alapanyagok/cukrok-edesitoszerek-244/nem-erjesztheto)'),
+    ('malt-substitution-2025',
+     'PrimeTime Malt Substitution Chart', '2025 (short)',
+     'Hops Shop BG', null, null,
+     'shared/rag-files/pending/PrimeTime Malt Substitution Chart 2025 short.pdf (printed "© Hops Shop BG, 2025")')
 on conflict (slug) do nothing;
 
 -- Corrections to rows inserted by an earlier version of this file.

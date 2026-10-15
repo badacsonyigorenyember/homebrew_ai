@@ -1,0 +1,196 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "formulation_check.input",
+  "description": "Formulation check input: the proposed recipe in percentages and ingredient ids, the style, the user's stated numbers and the targets. Amounts are computed by code, so fermentables carry a share, not grams; a hop carries grams only when IBU should be computed.",
+  "type": "object",
+  "required": [
+    "style_code",
+    "guidance",
+    "stated",
+    "targets",
+    "batch",
+    "mash_c",
+    "boil_min",
+    "fermentables",
+    "hops",
+    "yeast"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "style_code": {
+      "type": "string",
+      "minLength": 1
+    },
+    "guidance": {
+      "type": "boolean"
+    },
+    "stated": {
+      "type": "object",
+      "required": [],
+      "additionalProperties": false,
+      "properties": {
+        "og": {
+          "type": "number"
+        },
+        "fg": {
+          "type": "number"
+        },
+        "abv": {
+          "type": "number"
+        },
+        "ibu": {
+          "type": "number"
+        },
+        "srm": {
+          "type": "number"
+        }
+      }
+    },
+    "targets": {
+      "type": "object",
+      "required": [
+        "og",
+        "fg",
+        "abv",
+        "ibu",
+        "srm"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "og": {
+          "type": "number"
+        },
+        "fg": {
+          "type": "number"
+        },
+        "abv": {
+          "type": "number"
+        },
+        "ibu": {
+          "type": "number"
+        },
+        "srm": {
+          "type": "number"
+        }
+      }
+    },
+    "batch": {
+      "type": "object",
+      "required": [
+        "volume_l",
+        "efficiency_pct",
+        "boil_off_l_h",
+        "losses_l"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "volume_l": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "efficiency_pct": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 100
+        },
+        "boil_off_l_h": {
+          "type": "number",
+          "minimum": 0
+        },
+        "losses_l": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "mash_c": {
+      "type": "number"
+    },
+    "boil_min": {
+      "type": "number",
+      "minimum": 0
+    },
+    "fermentables": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "ingredient_id",
+          "pct",
+          "purpose"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "pct": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 100
+          },
+          "purpose": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "hops": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "ingredient_id",
+          "usage",
+          "minutes",
+          "purpose"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "usage": {
+            "enum": [
+              "boil",
+              "whirlpool",
+              "dry_hop"
+            ]
+          },
+          "minutes": {
+            "type": "number",
+            "minimum": 0
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "g": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "yeast": {
+      "type": "object",
+      "required": [
+        "ingredient_id",
+        "ferm_c",
+        "purpose"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "ingredient_id": {
+          "type": "integer"
+        },
+        "ferm_c": {
+          "type": "number"
+        },
+        "purpose": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

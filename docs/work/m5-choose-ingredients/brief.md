@@ -5,6 +5,7 @@ Slug: m5-choose-ingredients · Branch: m5-choose-ingredients
 Roadmap: [WORKFLOW-ROADMAP.md](../../WORKFLOW-ROADMAP.md) M5, checkpoint **G5** ·
 [RECIPE-ROADMAP.md](../../RECIPE-ROADMAP.md) §3 steps 6–9 · [STYLE-FIT.md](../../STYLE-FIT.md)
 Needs: `m4-targets-blueprint` and `s3-style-fit` shipped
+s2-corpus abandoned 2026-10-14; revisit in this brief
 
 ## Why
 The blueprint says "base 88 %, crystal 5 %, 25 % of hop mass at 60 min". Stage C turns each slot

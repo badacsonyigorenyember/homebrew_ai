@@ -5,6 +5,7 @@ Slug: s3-style-fit · Branch: s3-style-fit
 Roadmap: [WORKFLOW-ROADMAP.md](../../WORKFLOW-ROADMAP.md) side track P3, checkpoint **G-S** ·
 [STYLE-FIT.md](../../STYLE-FIT.md) · [RECIPE-ROADMAP.md](../../RECIPE-ROADMAP.md) §5
 Needs: `s2-corpus` shipped (corpus popularity and intensity cut points)
+s2-corpus abandoned 2026-10-14; revisit in this brief
 
 ## Why
 Steps 3, 7–9 and 11 must answer "is this ingredient, used this way, in this style: required,

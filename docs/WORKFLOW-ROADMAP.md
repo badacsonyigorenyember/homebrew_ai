@@ -31,7 +31,8 @@ flowchart TD
     M1["m1 · Step 1: read request<br/>G1: model (D2)"] --> M2
     M2["m2 · Step 2: style<br/>G2: ≥ 18/20 style"] --> M3
     S1["s1 · Maths library (P2)<br/>G-M: Palmer examples"] --> S2
-    S2["s2 · Corpus + profiles (P1b, D7)"] --> S3
+    S2["s2 · Formulation rules + ingredient data (D7)"]
+    S2 -. "s2-corpus abandoned 2026-10-14; revisit in s3" .-> S3
     S3["s3 · Tags · envelopes · level() (P3, D9)<br/>G-S: Citra table"] --> M3
     M3["m3 · Step 3: deviations<br/>G3: P4 done"] --> M4
     M4["m4 · Steps 0, 4–5: profile, targets, blueprint<br/>G4"] --> M5
@@ -45,7 +46,7 @@ flowchart TD
     class S1,S2,S3,S4 side
 ```
 
-Blue = side tracks outside n8n's step order. s1 → s2 → s3 is a chain (the corpus gates recompute
+Blue = side tracks outside n8n's step order. s1 → s2 → s3 is a chain (s2-corpus abandoned 2026-10-14; revisit in s3) (the corpus gates recompute
 OG/IBU with the maths; the style-fit cut points are calibrated on the corpus), so m3 waits for s3.
 s4 can run any time after m0, once the doc → calc passes for its books are done.
 
@@ -61,7 +62,7 @@ names and dev-ship's move to `docs/finished/` assume `<slug>` is one folder name
 | M1 | [`m1-read-request`](finished/m1-read-request/brief.md) | Step 1: request → LLM → brief JSON, checked by code; D2 decided (Qwen3.8-27B UD-Q6_K, thinking off); step 1 outputs the user's words and M5's resolver maps them | m0 | **G1** |
 | M2 | [`m2-best-fit-style`](finished/m2-best-fit-style/brief.md) | Step 2: score all 285 styles (name, stated numbers, words), per D1 | m1 | **G2** |
 | S1 | [`s1-maths`](finished/s1-maths/brief.md) | Gravity, ABV, IBU (Tinseth), colour (Morey), solvers, from the doc→calc pass on *How to Brew* | m0 | **G-M** |
-| S2 | [`s2-corpus`](work/s2-corpus/brief.md) | Corpus with quality gates, `fermentable.role`, name map → `style_profile` (D7) | s1 | **G-S** (profiles) |
+| S2 | [`s2-formulation-rules`](work/s2-formulation-rules/brief.md) | Fermentable roles, limits, enzyme activity, minimum boil, substitutes, descriptions; 13 formulation rules and the rule check; 22 reference recipes (D7 decided) | s1 | — (brief A1–A16) |
 | S3 | [`s3-style-fit`](work/s3-style-fit/brief.md) | Tags, envelopes for the briefs' 22 styles (20 + 2 alternates), `level()`, golden set (D9) | s2 | **G-S** |
 | M3 | [`m3-deviations`](work/m3-deviations/brief.md) | Step 3: number, mismatch, conflict and ingredient deviations | m2, s3 | **G3** = RECIPE-ROADMAP P4 done |
 | M4 | [`m4-targets-blueprint`](work/m4-targets-blueprint/brief.md) | Steps 0, 4, 5: brewer profile, targets (ranges + hint knobs + stated numbers), blueprint (ratios) | m3, s1, s2 | **G4** |

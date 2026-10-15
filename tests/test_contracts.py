@@ -9,6 +9,7 @@ from loaders.db import connect
 
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
 NAMES = [f"step{n}.{side}" for n in range(4) for side in ("input", "output")]
+NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
 
 # Each output's slot for absent / unknown / conflict: (property, how the schema must allow it).
 # "null" = the property's type allows null; "array" = it is an array; "enum:<v>" = enum holds <v>.
@@ -17,6 +18,7 @@ ABSENT_SLOTS = {
     "step1.output": [("named", "null"), ("unknown", "array")],
     "step2.output": [("style", "null"), ("unknown_reason", "null"), ("mismatch", "null")],
     "step3.output": [("deviations.kind", "enum:conflict"), ("unrated", "array")],
+    "formulation_check.output": [("results.status", "enum:unknown"), ("numbers.fg", "null")],
 }
 
 
@@ -51,7 +53,7 @@ def test_contract_files_complete():
         optional = {"temperature", "seed"} if name == "step1.input" else set()
         assert set(schema["required"]) == set(schema["properties"]) - optional, name
         assert schema["additionalProperties"] is False, name
-        if name.endswith(".input"):
+        if name.startswith("step") and name.endswith(".input"):
             assert "run_id" in schema["required"], name
 
 
@@ -101,7 +103,32 @@ STEP2_OUT = {
     "style": None, "unknown_reason": "no style fits", "alt_styles": [], "candidates": [],
     "scores": {"hint:dry": 0.5}, "mismatch": None, "guide_reason": "no signal", "reason": "no style fits",
 }
+CHECK_IN = {
+    "style_code": "18A", "guidance": True, "stated": {"abv": 5.2},
+    "targets": {"og": 1.050, "fg": 1.011, "abv": 5.2, "ibu": 30, "srm": 5},
+    "batch": {"volume_l": 20, "efficiency_pct": 72, "boil_off_l_h": 4, "losses_l": 2},
+    "mash_c": 66, "boil_min": 60,
+    "fermentables": [{"ingredient_id": 1, "pct": 100, "purpose": "base malt"}],
+    "hops": [{"ingredient_id": 2, "usage": "boil", "minutes": 60, "purpose": "bittering", "g": 20}],
+    "yeast": {"ingredient_id": 3, "ferm_c": 18, "purpose": "clean fermentation"},
+}
+CHECK_OUT = {
+    "calc_version": "maths-1",
+    "numbers": {"og": 1.05, "fg": None, "abv": None, "srm": 4.1, "ibu": None,
+                "attenuation_pct": None, "missing": ["ref.yeast.attenuation_pct"]},
+    "results": [{
+        "rule": 10, "status": "unknown", "message": "Rule 10: not checked, missing ref.yeast.attenuation_pct.",
+        "failures": [], "missing": ["ref.yeast.attenuation_pct"],
+    }, {
+        "rule": 3, "status": "fail", "message": "Rule 3: too dark.",
+        "failures": [{"text": "Rule 3: too dark.", "items": [{"ingredient_id": 7, "name": "Black Malt"}],
+                      "value": 18, "limit": 15}],
+        "missing": [],
+    }],
+}
 GOOD = {
+    "formulation_check.input": CHECK_IN,
+    "formulation_check.output": CHECK_OUT,
     "step0.input": {"run_id": 1, "profile_id": None},
     "step0.output": {
         "batch_l": 20, "efficiency_pct": 72, "boil_off_l_h": 3.5, "losses_l": 2,
@@ -124,6 +151,11 @@ GOOD = {
     },
 }
 BAD = [
+    ("formulation_check.input", {k: v for k, v in CHECK_IN.items() if k != "mash_c"}),
+    ("formulation_check.input", {**CHECK_IN, "hops": [{**CHECK_IN["hops"][0], "usage": "mash"}]}),
+    ("formulation_check.input", {**CHECK_IN, "stated": {"colour": 5}}),
+    ("formulation_check.output", {**CHECK_OUT, "results": [{**CHECK_OUT["results"][0], "status": "maybe"}]}),
+    ("formulation_check.output", {k: v for k, v in CHECK_OUT.items() if k != "numbers"}),
     ("step1.input", {"run_id": 1, "request": "", "model": "gemma4:12b", "think": False}),
     ("step1.input", {"run_id": 1, "request": "a dry stout", "model": "", "think": False}),
     ("step1.input", {"run_id": 1, "request": "a dry stout", "model": "gemma4:12b"}),
