@@ -19,7 +19,7 @@
   need things the briefs don't have yet (§3); each is added when its milestone reaches it, not
   before.
 - 🪜 **Start with what needs no new data:** the harness, step 1 (the LLM step, which also
-  benchmarks D2) and step 2. Maths, corpus and tags run alongside, because steps 3–11 need them.
+  benchmarks D2) and step 2. Maths, formulation rules and tags run alongside, because steps 3–11 need them.
 
 ---
 
@@ -32,7 +32,7 @@ flowchart TD
     M2["m2 · Step 2: style<br/>G2: ≥ 18/20 style"] --> M3
     S1["s1 · Maths library (P2)<br/>G-M: Palmer examples"] --> S2
     S2["s2 · Formulation rules + ingredient data (D7)"]
-    S2 -. "s2-corpus abandoned 2026-10-14; revisit in s3" .-> S3
+    S2 --> S3
     S3["s3 · Tags · envelopes · level() (P3, D9)<br/>G-S: Citra table"] --> M3
     M3["m3 · Step 3: deviations<br/>G3: P4 done"] --> M4
     M4["m4 · Steps 0, 4–5: profile, targets, blueprint<br/>G4"] --> M5
@@ -46,8 +46,7 @@ flowchart TD
     class S1,S2,S3,S4 side
 ```
 
-Blue = side tracks outside n8n's step order. s1 → s2 → s3 is a chain (s2-corpus abandoned 2026-10-14; revisit in s3) (the corpus gates recompute
-OG/IBU with the maths; the style-fit cut points are calibrated on the corpus), so m3 waits for s3.
+Blue = side tracks outside n8n's step order. s1 → s2 → s3 is a chain (s3 needs s2's fermentable roles and `fermentable_style`), so m3 waits for s3.
 s4 can run any time after m0, once the doc → calc passes for its books are done.
 
 **Work items.** Each row has a draft brief in `docs/work/<slug>/brief.md` (written 2026-10-12, not
@@ -63,7 +62,7 @@ names and dev-ship's move to `docs/finished/` assume `<slug>` is one folder name
 | M2 | [`m2-best-fit-style`](finished/m2-best-fit-style/brief.md) | Step 2: score all 285 styles (name, stated numbers, words), per D1 | m1 | **G2** |
 | S1 | [`s1-maths`](finished/s1-maths/brief.md) | Gravity, ABV, IBU (Tinseth), colour (Morey), solvers, from the doc→calc pass on *How to Brew* | m0 | **G-M** |
 | S2 | [`s2-formulation-rules`](finished/s2-formulation-rules/brief.md) | Fermentable roles, limits, enzyme activity, minimum boil, substitutes, descriptions; 13 formulation rules and the rule check; 22 reference recipes (D7 decided) | s1 | — (brief A1–A16) |
-| S3 | [`s3-style-fit`](work/s3-style-fit/brief.md) | Tags, envelopes for the briefs' 22 styles (20 + 2 alternates), `level()`, golden set (D9) | s2 | **G-S** |
+| S3 | [`s3-style-fit`](work/s3-style-fit/brief.md) | Tags, envelopes for 26 styles (22 brief styles, 3 alternates, 20B), `level()`, golden set (D9) | s2 | **G-S** |
 | M3 | [`m3-deviations`](work/m3-deviations/brief.md) | Step 3: number, mismatch, conflict and ingredient deviations | m2, s3 | **G3** = RECIPE-ROADMAP P4 done |
 | M4 | [`m4-targets-blueprint`](work/m4-targets-blueprint/brief.md) | Steps 0, 4, 5: brewer profile, targets (ranges + hint knobs + stated numbers), blueprint (ratios) | m3, s1, s2 | **G4** |
 | M5 | [`m5-choose-ingredients`](work/m5-choose-ingredients/brief.md) | Steps 6–9: yeast, fermentables, hops, extras, scored by code; the resolver | m4, s3 | **G5** |
@@ -140,9 +139,11 @@ constants to fit.
 
 ### G-S · Style fit works from data
 
-**Bar:** RECIPE-ROADMAP §5's Citra table reproduces from SQL; envelopes for the 22 brief styles
-reviewed by you (D9). D7 settled with measured profile counts. **If no:** revisit the tag
+**Bar:** RECIPE-ROADMAP §5's Citra table reproduces from SQL; envelopes for the 26 s3 styles
+reviewed by you (D9); the golden set passes; every reference-recipe line rated, 0 unexpected ⚠️/⛔. **If no:** revisit the tag
 vocabulary before adding override rows.
+
+**Measured (2026-10-15, [`s3-style-fit`](work/s3-style-fit/plan.md)):** met. `test_citra_table` passes (Citra table from `app.style_level`); 26 style envelopes reviewed by the user (116 `style_ingredient`, 189 `style_sensory`, 237 `style_character` rows, 0 `style_rule` rows needed); the 53 golden cases pass; all 22 reference recipes are rated and only the briefs' own deviations (b08 IBU, b18 SRM) are flagged; colour is checked as a lower bound where a fermentable (Honey, Lactose, Enzyme Malt) has no sourced colour, and b19 was changed to fit 17C (re-measured 2026-10-15). Full `pytest` 535 passed, `-m "not stack"` 171 passed.
 
 ### G4 · Targets follow the brief
 

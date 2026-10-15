@@ -1,0 +1,608 @@
+# Golden set for app.style_level (s3-style-fit, R8, A4, A5, A8).
+# STATUS: APPROVED by the user 2026-10-15 (docs/work/s3-style-fit/golden-review.md, report.md §5).
+# Drafted by Claude from brewing judgement and the reviewed envelopes; the user approved every
+# theme as drafted except y02 (US-05 in 10A), which they set to out_of_style (the yeast min check).
+# Levels were not produced by running code (there was none yet).
+#
+# Each [[case]]:
+#   id         group letter + number (c Citra table, m M3 cases, a adjunct/sugar rule,
+#              f fermentable_style bump, h hop character, y yeast, t transforming/specialty,
+#              i intensity and style ranges, u unrated / needs review / no dose)
+#   style      ref.beer_style.code
+#   kind, producer, name   the ingredient as in ref.ingredient
+#   usage      hop: boil | whirlpool | dry_hop · fermentable: mash | boil · yeast: ferment
+#   dose       inline table, any of minutes, g_per_l, pct, ferm_c, ibu, srm (may be empty)
+#   level      required | typical | allowed | out_of_style | changes_style; absent = not rated
+#   note       the "because" a homebrewer can check
+# Oil dose = g/L x the hop's ref oil midpoint / 100; roast index = % x EBC midpoint.
+
+# ------------------------------------------------------------------ c · Citra table (A4)
+[[case]]
+id = "c01"
+style = "15B"
+kind = "hop"
+producer = ""
+name = "Citra"
+usage = "boil"
+dose = { minutes = 60, g_per_l = 1.0, ibu = 35 }
+level = "allowed"
+note = "a 60-min hop gives bitterness only, its character does not carry; 35 IBU is inside 15B's 25-45"
+
+[[case]]
+id = "c02"
+style = "15B"
+kind = "hop"
+producer = ""
+name = "Citra"
+usage = "whirlpool"
+dose = { g_per_l = 2.0 }
+level = "out_of_style"
+note = "citrus/tropical vs 15B's 'earthy or floral' hops: wrong character (and 0.045 mL/L oil is medium, above 15B's low)"
+
+[[case]]
+id = "c03"
+style = "15B"
+kind = "hop"
+producer = ""
+name = "Citra"
+usage = "dry_hop"
+dose = { g_per_l = 8.0 }
+level = "out_of_style"
+note = "wrong character, and 0.18 mL/L oil is very high, far above 15B's low hop aroma"
+
+[[case]]
+id = "c04"
+style = "20B"
+kind = "hop"
+producer = ""
+name = "Citra"
+usage = "boil"
+dose = { minutes = 60, g_per_l = 1.0, ibu = 50 }
+level = "allowed"
+note = "bitterness only; 50 IBU is inside 20B's 35-75"
+
+[[case]]
+id = "c05"
+style = "20B"
+kind = "hop"
+producer = ""
+name = "Citra"
+usage = "whirlpool"
+dose = { g_per_l = 2.0 }
+level = "typical"
+note = "citrus matches 20B's 'citrusy or resiny'; 0.045 mL/L oil is medium, at 20B's max"
+
+[[case]]
+id = "c06"
+style = "20B"
+kind = "hop"
+producer = ""
+name = "Citra"
+usage = "dry_hop"
+dose = { g_per_l = 8.0 }
+level = "out_of_style"
+note = "character matches, but 0.18 mL/L oil is very high, above 20B's medium hop aroma"
+
+# ------------------------------------------------------------------ m · M3 ingredient cases and 16A lactose (R8)
+[[case]]
+id = "m01"
+style = "18B"
+kind = "fermentable"
+producer = ""
+name = "Flaked Rice"
+usage = "mash"
+dose = { pct = 15 }
+level = "out_of_style"
+note = "b16: an adjunct 18B's characteristic ingredients do not name: not a usual ingredient of American Pale Ale"
+
+[[case]]
+id = "m02"
+style = "17C"
+kind = "fermentable"
+producer = ""
+name = "Honey"
+usage = "boil"
+dose = { pct = 10 }
+level = "out_of_style"
+note = "b19: 17C names base, crystal, roast and adjunct grains, no sugar or honey"
+
+[[case]]
+id = "m03"
+style = "19C"
+kind = "fermentable"
+producer = ""
+name = "Lactose"
+usage = "boil"
+dose = { pct = 5 }
+level = "out_of_style"
+note = "b20: 19C names no sugar; lactose makes a milk brown, not an American Brown Ale"
+
+[[case]]
+id = "m04"
+style = "21C"
+kind = "fermentable"
+producer = ""
+name = "Flaked Oats"
+usage = "mash"
+dose = { pct = 20 }
+level = "typical"
+note = "b02: 21C names Flaked Oats ('more flaked grains')"
+
+[[case]]
+id = "m05"
+style = "1B"
+kind = "fermentable"
+producer = ""
+name = "Flaked Rice"
+usage = "mash"
+dose = { pct = 25 }
+level = "typical"
+note = "b06: 1B names rice ('up to 40% rice or corn as adjuncts')"
+
+[[case]]
+id = "m06"
+style = "1C"
+kind = "fermentable"
+producer = ""
+name = "Flaked Corn"
+usage = "mash"
+dose = { pct = 20 }
+level = "typical"
+note = "b07: 1C names corn ('Up to 20% maize in the mash')"
+
+[[case]]
+id = "m07"
+style = "31B"
+kind = "fermentable"
+producer = ""
+name = "Honey"
+usage = "boil"
+dose = { pct = 12 }
+level = "typical"
+note = "b12: 31B names the role sugar and Honey (reviewed sugar row); rated although it has no sensory rows"
+
+[[case]]
+id = "m08"
+style = "16A"
+kind = "fermentable"
+producer = ""
+name = "Lactose"
+usage = "boil"
+dose = { pct = 10 }
+level = "typical"
+note = "16A names Lactose; the adjunct/sugar rule says it, no style_rule row"
+
+# ------------------------------------------------------------------ a · adjunct/sugar rule, more cases
+[[case]]
+id = "a01"
+style = "21A"
+kind = "fermentable"
+producer = ""
+name = "Lactose"
+usage = "boil"
+dose = { pct = 5 }
+level = "out_of_style"
+note = "21A names no sugar: lactose in an IPA stays out of style (Task 5 decision A)"
+
+[[case]]
+id = "a02"
+style = "26B"
+kind = "fermentable"
+producer = ""
+name = "Brown Candi Sugar"
+usage = "boil"
+dose = { pct = 10 }
+level = "typical"
+note = "b10: 26B names Brown Candi Sugar ('caramelized sugar syrup or unrefined sugars')"
+
+[[case]]
+id = "a03"
+style = "15B"
+kind = "fermentable"
+producer = ""
+name = "Flaked Barley"
+usage = "mash"
+dose = { pct = 20 }
+level = "typical"
+note = "b05: 15B names the adjunct role ('May use unmalted grains for body')"
+
+[[case]]
+id = "a04"
+style = "5D"
+kind = "fermentable"
+producer = ""
+name = "Flaked Corn"
+usage = "mash"
+dose = { pct = 10 }
+level = "out_of_style"
+note = "5D names no adjunct (German Pils is an all-malt beer)"
+
+[[case]]
+id = "a05"
+style = "18A"
+kind = "fermentable"
+producer = ""
+name = "Honey"
+usage = "boil"
+dose = { pct = 12 }
+level = "typical"
+note = "b12's recipe style: 18A names Honey ('sugar adjuncts')"
+
+[[case]]
+id = "a06"
+style = "specialty-honey-beer"
+kind = "fermentable"
+producer = ""
+name = "Honey"
+usage = "boil"
+dose = { pct = 15 }
+level = "typical"
+note = "the BA style requires honey (reviewed sugar row); rated although it has no sensory rows"
+
+[[case]]
+id = "a07"
+style = "mexican-style-amber-lager"
+kind = "fermentable"
+producer = ""
+name = "Flaked Corn"
+usage = "mash"
+dose = { pct = 15 }
+level = "typical"
+note = "b22: the BA style names corn and rice"
+
+# ------------------------------------------------------------------ f · fermentable_style bump (A8)
+[[case]]
+id = "f01"
+style = "6A"
+kind = "fermentable"
+producer = "Weyermann"
+name = "Munich Malt Type 2"
+usage = "mash"
+dose = { pct = 50 }
+level = "typical"
+note = "b09: a kilned malt drives no sensation (allowed), and Weyermann lists it for Maerzen: bumped to typical"
+
+[[case]]
+id = "f02"
+style = "26B"
+kind = "fermentable"
+producer = "Weyermann"
+name = "Munich Malt Type 2"
+usage = "mash"
+dose = { pct = 17 }
+level = "allowed"
+note = "b10: the same malt, not listed for 26B in ref.fermentable_style: no bump"
+
+[[case]]
+id = "f03"
+style = "21A"
+kind = "hop"
+producer = ""
+name = "Magnum"
+usage = "boil"
+dose = { minutes = 60, ibu = 55 }
+level = "allowed"
+note = "bittering only, 55 IBU inside 40-70; hops are never bumped"
+
+[[case]]
+id = "f04"
+style = "5D"
+kind = "yeast"
+producer = "Fermentis"
+name = "SafLager W-34/70"
+usage = "ferment"
+dose = { ferm_c = 12 }
+level = "allowed"
+note = "a lager yeast: esters none, phenols none, inside 5D; yeasts are never bumped"
+
+# ------------------------------------------------------------------ h · hop character
+[[case]]
+id = "h01"
+style = "11B"
+kind = "hop"
+producer = ""
+name = "East Kent Golding"
+usage = "whirlpool"
+dose = { g_per_l = 1.5 }
+level = "typical"
+note = "floral matches 11B's 'floral, earthy, resiny, or fruity'; 0.013 mL/L oil is medium-low, under 11B's medium"
+
+[[case]]
+id = "h02"
+style = "5D"
+kind = "hop"
+producer = ""
+name = "Citra"
+usage = "whirlpool"
+dose = { g_per_l = 1.5 }
+level = "out_of_style"
+note = "citrus/tropical vs 5D's 'flowery, spicy, or herbal hops': wrong character"
+
+[[case]]
+id = "h03"
+style = "5D"
+kind = "hop"
+producer = ""
+name = "Saaz"
+usage = "whirlpool"
+dose = { g_per_l = 2.5 }
+level = "typical"
+note = "herbal matches 5D; 0.015 mL/L oil is medium-low, under 5D's medium-high"
+
+[[case]]
+id = "h04"
+style = "26B"
+kind = "hop"
+producer = ""
+name = "Styrian Golding"
+usage = "boil"
+dose = { minutes = 10, g_per_l = 1.0, ibu = 20 }
+level = "allowed"
+note = "pepper is a child of 26B's 'spicy' (match 0.5, allowed); 0.0075 mL/L oil is very low, 20 IBU inside 15-25"
+
+# ------------------------------------------------------------------ y · yeast character
+[[case]]
+id = "y01"
+style = "10A"
+kind = "yeast"
+producer = "Lallemand"
+name = "Munich Classic"
+usage = "ferment"
+dose = { ferm_c = 19 }
+level = "typical"
+note = "weizen yeast: banana matches 10A's esters; phenols medium; esters medium-low are one level under 10A's min medium, which the one-level tolerance allows"
+
+[[case]]
+id = "y02"
+style = "10A"
+kind = "yeast"
+producer = "Fermentis"
+name = "SafAle US-05"
+usage = "ferment"
+dose = { ferm_c = 19 }
+level = "out_of_style"
+note = "clean ale yeast: esters very low and phenols none, more than one level below 10A's medium (min): too little banana and clove"
+
+[[case]]
+id = "y03"
+style = "26B"
+kind = "yeast"
+producer = "Lallemand"
+name = "Abbaye"
+usage = "ferment"
+dose = { ferm_c = 21 }
+level = "typical"
+note = "Belgian yeast: spicy matches 26B's phenols; phenols medium at 26B's max; esters medium-low, one level under 26B's medium (tolerated)"
+
+[[case]]
+id = "y04"
+style = "15B"
+kind = "yeast"
+producer = "Fermentis"
+name = "SafAle S-04"
+usage = "ferment"
+dose = { ferm_c = 18 }
+level = "typical"
+note = "b05: fruity matches 15B's esters; medium-low is at 15B's max"
+
+[[case]]
+id = "y05"
+style = "17C"
+kind = "yeast"
+producer = "Lallemand"
+name = "Windsor"
+usage = "ferment"
+dose = { ferm_c = 18 }
+level = "allowed"
+note = "b19: fruity is the parent of 17C's 'dried-fruit' (match 0.5); esters medium-low under 17C's medium"
+
+[[case]]
+id = "y06"
+style = "18A"
+kind = "yeast"
+producer = "Lallemand"
+name = "Belle Saison"
+usage = "ferment"
+dose = { ferm_c = 24 }
+level = "out_of_style"
+note = "saison yeast in a clean ale: peppery phenols where 18A allows none"
+
+[[case]]
+id = "y07"
+style = "21A"
+kind = "yeast"
+producer = "Lallemand"
+name = "New England"
+usage = "ferment"
+dose = { ferm_c = 19 }
+level = "out_of_style"
+note = "a fruity yeast: esters medium-low, above 21A's 'Low esters optional' (max low)"
+
+[[case]]
+id = "y08"
+style = "25B"
+kind = "yeast"
+producer = "Lallemand"
+name = "Belle Saison"
+usage = "ferment"
+dose = { ferm_c = 26 }
+level = "typical"
+note = "b11: citrus and pepper match 25B; warm (26 C) esters medium and phenols medium-high, inside 25B"
+
+# ------------------------------------------------------------------ t · transforming and specialty sensations
+[[case]]
+id = "t01"
+style = "21A"
+kind = "yeast"
+producer = "Fermentis"
+name = "SafBrew BR-8"
+usage = "ferment"
+dose = { ferm_c = 20 }
+level = "changes_style"
+note = "brett yeast: brett funk is transforming and 21A is silent on it (a wild specialty, 28A)"
+
+[[case]]
+id = "t02"
+style = "23A"
+kind = "yeast"
+producer = "Lallemand"
+name = "Philly Sour"
+usage = "ferment"
+dose = { ferm_c = 22 }
+level = "typical"
+note = "23A wants sourness; stone-fruit matches 23A's esters; warm esters medium at 23A's max"
+
+[[case]]
+id = "t03"
+style = "18B"
+kind = "yeast"
+producer = "Lallemand"
+name = "Philly Sour"
+usage = "ferment"
+dose = { ferm_c = 22 }
+level = "changes_style"
+note = "sourness is transforming and 18B is silent on it: a sour pale ale is another style"
+
+[[case]]
+id = "t04"
+style = "6A"
+kind = "fermentable"
+producer = "Weyermann"
+name = "Beech Smoked Barley Malt"
+usage = "mash"
+dose = { pct = 20 }
+level = "out_of_style"
+note = "smoke is a specialty sensation and 6A is silent on it: a smoked Maerzen (Rauchbier, 6B)"
+
+[[case]]
+id = "t05"
+style = "10A"
+kind = "fermentable"
+producer = "Weyermann"
+name = "Oak Smoked Wheat Malt"
+usage = "mash"
+dose = { pct = 20 }
+level = "out_of_style"
+note = "specialty smoke on 10A; Weyermann lists it for 10A, but the bump only lifts allowed, never out_of_style"
+
+# ------------------------------------------------------------------ i · intensity cut points and style ranges
+[[case]]
+id = "i01"
+style = "15A"
+kind = "fermentable"
+producer = "Weyermann"
+name = "Roasted Barley"
+usage = "mash"
+dose = { pct = 5 }
+level = "out_of_style"
+note = "roast index 5750 is medium, above 15A's low roast: too much"
+
+[[case]]
+id = "i02"
+style = "15A"
+kind = "fermentable"
+producer = "Weyermann"
+name = "Roasted Barley"
+usage = "mash"
+dose = { pct = 2 }
+level = "typical"
+note = "roast index 2300 is low, at 15A's max; coffee/roast matches"
+
+[[case]]
+id = "i03"
+style = "15B"
+kind = "fermentable"
+producer = "Weyermann"
+name = "Roasted Barley"
+usage = "mash"
+dose = { pct = 10 }
+level = "typical"
+note = "the classic dry-stout dose: roast index 11500 is medium, at 15B's max; coffee/roast matches"
+
+[[case]]
+id = "i04"
+style = "15B"
+kind = "fermentable"
+producer = "Weyermann"
+name = "Roasted Barley"
+usage = "mash"
+dose = { pct = 15 }
+level = "out_of_style"
+note = "roast index 17250 is high, above 15B's medium: too much"
+
+[[case]]
+id = "i05"
+style = "26B"
+kind = "fermentable"
+producer = "Weyermann"
+name = "Carafa Special Type 2"
+usage = "mash"
+dose = { pct = 2 }
+level = "out_of_style"
+note = "roast index 2300 is low; 26B: 'Never roasted or burnt'"
+
+[[case]]
+id = "i06"
+style = "19C"
+kind = "fermentable"
+producer = "Viking Malt"
+name = "Chocolate Dark Malt"
+usage = "mash"
+dose = { pct = 5 }
+level = "typical"
+note = "b20: chocolate matches 19C's roast; index 4500 is medium-low, under 19C's medium"
+
+[[case]]
+id = "i07"
+style = "18B"
+kind = "hop"
+producer = ""
+name = "Galaxy"
+usage = "dry_hop"
+dose = { g_per_l = 8.0 }
+level = "out_of_style"
+note = "IPA-level dry hop: 0.32 mL/L oil is very high, above 18B's medium-high"
+
+[[case]]
+id = "i08"
+style = "1B"
+kind = "hop"
+producer = ""
+name = "Magnum"
+usage = "boil"
+dose = { minutes = 60, ibu = 30 }
+level = "out_of_style"
+note = "30 IBU is above 1B's 8-18: too bitter"
+
+[[case]]
+id = "i09"
+style = "18A"
+kind = "fermentable"
+producer = "Weyermann"
+name = "Caraaroma"
+usage = "mash"
+dose = { pct = 5, srm = 9 }
+level = "out_of_style"
+note = "9 SRM is above 18A's 3-6: too dark"
+
+# ------------------------------------------------------------------ u · not rated, needs review, no dose
+[[case]]
+id = "u01"
+style = "21B"
+kind = "hop"
+producer = ""
+name = "Citra"
+usage = "dry_hop"
+dose = { g_per_l = 8.0 }
+note = "not rated: 21B (Specialty IPA) has no reviewed envelope"
+
+[[case]]
+id = "u03"
+style = "18B"
+kind = "hop"
+producer = ""
+name = "Simcoe"
+usage = "whirlpool"
+dose = {}
+level = "typical"
+note = "citrus/pine match 18B; dose not given, so the dose check is skipped and the because says so"

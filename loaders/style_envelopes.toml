@@ -1,0 +1,2402 @@
+# Style envelopes for the 26 s3 styles. A DRAFT written by `python -m loaders.style_envelopes
+# --extract`: the D2 model read each style's guideline text, code checked the answer. Nothing here
+# is in `ref` until you review a style and set `reviewed = true`, then run
+# `python -m loaders.style_envelopes`.
+#
+# To review a style: read each [[style.sensory]] against the guideline text (the `quote` must say
+# what min/max claim), fix min/max (scale: none, very low, low, medium-low, medium, medium-high,
+# high, very high), fix `characters` (tag names), and replace every word under `unknown` by a
+# tag name, an ingredient written "producer|name" ("|Flaked Rice" has no producer), or by adding
+# a synonym to loaders/style_fit_vocab.toml. Empty `unknown` and `problems` first.
+# An optional [[style.rule]] (ingredient "producer|name" or tag; level; usage; quote) loads into
+# ref.style_rule.
+
+[[style]]
+code = "10A"
+name = "Weissbier"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 2 }
+problems = []
+
+[[style.sensory]]   # fix 1
+dimension = "esters"
+min = "medium"
+max = "high"
+characters = ["banana"]
+unknown = []
+quote = "Moderate to strong esters and phenols, typically banana and clove, often well balanced and typically stronger than the malt."
+
+[[style.sensory]]   # fix 2
+dimension = "phenols"
+min = "medium"
+max = "high"
+characters = ["clove", "vanilla"]
+unknown = []
+quote = "Moderate to strong esters and phenols, typically banana and clove, often well balanced and typically stronger than the malt."
+
+[[style.sensory]]
+dimension = "malt"
+min = "low"
+max = "medium"
+characters = ["bready"]
+unknown = []
+quote = "Low to moderate soft, somewhat bready, doughy, or grainy wheat flavor supported by the slight Pils malt grainy sweetness."
+
+[[style.sensory]]
+dimension = "sweetness"
+min = "very low"
+max = "very low"
+characters = []
+unknown = []
+quote = "Low to moderate soft, somewhat bready, doughy, or grainy wheat flavor supported by the slight Pils malt grainy sweetness."
+
+[[style.sensory]]   # fix 4
+dimension = "dryness"
+min = "medium-high"
+max = "medium-high"
+characters = []
+unknown = []
+quote = "Wellrounded, flavorful palate with a relatively dry finish."
+
+[[style.sensory]]   # fix 5
+dimension = "body"
+min = "medium-low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Medium-light to medium body; never heavy."
+
+[[style.sensory]]   # fix 6
+dimension = "hop_aroma"
+min = "none"
+max = "low"
+characters = ["floral", "spicy", "herbal"]
+unknown = []
+quote = "Light floral, spicy, or herbal hops optional."
+
+[[style.sensory]]   # fix 7
+dimension = "hop_flavour"
+min = "none"
+max = "very low"
+characters = ["floral", "spicy", "herbal"]
+unknown = []
+quote = "Very low floral, spicy, or herbal hop flavor optional."
+
+[[style.ingredient]]   # fix 8
+tag = "wheat"
+required = true
+unknown = []
+quote = "Weizen yeast, cool fermentation temperatures."
+
+[[style.ingredient]]   # fix 9
+ingredient = "Weyermann|Wheat Malt Pale"
+required = false
+unknown = []
+quote = "Malted wheat, at least half the grist."
+
+[[style.ingredient]]   # fix 9
+ingredient = "Viking Malt|Wheat Malt"
+required = false
+unknown = []
+quote = "Malted wheat, at least half the grist."
+
+[[style.ingredient]]   # fix 10
+role = "base"
+required = false
+unknown = []
+quote = "Pilsner malt."
+
+[[style]]
+code = "11B"
+name = "Best Bitter"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 1 }
+problems = []
+
+[[style.sensory]]
+dimension = "malt"
+min = "low"
+max = "medium"
+characters = ["bready", "biscuit", "toasty"]
+unknown = []
+quote = "Low to medium maltiness with a dry finish. The malt profile is typically bready, biscuity, or lightly toasty."
+
+[[style.sensory]]
+dimension = "caramel"
+min = "low"
+max = "medium"
+characters = ["caramel", "toffee"]
+unknown = []
+quote = "Low to moderate caramel or toffee flavors are optional."
+
+[[style.sensory]]
+dimension = "hop_flavour"
+min = "low"
+max = "medium"
+characters = ["earthy", "resin", "fruity", "floral"]
+unknown = []
+quote = "Moderate to low hop flavor, typically with an earthy, resiny, fruity, or floral character."
+
+[[style.sensory]]
+dimension = "hop_aroma"
+min = "none"
+max = "medium"
+characters = ["floral", "earthy", "resin", "fruity"]
+unknown = []
+quote = "Hop aroma can range from moderate to none, typically with a floral, earthy, resiny, or fruity character."
+
+[[style.sensory]]
+dimension = "esters"
+min = "medium-low"
+max = "medium-high"
+characters = ["fruity"]
+unknown = []
+quote = "Moderately low to moderately high fruity esters."
+
+[[style.sensory]]   # fix 1
+dimension = "dryness"
+min = "high"
+max = "high"
+characters = []
+unknown = []
+quote = "Low to medium maltiness with a dry finish."
+
+[[style.sensory]]
+dimension = "body"
+min = "medium-low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Medium-light to medium body."
+
+[[style.ingredient]]   # fix 2
+role = "base"
+required = false
+unknown = []
+quote = "Pale ale, amber, or crystal malts."
+
+[[style.ingredient]]   # fix 2
+role = "kilned"
+required = false
+unknown = []
+quote = "Pale ale, amber, or crystal malts."
+
+[[style.ingredient]]   # fix 2
+role = "crystal"
+required = false
+unknown = []
+quote = "Pale ale, amber, or crystal malts."
+
+[[style.ingredient]]   # fix 3
+role = "roast"
+required = false
+unknown = []
+quote = "May use a touch of caramel or dark malt for color adjustment."
+
+[[style.ingredient]]   # fix 4
+ingredient = "|Flaked Corn"
+required = false
+unknown = []
+quote = "May use corn or wheat."
+
+[[style.ingredient]]
+tag = "GB"
+required = false
+unknown = []
+quote = "English finishing hops are most traditional"
+
+[[style.ingredient]]   # fix 5
+tag = "english-ale"
+required = false
+unknown = []
+quote = "Characterful British yeast."
+
+[[style]]
+code = "15A"
+name = "Irish Red Ale"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 1 }
+problems = []
+
+[[style.sensory]]   # fix 1
+dimension = "malt"
+min = "low"
+max = "medium"
+characters = ["caramel", "toasty", "toffee"]
+unknown = []
+quote = "Low to moderate malt aroma, either neutral-grainy or with a lightly caramel, toast, or toffee character."
+
+[[style.sensory]]   # fix 2
+dimension = "caramel"
+min = "very low"
+max = "medium"
+characters = ["caramel", "toffee"]
+unknown = []
+quote = "Moderate to very little caramel malt flavor and sweetness, rarely with a light buttered toast or toffee-like quality."
+
+[[style.sensory]]   # fix 3
+dimension = "roast"
+min = "low"
+max = "low"
+characters = ["roast"]
+unknown = []
+quote = "The palate often is fairly neutral and grainy, or can take on a lightly toasty or biscuity note as it finishes with a light taste of roasted grain, which lends a characteristic dryness to the finish."
+
+[[style.sensory]]
+dimension = "hop_aroma"
+min = "none"
+max = "low"
+characters = ["earthy", "floral"]
+unknown = []
+quote = "Low earthy or floral hop aroma optional."
+
+[[style.sensory]]
+dimension = "hop_flavour"
+min = "none"
+max = "low"
+characters = ["earthy", "floral"]
+unknown = []
+quote = "A light earthy or floral hop flavor is optional."
+
+[[style.sensory]]
+dimension = "sweetness"
+min = "very low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Moderate to very little caramel malt flavor and sweetness, rarely with a light buttered toast or toffee-like quality."
+
+[[style.sensory]]
+dimension = "body"
+min = "medium-low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Medium-light to medium body, although examples containing low levels of diacetyl may have a slightly slick mouthfeel (not required)."
+
+[[style.sensory]]   # fix 4
+dimension = "dryness"
+min = "medium-high"
+max = "high"
+characters = []
+unknown = []
+quote = "Medium-dry to dry finish."
+
+[[style.sensory]]
+dimension = "esters"
+min = "none"
+max = "low"
+characters = []
+unknown = []
+quote = "Low esters optional."
+
+[[style.ingredient]]   # fix 5
+role = "roast"
+required = false
+unknown = []
+quote = "Generally has a bit of roasted barley or black malt to provide reddish color and dry roasted finish."
+
+[[style.ingredient]]   # fix 6
+role = "base"
+required = false
+unknown = []
+quote = "Pale base malt."
+
+[[style.ingredient]]   # fix 6
+role = "crystal"
+required = false
+unknown = []
+quote = "Caramel malts were historically imported and more expensive, so not all brewers would use them."
+
+[[style]]
+code = "15B"
+name = "Irish Stout"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 1 }
+problems = []
+
+[[style.sensory]]   # fix 1
+dimension = "roast"
+min = "medium"
+max = "medium"
+characters = ["roast", "coffee", "chocolate"]
+unknown = []
+quote = "Moderate roasted grain or malt flavor with a medium to high bitterness."
+
+[[style.sensory]]   # fix 2
+dimension = "sweetness"
+min = "none"
+max = "low"
+characters = []
+unknown = []
+quote = "The finish can be dry and coffee-like to moderately balanced with a touch of caramel or malty sweetness."
+
+[[style.sensory]]   # fix 3
+dimension = "dryness"
+min = "medium"
+max = "high"
+characters = []
+unknown = []
+quote = "The finish can be dry and coffee-like to moderately balanced with a touch of caramel or malty sweetness."
+
+[[style.sensory]]   # fix 4
+dimension = "body"
+min = "medium-low"
+max = "medium-high"
+characters = []
+unknown = []
+quote = "Medium-light to medium-full body, with a somewhat creamy character -- especially when served by nitro pour."
+
+[[style.sensory]]   # fix 5
+dimension = "esters"
+min = "none"
+max = "medium-low"
+characters = ["fruity"]
+unknown = []
+quote = "Medium-low esters optional."
+
+[[style.sensory]]
+dimension = "hop_aroma"
+min = "none"
+max = "low"
+characters = ["earthy", "floral"]
+unknown = []
+quote = "Low earthy or floral hop aroma optional."
+
+[[style.sensory]]
+dimension = "hop_flavour"
+min = "none"
+max = "medium"
+characters = ["earthy"]
+unknown = []
+quote = "Balancing factors may include some creaminess, medium-low fruitiness, or medium earthy hop flavor."
+
+[[style.ingredient]]   # fix 7
+role = "roast"
+required = true
+unknown = []
+quote = "Dark roasted malts or grains, enough to make the beer black in color."
+
+[[style.ingredient]]   # fix 8
+role = "base"
+required = false
+unknown = []
+quote = "Pale malt."
+
+[[style.ingredient]]   # fix 9
+role = "adjunct"
+required = false
+unknown = []
+quote = "May use unmalted grains for body."
+
+[[style]]
+code = "16A"
+name = "Sweet Stout"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 2 }
+problems = []
+
+[[style.sensory]]
+dimension = "roast"
+min = "medium"
+max = "high"
+characters = ["coffee", "chocolate", "roast"]
+unknown = []
+quote = "Dark, roasted, coffee or chocolate flavors dominate the palate."
+
+[[style.sensory]]
+dimension = "sweetness"
+min = "medium"
+max = "high"
+characters = []
+unknown = []
+quote = "Medium to high sweetness provides a counterpoint to the roasted character and bitterness, lasting into the finish."
+
+[[style.sensory]]   # fix 1
+dimension = "esters"
+min = "low"
+max = "medium-high"
+characters = ["fruity"]
+unknown = []
+quote = "Fruitiness can be low to moderately high."
+
+[[style.sensory]]   # fix 3
+dimension = "hop_aroma"
+min = "none"
+max = "low"
+characters = ["floral", "earthy"]
+unknown = []
+quote = "Low floral or earthy hop aroma optional."
+
+[[style.sensory]]   # fix 3
+dimension = "hop_flavour"
+min = "none"
+max = "low"
+characters = ["floral", "earthy"]
+unknown = []
+quote = "Low floral or earthy hop flavor optional."
+
+[[style.sensory]]   # fix 4
+dimension = "body"
+min = "medium-high"
+max = "high"
+characters = []
+unknown = []
+quote = "Medium-full to full-bodied and creamy."
+
+[[style.ingredient]]
+role = "base"
+required = true
+unknown = []
+quote = "Base of pale malt"
+
+[[style.ingredient]]   # fix 5
+role = "roast"
+required = true
+unknown = []
+quote = "with dark malts or grains"
+
+[[style.ingredient]]
+role = "adjunct"
+required = false
+unknown = []
+quote = "May use grain or sugar adjuncts"
+
+[[style.ingredient]]
+ingredient = "|Lactose"
+required = false
+unknown = []
+quote = "Lactose is frequently added"
+
+[[style]]
+code = "16B"
+name = "Oatmeal Stout"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 2 }
+problems = []
+
+[[style.sensory]]   # fix 2
+dimension = "roast"
+min = "low"
+max = "medium"
+characters = ["roast", "coffee", "chocolate"]
+unknown = []
+quote = "Similar to the aroma, with a mild roasted coffee, milk chocolate, or coffee-and-cream flavor, and low to moderately high fruitiness."
+
+[[style.sensory]]   # fix 3
+dimension = "esters"
+min = "low"
+max = "medium-high"
+characters = ["fruity"]
+unknown = []
+quote = "Low to medium-high fruitiness."
+
+[[style.sensory]]
+dimension = "hop_aroma"
+min = "none"
+max = "medium-low"
+characters = ["earthy", "floral"]
+unknown = []
+quote = "Medium-low earthy or floral hop aroma optional."
+
+[[style.sensory]]
+dimension = "hop_flavour"
+min = "none"
+max = "medium-low"
+characters = ["earthy", "floral"]
+unknown = []
+quote = "Medium-low earthy or floral hop flavor optional."
+
+[[style.sensory]]   # fix 4
+dimension = "sweetness"
+min = "medium-low"
+max = "medium-high"
+characters = []
+unknown = []
+quote = "Medium-sweet to medium-dry finish, which affects the perception of balance."
+
+[[style.sensory]]   # fix 4
+dimension = "dryness"
+min = "medium-low"
+max = "medium-high"
+characters = []
+unknown = []
+quote = "Medium-sweet to medium-dry finish, which affects the perception of balance."
+
+[[style.sensory]]   # fix 5
+dimension = "body"
+min = "medium-high"
+max = "high"
+characters = []
+unknown = []
+quote = "Medium-full to full body, with a smooth, silky, velvety, sometimes an almost oily slickness from the oatmeal."
+
+[[style.ingredient]]
+role = "base"
+required = true
+unknown = []
+quote = "Pale, caramel, and dark roasted malts (often chocolate) and grains"
+
+[[style.ingredient]]   # fix 6
+role = "crystal"
+required = false
+unknown = []
+quote = "Pale, caramel, and dark roasted malts (often chocolate) and grains"
+
+[[style.ingredient]]
+role = "roast"
+required = true
+unknown = []
+quote = "Pale, caramel, and dark roasted malts (often chocolate) and grains"
+
+[[style.ingredient]]   # fix 7
+ingredient = "|Flaked Oats"
+required = true
+unknown = []
+quote = "Oatmeal or malted oats (5-20% or more)"
+
+[[style.ingredient]]   # fix 10
+tag = "english-ale"
+required = false
+unknown = []
+quote = "English ale yeast"
+
+[[style]]
+code = "17C"
+name = "Wee Heavy"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 1 }
+problems = []
+
+[[style.sensory]]   # fix 1
+dimension = "malt"
+min = "high"
+max = "high"
+characters = ["bready", "toasty", "biscuit"]
+unknown = []
+quote = "Strong bready-toasty malt, with a high caramel and toffee aspect."
+
+[[style.sensory]]   # fix 2
+dimension = "caramel"
+min = "high"
+max = "high"
+characters = ["caramel", "toffee"]
+unknown = []
+quote = "Strong bready-toasty malt, with a high caramel and toffee aspect."
+
+[[style.sensory]]   # fix 3
+dimension = "roast"
+min = "none"
+max = "low"
+characters = ["roast"]
+unknown = []
+quote = "Faint hint of roast is sometimes noted."
+
+[[style.sensory]]
+dimension = "esters"
+min = "low"
+max = "medium"
+characters = ["dried-fruit"]
+unknown = []
+quote = "Low to moderate dark or dried fruit esters and alcohol."
+
+[[style.sensory]]   # fix 4
+dimension = "hop_aroma"
+min = "none"
+max = "very low"
+characters = ["earthy", "floral", "orange", "spicy"]
+unknown = []
+quote = "Very low earthy, floral, orange-citrus, or spicy hops optional."
+
+[[style.sensory]]   # fix 4
+dimension = "hop_flavour"
+min = "none"
+max = "medium-low"
+characters = ["earthy", "floral", "orange", "spicy"]
+unknown = []
+quote = "Medium-low hop flavor optional, with similar descriptors as the aroma."
+
+[[style.sensory]]   # fix 5
+dimension = "sweetness"
+min = "medium-low"
+max = "high"
+characters = []
+unknown = []
+quote = "giving a sweet to medium-dry finish."
+
+[[style.sensory]]   # fix 5
+dimension = "dryness"
+min = "low"
+max = "medium-high"
+characters = []
+unknown = []
+quote = "giving a sweet to medium-dry finish."
+
+[[style.sensory]]   # fix 5
+dimension = "body"
+min = "medium-high"
+max = "high"
+characters = []
+unknown = []
+quote = "Medium-full to full-bodied, sometimes with a thick, chewy, sometimes creamy, viscosity."
+
+[[style.ingredient]]   # fix 6
+role = "base"
+required = false
+unknown = []
+quote = "Scottish pale ale malt"
+
+[[style.ingredient]]   # fix 6
+role = "adjunct"
+required = false
+unknown = []
+quote = "a wide range of other ingredients are possible, including adjuncts"
+
+[[style.ingredient]]   # fix 6
+role = "crystal"
+required = false
+unknown = []
+quote = "Some may use crystal malt or darker grains for color."
+
+[[style.ingredient]]   # fix 6
+role = "roast"
+required = false
+unknown = []
+quote = "Some may use crystal malt or darker grains for color."
+
+[[style]]
+code = "18B"
+name = "American Pale Ale"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 2 }
+problems = []
+
+[[style.sensory]]   # fix 1
+dimension = "hop_aroma"
+min = "medium"
+max = "medium-high"
+characters = ["citrus", "floral", "pine", "resin", "spicy", "tropical", "stone-fruit", "berry", "melon"]
+unknown = []
+quote = "Moderate to moderately-high hop aroma from American or New World hop varieties with a wide range of possible characteristics, including citrus, floral, pine, resin, spice, tropical fruit, stone fruit, berry, or melon."
+
+[[style.sensory]]   # fix 2
+dimension = "hop_flavour"
+min = "medium"
+max = "medium-high"
+characters = ["citrus", "floral", "pine", "resin", "spicy", "tropical", "stone-fruit", "berry", "melon"]
+unknown = []
+quote = "Hop and malt character similar to aroma (same intensities and descriptors apply)."
+
+[[style.sensory]]   # fix 1
+dimension = "malt"
+min = "low"
+max = "medium"
+characters = ["bready", "toasty", "biscuit", "caramel"]
+unknown = []
+quote = "Low to moderate neutral to grainy maltiness supports the hop presentation, and can show low amounts of specialty malt character (e.g., bread, toast, biscuit, caramel)."
+
+[[style.sensory]]
+dimension = "esters"
+min = "none"
+max = "medium"
+characters = ["fruity"]
+unknown = []
+quote = "Fruity esters optional, up to moderate in strength."
+
+[[style.sensory]]   # fix 4
+dimension = "phenols"
+min = "none"
+max = "none"
+characters = []
+unknown = []
+quote = "Clean fermentation profile."
+
+[[style.sensory]]
+dimension = "caramel"
+min = "none"
+max = "low"
+characters = ["caramel"]
+unknown = []
+quote = "Caramel flavors are often absent or fairly restrained, but are acceptable as long as they don't clash with the hops."
+
+[[style.sensory]]   # fix 5
+dimension = "dryness"
+min = "medium"
+max = "high"
+characters = []
+unknown = []
+quote = "Medium to dry finish."
+
+[[style.sensory]]
+dimension = "body"
+min = "medium-low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Medium-light to medium body."
+
+[[style.ingredient]]   # fix 6
+role = "base"
+required = false
+unknown = []
+quote = "Neutral pale malt."
+
+[[style.ingredient]]   # fix 6
+role = "crystal"
+required = false
+unknown = []
+quote = "Small amounts of various specialty malts."
+
+[[style.ingredient]]   # fix 8
+tag = "US"
+required = false
+unknown = []
+quote = "American or New World hops."
+
+[[style.ingredient]]   # fix 8
+tag = "NZ"
+required = false
+unknown = []
+quote = "American or New World hops."
+
+[[style.ingredient]]   # fix 8
+tag = "AU"
+required = false
+unknown = []
+quote = "American or New World hops."
+
+[[style.ingredient]]   # fix 9
+tag = "american-ale"
+required = false
+unknown = []
+quote = "Neutral to lightly fruity American or English ale yeast."
+
+[[style.ingredient]]   # fix 9
+tag = "english-ale"
+required = false
+unknown = []
+quote = "Neutral to lightly fruity American or English ale yeast."
+
+[[style]]
+code = "19C"
+name = "American Brown Ale"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 1 }
+problems = []
+
+[[style.sensory]]
+dimension = "malt"
+min = "medium"
+max = "medium-high"
+characters = ["chocolate", "caramel", "nutty", "toasty"]
+unknown = []
+quote = "Medium to moderately-high malty-sweet or maltyrich flavor with chocolate, caramel, nutty, or toasty malt complexity"
+
+[[style.sensory]]   # fix 1
+dimension = "caramel"
+min = "medium"
+max = "medium-high"
+characters = ["caramel"]
+unknown = []
+quote = "Medium to moderately-high malty-sweet or maltyrich flavor with chocolate, caramel, nutty, or toasty malt complexity"
+
+[[style.sensory]]   # fix 2
+dimension = "roast"
+min = "low"
+max = "medium"
+characters = ["chocolate"]
+unknown = []
+quote = "Should not have a roasted character suggestive of a Porter or Stout."
+
+[[style.sensory]]   # fix 3
+dimension = "hop_flavour"
+min = "low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Light to moderate hop flavor, sometimes citrusy, fruity, or tropical, although any hop flavor that complements the malt is acceptable."
+
+[[style.sensory]]   # fix 3
+dimension = "hop_aroma"
+min = "low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Hop aroma is typically low to moderate, of almost any type that complements the malt."
+
+[[style.sensory]]
+dimension = "esters"
+min = "very low"
+max = "medium"
+characters = ["fruity"]
+unknown = []
+quote = "Very low to moderate fruity esters."
+
+[[style.sensory]]
+dimension = "body"
+min = "medium"
+max = "medium-high"
+characters = []
+unknown = []
+quote = "Medium to medium-full body."
+
+[[style.sensory]]   # fix 4
+dimension = "dryness"
+min = "medium"
+max = "medium-high"
+characters = []
+unknown = []
+quote = "Medium to medium-dry finish with an aftertaste of both malt and hops."
+
+[[style.ingredient]]   # fix 5
+role = "base"
+required = false
+unknown = []
+quote = "Pale malt, plus crystal and darker malts (typically chocolate)."
+
+[[style.ingredient]]   # fix 5
+role = "crystal"
+required = false
+unknown = []
+quote = "Pale malt, plus crystal and darker malts (typically chocolate)."
+
+[[style.ingredient]]   # fix 5
+role = "roast"
+required = false
+unknown = []
+quote = "Pale malt, plus crystal and darker malts (typically chocolate)."
+
+[[style.ingredient]]   # fix 7
+tag = "US"
+required = false
+unknown = []
+quote = "American hops are typical, but continental or New World hops can also be used."
+
+[[style]]
+code = "1B"
+name = "American Lager"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 2 }
+problems = []
+
+[[style.sensory]]
+dimension = "malt"
+min = "low"
+max = "medium-low"
+characters = []
+unknown = []
+quote = "Relatively neutral palate with a crisp, dry finish and a moderately-low to low grainy or corn-like flavor that might be perceived as sweetness due to the low bitterness."
+
+[[style.sensory]]
+dimension = "hop_aroma"
+min = "none"
+max = "low"
+characters = ["spicy", "floral"]
+unknown = []
+quote = "Light spicy or floral hop aroma optional."
+
+[[style.sensory]]
+dimension = "hop_flavour"
+min = "none"
+max = "medium-low"
+characters = ["floral", "spicy", "herbal"]
+unknown = []
+quote = "Moderately low hop flavor optional, with a floral, spicy, or herbal quality, if strong enough to distinguish."
+
+[[style.sensory]]
+dimension = "dryness"
+min = "high"
+max = "high"
+characters = []
+unknown = []
+quote = "Relatively neutral palate with a crisp, dry finish and a moderately-low to low grainy or corn-like flavor that might be perceived as sweetness due to the low bitterness."
+
+[[style.sensory]]
+dimension = "body"
+min = "low"
+max = "medium-low"
+characters = []
+unknown = []
+quote = "Low to medium-low body."
+
+[[style.sensory]]   # fix 1
+dimension = "esters"
+min = "none"
+max = "low"
+characters = []
+unknown = []
+quote = "While a clean fermentation profile is desirable, a light amount of yeast character is not a fault."
+
+[[style.sensory]]   # fix 1
+dimension = "phenols"
+min = "none"
+max = "none"
+characters = []
+unknown = []
+quote = "Clean fermentation profile."
+
+[[style.ingredient]]   # fix 2
+role = "base"
+required = false
+unknown = []
+quote = "Two- or six-row barley"
+
+[[style.ingredient]]   # fix 3
+ingredient = "|Flaked Rice"
+required = false
+unknown = []
+quote = "up to 40% rice or corn as adjuncts"
+
+[[style.ingredient]]   # fix 3
+ingredient = "|Flaked Corn"
+required = false
+unknown = []
+quote = "up to 40% rice or corn as adjuncts"
+
+[[style.ingredient]]   # fix 4
+tag = "lager"
+required = true
+unknown = []
+quote = "Lager yeast."
+
+[[style]]
+code = "1C"
+name = "Cream Ale"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 2 }
+problems = []
+
+[[style.sensory]]
+dimension = "malt"
+min = "low"
+max = "medium-low"
+characters = []
+unknown = []
+quote = "Medium-low to low malt notes, with a sweet, corn-like aroma."
+
+[[style.sensory]]
+dimension = "hop_aroma"
+min = "none"
+max = "medium-low"
+characters = ["floral", "spicy", "herbal"]
+unknown = []
+quote = "Medium-low hop aroma optional, using any variety but floral, spicy, or herbal notes are most common."
+
+[[style.sensory]]
+dimension = "esters"
+min = "none"
+max = "low"
+characters = ["fruity"]
+unknown = []
+quote = "Low fruity esters optional."
+
+[[style.sensory]]   # fix 2
+dimension = "phenols"
+min = "none"
+max = "none"
+characters = []
+unknown = []
+quote = "Clean fermentation profile, but low fruity esters are optional."
+
+[[style.sensory]]
+dimension = "sweetness"
+min = "low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Low to moderate malty sweetness, varying with gravity and attenuation."
+
+[[style.sensory]]
+dimension = "hop_flavour"
+min = "low"
+max = "medium-low"
+characters = ["floral", "spicy", "herbal"]
+unknown = []
+quote = "Low to medium-low hop flavor of any variety, but typically floral, spicy, or herbal."
+
+[[style.sensory]]
+dimension = "body"
+min = "low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Generally light and crisp, although body can reach medium."
+
+[[style.sensory]]   # fix 3
+dimension = "dryness"
+min = "medium-low"
+max = "high"
+characters = []
+unknown = []
+quote = "Finish can vary from somewhat light, dry, and crisp to faintly sweet."
+
+[[style.ingredient]]   # fix 4
+role = "base"
+required = false
+unknown = []
+quote = "American six-row malt, or a combination of six-row and North American two-row."
+
+[[style.ingredient]]   # fix 5
+ingredient = "|Flaked Corn"
+required = false
+unknown = []
+quote = "Up to 20% maize in the mash"
+
+[[style.ingredient]]   # fix 6
+tag = "US"
+required = false
+unknown = []
+quote = "Any variety of hops, often rustic American or Continental."
+
+[[style.ingredient]]   # fix 7
+tag = "ale"
+required = false
+unknown = []
+quote = "Clean ale yeast, or a mix of ale and lager beer."
+
+[[style]]
+code = "21A"
+name = "American IPA"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 2 }
+problems = []
+
+[[style.sensory]]   # fix 1
+dimension = "hop_aroma"
+min = "high"
+max = "very high"
+characters = ["citrus", "floral", "pine", "resin", "spicy", "tropical", "stone-fruit", "berry", "melon"]
+unknown = []
+quote = "A prominent to intense hop aroma often featuring American or New World hop characteristics, such as citrus, floral, pine, resin, spice, tropical fruit, stone fruit, berry, or melon."
+
+[[style.sensory]]
+dimension = "malt"
+min = "low"
+max = "medium-low"
+characters = []
+unknown = []
+quote = "Low to medium-low clean, grainy maltiness supports the hop presentation."
+
+[[style.sensory]]   # fix 1
+dimension = "hop_flavour"
+min = "medium"
+max = "very high"
+characters = ["citrus", "floral", "pine", "resin", "spicy", "tropical", "stone-fruit", "berry", "melon"]
+unknown = []
+quote = "Medium to very high hop flavor (same descriptors as aroma)."
+
+[[style.sensory]]   # fix 3
+dimension = "caramel"
+min = "none"
+max = "low"
+characters = ["caramel"]
+unknown = []
+quote = "Low to medium-low clean and grainy maltiness, possibly with light caramel and toast flavors."
+
+[[style.sensory]]   # fix 5
+dimension = "dryness"
+min = "medium-high"
+max = "high"
+characters = []
+unknown = []
+quote = "Dry to medium-dry finish."
+
+[[style.sensory]]
+dimension = "esters"
+min = "none"
+max = "low"
+characters = []
+unknown = []
+quote = "Low esters optional."
+
+[[style.sensory]]   # fix 6
+dimension = "phenols"
+min = "none"
+max = "none"
+characters = []
+unknown = []
+quote = "Generally clean fermentation profile, but light fruitiness acceptable."
+
+[[style.sensory]]
+dimension = "body"
+min = "medium-low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Medium-light to medium body, with a smooth texture."
+
+[[style.ingredient]]   # fix 7
+role = "base"
+required = false
+unknown = []
+quote = "Pale base malt."
+
+[[style.ingredient]]   # fix 8
+tag = "american-ale"
+required = false
+unknown = []
+quote = "American or English yeast with a clean or slightly fruity profile."
+
+[[style.ingredient]]   # fix 8
+tag = "english-ale"
+required = false
+unknown = []
+quote = "American or English yeast with a clean or slightly fruity profile."
+
+[[style.ingredient]]
+role = "crystal"
+required = false
+unknown = []
+quote = "Restrained use of crystal malts."
+
+[[style.ingredient]]   # fix 9
+tag = "US"
+required = false
+unknown = []
+quote = "Often uses American or New World hops but any varieties are acceptable"
+
+[[style.ingredient]]   # fix 9
+tag = "NZ"
+required = false
+unknown = []
+quote = "Often uses American or New World hops but any varieties are acceptable"
+
+[[style.ingredient]]   # fix 9
+tag = "AU"
+required = false
+unknown = []
+quote = "Often uses American or New World hops but any varieties are acceptable"
+
+[[style]]
+code = "21C"
+name = "Hazy IPA"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 2 }
+problems = []
+
+[[style.sensory]]   # fix 1
+dimension = "hop_aroma"
+min = "high"
+max = "very high"
+characters = ["stone-fruit", "tropical", "citrus", "fruity"]
+unknown = []
+quote = "Intense hop aroma, with stone fruit, tropical fruit, citrus, or other fruity qualities; not grassy or herbal."
+
+[[style.sensory]]   # fix 1
+dimension = "malt"
+min = "low"
+max = "medium"
+characters = ["bready"]
+unknown = []
+quote = "Low to medium malt flavor, same descriptors as aroma."
+
+[[style.sensory]]
+dimension = "esters"
+min = "none"
+max = "medium"
+characters = ["fruity"]
+unknown = []
+quote = "Neutral to fruity fermentation profile, supportive of the hops."
+
+[[style.sensory]]   # fix 2
+dimension = "hop_flavour"
+min = "high"
+max = "very high"
+characters = ["stone-fruit", "tropical", "citrus", "fruity"]
+unknown = []
+quote = "High to very high fruity hop flavor, same descriptors as aroma."
+
+[[style.sensory]]   # fix 3
+dimension = "caramel"
+min = "none"
+max = "none"
+characters = []
+unknown = []
+quote = "Clean, neutral, grainy, or lightly bready malt in the background; no caramel or toast."
+
+[[style.sensory]]   # fix 4
+dimension = "dryness"
+min = "medium-low"
+max = "medium"
+characters = []
+unknown = []
+quote = "often masked by the fuller body and soft, off-dry to medium finish."
+
+[[style.sensory]]   # fix 4
+dimension = "body"
+min = "medium"
+max = "medium-high"
+characters = []
+unknown = []
+quote = "Medium to medium-full body."
+
+[[style.ingredient]]   # fix 5
+ingredient = "|Flaked Oats"
+required = false
+unknown = []
+quote = "Grist like an American IPA, but with more flaked grains and less caramel or specialty malts."
+
+[[style.ingredient]]   # fix 5
+ingredient = "|Flaked Barley"
+required = false
+unknown = []
+quote = "Grist like an American IPA, but with more flaked grains and less caramel or specialty malts."
+
+[[style.ingredient]]   # fix 6
+tag = "US"
+required = false
+unknown = []
+quote = "American or New World hops with fruity characteristics."
+
+[[style.ingredient]]   # fix 6
+tag = "NZ"
+required = false
+unknown = []
+quote = "American or New World hops with fruity characteristics."
+
+[[style.ingredient]]   # fix 6
+tag = "AU"
+required = false
+unknown = []
+quote = "American or New World hops with fruity characteristics."
+
+[[style.ingredient]]   # fix 7
+tag = "ale"
+required = false
+unknown = []
+quote = "Neutral to estery yeast."
+
+[[style]]
+code = "23A"
+name = "Berliner Weisse"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 2 }
+problems = []
+
+[[style.sensory]]
+dimension = "sourness"
+min = "medium"
+max = "medium-high"
+characters = []
+unknown = []
+quote = "A moderate to moderately-high sharply sour character is dominant."
+
+[[style.sensory]]   # fix 1
+dimension = "esters"
+min = "none"
+max = "medium"
+characters = ["lemon", "orchard-fruit", "stone-fruit", "floral"]
+unknown = []
+quote = "Can have up to a moderately fruitiness, often lemon, tart apple, peach, or apricot, and a light floral note."
+
+[[style.sensory]]   # fix 2
+dimension = "malt"
+min = "low"
+max = "low"
+characters = ["bready"]
+unknown = []
+quote = "A light bread dough malt flavor supports the sourness, which shouldn't seem artificial."
+
+[[style.sensory]]   # fix 3
+dimension = "dryness"
+min = "very high"
+max = "very high"
+characters = []
+unknown = []
+quote = "Very dry finish."
+
+[[style.sensory]]
+dimension = "body"
+min = "low"
+max = "low"
+characters = []
+unknown = []
+quote = "Light body, but never thin."
+
+[[style.sensory]]   # fix 4
+dimension = "brett_funk"
+min = "none"
+max = "low"
+characters = ["fruity", "floral"]
+unknown = []
+quote = "Any Brett character is restrained, and is typically expressed as fruity and floral notes, not funky."
+
+[[style.sensory]]   # fix 5
+dimension = "hop_aroma"
+min = "none"
+max = "none"
+characters = []
+unknown = []
+quote = "No hop aroma."
+
+[[style.sensory]]   # fix 5
+dimension = "hop_flavour"
+min = "none"
+max = "none"
+characters = []
+unknown = []
+quote = "No hop flavor."
+
+[[style.ingredient]]   # fix 6
+role = "base"
+required = false
+unknown = []
+quote = "Pilsner malt."
+
+[[style.ingredient]]
+ingredient = "Viking Malt|Wheat Malt"
+required = false
+unknown = []
+quote = "Usually wheat malt, often at least half the grist"
+
+[[style.ingredient]]   # fix 6
+ingredient = "Weyermann|Wheat Malt Pale"
+required = false
+unknown = []
+quote = "Usually wheat malt, often at least half the grist"
+
+[[style.ingredient]]   # fix 7
+tag = "ale"
+required = false
+unknown = []
+quote = "A symbiotic co-fermentation with top-fermenting yeast and LAB provides the sharp sourness"
+
+[[style.ingredient]]   # fix 7
+tag = "sour"
+required = false
+unknown = []
+quote = "A symbiotic co-fermentation with top-fermenting yeast and LAB provides the sharp sourness"
+
+[[style.ingredient]]   # fix 7
+tag = "brett"
+required = false
+unknown = []
+quote = "German brewing scientists believe that Brett is essential to get the correct, fruity-floral flavor profile."
+
+[[style]]
+code = "25B"
+name = "Saison"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 1 }
+problems = []
+
+[[style.sensory]]   # fix 1
+dimension = "esters"
+min = "medium"
+max = "high"
+characters = ["citrus", "orchard-fruit", "stone-fruit"]
+unknown = []
+quote = "The fruity esters are moderate to high, and often have a citrus fruit, pome fruit, or stone fruit character."
+
+[[style.sensory]]   # fix 2
+dimension = "phenols"
+min = "low"
+max = "medium-high"
+characters = ["pepper"]
+unknown = []
+quote = "Low to moderately-high spicy notes are often like black pepper, not clove."
+
+[[style.sensory]]   # fix 3
+dimension = "spice"
+min = "none"
+max = "low"
+characters = []
+unknown = []
+quote = "Spices and herbs are uncommon, but allowable if they don't dominate."
+
+[[style.sensory]]   # fix 4
+dimension = "hop_aroma"
+min = "low"
+max = "medium"
+characters = ["spicy", "floral", "earthy", "fruity", "herbal"]
+unknown = []
+quote = "Hops are low to moderate and have a continental character (spicy, floral, earthy, or fruity)."
+
+[[style.sensory]]
+dimension = "malt"
+min = "low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Malt is low to medium, with a soft, grainy palate."
+
+[[style.sensory]]   # fix 4
+dimension = "hop_flavour"
+min = "low"
+max = "medium"
+characters = ["spicy", "floral", "earthy", "fruity", "herbal"]
+unknown = []
+quote = "hop flavor is low to medium, both with similar character as in the aroma (same descriptors apply)."
+
+[[style.sensory]]
+dimension = "dryness"
+min = "very high"
+max = "very high"
+characters = []
+unknown = []
+quote = "Very high attenuation, never with a sweet or heavy finish."
+
+[[style.sensory]]   # fix 5
+dimension = "body"
+min = "low"
+max = "medium-low"
+characters = []
+unknown = []
+quote = "Light to medium-low body."
+
+[[style.sensory]]   # fix 6
+dimension = "sourness"
+min = "none"
+max = "medium"
+characters = []
+unknown = []
+quote = "Sourness is totally optional, and if present at low to moderate levels, it may substitute somewhat for bitterness in the balance."
+
+[[style.ingredient]]   # fix 7
+role = "base"
+required = false
+unknown = []
+quote = "Pale base malt."
+
+[[style.ingredient]]   # fix 8
+role = "adjunct"
+required = false
+unknown = []
+quote = "Cereal grains, such as wheat, oats, spelt, or rye."
+
+[[style.ingredient]]   # fix 9
+tag = "DE"
+required = false
+unknown = []
+quote = "Continental hops."
+
+[[style.ingredient]]   # fix 9
+tag = "CZ"
+required = false
+unknown = []
+quote = "Continental hops."
+
+[[style.ingredient]]   # fix 9
+tag = "SI"
+required = false
+unknown = []
+quote = "Continental hops."
+
+[[style.ingredient]]   # fix 9
+tag = "FR"
+required = false
+unknown = []
+quote = "Continental hops."
+
+[[style.ingredient]]   # fix 10
+tag = "saison"
+required = true
+unknown = []
+quote = "Spicy-fruity Belgian Saison yeast."
+
+[[style]]
+code = "26B"
+name = "Belgian Dubbel"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 1 }
+problems = []
+
+[[style.sensory]]   # fix 1
+dimension = "malt"
+min = "medium"
+max = "medium-high"
+characters = ["chocolate", "caramel", "toasty"]
+unknown = []
+quote = "Moderate to moderately strong, rich malty aroma, with hints of chocolate, caramelized sugar, or toast."
+
+[[style.sensory]]   # fix 2
+dimension = "caramel"
+min = "low"
+max = "low"
+characters = ["caramel"]
+unknown = []
+quote = "Moderate to moderately strong, rich malty aroma, with hints of chocolate, caramelized sugar, or toast."
+
+[[style.sensory]]   # fix 3
+dimension = "roast"
+min = "none"
+max = "none"
+characters = []
+unknown = []
+quote = "Never roasted or burnt."
+
+[[style.sensory]]   # fix 4
+dimension = "esters"
+min = "medium"
+max = "medium"
+characters = ["dried-fruit", "orchard-fruit", "banana"]
+unknown = []
+quote = "Moderate fruity esters, often dark or dried fruit, especially raisins and plums, sometimes pome fruit or banana."
+
+[[style.sensory]]
+dimension = "phenols"
+min = "low"
+max = "medium"
+characters = ["spicy", "pepper"]
+unknown = []
+quote = "Low to moderate spicy, peppery phenols."
+
+[[style.sensory]]
+dimension = "hop_flavour"
+min = "none"
+max = "low"
+characters = ["spicy", "herbal", "floral"]
+unknown = []
+quote = "Hops typically absent, but can have a low spicy, herbal, or floral character."
+
+[[style.sensory]]
+dimension = "hop_aroma"
+min = "none"
+max = "low"
+characters = ["spicy", "herbal", "floral"]
+unknown = []
+quote = "Hops typically absent, but can have a low spicy, herbal, or floral character."
+
+[[style.sensory]]
+dimension = "sweetness"
+min = "low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Can taste somewhat sweet due to restrained bitterness, but the beers are actually fairly dry."
+
+[[style.sensory]]
+dimension = "body"
+min = "medium"
+max = "medium-high"
+characters = []
+unknown = []
+quote = "Smooth, medium to medium-full body."
+
+[[style.sensory]]   # fix 5
+dimension = "dryness"
+min = "medium-high"
+max = "medium-high"
+characters = []
+unknown = []
+quote = "Malty-rich, sometimes sweet flavor, that finishes moderately dry with a malty aftertaste accented by yeast esters and phenols."
+
+[[style.ingredient]]   # fix 6
+ingredient = "|Brown Candi Sugar"
+required = false
+unknown = []
+quote = "with caramelized sugar syrup or unrefined sugars and yeast providing much of the complexity"
+
+[[style.ingredient]]   # fix 7
+tag = "belgian"
+required = true
+unknown = []
+quote = "Spicy-estery Belgian yeast."
+
+[[style.ingredient]]   # fix 8
+tag = "DE"
+required = false
+unknown = []
+quote = "Continental hops."
+
+[[style.ingredient]]   # fix 8
+tag = "CZ"
+required = false
+unknown = []
+quote = "Continental hops."
+
+[[style.ingredient]]   # fix 8
+tag = "SI"
+required = false
+unknown = []
+quote = "Continental hops."
+
+[[style]]
+code = "31B"
+name = "Alternative Sugar Beer"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 1 }
+problems = []
+
+[[style.ingredient]]   # fix 1
+role = "sugar"
+required = true
+unknown = []
+quote = "A tasteful integration of sugar and beer, but still recognizable as beer."
+
+[[style.ingredient]]   # fix 2
+ingredient = "|Honey"
+required = false
+unknown = []
+quote = "Same as the base beer, except that some additional fermentables (e.g., honey, molasses) may add a flavor, which should be a pleasant, balanced combination with the beer."
+
+[[style]]
+code = "5D"
+name = "German Pils"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 2 }
+problems = []
+
+[[style.sensory]]   # fix 1
+dimension = "hop_aroma"
+min = "medium"
+max = "medium-high"
+characters = ["floral", "spicy", "herbal"]
+unknown = []
+quote = "Moderate to moderately-high flowery, spicy, or herbal hops."
+
+[[style.sensory]]   # fix 2
+dimension = "malt"
+min = "low"
+max = "medium"
+characters = ["honey", "bready", "biscuit"]
+unknown = []
+quote = "Low to medium grainy, sweet, or doughy malt character, often with a light honey and toasted cracker quality."
+
+[[style.sensory]]   # fix 1
+dimension = "hop_flavour"
+min = "medium"
+max = "medium-high"
+characters = ["floral", "spicy", "herbal"]
+unknown = []
+quote = "Malt and hop flavors similar to aroma (same descriptors and intensities)."
+
+[[style.sensory]]
+dimension = "dryness"
+min = "high"
+max = "high"
+characters = []
+unknown = []
+quote = "leading into a dry, crisp finish."
+
+[[style.sensory]]
+dimension = "body"
+min = "medium-low"
+max = "medium-low"
+characters = []
+unknown = []
+quote = "Medium-light body."
+
+[[style.sensory]]   # fix 3
+dimension = "esters"
+min = "none"
+max = "very low"
+characters = []
+unknown = []
+quote = "Clean fermentation profile."
+
+[[style.sensory]]   # fix 3
+dimension = "phenols"
+min = "none"
+max = "none"
+characters = []
+unknown = []
+quote = "Clean fermentation profile."
+
+[[style.ingredient]]   # fix 4
+role = "base"
+required = false
+unknown = []
+quote = "Continental Pilsner malt."
+
+[[style.ingredient]]   # fix 5
+tag = "DE"
+required = false
+unknown = []
+quote = "Traditional German hops."
+
+[[style.ingredient]]   # fix 6
+tag = "lager"
+required = true
+unknown = []
+quote = "Clean German lager yeast."
+
+[[style]]
+code = "6A"
+name = "Marzen"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 1 }
+problems = []
+
+[[style.sensory]]
+dimension = "malt"
+min = "medium"
+max = "high"
+characters = ["bready", "toasty"]
+unknown = []
+quote = "Moderate to high rich malt flavor often initially suggests sweetness, but the finish is moderately-dry to dry. Distinctive and complex maltiness often includes a bready, toasty aspect."
+
+[[style.sensory]]
+dimension = "hop_aroma"
+min = "none"
+max = "very low"
+characters = ["floral", "herbal", "spicy"]
+unknown = []
+quote = "Very low floral, herbal, or spicy hop aroma optional."
+
+[[style.sensory]]
+dimension = "hop_flavour"
+min = "none"
+max = "low"
+characters = ["floral", "herbal", "spicy"]
+unknown = []
+quote = "a low floral, herbal, or spicy hop flavor is optional"
+
+[[style.sensory]]   # fix 1
+dimension = "dryness"
+min = "medium-high"
+max = "high"
+characters = []
+unknown = []
+quote = "the finish is moderately-dry to dry"
+
+[[style.sensory]]   # fix 2
+dimension = "body"
+min = "medium"
+max = "medium"
+characters = []
+unknown = []
+quote = "Medium body, with a smooth, creamy texture that often suggests a fuller mouthfeel."
+
+[[style.sensory]]   # fix 3
+dimension = "caramel"
+min = "none"
+max = "none"
+characters = []
+unknown = []
+quote = "Noticeable sweet caramel, dry biscuit, or roasted flavors are inappropriate."
+
+[[style.sensory]]   # fix 3
+dimension = "roast"
+min = "none"
+max = "none"
+characters = []
+unknown = []
+quote = "Noticeable sweet caramel, dry biscuit, or roasted flavors are inappropriate."
+
+[[style.sensory]]   # fix 4
+dimension = "esters"
+min = "none"
+max = "very low"
+characters = []
+unknown = []
+quote = "Clean lager fermentation character."
+
+[[style.sensory]]   # fix 4
+dimension = "phenols"
+min = "none"
+max = "none"
+characters = []
+unknown = []
+quote = "Clean lager fermentation character."
+
+[[style.ingredient]]   # fix 5
+role = "kilned"
+required = false
+unknown = []
+quote = "Grist varies, although traditional German versions emphasized Munich malt."
+
+[[style]]
+code = "8B"
+name = "Schwarzbier"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 1 }
+problems = []
+
+[[style.sensory]]   # fix 1
+dimension = "malt"
+min = "low"
+max = "medium"
+characters = ["bready"]
+unknown = []
+quote = "Light to moderate malt flavor, which can have a clean, neutral character to a moderately rich, bread-malty quality."
+
+[[style.sensory]]   # fix 2
+dimension = "roast"
+min = "low"
+max = "medium"
+characters = ["roast", "coffee", "chocolate"]
+unknown = []
+quote = "Light to moderate roasted malt flavors can give a bitter chocolate palate that is never burnt."
+
+[[style.sensory]]   # fix 3
+dimension = "caramel"
+min = "none"
+max = "very low"
+characters = ["caramel"]
+unknown = []
+quote = "The malt can be clean and neutral or moderately rich and bready, and may have a hint of dark caramel."
+
+[[style.sensory]]
+dimension = "hop_flavour"
+min = "low"
+max = "medium"
+characters = ["spicy", "floral", "herbal"]
+unknown = []
+quote = "Light to moderate spicy, floral, or herbal hop flavor."
+
+[[style.sensory]]
+dimension = "hop_aroma"
+min = "none"
+max = "medium-low"
+characters = ["spicy", "floral", "herbal"]
+unknown = []
+quote = "A moderately low spicy, floral, or herbal hop aroma is optional."
+
+[[style.sensory]]   # fix 4
+dimension = "dryness"
+min = "high"
+max = "high"
+characters = []
+unknown = []
+quote = "Dry finish."
+
+[[style.sensory]]
+dimension = "sweetness"
+min = "none"
+max = "low"
+characters = []
+unknown = []
+quote = "Some residual sweetness is acceptable but not traditional."
+
+[[style.sensory]]
+dimension = "body"
+min = "medium-low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Medium-light to medium body."
+
+[[style.sensory]]   # fix 5
+dimension = "esters"
+min = "none"
+max = "very low"
+characters = []
+unknown = []
+quote = "Clean lager character."
+
+[[style.sensory]]   # fix 5
+dimension = "phenols"
+min = "none"
+max = "none"
+characters = []
+unknown = []
+quote = "Clean lager character."
+
+[[style.ingredient]]   # fix 6
+role = "kilned"
+required = false
+unknown = []
+quote = "German Munich malt and Pilsner malts for the base, with huskless dark roasted malts that add roast flavors without burnt flavors."
+
+[[style.ingredient]]   # fix 6
+role = "base"
+required = false
+unknown = []
+quote = "German Munich malt and Pilsner malts for the base, with huskless dark roasted malts that add roast flavors without burnt flavors."
+
+[[style.ingredient]]   # fix 6
+role = "roast"
+required = true
+unknown = []
+quote = "German Munich malt and Pilsner malts for the base, with huskless dark roasted malts that add roast flavors without burnt flavors."
+
+[[style.ingredient]]
+tag = "DE"
+required = false
+unknown = []
+quote = "German hop varieties"
+
+[[style.ingredient]]
+tag = "lager"
+required = false
+unknown = []
+quote = "clean German lager yeasts"
+
+[[style]]
+code = "mexican-style-amber-lager"
+name = "Mexican-Style Amber Lager"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 1 }
+problems = []
+
+[[style.sensory]]   # fix 1
+dimension = "malt"
+min = "medium-low"
+max = "medium-high"
+characters = ["bready"]
+unknown = []
+quote = "Medium-low to medium-high caramel and bready malt aroma and flavor"
+
+[[style.sensory]]   # fix 1
+dimension = "caramel"
+min = "medium-low"
+max = "medium-high"
+characters = ["caramel"]
+unknown = []
+quote = "Medium-low to medium-high caramel and bready malt aroma and flavor"
+
+[[style.sensory]]
+dimension = "roast"
+min = "none"
+max = "low"
+characters = []
+unknown = []
+quote = "light roast and light corn and/or rice flavors may be present"
+
+[[style.sensory]]
+dimension = "hop_flavour"
+min = "none"
+max = "low"
+characters = []
+unknown = []
+quote = "None to low with attributes typical of noble-type hops"
+
+[[style.sensory]]   # fix 2
+dimension = "hop_aroma"
+min = "none"
+max = "low"
+characters = []
+unknown = []
+quote = "None to low with attributes typical of noble-type hops"
+
+[[style.sensory]]
+dimension = "body"
+min = "low"
+max = "medium-low"
+characters = []
+unknown = []
+quote = "Light to medium-light body with light creaminess"
+
+[[style.sensory]]   # fix 3
+dimension = "dryness"
+min = "high"
+max = "high"
+characters = []
+unknown = []
+quote = "Medium to medium-high carbonation with a dry finish makes these beers very refreshing"
+
+[[style.sensory]]
+dimension = "esters"
+min = "none"
+max = "low"
+characters = ["fruity"]
+unknown = []
+quote = "low fruity esters may be present"
+
+[[style.sensory]]   # fix 4
+dimension = "phenols"
+min = "none"
+max = "none"
+characters = []
+unknown = []
+quote = "Clean fermentation profile; low fruity esters may be present; sulfur may be present at very low levels."
+
+[[style.ingredient]]   # fix 5
+ingredient = "|Flaked Corn"
+required = false
+unknown = []
+quote = "The presence of corn and/or rice to lighten body may be noticeable."
+
+[[style.ingredient]]   # fix 5
+ingredient = "|Flaked Rice"
+required = false
+unknown = []
+quote = "The presence of corn and/or rice to lighten body may be noticeable."
+
+[[style.ingredient]]   # fix 6
+role = "crystal"
+required = false
+unknown = []
+quote = "Addition of specialty malts may provide caramel or lightly toasted complexity to malt 4 profile."
+
+[[style]]
+code = "session-india-pale-ale"
+name = "Session India Pale Ale"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 1 }
+problems = []
+
+[[style.sensory]]
+dimension = "malt"
+min = "low"
+max = "medium"
+characters = []
+unknown = []
+quote = "A low to medium maltiness should be present in aroma and flavor."
+
+[[style.sensory]]
+dimension = "hop_aroma"
+min = "medium"
+max = "high"
+characters = []
+unknown = []
+quote = "Hop aroma and flavor are medium to high, exhibiting a wide range of attributes. Overall hop character is assertive."
+
+[[style.sensory]]
+dimension = "hop_flavour"
+min = "medium"
+max = "high"
+characters = []
+unknown = []
+quote = "Hop aroma and flavor are medium to high, exhibiting a wide range of attributes. Overall hop character is assertive."
+
+[[style.sensory]]   # fix 1
+dimension = "body"
+min = "low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Low to medium"
+
+[[style.sensory]]
+dimension = "esters"
+min = "low"
+max = "medium"
+characters = ["fruity"]
+unknown = []
+quote = "Fruity esters are low to medium."
+
+[[style.ingredient]]   # fix 2
+role = "base"
+required = false
+unknown = []
+quote = "A low to medium maltiness should be present in aroma and flavor."
+
+[[style]]
+code = "20C"
+name = "Imperial Stout"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 2 }
+problems = []
+
+[[style.sensory]]   # fix 1
+dimension = "roast"
+min = "low"
+max = "medium-high"
+characters = ["roast", "coffee", "chocolate", "acrid"]
+unknown = []
+quote = "Light to moderately strong roast can have a coffee, bittersweet or dark chocolate, cocoa, black licorice, tar, or slightly burnt grain quality"
+
+[[style.sensory]]   # fix 2
+dimension = "caramel"
+min = "low"
+max = "low"
+characters = ["caramel"]
+unknown = []
+quote = "sometimes with a light caramel sweetness or toasty maltiness"
+
+[[style.sensory]]   # fix 3
+dimension = "esters"
+min = "low"
+max = "medium-high"
+characters = ["dried-fruit", "berry"]
+unknown = []
+quote = "Low to moderately strong esters often perceived as dark or dried fruits like plums, prunes, figs, black currants, or raisins."
+
+[[style.sensory]]
+dimension = "hop_aroma"
+min = "very low"
+max = "medium-high"
+characters = []
+unknown = []
+quote = "Very low to fairly aggressive hops, often English or American in character."
+
+[[style.sensory]]   # fix 4
+dimension = "hop_flavour"
+min = "very low"
+max = "medium-high"
+characters = []
+unknown = []
+quote = "Like the aroma, a complex mix of roast, fruit, hops, and alcohol (same descriptors apply)."
+
+[[style.sensory]]   # fix 5
+dimension = "malt"
+min = "medium"
+max = "medium"
+characters = ["bready", "toasty", "caramel"]
+unknown = []
+quote = "The maltiness balances and supports the other flavors, and may have qualities of bread, toast, or caramel."
+
+[[style.sensory]]   # fix 6
+dimension = "dryness"
+min = "low"
+max = "medium-high"
+characters = []
+unknown = []
+quote = "The palate and finish can be fairly dry to moderately sweet, an impression that often changes with age."
+
+[[style.sensory]]
+dimension = "body"
+min = "high"
+max = "very high"
+characters = []
+unknown = []
+quote = "Full to very full-bodied and chewy, with a velvety, luscious texture."
+
+[[style.ingredient]]
+role = "base"
+required = true
+unknown = []
+quote = "Pale malt with significant roasted malts or grain"
+
+[[style.ingredient]]
+role = "roast"
+required = true
+unknown = []
+quote = "Pale malt with significant roasted malts or grain"
+
+[[style.ingredient]]
+role = "adjunct"
+required = false
+unknown = []
+quote = "Flaked adjuncts common"
+
+[[style.ingredient]]
+tag = "ale"
+required = false
+unknown = []
+quote = "American or English ale yeast and hops are typical"
+
+[[style.ingredient]]
+tag = "US"
+required = false
+unknown = []
+quote = "American or English ale yeast and hops are typical"
+
+[[style.ingredient]]   # fix 7
+tag = "GB"
+required = false
+unknown = []
+quote = "American or English ale yeast and hops are typical"
+
+[[style]]
+code = "18A"
+name = "Blonde Ale"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 1 }
+problems = []
+
+[[style.sensory]]   # fix 1
+dimension = "malt"
+min = "low"
+max = "medium"
+characters = ["bready"]
+unknown = []
+quote = "Light to moderate malty aroma, generally neutral or grainy, possibly with a light bread or caramel note."
+
+[[style.sensory]]
+dimension = "caramel"
+min = "none"
+max = "low"
+characters = ["caramel", "honey"]
+unknown = []
+quote = "Caramel flavors usually absent; if present, they are typically low-color caramel or honey notes."
+
+[[style.sensory]]   # fix 2
+dimension = "esters"
+min = "none"
+max = "medium"
+characters = ["fruity"]
+unknown = []
+quote = "Low to medium fruity esters optional, but are welcome."
+
+[[style.sensory]]   # fix 4
+dimension = "hop_aroma"
+min = "none"
+max = "medium"
+characters = ["citrus", "floral", "fruity", "spicy"]
+unknown = []
+quote = "May have a low to medium hop aroma, and can reflect almost any hop variety although citrusy, floral, fruity, and spicy notes are common."
+
+[[style.sensory]]
+dimension = "hop_flavour"
+min = "low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Light to moderate hop flavor (any variety), but shouldn't be overly aggressive."
+
+[[style.sensory]]
+dimension = "body"
+min = "medium-low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Medium-light to medium body."
+
+[[style.sensory]]   # fix 5
+dimension = "dryness"
+min = "medium-low"
+max = "medium-high"
+characters = []
+unknown = []
+quote = "Finishes medium-dry to slightly malty; an impression of sweetness is often an expression of lower bitterness than actual residual sweetness."
+
+[[style.sensory]]   # fix 6
+dimension = "phenols"
+min = "none"
+max = "none"
+characters = []
+unknown = []
+quote = "Clean fermentation profile."
+
+[[style.ingredient]]
+ingredient = "Viking Malt|Wheat Malt"
+required = false
+unknown = []
+quote = "can include wheat malt"
+
+[[style.ingredient]]   # fix 7
+ingredient = "Weyermann|Wheat Malt Pale"
+required = false
+unknown = []
+quote = "can include wheat malt"
+
+[[style.ingredient]]   # fix 8
+ingredient = "|Honey"
+required = false
+unknown = []
+quote = "Generally all-malt, but can include wheat malt or sugar adjuncts."
+
+[[style.ingredient]]   # fix 9
+tag = "american-ale"
+required = false
+unknown = []
+quote = "Clean American, lightly fruity English, or Kölsch yeast."
+
+[[style.ingredient]]   # fix 9
+tag = "english-ale"
+required = false
+unknown = []
+quote = "Clean American, lightly fruity English, or Kölsch yeast."
+
+[[style.ingredient]]   # fix 9
+tag = "ale"
+required = false
+unknown = []
+quote = "Clean American, lightly fruity English, or Kölsch yeast."
+
+[[style.ingredient]]   # fix 9
+tag = "lager"
+required = false
+unknown = []
+quote = "May also be made with lager yeast, or cold-conditioned."
+
+[[style]]
+code = "specialty-honey-beer"
+name = "Specialty Honey Beer"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 1 }
+problems = []
+
+[[style.ingredient]]
+ingredient = "|Honey"
+required = true
+unknown = []
+quote = "Honey Beers incorporate honey as a fermentable sugar in addition to malted barley."
+
+[[style.ingredient]]   # fix 2
+role = "base"
+required = false
+unknown = []
+quote = "Honey Beers incorporate honey as a fermentable sugar in addition to malted barley."
+
+[[style]]
+code = "20B"
+name = "American Stout"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 2 }
+problems = []
+
+[[style.sensory]]   # fix 1
+dimension = "roast"
+min = "medium"
+max = "very high"
+characters = ["roast", "coffee", "chocolate"]
+unknown = []
+quote = "Moderate to very high roasted flavors, often tasting of coffee, dark or bittersweet chocolate, or roasted coffee beans."
+
+[[style.sensory]]
+dimension = "hop_aroma"
+min = "very low"
+max = "medium"
+characters = ["citrus", "resin"]
+unknown = []
+quote = "Medium to very low hop aroma, often with a citrusy or resiny character."
+
+[[style.sensory]]   # fix 2
+dimension = "sweetness"
+min = "low"
+max = "medium"
+characters = []
+unknown = []
+quote = "Low to medium malt sweetness, often with rich chocolate or caramel flavors."
+
+[[style.sensory]]
+dimension = "hop_flavour"
+min = "low"
+max = "high"
+characters = ["citrus", "resin"]
+unknown = []
+quote = "Low to high hop flavor, generally citrusy or resiny."
+
+[[style.sensory]]   # fix 3
+dimension = "dryness"
+min = "medium"
+max = "high"
+characters = []
+unknown = []
+quote = "Medium to dry finish, occasionally with a lightly burnt quality."
+
+[[style.sensory]]
+dimension = "body"
+min = "medium"
+max = "high"
+characters = []
+unknown = []
+quote = "Medium to full body."
+
+[[style.sensory]]   # fix 4
+dimension = "esters"
+min = "none"
+max = "medium"
+characters = []
+unknown = []
+quote = "Medium esters optional."
+
+[[style.ingredient]]
+role = "base"
+required = true
+unknown = []
+quote = "Common American base malts, yeast, and hops."
+
+[[style.ingredient]]
+role = "roast"
+required = false
+unknown = []
+quote = "Varied use of dark and roasted malts, as well as caramel-type malts."
+
+[[style.ingredient]]
+role = "crystal"
+required = false
+unknown = []
+quote = "Varied use of dark and roasted malts, as well as caramel-type malts."
+
+[[style.ingredient]]   # fix 5
+role = "adjunct"
+required = false
+unknown = []
+quote = "Adjuncts or additives may be present in low quantities to add complexity."
+
+[[style.ingredient]]   # fix 6
+tag = "US"
+required = false
+unknown = []
+quote = "Common American base malts, yeast, and hops."
+
+[[style.ingredient]]   # fix 6
+tag = "american-ale"
+required = false
+unknown = []
+quote = "Common American base malts, yeast, and hops."

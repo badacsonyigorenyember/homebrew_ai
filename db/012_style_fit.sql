@@ -87,3 +87,27 @@ create table if not exists ref.style_rule (
     quote         text not null,
     check ((ingredient_id is null) <> (tag_id is null))
 );
+
+-- A style's characteristic ingredients (R3, R6): exactly one of a fermentable role, an
+-- ingredient or a tag (yeast family, hop origin). required = the recipe must have it (✅).
+create table if not exists ref.style_ingredient (
+    id            bigint generated always as identity primary key,
+    style_id      bigint not null references ref.beer_style (id) on delete cascade,
+    role          text check (role in ('base', 'kilned', 'crystal', 'roast', 'adjunct', 'sugar')),
+    ingredient_id bigint references ref.ingredient (id) on delete cascade,
+    tag_id        bigint references ref.tag (id) on delete cascade,
+    required      boolean not null default false,
+    min_pct       numeric(4, 1),     -- with role: at least this % of the grist
+    quote         text not null,     -- the guideline text it comes from
+    reviewed      boolean not null default false,
+    check (num_nonnulls(role, ingredient_id, tag_id) = 1),
+    check (min_pct is null or role is not null)
+);
+create index if not exists style_ingredient_style_id_idx on ref.style_ingredient (style_id);
+
+-- Ingredients whose tags need a person: unknown descriptor words, or no descriptor text.
+-- Rewritten by loaders/tags.py on every run.
+create table if not exists ref.ingredient_review (
+    ingredient_id bigint primary key references ref.ingredient (id) on delete cascade,
+    reason        text not null      -- "unknown words: …" or "no descriptor text"
+);

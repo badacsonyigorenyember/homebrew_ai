@@ -1,0 +1,38 @@
+{
+  "type": "object",
+  "properties": {
+    "sensory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "enum": ["hop_flavour", "hop_aroma", "malt", "caramel", "roast", "sweetness", "body", "esters", "phenols", "dryness", "spice", "fruit", "wood", "smoke", "sourness", "brett_funk"]
+          },
+          "min": {"type": "string", "enum": ["none", "very low", "low", "medium-low", "medium", "medium-high", "high", "very high"]},
+          "max": {"type": "string", "enum": ["none", "very low", "low", "medium-low", "medium", "medium-high", "high", "very high"]},
+          "characters": {"type": "array", "items": {"type": "string"}},
+          "quote": {"type": "string"}
+        },
+        "required": ["dimension", "min", "max", "characters", "quote"]
+      }
+    },
+    "ingredients": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "role": {"type": ["string", "null"], "enum": ["base", "kilned", "crystal", "roast", "adjunct", "sugar", null]},
+          "ingredient": {"type": ["string", "null"]},
+          "tag": {"type": ["string", "null"]},
+          "required": {"type": "boolean"},
+          "min_pct": {"type": ["number", "null"]},
+          "quote": {"type": "string"}
+        },
+        "required": ["role", "ingredient", "tag", "required", "min_pct", "quote"]
+      }
+    }
+  },
+  "required": ["sensory", "ingredients"]
+}

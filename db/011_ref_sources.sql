@@ -95,7 +95,12 @@ insert into ref.source (slug, title, edition, publisher, licence, url, notes) va
     ('malt-substitution-2025',
      'PrimeTime Malt Substitution Chart', '2025 (short)',
      'Hops Shop BG', null, null,
-     'shared/rag-files/pending/PrimeTime Malt Substitution Chart 2025 short.pdf (printed "© Hops Shop BG, 2025")')
+     'shared/rag-files/pending/PrimeTime Malt Substitution Chart 2025 short.pdf (printed "© Hops Shop BG, 2025")'),
+    ('briess-flakes-web',
+     'Briess Craft Distilling flakes page', 'website, fetched 2026-10-15',
+     'Briess Malt & Ingredients', null,
+     'https://brewingwithbriess.com/craft-distilling/flakes/',
+     'Colour of Brewers Yellow Corn Flakes (0.8 SRM) and Brewers Brown Rice Flakes (1 SRM), converted to EBC with x 1.97')
 on conflict (slug) do nothing;
 
 -- Corrections to rows inserted by an earlier version of this file.

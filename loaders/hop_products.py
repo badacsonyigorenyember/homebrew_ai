@@ -14,8 +14,10 @@ BEERMAVERICK: main SKU -> alpha, total oil or purpose from Beer Maverick (source
 entered by the user on 2026-10-11 for the hops where hopline has none. A value fills a field only
 where hopline has none; hopline's own values are never overwritten.
 
-An SKU in neither HOPS nor PACK_SIZES raises in loaders.hops.build, so a new hopline product
-never loads without a decision here. Comments are hopline's product names (2026-10-10).
+EXCLUDED: hopline SKUs that are never loaded, with the reason.
+
+An SKU in neither HOPS, PACK_SIZES nor EXCLUDED raises in loaders.hops.build, so a new hopline
+product never loads without a decision here. Comments are hopline's product names (2026-10-10).
 """
 
 HOPS: dict[str, str] = {
@@ -103,12 +105,17 @@ HOPS: dict[str, str] = {
     "200550-cs": "Saphir",  # Saphir komló 100g (URL says sabro)
     "200560-cs": "Sladek",  # Sladek komló 100g
     "200600-cs": "Southern Star",  # Southern Star 100g
-    "200929": "Sterling",  # Sterling komló 1kg
     "201320-cs": "Styrian Wolf",  # Styrian Wolf komló 100g - 9.80%
     "200680-cs": "Tomahawk",  # Tomahawk komló 100g
     "200821": "Trident",  # Trident komló 50g
     "200690-cs": "Vic Secret",  # Vic Secret komló 100g
     "200770-cs": "Zappa",  # Zappa komló100g
+}
+
+EXCLUDED: dict[str, str] = {
+    # Sterling komló 1kg. Removed by the user 2026-10-15 (s3-style-fit): "It is from Saaz, and
+    # not really available on hopline as well, so I won´t encounter with it."
+    "200929": "Sterling: from Saaz, not really available on hopline (user, 2026-10-15)",
 }
 
 PACK_SIZES: dict[str, str] = {
@@ -144,11 +151,6 @@ BEERMAVERICK: dict[str, dict] = {
     "200669": {  # Lotus: hopline's page shows Taurus
         "alpha_pct": ("13", "17"),
         "total_oil_ml_100g": ("1.5", "2.5"),
-        "date": "2026-10-11",
-    },
-    "200929": {  # Sterling: hopline's table shows "? %" for every figure
-        "alpha_pct": ("5.5", "8.5"),
-        "total_oil_ml_100g": ("0.6", "1.9"),
         "date": "2026-10-11",
     },
     "200450-cs": {  # Mount Hood: hopline has alpha but no oil
