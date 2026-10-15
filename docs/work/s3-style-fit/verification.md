@@ -122,14 +122,14 @@ docker exec supabase-db psql -U postgres -d postgres -tAc "select app.style_leve
 **3. Adjuncts: named by the style's characteristic ingredients or not**
 
 ```bash
-for c in "16A Lactose boil 5" "19C Lactose boil 5" "1C Flaked_Corn mash 15" "18B Flaked_Rice mash 10"; do set -- $c; docker exec supabase-db psql -U postgres -d postgres -tAc "select '$1 $2: ' || (app.style_level('$1',(select id from ref.ingredient where name=replace('$2','_',' ') limit 1),'$3',jsonb_build_object('pct',$4)))->>'level'"; done
+for c in "16A Lactose boil 5" "19C Lactose boil 5" "1C Flaked_Corn mash 15" "18B Flaked_Rice mash 10"; do set -- $c; docker exec supabase-db psql -U postgres -d postgres -tAc "select '$1 $2: ' || (app.style_level('$1',(select id from ref.ingredient where name=replace('$2','_',' ') limit 1),'$3',jsonb_build_object('pct',$4))->>'level')"; done
 ```
 
 ```text
 16A Lactose: typical
 19C Lactose: out_of_style
-1C Flaked Corn: typical
-18B Flaked Rice: out_of_style
+1C Flaked_Corn: typical
+18B Flaked_Rice: out_of_style
 ```
 
 **4. A yeast that is too clean for the style (US-05 in a Weissbier)**
