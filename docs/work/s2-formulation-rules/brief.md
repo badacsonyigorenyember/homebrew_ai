@@ -82,8 +82,10 @@ R2. Every fermentable has a `max_pct`. The 18 missing values are exactly user de
     (Viking Munich Light 100, Munich Dark 100, Lightly Peated 100, Smoked Wheat 100,
     Caramel 30 and 50 → 20, Caramel 100, 150, 200 → 15, Caramel 300, 400, 600 → 10; Flaked Oats 30,
     Flaked Barley 20, Flaked Corn 20, Honey 20, Brown Candi Sugar 20, Lactose 10), each with a
-    `field_source` naming where it came from (Viking catalogue, user figure, *How to Brew*
-    estimate, forum consensus, recipe range). The 63 existing values are unchanged.
+    `field_source` naming where it came from: source `user-supplied`, with the basis the user
+    gives per value (Viking catalogue, *How to Brew* estimate, forum consensus, recipe range), or
+    "user decision E, 2026-10-14" for a value the user cannot place. The user confirms the bases
+    before the values are loaded. The 63 existing values are unchanged.
 R3. A new column `enzyme_activity` (none · low · normal · high) is filled from the Weyermann
     catalogue's "Enzyme activity" line and the Viking text (Munich "clearly reduced" → low,
     caramel malts "zero" → none). A row whose sources do not state it stays empty and is listed
@@ -93,7 +95,8 @@ R4. A new column `min_boil_min` holds each fermentable's minimum boil (60 by def
     is flagged and confirmed by the user before it is loaded.
 R5. Each fermentable lists its substitutes among the 81: the Weyermann ↔ Viking pairs from the
     chart rows, plus user decision D: Eraclea and Bohemian Pilsner → Viking Pilsner; Crystal
-    Extra Dark → Caraaroma; DRC → Special W; Golden Promise and Maris Otter → Pale Ale; no
+    Extra Dark → Caraaroma; DRC → Special W; Golden Promise and Maris Otter → both Weyermann and
+    Viking Pale Ale; no
     substitute for Viking Caramel 200, the smoked malts, Sprau and Crystal T50. Each pair names
     its source (chart row or user decision). A pair counts both ways (A ↔ B gives B as A's
     substitute and A as B's) and does not chain (A ↔ B and B ↔ C does not make A ↔ C).
@@ -134,7 +137,8 @@ R10. The rules are user decision B, with these exact starting thresholds:
        midpoint; a target is outside the style range only when the user stated it or guidance is
        off.
     10. The FG predicted from the yeast's attenuation, each fermentable's `fermentability` and a
-        mash temperature between 64 and 69 °C is inside the target FG range. Mash temperature
+        mash temperature between 64 and 69 °C is inside the target FG range: the style's FG
+        range, or the target FG ± 0.002 when the user stated the FG or the ABV. Mash temperature
         maps linearly onto the yeast's `attenuation_pct` range: 64 °C → the top of the range,
         69 °C → the bottom. The rule text labels this mapping as an uncited assumption; the cited
         model is on the Later list (R20).
@@ -289,3 +293,8 @@ None remain. Questions 5 and 8 were answered on 2026-10-14, and 1, 2, 3, 4, 6, 7
   marked the same way (option a). Moved from Out to In; R21 and A16 added — the user's decision.
 - 2026-10-15 · Q10: substitutes count both ways, no chaining (option a). Moved from Assumptions
   into R5; A4 extended — the user's decision.
+- 2026-10-15 · Plan questions 1–3 (recommended options): R2 — the 18 `max_pct` values keep
+  source `user-supplied` with a per-value basis the user confirms before loading ("user decision
+  E, 2026-10-14" when it cannot be placed); R5 — Golden Promise and Maris Otter pair with both
+  Weyermann and Viking Pale Ale; R10 rule 10 — the target FG range is the style's FG range, or the
+  target FG ± 0.002 when the user stated the FG or the ABV — the user's decision.

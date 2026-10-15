@@ -4,7 +4,7 @@
 > is trying to do, how it is built, and how far along it is. If code and this file
 > disagree, one of them is wrong. Fix it, and record the fix in the [Progress log](#8-progress-log).
 >
-> Last updated: **2026-10-14**
+> Last updated: **2026-10-15**
 
 ---
 
@@ -230,6 +230,9 @@ Several of these are lessons from the first build (see §9).
 ## 8. Progress log
 
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
+
+### 2026-10-15
+- Planned s2-formulation-rules ([`docs/work/s2-formulation-rules/plan.md`](docs/work/s2-formulation-rules/plan.md)): 9 tasks; fermentable data in `loaders/fermentable_facts.toml`, rule text and limits in `db/031_formulation_rules.sql`, the check `app.check_recipe` in `db/032_formulation_check.sql`; two user review stops (Task 4: Sprau's role, long boils, style mapping; Task 8: the 22 reference recipes).
 
 ### 2026-10-14
 - Wrote brief for s2-formulation-rules ([`docs/work/s2-formulation-rules/`](docs/work/s2-formulation-rules/brief.md)): fermentable roles, `max_pct` gaps, enzyme activity, minimum boil, substitutes and catalogue descriptions, 13 exact formulation rules checked in code, one reference recipe per test brief. Draft, 8 open questions. With the user's agreement: D7 decided and moved out of §7 (no ratio corpus; LLM proposes, code scales and checks; revisit if test briefs show a need); §3 (intro, stages B–D, the ratios line) and §6.7 reworded so the LLM picks ingredients and proposes percentages and hop-schedule intent while code computes every number and checks the rules; §5 Brewer's Friend row set aside. `s2-corpus` abandoned: its draft brief `docs/work/s2-corpus/` is deleted (last in commit `57638a1`), and [`docs/STYLE-PROFILES.md`](docs/STYLE-PROFILES.md) is marked set aside.
