@@ -308,14 +308,14 @@ Commit: `Load fermentable facts after user review`
 
 ### Task 5: The rule text and its limits, in one place
 Why: R9, R10, R11 (A7).
-- [ ] Create `db/031_formulation_rules.sql` with `app.formulation_limits() returns jsonb`
+- [x] Create `db/031_formulation_rules.sql` with `app.formulation_limits() returns jsonb`
       (immutable), keys: `max_fermentables` 5, `max_specialty` 3, `max_hop_varieties` 3,
       `crystal_dark_ebc` 60, `crystal_very_dark_ebc` 160, `dark_total_pct` 15,
       `crystal_total_pct` 25, `crystal_dark_pct` 10, `crystal_very_dark_pct` 5,
       `adjunct_sugar_pct` 40, `late_hop_max_min` 15, `mash_min_c` 64, `mash_max_c` 69,
       `min_boil_min` 60, `pct_sum_tolerance` 0.1, and `midpoint_tolerance`
       `{og 0.001, fg 0.002, abv 0.1, ibu 1, srm 1}`.
-- [ ] Same file: `app.formulation_rules() returns table (rule text, checked boolean, sentence text)`,
+- [x] Same file: `app.formulation_rules() returns table (rule text, checked boolean, sentence text)`,
       rows `definitions`, `1`–`13`, `pending`. Each sentence is `format()` over the limits
       (`trim_scale` for numbers). Wording to use (numbers come from the limits):
       - definitions: "A share is a percentage of the total fermentable mass, sugars included. A
@@ -355,8 +355,8 @@ Why: R9, R10, R11 (A7).
         and at least 60 min."
       - pending (checked false): "A recipe uses only processes the brewer profile allows.
         Pending: needs the brewer profile (step 0); not checked."
-- [ ] Apply twice; both functions owned by `postgres`.
-- [ ] Write stack tests `tests/test_formulation_rules.py`: `test_rules_listed` (definitions,
+- [x] Apply twice; both functions owned by `postgres`.
+- [x] Write stack tests `tests/test_formulation_rules.py`: `test_rules_listed` (definitions,
       1–13, pending; 7 and pending unchecked); `test_no_ingredient_or_style_name` (whole-word,
       case-insensitive match of every `ref.ingredient.name` and `ref.beer_style.name` against
       all sentences; an explicit exemption set holds only words that are rule vocabulary, today
@@ -364,7 +364,7 @@ Why: R9, R10, R11 (A7).
       `test_no_vague_words` (some, usually, typically, about); `test_text_uses_the_limits`
       (each limit's value, formatted, appears in its rule's sentence; changing a limit in a
       rolled-back `create or replace` changes the sentence).
-- [ ] Run `pytest tests/test_formulation_rules.py`, expect pass. PROJECT.md: link the file from
+- [x] Run `pytest tests/test_formulation_rules.py`, expect pass. PROJECT.md: link the file from
       §3's D7 bullet ("rules: `select * from app.formulation_rules()`,
       [`db/031_formulation_rules.sql`](db/031_formulation_rules.sql)"); §8 line.
 Done when: A7 holds.
