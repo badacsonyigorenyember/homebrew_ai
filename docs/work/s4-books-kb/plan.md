@@ -1,6 +1,6 @@
 # S4 · Books into the knowledge base, with a retrieval eval — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: s4-books-kb
 
@@ -48,8 +48,8 @@ Page numbers are PDF page numbers (1-based, as Docling reports them), not printe
 
 ### Task 1: Loader that turns a Docling chunk result into prose rows
 Why: R1, R2, R7; the pure part of the loader, tested without the stack.
-- [ ] Add `requests>=2.32` to `requirements.txt` (already in `.venv`; `urllib` has no multipart).
-- [ ] Write `loaders/books.py` with a module docstring that says how to run it and how to add a
+- [x] Add `requests>=2.32` to `requirements.txt` (already in `.venv`; `urllib` has no multipart).
+- [x] Write `loaders/books.py` with a module docstring that says how to run it and how to add a
       book (point at `docs/BOOKS.md`, written in Task 4). Contents, in this order:
   - `@dataclass(frozen=True) class Book`: `slug`, `title`, `edition`, `publisher`, `licence`,
     `file_path` (relative to the repo root), `skip_pages: tuple[tuple[int, int], ...] = ()`
@@ -95,7 +95,7 @@ Why: R1, R2, R7; the pure part of the loader, tested without the stack.
     `{"model": EMBED_MODEL, "input": text, "truncate": false, "keep_alive": -1}`, one text per call
     so `tokens` is that chunk's own count (`prompt_eval_count`, as bge-m3 counts what was embedded).
     `truncate: false` makes an over-long chunk fail instead of being cut silently.
-- [ ] Write `tests/test_books.py` (unit part, synthetic chunks only; no book text in the repo):
+- [x] Write `tests/test_books.py` (unit part, synthetic chunks only; no book text in the repo):
   - `test_check_result_raises_on_failed_document`: `documents[0].status = "failure"`, 0 chunks → `RuntimeError`.
   - `test_check_result_raises_on_no_chunks`: `success` with `chunks: []` → `RuntimeError`.
   - `test_strip_tables_keeps_prose`: prose + 4-line markdown table + prose → both prose paragraphs, no `|` line.
@@ -104,7 +104,7 @@ Why: R1, R2, R7; the pure part of the loader, tested without the stack.
   - `test_chunk_rows_page_and_section`: `page_numbers [12, 13]` → page 12; headings joined with ` > `.
   - `test_parse_embedding_rejects_wrong_dims`: 768 floats → `ValueError`; 1024 → vector and count.
   - `test_docling_form_sets_bge_m3_tokenizer`: form has `chunking_tokenizer = BAAI/bge-m3`, `chunking_use_markdown_tables = true`.
-- [ ] Run `.venv/bin/pytest tests/test_books.py -m "not stack"`, expect all pass.
+- [x] Run `.venv/bin/pytest tests/test_books.py -m "not stack"`, expect all pass.
 Done when: the unit tests pass and `python -m loaders.books --help` prints the usage.
 Commit: `Add book loader: Docling chunks to prose rows`
 
