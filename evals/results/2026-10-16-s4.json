@@ -1,0 +1,1589 @@
+{
+  "summary": {
+    "questions": 45,
+    "recall_at_5": 0.4222222222222222,
+    "mrr_at_10": 0.35422398589065257,
+    "per_book": {
+      "bjcp-exam-study-guide-2017": {
+        "questions": 9,
+        "recall_at_5": 0.3333333333333333,
+        "mrr_at_10": 0.25
+      },
+      "mallett-malt": {
+        "questions": 9,
+        "recall_at_5": 0.5555555555555556,
+        "mrr_at_10": 0.5825396825396826
+      },
+      "palmer-how-to-brew": {
+        "questions": 9,
+        "recall_at_5": 0.4444444444444444,
+        "mrr_at_10": 0.3472222222222222
+      },
+      "palmer-kaminski-water": {
+        "questions": 9,
+        "recall_at_5": 0.3333333333333333,
+        "mrr_at_10": 0.17777777777777778
+      },
+      "white-zainasheff-yeast": {
+        "questions": 9,
+        "recall_at_5": 0.4444444444444444,
+        "mrr_at_10": 0.41358024691358025
+      }
+    },
+    "bar": 0.4
+  },
+  "questions": [
+    {
+      "id": "q01",
+      "book": "palmer-how-to-brew",
+      "question": "How long will bottled beer keep before it goes stale, and how cold should I store it?",
+      "expect_pages": [
+        49
+      ],
+      "ranks": [
+        8
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.125,
+      "top5_chunk_ids": [
+        5710,
+        2372,
+        2371,
+        5705,
+        5709
+      ],
+      "top5_pages": [
+        138,
+        189,
+        188,
+        135,
+        138
+      ],
+      "top5_scores": [
+        0.03175,
+        0.03083,
+        0.03062,
+        0.02924,
+        0.02826
+      ]
+    },
+    {
+      "id": "q02",
+      "book": "palmer-how-to-brew",
+      "question": "How much bitterness do I get from a whirlpool hop addition when cloning a beer?",
+      "expect_pages": [
+        97
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        2206,
+        2208,
+        2209,
+        6830,
+        6831
+      ],
+      "top5_pages": [
+        97,
+        98,
+        98,
+        60,
+        60
+      ],
+      "top5_scores": [
+        0.03175,
+        0.03151,
+        0.0311,
+        0.03101,
+        0.02996
+      ]
+    },
+    {
+      "id": "q03",
+      "book": "palmer-how-to-brew",
+      "question": "What kind of container should I use to make a yeast starter?",
+      "expect_pages": [
+        146,
+        146
+      ],
+      "ranks": [
+        null,
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        5733,
+        5739,
+        5731,
+        5750,
+        5769
+      ],
+      "top5_pages": [
+        154,
+        158,
+        153,
+        166,
+        179
+      ],
+      "top5_scores": [
+        0.03178,
+        0.02863,
+        0.02797,
+        0.02648,
+        0.02636
+      ]
+    },
+    {
+      "id": "q04",
+      "book": "palmer-how-to-brew",
+      "question": "What are the steps to force carbonate a keg quickly?",
+      "expect_pages": [
+        192,
+        192
+      ],
+      "ranks": [
+        2,
+        2
+      ],
+      "recall_at_5": 1.0,
+      "rr": 0.5,
+      "top5_chunk_ids": [
+        2384,
+        2379,
+        2378,
+        4350,
+        5707
+      ],
+      "top5_pages": [
+        194,
+        192,
+        191,
+        100,
+        136
+      ],
+      "top5_scores": [
+        0.0315,
+        0.03062,
+        0.03048,
+        0.0289,
+        0.02765
+      ]
+    },
+    {
+      "id": "q05",
+      "book": "palmer-how-to-brew",
+      "question": "Do I need to pitch more yeast when fermenting a soured wort?",
+      "expect_pages": [
+        237
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        5964,
+        2392,
+        2421,
+        2393,
+        2237
+      ],
+      "top5_pages": [
+        283,
+        199,
+        212,
+        199,
+        116
+      ],
+      "top5_scores": [
+        0.03132,
+        0.03089,
+        0.03021,
+        0.02963,
+        0.02944
+      ]
+    },
+    {
+      "id": "q06",
+      "book": "palmer-how-to-brew",
+      "question": "How do I do a step mash if I only have a picnic cooler as a mash tun?",
+      "expect_pages": [
+        290
+      ],
+      "ranks": [
+        1
+      ],
+      "recall_at_5": 1.0,
+      "rr": 1.0,
+      "top5_chunk_ids": [
+        2550,
+        2547,
+        6817,
+        2542,
+        2567
+      ],
+      "top5_pages": [
+        290,
+        288,
+        55,
+        285,
+        298
+      ],
+      "top5_scores": [
+        0.03252,
+        0.02901,
+        0.02879,
+        0.02872,
+        0.02828
+      ]
+    },
+    {
+      "id": "q07",
+      "book": "palmer-how-to-brew",
+      "question": "What decides my mash pH, the water, the grain, or both?",
+      "expect_pages": [
+        376
+      ],
+      "ranks": [
+        2
+      ],
+      "recall_at_5": 1.0,
+      "rr": 0.5,
+      "top5_chunk_ids": [
+        4291,
+        2721,
+        4290,
+        4341,
+        2750
+      ],
+      "top5_pages": [
+        63,
+        376,
+        63,
+        95,
+        390
+      ],
+      "top5_scores": [
+        0.03132,
+        0.03021,
+        0.03009,
+        0.02955,
+        0.02924
+      ]
+    },
+    {
+      "id": "q08",
+      "book": "palmer-how-to-brew",
+      "question": "How do I add coffee to a stout?",
+      "expect_pages": [
+        438,
+        438
+      ],
+      "ranks": [
+        1,
+        1
+      ],
+      "recall_at_5": 1.0,
+      "rr": 1.0,
+      "top5_chunk_ids": [
+        2807,
+        2806,
+        2441,
+        2440,
+        2808
+      ],
+      "top5_pages": [
+        438,
+        437,
+        226,
+        225,
+        438
+      ],
+      "top5_scores": [
+        0.03252,
+        0.03227,
+        0.032,
+        0.03009,
+        0.02932
+      ]
+    },
+    {
+      "id": "q09",
+      "book": "palmer-how-to-brew",
+      "question": "How do I estimate the colour of a beer from the malt bill?",
+      "expect_pages": [
+        495
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        6620,
+        2486,
+        6472,
+        4423,
+        6482
+      ],
+      "top5_pages": [
+        140,
+        256,
+        35,
+        140,
+        43
+      ],
+      "top5_scores": [
+        0.02932,
+        0.02802,
+        0.02652,
+        0.02601,
+        0.02502
+      ]
+    },
+    {
+      "id": "q10",
+      "book": "palmer-kaminski-water",
+      "question": "What pH should I expect from plain rainwater?",
+      "expect_pages": [
+        35
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        4227,
+        4321,
+        2433,
+        2751,
+        2719
+      ],
+      "top5_pages": [
+        33,
+        82,
+        220,
+        391,
+        375
+      ],
+      "top5_scores": [
+        0.02844,
+        0.02778,
+        0.02769,
+        0.0269,
+        0.02684
+      ]
+    },
+    {
+      "id": "q11",
+      "book": "palmer-kaminski-water",
+      "question": "Is coliform bacteria in my brewing water a danger to me?",
+      "expect_pages": [
+        50
+      ],
+      "ranks": [
+        10
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.1,
+      "top5_chunk_ids": [
+        4226,
+        4218,
+        4415,
+        4476,
+        2311
+      ],
+      "top5_pages": [
+        33,
+        19,
+        135,
+        177,
+        155
+      ],
+      "top5_scores": [
+        0.03033,
+        0.02983,
+        0.02854,
+        0.02707,
+        0.02651
+      ]
+    },
+    {
+      "id": "q12",
+      "book": "palmer-kaminski-water",
+      "question": "What mash pH should I aim for, and how tightly should I control it?",
+      "expect_pages": [
+        64,
+        64
+      ],
+      "ranks": [
+        2,
+        2
+      ],
+      "recall_at_5": 1.0,
+      "rr": 0.5,
+      "top5_chunk_ids": [
+        4341,
+        4294,
+        2534,
+        2700,
+        4291
+      ],
+      "top5_pages": [
+        95,
+        64,
+        278,
+        367,
+        63
+      ],
+      "top5_scores": [
+        0.03009,
+        0.03008,
+        0.02991,
+        0.02988,
+        0.02971
+      ]
+    },
+    {
+      "id": "q13",
+      "book": "palmer-kaminski-water",
+      "question": "How long does it take for the mash pH to settle after mashing in?",
+      "expect_pages": [
+        84
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        2727,
+        2700,
+        4341,
+        2721,
+        2534
+      ],
+      "top5_pages": [
+        378,
+        367,
+        95,
+        376,
+        278
+      ],
+      "top5_scores": [
+        0.0315,
+        0.03128,
+        0.02991,
+        0.02921,
+        0.0289
+      ]
+    },
+    {
+      "id": "q14",
+      "book": "palmer-kaminski-water",
+      "question": "How do I use slaked lime at home to remove carbonate hardness?",
+      "expect_pages": [
+        105,
+        105
+      ],
+      "ranks": [
+        null,
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        4356,
+        2681,
+        4406,
+        4350,
+        2313
+      ],
+      "top5_pages": [
+        103,
+        359,
+        132,
+        100,
+        156
+      ],
+      "top5_scores": [
+        0.02973,
+        0.02859,
+        0.02838,
+        0.02831,
+        0.02729
+      ]
+    },
+    {
+      "id": "q15",
+      "book": "palmer-kaminski-water",
+      "question": "How fast does slaked lime change the mash pH compared with carbonates?",
+      "expect_pages": [
+        123
+      ],
+      "ranks": [
+        2
+      ],
+      "recall_at_5": 1.0,
+      "rr": 0.5,
+      "top5_chunk_ids": [
+        4335,
+        4391,
+        4385,
+        4321,
+        4384
+      ],
+      "top5_pages": [
+        91,
+        123,
+        118,
+        82,
+        118
+      ],
+      "top5_scores": [
+        0.02769,
+        0.02763,
+        0.02715,
+        0.02614,
+        0.0251
+      ]
+    },
+    {
+      "id": "q16",
+      "book": "palmer-kaminski-water",
+      "question": "Do roasted malts acidify the mash more as they get darker?",
+      "expect_pages": [
+        140
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        4323,
+        4315,
+        2479,
+        4320,
+        4316
+      ],
+      "top5_pages": [
+        83,
+        78,
+        253,
+        81,
+        78
+      ],
+      "top5_scores": [
+        0.0308,
+        0.03033,
+        0.03009,
+        0.02939,
+        0.0267
+      ]
+    },
+    {
+      "id": "q17",
+      "book": "palmer-kaminski-water",
+      "question": "Why do chloride-type dealkalizers make water corrosive to stainless steel pipes?",
+      "expect_pages": [
+        163
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        2988,
+        2989,
+        2987,
+        4487,
+        2318
+      ],
+      "top5_pages": [
+        556,
+        557,
+        556,
+        184,
+        158
+      ],
+      "top5_scores": [
+        0.032,
+        0.03089,
+        0.03068,
+        0.02854,
+        0.02471
+      ]
+    },
+    {
+      "id": "q18",
+      "book": "palmer-kaminski-water",
+      "question": "How do I turn grams of calcium chloride in a gallon into ppm of calcium?",
+      "expect_pages": [
+        229,
+        229
+      ],
+      "ranks": [
+        2,
+        2
+      ],
+      "recall_at_5": 1.0,
+      "rr": 0.5,
+      "top5_chunk_ids": [
+        4556,
+        4553,
+        4434,
+        2755,
+        2706
+      ],
+      "top5_pages": [
+        230,
+        229,
+        147,
+        394,
+        369
+      ],
+      "top5_scores": [
+        0.03252,
+        0.03202,
+        0.03033,
+        0.02996,
+        0.02985
+      ]
+    },
+    {
+      "id": "q19",
+      "book": "white-zainasheff-yeast",
+      "question": "What should I be measuring while my beer ferments?",
+      "expect_pages": [
+        35
+      ],
+      "ranks": [
+        9
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.1111111111111111,
+      "top5_chunk_ids": [
+        5695,
+        5882,
+        5648,
+        5967,
+        5703
+      ],
+      "top5_pages": [
+        128,
+        247,
+        91,
+        285,
+        133
+      ],
+      "top5_scores": [
+        0.03054,
+        0.02971,
+        0.02844,
+        0.0275,
+        0.02677
+      ]
+    },
+    {
+      "id": "q20",
+      "book": "white-zainasheff-yeast",
+      "question": "How can I pick the best yeast strain for my brown ale?",
+      "expect_pages": [
+        63
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        2271,
+        5607,
+        2269,
+        2272,
+        5758
+      ],
+      "top5_pages": [
+        134,
+        65,
+        133,
+        135,
+        171
+      ],
+      "top5_scores": [
+        0.03126,
+        0.03105,
+        0.03048,
+        0.03002,
+        0.02914
+      ]
+    },
+    {
+      "id": "q21",
+      "book": "white-zainasheff-yeast",
+      "question": "My beer stopped fermenting early because the yeast dropped out; what can I do?",
+      "expect_pages": [
+        90
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        5984,
+        5982,
+        2242,
+        2863,
+        5708
+      ],
+      "top5_pages": [
+        295,
+        294,
+        118,
+        472,
+        137
+      ],
+      "top5_scores": [
+        0.03178,
+        0.02862,
+        0.02671,
+        0.02638,
+        0.02604
+      ]
+    },
+    {
+      "id": "q22",
+      "book": "white-zainasheff-yeast",
+      "question": "How can I control fermentation temperature without fancy equipment?",
+      "expect_pages": [
+        120
+      ],
+      "ranks": [
+        2
+      ],
+      "recall_at_5": 1.0,
+      "rr": 0.5,
+      "top5_chunk_ids": [
+        2240,
+        5686,
+        2395,
+        2239,
+        5679
+      ],
+      "top5_pages": [
+        118,
+        120,
+        200,
+        117,
+        115
+      ],
+      "top5_scores": [
+        0.03227,
+        0.03227,
+        0.03128,
+        0.02944,
+        0.02778
+      ]
+    },
+    {
+      "id": "q23",
+      "book": "white-zainasheff-yeast",
+      "question": "Who first isolated pure yeast cultures, and what is the flask named after?",
+      "expect_pages": [
+        151
+      ],
+      "ranks": [
+        9
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.1111111111111111,
+      "top5_chunk_ids": [
+        5551,
+        5615,
+        5776,
+        5846,
+        5607
+      ],
+      "top5_pages": [
+        28,
+        70,
+        183,
+        227,
+        65
+      ],
+      "top5_scores": [
+        0.03252,
+        0.02788,
+        0.02767,
+        0.02698,
+        0.02605
+      ]
+    },
+    {
+      "id": "q24",
+      "book": "white-zainasheff-yeast",
+      "question": "Is plastic or glass better for storing yeast?",
+      "expect_pages": [
+        179,
+        179
+      ],
+      "ranks": [
+        1,
+        1
+      ],
+      "recall_at_5": 1.0,
+      "rr": 1.0,
+      "top5_chunk_ids": [
+        5769,
+        5987,
+        5789,
+        5708,
+        2269
+      ],
+      "top5_pages": [
+        179,
+        297,
+        192,
+        137,
+        133
+      ],
+      "top5_scores": [
+        0.03202,
+        0.03009,
+        0.02663,
+        0.02546,
+        0.02536
+      ]
+    },
+    {
+      "id": "q25",
+      "book": "white-zainasheff-yeast",
+      "question": "What time and temperature do I need to sterilize equipment in a pressure cooker?",
+      "expect_pages": [
+        206
+      ],
+      "ranks": [
+        1
+      ],
+      "recall_at_5": 1.0,
+      "rr": 1.0,
+      "top5_chunk_ids": [
+        5810,
+        5812,
+        5811,
+        2156,
+        5800
+      ],
+      "top5_pages": [
+        206,
+        207,
+        207,
+        64,
+        201
+      ],
+      "top5_scores": [
+        0.03252,
+        0.03102,
+        0.0275,
+        0.02726,
+        0.02198
+      ]
+    },
+    {
+      "id": "q26",
+      "book": "white-zainasheff-yeast",
+      "question": "How many CFU of spoilage organisms are acceptable in a beer lab test?",
+      "expect_pages": [
+        230
+      ],
+      "ranks": [
+        1
+      ],
+      "recall_at_5": 1.0,
+      "rr": 1.0,
+      "top5_chunk_ids": [
+        5851,
+        5849,
+        5710,
+        2194,
+        5806
+      ],
+      "top5_pages": [
+        230,
+        229,
+        138,
+        91,
+        204
+      ],
+      "top5_scores": [
+        0.03279,
+        0.02523,
+        0.02457,
+        0.0226,
+        0.01613
+      ]
+    },
+    {
+      "id": "q27",
+      "book": "white-zainasheff-yeast",
+      "question": "What causes a sour or vinegar flavour in a beer that should not be sour?",
+      "expect_pages": [
+        290
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        2857,
+        2858,
+        2860,
+        2855,
+        2880
+      ],
+      "top5_pages": [
+        470,
+        471,
+        471,
+        470,
+        482
+      ],
+      "top5_scores": [
+        0.03175,
+        0.02963,
+        0.0292,
+        0.02802,
+        0.02604
+      ]
+    },
+    {
+      "id": "q28",
+      "book": "mallett-malt",
+      "question": "What is the basic aim of malting?",
+      "expect_pages": [
+        52
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        2503,
+        2473,
+        6549,
+        6521,
+        6804
+      ],
+      "top5_pages": [
+        262,
+        250,
+        92,
+        71,
+        51
+      ],
+      "top5_scores": [
+        0.02988,
+        0.02675,
+        0.02591,
+        0.02425,
+        0.02313
+      ]
+    },
+    {
+      "id": "q29",
+      "book": "mallett-malt",
+      "question": "How much moisture does barley take up during steeping?",
+      "expect_pages": [
+        77,
+        77
+      ],
+      "ranks": [
+        1,
+        1
+      ],
+      "recall_at_5": 1.0,
+      "rr": 1.0,
+      "top5_chunk_ids": [
+        6527,
+        2469,
+        6528,
+        6569,
+        6783
+      ],
+      "top5_pages": [
+        77,
+        247,
+        79,
+        110,
+        258
+      ],
+      "top5_scores": [
+        0.03226,
+        0.03202,
+        0.03178,
+        0.03102,
+        0.03031
+      ]
+    },
+    {
+      "id": "q30",
+      "book": "mallett-malt",
+      "question": "Why is summer-made malt darker but not maltier?",
+      "expect_pages": [
+        102
+      ],
+      "ranks": [
+        1
+      ],
+      "recall_at_5": 1.0,
+      "rr": 1.0,
+      "top5_chunk_ids": [
+        6558,
+        6549,
+        2479,
+        4315,
+        4313
+      ],
+      "top5_pages": [
+        102,
+        92,
+        253,
+        78,
+        77
+      ],
+      "top5_scores": [
+        0.03041,
+        0.02941,
+        0.02782,
+        0.02715,
+        0.02703
+      ]
+    },
+    {
+      "id": "q31",
+      "book": "mallett-malt",
+      "question": "Which compound do yeast turn into the clove aroma in wheat beers?",
+      "expect_pages": [
+        125
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        5598,
+        5692,
+        5972,
+        5607,
+        5612
+      ],
+      "top5_pages": [
+        59,
+        124,
+        288,
+        65,
+        68
+      ],
+      "top5_scores": [
+        0.02908,
+        0.02814,
+        0.02712,
+        0.02667,
+        0.02476
+      ]
+    },
+    {
+      "id": "q32",
+      "book": "mallett-malt",
+      "question": "How should I use dark crystal malts compared with light ones?",
+      "expect_pages": [
+        140,
+        140
+      ],
+      "ranks": [
+        1,
+        1
+      ],
+      "recall_at_5": 1.0,
+      "rr": 1.0,
+      "top5_chunk_ids": [
+        6620,
+        6556,
+        2486,
+        2474,
+        6787
+      ],
+      "top5_pages": [
+        140,
+        99,
+        256,
+        251,
+        259
+      ],
+      "top5_scores": [
+        0.03202,
+        0.03128,
+        0.02903,
+        0.02896,
+        0.02881
+      ]
+    },
+    {
+      "id": "q33",
+      "book": "mallett-malt",
+      "question": "Why might brewers object to fungicide being used on malting barley?",
+      "expect_pages": [
+        157
+      ],
+      "ranks": [
+        10
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.1,
+      "top5_chunk_ids": [
+        6677,
+        2482,
+        2473,
+        2503,
+        6514
+      ],
+      "top5_pages": [
+        177,
+        254,
+        250,
+        262,
+        66
+      ],
+      "top5_scores": [
+        0.02783,
+        0.0278,
+        0.02758,
+        0.02691,
+        0.02614
+      ]
+    },
+    {
+      "id": "q34",
+      "book": "mallett-malt",
+      "question": "What are landrace barley varieties?",
+      "expect_pages": [
+        180
+      ],
+      "ranks": [
+        1
+      ],
+      "recall_at_5": 1.0,
+      "rr": 1.0,
+      "top5_chunk_ids": [
+        6682,
+        6659,
+        2469,
+        6709,
+        6685
+      ],
+      "top5_pages": [
+        180,
+        162,
+        247,
+        190,
+        181
+      ],
+      "top5_scores": [
+        0.0311,
+        0.03054,
+        0.03033,
+        0.02957,
+        0.02912
+      ]
+    },
+    {
+      "id": "q35",
+      "book": "mallett-malt",
+      "question": "What is a malt certificate of analysis for?",
+      "expect_pages": [
+        194,
+        194
+      ],
+      "ranks": [
+        7,
+        7
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.14285714285714285,
+      "top5_chunk_ids": [
+        6620,
+        2502,
+        4312,
+        2545,
+        4334
+      ],
+      "top5_pages": [
+        140,
+        262,
+        76,
+        287,
+        91
+      ],
+      "top5_scores": [
+        0.02565,
+        0.02397,
+        0.02369,
+        0.02331,
+        0.02062
+      ]
+    },
+    {
+      "id": "q36",
+      "book": "mallett-malt",
+      "question": "What safety risks come with handling bulk grain?",
+      "expect_pages": [
+        211
+      ],
+      "ranks": [
+        1
+      ],
+      "recall_at_5": 1.0,
+      "rr": 1.0,
+      "top5_chunk_ids": [
+        6744,
+        6757,
+        6741,
+        6559,
+        6746
+      ],
+      "top5_pages": [
+        211,
+        219,
+        207,
+        103,
+        212
+      ],
+      "top5_scores": [
+        0.03202,
+        0.02946,
+        0.02944,
+        0.0269,
+        0.02525
+      ]
+    },
+    {
+      "id": "q37",
+      "book": "bjcp-exam-study-guide-2017",
+      "question": "How much magnesium does yeast need, and when does it taste harsh?",
+      "expect_pages": [
+        47
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        5640,
+        2257,
+        2289,
+        5692,
+        5787
+      ],
+      "top5_pages": [
+        87,
+        125,
+        144,
+        124,
+        190
+      ],
+      "top5_scores": [
+        0.02697,
+        0.02536,
+        0.02525,
+        0.02483,
+        0.02471
+      ]
+    },
+    {
+      "id": "q38",
+      "book": "bjcp-exam-study-guide-2017",
+      "question": "How do you tell how modified a malt is, and what counts as fully modified?",
+      "expect_pages": [
+        51
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        2520,
+        2545,
+        6717,
+        6804,
+        6718
+      ],
+      "top5_pages": [
+        272,
+        287,
+        198,
+        51,
+        198
+      ],
+      "top5_scores": [
+        0.03151,
+        0.03102,
+        0.02889,
+        0.02679,
+        0.02386
+      ]
+    },
+    {
+      "id": "q39",
+      "book": "bjcp-exam-study-guide-2017",
+      "question": "How dark should an Oktoberfest be on the SRM scale?",
+      "expect_pages": [
+        53
+      ],
+      "ranks": [
+        4
+      ],
+      "recall_at_5": 1.0,
+      "rr": 0.25,
+      "top5_chunk_ids": [
+        2891,
+        2417,
+        2498,
+        6810,
+        2896
+      ],
+      "top5_pages": [
+        494,
+        210,
+        260,
+        53,
+        496
+      ],
+      "top5_scores": [
+        0.03252,
+        0.0315,
+        0.0311,
+        0.03083,
+        0.02988
+      ]
+    },
+    {
+      "id": "q40",
+      "book": "bjcp-exam-study-guide-2017",
+      "question": "What is a double mash and which beers use it?",
+      "expect_pages": [
+        55
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        2482,
+        5648,
+        2483,
+        2551,
+        2542
+      ],
+      "top5_pages": [
+        254,
+        91,
+        255,
+        290,
+        285
+      ],
+      "top5_scores": [
+        0.03058,
+        0.02976,
+        0.02932,
+        0.02878,
+        0.02758
+      ]
+    },
+    {
+      "id": "q41",
+      "book": "bjcp-exam-study-guide-2017",
+      "question": "What do Cascade and Centennial hops taste like?",
+      "expect_pages": [
+        61
+      ],
+      "ranks": [
+        1
+      ],
+      "recall_at_5": 1.0,
+      "rr": 1.0,
+      "top5_chunk_ids": [
+        6833,
+        2199,
+        2209,
+        2198,
+        2197
+      ],
+      "top5_pages": [
+        61,
+        94,
+        98,
+        94,
+        92
+      ],
+      "top5_scores": [
+        0.03279,
+        0.03101,
+        0.03041,
+        0.02996,
+        0.02901
+      ]
+    },
+    {
+      "id": "q42",
+      "book": "bjcp-exam-study-guide-2017",
+      "question": "Why do lager brewers do a diacetyl rest?",
+      "expect_pages": [
+        68
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        5703,
+        6857,
+        5702,
+        2400,
+        2390
+      ],
+      "top5_pages": [
+        133,
+        71,
+        132,
+        203,
+        198
+      ],
+      "top5_scores": [
+        0.03279,
+        0.03128,
+        0.03031,
+        0.03016,
+        0.03009
+      ]
+    },
+    {
+      "id": "q43",
+      "book": "bjcp-exam-study-guide-2017",
+      "question": "What causes a cheesy or sweaty-sock aroma in beer?",
+      "expect_pages": [
+        71
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        2880,
+        2879,
+        2859,
+        5595,
+        2860
+      ],
+      "top5_pages": [
+        482,
+        481,
+        471,
+        58,
+        471
+      ],
+      "top5_scores": [
+        0.03068,
+        0.02654,
+        0.02602,
+        0.02594,
+        0.02568
+      ]
+    },
+    {
+      "id": "q44",
+      "book": "bjcp-exam-study-guide-2017",
+      "question": "Why does my beer taste like coins or blood?",
+      "expect_pages": [
+        73
+      ],
+      "ranks": [
+        null
+      ],
+      "recall_at_5": 0.0,
+      "rr": 0.0,
+      "top5_chunk_ids": [
+        2860,
+        2859,
+        5595,
+        2745,
+        2855
+      ],
+      "top5_pages": [
+        471,
+        471,
+        58,
+        388,
+        470
+      ],
+      "top5_scores": [
+        0.02912,
+        0.02688,
+        0.02487,
+        0.02476,
+        0.02326
+      ]
+    },
+    {
+      "id": "q45",
+      "book": "bjcp-exam-study-guide-2017",
+      "question": "What is the difference between lactic and acetic sourness in beer?",
+      "expect_pages": [
+        76,
+        76
+      ],
+      "ranks": [
+        1,
+        1
+      ],
+      "recall_at_5": 1.0,
+      "rr": 1.0,
+      "top5_chunk_ids": [
+        6872,
+        4368,
+        2444,
+        2447,
+        2451
+      ],
+      "top5_pages": [
+        76,
+        110,
+        231,
+        232,
+        233
+      ],
+      "top5_scores": [
+        0.03252,
+        0.03102,
+        0.02896,
+        0.02782,
+        0.02694
+      ]
+    }
+  ]
+}

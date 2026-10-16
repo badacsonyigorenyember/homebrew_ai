@@ -1,6 +1,6 @@
 # S4 · Books into the knowledge base, with a retrieval eval — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: s4-books-kb
 
@@ -222,10 +222,10 @@ Commit: `Add reviewed retrieval test set`
 ### Task 9: First measured run, the bar, and the record
 Why: R6, A5, G7 (retrieval part).
 **Needs from the user:** the recall@5 bar, chosen from the first run.
-- [ ] `python -m evals.retrieval --save s4-first`. Report recall@5, MRR@10, per book, and the misses to the user. Ask for the bar; recommend the first run's recall@5 rounded down to the nearest 0.05, so later changes cannot quietly lose recall.
-- [ ] Set `RECALL_AT_5_BAR` with a comment (date, first-run value). Record first-run numbers and the bar in PROJECT.md §8 and BOOKS.md. Commit this before any tuning change.
-- [ ] If the bar is above the first run, tuning is new work: stop and ask the user before changing anything (`candidates`, `rrf_k`, `MAX_TOKENS`, `MIN_WORDS`), and add tasks with a Deviation line. Otherwise, `python -m evals.retrieval --save s4` as the final run: bar met (A5).
-- [ ] Full suite: `.venv/bin/pytest`, expect all pass; record the count and time in PROJECT.md §4 Scripts row. PROJECT.md: §4 vector search row 🟢 with counts, Eval guidance row (used), §8 entry with recall@5, MRR and the bar.
+- [x] `python -m evals.retrieval --save s4-first`. Report recall@5, MRR@10, per book, and the misses to the user. Ask for the bar; recommend the first run's recall@5 rounded down to the nearest 0.05, so later changes cannot quietly lose recall.
+- [x] Set `RECALL_AT_5_BAR` with a comment (date, first-run value). Record first-run numbers and the bar in PROJECT.md §8 and BOOKS.md. Commit this before any tuning change.
+- [x] If the bar is above the first run, tuning is new work: stop and ask the user before changing anything (`candidates`, `rrf_k`, `MAX_TOKENS`, `MIN_WORDS`), and add tasks with a Deviation line. Otherwise, `python -m evals.retrieval --save s4` as the final run: bar met (A5).
+- [x] Full suite: `.venv/bin/pytest`, expect all pass; record the count and time in PROJECT.md §4 Scripts row. PROJECT.md: §4 vector search row 🟢 with counts, Eval guidance row (used), §8 entry with recall@5, MRR and the bar.
 Done when: the bar is committed before any tuning, the final run meets it, PROJECT.md holds the numbers.
 Commit: `Record first retrieval run and the recall@5 bar`
 
