@@ -10,7 +10,7 @@ stored. Tables and formulas are cut out and go through the doc → calculation p
 
 | Slug | Book | File | PDF pages | Skipped pages | Chunks | Ingested |
 |---|---|---|---|---|---|---|
-| `palmer-how-to-brew` | *How to Brew*, Palmer & Kaminski, fourth edition 2017 | `books/how_to_brew.pdf` | 612 | 1–26 (cover, praise, contents, preface, acknowledgments, abbreviations), 579–612 (bibliography, index) | 943 (tokens min 32, median 273, max 514; measured) | 2026-10-16 |
+| `palmer-how-to-brew` | *How to Brew*, Palmer, fourth edition 2017 | `books/how_to_brew.pdf` | 612 | 1–26 (cover, praise, contents, preface, acknowledgments, abbreviations), 579–612 (bibliography, index) | 943 (tokens min 32, median 273, max 514; measured) | 2026-10-16 |
 | `palmer-kaminski-water` | *Water: A Comprehensive Guide for Brewers*, Palmer & Kaminski, 2013 | `books/palmer_kaminski_water.pdf` | 273 | 1–18 (cover, contents, figure list, acknowledgments, foreword), 238–273 (last table page, index) | 357 (tokens min 35, median 319, max 514; measured) | 2026-10-16 |
 | `white-zainasheff-yeast` | *Yeast: The Practical Guide to Beer Fermentation*, White & Zainasheff, 2010 | `books/white_zainasheff_yeast.pdf` | 325 | 1–21 (cover, contents, acknowledgments, foreword, blank pages), 305–325 (blank page, figure credits, references, index) | 454 (tokens min 31, median 298, max 514; measured) | 2026-10-16 |
 | `mallett-malt` | *Malt: A Practical Guide from Field to Brewhouse*, Mallett, 2014 | `books/mallett_malt.pdf` | 335 | 1–16 (cover, contents, acknowledgments, foreword), 263–335 (bibliography, index) | 341 (tokens min 46, median 316, max 514; measured) | 2026-10-16 |
@@ -121,12 +121,12 @@ and are not listed.
 | 1 First Batch | 31–50 | 31, 36 | – |
 | 2 Cleaning | 51–68 | 51, 63–66 | – |
 | 3 Malt | 69–74 | 69 | – |
-| 4 Kits | 75–88 | 75, 77–78, 80–83 | 78–79 |
-| 5 Hops | 89–110 | 89, 93–95, 100–101, 104, 107 | 92, 102, 104–106 |
+| 4 Kits | 75–88 | 75, 77, 78 (s1 §1), 80, 81 (s1 §4), 82–83 | 78–79 (s1 §1) |
+| 5 Hops | 89–110 | 89, 93–95, 100–101, 104 (s1 §6), 107 (s1 §6) | 92, 102, 104–106 (s1 §6) |
 | 6 Yeast | 111–130 | 111, 113, 120, 122–123 | – |
-| 7 Yeast management | 131–154 | 131, 140–142, 145, 152 | 134 |
+| 7 Yeast management | 131–154 | 131, 140–142, 145, 152 | 134 (s1 §4) |
 | 8 Water, extract | 155–164 | 155, 160, 162 | 161 |
-| 9 Full-volume boil | 165–178 | 165–166, 176 | – |
+| 9 Full-volume boil | 165–178 | 165–166, 176 (s1 §5) | – |
 | 10 Priming | 179–196 | 179, 184–187, 193–194 | 183 |
 | 11 Lager | 197–206 | 197, 201, 205 | – |
 | 12 Strong beers | 207–216 | 207, 209–210, 213 | – |
@@ -135,16 +135,16 @@ and are not listed.
 | 15 Malt, adjuncts | 247–264 | 247, 251, 263 | – |
 | 16 Mash | 265–284 | 265, 268, 275 | – |
 | 17 Mashing methods | 285–304 | 285, 289, 291, 293 | 292, 294–297, 300–301 |
-| 18 Extraction, yield | 305–322 | 305, 307, 309, 312, 314–315, 317 | 311, 314, 316–321 |
+| 18 Extraction, yield | 305–322 | 305, 307, 309, 312, 314 (s1 §1), 315, 317 (s1 §2) | 311 (s1 §3), 314 (s1 §1), 316 (s1 §1; adjuncts), 317 (s1 §2), 318 (s1 §1), 319–321 |
 | 19 Lautering | 323–340 | 323, 328–329, 333–338 | 329–331 |
 | 20 First all-grain | 341–358 | 341, 344–345, 357 | 353 |
 | 21 RA, mash pH | 359–382 | 365, 370–371, 373, 377, 380–381 | 360, 363, 368–370, 374 |
 | 22 Water for style | 383–400 | 383–384, 388, 391, 394–397 | 392–396 |
 | 23 Styles, recipes | 401–452 | 401, 406–423, 425–451 | – |
-| 24 Developing recipes | 453–466 | 453, 462–464 | – |
+| 24 Developing recipes | 453–466 | 453, 462 (s1 §4; adjuncts), 463–464 | – |
 | 25 Is my beer ruined | 467–486 | 467–468 | – |
-| App A hydrometers | 487–492 | 487, 490–491 | 489 |
-| App B colour | 493–502 | 493–494, 496, 498–499 | – |
+| App A hydrometers | 487–492 | 487, 490, 491 (s1 §3) | 489 |
+| App B colour | 493–502 | 493, 494 (s1 §7), 496 (s1 §7), 498 (s1 §7), 499 (s1 §7) | – |
 | App C clarity | 503–510 | 503, 509 | – |
 | App D chillers | 511–520 | 511, 515–516 | – |
 | App E lauter tun | 521–538 | 521 | – |
@@ -153,9 +153,14 @@ and are not listed.
 | App H conversions | 565–572 | 565, 567–570 | – |
 | App I gluten-free | 573–578 | 573 | – |
 
-Which cut table or formula page belongs to which `s1-maths` section has not been mapped page by
-page (unverified). The chapters that are water, pH and mash tables (8, 16, 21, 22) are the main
-"not passed yet" ones.
+Marks: `(s1 §n)` = the page is covered by section n of the `s1-maths`
+[doc-calc.md](finished/s1-maths/doc-calc.md) (checked against the book pages that file cites,
+printed page + 26 = PDF page); `(adjuncts)` = `adjunct-fermentables` read it. Section 3 (SG ↔ °P)
+read table A.2 (p. 491) only to compare it with the formula, and it is not a source. **Pages with
+no mark are not passed yet.** Their owner is m7-process for chapters 8 and 16–22 and Appendices
+D–F (water, pH, mash and process tables); the other chapters have no owner yet. The mapping is by
+the cited page only: s1-maths may also use a figure from a marked page's neighbour that the
+loader did not flag (unverified).
 
 ### *Water*
 

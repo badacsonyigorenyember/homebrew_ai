@@ -20,3 +20,13 @@ tests included.
 | 5 | note | loaders/books.py:178 | `table_pages` gets every page of a chunk whose text changed in `strip_tables`. That includes all pages of a chunk that spans several pages, and a change from blank-line collapsing alone. | The table-page lists in BOOKS.md §3 are upper bounds, not exact pages. That is safe for R3 (nothing is under-reported). |
 | 6 | note | db/040_kb_search.sql:24 | When the HNSW index serves the vector arm, it returns at most `hnsw.ef_search` rows (default 40, iterative scan off). `candidates` > 40 then adds no vector candidates unless `ef_search` is raised in the same session. | Matters for the tuning TODO (RECIPE-ROADMAP §8 Later), which names `candidates`. No effect at the default 40. |
 | 7 | note | loaders/books.py:177 | `min(c["page_numbers"])` raises on a chunk with no page numbers. A chunk is skipped by its first page only. | Neither happened on the five books (all ingests completed). The first-page rule is documented in BOOKS.md §2 step 5. |
+
+## Fix of findings 1–4
+
+| # | Earlier finding | Status |
+|---|---|---|
+| 1 | *How to Brew* cut pages not mapped to a pass | Resolved. The table and formula page lists in BOOKS.md §3 now carry `(s1 §n)` or `(adjuncts)` on every page the cited `s1-maths` and `adjunct-fermentables` pages cover; unmarked pages are "not passed yet", with m7-process as owner for the water, pH, mash and process chapters. |
+| 2 | DATABASE.md §4 and §7 stale | Resolved. Both say all five books, 2,180 chunks (counts per book re-measured from `kb.chunk`: 943 / 357 / 454 / 341 / 85). |
+| 3 | PROJECT.md Scripts row lacked the loader and eval | Resolved. The row names `loaders/books.py`, `evals/retrieval.py`, and the three test files. |
+| 4 | Wrong author for *How to Brew* | Resolved. BOOKS.md §1 says Palmer. |
+| 6 | note: `ef_search` caps the vector arm | Added to the retrieval-tuning TODO in RECIPE-ROADMAP §8 Later. |
