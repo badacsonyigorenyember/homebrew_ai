@@ -204,21 +204,21 @@ Commit: `Add style-neighbour runner and first run`
 
 ### Task 4: BJCP 2021 specialty-entry rules against D1 — may STOP
 Why: R7 (A6).
-- [ ] Read `shared/rag-files/styles/bjcp_2021_introductions.md` (*Introduction to
+- [x] Read `shared/rag-files/styles/bjcp_2021_introductions.md` (*Introduction to
       Specialty-Type Beer*: "Base Style", "Best Fit", the judging notes on base style) and the
       entry instructions of the specialty styles step 2 can pick (31B in `ref.beer_style.raw`,
       `app.specialty_style()` in `db/022_step2.sql`).
-- [ ] Write `docs/work/s6-style-neighbours/specialty-entry.md` (one page): the D1 rule as in
+- [x] Write `docs/work/s6-style-neighbours/specialty-entry.md` (one page): the D1 rule as in
       PROJECT.md §5; what BJCP 2021 says, quoting short phrases only (< 15 words each);
       point by point agrees / differs (at least: base style by default; specialty when the
       ingredient is perceptible; base style declared as the alternative; specialty styles never
       a base style; which specialty adjuncts `app.specialty_style()` covers vs the
       Specialty-Type Ingredients BJCP lists); verdict.
-- [ ] If the verdict proposes a change to D1 or to step 2: return `needs-input` with the
+- [x] If the verdict proposes a change to D1 or to step 2: return `needs-input` with the
       proposal as a question (options, recommendation). Change nothing in PROJECT.md §5 or
       `db/`. After the answer, record the decision in the note ("approved", or "declined" with
       the user's reason). A change the user approves is its own work item, not done here.
-- [ ] PROJECT.md §8 line (verdict and the user's decision if any).
+- [x] PROJECT.md §8 line (verdict and the user's decision if any).
 Done when: the note exists with a verdict, and any proposal has the user's decision (A6).
 Commit: `Add specialty-entry note for D1`
 
