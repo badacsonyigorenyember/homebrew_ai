@@ -139,6 +139,9 @@ vs. numbers vs. words) before adding signals; consider an LLM tie-break only for
 kind (b16 rice, b19 honey, b20 lactose) needs s3's tags and envelopes, so m3 starts after s3.
 **Decide:** start stage B now, or improve stage A first.
 
+**Measured (2026-10-17, [`m3-deviations`](work/m3-deviations/plan.md)):** met. `python -m evals.run --save --label m3` on the real pipeline: b01-b20 20/20 with step 2 and step 3 both passing (bar 18/20), b21 and b22 also pass; step 1 22/22, step 2 22/22, step 3 22/22, briefs 22/22. The A2 cases pass: b08 (IBU), b17 (ABV) and b18 (SRM) one number deviation each, b05 the mismatch, b11 the dry vs full, chewy conflict, and b16 rice, b19 honey, b20 lactose the ingredient deviations. All 22 step 3 rows are `ok` and meet `step3.output` (checked with `extensions.jsonschema_validation_errors`). No step 3 miss, so none came from step 1's output. Saved in `evals/results/2026-10-17-m3.json`.
+**Decided:** stage B (M4) starts next, since the bar is met.
+
 ### G-M · Maths matches the books
 
 **Bar:** every function reproduces Palmer's and OBC's worked examples within a stated tolerance

@@ -275,20 +275,20 @@ Commit: `Run step 3 in the pipeline`
 
 ### Task 6: G3 is measured on the real pipeline
 Why: G3 (= RECIPE-ROADMAP P4); A1, A2, A8, A9.
-- [ ] `.venv/bin/python -m evals.run --save --label m3` (stack up, D2 model). Count b01–b20 with
+- [x] `.venv/bin/python -m evals.run --save --label m3` (stack up, D2 model). Count b01–b20 with
       step 2 and step 3 both passing; report b21 and b22 beside it. For each step 3 miss, compare
       with Task 4's SQL-level result: a miss only seen here comes from step 1's output (name the
       field), not from step 3.
-- [ ] Check A8 on the saved run: every step 3 row of the run is `ok` and its output passes
+- [x] Check A8 on the saved run: every step 3 row of the run is `ok` and its output passes
       `step3.output` (one `psql` query with `extensions.jsonschema_validation_errors`).
-- [ ] **If the bar is not met:** fix only in a general way as in Task 4, re-run the SQL tests and
+- [x] **If the bar is not met:** fix only in a general way as in Task 4, re-run the SQL tests and
       the runner, and record each change in Deviations. If that does not reach it, stop and report
       `needs-input` with the misses; the bar is not lowered.
-- [ ] `docs/WORKFLOW-ROADMAP.md` G3: **Measured** line (counts, A2 cases, results file) and
+- [x] `docs/WORKFLOW-ROADMAP.md` G3: **Measured** line (counts, A2 cases, results file) and
       **Decided**: stage B (M4) starts next, since the bar is met. `docs/RECIPE-ROADMAP.md` §8 P4
       row: done, with the date, the count and a link to this plan. PROJECT.md §8 entry with the
       measured numbers.
-- [ ] Commit `evals/results/<date>-m3.json`.
+- [x] Commit `evals/results/<date>-m3.json`.
 Done when: the saved run shows ≥ 18/20 on b01–b20 with step 2 and step 3 passing, b21 and b22
 reported, and the docs carry the measured numbers.
 Commit: `Measure G3 for step 3`
