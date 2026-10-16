@@ -1,6 +1,6 @@
 # S6 · Neighbouring styles: step 2 checks and an envelope cross-check — implementation plan
 
-Stage: review
+Stage: verify
 Brief: [brief.md](brief.md)
 Branch: s6-style-neighbours
 
