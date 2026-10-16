@@ -5,7 +5,7 @@ The books and articles are loaded into `kb.chunk` by [`loaders/books.py`](../loa
 stored. Tables and formulas are cut out and go through the doc → calculation pass instead
 (PROJECT.md §6.7). Page numbers are **PDF page numbers** (1-based), not the printed ones. For
 *How to Brew* the PDF page is the printed page + 26. A Markdown source (a saved web page) has no
-page: its `page` is null and it is cited by title and URL (§1c, s7: [`s7-kb-articles`](work/s7-kb-articles/plan.md)).
+page: its `page` is null and it is cited by title and URL (§1c, s7: [`s7-kb-articles`](finished/s7-kb-articles/plan.md)).
 
 ## 1. Books in `kb`
 
