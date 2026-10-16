@@ -1442,7 +1442,7 @@ min = "low"
 max = "medium"
 characters = []
 unknown = []
-quote = "Light to medium-low body."
+quote = "Stronger versions can have up to medium body"
 
 [[style.sensory]]   # fix 6
 dimension = "sourness"
@@ -2183,7 +2183,7 @@ min = "low"
 max = "medium"
 characters = ["bready", "toasty", "biscuit"]
 unknown = []
-quote = "Light to moderate malty aroma, generally neutral or grainy, possibly with a light bread or caramel note."
+quote = "light character malt flavor (e.g., bread, toast, biscuit, wheat)"
 
 [[style.sensory]]
 dimension = "caramel"
@@ -2315,7 +2315,7 @@ min = "medium"
 max = "very high"
 characters = ["roast", "coffee", "chocolate", "acrid"]
 unknown = []
-quote = "Moderate to very high roasted flavors, often tasting of coffee, dark or bittersweet chocolate, or roasted coffee beans."
+quote = "Burnt or charcoal aromas are acceptable at low levels."
 
 [[style.sensory]]
 dimension = "hop_aroma"

@@ -1,6 +1,6 @@
 # S6 · Barnes 2008 cross-check of the 21 envelopes
 
-Written 2026-10-16 for Task 5 of [plan.md](plan.md). **Nothing in `loaders/style_envelopes.toml` is changed.** This report lists every place where a 2008 flashcard (Barnes, `shared/rag-files/styles/barnes_bjcp_style_flashcards_2011.pdf`) reads differently from a style envelope, with the envelope's 2021 quote and a proposal. Your decision column is empty on purpose. 2008 numbers and codes appear only in this report.
+Written 2026-10-16 for Task 5 of [plan.md](plan.md). **Result: 62 keep, 3 change.** The three changes (D20, D40, D57) were applied to `loaders/style_envelopes.toml` in 2fdb99e; every other row is kept. This report lists every place where a 2008 flashcard (Barnes, `shared/rag-files/styles/barnes_bjcp_style_flashcards_2011.pdf`) reads differently from a style envelope, with the envelope's 2021 quote, a proposal and the decision. 2008 numbers and codes appear only in this report.
 
 ## How the cards were read
 
