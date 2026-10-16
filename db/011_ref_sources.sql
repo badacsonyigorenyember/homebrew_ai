@@ -86,7 +86,7 @@ insert into ref.source (slug, title, edition, publisher, licence, url, notes) va
     ('palmer-how-to-brew',
      'How to Brew', 'Fourth edition 2017',
      'Brewers Publications', null, null,
-     'Table 18.5 (p. 289) and Table 24.1 (p. 436) only; file shared/rag-files/pending/how_to_brew.pdf'),
+     'Table 18.5 (p. 289) and Table 24.1 (p. 436) only; file shared/rag-files/books/how_to_brew.pdf'),
     ('hopline-adjuncts',
      'Hopline flake and sugar product pages', 'website, fetched 2026-10-11',
      'Hopline', null,
@@ -95,7 +95,7 @@ insert into ref.source (slug, title, edition, publisher, licence, url, notes) va
     ('malt-substitution-2025',
      'PrimeTime Malt Substitution Chart', '2025 (short)',
      'Hops Shop BG', null, null,
-     'shared/rag-files/pending/PrimeTime Malt Substitution Chart 2025 short.pdf (printed "© Hops Shop BG, 2025")'),
+     'shared/rag-files/maltsters/PrimeTime Malt Substitution Chart 2025 short.pdf (printed "© Hops Shop BG, 2025")'),
     ('briess-flakes-web',
      'Briess Craft Distilling flakes page', 'website, fetched 2026-10-15',
      'Briess Malt & Ingredients', null,
@@ -115,6 +115,15 @@ update ref.source set notes = 'Yeast attenuation for Gozdawa and Brewline strain
 update ref.source set notes = 'Dry yeast page (this URL) and liquid yeast page (https://www.hopline.hu/alapanyagok/elesztok/folyekony-eleszto)'
  where slug = 'hopline-yeasts'
    and notes is distinct from 'Dry yeast page (this URL) and liquid yeast page (https://www.hopline.hu/alapanyagok/elesztok/folyekony-eleszto)';
+
+-- shared/rag-files/pending/ was split into grouped folders (2026-10-16).
+update ref.source set notes = 'Table 18.5 (p. 289) and Table 24.1 (p. 436) only; file shared/rag-files/books/how_to_brew.pdf'
+ where slug = 'palmer-how-to-brew'
+   and notes is distinct from 'Table 18.5 (p. 289) and Table 24.1 (p. 436) only; file shared/rag-files/books/how_to_brew.pdf';
+
+update ref.source set notes = 'shared/rag-files/maltsters/PrimeTime Malt Substitution Chart 2025 short.pdf (printed "© Hops Shop BG, 2025")'
+ where slug = 'malt-substitution-2025'
+   and notes is distinct from 'shared/rag-files/maltsters/PrimeTime Malt Substitution Chart 2025 short.pdf (printed "© Hops Shop BG, 2025")';
 
 -- Brewline "Bajor Búza" is named in English (user request 2026-10-11). Renaming the row keeps
 -- its id, so the yeast loader's upsert updates it instead of adding a second row.
