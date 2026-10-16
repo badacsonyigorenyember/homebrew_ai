@@ -1,5 +1,6 @@
-"""The style-neighbour check set (evals/style_neighbours.toml): the 91 study-guide triples."""
+"""The style-neighbour check set (evals/style_neighbours.toml): the 91 study-guide triples and the 83 briefs."""
 
+import json
 import re
 import tomllib
 import unicodedata
@@ -12,6 +13,7 @@ from loaders.db import connect
 ROOT = Path(__file__).resolve().parent.parent
 DATA = tomllib.loads((ROOT / "evals" / "style_neighbours.toml").read_text())
 TRIPLES = DATA["triple"]
+BRIEFS = DATA.get("brief", [])
 
 REMOVED_IDS = {8, 19, 20, 33, 36, 40, 43, 45, 55, 72, 83, *range(97, 105)}
 HAND_MAPPED = {"Vienna": "7A", "English Barleywine": "17D", "Trappist Single": "26A", "Belgian IPA": "21B"}
@@ -107,3 +109,140 @@ def test_one_family_per_style():
             continue
         for code in t["codes"]:
             assert noun_of.setdefault(code, t["family"]) == t["family"], code
+
+
+# ---- the 83 briefs -------------------------------------------------------------------------------
+
+HINT_WORDS = {"bitter", "hoppy", "juicy", "dry", "crisp", "full", "chewy", "malty", "darker", "stronger", "session"}
+STATED_COLUMNS = {"abv": "abv", "og": "og", "ibu": "ibu", "srm": "srm"}
+# Words that would give a style away in a request (R1). Style names and aliases are read from the
+# database in the stack test; these are the single words a name or family is known by.
+NAMING_WORDS = [
+    "stout", "porter", "bock", "lager", "ale", "ipa", "pils", "pilsner", "weisse", "weissbier", "weizen",
+    "lambic", "gueuze", "barleywine", "saison", "kolsch", "helles", "dunkel", "marzen", "festbier", "wheat",
+]
+SCORED_TEXT = (
+    "overallimpression", "aroma", "appearance", "flavor", "mouthfeel", "comments", "stylecomparison",
+    "characteristicingredients",
+)
+
+
+def step1_brief(b):
+    """The step 1 brief a user's sentence should produce (named stays empty: Run A)."""
+    return {
+        "named": None, "stated": dict(b["stated"]), "hints": list(b["hints"]), "wanted": [], "excluded": [],
+        "inventory": [], "unknown": list(b["unknown"]), "guidance": True,
+    }
+
+
+def partners_of(code):
+    return sorted({c for t in TRIPLES if code in t["codes"] for c in t["codes"] if c != code})
+
+
+def word_in(word, text):
+    return re.search(rf"(?<![a-z]){re.escape(word)}(?![a-z])", text.lower()) is not None
+
+
+@pytest.mark.parametrize("b", BRIEFS, ids=lambda b: b["code"])
+def test_brief_has_a_request(b):
+    assert isinstance(b["request"], str) and b["request"].strip().endswith((".", "?"))
+
+
+def test_one_brief_per_triple_style():
+    codes = [b["code"] for b in BRIEFS]
+    assert len(codes) == len(set(codes))
+    assert set(codes) == {c for t in TRIPLES for c in t["codes"]}
+    assert len(codes) == 83
+
+
+def test_briefs_ordered_by_code():
+    key = lambda c: (int(c[:-1]), c[-1])
+    codes = [b["code"] for b in BRIEFS]
+    assert codes == sorted(codes, key=key)
+
+
+def test_partners_match_triples():
+    assert BRIEFS
+    for b in BRIEFS:
+        assert b["partners"] == partners_of(b["code"]), b["code"]
+
+
+def test_brief_shape():
+    assert BRIEFS
+    for b in BRIEFS:
+        code = b["code"]
+        assert b["named"] == "", code
+        assert 1 <= len(b["stated"]) <= 2 and set(b["stated"]) <= set(STATED_COLUMNS), code
+        assert set(b["hints"]) <= HINT_WORDS, code
+        words = b["hints"] + b["unknown"]
+        assert 2 <= len(words) <= 4 and len(set(words)) == len(words), code
+        for w in words:
+            assert re.fullmatch(r"[a-z][a-z-]*", w), (code, w)
+        for w in b["unknown"]:
+            assert len(w) >= 4, (code, w)
+        for w in words:
+            assert word_in(w, b["request"]), (code, w)
+        for key, v in b["stated"].items():
+            assert f"{v:g}" in b["request"], (code, key, v)
+
+
+@pytest.mark.stack
+def test_stated_numbers_in_2021_range(conn):
+    assert BRIEFS
+    for b in BRIEFS:
+        for key, v in b["stated"].items():
+            (ok,) = conn.execute(
+                f"select %s::numeric <@ b.{STATED_COLUMNS[key]} from ref.beer_style b "
+                "join ref.source s on s.id = b.source_id where s.slug = 'bjcp-2021' and b.code = %s",
+                (v, b["code"]),
+            ).fetchone()
+            assert ok, (b["code"], key, v)
+
+
+@pytest.mark.stack
+def test_words_from_2021_entry(conn):
+    assert BRIEFS
+    for b in BRIEFS:
+        (raw,) = conn.execute(
+            "select b.raw from ref.beer_style b join ref.source s on s.id = b.source_id "
+            "where s.slug = 'bjcp-2021' and b.code = %s", (b["code"],)
+        ).fetchone()
+        text = " ".join(raw.get(k) or "" for k in SCORED_TEXT)
+        for field, words in (("hints", b["hints"]), ("unknown", b["unknown"])):
+            for w in words:
+                # the word as step 2 reads it (brief_words renames some hints and drops short words)
+                (read,) = conn.execute("select app.brief_words(%s::jsonb)", (json.dumps({field: [w]}),)).fetchone()
+                (tags,) = conn.execute("select app.style_tags(%s::jsonb)", (json.dumps(raw),)).fetchone()
+                (score,) = conn.execute("select app.style_word_score(%s, %s, %s)", (read, tags, text)).fetchone()
+                assert score > 0, (b["code"], field, w)
+
+
+@pytest.mark.stack
+def test_no_style_name_in_request(conn):
+    assert BRIEFS
+    rows = conn.execute(
+        "select b.code, b.name from ref.beer_style b join ref.source s on s.id = b.source_id "
+        "where s.slug = 'bjcp-2021'"
+    ).fetchall()
+    phrases = [fold(name) for _, name in rows]
+    phrases += [fold(a) for (a,) in conn.execute("select alias from app.style_alias()").fetchall()]
+    own = {t_code: names for t in TRIPLES for t_code, names in zip(t["codes"], t["names"])}
+    for b in BRIEFS:
+        text = fold(b["request"])
+        own_name = fold(own[b["code"]])
+        for phrase in phrases + [own_name]:
+            assert not re.search(rf"(?<![a-z]){re.escape(phrase)}(?![a-z])", text), (b["code"], phrase)
+        for word in NAMING_WORDS:
+            assert not re.search(rf"(?<![a-z]){word}(?![a-z])", text), (b["code"], word)
+
+
+@pytest.mark.stack
+def test_briefs_fit_step1_contract(conn):
+    assert BRIEFS
+    schema = json.loads((ROOT / "shared" / "contracts" / "step1.output.schema.json").read_text())
+    for b in BRIEFS:
+        (errs,) = conn.execute(
+            "select coalesce(extensions.jsonschema_validation_errors(%s::json, %s::json), '{}')",
+            (json.dumps(schema), json.dumps(step1_brief(b))),
+        ).fetchone()
+        assert errs == [], (b["code"], errs)

@@ -105,12 +105,12 @@ Commit: `Add the 91 BJCP exam style triples`
 
 ### Task 2: One brief per triple style (83)
 Why: R1, R2, decision 1 (A1, A2).
-- [ ] Add 83 `[[brief]]` to `evals/style_neighbours.toml`, one per distinct code, ordered by code.
+- [x] Add 83 `[[brief]]` to `evals/style_neighbours.toml`, one per distinct code, ordered by code.
       Fields: `code`, `partners` (sorted codes of every style that shares a triple with it),
       `request`, `named = ""`, `stated` (table, keys only from `abv`, `og`, `ibu`, `srm`),
       `hints` (only words from step 1's hint list: bitter, hoppy, juicy, dry, crisp, full, chewy,
       malty, darker, stronger, session), `unknown` (the other descriptive words, one word each).
-- [ ] How to write each brief (put these rules in the header comment, R2):
+- [x] How to write each brief (put these rules in the header comment, R2):
       - one or two stated numbers, each inside the style's BJCP 2021 range in `ref.beer_style`;
         pick the number that sets it apart from its partners where one does (Scottish Light vs
         Heavy vs Export by ABV, Helles Bock vs Doppelbock by OG);
@@ -125,7 +125,7 @@ Why: R1, R2, decision 1 (A1, A2).
         nothing that names the style: no BJCP 2021 style name or alias, no study-guide name, no
         family noun (the list in `test_no_style_name_in_request`);
       - paraphrase only; no phrase of more than a few words copied from the guidelines.
-- [ ] Add to `tests/test_style_neighbours.py`:
+- [x] Add to `tests/test_style_neighbours.py`:
       - `test_one_brief_per_triple_style` (A1): brief codes are unique and equal the 83 triple codes;
       - `test_partners_match_triples` (A1): each `partners` equals the derivation from `[[triple]]`;
       - `test_brief_shape` (A2): `named` is empty; 1–2 `stated` keys, all in abv/og/ibu/srm;
@@ -145,9 +145,9 @@ Why: R1, R2, decision 1 (A1, A2).
         Task 3, or the same dict built here until then) has no errors from
         `extensions.jsonschema_validation_errors` against `shared/contracts/step1.output.schema.json`
         (as `tests/test_contracts.py` does).
-- [ ] Run `.venv/bin/pytest tests/test_style_neighbours.py`, expect all to pass. Do not run step 2
+- [x] Run `.venv/bin/pytest tests/test_style_neighbours.py`, expect all to pass. Do not run step 2
       on the briefs while writing them (the set must not be fitted to the scorer).
-- [ ] PROJECT.md §8 line.
+- [x] PROJECT.md §8 line.
 Done when: 83 briefs exist and every test above passes.
 Commit: `Add 83 style-neighbour briefs`
 
@@ -304,5 +304,6 @@ Commit: `Apply agreed envelope fixes from Barnes check`
   with the triple's family noun as `named`, plus the gap; mixed triples A only, marked and counted.
   Triples get a `family` field from BJCP's 2021 family tags; how `named` scores is stated in the
   Approach — the user's answers "1b" and "2c" at plan review.
+- 2026-10-16 · Task 2: `test_no_style_name_in_request` also bars the family noun `wheat` (it is a family noun in the Approach list, missing from the task's list). Words are checked through `app.brief_words` first, so a hint like `darker` is read as step 2 reads it (tag `dark-color`).
 - 2026-10-16 · Tasks 1-3: 83 distinct styles and briefs, not 84 — the 84 counted printed names, and
   "Vienna" (hand-mapped) and "Vienna Lager" are both 7A. Run B stays at 61 briefs (measured).
