@@ -5,7 +5,7 @@ Slug: m7-process · Branch: m7-process
 Roadmap: [WORKFLOW-ROADMAP.md](../../WORKFLOW-ROADMAP.md) M7 · [RECIPE-ROADMAP.md](../../RECIPE-ROADMAP.md)
 §3 steps 12–15, §6, §8 P6
 Needs: `m6-compute-validate` shipped; the *Water* and *Yeast* PDFs added to
-`shared/rag-files/pending/` (they are not there, checked 2026-10-12)
+`shared/rag-files/books/` (both there, checked 2026-10-16)
 
 ## Why
 After M6 a recipe says what goes in, not how to brew it. A brewer also needs salt additions,
