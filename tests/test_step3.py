@@ -122,3 +122,60 @@ def test_unrelated_hints_do_not_conflict(conn):
     assert conflicts(conn, BRIEFS["b19"]["hints"]) == []
     assert conflicts(conn, BRIEFS["b21"]["hints"]) == []
     assert conflicts(conn, []) == []
+
+
+def rate(conn, code, item, role="background"):
+    return sql(conn, "rate_wanted", code, item, role)
+
+
+@pytest.mark.stack
+def test_out_of_style_words(conn):
+    for code, item in [("18B", "rice"), ("17C", "honey"), ("19C", "lactose")]:
+        assert rate(conn, code, item)["level"] == "out_of_style", (code, item)
+
+
+@pytest.mark.stack
+def test_in_style_words(conn):
+    for code, item in [("21C", "oats"), ("1B", "rice"), ("1C", "corn"), ("31B", "honey")]:
+        assert rate(conn, code, item)["level"] == "typical", (code, item)
+
+
+@pytest.mark.stack
+def test_best_over_products(conn):
+    got = rate(conn, "26B", "abbey yeast")
+    assert got["name"] == "Abbaye" and got["level"] == "typical", got
+
+
+@pytest.mark.stack
+def test_yeast_best_over_its_temperature_range(conn):
+    got = rate(conn, "26B", "Abbey Monk Ale")
+    assert got["level"] == "allowed", got
+    assert any(f"{t} °C" in got["choice"] for t in range(22, 27)), got
+    assert rate(conn, "26B", "M47 Belgian Abbey")["level"] == "out_of_style"
+
+
+@pytest.mark.stack
+def test_feature_hop_rated_late_only(conn):
+    feature = rate(conn, "15B", "Citra", "feature")
+    assert feature["level"] == "out_of_style" and ("whirlpool" in feature["choice"] or "dry hop" in feature["choice"]), feature
+    background = rate(conn, "15B", "Citra", "background")
+    assert background["level"] == "allowed" and "boil" in background["choice"], background
+
+
+@pytest.mark.stack
+def test_unresolved_word_is_unrated(conn):
+    got = rate(conn, "21A", "unicorn tears")
+    assert got["level"] is None and got["reason"]
+
+
+@pytest.mark.stack
+def test_style_without_envelope_is_unrated(conn):
+    code = conn.execute(
+        "select b.code from ref.beer_style b"
+        " where not exists (select 1 from ref.style_sensory x where x.style_id = b.id and x.reviewed)"
+        " and not exists (select 1 from ref.style_ingredient x where x.style_id = b.id and x.reviewed)"
+        " order by b.code limit 1"
+    ).fetchone()
+    assert code, "no style without an envelope found"
+    got = rate(conn, code[0], "rice")
+    assert got["level"] is None and "envelope" in got["reason"], got

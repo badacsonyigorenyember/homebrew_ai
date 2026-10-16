@@ -239,6 +239,9 @@ Several of these are lessons from the first build (see §9).
 
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
+### 2026-10-17
+- m3-deviations Task 3: wanted words rated at their best choice (`app.level_rank`, `app.ingredient_choices`, `app.rate_wanted` appended to `db/037_step3.sql`; owned by `postgres`, applied twice cleanly). Measured: rice/18B, honey/17C, lactose/19C `out_of_style`; oats/21C, rice/1B, corn/1C, honey/31B `typical`; "abbey yeast" in 26B is Abbaye `typical`, Abbey Monk Ale `allowed` at a warm step, M47 Belgian Abbey `out_of_style`; Citra in 15B `out_of_style` as a feature hop, `allowed` at a boil as background. 17 step 3 tests pass.
+
 ### 2026-10-16
 - m3-deviations Task 2: `db/037_step3.sql` with the number, mismatch and conflict rules (`app.hint_knob`, `app.step3_conflicts`, `app.step3_numbers`, `app.step3_mismatch`; owned by `postgres`, applied twice cleanly). Measured: b08 IBU 50, b17 ABV 7, b18 SRM 20 each give one number deviation, b05 one mismatch, b11 one conflict ("dry vs full, chewy"); edges, batch_l and 31B give none. 10 step 3 tests pass (3 failed with the rules broken briefly). ([`plan.md`](docs/work/m3-deviations/plan.md))
 - m3-deviations Task 1: first ingredient-word resolver `db/036_ingredient_resolver.sql` (`app.resolve_ingredient` and three helpers, owned by `postgres`, applied twice cleanly). Measured: oats, rice, corn, honey, lactose each resolve to one product; "crystal malt" only to fermentables, "abbey yeast" only to the three yeasts; all wanted words of b01-b22 resolve. 7 resolver tests pass (kind restriction removed briefly: 2 failed), full suite 681 passed. ([`plan.md`](docs/work/m3-deviations/plan.md))

@@ -167,7 +167,7 @@ Commit: `Add step 3 number, mismatch and conflict rules`
 
 ### Task 3: a wanted word is rated at its best possible choice
 Why: R4, R5; A3, A6 (best case on several products, yeast temperature, feature hop).
-- [ ] Append to `db/037_step3.sql`:
+- [x] Append to `db/037_step3.sql`:
       - `app.level_rank(level text) returns int`, immutable: required 1, typical 2, allowed 3,
         out_of_style 4, changes_style 5, else null.
       - `app.ingredient_choices(ingredient_id bigint, role text) returns table (usage text, dose
@@ -185,8 +185,8 @@ Why: R4, R5; A3, A6 (best case on several products, yeast temperature, feature h
         because>". Returns `{"level": null, "reason": ...}` when no product resolves, when no
         product has a rateable kind, or when `style_level` gives `level: null` (the reason says
         which).
-- [ ] Apply twice.
-- [ ] Add to `tests/test_step3.py`: `test_out_of_style_words` (rice/18B, honey/17C, lactose/19C →
+- [x] Apply twice.
+- [x] Add to `tests/test_step3.py`: `test_out_of_style_words` (rice/18B, honey/17C, lactose/19C →
       `out_of_style`); `test_in_style_words` (oats/21C, rice/1B, corn/1C, honey/31B → `typical`);
       `test_best_over_products` ("abbey yeast" in 26B → Abbaye, `typical`);
       `test_yeast_best_over_its_temperature_range` ("Abbey Monk Ale" in 26B → `allowed`, choice
@@ -197,7 +197,7 @@ Why: R4, R5; A3, A6 (best case on several products, yeast temperature, feature h
       `test_style_without_envelope_is_unrated` (a BJCP code with no reviewed `ref.style_sensory`
       or `ref.style_ingredient` row, found by query in the test → level null, reason names the
       envelope).
-- [ ] Run `.venv/bin/pytest tests/test_step3.py`, expect all pass. `docs/DATABASE.md` §5 line.
+- [x] Run `.venv/bin/pytest tests/test_step3.py`, expect all pass. `docs/DATABASE.md` §5 line.
       PROJECT.md §8 entry.
 Done when: the best-case tests pass.
 Commit: `Rate wanted words at their best choice`

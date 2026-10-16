@@ -442,6 +442,8 @@ Ingredient-word resolver (`db/036_ingredient_resolver.sql`, first version, M5 ex
 
 Step 3 rules (`db/037_step3.sql`, no LLM): `app.hint_knob()` (the RECIPE-ROADMAP §7 hint table, one row per hint and knob), `app.step3_conflicts(hints)` (one conflict per pair of sides pushing a knob in opposite directions), `app.step3_numbers(stated, style_code)` (abv, og, ibu, srm outside the style's range, bounds inclusive; batch_l never) and `app.step3_mismatch(stated, mismatch)` (step 2's mismatch as one deviation). Each returns a jsonb list of `step3.output` deviations.
 
+Step 3 best-case rating (`db/037_step3.sql`): `app.level_rank(level)` (order of the 5 levels), `app.ingredient_choices(ingredient_id, role)` (usage and dose choices a later step could make: mash or boil; hop boil bands, whirlpool, dry hop, feature hops late only; yeast range ends and warm steps) and `app.rate_wanted(style_code, item, role)` (best level over every product the word names and every choice; level null with a reason when it cannot be rated).
+
 Function `app.step2_best_style(brief, request, guide_preference)` (db/022_step2.sql) picks the best-fit style: scores both guides (name, numbers with a tightness bonus, words), returns the BJCP pair of a BA winner unless that pair is a catch-all in `app.bjcp_catch_all()`, applies the specialty and mismatch rules and returns the style, alternatives, scores and reasons.
 
 Later (§9): `batch`, `tasting`, `inventory.best_before`.

@@ -158,3 +158,103 @@ as $$
            where jsonb_typeof(stated -> k.key) = 'number'
              and (mismatch ->> 'range') ~ ('\m' || k.label || '\M')) v
 $$;
+
+
+-- Rating a wanted word at its best possible choice (brief: "best case"). A word is a deviation
+-- only when no product it names, no usage and no fermentation temperature keeps it in style.
+
+-- Order of the 5-level scale, best for the style first. Null for anything else.
+create or replace function app.level_rank(level text)
+returns int
+language sql
+immutable
+as $$
+    select array_position(array['required', 'typical', 'allowed', 'out_of_style', 'changes_style'], level)
+$$;
+
+-- The choices a later step could make with one product, in the order they are tried.
+-- Fermentable: mash or boil. Hop: boil at the start minute of each boil band of
+-- app.usage_effects(), then whirlpool and dry hop; a feature hop is late only. Yeast: ferment at
+-- both ends of its temperature range and at each warm-step temperature that lies inside it.
+-- Other kinds (water salt) have no choices.
+create or replace function app.ingredient_choices(ingredient_id bigint, role text)
+returns table (usage text, dose jsonb, label text, ord int)
+language sql
+stable
+as $$
+    with ing as (
+        select i.id, i.kind, y.temp_c
+        from ref.ingredient i
+        left join ref.yeast y on y.ingredient_id = i.id
+        where i.id = ingredient_choices.ingredient_id
+    ),
+    -- every temperature at which a yeast's level can change, kept when inside its range
+    temps as (
+        select distinct t.c
+        from ing,
+             lateral (select lower(ing.temp_c) as c
+                      union all select upper(ing.temp_c)
+                      union all select (app.style_fit_cut_points() -> d -> 'warm_step' ->> 'above_c')::numeric
+                                from unnest(array['esters', 'phenols']) d) t
+        where ing.kind = 'yeast' and t.c is not null and ing.temp_c @> t.c
+    ),
+    choices as (
+        select 'mash'::text as usage, '{}'::jsonb as dose, 'mash'::text as label, 1 as ord
+          from ing where kind = 'fermentable'
+        union all
+        select 'boil', '{}'::jsonb, 'boil', 2 from ing where kind = 'fermentable'
+        union all
+        select 'boil', jsonb_build_object('minutes', m.min_minutes), 'boil ' || m.min_minutes || ' min',
+               10 + m.min_minutes::int
+          from ing,
+               (select distinct min_minutes from app.usage_effects()
+                 where kind = 'hop' and usage = 'boil') m
+         where ing.kind = 'hop' and ingredient_choices.role is distinct from 'feature'
+        union all
+        select 'whirlpool', '{}'::jsonb, 'whirlpool', 100 from ing where kind = 'hop'
+        union all
+        select 'dry_hop', '{}'::jsonb, 'dry hop', 101 from ing where kind = 'hop'
+        union all
+        select 'ferment', jsonb_build_object('ferm_c', c), 'ferment at ' || trim_scale(c) || ' °C',
+               200 + (c * 10)::int
+          from temps
+    )
+    select usage, dose, label, (row_number() over (order by ord))::int from choices order by ord
+$$;
+
+-- The best level a wanted word can reach in a style: every product the word names, every choice,
+-- the best level wins (ties: product name, then choice order). Returns level null with a reason
+-- when the word cannot be rated.
+create or replace function app.rate_wanted(style_code text, item text, role text)
+returns jsonb
+language plpgsql
+stable
+as $$
+declare
+    v_best     record;
+begin
+    if not exists (select 1 from app.resolve_ingredient(item)) then
+        return jsonb_build_object('level', null, 'reason', 'no product in the reference data matches "' || item || '"');
+    end if;
+
+    select r.ingredient_id, r.name, c.label, c.ord, app.style_level(rate_wanted.style_code, r.ingredient_id, c.usage, c.dose) as res
+      into v_best
+      from app.resolve_ingredient(item) r
+      cross join lateral app.ingredient_choices(r.ingredient_id, rate_wanted.role) c
+     order by app.level_rank(app.style_level(rate_wanted.style_code, r.ingredient_id, c.usage, c.dose) ->> 'level') nulls last,
+              r.name, c.ord
+     limit 1;
+    if not found then
+        return jsonb_build_object('level', null, 'reason', '"' || item || '" names only products that cannot be rated (no usage choices)');
+    end if;
+    if v_best.res ->> 'level' is null then
+        return jsonb_build_object('level', null, 'reason', v_best.res ->> 'because');
+    end if;
+    return jsonb_build_object(
+        'level', v_best.res ->> 'level',
+        'ingredient_id', v_best.ingredient_id,
+        'name', v_best.name,
+        'choice', v_best.label,
+        'because', v_best.name || ' (' || v_best.label || ') is the closest choice: ' || (v_best.res ->> 'because'));
+end
+$$;
