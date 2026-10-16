@@ -1,7 +1,7 @@
 # Books in the knowledge base
 
 The books are loaded into `kb.chunk` by [`loaders/books.py`](../loaders/books.py) (design:
-[DATABASE.md](DATABASE.md) §4, work: [`s4-books-kb`](work/s4-books-kb/plan.md)). Only prose is
+[DATABASE.md](DATABASE.md) §4, work: [`s4-books-kb`](finished/s4-books-kb/plan.md)). Only prose is
 stored. Tables and formulas are cut out and go through the doc → calculation pass instead
 (PROJECT.md §6.7). Page numbers are **PDF page numbers** (1-based), not the printed ones. For
 *How to Brew* the PDF page is the printed page + 26.

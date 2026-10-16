@@ -3,7 +3,7 @@
 Status: draft
 Slug: s7-kb-articles · Branch: s7-kb-articles
 Roadmap: [WORKFLOW-ROADMAP.md](../../WORKFLOW-ROADMAP.md) side track P7, after S4 ·
-[`s4-books-kb`](../s4-books-kb/brief.md) · [SOURCES.md](../../SOURCES.md)
+[`s4-books-kb`](../../finished/s4-books-kb/brief.md) · [SOURCES.md](../../SOURCES.md)
 Needs: `s4-books-kb` shipped (its loader, `app.kb_search`, the retrieval eval and its bar).
 Before: `m8-recipe-sheet-chat`, which cites these articles.
 
