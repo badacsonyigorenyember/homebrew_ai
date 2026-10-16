@@ -70,7 +70,7 @@ names and dev-ship's move to `docs/finished/` assume `<slug>` is one folder name
 | S1 | [`s1-maths`](finished/s1-maths/brief.md) | Gravity, ABV, IBU (Tinseth), colour (Morey), solvers, from the doc→calc pass on *How to Brew* | m0 | **G-M** |
 | S2 | [`s2-formulation-rules`](finished/s2-formulation-rules/brief.md) | Fermentable roles, limits, enzyme activity, minimum boil, substitutes, descriptions; 13 formulation rules and the rule check; 22 reference recipes (D7 decided) | s1 | — (brief A1–A16) |
 | S3 | [`s3-style-fit`](finished/s3-style-fit/brief.md) | Tags, envelopes for 26 styles (22 brief styles, 3 alternates, 20B), `level()`, golden set (D9) | s2 | **G-S** |
-| M3 | [`m3-deviations`](work/m3-deviations/brief.md) | Step 3: number, mismatch, conflict and ingredient deviations | m2, s3 | **G3** = RECIPE-ROADMAP P4 done |
+| M3 | [`m3-deviations`](finished/m3-deviations/brief.md) | Step 3: number, mismatch, conflict and ingredient deviations | m2, s3 | **G3** = RECIPE-ROADMAP P4 done |
 | M4 | [`m4-targets-blueprint`](work/m4-targets-blueprint/brief.md) | Steps 0, 4, 5: brewer profile, targets (ranges + hint knobs + stated numbers), blueprint (ratios) | m3, s1, s2 | **G4** |
 | M5 | [`m5-choose-ingredients`](work/m5-choose-ingredients/brief.md) | Steps 6–9: yeast, fermentables, hops, extras, scored by code; the resolver | m4, s3 | **G5** |
 | M6 | [`m6-compute-validate`](work/m6-compute-validate/brief.md) | Steps 10–11: amounts, OG/FG/ABV/IBU/SRM, validate + retry ≤ 3×, save; held-out briefs | m5, s1 | **G6** = MVP |
@@ -139,7 +139,7 @@ vs. numbers vs. words) before adding signals; consider an LLM tie-break only for
 kind (b16 rice, b19 honey, b20 lactose) needs s3's tags and envelopes, so m3 starts after s3.
 **Decide:** start stage B now, or improve stage A first.
 
-**Measured (2026-10-17, [`m3-deviations`](work/m3-deviations/plan.md)):** met. `python -m evals.run --save --label m3` on the real pipeline: b01-b20 20/20 with step 2 and step 3 both passing (bar 18/20), b21 and b22 also pass; step 1 22/22, step 2 22/22, step 3 22/22, briefs 22/22. The A2 cases pass: b08 (IBU), b17 (ABV) and b18 (SRM) one number deviation each, b05 the mismatch, b11 the dry vs full, chewy conflict, and b16 rice, b19 honey, b20 lactose the ingredient deviations. All 22 step 3 rows are `ok` and meet `step3.output` (checked with `extensions.jsonschema_validation_errors`). No step 3 miss, so none came from step 1's output. Saved in `evals/results/2026-10-17-m3.json`.
+**Measured (2026-10-17, [`m3-deviations`](finished/m3-deviations/plan.md)):** met. `python -m evals.run --save --label m3` on the real pipeline: b01-b20 20/20 with step 2 and step 3 both passing (bar 18/20), b21 and b22 also pass; step 1 22/22, step 2 22/22, step 3 22/22, briefs 22/22. The A2 cases pass: b08 (IBU), b17 (ABV) and b18 (SRM) one number deviation each, b05 the mismatch, b11 the dry vs full, chewy conflict, and b16 rice, b19 honey, b20 lactose the ingredient deviations. All 22 step 3 rows are `ok` and meet `step3.output` (checked with `extensions.jsonschema_validation_errors`). No step 3 miss, so none came from step 1's output. Saved in `evals/results/2026-10-17-m3.json`.
 **Decided:** stage B (M4) starts next, since the bar is met.
 
 ### G-M · Maths matches the books
