@@ -163,13 +163,13 @@ Commit: `Return the source URL from kb_search`
 
 ### Task 4: Ingest the ten Markdown sources and document adding an article
 Why: R1, R2, R3, A2, A3.
-- [ ] Before the ingest, save the A2 counts:
+- [x] Before the ingest, save the A2 counts:
       `select s.slug, count(*) from kb.chunk c join ref.source s on s.id = c.source_id group by 1`.
       Expect the five books at 943 / 357 / 454 / 341 / 85.
-- [ ] For each of the ten Markdown slugs, run `.venv/bin/python -m loaders.books <slug>`. Note
+- [x] For each of the ten Markdown slugs, run `.venv/bin/python -m loaders.books <slug>`. Note
       the printed stats: chunks in, kept, dropped by section, dropped as too short, table chunks.
       Expect `dropped_section` > 0 for the six sources with `drop_sections`.
-- [ ] Check with SQL (run as `postgres`, OPERATIONS.md §4) that each of these returns 0 rows for
+- [x] Check with SQL (run as `postgres`, OPERATIONS.md §4) that each of these returns 0 rows for
       the article slugs:
       - `text like '%Source: http%'` or `text ~ '^Saved 20'`
       - `text ~ ' ?\[[0-9]+\]'` for the `mtf-%` slugs
@@ -177,10 +177,10 @@ Why: R1, R2, R3, A2, A3.
       - `page is not null` for the Markdown slugs
       - the BOOKS.md §2 step 6 `table_like` column
       If one shows up, fix the cause in Task 1's code, with a Deviation line.
-- [ ] A3: re-run one article with `--reuse-docling` (`janish-ph-hoppy-beers`). Every other
+- [x] A3: re-run one article with `--reuse-docling` (`janish-ph-hoppy-beers`). Every other
       source's count is unchanged, and this source has the same fingerprint before and after
       (`md5(string_agg(text, '|' order by section_path, text))`).
-- [ ] `docs/BOOKS.md`:
+- [x] `docs/BOOKS.md`:
   - Intro: say the file covers books and articles, and that a Markdown source has no page.
   - New §1c "Articles in `kb`": one row per source with slug, source, file, URL, left-out
     sections or pages, chunks (with token min / median / max), table chunks cut, and the ingest
@@ -189,7 +189,7 @@ Why: R1, R2, R3, A2, A3.
     `Source:`, credit, `Saved` line), add one `ARTICLES` entry with `url` and `drop_sections`
     (look for reference, footnote and link sections with `grep -n '^#' FILE`), run the command,
     then run the §2 step 6 check and the SQL checks above. For a PDF, follow §2, adding `url`.
-- [ ] `docs/DATABASE.md` §4: article chunk counts, and `page` is null for a Markdown source.
+- [x] `docs/DATABASE.md` §4: article chunk counts, and `page` is null for a Markdown source.
 Done when: the ten sources have chunks and URLs, the checks return no rows, and the books still
 hold 2,180 chunks with the same per-book counts.
 Commit: `Ingest the Markdown articles into kb`

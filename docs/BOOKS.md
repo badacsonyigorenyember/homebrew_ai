@@ -1,10 +1,11 @@
-# Books in the knowledge base
+# Books and articles in the knowledge base
 
-The books are loaded into `kb.chunk` by [`loaders/books.py`](../loaders/books.py) (design:
+The books and articles are loaded into `kb.chunk` by [`loaders/books.py`](../loaders/books.py) (design:
 [DATABASE.md](DATABASE.md) §4, work: [`s4-books-kb`](finished/s4-books-kb/plan.md)). Only prose is
 stored. Tables and formulas are cut out and go through the doc → calculation pass instead
 (PROJECT.md §6.7). Page numbers are **PDF page numbers** (1-based), not the printed ones. For
-*How to Brew* the PDF page is the printed page + 26.
+*How to Brew* the PDF page is the printed page + 26. A Markdown source (a saved web page) has no
+page: its `page` is null and it is cited by title and URL (§1c, s7: [`s7-kb-articles`](work/s7-kb-articles/plan.md)).
 
 ## 1. Books in `kb`
 
@@ -67,6 +68,38 @@ expected one (for example *How to Brew* on off-flavour and malt questions). The 
 recall@5 rounded down to the nearest 0.05 (user's decision, 2026-10-16). No retrieval setting was
 tuned; a tuning TODO is in [RECIPE-ROADMAP](RECIPE-ROADMAP.md) §8 Later.
 
+## 1c. Articles in `kb`
+
+Ten Markdown sources, ingested 2026-10-16 with `python -m loaders.books <slug>` (205 chunks;
+`page` is null, `ref.source.url` is set). The saved page's header lines and the Milk The Funk
+`[n]` markers are cleaned off before Docling, and the sections named in the "Left out" column are
+dropped by heading afterwards. All figures measured. The books still hold 2,180 chunks (943 / 357 /
+454 / 341 / 85).
+
+| Slug | File (under `shared/rag-files/`) | URL | Left out | Chunks (tokens min / median / max) | Table chunks cut |
+|---|---|---|---|---|---|
+| `troester-mash-time-fermentability` | `articles/braukaiser_mash_time_fermentability.md` | http://braukaiser.com/wiki/index.php/Mash_Time_Dependency_of_Wort_Fermentability | – | 5 (88 / 111 / 473) | 1 |
+| `terrill-observations-on-attenuations` | `articles/terrill_observations_on_attenuations.md` | http://seanterrill.com/2017/04/21/observations-on-attenuations/ | – | 4 (390 / 475 / 514) | 0 |
+| `janish-short-cool-dry-hopping` | `articles/janish_short_cool_dry_hopping.md` | https://scottjanish.com/a-case-for-short-and-cool-dry-hopping/ | Footnotes (2 chunks) | 14 (161 / 362 / 498) | 1 |
+| `janish-survivables-hot-side` | `articles/janish_survivables_hot_side.md` | https://scottjanish.com/survivables-unpacking-hot-side-hop-flavor/ | Footnotes (2 chunks) | 17 (183 / 415 / 509) | 0 |
+| `janish-ph-hoppy-beers` | `articles/janish_ph_hoppy_beers.md` | https://scottjanish.com/a-look-at-ph-in-hoppy-beers/ | Footnotes (1 chunk) | 9 (238 / 392 / 470) | 0 |
+| `janish-coffee-beers` | `articles/janish_coffee_beers.md` | https://scottjanish.com/guide-to-coffee-beers/ | – | 18 (86 / 385 / 502) | 1 |
+| `mtf-berliner-weissbier` | `articles/mtf_berliner_weissbier.md` | https://www.milkthefunk.com/wiki/Berliner_Weissbier | External History Resources, Video Presentations, See Also, References (7 chunks) | 11 (106 / 303 / 510) | 3 |
+| `mtf-lactobacillus-fermentation` | `articles/mtf_lactobacillus_fermentation.md` | https://www.milkthefunk.com/wiki/Lactobacillus_Fermentation | See Also, References (3 chunks) | 7 (70 / 187 / 481) | 1 |
+| `brunwater-water-knowledge` | `water/brunwater_water_knowledge.md` | https://www.brunwater.com/water-knowledge | 5. References (2 chunks) | 78 (72 / 374 / 514) | 0 |
+| `bjcp-2021-introductions` | `styles/bjcp_2021_introductions.md` | https://styles.bjcp.org/bjcp-2021-beer/ | – | 42 (39 / 290 / 515) | 2 |
+
+Re-running `janish-ph-hoppy-beers` with `--reuse-docling` gave the same 9 chunks and the same
+fingerprint (`md5(string_agg(text, '|' order by section_path, text))` =
+`e9bee0aa94a984ac6ae6baed9c70c0e9`), and no other source's count changed.
+
+The two PDF articles (Troester's mash-parameters paper and Janish's TQ dry-hop paper) are loaded by
+the next step of s7; they are added here when they are.
+
+The Troester articles are cited by their braukaiser.com wiki pages. The wiki page of the
+mash-parameters paper (`https://braukaiser.com/wiki/index.php/Effects_of_mash_parameters_on_fermentability_and_efficiency_in_single_infusion_mashing`)
+was not reachable on 2026-10-16 (HTTP 500), so that URL is unverified.
+
 ## 2. Adding a book
 
 1. Put the PDF in `shared/rag-files/books/`.
@@ -96,6 +129,40 @@ tuned; a tuning TODO is in [RECIPE-ROADMAP](RECIPE-ROADMAP.md) §8 Later.
 8. Add the book to PROJECT.md §5.
 
 Run the SQL with `docker exec -i supabase-db psql -U postgres -d postgres` (OPERATIONS.md §4).
+
+## 2b. Adding an article
+
+A web page or short paper, cited by URL. Slugs must differ from every book's.
+
+1. **Markdown (a saved web page).** Save it under `shared/rag-files/articles/` (or `water/`,
+   `styles/`) with a header block: line 1 is the `# ` title, then a `Source:` line, the credit
+   line(s), and a line starting `Saved ` (all within the first 10 lines). `clean_markdown` raises
+   `ValueError` for a file without them, so a header can't leak into `kb`.
+2. Find the sections to leave out (references, footnotes, link lists): `grep -n '^#' FILE`.
+3. Add one `ARTICLES` entry in `loaders/books.py` with `url` (the page's `Source:` URL) and
+   `drop_sections` (heading texts, matched case-insensitively anywhere in a chunk's heading path).
+4. Run `.venv/bin/python -m loaders.books <slug>`. Docling takes seconds for a page. Expect
+   `dropped by section` > 0 when `drop_sections` is set.
+5. Run the §2 step 6 check, plus these (each should return 0 rows for the new slug):
+   ```sql
+   -- header lines leaked
+   select 1 from kb.chunk c join ref.source s on s.id = c.source_id
+    where s.slug = :'slug' and (text like '%Source: http%' or text ~ '^Saved 20');
+   -- a left-out section kept
+   select 1 from kb.chunk c join ref.source s on s.id = c.source_id
+    where s.slug = :'slug'
+      and section_path ~* '(footnotes|references|see also|external (history )?resources|video presentations)';
+   -- Markdown with a page
+   select 1 from kb.chunk c join ref.source s on s.id = c.source_id
+    where s.slug = :'slug' and c.page is not null;
+   -- [n] reference markers left in the text
+   select 1 from kb.chunk c join ref.source s on s.id = c.source_id
+    where s.slug = :'slug' and text ~ ' ?\[[0-9]+\]';
+   ```
+6. Add the article to §1c and to PROJECT.md §5.
+
+**PDF.** Follow §2, adding `url` to the entry. Use `drop_sections` for a references heading and
+`skip_pages` for cover or appendix pages.
 
 ## 3. Doc → calc notes per book
 

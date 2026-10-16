@@ -297,7 +297,7 @@ builds the name map and computes the profiles.
 
 ## 4. `kb`: book knowledge
 
-Defined in [`db/014_kb.sql`](../db/014_kb.sql). Filled by [`loaders/books.py`](../loaders/books.py), one book at a time; the books, how to add one and the doc → calc notes are in [BOOKS.md](BOOKS.md). Measured 2026-10-16: all five books loaded, 2,180 chunks (*How to Brew* 943, *Water* 357, *Yeast* 454, *Malt* 341, BJCP study guide 85).
+Defined in [`db/014_kb.sql`](../db/014_kb.sql). Filled by [`loaders/books.py`](../loaders/books.py), one book at a time; the books, how to add one and the doc → calc notes are in [BOOKS.md](BOOKS.md). Measured 2026-10-16: all five books loaded, 2,180 chunks (*How to Brew* 943, *Water* 357, *Yeast* 454, *Malt* 341, BJCP study guide 85). Ten Markdown articles added the same day: 205 chunks (`s7-kb-articles`; per source in [BOOKS.md](BOOKS.md) §1c).
 
 | Table | Holds |
 |---|---|
@@ -313,7 +313,8 @@ Defined in [`db/014_kb.sql`](../db/014_kb.sql). Filled by [`loaders/books.py`](.
   which returns `chunk_id, source_slug, source_title, source_url, section_path, page, text, score,
   vec_rank, fts_rank`;
   plus an index on `source_id` to delete or re-ingest one book.
-- `page` is the PDF page (1-based), not the printed page. `tokens` is bge-m3's count of the
+- `page` is the PDF page (1-based), not the printed page. It is null for a Markdown source (a saved
+  web page); that source is cited by `ref.source.title` and `url`. `tokens` is bge-m3's count of the
   embedded text, heading path included; `text` keeps the prose only.
 - Only prose is stored here. Tables and formulas found in a book go through the
   **doc → calculation pass** first and land in `ref` or in code ([roadmap](RECIPE-ROADMAP.md) §6).
