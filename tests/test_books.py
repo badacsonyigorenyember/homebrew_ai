@@ -184,6 +184,22 @@ def test_upsert_source_keeps_id():
 
 
 @pytest.mark.stack
+def test_upsert_source_writes_url():
+    conn = connect()
+    try:
+        article = Book(slug="zz-url-test", title="T", edition="1", publisher="P", licence="L",
+                       file_path="x.md", url="https://example.test/a")
+        source_id = upsert_source(conn, article)
+        read = "select url from ref.source where id = %s"
+        assert conn.execute(read, (source_id,)).fetchone()[0] == "https://example.test/a"
+        assert upsert_source(conn, replace(article, url=None)) == source_id
+        assert conn.execute(read, (source_id,)).fetchone()[0] == "https://example.test/a"
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+@pytest.mark.stack
 def test_replace_chunks_only_touches_its_book():
     conn = connect()
     try:

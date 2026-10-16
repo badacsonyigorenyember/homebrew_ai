@@ -130,12 +130,12 @@ Commit: `Load Markdown articles in the books loader`
 
 ### Task 2: Source upsert writes the URL
 Why: R2.
-- [ ] `upsert_source`: insert `url` too, and on conflict set
+- [x] `upsert_source`: insert `url` too, and on conflict set
       `url = coalesce(excluded.url, ref.source.url)`. The books have no URL in their entries and
       no URL in the database (measured), and a later entry without a URL must not wipe one.
-- [ ] Stack test `test_upsert_source_writes_url` (rolled back): a throwaway article with a URL
+- [x] Stack test `test_upsert_source_writes_url` (rolled back): a throwaway article with a URL
       gets it in `ref.source.url`; upserting it again without a URL keeps the URL.
-- [ ] Run `.venv/bin/pytest tests/test_books.py`, expect all to pass.
+- [x] Run `.venv/bin/pytest tests/test_books.py`, expect all to pass.
 Done when: the tests pass.
 Commit: `Write the source URL on upsert`
 

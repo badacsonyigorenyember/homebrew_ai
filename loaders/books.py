@@ -380,17 +380,18 @@ def upsert_source(conn, book: Book) -> int:
     """Insert or update the book's ref.source row on its slug; the id stays the same."""
     return conn.execute(
         """
-        insert into ref.source (slug, title, edition, publisher, licence, file_path, notes)
-        values (%s, %s, %s, %s, %s, %s, %s)
+        insert into ref.source (slug, title, edition, publisher, licence, file_path, notes, url)
+        values (%s, %s, %s, %s, %s, %s, %s, %s)
         on conflict (slug) do update set
             title = excluded.title, edition = excluded.edition,
             publisher = excluded.publisher, licence = excluded.licence,
             file_path = excluded.file_path,
-            notes = coalesce(excluded.notes, ref.source.notes)
+            notes = coalesce(excluded.notes, ref.source.notes),
+            url = coalesce(excluded.url, ref.source.url)
         returning id
         """,
         (book.slug, book.title, book.edition, book.publisher, book.licence,
-         book.file_path, book.notes),
+         book.file_path, book.notes, book.url),
     ).fetchone()[0]
 
 
