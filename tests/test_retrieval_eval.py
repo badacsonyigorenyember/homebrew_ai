@@ -39,3 +39,44 @@ def test_is_hit_wrong_book():
 def test_normalise_whitespace_and_quotes():
     assert normalise("It’s  a\n“Big”\tone – really—yes") == "it's a \"big\" one - really-yes"
     assert is_hit(result("It’s  a\nbig   one"), expect("it's a big one"), "water")
+
+
+# --- the question set -------------------------------------------------------------------------
+
+import pytest
+
+from evals.retrieval import load_questions
+from loaders.books import BOOKS
+from loaders.db import connect
+
+
+def test_question_set_shape():
+    questions = load_questions()
+    assert len(questions) >= 40
+    ids = [q["id"] for q in questions]
+    assert len(ids) == len(set(ids))
+    for book in BOOKS:
+        assert sum(q["book"] == book for q in questions) >= 8, book
+    for q in questions:
+        assert q["book"] in BOOKS, q["id"]
+        assert q["expect"], q["id"]
+        for e in q["expect"]:
+            assert 4 <= len(e["quote"].split()) <= 12, (q["id"], e["quote"])
+
+
+@pytest.mark.stack
+def test_every_quote_resolves():
+    """An unresolved quote would silently lower recall."""
+    unresolved = []
+    with connect() as conn:
+        texts = {}
+        for q in load_questions():
+            if q["book"] not in texts:
+                rows = conn.execute(
+                    "select c.text from kb.chunk c join ref.source s on s.id = c.source_id"
+                    " where s.slug = %s", (q["book"],)).fetchall()
+                texts[q["book"]] = [normalise(r[0]) for r in rows]
+            for e in q["expect"]:
+                if not any(normalise(e["quote"]) in t for t in texts[q["book"]]):
+                    unresolved.append((q["id"], e["quote"]))
+    assert not unresolved

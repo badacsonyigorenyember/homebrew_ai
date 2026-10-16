@@ -1,0 +1,461 @@
+# Retrieval test set for the book knowledge base (kb.chunk).
+#
+# Each [[question]] is something a brewer might ask. `book` is the ref.source slug the answer is
+# in. Each [[question.expect]] names a passage by PDF `page` (as Docling reports it) and a short
+# `quote` of 4-12 words copied from the chunk; a search result counts as a hit when it comes
+# from that book and contains the quote (case, whitespace and quote style ignored). Chunk ids
+# are not used, so a re-ingest keeps the set valid. Only short quotes are kept here; the books'
+# text is not committed.
+#
+# Passages were picked evenly by page order before any retrieval was run (9 per book), then
+# questions were written from them.
+# Reviewed by the user on: 2026-10-16
+
+[[question]]
+id = "q01"
+book = "palmer-how-to-brew"
+question = "How long will bottled beer keep before it goes stale, and how cold should I store it?"
+
+[[question.expect]]
+page = 49
+quote = "It will keep for approximately six months"
+
+[[question]]
+id = "q02"
+book = "palmer-how-to-brew"
+question = "How much bitterness do I get from a whirlpool hop addition when cloning a beer?"
+
+[[question.expect]]
+page = 97
+quote = "taking 40% of the calculated bitterness for boiling"
+
+[[question]]
+id = "q03"
+book = "palmer-how-to-brew"
+question = "What kind of container should I use to make a yeast starter?"
+
+[[question.expect]]
+page = 146
+quote = "Glass Erlenmeyer conical flasks (2-5 L in size) are the gold standard"
+
+[[question.expect]]
+page = 146
+quote = "You can make a small starter in a big container"
+
+[[question]]
+id = "q04"
+book = "palmer-how-to-brew"
+question = "What are the steps to force carbonate a keg quickly?"
+
+[[question.expect]]
+page = 192
+quote = "Rack the beer into a clean and sanitized keg"
+
+[[question.expect]]
+page = 192
+quote = "rock the keg gently back and forth a few times"
+
+[[question]]
+id = "q05"
+book = "palmer-how-to-brew"
+question = "Do I need to pitch more yeast when fermenting a soured wort?"
+
+[[question.expect]]
+page = 237
+quote = "the pitching rate for the yeast fermentation should be higher than normal"
+
+[[question]]
+id = "q06"
+book = "palmer-how-to-brew"
+question = "How do I do a step mash if I only have a picnic cooler as a mash tun?"
+
+[[question.expect]]
+page = 290
+quote = "You need to start out with a stiff mash"
+
+[[question]]
+id = "q07"
+book = "palmer-how-to-brew"
+question = "What decides my mash pH, the water, the grain, or both?"
+
+[[question.expect]]
+page = 376
+quote = "mash pH is the equilibrium between the residual alkalinity of the water"
+
+[[question]]
+id = "q08"
+book = "palmer-how-to-brew"
+question = "How do I add coffee to a stout?"
+
+[[question.expect]]
+page = 438
+quote = "Cold steeping carries more aroma into the beer"
+
+[[question.expect]]
+page = 438
+quote = "hot steeping carries more flavor"
+
+[[question]]
+id = "q09"
+book = "palmer-how-to-brew"
+question = "How do I estimate the colour of a beer from the malt bill?"
+
+[[question.expect]]
+page = 495
+quote = "the MCUs are divided by the recipe volume"
+
+[[question]]
+id = "q10"
+book = "palmer-kaminski-water"
+question = "What pH should I expect from plain rainwater?"
+
+[[question.expect]]
+page = 35
+quote = "the resulting pH of pure water would be 5.65"
+
+[[question]]
+id = "q11"
+book = "palmer-kaminski-water"
+question = "Is coliform bacteria in my brewing water a danger to me?"
+
+[[question.expect]]
+page = 50
+quote = "Not a health threat in and of itself"
+
+[[question]]
+id = "q12"
+book = "palmer-kaminski-water"
+question = "What mash pH should I aim for, and how tightly should I control it?"
+
+[[question.expect]]
+page = 64
+quote = "the target mash pH range should probably be 5.2-5.6"
+
+[[question.expect]]
+page = 64
+quote = "control mash pH to a tighter tolerance of +/-0.1 pH"
+
+[[question]]
+id = "q13"
+book = "palmer-kaminski-water"
+question = "How long does it take for the mash pH to settle after mashing in?"
+
+[[question.expect]]
+page = 84
+quote = "mash pH can take half an hour or more to stabilize"
+
+[[question]]
+id = "q14"
+book = "palmer-kaminski-water"
+question = "How do I use slaked lime at home to remove carbonate hardness?"
+
+[[question.expect]]
+page = 105
+quote = "1 tsp. of chalk for each 5 gallons of water"
+
+[[question.expect]]
+page = 105
+quote = "Increase the result from Step 2 by 20-30%"
+
+[[question]]
+id = "q15"
+book = "palmer-kaminski-water"
+question = "How fast does slaked lime change the mash pH compared with carbonates?"
+
+[[question.expect]]
+page = 123
+quote = "the hydroxide additions only took about 4 minutes"
+
+[[question]]
+id = "q16"
+book = "palmer-kaminski-water"
+question = "Do roasted malts acidify the mash more as they get darker?"
+
+[[question.expect]]
+page = 140
+quote = "The acidity of roasted malts looks to be more constant"
+
+[[question]]
+id = "q17"
+book = "palmer-kaminski-water"
+question = "Why do chloride-type dealkalizers make water corrosive to stainless steel pipes?"
+
+[[question.expect]]
+page = 163
+quote = "the output is a light saline that can be quite corrosive"
+
+[[question]]
+id = "q18"
+book = "palmer-kaminski-water"
+question = "How do I turn grams of calcium chloride in a gallon into ppm of calcium?"
+
+[[question.expect]]
+page = 229
+quote = "mg/liter is the same as ppm"
+
+[[question.expect]]
+page = 229
+quote = "1 gallon of water = 3.785 liters"
+
+[[question]]
+id = "q19"
+book = "white-zainasheff-yeast"
+question = "What should I be measuring while my beer ferments?"
+
+[[question.expect]]
+page = 35
+quote = "are temperature, specific gravity, pH, oxygen, and carbon dioxide"
+
+[[question]]
+id = "q20"
+book = "white-zainasheff-yeast"
+question = "How can I pick the best yeast strain for my brown ale?"
+
+[[question.expect]]
+page = 63
+quote = "pitch a different strain into each fermentor"
+
+[[question]]
+id = "q21"
+book = "white-zainasheff-yeast"
+question = "My beer stopped fermenting early because the yeast dropped out; what can I do?"
+
+[[question.expect]]
+page = 90
+quote = "rousing the yeast, raising the temperature, or repitching"
+
+[[question]]
+id = "q22"
+book = "white-zainasheff-yeast"
+question = "How can I control fermentation temperature without fancy equipment?"
+
+[[question.expect]]
+page = 120
+quote = "put their fermentor in a water bath and then add ice"
+
+[[question]]
+id = "q23"
+book = "white-zainasheff-yeast"
+question = "Who first isolated pure yeast cultures, and what is the flask named after?"
+
+[[question.expect]]
+page = 151
+quote = "Christian Hansen developed the first pure yeast culture method in 1883"
+
+[[question]]
+id = "q24"
+book = "white-zainasheff-yeast"
+question = "Is plastic or glass better for storing yeast?"
+
+[[question.expect]]
+page = 179
+quote = "a crosssection of the yeast slurry is visible"
+
+[[question.expect]]
+page = 179
+quote = "leave the lid loose"
+
+[[question]]
+id = "q25"
+book = "white-zainasheff-yeast"
+question = "What time and temperature do I need to sterilize equipment in a pressure cooker?"
+
+[[question.expect]]
+page = 206
+quote = "15 minutes at 250° F (121° C)"
+
+[[question]]
+id = "q26"
+book = "white-zainasheff-yeast"
+question = "How many CFU of spoilage organisms are acceptable in a beer lab test?"
+
+[[question.expect]]
+page = 230
+quote = "the rule of thumb is 100 CFU per category"
+
+[[question]]
+id = "q27"
+book = "white-zainasheff-yeast"
+question = "What causes a sour or vinegar flavour in a beer that should not be sour?"
+
+[[question.expect]]
+page = 290
+quote = "Bacterial contamination is the most common cause of acidic flavors"
+
+[[question]]
+id = "q28"
+book = "mallett-malt"
+question = "What is the basic aim of malting?"
+
+[[question.expect]]
+page = 52
+quote = "transform a nearly indigestible kernel of grain into an ingredient"
+
+[[question]]
+id = "q29"
+book = "mallett-malt"
+question = "How much moisture does barley take up during steeping?"
+
+[[question.expect]]
+page = 77
+quote = "increase the moisture level to 43 to 48 percent"
+
+[[question.expect]]
+page = 77
+quote = "typically has a moisture content of about 12 percent"
+
+[[question]]
+id = "q30"
+book = "mallett-malt"
+question = "Why is summer-made malt darker but not maltier?"
+
+[[question.expect]]
+page = 102
+quote = "Warm and wet conditions favor protease activity that results in darker colors"
+
+[[question]]
+id = "q31"
+book = "mallett-malt"
+question = "Which compound do yeast turn into the clove aroma in wheat beers?"
+
+[[question.expect]]
+page = 125
+quote = "is the precursor used by yeast to produce 4-vinyl-guaiacol"
+
+[[question]]
+id = "q32"
+book = "mallett-malt"
+question = "How should I use dark crystal malts compared with light ones?"
+
+[[question.expect]]
+page = 140
+quote = "Darker crystal malts are useful but are generally used for"
+
+[[question.expect]]
+page = 140
+quote = "Higher color varieties can (and do) overwhelm a beer"
+
+[[question]]
+id = "q33"
+book = "mallett-malt"
+question = "Why might brewers object to fungicide being used on malting barley?"
+
+[[question.expect]]
+page = 157
+quote = "brewers are notorious for demanding minimal pesticide and fungicide"
+
+[[question]]
+id = "q34"
+book = "mallett-malt"
+question = "What are landrace barley varieties?"
+
+[[question.expect]]
+page = 180
+quote = "varietals that have changed slowly over time and adapted"
+
+[[question]]
+id = "q35"
+book = "mallett-malt"
+question = "What is a malt certificate of analysis for?"
+
+[[question.expect]]
+page = 194
+quote = "to document production in the malthouse"
+
+[[question.expect]]
+page = 194
+quote = "to predict the ultimate performance in the brewhouse"
+
+[[question]]
+id = "q36"
+book = "mallett-malt"
+question = "What safety risks come with handling bulk grain?"
+
+[[question.expect]]
+page = 211
+quote = "many agricultural workers are killed by collapsing grain beds"
+
+[[question]]
+id = "q37"
+book = "bjcp-exam-study-guide-2017"
+question = "How much magnesium does yeast need, and when does it taste harsh?"
+
+[[question.expect]]
+page = 47
+quote = "Yeasts require 10-20 ppm Mg as a nutrient"
+
+[[question]]
+id = "q38"
+book = "bjcp-exam-study-guide-2017"
+question = "How do you tell how modified a malt is, and what counts as fully modified?"
+
+[[question.expect]]
+page = 51
+quote = "A ratio of 1.0 is indicative of fully-modified malt"
+
+[[question]]
+id = "q39"
+book = "bjcp-exam-study-guide-2017"
+question = "How dark should an Oktoberfest be on the SRM scale?"
+
+[[question.expect]]
+page = 53
+quote = "an Oktoberfest in the 7-14 range"
+
+[[question]]
+id = "q40"
+book = "bjcp-exam-study-guide-2017"
+question = "What is a double mash and which beers use it?"
+
+[[question.expect]]
+page = 55
+quote = "The double mash is the most common way of producing beer styles"
+
+[[question]]
+id = "q41"
+book = "bjcp-exam-study-guide-2017"
+question = "What do Cascade and Centennial hops taste like?"
+
+[[question.expect]]
+page = 61
+quote = "Cascade and Centennial hops both provide grapefruit and floral notes"
+
+[[question]]
+id = "q42"
+book = "bjcp-exam-study-guide-2017"
+question = "Why do lager brewers do a diacetyl rest?"
+
+[[question.expect]]
+page = 68
+quote = "the key motivation for performing a diacetyl rest for a lager"
+
+[[question]]
+id = "q43"
+book = "bjcp-exam-study-guide-2017"
+question = "What causes a cheesy or sweaty-sock aroma in beer?"
+
+[[question.expect]]
+page = 71
+quote = "usually originates from the use of old hops"
+
+[[question]]
+id = "q44"
+book = "bjcp-exam-study-guide-2017"
+question = "Why does my beer taste like coins or blood?"
+
+[[question.expect]]
+page = 73
+quote = "too much produces flavors described as blood-like, inky or like coins"
+
+[[question]]
+id = "q45"
+book = "bjcp-exam-study-guide-2017"
+question = "What is the difference between lactic and acetic sourness in beer?"
+
+[[question.expect]]
+page = 76
+quote = "Acetic acid can be produced by several contaminants"
+
+[[question.expect]]
+page = 76
+quote = "Lactic acid is produced by Gram-positive bacteria"

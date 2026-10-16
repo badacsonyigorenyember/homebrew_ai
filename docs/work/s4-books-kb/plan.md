@@ -211,11 +211,11 @@ Commit: `Add retrieval eval runner and metrics`
 ### Task 8: Retrieval test set, reviewed by the user
 Why: R5, A4.
 **Needs from the user:** a review of every question (blocking; ask with the passages shown).
-- [ ] Pick passages before running any retrieval, so the set is not shaped by what retrieval finds: per book, 9 chunks spread over the book (every Nth chunk in page order, skipping ones with no answerable brewing fact). For each, write a question a brewer would ask, in their own words (avoid copying the passage's distinctive phrase where a natural question would not use it), and an `expect` with `page` and a `quote`: 4–12 words copied exactly from the chunk that answer the question. Add a second `expect` where the answer is in two places. Mix kinds: process (how/when), cause (why does…), ingredient, troubleshooting.
-- [ ] `evals/retrieval_questions.toml`: header comment (what it is, how expects match, that only short quotes are kept, who reviewed it and when), then `[[question]]` with `id` (`q01`…), `book` (slug), `question`, and `[[question.expect]]` `page`, `quote`. ≥ 40 questions, ≥ 8 per book.
-- [ ] Add to `tests/test_retrieval_eval.py`: `test_question_set_shape` (unit: ≥ 40, ≥ 8 per book, unique ids, every book a `BOOKS` slug, quotes 4–12 words) and `test_every_quote_resolves` (stack: each quote, normalised, is in at least one chunk of its book; an unresolved quote would silently lower recall).
-- [ ] Show the user each question with its book, page and the full chunk text it points to (from the DB, in the conversation, not in a committed file). Apply their edits; write the review date in the header.
-- [ ] Run `.venv/bin/pytest tests/test_retrieval_eval.py`, expect pass.
+- [x] Pick passages before running any retrieval, so the set is not shaped by what retrieval finds: per book, 9 chunks spread over the book (every Nth chunk in page order, skipping ones with no answerable brewing fact). For each, write a question a brewer would ask, in their own words (avoid copying the passage's distinctive phrase where a natural question would not use it), and an `expect` with `page` and a `quote`: 4–12 words copied exactly from the chunk that answer the question. Add a second `expect` where the answer is in two places. Mix kinds: process (how/when), cause (why does…), ingredient, troubleshooting.
+- [x] `evals/retrieval_questions.toml`: header comment (what it is, how expects match, that only short quotes are kept, who reviewed it and when), then `[[question]]` with `id` (`q01`…), `book` (slug), `question`, and `[[question.expect]]` `page`, `quote`. ≥ 40 questions, ≥ 8 per book.
+- [x] Add to `tests/test_retrieval_eval.py`: `test_question_set_shape` (unit: ≥ 40, ≥ 8 per book, unique ids, every book a `BOOKS` slug, quotes 4–12 words) and `test_every_quote_resolves` (stack: each quote, normalised, is in at least one chunk of its book; an unresolved quote would silently lower recall).
+- [x] Show the user each question with its book, page and the full chunk text it points to (from the DB, in the conversation, not in a committed file). Apply their edits; write the review date in the header.
+- [x] Run `.venv/bin/pytest tests/test_retrieval_eval.py`, expect pass.
 Done when: ≥ 40 questions, reviewed by the user, every quote resolves.
 Commit: `Add reviewed retrieval test set`
 
