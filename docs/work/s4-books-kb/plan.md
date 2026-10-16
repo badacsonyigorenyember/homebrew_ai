@@ -1,6 +1,6 @@
 # S4 · Books into the knowledge base, with a retrieval eval — implementation plan
 
-Stage: draft
+Stage: shipped
 Brief: [brief.md](brief.md)
 Branch: s4-books-kb
 
@@ -48,8 +48,8 @@ Page numbers are PDF page numbers (1-based, as Docling reports them), not printe
 
 ### Task 1: Loader that turns a Docling chunk result into prose rows
 Why: R1, R2, R7; the pure part of the loader, tested without the stack.
-- [ ] Add `requests>=2.32` to `requirements.txt` (already in `.venv`; `urllib` has no multipart).
-- [ ] Write `loaders/books.py` with a module docstring that says how to run it and how to add a
+- [x] Add `requests>=2.32` to `requirements.txt` (already in `.venv`; `urllib` has no multipart).
+- [x] Write `loaders/books.py` with a module docstring that says how to run it and how to add a
       book (point at `docs/BOOKS.md`, written in Task 4). Contents, in this order:
   - `@dataclass(frozen=True) class Book`: `slug`, `title`, `edition`, `publisher`, `licence`,
     `file_path` (relative to the repo root), `skip_pages: tuple[tuple[int, int], ...] = ()`
@@ -62,7 +62,7 @@ Why: R1, R2, R7; the pure part of the loader, tested without the stack.
     `Tables 18.5 and 24.1 in ref.fermentable; prose in kb.chunk; doc → calc notes in docs/BOOKS.md`.
   - Constants `DOCLING_URL = "http://localhost:5001"`, `OLLAMA_URL = "http://localhost:11434"`,
     `EMBED_MODEL = "bge-m3"`, `EMBED_DIMS = 1024`, `MAX_TOKENS = 512`, `MIN_WORDS = 20`,
-    `SCRATCH = ROOT / "shared" / "docling-scratch"` (gitignored).
+    `SCRATCH = ROOT / "shared" / "rag-files" / "docling-chunks"` (gitignored).
   - `docling_form(book) -> dict`: the multipart fields, exactly:
     `convert_from_formats=pdf`, `convert_do_ocr=<book.ocr>`, `convert_pdf_backend=dlparse_v4`,
     `convert_table_mode=accurate`, `convert_do_table_structure=true`,
@@ -95,7 +95,7 @@ Why: R1, R2, R7; the pure part of the loader, tested without the stack.
     `{"model": EMBED_MODEL, "input": text, "truncate": false, "keep_alive": -1}`, one text per call
     so `tokens` is that chunk's own count (`prompt_eval_count`, as bge-m3 counts what was embedded).
     `truncate: false` makes an over-long chunk fail instead of being cut silently.
-- [ ] Write `tests/test_books.py` (unit part, synthetic chunks only; no book text in the repo):
+- [x] Write `tests/test_books.py` (unit part, synthetic chunks only; no book text in the repo):
   - `test_check_result_raises_on_failed_document`: `documents[0].status = "failure"`, 0 chunks → `RuntimeError`.
   - `test_check_result_raises_on_no_chunks`: `success` with `chunks: []` → `RuntimeError`.
   - `test_strip_tables_keeps_prose`: prose + 4-line markdown table + prose → both prose paragraphs, no `|` line.
@@ -104,27 +104,27 @@ Why: R1, R2, R7; the pure part of the loader, tested without the stack.
   - `test_chunk_rows_page_and_section`: `page_numbers [12, 13]` → page 12; headings joined with ` > `.
   - `test_parse_embedding_rejects_wrong_dims`: 768 floats → `ValueError`; 1024 → vector and count.
   - `test_docling_form_sets_bge_m3_tokenizer`: form has `chunking_tokenizer = BAAI/bge-m3`, `chunking_use_markdown_tables = true`.
-- [ ] Run `.venv/bin/pytest tests/test_books.py -m "not stack"`, expect all pass.
+- [x] Run `.venv/bin/pytest tests/test_books.py -m "not stack"`, expect all pass.
 Done when: the unit tests pass and `python -m loaders.books --help` prints the usage.
 Commit: `Add book loader: Docling chunks to prose rows`
 
 ### Task 2: Source upsert and per-book chunk replace
 Why: R1, R2, R7 (re-ingest replaces one book only; the source row keeps its id).
-- [ ] In `loaders/books.py` add:
+- [x] In `loaders/books.py` add:
   - `upsert_source(conn, book) -> int`: `insert into ref.source (slug, title, edition, publisher, licence, file_path, notes) … on conflict (slug) do update set` the same columns (`notes` only when the entry has one: `coalesce(excluded.notes, ref.source.notes)`), `returning id`. The `palmer-how-to-brew` row already exists and `ref.ingredient` rows point at it (honey), so its id must not change.
   - `replace_chunks(conn, source_id, rows) -> int`: `delete from kb.chunk where source_id = %s`, then insert each row (`source_id, section_path, page, text, tokens, embedding`; the embedding passed as the text `'[f1,f2,…]'` cast to `extensions.vector`). No commit inside: the caller's `with connect() as conn:` commits it all at once, so a failed run leaves the old chunks.
   - `main()`: `argparse` with `slug` (choices = `BOOKS`) and `--reuse-docling` (read `SCRATCH/<slug>.chunks.json` instead of calling Docling; for re-runs after changing `skip_pages`). Flow: Docling (or reuse) → `check_result` → `chunk_rows` → `embed` each row → one transaction: `upsert_source`, `replace_chunks`. Print the stats, the chunk count, min / median / max `tokens`, and the PDF pages where tables were cut.
-- [ ] Add stack tests to `tests/test_books.py` (marked `stack`, each ends with `conn.rollback()`):
+- [x] Add stack tests to `tests/test_books.py` (marked `stack`, each ends with `conn.rollback()`):
   - `test_upsert_source_keeps_id`: upsert a `Book` with slug `palmer-how-to-brew` and a changed edition → same id as before, edition changed (rolled back).
   - `test_replace_chunks_only_touches_its_book`: insert a throwaway source `test-book-a` and `test-book-b`, `replace_chunks` 3 synthetic rows into each (embedding = 1024 floats), then `replace_chunks` 2 rows into `a` → `a` has 2, `b` still 3, every other source's count unchanged (counted before and after).
   - `test_replace_chunks_twice_same_rows`: the same rows twice → same count and same `md5(string_agg(text, '|' order by page, section_path, text))`.
-- [ ] Run `.venv/bin/pytest tests/test_books.py`, expect all pass with the stack up.
+- [x] Run `.venv/bin/pytest tests/test_books.py`, expect all pass with the stack up.
 Done when: the tests pass; `select count(*) from kb.chunk` is still 0 (the tests rolled back).
 Commit: `Add book source upsert and per-book chunk replace`
 
 ### Task 3: Hybrid retrieval function
 Why: R4, A3.
-- [ ] Write `db/040_kb_search.sql` (header like `db/014_kb.sql`: what it is, the apply command, idempotent). One function:
+- [x] Write `db/040_kb_search.sql` (header like `db/014_kb.sql`: what it is, the apply command, idempotent). One function:
   ```sql
   create or replace function app.kb_search(
       query_text      text,
@@ -143,89 +143,89 @@ Why: R4, A3.
   - `fts`: chunks with `fts @@ words`, ordered by `ts_rank_cd(fts, words) desc, id`, `limit candidates`, then numbered.
   - `fused`: full outer join of `vec` and `fts` on id; `score = coalesce(1.0 / (rrf_k + vec_rank), 0) + coalesce(1.0 / (rrf_k + fts_rank), 0)`.
   - Final select joins `kb.chunk` and `ref.source`, `order by score desc, chunk_id limit k`.
-- [ ] Apply: `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/040_kb_search.sql`; check the owner: `select proowner::regrole from pg_proc where proname = 'kb_search'` → `postgres`.
-- [ ] Write `tests/test_kb_search.py` (stack, synthetic chunks under a throwaway source, rolled back; works whether or not real chunks are loaded). Query embedding = one-hot on dimension 0; real bge-m3 vectors are far from it.
+- [x] Apply: `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/040_kb_search.sql`; check the owner: `select proowner::regrole from pg_proc where proname = 'kb_search'` → `postgres`.
+- [x] Write `tests/test_kb_search.py` (stack, synthetic chunks under a throwaway source, rolled back; works whether or not real chunks are loaded). Query embedding = one-hot on dimension 0; real bge-m3 vectors are far from it.
   - `test_both_arms_rank_first`: chunk A has the one-hot embedding and the word `zyxquorble`; chunk B has only the word; chunk C only the embedding. Query `"zyxquorble fermentation"` → A first, B and C in the top 5, A's `vec_rank` and `fts_rank` both 1.
   - `test_any_query_word_matches`: a chunk with only one of the three query words is returned by the full-text arm (`fts_rank` not null).
   - `test_returns_k_rows_with_source_and_page`: 7 synthetic chunks, `k = 5` → 5 rows, each with `source_slug`, `page` not null.
   - `test_no_match_still_returns_vector_hits`: a query whose words are all stopwords → rows come from the vector arm only (`fts_rank` null).
-- [ ] Run `.venv/bin/pytest tests/test_kb_search.py`, expect all pass.
+- [x] Run `.venv/bin/pytest tests/test_kb_search.py`, expect all pass.
 Done when: tests pass and the function is owned by `postgres`.
 Commit: `Add app.kb_search hybrid retrieval`
 
 ### Task 4: Ingest *How to Brew* and write the book notes
 Why: R1, R2, R3, A1, A2 (first book), and the docs for R7.
-- [ ] Probe first: `python -m loaders.books palmer-how-to-brew` (612 pages; expect several minutes in Docling, roughly 10–20 at the first build's 229 s per 248 pages). Read the printed stats and look at `shared/docling-scratch/palmer-how-to-brew.chunks.json`: which PDF pages are the contents, index, glossary or reading lists (look also with `pdftotext -f N -l N`). Check what formulas look like in the chunk text; if Docling leaves a placeholder line (for example `<!-- formula-not-decoded -->`), strip it in `strip_tables` too and add a unit test for it (Deviation line).
-- [ ] Set `skip_pages` for the book from that probe, re-run with `--reuse-docling`. Check:
+- [x] Probe first: `python -m loaders.books palmer-how-to-brew` (612 pages; expect several minutes in Docling, roughly 10–20 at the first build's 229 s per 248 pages). Read the printed stats and look at `shared/rag-files/docling-chunks/palmer-how-to-brew.chunks.json`: which PDF pages are the contents, index, glossary or reading lists (look also with `pdftotext -f N -l N`). Check what formulas look like in the chunk text; if Docling leaves a placeholder line (for example `<!-- formula-not-decoded -->`), strip it in `strip_tables` too and add a unit test for it (Deviation line).
+- [x] Set `skip_pages` for the book from that probe, re-run with `--reuse-docling`. Check:
   `select count(*), min(tokens), percentile_disc(0.5) within group (order by tokens), max(tokens), count(*) filter (where text like '%|%|%') from kb.chunk c join ref.source s on s.id = c.source_id where s.slug = 'palmer-how-to-brew'` — expect hundreds of chunks, no chunk over ~600 tokens unexplained, table-like rows 0 (inspect any hit).
-- [ ] Second ingest without `--reuse-docling` (a fresh Docling run). Before and after, record count and `md5(string_agg(text, '|' order by page, section_path, text))` for the book: both unchanged (A1, R2). If Docling is not deterministic, stop and record what differs.
-- [ ] Write `docs/BOOKS.md`:
+- [x] Second ingest without `--reuse-docling` (a fresh Docling run). Before and after, record count and `md5(string_agg(text, '|' order by page, section_path, text))` for the book: both unchanged (A1, R2). If Docling is not deterministic, stop and record what differs.
+- [x] Write `docs/BOOKS.md`:
   1. **Books in `kb`**: table of slug, title / edition, file, PDF pages, skipped pages, chunks, ingested (date), measured.
   2. **Adding a book** (R7): put the PDF in `shared/rag-files/books/`; check it has a text layer (`pdffonts FILE` lists fonts; if none, set `ocr=True`); add one `Book` entry to `BOOKS` in `loaders/books.py`; run `python -m loaders.books <slug>`; look at the stats, set `skip_pages`, re-run with `--reuse-docling`; check the counts query (this book has chunks, other books' counts unchanged); write the book's doc → calc note below; add the book to PROJECT.md §5.
   3. **Doc → calc notes per book** (R3): for *How to Brew*, the PDF pages where the loader cut tables (from its stats) and the formula pages, each marked with the pass that turned it into data or code (`s1-maths` [doc-calc.md](finished/s1-maths/doc-calc.md) sections, `adjunct-fermentables` Tables 18.5 / 24.1) or "not passed yet (m7-process)". A cut table is never in `kb` either way.
-- [ ] Update `docs/DATABASE.md` §4 (`app.kb_search`; `page` is the PDF page; `tokens` is bge-m3's count of the embedded text, heading path included; link BOOKS.md) and §7 row 7; link BOOKS.md from PROJECT.md §5. PROJECT.md: §5 *How to Brew* row (chunk count, measured), §4 vector search row, Scripts row (`loaders/books.py`, its tests), §8 entry.
+- [x] Update `docs/DATABASE.md` §4 (`app.kb_search`; `page` is the PDF page; `tokens` is bge-m3's count of the embedded text, heading path included; link BOOKS.md) and §7 row 7; link BOOKS.md from PROJECT.md §5. PROJECT.md: §5 *How to Brew* row (chunk count, measured), §4 vector search row, Scripts row (`loaders/books.py`, its tests), §8 entry.
 Done when: the book has chunks, the second ingest left count and fingerprint unchanged, BOOKS.md has the How to Brew row and notes.
 Commit: `Ingest How to Brew into kb, add docs/BOOKS.md`
 
 ### Task 5: Ingest *Water*
 Why: R1, A1, A2.
 The PDF is `shared/rag-files/books/palmer_kaminski_water.pdf` (checked 2026-10-16).
-- [ ] Read title, edition and publisher from the PDF's copyright page; add the `Book` entry (slug `palmer-kaminski-water`, same licence wording with its publisher). Follow BOOKS.md §2 step by step; fix BOOKS.md where it was wrong or unclear (Deviation line).
-- [ ] Record `How to Brew`'s count before and after: unchanged.
-- [ ] Add the book's row and doc → calc note to BOOKS.md: its table and formula pages, all "not passed yet (m7-process)" unless a pass exists. PROJECT.md §5 row, §8 entry.
+- [x] Read title, edition and publisher from the PDF's copyright page; add the `Book` entry (slug `palmer-kaminski-water`, same licence wording with its publisher). Follow BOOKS.md §2 step by step; fix BOOKS.md where it was wrong or unclear (Deviation line).
+- [x] Record `How to Brew`'s count before and after: unchanged.
+- [x] Add the book's row and doc → calc note to BOOKS.md: its table and formula pages, all "not passed yet (m7-process)" unless a pass exists. PROJECT.md §5 row, §8 entry.
 Done when: the book has chunks and How to Brew's count is unchanged.
 Commit: `Ingest Water into kb`
 
 ### Task 6: Ingest *Yeast* by following the docs (A6)
 Why: R7, A6, A1, A2.
 The PDF is `shared/rag-files/books/white_zainasheff_yeast.pdf` (checked 2026-10-16).
-- [ ] Before touching anything, record every book's chunk count. Then follow BOOKS.md §2 literally, with no step from outside it (slug `white-zainasheff-yeast`). Note any step that was missing or wrong, fix BOOKS.md, and record it as a Deviation line.
-- [ ] After: Yeast has a `ref.source` row with `file_path` and chunks; How to Brew and Water counts are unchanged (A6).
-- [ ] Second ingest of Yeast with `--reuse-docling`: count and fingerprint unchanged (A1).
-- [ ] BOOKS.md row and doc → calc note; PROJECT.md §5 row, §8 entry (A6 result with the counts).
+- [x] Before touching anything, record every book's chunk count. Then follow BOOKS.md §2 literally, with no step from outside it (slug `white-zainasheff-yeast`). Note any step that was missing or wrong, fix BOOKS.md, and record it as a Deviation line.
+- [x] After: Yeast has a `ref.source` row with `file_path` and chunks; How to Brew and Water counts are unchanged (A6).
+- [x] Second ingest of Yeast with `--reuse-docling`: count and fingerprint unchanged (A1).
+- [x] BOOKS.md row and doc → calc note; PROJECT.md §5 row, §8 entry (A6 result with the counts).
 Done when: A6 holds as measured, and `select s.slug, count(*) from kb.chunk c join ref.source s on s.id = c.source_id group by 1` shows three books.
 Commit: `Ingest Yeast into kb following docs/BOOKS.md`
 
 ### Task 6b: Ingest *Malt* and the BJCP exam study guide
 Why: R1, R7, A1 (books four and five).
-- [ ] Record every book's chunk count. Follow BOOKS.md §2 for `shared/rag-files/books/mallett_malt.pdf` (slug `mallett-malt`, Brewers Publications) and then `shared/rag-files/books/bjcp_exam_study_guide_2017.pdf` (slug `bjcp-exam-study-guide-2017`, title *BJCP Beer Exam Study Guide*, edition `Last revised December 2017`, publisher `Beer Judge Certification Program`, licence `© 1998-2017 the authors and the BJCP; free to download; local use`). For the study guide, `skip_pages` covers the front matter and sections I–III (exam rules, judging procedure, exam questions); only section IV, Ingredients and the Brewing Process, is kept. Its S0 style-triple table is a table, so it is cut anyway (it is s6-style-neighbours' data).
-- [ ] After each: the new book has chunks, the other books' counts are unchanged.
-- [ ] BOOKS.md rows and doc → calc notes (*Malt*: no pass, malt data comes from the maltster catalogues; study guide: the §IV.B water table goes to m7-process). PROJECT.md §5 rows, §8 entry.
+- [x] Record every book's chunk count. Follow BOOKS.md §2 for `shared/rag-files/books/mallett_malt.pdf` (slug `mallett-malt`, Brewers Publications) and then `shared/rag-files/books/bjcp_exam_study_guide_2017.pdf` (slug `bjcp-exam-study-guide-2017`, title *BJCP Beer Exam Study Guide*, edition `Last revised December 2017`, publisher `Beer Judge Certification Program`, licence `© 1998-2017 the authors and the BJCP; free to download; local use`). For the study guide, `skip_pages` covers the front matter and sections I–III (exam rules, judging procedure, exam questions); only section IV, Ingredients and the Brewing Process, is kept. Its S0 style-triple table is a table, so it is cut anyway (it is s6-style-neighbours' data).
+- [x] After each: the new book has chunks, the other books' counts are unchanged.
+- [x] BOOKS.md rows and doc → calc notes (*Malt*: no pass, malt data comes from the maltster catalogues; study guide: the §IV.B water table goes to m7-process). PROJECT.md §5 rows, §8 entry.
 Done when: `select s.slug, count(*) from kb.chunk c join ref.source s on s.id = c.source_id group by 1` shows five books, and the first three kept their counts.
 Commit: `Ingest Malt and the BJCP study guide into kb`
 
 ### Task 7: Retrieval eval runner and metrics
 Why: R4, R6, A3.
-- [ ] Write `evals/retrieval.py`:
+- [x] Write `evals/retrieval.py`:
   - `search(conn, question, k=5) -> list[dict]`: `loaders.books.embed(question)`, then `select * from app.kb_search(%s, %s::extensions.vector, %s)`.
   - `normalise(s)`: lower case, runs of whitespace to one space, curly quotes and dashes to plain.
   - `is_hit(result, expect, book) -> bool`: `result.source_slug == book` and `normalise(expect.quote)` is in `normalise(result.text)`.
   - `recall_at_k(results, expects, book, k)`: share of the question's expected passages hit in the top k. `reciprocal_rank(results, expects, book, k=10)`: 1 / rank of the first hit, 0 if none in the top 10.
   - `RECALL_AT_5_BAR: float | None = None` with a comment: set once from the first measured run (Task 9), before any tuning change; never moved afterwards without a Deviation line.
   - CLI: `python -m evals.retrieval` runs every question (k = 10 for MRR, recall from the top 5) and prints recall@5, MRR@10, both per book, the misses (question id, expected page, ranks found), and "bar met / not met" when the bar is set. `--save LABEL` writes `evals/results/<date>-<LABEL>.json` (summary + per question: ranks of each expected passage, top 5 chunk ids, pages, scores). `--question "…"` prints the top 5 (source, page, section, score, first 200 characters) for a single question (A3).
-- [ ] Write `tests/test_retrieval_eval.py` (unit): `test_recall_at_5` (2 expects, 1 hit at rank 3 → 0.5; hit at rank 6 → 0), `test_reciprocal_rank` (first hit at rank 2 → 0.5; none → 0), `test_is_hit_wrong_book` (quote matches but other book → no hit), `test_normalise_whitespace_and_quotes`.
-- [ ] Run `.venv/bin/pytest tests/test_retrieval_eval.py`, expect pass. Run `python -m evals.retrieval --question "how long and at what temperature should a diacetyl rest be"` → 5 rows, each with source and page (A3).
+- [x] Write `tests/test_retrieval_eval.py` (unit): `test_recall_at_5` (2 expects, 1 hit at rank 3 → 0.5; hit at rank 6 → 0), `test_reciprocal_rank` (first hit at rank 2 → 0.5; none → 0), `test_is_hit_wrong_book` (quote matches but other book → no hit), `test_normalise_whitespace_and_quotes`.
+- [x] Run `.venv/bin/pytest tests/test_retrieval_eval.py`, expect pass. Run `python -m evals.retrieval --question "how long and at what temperature should a diacetyl rest be"` → 5 rows, each with source and page (A3).
 Done when: tests pass and the A3 command prints 5 cited chunks.
 Commit: `Add retrieval eval runner and metrics`
 
 ### Task 8: Retrieval test set, reviewed by the user
 Why: R5, A4.
 **Needs from the user:** a review of every question (blocking; ask with the passages shown).
-- [ ] Pick passages before running any retrieval, so the set is not shaped by what retrieval finds: per book, 9 chunks spread over the book (every Nth chunk in page order, skipping ones with no answerable brewing fact). For each, write a question a brewer would ask, in their own words (avoid copying the passage's distinctive phrase where a natural question would not use it), and an `expect` with `page` and a `quote`: 4–12 words copied exactly from the chunk that answer the question. Add a second `expect` where the answer is in two places. Mix kinds: process (how/when), cause (why does…), ingredient, troubleshooting.
-- [ ] `evals/retrieval_questions.toml`: header comment (what it is, how expects match, that only short quotes are kept, who reviewed it and when), then `[[question]]` with `id` (`q01`…), `book` (slug), `question`, and `[[question.expect]]` `page`, `quote`. ≥ 40 questions, ≥ 8 per book.
-- [ ] Add to `tests/test_retrieval_eval.py`: `test_question_set_shape` (unit: ≥ 40, ≥ 8 per book, unique ids, every book a `BOOKS` slug, quotes 4–12 words) and `test_every_quote_resolves` (stack: each quote, normalised, is in at least one chunk of its book; an unresolved quote would silently lower recall).
-- [ ] Show the user each question with its book, page and the full chunk text it points to (from the DB, in the conversation, not in a committed file). Apply their edits; write the review date in the header.
-- [ ] Run `.venv/bin/pytest tests/test_retrieval_eval.py`, expect pass.
+- [x] Pick passages before running any retrieval, so the set is not shaped by what retrieval finds: per book, 9 chunks spread over the book (every Nth chunk in page order, skipping ones with no answerable brewing fact). For each, write a question a brewer would ask, in their own words (avoid copying the passage's distinctive phrase where a natural question would not use it), and an `expect` with `page` and a `quote`: 4–12 words copied exactly from the chunk that answer the question. Add a second `expect` where the answer is in two places. Mix kinds: process (how/when), cause (why does…), ingredient, troubleshooting.
+- [x] `evals/retrieval_questions.toml`: header comment (what it is, how expects match, that only short quotes are kept, who reviewed it and when), then `[[question]]` with `id` (`q01`…), `book` (slug), `question`, and `[[question.expect]]` `page`, `quote`. ≥ 40 questions, ≥ 8 per book.
+- [x] Add to `tests/test_retrieval_eval.py`: `test_question_set_shape` (unit: ≥ 40, ≥ 8 per book, unique ids, every book a `BOOKS` slug, quotes 4–12 words) and `test_every_quote_resolves` (stack: each quote, normalised, is in at least one chunk of its book; an unresolved quote would silently lower recall).
+- [x] Show the user each question with its book, page and the full chunk text it points to (from the DB, in the conversation, not in a committed file). Apply their edits; write the review date in the header.
+- [x] Run `.venv/bin/pytest tests/test_retrieval_eval.py`, expect pass.
 Done when: ≥ 40 questions, reviewed by the user, every quote resolves.
 Commit: `Add reviewed retrieval test set`
 
 ### Task 9: First measured run, the bar, and the record
 Why: R6, A5, G7 (retrieval part).
 **Needs from the user:** the recall@5 bar, chosen from the first run.
-- [ ] `python -m evals.retrieval --save s4-first`. Report recall@5, MRR@10, per book, and the misses to the user. Ask for the bar; recommend the first run's recall@5 rounded down to the nearest 0.05, so later changes cannot quietly lose recall.
-- [ ] Set `RECALL_AT_5_BAR` with a comment (date, first-run value). Record first-run numbers and the bar in PROJECT.md §8 and BOOKS.md. Commit this before any tuning change.
-- [ ] If the bar is above the first run, tuning is new work: stop and ask the user before changing anything (`candidates`, `rrf_k`, `MAX_TOKENS`, `MIN_WORDS`), and add tasks with a Deviation line. Otherwise, `python -m evals.retrieval --save s4` as the final run: bar met (A5).
-- [ ] Full suite: `.venv/bin/pytest`, expect all pass; record the count and time in PROJECT.md §4 Scripts row. PROJECT.md: §4 vector search row 🟢 with counts, Eval guidance row (used), §8 entry with recall@5, MRR and the bar.
+- [x] `python -m evals.retrieval --save s4-first`. Report recall@5, MRR@10, per book, and the misses to the user. Ask for the bar; recommend the first run's recall@5 rounded down to the nearest 0.05, so later changes cannot quietly lose recall.
+- [x] Set `RECALL_AT_5_BAR` with a comment (date, first-run value). Record first-run numbers and the bar in PROJECT.md §8 and BOOKS.md. Commit this before any tuning change.
+- [x] If the bar is above the first run, tuning is new work: stop and ask the user before changing anything (`candidates`, `rrf_k`, `MAX_TOKENS`, `MIN_WORDS`), and add tasks with a Deviation line. Otherwise, `python -m evals.retrieval --save s4` as the final run: bar met (A5).
+- [x] Full suite: `.venv/bin/pytest`, expect all pass; record the count and time in PROJECT.md §4 Scripts row. PROJECT.md: §4 vector search row 🟢 with counts, Eval guidance row (used), §8 entry with recall@5, MRR and the bar.
 Done when: the bar is committed before any tuning, the final run meets it, PROJECT.md holds the numbers.
 Commit: `Record first retrieval run and the recall@5 bar`
 
@@ -249,3 +249,8 @@ Commit: `Record first retrieval run and the recall@5 bar`
   tasks); Task 6b adds *Malt* and section IV of the BJCP exam study guide; the question set is
   ≥ 40, ≥ 8 per book, 9 passages picked per book — brief R5/A1/A4 changed with the user's go-ahead
   ([SOURCES.md](../../SOURCES.md)).
+- 2026-10-16 · Tasks 1, 2, 4: the Docling result is saved in `shared/rag-files/docling-chunks/` (gitignored), not `shared/docling-scratch/` — that folder is owned by root (created by the Docker container), so the first 612-page run finished and then failed to save its result.
+- 2026-10-16 · Task 4: `test_both_arms_rank_first` queries `"zyxquorble"` instead of `"zyxquorble fermentation"` — with How to Brew loaded, real chunks full of "fermentation" outranked the synthetic chunk, so the test did not hold "whether or not real chunks are loaded".
+- 2026-10-16 · Task 4: `strip_tables` also drops Docling's `<!-- formula-not-decoded -->` lines (77 in the first run); `skip_pages` for How to Brew is 1–26 and 579–612.
+- 2026-10-16 · Task 5: edition recorded as `2013` (the copyright page gives only the year); BOOKS.md §2 steps 3 and 5 now say where to read the copyright page and how to find chapter starts and the first index page — the index's first page held index text under the last table page's chunk, so `skip_pages` for Water starts at 238.
+- 2026-10-16 · Task 6: BOOKS.md §2 steps 2, 3, 4 changed — poppler prints harmless "Syntax Error" lines before `pdffonts` output; *Yeast*'s copyright page is PDF page 3, not 4; `skip_pages` is left empty on the first run (the doc did not say); Docling took 2.1 min here, so "10–20+ minutes" was wrong for a 325-page book.
