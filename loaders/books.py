@@ -162,15 +162,78 @@ def embed(text: str) -> tuple[list[float], int]:
     return parse_embedding(response.json())
 
 
+def upsert_source(conn, book: Book) -> int:
+    """Insert or update the book's ref.source row on its slug; the id stays the same."""
+    return conn.execute(
+        """
+        insert into ref.source (slug, title, edition, publisher, licence, file_path, notes)
+        values (%s, %s, %s, %s, %s, %s, %s)
+        on conflict (slug) do update set
+            title = excluded.title, edition = excluded.edition,
+            publisher = excluded.publisher, licence = excluded.licence,
+            file_path = excluded.file_path,
+            notes = coalesce(excluded.notes, ref.source.notes)
+        returning id
+        """,
+        (book.slug, book.title, book.edition, book.publisher, book.licence,
+         book.file_path, book.notes),
+    ).fetchone()[0]
+
+
+def replace_chunks(conn, source_id: int, rows: list[dict]) -> int:
+    """Delete the book's chunks and insert `rows` (section_path, page, text, tokens, embedding).
+
+    No commit here: the caller's `with connect() as conn:` commits it all at once, so a
+    failed run leaves the old chunks.
+    """
+    conn.execute("delete from kb.chunk where source_id = %s", (source_id,))
+    for row in rows:
+        vector = "[" + ",".join(str(x) for x in row["embedding"]) + "]"
+        conn.execute(
+            """
+            insert into kb.chunk (source_id, section_path, page, text, tokens, embedding)
+            values (%s, %s, %s, %s, %s, %s::extensions.vector)
+            """,
+            (source_id, row["section_path"], row["page"], row["text"], row["tokens"], vector),
+        )
+    return len(rows)
+
+
 def main() -> None:
     import argparse
+    import statistics
+
+    from loaders.db import connect
+
     parser = argparse.ArgumentParser(
         description="Load one book into kb.chunk (see docs/BOOKS.md).")
     parser.add_argument("slug", choices=sorted(BOOKS))
     parser.add_argument("--reuse-docling", action="store_true",
                         help="read shared/docling-scratch/<slug>.chunks.json instead of Docling")
-    parser.parse_args()
-    raise SystemExit("loading into the database comes in the next task")
+    args = parser.parse_args()
+    book = BOOKS[args.slug]
+
+    if args.reuse_docling:
+        result = json.loads((SCRATCH / f"{book.slug}.chunks.json").read_text(encoding="utf-8"))
+    else:
+        result = run_docling(book)
+    rows, stats = chunk_rows(check_result(result), book)
+
+    for i, row in enumerate(rows, 1):
+        row["embedding"], row["tokens"] = embed(embed_text(row))
+        if i % 100 == 0:
+            print(f"embedded {i}/{len(rows)}", flush=True)
+
+    with connect() as conn:
+        source_id = upsert_source(conn, book)
+        replace_chunks(conn, source_id, rows)
+
+    tokens = [row["tokens"] for row in rows]
+    print(f"chunks in {stats['chunks_in']}, kept {stats['kept']}, "
+          f"dropped on skip pages {stats['dropped_skip_page']}, "
+          f"dropped as too short {stats['dropped_short']}")
+    print(f"tokens min {min(tokens)}, median {statistics.median(tokens)}, max {max(tokens)}")
+    print(f"PDF pages where tables were cut: {sorted(stats['table_pages'])}")
 
 
 if __name__ == "__main__":

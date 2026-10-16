@@ -110,15 +110,15 @@ Commit: `Add book loader: Docling chunks to prose rows`
 
 ### Task 2: Source upsert and per-book chunk replace
 Why: R1, R2, R7 (re-ingest replaces one book only; the source row keeps its id).
-- [ ] In `loaders/books.py` add:
+- [x] In `loaders/books.py` add:
   - `upsert_source(conn, book) -> int`: `insert into ref.source (slug, title, edition, publisher, licence, file_path, notes) … on conflict (slug) do update set` the same columns (`notes` only when the entry has one: `coalesce(excluded.notes, ref.source.notes)`), `returning id`. The `palmer-how-to-brew` row already exists and `ref.ingredient` rows point at it (honey), so its id must not change.
   - `replace_chunks(conn, source_id, rows) -> int`: `delete from kb.chunk where source_id = %s`, then insert each row (`source_id, section_path, page, text, tokens, embedding`; the embedding passed as the text `'[f1,f2,…]'` cast to `extensions.vector`). No commit inside: the caller's `with connect() as conn:` commits it all at once, so a failed run leaves the old chunks.
   - `main()`: `argparse` with `slug` (choices = `BOOKS`) and `--reuse-docling` (read `SCRATCH/<slug>.chunks.json` instead of calling Docling; for re-runs after changing `skip_pages`). Flow: Docling (or reuse) → `check_result` → `chunk_rows` → `embed` each row → one transaction: `upsert_source`, `replace_chunks`. Print the stats, the chunk count, min / median / max `tokens`, and the PDF pages where tables were cut.
-- [ ] Add stack tests to `tests/test_books.py` (marked `stack`, each ends with `conn.rollback()`):
+- [x] Add stack tests to `tests/test_books.py` (marked `stack`, each ends with `conn.rollback()`):
   - `test_upsert_source_keeps_id`: upsert a `Book` with slug `palmer-how-to-brew` and a changed edition → same id as before, edition changed (rolled back).
   - `test_replace_chunks_only_touches_its_book`: insert a throwaway source `test-book-a` and `test-book-b`, `replace_chunks` 3 synthetic rows into each (embedding = 1024 floats), then `replace_chunks` 2 rows into `a` → `a` has 2, `b` still 3, every other source's count unchanged (counted before and after).
   - `test_replace_chunks_twice_same_rows`: the same rows twice → same count and same `md5(string_agg(text, '|' order by page, section_path, text))`.
-- [ ] Run `.venv/bin/pytest tests/test_books.py`, expect all pass with the stack up.
+- [x] Run `.venv/bin/pytest tests/test_books.py`, expect all pass with the stack up.
 Done when: the tests pass; `select count(*) from kb.chunk` is still 0 (the tests rolled back).
 Commit: `Add book source upsert and per-book chunk replace`
 

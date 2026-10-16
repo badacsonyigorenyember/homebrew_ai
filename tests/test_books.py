@@ -2,8 +2,11 @@
 
 import pytest
 
+from dataclasses import replace
+
 from loaders.books import (BOOKS, EMBED_DIMS, Book, check_result, chunk_rows, docling_form,
-                           parse_embedding, strip_tables)
+                           parse_embedding, replace_chunks, strip_tables, upsert_source)
+from loaders.db import connect
 
 PROSE = "word " * 25  # 25 words, above MIN_WORDS
 
@@ -65,3 +68,73 @@ def test_docling_form_sets_bge_m3_tokenizer():
     form = docling_form(BOOKS["palmer-how-to-brew"])
     assert form["chunking_tokenizer"] == "BAAI/bge-m3"
     assert form["chunking_use_markdown_tables"] == "true"
+
+
+# --- stack tests: database writes, always rolled back ---
+
+def synthetic_rows(n, tag="r"):
+    return [{"section_path": f"S{i}", "page": i + 1, "text": f"{tag} prose number {i}",
+             "tokens": 5, "embedding": [0.01 * (i + 1)] * EMBED_DIMS} for i in range(n)]
+
+
+def chunk_count(conn, source_id=None):
+    if source_id is None:
+        return conn.execute("select count(*) from kb.chunk").fetchone()[0]
+    return conn.execute("select count(*) from kb.chunk where source_id = %s",
+                        (source_id,)).fetchone()[0]
+
+
+def throwaway_source(conn, slug):
+    return upsert_source(conn, Book(slug=slug, title=slug, edition="1", publisher="P",
+                                    licence="L", file_path="x.pdf"))
+
+
+@pytest.mark.stack
+def test_upsert_source_keeps_id():
+    conn = connect()
+    try:
+        before = conn.execute("select id, edition from ref.source where slug = %s",
+                              ("palmer-how-to-brew",)).fetchone()
+        book = replace(BOOKS["palmer-how-to-brew"], edition="Changed edition for test")
+        assert upsert_source(conn, book) == before[0]
+        edition = conn.execute("select edition from ref.source where id = %s",
+                               (before[0],)).fetchone()[0]
+        assert edition == "Changed edition for test" != before[1]
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+@pytest.mark.stack
+def test_replace_chunks_only_touches_its_book():
+    conn = connect()
+    try:
+        a = throwaway_source(conn, "test-book-a")
+        b = throwaway_source(conn, "test-book-b")
+        others_before = chunk_count(conn) - chunk_count(conn, a) - chunk_count(conn, b)
+        assert replace_chunks(conn, a, synthetic_rows(3)) == 3
+        replace_chunks(conn, b, synthetic_rows(3, "b"))
+        assert replace_chunks(conn, a, synthetic_rows(2)) == 2
+        assert chunk_count(conn, a) == 2
+        assert chunk_count(conn, b) == 3
+        assert chunk_count(conn) - 2 - 3 == others_before
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+@pytest.mark.stack
+def test_replace_chunks_twice_same_rows():
+    fingerprint = ("select count(*), md5(string_agg(text, '|' order by page, section_path, text)) "
+                   "from kb.chunk where source_id = %s")
+    conn = connect()
+    try:
+        a = throwaway_source(conn, "test-book-a")
+        rows = synthetic_rows(4)
+        replace_chunks(conn, a, rows)
+        first = conn.execute(fingerprint, (a,)).fetchone()
+        replace_chunks(conn, a, rows)
+        assert conn.execute(fingerprint, (a,)).fetchone() == first
+    finally:
+        conn.rollback()
+        conn.close()
