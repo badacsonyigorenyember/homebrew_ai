@@ -196,15 +196,15 @@ Commit: `Ingest Malt and the BJCP study guide into kb`
 
 ### Task 7: Retrieval eval runner and metrics
 Why: R4, R6, A3.
-- [ ] Write `evals/retrieval.py`:
+- [x] Write `evals/retrieval.py`:
   - `search(conn, question, k=5) -> list[dict]`: `loaders.books.embed(question)`, then `select * from app.kb_search(%s, %s::extensions.vector, %s)`.
   - `normalise(s)`: lower case, runs of whitespace to one space, curly quotes and dashes to plain.
   - `is_hit(result, expect, book) -> bool`: `result.source_slug == book` and `normalise(expect.quote)` is in `normalise(result.text)`.
   - `recall_at_k(results, expects, book, k)`: share of the question's expected passages hit in the top k. `reciprocal_rank(results, expects, book, k=10)`: 1 / rank of the first hit, 0 if none in the top 10.
   - `RECALL_AT_5_BAR: float | None = None` with a comment: set once from the first measured run (Task 9), before any tuning change; never moved afterwards without a Deviation line.
   - CLI: `python -m evals.retrieval` runs every question (k = 10 for MRR, recall from the top 5) and prints recall@5, MRR@10, both per book, the misses (question id, expected page, ranks found), and "bar met / not met" when the bar is set. `--save LABEL` writes `evals/results/<date>-<LABEL>.json` (summary + per question: ranks of each expected passage, top 5 chunk ids, pages, scores). `--question "…"` prints the top 5 (source, page, section, score, first 200 characters) for a single question (A3).
-- [ ] Write `tests/test_retrieval_eval.py` (unit): `test_recall_at_5` (2 expects, 1 hit at rank 3 → 0.5; hit at rank 6 → 0), `test_reciprocal_rank` (first hit at rank 2 → 0.5; none → 0), `test_is_hit_wrong_book` (quote matches but other book → no hit), `test_normalise_whitespace_and_quotes`.
-- [ ] Run `.venv/bin/pytest tests/test_retrieval_eval.py`, expect pass. Run `python -m evals.retrieval --question "how long and at what temperature should a diacetyl rest be"` → 5 rows, each with source and page (A3).
+- [x] Write `tests/test_retrieval_eval.py` (unit): `test_recall_at_5` (2 expects, 1 hit at rank 3 → 0.5; hit at rank 6 → 0), `test_reciprocal_rank` (first hit at rank 2 → 0.5; none → 0), `test_is_hit_wrong_book` (quote matches but other book → no hit), `test_normalise_whitespace_and_quotes`.
+- [x] Run `.venv/bin/pytest tests/test_retrieval_eval.py`, expect pass. Run `python -m evals.retrieval --question "how long and at what temperature should a diacetyl rest be"` → 5 rows, each with source and page (A3).
 Done when: tests pass and the A3 command prints 5 cited chunks.
 Commit: `Add retrieval eval runner and metrics`
 
