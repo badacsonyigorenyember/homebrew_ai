@@ -8,13 +8,17 @@
 -- The caller embeds the question first (bge-m3, 1024 dims) and passes text and vector.
 -- score = 1/(rrf_k + vec_rank) + 1/(rrf_k + fts_rank); an arm that did not find the chunk adds 0.
 
-create or replace function app.kb_search(
+-- The drop is needed because the return type changed (s7: source_url added); create or replace
+-- cannot change it.
+drop function if exists app.kb_search(text, extensions.vector, integer, integer, integer);
+
+create function app.kb_search(
     query_text      text,
     query_embedding extensions.vector(1024),
     k               integer default 5,
     candidates      integer default 40,
     rrf_k           integer default 60)
-returns table (chunk_id bigint, source_slug text, source_title text, section_path text,
+returns table (chunk_id bigint, source_slug text, source_title text, source_url text, section_path text,
                page integer, text text, score double precision, vec_rank integer, fts_rank integer)
 language sql stable
 set search_path = public, extensions
@@ -51,7 +55,7 @@ as $$
                 + coalesce(1.0 / (rrf_k + fts.rank), 0))::double precision as score
         from vec full outer join fts on fts.id = vec.id
     )
-    select c.id, s.slug, s.title, c.section_path, c.page, c.text,
+    select c.id, s.slug, s.title, s.url, c.section_path, c.page, c.text,
            fused.score, fused.vec_rank, fused.fts_rank
     from fused
     join kb.chunk c on c.id = fused.id

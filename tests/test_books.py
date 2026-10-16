@@ -4,8 +4,9 @@ import pytest
 
 from dataclasses import replace
 
-from loaders.books import (BOOKS, EMBED_DIMS, Book, check_result, chunk_rows, docling_form,
-                           parse_embedding, replace_chunks, strip_tables, upsert_source)
+from loaders.books import (ARTICLES, BOOKS, EMBED_DIMS, ROOT, SOURCES, Book, check_result,
+                           chunk_rows, clean_markdown, docling_form, parse_embedding,
+                           replace_chunks, strip_tables, upsert_source)
 from loaders.db import connect
 
 PROSE = "word " * 25  # 25 words, above MIN_WORDS
@@ -70,6 +71,83 @@ def test_docling_form_sets_bge_m3_tokenizer():
     assert form["chunking_use_markdown_tables"] == "true"
 
 
+MD_DOC = """# Doc
+
+Source: https://example.test/doc  
+Some Author, example.test.  
+Saved 2026-10-16 for local reference.
+
+Intro text [2] with a marker.
+
+## Part One
+
+Prose.
+"""
+
+MD_ARTICLE = Book(slug="a", title="A", edition="1", publisher="P", licence="L",
+                  file_path="x.md", url="https://example.test/doc",
+                  drop_sections=("See Also", "References"))
+
+
+def test_clean_markdown_drops_header_and_markers():
+    out = clean_markdown(MD_DOC)
+    assert out.startswith("# Doc\n")
+    for gone in ("Source:", "Some Author", "Saved 2026", "[2]"):
+        assert gone not in out
+    assert "Intro text with a marker." in out and "## Part One" in out
+
+
+def test_clean_markdown_requires_header():
+    with pytest.raises(ValueError):
+        clean_markdown("# Doc\n\nJust prose.\n")
+    with pytest.raises(ValueError):
+        clean_markdown("# Doc\n\nSource: http://x\nno saved line\n")
+
+
+def test_markdown_rows():
+    path = ["Doc", "Part One"]
+    chunks = [chunk(0, PROSE, pages=(), headings=path),
+              chunk(1, PROSE, pages=(), headings=["Doc", "Part One", "See Also", "External Resources"]),
+              chunk(2, PROSE, pages=(), headings=["Doc", "References"])]
+    rows, stats = chunk_rows(chunks, MD_ARTICLE)
+    assert len(rows) == 1
+    assert rows[0]["page"] is None and rows[0]["section_path"] == "Doc > Part One"
+    assert stats["dropped_section"] == 2
+
+
+def test_chunk_rows_drops_pdf_section_case_insensitive():
+    book = replace(BOOK, drop_sections=("References",))
+    rows, stats = chunk_rows([chunk(0, PROSE, pages=(8,), headings=["REFERENCES"]),
+                              chunk(1, PROSE, pages=(8,), headings=["Findings"])], book)
+    assert [r["section_path"] for r in rows] == ["Findings"]
+    assert stats["dropped_section"] == 1
+
+
+def test_chunk_rows_pdf_without_page_raises():
+    with pytest.raises(ValueError):
+        chunk_rows([chunk(0, PROSE, pages=())], BOOK)
+
+
+def test_docling_form_markdown():
+    assert docling_form(MD_ARTICLE)["convert_from_formats"] == "md"
+    assert docling_form(BOOK)["convert_from_formats"] == "pdf"
+
+
+def test_sources_slugs_distinct():
+    assert not set(BOOKS) & set(ARTICLES)
+    assert len(SOURCES) == 17
+    assert all(a.url for a in ARTICLES.values())
+
+
+def test_article_urls_match_source_lines():
+    for slug, art in ARTICLES.items():
+        path = ROOT / art.file_path
+        if art.file_path.endswith(".md") and slug != "bjcp-2021-introductions" and path.exists():
+            line = next(l for l in path.read_text(encoding="utf-8").splitlines()
+                        if l.startswith("Source:"))
+            assert line.removeprefix("Source:").strip() == art.url, slug
+
+
 # --- stack tests: database writes, always rolled back ---
 
 def synthetic_rows(n, tag="r"):
@@ -100,6 +178,22 @@ def test_upsert_source_keeps_id():
         edition = conn.execute("select edition from ref.source where id = %s",
                                (before[0],)).fetchone()[0]
         assert edition == "Changed edition for test" != before[1]
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+@pytest.mark.stack
+def test_upsert_source_writes_url():
+    conn = connect()
+    try:
+        article = Book(slug="zz-url-test", title="T", edition="1", publisher="P", licence="L",
+                       file_path="x.md", url="https://example.test/a")
+        source_id = upsert_source(conn, article)
+        read = "select url from ref.source where id = %s"
+        assert conn.execute(read, (source_id,)).fetchone()[0] == "https://example.test/a"
+        assert upsert_source(conn, replace(article, url=None)) == source_id
+        assert conn.execute(read, (source_id,)).fetchone()[0] == "https://example.test/a"
     finally:
         conn.rollback()
         conn.close()

@@ -31,7 +31,7 @@ def chunk(text, dim, page=1):
 
 def load(conn, rows):
     book = Book(slug="test-kb-search", title="Test", edition="1", publisher="P", licence="L",
-                file_path="x.pdf")
+                file_path="x.pdf", url="https://example.test/kb")
     source_id = upsert_source(conn, book)
     replace_chunks(conn, source_id, rows)
 
@@ -72,10 +72,12 @@ def test_any_query_word_matches():
 
 
 def test_returns_k_rows_with_source_and_page():
-    rows = [chunk(f"filler chunk number {i}", i, page=i + 1) for i in range(7)]
-    result = run(rows, "filler", k=5)
+    rows = [chunk(f"wibblefrap chunk number {i}", i, page=i + 1) for i in range(7)]
+    result = run(rows, "wibblefrap", k=5)
     assert len(result) == 5
-    assert all(r["source_slug"] and r["page"] is not None for r in result)
+    mine = [r for r in result if r["source_slug"] == "test-kb-search"]
+    assert mine and all(r["page"] is not None for r in mine)
+    assert all(r["source_slug"] for r in result)
 
 
 def test_no_match_still_returns_vector_hits():
@@ -83,3 +85,9 @@ def test_no_match_still_returns_vector_hits():
     result = run(rows, "the and of")
     assert result and all(r["fts_rank"] is None for r in result)
     assert result[0]["vec_rank"] == 1
+
+
+def test_returns_source_url():
+    result = run([chunk("a chunk with a url", 0)], "chunk")
+    mine = [r for r in result if r["source_slug"] == "test-kb-search"]
+    assert mine and all(r["source_url"] == "https://example.test/kb" for r in mine)

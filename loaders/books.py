@@ -1,7 +1,10 @@
-"""Books into the knowledge base (kb.chunk): Docling chunks, prose only, embedded with bge-m3.
+"""Books and articles into the knowledge base (kb.chunk): Docling chunks, prose only,
+embedded with bge-m3.
 
 Run:  .venv/bin/python -m loaders.books <slug>
 To add a book: add one `Book` entry to BOOKS below, then run the command with its slug.
+To add an article (a PDF or a saved Markdown page): add one entry to ARTICLES, with its `url`
+and the `drop_sections` to leave out, then run the same command.
 The steps (skip pages, checks, doc -> calc notes) are in docs/BOOKS.md.
 """
 
@@ -27,6 +30,8 @@ class Book:
     skip_pages: tuple[tuple[int, int], ...] = ()  # inclusive PDF page ranges left out
     ocr: bool = False
     notes: str | None = None
+    url: str | None = None  # where an article can be read; books have none
+    drop_sections: tuple[str, ...] = ()  # heading texts whose chunks are left out (any level)
 
 
 BOOKS: dict[str, Book] = {
@@ -88,6 +93,140 @@ BOOKS: dict[str, Book] = {
     ),
 }
 
+ARTICLES: dict[str, Book] = {
+    "troester-mash-parameters": Book(
+        slug="troester-mash-parameters",
+        title="Effects of mash parameters on the limit of attenuation and conversion efficiency in single infusion mashing",
+        edition="2008",
+        publisher="braukaiser.com",
+        licence="CC BY-NC 3.0, Kai Troester, braukaiser.com; local use only",
+        file_path="shared/rag-files/articles/braukaiser_mash_parameters_2009.pdf",
+        url="https://braukaiser.com/wiki/index.php/Effects_of_mash_parameters_on_fermentability_and_efficiency_in_single_infusion_mashing",
+        skip_pages=((22, 23),),  # appendix tables and the "Sources" list
+        notes="Article prose in kb.chunk (s7-kb-articles)",
+    ),
+    "troester-mash-time-fermentability": Book(
+        slug="troester-mash-time-fermentability",
+        title="Mash Time Dependency of Wort Fermentability",
+        edition="saved 2026-10-16",
+        publisher="braukaiser.com",
+        licence="© Kai Troester, braukaiser.com; licence not stated; local use only",
+        file_path="shared/rag-files/articles/braukaiser_mash_time_fermentability.md",
+        url="http://braukaiser.com/wiki/index.php/Mash_Time_Dependency_of_Wort_Fermentability",
+        notes="Article prose in kb.chunk (s7-kb-articles)",
+    ),
+    "terrill-observations-on-attenuations": Book(
+        slug="terrill-observations-on-attenuations",
+        title="Observations on Attenuations",
+        edition="2017-04-21",
+        publisher="seanterrill.com",
+        licence="© Sean Terrill, seanterrill.com; licence not stated; local use only",
+        file_path="shared/rag-files/articles/terrill_observations_on_attenuations.md",
+        url="http://seanterrill.com/2017/04/21/observations-on-attenuations/",
+        notes="Article prose in kb.chunk (s7-kb-articles)",
+    ),
+    "janish-dry-hop-best-practices-tq": Book(
+        slug="janish-dry-hop-best-practices-tq",
+        title="Dry Hop Best Practices: Using Science as a Guide for Process and Recipe Development",
+        edition="vol. 58, no. 1, 2021",
+        publisher="MBAA Technical Quarterly",
+        licence="© MBAA; posted by the author with MBAA's permission; local use only",
+        file_path="shared/rag-files/articles/janish_dry_hop_best_practices_tq_2021.pdf",
+        url="https://doi.org/10.1094/TQ-58-1-0402-01",
+        skip_pages=((1, 1),),  # MBAA cover
+        drop_sections=("References",),
+        notes="Article prose in kb.chunk (s7-kb-articles)",
+    ),
+    "janish-short-cool-dry-hopping": Book(
+        slug="janish-short-cool-dry-hopping",
+        title="A Case for Short and Cool Dry Hopping",
+        edition="saved 2026-10-16",
+        publisher="scottjanish.com",
+        licence="© Scott Janish, scottjanish.com; licence not stated; local use only",
+        file_path="shared/rag-files/articles/janish_short_cool_dry_hopping.md",
+        url="https://scottjanish.com/a-case-for-short-and-cool-dry-hopping/",
+        drop_sections=("Footnotes",),
+        notes="Article prose in kb.chunk (s7-kb-articles)",
+    ),
+    "janish-survivables-hot-side": Book(
+        slug="janish-survivables-hot-side",
+        title="Survivables: Unpacking Hot-Side Hop Flavor",
+        edition="saved 2026-10-16",
+        publisher="scottjanish.com",
+        licence="© Scott Janish, scottjanish.com; licence not stated; local use only",
+        file_path="shared/rag-files/articles/janish_survivables_hot_side.md",
+        url="https://scottjanish.com/survivables-unpacking-hot-side-hop-flavor/",
+        drop_sections=("Footnotes",),
+        notes="Article prose in kb.chunk (s7-kb-articles)",
+    ),
+    "janish-ph-hoppy-beers": Book(
+        slug="janish-ph-hoppy-beers",
+        title="A Look at pH in Hoppy Beers",
+        edition="saved 2026-10-16",
+        publisher="scottjanish.com",
+        licence="© Scott Janish, scottjanish.com; licence not stated; local use only",
+        file_path="shared/rag-files/articles/janish_ph_hoppy_beers.md",
+        url="https://scottjanish.com/a-look-at-ph-in-hoppy-beers/",
+        drop_sections=("Footnotes",),
+        notes="Article prose in kb.chunk (s7-kb-articles)",
+    ),
+    "janish-coffee-beers": Book(
+        slug="janish-coffee-beers",
+        title="Guide to Coffee Beers",
+        edition="saved 2026-10-16",
+        publisher="scottjanish.com",
+        licence="© Scott Janish, scottjanish.com; licence not stated; local use only",
+        file_path="shared/rag-files/articles/janish_coffee_beers.md",
+        url="https://scottjanish.com/guide-to-coffee-beers/",
+        notes="Article prose in kb.chunk (s7-kb-articles)",
+    ),
+    "mtf-berliner-weissbier": Book(
+        slug="mtf-berliner-weissbier",
+        title="Berliner Weissbier",
+        edition="saved 2026-10-16",
+        publisher="Milk The Funk Wiki",
+        licence="Milk The Funk Wiki; licence not stated on the page; local use only",
+        file_path="shared/rag-files/articles/mtf_berliner_weissbier.md",
+        url="https://www.milkthefunk.com/wiki/Berliner_Weissbier",
+        drop_sections=("External History Resources", "Video Presentations", "See Also", "References"),
+        notes="Article prose in kb.chunk (s7-kb-articles)",
+    ),
+    "mtf-lactobacillus-fermentation": Book(
+        slug="mtf-lactobacillus-fermentation",
+        title="Lactobacillus Fermentation",
+        edition="saved 2026-10-16",
+        publisher="Milk The Funk Wiki",
+        licence="Milk The Funk Wiki; licence not stated on the page; local use only",
+        file_path="shared/rag-files/articles/mtf_lactobacillus_fermentation.md",
+        url="https://www.milkthefunk.com/wiki/Lactobacillus_Fermentation",
+        drop_sections=("See Also", "References"),
+        notes="Article prose in kb.chunk (s7-kb-articles)",
+    ),
+    "brunwater-water-knowledge": Book(
+        slug="brunwater-water-knowledge",
+        title="Water Knowledge",
+        edition="saved 2026-10-16",
+        publisher="Bru'n Water",
+        licence="© Martin Brungard, all rights reserved; local use only",
+        file_path="shared/rag-files/water/brunwater_water_knowledge.md",
+        url="https://www.brunwater.com/water-knowledge",
+        drop_sections=("5. References",),
+        notes="Article prose in kb.chunk (s7-kb-articles)",
+    ),
+    "bjcp-2021-introductions": Book(
+        slug="bjcp-2021-introductions",
+        title="BJCP 2021 Beer Style Guidelines: introductions",
+        edition="saved 2026-10-16",
+        publisher="Beer Judge Certification Program",
+        licence="© Beer Judge Certification Program; local use only",
+        file_path="shared/rag-files/styles/bjcp_2021_introductions.md",
+        url="https://styles.bjcp.org/bjcp-2021-beer/",
+        notes="Article prose in kb.chunk (s7-kb-articles)",
+    ),
+}
+
+SOURCES = BOOKS | ARTICLES  # every slug the command accepts
+
 DOCLING_URL = "http://localhost:5001"
 OLLAMA_URL = "http://localhost:11434"
 EMBED_MODEL = "bge-m3"
@@ -104,7 +243,7 @@ GIVE_UP_SECONDS = 2 * 60 * 60
 def docling_form(book: Book) -> dict:
     """The multipart fields for the hybrid chunk endpoint."""
     return {
-        "convert_from_formats": "pdf",
+        "convert_from_formats": "md" if book.file_path.endswith(".md") else "pdf",
         "convert_do_ocr": str(book.ocr).lower(),
         "convert_pdf_backend": "dlparse_v4",
         "convert_table_mode": "accurate",
@@ -131,13 +270,27 @@ def check_result(result: dict) -> list[dict]:
     return chunks
 
 
+def clean_markdown(text: str) -> str:
+    """A saved page without its header block (Source, credit, Saved lines) and `[n]` markers."""
+    lines = text.splitlines()
+    head = lines[1:10]
+    saved = next((i for i, line in enumerate(head) if line.startswith("Saved ")), None)
+    if saved is None or not any(line.startswith("Source:") for line in head[:saved]):
+        raise ValueError("Markdown file has no Source: ... Saved header block after its title")
+    body = "\n".join([lines[0]] + lines[saved + 2:])
+    return re.sub(r" ?\[\d+\]", "", body) + "\n"
+
+
 def run_docling(book: Book) -> dict:
-    """Send the PDF to Docling Serve, wait for the chunks, save and return the result."""
-    pdf = ROOT / book.file_path
-    with pdf.open("rb") as f:
-        response = requests.post(f"{DOCLING_URL}/v1/chunk/hybrid/file/async",
-                                 files={"files": (pdf.name, f, "application/pdf")},
-                                 data=docling_form(book), timeout=300)
+    """Send the file to Docling Serve, wait for the chunks, save and return the result."""
+    path = ROOT / book.file_path
+    if path.suffix == ".md":
+        upload = (path.name, clean_markdown(path.read_text(encoding="utf-8")).encode("utf-8"),
+                  "text/markdown")
+    else:
+        upload = (path.name, path.read_bytes(), "application/pdf")
+    response = requests.post(f"{DOCLING_URL}/v1/chunk/hybrid/file/async",
+                             files={"files": upload}, data=docling_form(book), timeout=300)
     response.raise_for_status()
     task_id = response.json()["task_id"]
     started = time.monotonic()
@@ -169,16 +322,28 @@ def strip_tables(text: str) -> str:
 def chunk_rows(chunks: list[dict], book: Book) -> tuple[list[dict], dict]:
     """Prose rows {section_path, page, text} from Docling chunks, plus a stats dict."""
     stats = {"chunks_in": len(chunks), "kept": 0, "dropped_skip_page": 0,
-             "dropped_short": 0, "table_pages": set()}
+             "dropped_short": 0, "dropped_section": 0, "table_chunks": 0,
+             "table_pages": set()}
+    is_markdown = book.file_path.endswith(".md")
+    drop = {name.lower() for name in book.drop_sections}
     rows = []
     for c in sorted(chunks, key=lambda c: c["chunk_index"]):
         raw = c["raw_text"]
         text = strip_tables(raw).strip()
-        page = min(c["page_numbers"])
+        if c["page_numbers"]:
+            page = min(c["page_numbers"])
+        elif is_markdown:
+            page = None
+        else:
+            raise ValueError(f"PDF chunk {c['chunk_index']} of {book.slug} has no page")
         if text != raw.strip():
+            stats["table_chunks"] += 1
             stats["table_pages"].update(c["page_numbers"])
-        if any(lo <= page <= hi for lo, hi in book.skip_pages):
+        headings = c.get("headings") or []
+        if page is not None and any(lo <= page <= hi for lo, hi in book.skip_pages):
             stats["dropped_skip_page"] += 1
+        elif any(h.strip().lower() in drop for h in headings):
+            stats["dropped_section"] += 1
         elif len(text.split()) < MIN_WORDS:
             stats["dropped_short"] += 1
         else:
@@ -215,17 +380,18 @@ def upsert_source(conn, book: Book) -> int:
     """Insert or update the book's ref.source row on its slug; the id stays the same."""
     return conn.execute(
         """
-        insert into ref.source (slug, title, edition, publisher, licence, file_path, notes)
-        values (%s, %s, %s, %s, %s, %s, %s)
+        insert into ref.source (slug, title, edition, publisher, licence, file_path, notes, url)
+        values (%s, %s, %s, %s, %s, %s, %s, %s)
         on conflict (slug) do update set
             title = excluded.title, edition = excluded.edition,
             publisher = excluded.publisher, licence = excluded.licence,
             file_path = excluded.file_path,
-            notes = coalesce(excluded.notes, ref.source.notes)
+            notes = coalesce(excluded.notes, ref.source.notes),
+            url = coalesce(excluded.url, ref.source.url)
         returning id
         """,
         (book.slug, book.title, book.edition, book.publisher, book.licence,
-         book.file_path, book.notes),
+         book.file_path, book.notes, book.url),
     ).fetchone()[0]
 
 
@@ -255,12 +421,12 @@ def main() -> None:
     from loaders.db import connect
 
     parser = argparse.ArgumentParser(
-        description="Load one book into kb.chunk (see docs/BOOKS.md).")
-    parser.add_argument("slug", choices=sorted(BOOKS))
+        description="Load one book or article into kb.chunk (see docs/BOOKS.md).")
+    parser.add_argument("slug", choices=sorted(SOURCES))
     parser.add_argument("--reuse-docling", action="store_true",
                         help="read shared/rag-files/docling-chunks/<slug>.chunks.json instead of Docling")
     args = parser.parse_args()
-    book = BOOKS[args.slug]
+    book = SOURCES[args.slug]
 
     if args.reuse_docling:
         result = json.loads((SCRATCH / f"{book.slug}.chunks.json").read_text(encoding="utf-8"))
@@ -280,8 +446,10 @@ def main() -> None:
     tokens = [row["tokens"] for row in rows]
     print(f"chunks in {stats['chunks_in']}, kept {stats['kept']}, "
           f"dropped on skip pages {stats['dropped_skip_page']}, "
+          f"dropped by section {stats['dropped_section']}, "
           f"dropped as too short {stats['dropped_short']}")
     print(f"tokens min {min(tokens)}, median {statistics.median(tokens)}, max {max(tokens)}")
+    print(f"chunks where a table or formula was cut: {stats['table_chunks']}")
     print(f"PDF pages where tables were cut: {sorted(stats['table_pages'])}")
 
 

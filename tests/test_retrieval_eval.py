@@ -46,7 +46,7 @@ def test_normalise_whitespace_and_quotes():
 import pytest
 
 from evals.retrieval import load_questions
-from loaders.books import BOOKS
+from loaders.books import ARTICLES, BOOKS
 from loaders.db import connect
 
 
@@ -57,11 +57,19 @@ def test_question_set_shape():
     assert len(ids) == len(set(ids))
     for book in BOOKS:
         assert sum(q["book"] == book for q in questions) >= 8, book
+    for article in ARTICLES:
+        assert sum(q["book"] == article for q in questions) >= 1, article
+    assert sum(q["book"] in ARTICLES for q in questions) >= 12
     for q in questions:
-        assert q["book"] in BOOKS, q["id"]
+        assert q["book"] in BOOKS or q["book"] in ARTICLES, q["id"]
         assert q["expect"], q["id"]
+        source = (BOOKS | ARTICLES)[q["book"]]
         for e in q["expect"]:
             assert 4 <= len(e["quote"].split()) <= 12, (q["id"], e["quote"])
+            if source.file_path.endswith(".md"):
+                assert "page" not in e, q["id"]
+            else:
+                assert "page" in e, q["id"]
 
 
 @pytest.mark.stack
@@ -80,3 +88,33 @@ def test_every_quote_resolves():
                 if not any(normalise(e["quote"]) in t for t in texts[q["book"]]):
                     unresolved.append((q["id"], e["quote"]))
     assert not unresolved
+
+
+def _row(group, recall, book="water"):
+    return {"id": "q", "book": book, "group": group, "recall_at_5": recall, "rr": recall,
+            "expect_pages": [1], "ranks": [1]}
+
+
+def test_summarise_bar_on_books_only():
+    from evals.retrieval import summarise
+    s = summarise([_row("books", 0.5), _row("articles", 0.0, "mtf")])
+    assert s["bar_met"] is True
+    assert s["groups"]["articles"]["recall_at_5"] == 0.0
+    assert s["groups"]["books"]["recall_at_5"] == 0.5
+
+
+def test_summarise_bar_not_met():
+    from evals.retrieval import summarise
+    s = summarise([_row("books", 0.3), _row("articles", 1.0, "mtf")])
+    assert s["bar_met"] is False
+
+
+def test_cite_without_page():
+    from evals.retrieval import cite
+    r = {"source_slug": "mtf", "page": None, "source_title": "Lacto", "source_url": "https://x.test/a"}
+    assert cite(r) == "mtf | Lacto | https://x.test/a"
+
+
+def test_cite_with_page():
+    from evals.retrieval import cite
+    assert cite({"source_slug": "water", "page": 12, "source_title": "T", "source_url": None}) == "water p12"
