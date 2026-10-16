@@ -224,7 +224,7 @@ Commit: `Add specialty-entry note for D1`
 
 ### Task 5: Barnes 2008 cross-check report — STOP
 Why: R5 (A5).
-- [ ] The 21 envelopes and their 2008 cards (all found in
+- [x] The 21 envelopes and their 2008 cards (all found in
       `shared/rag-files/styles/barnes_bjcp_style_flashcards_2011.pdf`, checked 2026-10-16):
       10A↔15A Weizen/Weissbier, 11B↔8B Special/Best/Premium Bitter, 15A↔9D Irish Red Ale,
       15B↔13A Dry Stout, 16A↔13B Sweet Stout, 16B↔13C Oatmeal Stout, 17C↔9E Strong Scotch Ale,
@@ -233,7 +233,7 @@ Why: R5 (A5).
       20C↔13F Russian Imperial Stout, 21A↔14B American IPA, 23A↔17A Berliner Weisse,
       25B↔16C Saison, 26B↔18B Belgian Dubbel, 5D↔2A German Pilsner (Pils),
       6A↔3B Oktoberfest/Märzen, 8B↔4C Schwarzbier. Not compared: 21C, 31B, and the three BA styles.
-- [ ] For each pair, read the card (`pdftotext -layout` of its page into the scratchpad) and the
+- [x] For each pair, read the card (`pdftotext -layout` of its page into the scratchpad) and the
       style's `[[style.sensory]]` rows. Map the card to the envelope dimensions: aroma and flavour
       malt → `malt` (roast and caramel characters → `roast`, `caramel`), aroma hops → `hop_aroma`,
       hop flavour → `hop_flavour`, yeast fruit → `esters`, yeast spice/clove → `phenols`,
@@ -243,7 +243,7 @@ Why: R5 (A5).
       medium (= moderate), medium-high, high, very high. Characters: Barnes' words through
       `loaders/style_fit_vocab.toml` to tag names; a word with no tag is listed as such.
       Bitterness, colour, clarity, head and carbonation have no envelope dimension: skip them.
-- [ ] Write `docs/work/s6-style-neighbours/envelope-crosscheck.md`: the mapping rules above, then
+- [x] Write `docs/work/s6-style-neighbours/envelope-crosscheck.md`: the mapping rules above, then
       per pair a table of the dimensions that differ only: dimension · Barnes (2008) words ·
       envelope min–max and characters · the envelope's 2021 quote (short) · proposal ·
       decision (empty). A difference is: a min or max a step or more apart, a dimension on one side
@@ -252,11 +252,11 @@ Why: R5 (A5).
       or *change to …* (the 2021 quote supports Barnes, an envelope mistake), with one line why.
       A pair with no difference says so. End with a count of differences and proposed changes.
       Short words from the cards only; no 2008 numbers or codes go anywhere but this report.
-- [ ] Return `needs-input`: the report path and the proposed changes, asking the user to decide
+- [x] Return `needs-input`: the report path and the proposed changes, asking the user to decide
       each difference (they may approve the proposals as a block and name exceptions). Change
       nothing in `loaders/style_envelopes.toml` before the answer.
-- [ ] After the answer: fill the decision column for every row.
-- [ ] PROJECT.md §8 line (pairs compared, differences, proposed and agreed changes).
+- [x] After the answer: fill the decision column for every row.
+- [x] PROJECT.md §8 line (pairs compared, differences, proposed and agreed changes).
 Done when: every difference has the user's decision in the report (A5, first half).
 Commit: `Add Barnes envelope cross-check report`
 
@@ -307,3 +307,4 @@ Commit: `Apply agreed envelope fixes from Barnes check`
 - 2026-10-16 · Task 2: `test_no_style_name_in_request` also bars the family noun `wheat` (it is a family noun in the Approach list, missing from the task's list). Words are checked through `app.brief_words` first, so a hint like `darker` is read as step 2 reads it (tag `dark-color`).
 - 2026-10-16 · Tasks 1-3: 83 distinct styles and briefs, not 84 — the 84 counted printed names, and
   "Vienna" (hand-mapped) and "Vienna Lager" are both 7A. Run B stays at 61 briefs (measured).
+- 2026-10-16 · Task 5: an envelope row that the 2008 card has no level for is listed as "card silent" and not counted as a difference; card tags that are parent or child of the envelope tag are not differences; differences are grouped (K1, K2, U, C1) so the user can decide by group — the plan's "dimension on one side only" rule would have counted rows with nothing to compare (implementation detail, no change to scope).
