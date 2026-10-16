@@ -233,6 +233,9 @@ Several of these are lessons from the first build (see §9).
 
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
+### 2026-10-16
+- Wrote brief for s4-books-kb ([`docs/work/s4-books-kb/`](docs/work/s4-books-kb/brief.md)): ingestion as a Python loader so a further book is one source entry plus one documented command (R7); the recall@5 bar is set from the first measured run and fixed before the first tuning change.
+
 ### 2026-10-15
 - Shipped s3-style-fit ([`docs/finished/s3-style-fit/`](docs/finished/s3-style-fit/report.md)): style-fit tags, envelopes for 26 styles, `app.style_level` / `app.style_fit_recipe` and the golden set (G-S met). Verification: 12 checks passed; full `pytest` 535 passed in 167 s on the branch (measured at ship time).
 - s3-style-fit re-review fixes (2026-10-15, [`docs/finished/s3-style-fit/`](docs/finished/s3-style-fit/review.md) findings 11-14): the flake colour sources now resolve (`simpsons-malt-2025`, new `briess-flakes-web` row in `db/011_ref_sources.sql`, `ref.source` 20 rows; loaders re-run, 0 `field_source` values without a `ref.source` row, measured); DATABASE.md EBC count 78; lower-bound colour rule recorded in the brief Deviations and STYLE-FIT §4; roadmap G-S test count 535. Full `pytest` 535 passed.
