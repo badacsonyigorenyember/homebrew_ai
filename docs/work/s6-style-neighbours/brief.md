@@ -1,6 +1,6 @@
 # S6 · Neighbouring styles: step 2 checks and an envelope cross-check
 
-Status: draft
+Status: approved
 Slug: s6-style-neighbours · Branch: s6-style-neighbours
 Roadmap: [WORKFLOW-ROADMAP.md](../../WORKFLOW-ROADMAP.md) M2/M3 (before checkpoint **G3**) ·
 [`m2-best-fit-style`](../../finished/m2-best-fit-style/brief.md) ·
@@ -36,11 +36,13 @@ against BJCP 2021's specialty-entry text.
 ## Scope
 In:
 - A check set in `evals/`: for each style named in the 91 triples, one step-1-shaped brief that
-  does not name the style, built from the 2021 guideline text (its stats and distinguishing
-  words), with the expected style and its two triple partners. The 2008 comparison sheet may
+  does not name the style, written as a user would: one or two stated numbers plus two to four
+  descriptive words, built from the 2021 guideline text (its stats and distinguishing words),
+  with the expected style and its two triple partners. The 2008 comparison sheet may
   suggest which words set neighbours apart; every word must also be in the 2021 description.
 - A runner that sends each brief straight to `app.step2_best_style` (no step 1 LLM call) and
-  reports: right style first, right style in the top 3, and a confusion list per triple.
+  reports, with no pass bar: right style first, right style in the top 3, and a confusion list
+  per triple.
 - The first measured result recorded in PROJECT.md §8.
 - A cross-check report in this folder: for each of the ~21 envelopes with a 2008 flashcard, the
   dimensions where Barnes' intensity or characters differ from `loaders/style_envelopes.toml`.
@@ -58,13 +60,14 @@ Out:
 R1. The check set has one brief per distinct style in the 91 triples (84 names, the four mapped as
     above), each with the expected BJCP 2021 code and its triple partners; no brief contains the
     style's name or an alias from `app.style_alias()`.
-R2. Every number and descriptive word in a brief comes from that style's BJCP 2021 entry in
+R2. Each brief states one or two numbers and two to four descriptive words. Every number and
+    descriptive word in a brief comes from that style's BJCP 2021 entry in
     `ref.beer_style`; the brief file says so in its header, and a test checks the stated numbers
     lie inside the style's 2021 ranges.
 R3. The runner prints the share with the right style first, the share with it in the top 3, and,
     per triple, which partner was picked instead; `--save` writes `evals/results/<date>-s6.json`.
-R4. The first run's numbers are recorded in PROJECT.md §8 as measured; no step 2 code changes in
-    this work.
+R4. The first run's numbers are recorded in PROJECT.md §8 as measured. There is no pass bar:
+    whether to tune step 2 is decided from the result. No step 2 code changes in this work.
 R5. The envelope cross-check report lists, per envelope with a 2008 counterpart, each dimension
     that differs (Barnes' words, the envelope's level, the 2021 quote behind it), and your decision
     for each.
@@ -89,7 +92,8 @@ R7. A note in this folder compares the 2021 specialty-entry text with the D1 rul
 ## Acceptance criteria
 A1. The check set exists with one brief per triple style (84), each with expected code and
     partners; a test confirms no brief contains its style's name or alias (R1).
-A2. A test confirms every stated number lies in the style's 2021 range (R2).
+A2. A test confirms each brief has one or two stated numbers and two to four descriptive words,
+    and every stated number lies in the style's 2021 range (R2).
 A3. `python -m evals.<runner>` prints right-first, top-3 and the per-triple confusions; the first
     run is saved and recorded in PROJECT.md §8 (R3, R4).
 A4. `git diff` of the work shows no change to `db/022_step2.sql` (R4).
@@ -98,14 +102,12 @@ A5. The cross-check report covers every envelope with a 2008 counterpart, each d
 A6. The specialty-entry note exists, and any D1 change was approved by you or recorded as
     declined (R7).
 
-## Open questions
-1. Brief content: numbers, words or both? — options: a) both, as a user would write (one or two
-   stated numbers plus two to four descriptive words); b) words only, to test word scoring;
-   c) one of each per style — recommend a: closest to real requests, and still one brief per style.
-2. A bar for the check set? — options: a) report only, decide on tuning from the result;
-   b) set a bar now — recommend a: there is no baseline yet.
-3. Do the Barnes cross-check here or drop it? — options: a) here, as scoped; b) drop it, since the
-   envelopes are reviewed and the golden set passes — recommend a only if you want a second look
-   at the envelopes; I expect most differences to be 2008-vs-2021 changes.
+## Decisions
+1. Brief content: both numbers and words (one or two stated numbers plus two to four descriptive
+   words) — closest to real requests, still one brief per style.
+2. No bar for the check set: report only, decide on tuning from the result — there is no baseline
+   yet.
+3. The Barnes 2008 envelope cross-check stays in this work, as scoped — you want a second look at
+   the envelopes.
 
 ## Deviations
