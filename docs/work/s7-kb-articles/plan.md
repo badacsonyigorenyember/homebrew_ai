@@ -141,7 +141,7 @@ Commit: `Write the source URL on upsert`
 
 ### Task 3: `app.kb_search` returns the source URL
 Why: R4.
-- [ ] `db/040_kb_search.sql`: before `create`, add
+- [x] `db/040_kb_search.sql`: before `create`, add
       `drop function if exists app.kb_search(text, extensions.vector, integer, integer, integer);`
       with a comment saying it is needed because the return type changed (s7). Then make it
       `create function` (not `or replace`), add `source_url text` after `source_title` in
@@ -150,13 +150,13 @@ Why: R4.
       Checked 2026-10-16: no object depends on the function, its ACL is the default (null), and
       its owner is `postgres`. Only `evals/retrieval.py` and `tests/test_kb_search.py` call it;
       no n8n workflow does.
-- [ ] Apply: `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/040_kb_search.sql`,
+- [x] Apply: `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/040_kb_search.sql`,
       twice (idempotent). Then check that `pg_proc` shows owner `postgres` and a null ACL.
-- [ ] `tests/test_kb_search.py`: give the throwaway `Book` in `load` the URL
+- [x] `tests/test_kb_search.py`: give the throwaway `Book` in `load` the URL
       `https://example.test/kb`; add `test_returns_source_url` (every row carries that URL).
-- [ ] `docs/DATABASE.md` §4: the `kb_search` bullet names the returned columns, including
+- [x] `docs/DATABASE.md` §4: the `kb_search` bullet names the returned columns, including
       `source_url`.
-- [ ] Run `.venv/bin/pytest tests/test_kb_search.py tests/test_retrieval_eval.py`, expect all to
+- [x] Run `.venv/bin/pytest tests/test_kb_search.py tests/test_retrieval_eval.py`, expect all to
       pass (the eval reads the columns by name).
 Done when: the tests pass, and the function is applied and owned by `postgres`.
 Commit: `Return the source URL from kb_search`

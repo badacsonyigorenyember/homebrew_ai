@@ -309,7 +309,9 @@ Defined in [`db/014_kb.sql`](../db/014_kb.sql). Filled by [`loaders/books.py`](.
 - `pg_jsonschema` 0.3.3 is installed in schema `extensions` the same way (created in
   `db/015_app.sql`). Step contracts are checked with `extensions.jsonschema_validation_errors`.
 - Hybrid retrieval: HNSW index on `embedding` (cosine) + GIN on `fts`, fused by reciprocal rank in
-  `app.kb_search(query_text, query_embedding, k)` ([`db/040_kb_search.sql`](../db/040_kb_search.sql));
+  `app.kb_search(query_text, query_embedding, k)` ([`db/040_kb_search.sql`](../db/040_kb_search.sql)),
+  which returns `chunk_id, source_slug, source_title, source_url, section_path, page, text, score,
+  vec_rank, fts_rank`;
   plus an index on `source_id` to delete or re-ingest one book.
 - `page` is the PDF page (1-based), not the printed page. `tokens` is bge-m3's count of the
   embedded text, heading path included; `text` keeps the prose only.
