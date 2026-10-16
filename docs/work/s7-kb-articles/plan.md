@@ -153,7 +153,7 @@ Why: R4.
 - [x] Apply: `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/040_kb_search.sql`,
       twice (idempotent). Then check that `pg_proc` shows owner `postgres` and a null ACL.
 - [x] `tests/test_kb_search.py`: give the throwaway `Book` in `load` the URL
-      `https://example.test/kb`; add `test_returns_source_url` (every row carries that URL).
+      `https://example.test/kb`; add `test_returns_source_url` (every row of the throwaway source carries that URL; real book rows have no URL, so the other rows are not checked).
 - [x] `docs/DATABASE.md` §4: the `kb_search` bullet names the returned columns, including
       `source_url`.
 - [x] Run `.venv/bin/pytest tests/test_kb_search.py tests/test_retrieval_eval.py`, expect all to
@@ -308,3 +308,4 @@ Commit: `Record the retrieval eval with articles`
 
 ## Deviations
 - 2026-10-16 · Task 8: `tests/test_kb_search.py::test_returns_k_rows_with_source_and_page` now queries a unique word and checks the page on its own rows only — with article chunks loaded (page null), real vector hits entered the top 5 and broke the old assertion.
+- 2026-10-16 · Task 3: `test_returns_source_url` checks the URL only on the throwaway source's rows, not every row — real book rows have no URL, so "every row" could never hold.
