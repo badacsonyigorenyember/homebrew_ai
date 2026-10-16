@@ -46,7 +46,7 @@ def test_normalise_whitespace_and_quotes():
 import pytest
 
 from evals.retrieval import load_questions
-from loaders.books import BOOKS
+from loaders.books import ARTICLES, BOOKS
 from loaders.db import connect
 
 
@@ -57,11 +57,19 @@ def test_question_set_shape():
     assert len(ids) == len(set(ids))
     for book in BOOKS:
         assert sum(q["book"] == book for q in questions) >= 8, book
+    for article in ARTICLES:
+        assert sum(q["book"] == article for q in questions) >= 1, article
+    assert sum(q["book"] in ARTICLES for q in questions) >= 12
     for q in questions:
-        assert q["book"] in BOOKS, q["id"]
+        assert q["book"] in BOOKS or q["book"] in ARTICLES, q["id"]
         assert q["expect"], q["id"]
+        source = (BOOKS | ARTICLES)[q["book"]]
         for e in q["expect"]:
             assert 4 <= len(e["quote"].split()) <= 12, (q["id"], e["quote"])
+            if source.file_path.endswith(".md"):
+                assert "page" not in e, q["id"]
+            else:
+                assert "page" in e, q["id"]
 
 
 @pytest.mark.stack

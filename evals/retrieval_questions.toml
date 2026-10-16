@@ -10,6 +10,11 @@
 # Passages were picked evenly by page order before any retrieval was run (9 per book), then
 # questions were written from them.
 # Reviewed by the user on: 2026-10-16
+#
+# q46 onwards are for the 12 articles (`book` is the article slug). One passage per article,
+# a second for the three longest, picked in chunk order before any retrieval was run. A PDF
+# article's expect has a `page`; a saved Markdown page has none, only the `quote`.
+# Reviewed by the user on (articles): 2026-10-16
 
 [[question]]
 id = "q01"
@@ -459,3 +464,126 @@ quote = "Acetic acid can be produced by several contaminants"
 [[question.expect]]
 page = 76
 quote = "Lactic acid is produced by Gram-positive bacteria"
+
+[[question]]
+id = "q46"
+book = "bjcp-2021-introductions"
+question = "What is the difference between an ale, a lager and a wild beer in the BJCP guidelines?"
+
+[[question.expect]]
+quote = "if they use top-fermenting (ale) yeast and"
+
+[[question]]
+id = "q47"
+book = "bjcp-2021-introductions"
+question = "Can I use one specialty-type beer as the base style for another when entering a competition?"
+
+[[question.expect]]
+quote = "Specialty-Type beers may not be used as a Base Style"
+
+[[question]]
+id = "q48"
+book = "brunwater-water-knowledge"
+question = "How much bicarbonate should my water have for a pale beer?"
+
+[[question.expect]]
+quote = "best kept below 50 ppm"
+
+[[question]]
+id = "q49"
+book = "brunwater-water-knowledge"
+question = "What can I do to lower the alkalinity of my mash water?"
+
+[[question.expect]]
+quote = "Dilution with distilled water or RO water is effective"
+
+[[question]]
+id = "q50"
+book = "troester-mash-parameters"
+question = "Does mashing longer make the wort more fermentable, and how does mash temperature change that?"
+
+[[question.expect]]
+page = 8
+quote = "lower mash temperature was able to create a more fermentable wort"
+
+[[question]]
+id = "q51"
+book = "troester-mash-parameters"
+question = "What mash pH gives the most fermentable wort?"
+
+[[question.expect]]
+page = 14
+quote = "optimum for the limit of attenuation"
+
+[[question]]
+id = "q52"
+book = "janish-ph-hoppy-beers"
+question = "Does lowering the pH of a hoppy beer with lactic acid make it taste better?"
+
+[[question.expect]]
+quote = "slightly softer on the palate with more of a"
+
+[[question]]
+id = "q53"
+book = "troester-mash-time-fermentability"
+question = "How much does an extra two hours of mashing raise attenuation?"
+
+[[question.expect]]
+quote = "increased the apparent attenuation by 4 %"
+
+[[question]]
+id = "q54"
+book = "janish-coffee-beers"
+question = "What kind of coffee goes best in a hop-forward beer?"
+
+[[question.expect]]
+quote = "fruitier light roast coffees (especially naturals) pair best"
+
+[[question]]
+id = "q55"
+book = "janish-short-cool-dry-hopping"
+question = "How fast do fruity thiols like 4MMP come out of hops during dry hopping?"
+
+[[question.expect]]
+quote = "majority of the 4MMP extracted into the beer the first two days"
+
+[[question]]
+id = "q56"
+book = "mtf-lactobacillus-fermentation"
+question = "Will Lactobacillus alone ferment wort and drop the gravity?"
+
+[[question.expect]]
+quote = "produced a significant gravity drop"
+
+[[question]]
+id = "q57"
+book = "mtf-berliner-weissbier"
+question = "Which Brettanomyces species were found in old bottles of Berliner Weisse?"
+
+[[question.expect]]
+quote = "25% for B. anomalus and 75% for B. bruxellensis"
+
+[[question]]
+id = "q58"
+book = "janish-survivables-hot-side"
+question = "How do hop-derived fatty acids end up giving fruity esters in beer?"
+
+[[question.expect]]
+quote = "fatty acids can be esterified into three important esters"
+
+[[question]]
+id = "q59"
+book = "terrill-observations-on-attenuations"
+question = "Does mash temperature affect attenuation with a common ale yeast?"
+
+[[question.expect]]
+quote = "attenuation curve is more or less flat from 64-70"
+
+[[question]]
+id = "q60"
+book = "janish-dry-hop-best-practices-tq"
+question = "How long should hops stay in contact before I burp the tank when dry hopping?"
+
+[[question.expect]]
+page = 5
+quote = "give the hops 4-8 h to saturate in the beer"

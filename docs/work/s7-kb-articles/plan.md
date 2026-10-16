@@ -239,25 +239,25 @@ Commit: `Report books and articles apart in the retrieval eval`
 ### Task 7: Article questions, reviewed by the user
 Why: R5, A5.
 **Needs from the user:** a review of every new question (blocking; ask with the passages shown).
-- [ ] Pick the passages **before** running any retrieval for them. Take one chunk per source,
+- [x] Pick the passages **before** running any retrieval for them. Take one chunk per source,
       plus a second for the three longest (Bru'n Water ~17,500 words, BJCP introductions ~8,800
       words, Troester PDF 23 pp): 15 in all. Spread them in chunk order and skip chunks with no
       answerable brewing fact. Write each question as a brewer would ask it, as in s4 Task 8.
       Each `expect` has a `quote` of 4–12 words copied exactly from the chunk. Add a `page` only
       for the two PDF sources; Markdown expects have no `page`.
-- [ ] Append the questions as `q46`…`q60` to `evals/retrieval_questions.toml`, in s4's format
+- [x] Append the questions as `q46`…`q60` to `evals/retrieval_questions.toml`, in s4's format
       (`book` = the article slug). **Do not edit q01–q45.** Update the header comment: articles
       included, Markdown expects have no page, and a second "Reviewed by the user on:" line for
       the article questions.
-- [ ] `tests/test_retrieval_eval.py::test_question_set_shape`:
+- [x] `tests/test_retrieval_eval.py::test_question_set_shape`:
   - every `book` is in `BOOKS` or `ARTICLES`
   - ≥ 8 per book (unchanged), ≥ 1 per article, ≥ 12 article questions
   - an expect for a `.md` source has no `page`, and one for a PDF source has a `page`
   - quotes are 4–12 words
-- [ ] Show the user each new question with its source, page or section, and the full chunk text,
+- [x] Show the user each new question with its source, page or section, and the full chunk text,
       from the DB, in the conversation (not in a committed file). Apply their edits and write the
       review date.
-- [ ] Run `.venv/bin/pytest tests/test_retrieval_eval.py`, expect all to pass, including the
+- [x] Run `.venv/bin/pytest tests/test_retrieval_eval.py`, expect all to pass, including the
       stack test `test_every_quote_resolves`. Run `git diff` on the TOML: only additions after
       q45 and the header change.
 Done when: 15 reviewed article questions are in, and every quote resolves.
