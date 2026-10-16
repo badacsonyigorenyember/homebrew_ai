@@ -124,7 +124,7 @@ Commit: `Add book source upsert and per-book chunk replace`
 
 ### Task 3: Hybrid retrieval function
 Why: R4, A3.
-- [ ] Write `db/040_kb_search.sql` (header like `db/014_kb.sql`: what it is, the apply command, idempotent). One function:
+- [x] Write `db/040_kb_search.sql` (header like `db/014_kb.sql`: what it is, the apply command, idempotent). One function:
   ```sql
   create or replace function app.kb_search(
       query_text      text,
@@ -143,13 +143,13 @@ Why: R4, A3.
   - `fts`: chunks with `fts @@ words`, ordered by `ts_rank_cd(fts, words) desc, id`, `limit candidates`, then numbered.
   - `fused`: full outer join of `vec` and `fts` on id; `score = coalesce(1.0 / (rrf_k + vec_rank), 0) + coalesce(1.0 / (rrf_k + fts_rank), 0)`.
   - Final select joins `kb.chunk` and `ref.source`, `order by score desc, chunk_id limit k`.
-- [ ] Apply: `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/040_kb_search.sql`; check the owner: `select proowner::regrole from pg_proc where proname = 'kb_search'` → `postgres`.
-- [ ] Write `tests/test_kb_search.py` (stack, synthetic chunks under a throwaway source, rolled back; works whether or not real chunks are loaded). Query embedding = one-hot on dimension 0; real bge-m3 vectors are far from it.
+- [x] Apply: `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/040_kb_search.sql`; check the owner: `select proowner::regrole from pg_proc where proname = 'kb_search'` → `postgres`.
+- [x] Write `tests/test_kb_search.py` (stack, synthetic chunks under a throwaway source, rolled back; works whether or not real chunks are loaded). Query embedding = one-hot on dimension 0; real bge-m3 vectors are far from it.
   - `test_both_arms_rank_first`: chunk A has the one-hot embedding and the word `zyxquorble`; chunk B has only the word; chunk C only the embedding. Query `"zyxquorble fermentation"` → A first, B and C in the top 5, A's `vec_rank` and `fts_rank` both 1.
   - `test_any_query_word_matches`: a chunk with only one of the three query words is returned by the full-text arm (`fts_rank` not null).
   - `test_returns_k_rows_with_source_and_page`: 7 synthetic chunks, `k = 5` → 5 rows, each with `source_slug`, `page` not null.
   - `test_no_match_still_returns_vector_hits`: a query whose words are all stopwords → rows come from the vector arm only (`fts_rank` null).
-- [ ] Run `.venv/bin/pytest tests/test_kb_search.py`, expect all pass.
+- [x] Run `.venv/bin/pytest tests/test_kb_search.py`, expect all pass.
 Done when: tests pass and the function is owned by `postgres`.
 Commit: `Add app.kb_search hybrid retrieval`
 
