@@ -27,7 +27,8 @@ MRR_K = 10  # reciprocal rank looks at the top 10
 
 # Set once from the first measured run (Task 9), before any tuning change; never moved
 # afterwards without a Deviation line in the plan.
-RECALL_AT_5_BAR: float | None = None
+# 0.40 chosen 2026-10-16: the first run (s4-first) gave recall@5 0.422, rounded down to 0.05.
+RECALL_AT_5_BAR: float | None = 0.40
 
 QUOTES = str.maketrans({"‘": "'", "’": "'", "“": '"', "”": '"',
                         "–": "-", "—": "-"})

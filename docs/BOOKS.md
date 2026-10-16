@@ -47,6 +47,26 @@ section IV is kept (PDF pages 46–77, printed page + 4); sections I–III are e
 procedure and exam questions, not brewing knowledge. The PDF has a text layer without embedded
 fonts, so no OCR. The licence is the guide's own copyright line (free to download); local use.
 
+## 1b. First retrieval run and the recall@5 bar
+
+First measured run, 2026-10-16 (`python -m evals.retrieval --save s4-first`, saved in
+`evals/results/2026-10-16-s4-first.json`; 45 questions, 9 per book, before any tuning):
+recall@5 **0.422**, MRR@10 **0.354**.
+
+| Book | recall@5 | MRR@10 |
+|---|---|---|
+| `palmer-how-to-brew` | 0.444 | 0.347 |
+| `palmer-kaminski-water` | 0.333 | 0.178 |
+| `white-zainasheff-yeast` | 0.444 | 0.414 |
+| `mallett-malt` | 0.556 | 0.583 |
+| `bjcp-exam-study-guide-2017` | 0.333 | 0.250 |
+
+26 of 45 questions missed. In the top 5 of many misses, chunks from another book outranked the
+expected one (for example *How to Brew* on off-flavour and malt questions). The bar
+`RECALL_AT_5_BAR` in [`evals/retrieval.py`](../evals/retrieval.py) is **0.40**: the first run's
+recall@5 rounded down to the nearest 0.05 (user's decision, 2026-10-16). No retrieval setting was
+tuned; a tuning TODO is in [RECIPE-ROADMAP](RECIPE-ROADMAP.md) §8 Later.
+
 ## 2. Adding a book
 
 1. Put the PDF in `shared/rag-files/books/`.
