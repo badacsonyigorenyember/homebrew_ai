@@ -1,6 +1,6 @@
 # M3 · Step 3: the deviation report — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: m3-deviations
 
