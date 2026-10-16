@@ -11,6 +11,7 @@ stored. Tables and formulas are cut out and go through the doc → calculation p
 | Slug | Book | File | PDF pages | Skipped pages | Chunks | Ingested |
 |---|---|---|---|---|---|---|
 | `palmer-how-to-brew` | *How to Brew*, Palmer & Kaminski, fourth edition 2017 | `books/how_to_brew.pdf` | 612 | 1–26 (cover, praise, contents, preface, acknowledgments, abbreviations), 579–612 (bibliography, index) | 943 (tokens min 32, median 273, max 514; measured) | 2026-10-16 |
+| `palmer-kaminski-water` | *Water: A Comprehensive Guide for Brewers*, Palmer & Kaminski, 2013 | `books/palmer_kaminski_water.pdf` | 273 | 1–18 (cover, contents, figure list, acknowledgments, foreword), 238–273 (last table page, index) | 357 (tokens min 35, median 319, max 514; measured) | 2026-10-16 |
 
 Docling's hybrid chunker made 1,276 chunks for *How to Brew*. 132 fell on the skipped pages and
 201 had fewer than 20 words once tables and formula placeholders were cut, leaving 943. A second
@@ -18,16 +19,25 @@ ingest from a fresh Docling run gave the same 943 chunks and the same fingerprin
 (`md5(string_agg(text, '|' order by page, section_path, text))` = `4d8d4941c1b14cb61ba6ee195a58cc6b`),
 though the saved Docling JSON differs byte for byte between runs.
 
+*Water* took 2.5 minutes in Docling and made 440 chunks. 52 fell on the skipped pages and 31 had
+fewer than 20 words once tables were cut, leaving 357 (fingerprint `ef0c023d3add16d1339077690da3be1a`;
+a second ingest from a fresh Docling run gave the same). The PDF page is the printed page + 18.
+Its edition line is just `2013`: the copyright page gives the year and no edition number.
+
 ## 2. Adding a book
 
 1. Put the PDF in `shared/rag-files/books/`.
 2. Check it has a text layer: `pdffonts FILE` lists fonts. If it lists none, set `ocr=True` on the entry.
 3. Add one `Book` entry to `BOOKS` in `loaders/books.py` (slug, title, edition, publisher, licence,
-   `file_path`; read the first three from the PDF's copyright page).
+   `file_path`; read the first three from the PDF's copyright page, `pdftotext -f 4 -l 4 FILE -`
+   usually shows it. The page may give only a year: use that as the edition).
 4. Run `.venv/bin/python -m loaders.books <slug>`. A long book takes 10–20+ minutes in Docling; the
    run saves Docling's answer to `shared/rag-files/docling-chunks/<slug>.chunks.json` (gitignored).
 5. Read the printed stats, and look at the saved JSON and `pdftotext -f N -l N FILE` to find the
-   contents, index, bibliography and reading-list pages. Set `skip_pages` and re-run with
+   contents, index, bibliography and reading-list pages (`for p in $(seq 1 N); do pdftotext -f $p -l $p FILE - | head -3; done`
+   shows where chapters start and the index begins). A chunk is dated by its first page, so if the
+   index starts on the page after the last table, check that the last kept page has no index text
+   (look for table-like rows in step 6). Set `skip_pages` and re-run with
    `--reuse-docling` (no new Docling run; the database is rewritten for this book only).
 6. Check the counts:
    ```sql
@@ -100,3 +110,35 @@ and are not listed.
 Which cut table or formula page belongs to which `s1-maths` section has not been mapped page by
 page (unverified). The chapters that are water, pH and mash tables (8, 16, 21, 22) are the main
 "not passed yet" ones.
+
+### *Water*
+
+Nothing is passed yet: no formula or table from this book is in `ref` or code. Its tables
+(water profiles, acid doses, salt contributions, malt acidity data) and formulas (residual
+alkalinity, mash pH prediction, salt and acid calculations in Appendix C) go to m7-process, with
+the water chemistry of *How to Brew* chapters 8, 21 and 22. The seven salts already in
+`ref.water_salt` come from IUPAC atomic masses, not from this book.
+
+Pages where the loader cut a markdown table or Docling left a formula placeholder, by chapter
+(59 table pages and 14 formula pages outside the skipped ranges, measured 2026-10-16; the formula
+list is by the chunk's first page):
+
+| Chapter | PDF pages | Table pages | Formula pages |
+|---|---|---|---|
+| 1 A whole book on brewing water | 19–30 | – | – |
+| 2 Where your water comes from | 31–41 | 34 | – |
+| 3 How to read a water report | 42–62 | 42–43, 45–46, 58–59, 61 | – |
+| 4 Residual alkalinity and the mash | 63–75 | 66–68, 70–71, 74–75 | 66–67, 70 |
+| 5 RA, malt acidity, mash pH | 76–97 | 79–80, 85–86 | – |
+| 6 Controlling alkalinity | 98–126 | 103–106, 108–114, 125 | 103, 105, 108–111 |
+| 7 Adjusting water for style | 127–156 | 128–131, 136–141, 151–152, 156 | 151 |
+| 8 Source water treatment | 157–176 | 162, 169–170 | 169 |
+| 9 Brewery process waters | 177–189 | 183–184 | 183 |
+| 10 Wastewater treatment | 190–204 | 191–192, 197 | – |
+| App A chemistry glossary | 205–216 | – | – |
+| App B acidification | 217–227 | 219 | – |
+| App C ion, salt, acid calculations | 228–234 | 231–233 | 231–232 |
+| App D charge balance | 235–237 | 235–237 | – |
+
+The pages that matter most for m7-process are chapters 4–7 and Appendices B–D. Docling marks few
+formulas, so most equations are still in the prose, undecoded (unverified).

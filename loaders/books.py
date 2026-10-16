@@ -42,6 +42,17 @@ BOOKS: dict[str, Book] = {
         notes="Tables 18.5 and 24.1 in ref.fermentable; prose in kb.chunk; "
               "doc → calc notes in docs/BOOKS.md",
     ),
+    "palmer-kaminski-water": Book(
+        slug="palmer-kaminski-water",
+        title="Water: A Comprehensive Guide for Brewers",
+        edition="2013",  # the copyright page gives only the year
+        publisher="Brewers Publications",
+        licence="© Brewers Association, all rights reserved; personal copy, local use only",
+        file_path="shared/rag-files/books/palmer_kaminski_water.pdf",
+        # cover to foreword (contents, figure list, acknowledgments, foreword); last table page, index
+        skip_pages=((1, 18), (238, 273)),
+        notes="Prose in kb.chunk; tables and formulas not passed yet, see docs/BOOKS.md",
+    ),
 }
 
 DOCLING_URL = "http://localhost:5001"

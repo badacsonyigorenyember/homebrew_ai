@@ -170,9 +170,9 @@ Commit: `Ingest How to Brew into kb, add docs/BOOKS.md`
 ### Task 5: Ingest *Water*
 Why: R1, A1, A2.
 The PDF is `shared/rag-files/books/palmer_kaminski_water.pdf` (checked 2026-10-16).
-- [ ] Read title, edition and publisher from the PDF's copyright page; add the `Book` entry (slug `palmer-kaminski-water`, same licence wording with its publisher). Follow BOOKS.md §2 step by step; fix BOOKS.md where it was wrong or unclear (Deviation line).
-- [ ] Record `How to Brew`'s count before and after: unchanged.
-- [ ] Add the book's row and doc → calc note to BOOKS.md: its table and formula pages, all "not passed yet (m7-process)" unless a pass exists. PROJECT.md §5 row, §8 entry.
+- [x] Read title, edition and publisher from the PDF's copyright page; add the `Book` entry (slug `palmer-kaminski-water`, same licence wording with its publisher). Follow BOOKS.md §2 step by step; fix BOOKS.md where it was wrong or unclear (Deviation line).
+- [x] Record `How to Brew`'s count before and after: unchanged.
+- [x] Add the book's row and doc → calc note to BOOKS.md: its table and formula pages, all "not passed yet (m7-process)" unless a pass exists. PROJECT.md §5 row, §8 entry.
 Done when: the book has chunks and How to Brew's count is unchanged.
 Commit: `Ingest Water into kb`
 
@@ -252,3 +252,4 @@ Commit: `Record first retrieval run and the recall@5 bar`
 - 2026-10-16 · Tasks 1, 2, 4: the Docling result is saved in `shared/rag-files/docling-chunks/` (gitignored), not `shared/docling-scratch/` — that folder is owned by root (created by the Docker container), so the first 612-page run finished and then failed to save its result.
 - 2026-10-16 · Task 4: `test_both_arms_rank_first` queries `"zyxquorble"` instead of `"zyxquorble fermentation"` — with How to Brew loaded, real chunks full of "fermentation" outranked the synthetic chunk, so the test did not hold "whether or not real chunks are loaded".
 - 2026-10-16 · Task 4: `strip_tables` also drops Docling's `<!-- formula-not-decoded -->` lines (77 in the first run); `skip_pages` for How to Brew is 1–26 and 579–612.
+- 2026-10-16 · Task 5: edition recorded as `2013` (the copyright page gives only the year); BOOKS.md §2 steps 3 and 5 now say where to read the copyright page and how to find chapter starts and the first index page — the index's first page held index text under the last table page's chunk, so `skip_pages` for Water starts at 238.
