@@ -121,7 +121,7 @@ Commit: `Add the first ingredient-word resolver`
 
 ### Task 2: numbers, mismatch and conflicts are tested SQL rules
 Why: R1, R2, R3, R6; A2 (b05, b08, b11, b17, b18), A6 (conflict tests).
-- [ ] `db/037_step3.sql` (header as Task 1; needs `022_step2.sql`, `034_style_level.sql`,
+- [x] `db/037_step3.sql` (header as Task 1; needs `022_step2.sql`, `034_style_level.sql`,
       `036_ingredient_resolver.sql`):
       - `app.hint_knob() returns table (hint text, side text, knob text, direction int)`: the
         RECIPE-ROADMAP §7 table as a `values` list, one line per hint and knob, with the table
@@ -146,8 +146,8 @@ Why: R1, R2, R3, R6; A2 (b05, b08, b11, b17, b18), A6 (conflict tests).
         of ABV/OG/IBU/SRM that appears in `mismatch.range` and is stated>" (b05: "20C Imperial
         Stout with ABV 4"), `from` "<named> <range>", `level` null, `because` "you named <named>,
         but <subject values> is outside its <range>; <chosen> fits better and was chosen".
-- [ ] Apply twice (command as in Task 1, file `db/037_step3.sql`); `pg_proc` owner `postgres`.
-- [ ] Write the first part of `tests/test_step3.py` (all stack; helpers `brief_of(b)` as in
+- [x] Apply twice (command as in Task 1, file `db/037_step3.sql`); `pg_proc` owner `postgres`.
+- [x] Write the first part of `tests/test_step3.py` (all stack; helpers `brief_of(b)` as in
       `tests/test_step2_pick.py`, `sql(conn, fn, *args)`):
       `test_number_outside_is_a_deviation` (b08 IBU 50 in 5D → one, subject "IBU 50", from
       contains "22–40"; b17 ABV 7 in 8B; b18 SRM 20 in 15A); `test_number_inside_or_on_edge_is_not`
@@ -160,7 +160,7 @@ Why: R1, R2, R3, R6; A2 (b05, b08, b11, b17, b18), A6 (conflict tests).
       `evals.grade.deviation_matches`); `test_bitter_vs_malty`; `test_stronger_vs_session`;
       `test_same_side_never_conflicts` (dry + crisp, full + chewy, hoppy + juicy → none);
       `test_unrelated_hints_do_not_conflict` (b19's malty + stronger, b21's hoppy + session → none).
-- [ ] Run `.venv/bin/pytest tests/test_step3.py`, expect all pass. `docs/DATABASE.md` §5: one line
+- [x] Run `.venv/bin/pytest tests/test_step3.py`, expect all pass. `docs/DATABASE.md` §5: one line
       per rule function. PROJECT.md §8 entry.
 Done when: the rule tests pass and the file applies twice cleanly.
 Commit: `Add step 3 number, mismatch and conflict rules`
