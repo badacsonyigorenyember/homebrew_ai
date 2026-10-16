@@ -77,7 +77,7 @@ names and dev-ship's move to `docs/finished/` assume `<slug>` is one folder name
 | M7 | [`m7-process`](work/m7-process/brief.md) | Steps 12–15: water, mash + boil, ferment, package | m6, s5; sources in [SOURCES.md](SOURCES.md) (all present) | — (brief check only) |
 | S4 | [`s4-books-kb`](finished/s4-books-kb/brief.md) | Books → `kb`, hybrid retrieval, retrieval eval (P7) | m0 | **G7** (retrieval) |
 | S5 | [`s5-mash-attenuation`](work/s5-mash-attenuation/brief.md) | A cited model of mash temperature's effect on attenuation (Troester, Terrill), replacing rule 10's uncited mapping | s2 | — (brief A1–A6) |
-| S6 | [`s6-style-neighbours`](work/s6-style-neighbours/brief.md) | Step 2 check set from the BJCP exam's 91 style triples; Barnes cross-check of the envelopes; D1 vs BJCP 2021 specialty-entry rules | m2, s3 | — (measured, report only) |
+| S6 | [`s6-style-neighbours`](finished/s6-style-neighbours/brief.md) | Step 2 check set from the BJCP exam's 91 style triples; Barnes cross-check of the envelopes; D1 vs BJCP 2021 specialty-entry rules | m2, s3 | — (measured, report only) |
 | S7 | [`s7-kb-articles`](finished/s7-kb-articles/brief.md) | 12 web articles and short papers → `kb` (Markdown path in the s4 loader), eval extended | s4 | G7 (books bar held) |
 | M8 | [`m8-recipe-sheet-chat`](work/m8-recipe-sheet-chat/brief.md) | Step 16 recipe sheet with reasons, deviations, citations; n8n chat | m7, s4, s7 | **G7** |
 
