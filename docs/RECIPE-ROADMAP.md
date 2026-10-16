@@ -241,7 +241,7 @@ first. Those become data or code. Only the remaining prose goes to RAG.
 | Yeast attenuation, temperature | hopline yeast pages (temperature); makers' catalogues and data sheets, Brewfather (attenuation) | `ref.yeast` |
 | Grist %, hop split, dosage, yeast ranking per style | Brewer's Friend corpus | `corpus.style_profile` |
 | Sensory envelope | BJCP / BA text | `ref.style_sensory` |
-| Faults → causes | beer_faults.json | `ref.fault` (later) |
+| Faults → causes | BJCP fault list (2012) + study guide *Beer Characteristics* (`shared/rag-files/sensory/`, [SOURCES.md](SOURCES.md)); `beer_faults.json` was lost in the reset | `ref.fault` (later) |
 
 ---
 
@@ -296,7 +296,7 @@ flowchart LR
 | **P7** | Doc → calc pass per book, then ingest the rest into `kb`, retrieval eval | recall@5 measured, above an agreed bar |
 | **P6** | Steps 12–15, with the water functions (moved from P2, 2026-10-14, [`s1-maths`](finished/s1-maths/brief.md)) | every recipe has water, mash, ferment, package |
 | **P8** | Step 16 + interface: n8n chat trigger (D5, decided) | you can brew from the sheet |
-| **Later** | - inventory-first mode<br>- substitutions<br>- batch log → feedback<br>- whirlpool and dry-hop IBU from a cited model (they count as 0 IBU until then; [`s1-maths`](finished/s1-maths/brief.md), 2026-10-14)<br>- an enzyme rule using `enzyme_activity`<br>- the ratio corpus (old s2), revisited only if test-brief results show generic or off recipes<br>- TODO: replace rule 10's uncited linear mash-temperature mapping with a cited model of mash temperature's effect on attenuation (for example *How to Brew*'s mash chapter, via a doc → calc pass)<br>- TODO: multi-step mash profiles (several rests, decoction) and their effect on predicted FG, replacing the single mash temperature in rule 10 and s1's FG ([`s2-formulation-rules`](finished/s2-formulation-rules/brief.md), user request 2026-10-15) | |
+| **Later** | - inventory-first mode<br>- substitutions<br>- batch log → feedback<br>- whirlpool and dry-hop IBU from a cited model (they count as 0 IBU until then; [`s1-maths`](finished/s1-maths/brief.md), 2026-10-14)<br>- an enzyme rule using `enzyme_activity`<br>- the ratio corpus (old s2), revisited only if test-brief results show generic or off recipes<br>- replacing rule 10's uncited linear mash-temperature mapping with a cited model: now a work item, [`s5-mash-attenuation`](work/s5-mash-attenuation/brief.md) (Troester's mash-parameter experiments, Terrill's attenuation data; 2026-10-16)<br>- TODO: multi-step mash profiles (several rests, decoction) and their effect on predicted FG, replacing the single mash temperature in rule 10 and s1's FG ([`s2-formulation-rules`](finished/s2-formulation-rules/brief.md), user request 2026-10-15) | |
 
 ---
 
