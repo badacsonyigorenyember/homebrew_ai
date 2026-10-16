@@ -1,6 +1,6 @@
 # S7 · Web articles and short papers into the knowledge base — implementation plan
 
-Stage: review
+Stage: verify
 Brief: [brief.md](brief.md)
 Branch: s7-kb-articles
 
