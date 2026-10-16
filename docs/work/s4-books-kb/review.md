@@ -30,3 +30,29 @@ tests included.
 | 3 | PROJECT.md Scripts row lacked the loader and eval | Resolved. The row names `loaders/books.py`, `evals/retrieval.py`, and the three test files. |
 | 4 | Wrong author for *How to Brew* | Resolved. BOOKS.md §1 says Palmer. |
 | 6 | note: `ef_search` caps the vector arm | Added to the retrieval-tuning TODO in RECIPE-ROADMAP §8 Later. |
+
+## Re-review 2026-10-16
+
+Diff: 80c9435..9b58d7c (fix commit `9b58d7c`)  ·  Verdict: ready for testing
+
+Checked: each fix against its finding and the plan (Task 4 item 3 for finding 1, R3/A2); every
+`(s1 §n)` mark in BOOKS.md §3 against the printed pages `doc-calc.md` cites (printed + 26 = PDF),
+and the Table 18.4, 18.5, 24.1 and A.2 pages with `pdftotext`; the per-book chunk counts sum to
+2,180; no other stale "943 chunks" / "four books follow" text outside the log; commit subject is one
+line, 35 characters, no body. The fix commit touches only docs.
+
+| # | Earlier finding | Re-review |
+|---|---|---|
+| 1 | *How to Brew* cut pages not mapped | Resolved, apart from finding 8. Marks match doc-calc.md for 78–79, 81, 104–107, 134, 176, 311, 314, 316–318, 462, 494–499; unmarked pages are stated as "not passed yet" with m7-process as owner, as the plan asks. No Deviation needed, since the mapping was done. |
+| 2 | DATABASE.md §4 and §7 stale | Resolved (DATABASE.md:300, :471). |
+| 3 | Scripts row lacked loader and eval | Resolved (PROJECT.md:124 names `loaders/books.py`, `evals/retrieval.py` and the three test files). |
+| 4 | Wrong author | Resolved in BOOKS.md:13. |
+| 6 | note: `ef_search` | Added to the RECIPE-ROADMAP §8 Later TODO; text is accurate. |
+
+New findings:
+
+| # | Severity | Where | Finding | Why it matters |
+|---|---|---|---|---|
+| 8 | should-fix | docs/BOOKS.md:138 | Table 18.5 (the flake rows `adjunct-fermentables` loaded) is on PDF p. 315 (`pdftotext`; the adjunct-fermentables review also says p. 315). The row leaves table page 315 unmarked, so it reads "not passed yet", and puts `adjuncts` on formula page 316 instead, which only uses the 18.5 values. | R3 note names the wrong page for the adjunct pass. Docs only; no data affected. Fix: `315 (adjuncts)` in the table column, `316 (s1 §1)` in the formula column. |
+| 9 | note | docs/BOOKS.md:146 | Table A.2 (p. 491) is marked `(s1 §3)` although the note at :156 says section 3 only compared it with the formula and it is not a source. | A reader of the table column alone could take A.2 as turned into code. The note below the table explains it, so no action needed. |
+| 10 | note | docs/finished/s1-maths/doc-calc.md:11 | Still says "Palmer & Kaminski, *How to Brew*". | Outside this work's files (finished s1-maths); listed only so it is known. |
