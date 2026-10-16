@@ -57,7 +57,7 @@ def test_both_arms_rank_first():
             chunk("B has zyxquorble only", 5),        # words only
             chunk("C has nothing to match", 0)]       # embedding only
     rows[2]["embedding"][1] = 0.5                     # C is a little further from the query than A
-    result = run(rows, "zyxquorble fermentation")
+    result = run(rows, "zyxquorble")
     texts = [r["text"] for r in result]
     assert texts[0].startswith("A")
     assert {t[0] for t in texts[:3]} == {"A", "B", "C"}

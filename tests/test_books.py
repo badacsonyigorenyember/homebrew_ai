@@ -138,3 +138,8 @@ def test_replace_chunks_twice_same_rows():
     finally:
         conn.rollback()
         conn.close()
+
+
+def test_strip_tables_removes_formula_placeholder():
+    text = "Before the formula.\n\n<!-- formula-not-decoded -->\n\nAfter the formula."
+    assert strip_tables(text) == "Before the formula.\n\nAfter the formula."

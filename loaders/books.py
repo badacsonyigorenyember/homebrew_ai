@@ -37,6 +37,8 @@ BOOKS: dict[str, Book] = {
         publisher="Brewers Publications",
         licence="© Brewers Publications, all rights reserved; personal copy, local use only",
         file_path="shared/rag-files/books/how_to_brew.pdf",
+        # cover, praise, contents, preface, acknowledgments, abbreviations; bibliography and index
+        skip_pages=((1, 26), (579, 612)),
         notes="Tables 18.5 and 24.1 in ref.fermentable; prose in kb.chunk; "
               "doc → calc notes in docs/BOOKS.md",
     ),
@@ -48,8 +50,9 @@ EMBED_MODEL = "bge-m3"
 EMBED_DIMS = 1024
 MAX_TOKENS = 512
 MIN_WORDS = 20
-SCRATCH = ROOT / "shared" / "docling-scratch"
+SCRATCH = ROOT / "shared" / "rag-files" / "docling-chunks"  # gitignored; shared/docling-scratch is root-owned
 
+FORMULA_PLACEHOLDER = "<!-- formula-not-decoded -->"  # Docling leaves this for a formula
 POLL_SECONDS = 10
 GIVE_UP_SECONDS = 2 * 60 * 60
 
@@ -112,8 +115,10 @@ def run_docling(book: Book) -> dict:
 
 
 def strip_tables(text: str) -> str:
-    """Drop markdown table rows (lines starting with `|`) and collapse runs of blank lines."""
-    kept = [line for line in text.splitlines() if not line.strip().startswith("|")]
+    """Drop markdown table rows (lines starting with `|`) and Docling's formula placeholders,
+    then collapse runs of blank lines."""
+    kept = [line for line in text.splitlines()
+            if not line.strip().startswith("|") and line.strip() != FORMULA_PLACEHOLDER]
     return re.sub(r"\n{3,}", "\n\n", "\n".join(kept))
 
 
@@ -209,7 +214,7 @@ def main() -> None:
         description="Load one book into kb.chunk (see docs/BOOKS.md).")
     parser.add_argument("slug", choices=sorted(BOOKS))
     parser.add_argument("--reuse-docling", action="store_true",
-                        help="read shared/docling-scratch/<slug>.chunks.json instead of Docling")
+                        help="read shared/rag-files/docling-chunks/<slug>.chunks.json instead of Docling")
     args = parser.parse_args()
     book = BOOKS[args.slug]
 

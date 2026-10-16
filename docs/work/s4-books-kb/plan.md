@@ -62,7 +62,7 @@ Why: R1, R2, R7; the pure part of the loader, tested without the stack.
     `Tables 18.5 and 24.1 in ref.fermentable; prose in kb.chunk; doc → calc notes in docs/BOOKS.md`.
   - Constants `DOCLING_URL = "http://localhost:5001"`, `OLLAMA_URL = "http://localhost:11434"`,
     `EMBED_MODEL = "bge-m3"`, `EMBED_DIMS = 1024`, `MAX_TOKENS = 512`, `MIN_WORDS = 20`,
-    `SCRATCH = ROOT / "shared" / "docling-scratch"` (gitignored).
+    `SCRATCH = ROOT / "shared" / "rag-files" / "docling-chunks"` (gitignored).
   - `docling_form(book) -> dict`: the multipart fields, exactly:
     `convert_from_formats=pdf`, `convert_do_ocr=<book.ocr>`, `convert_pdf_backend=dlparse_v4`,
     `convert_table_mode=accurate`, `convert_do_table_structure=true`,
@@ -155,15 +155,15 @@ Commit: `Add app.kb_search hybrid retrieval`
 
 ### Task 4: Ingest *How to Brew* and write the book notes
 Why: R1, R2, R3, A1, A2 (first book), and the docs for R7.
-- [ ] Probe first: `python -m loaders.books palmer-how-to-brew` (612 pages; expect several minutes in Docling, roughly 10–20 at the first build's 229 s per 248 pages). Read the printed stats and look at `shared/docling-scratch/palmer-how-to-brew.chunks.json`: which PDF pages are the contents, index, glossary or reading lists (look also with `pdftotext -f N -l N`). Check what formulas look like in the chunk text; if Docling leaves a placeholder line (for example `<!-- formula-not-decoded -->`), strip it in `strip_tables` too and add a unit test for it (Deviation line).
-- [ ] Set `skip_pages` for the book from that probe, re-run with `--reuse-docling`. Check:
+- [x] Probe first: `python -m loaders.books palmer-how-to-brew` (612 pages; expect several minutes in Docling, roughly 10–20 at the first build's 229 s per 248 pages). Read the printed stats and look at `shared/rag-files/docling-chunks/palmer-how-to-brew.chunks.json`: which PDF pages are the contents, index, glossary or reading lists (look also with `pdftotext -f N -l N`). Check what formulas look like in the chunk text; if Docling leaves a placeholder line (for example `<!-- formula-not-decoded -->`), strip it in `strip_tables` too and add a unit test for it (Deviation line).
+- [x] Set `skip_pages` for the book from that probe, re-run with `--reuse-docling`. Check:
   `select count(*), min(tokens), percentile_disc(0.5) within group (order by tokens), max(tokens), count(*) filter (where text like '%|%|%') from kb.chunk c join ref.source s on s.id = c.source_id where s.slug = 'palmer-how-to-brew'` — expect hundreds of chunks, no chunk over ~600 tokens unexplained, table-like rows 0 (inspect any hit).
-- [ ] Second ingest without `--reuse-docling` (a fresh Docling run). Before and after, record count and `md5(string_agg(text, '|' order by page, section_path, text))` for the book: both unchanged (A1, R2). If Docling is not deterministic, stop and record what differs.
-- [ ] Write `docs/BOOKS.md`:
+- [x] Second ingest without `--reuse-docling` (a fresh Docling run). Before and after, record count and `md5(string_agg(text, '|' order by page, section_path, text))` for the book: both unchanged (A1, R2). If Docling is not deterministic, stop and record what differs.
+- [x] Write `docs/BOOKS.md`:
   1. **Books in `kb`**: table of slug, title / edition, file, PDF pages, skipped pages, chunks, ingested (date), measured.
   2. **Adding a book** (R7): put the PDF in `shared/rag-files/books/`; check it has a text layer (`pdffonts FILE` lists fonts; if none, set `ocr=True`); add one `Book` entry to `BOOKS` in `loaders/books.py`; run `python -m loaders.books <slug>`; look at the stats, set `skip_pages`, re-run with `--reuse-docling`; check the counts query (this book has chunks, other books' counts unchanged); write the book's doc → calc note below; add the book to PROJECT.md §5.
   3. **Doc → calc notes per book** (R3): for *How to Brew*, the PDF pages where the loader cut tables (from its stats) and the formula pages, each marked with the pass that turned it into data or code (`s1-maths` [doc-calc.md](finished/s1-maths/doc-calc.md) sections, `adjunct-fermentables` Tables 18.5 / 24.1) or "not passed yet (m7-process)". A cut table is never in `kb` either way.
-- [ ] Update `docs/DATABASE.md` §4 (`app.kb_search`; `page` is the PDF page; `tokens` is bge-m3's count of the embedded text, heading path included; link BOOKS.md) and §7 row 7; link BOOKS.md from PROJECT.md §5. PROJECT.md: §5 *How to Brew* row (chunk count, measured), §4 vector search row, Scripts row (`loaders/books.py`, its tests), §8 entry.
+- [x] Update `docs/DATABASE.md` §4 (`app.kb_search`; `page` is the PDF page; `tokens` is bge-m3's count of the embedded text, heading path included; link BOOKS.md) and §7 row 7; link BOOKS.md from PROJECT.md §5. PROJECT.md: §5 *How to Brew* row (chunk count, measured), §4 vector search row, Scripts row (`loaders/books.py`, its tests), §8 entry.
 Done when: the book has chunks, the second ingest left count and fingerprint unchanged, BOOKS.md has the How to Brew row and notes.
 Commit: `Ingest How to Brew into kb, add docs/BOOKS.md`
 
@@ -249,3 +249,6 @@ Commit: `Record first retrieval run and the recall@5 bar`
   tasks); Task 6b adds *Malt* and section IV of the BJCP exam study guide; the question set is
   ≥ 40, ≥ 8 per book, 9 passages picked per book — brief R5/A1/A4 changed with the user's go-ahead
   ([SOURCES.md](../../SOURCES.md)).
+- 2026-10-16 · Tasks 1, 2, 4: the Docling result is saved in `shared/rag-files/docling-chunks/` (gitignored), not `shared/docling-scratch/` — that folder is owned by root (created by the Docker container), so the first 612-page run finished and then failed to save its result.
+- 2026-10-16 · Task 4: `test_both_arms_rank_first` queries `"zyxquorble"` instead of `"zyxquorble fermentation"` — with How to Brew loaded, real chunks full of "fermentation" outranked the synthetic chunk, so the test did not hold "whether or not real chunks are loaded".
+- 2026-10-16 · Task 4: `strip_tables` also drops Docling's `<!-- formula-not-decoded -->` lines (77 in the first run); `skip_pages` for How to Brew is 1–26 and 579–612.

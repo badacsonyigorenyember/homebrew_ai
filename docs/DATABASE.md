@@ -297,7 +297,7 @@ builds the name map and computes the profiles.
 
 ## 4. `kb`: book knowledge
 
-Defined in [`db/014_kb.sql`](../db/014_kb.sql). Empty until P7.
+Defined in [`db/014_kb.sql`](../db/014_kb.sql). Filled by [`loaders/books.py`](../loaders/books.py), one book at a time; the books, how to add one and the doc → calc notes are in [BOOKS.md](BOOKS.md). Measured 2026-10-16: *How to Brew* 943 chunks.
 
 | Table | Holds |
 |---|---|
@@ -308,8 +308,11 @@ Defined in [`db/014_kb.sql`](../db/014_kb.sql). Empty until P7.
   extensions; created by `postgres` as a supautils privileged extension).
 - `pg_jsonschema` 0.3.3 is installed in schema `extensions` the same way (created in
   `db/015_app.sql`). Step contracts are checked with `extensions.jsonschema_validation_errors`.
-- Hybrid retrieval: HNSW index on `embedding` (cosine) + GIN on `fts`, fused; plus an index on
-  `source_id` to delete or re-ingest one book.
+- Hybrid retrieval: HNSW index on `embedding` (cosine) + GIN on `fts`, fused by reciprocal rank in
+  `app.kb_search(query_text, query_embedding, k)` ([`db/040_kb_search.sql`](../db/040_kb_search.sql));
+  plus an index on `source_id` to delete or re-ingest one book.
+- `page` is the PDF page (1-based), not the printed page. `tokens` is bge-m3's count of the
+  embedded text, heading path included; `text` keeps the prose only.
 - Only prose is stored here. Tables and formulas found in a book go through the
   **doc → calculation pass** first and land in `ref` or in code ([roadmap](RECIPE-ROADMAP.md) §6).
 
@@ -465,7 +468,7 @@ All tables exist (§1). This is the order they get data in.
 | 4 | Corpus (not loaded, D7, 2026-10-14; style fit does not use it) | `corpus.recipe`, `recipe_item` ← archive dump · `name_map` · profile job → `style_profile`, `style_grist`, `style_hop_use`, `style_ingredient` | ≥ 90 % of grist mass mapped to a role for the test styles |
 | 5 | Envelopes | `ref.sensory_dimension`, `style_sensory`, `style_character`, `style_ingredient` for the 26 s3 styles (BJCP and BA extracted by the LLM + reviewed); `style_rule` where needed | ✅ 26 styles reviewed (116 `style_ingredient`, 189 `style_sensory`, 237 `style_character` rows); the Citra table reproduces from SQL + code and the 53 golden cases pass (measured 2026-10-15, `s3-style-fit`) |
 | 6 | Pipeline | `app.*` | a test brief → recipe rows + run_step log |
-| 7 | Books | `kb.chunk` (and `ref.source.file_path`) | after the doc → calculation pass per book |
+| 7 | Books | `kb.chunk` (and `ref.source.file_path`) | 🟡 *How to Brew* 943 chunks, prose only, tables cut (measured 2026-10-16, `s4-books-kb`); the other four books follow; doc → calc notes per book in [BOOKS.md](BOOKS.md) |
 
 ---
 
