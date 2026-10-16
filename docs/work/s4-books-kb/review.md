@@ -56,3 +56,19 @@ New findings:
 | 8 | should-fix (fixed) | docs/BOOKS.md:138 | Table 18.5 (the flake rows `adjunct-fermentables` loaded) is on PDF p. 315 (`pdftotext`; the adjunct-fermentables review also says p. 315). The row leaves table page 315 unmarked, so it reads "not passed yet", and puts `adjuncts` on formula page 316 instead, which only uses the 18.5 values. | R3 note names the wrong page for the adjunct pass. Docs only; no data affected. Fix: `315 (adjuncts)` in the table column, `316 (s1 §1)` in the formula column. |
 | 9 | note | docs/BOOKS.md:146 | Table A.2 (p. 491) is marked `(s1 §3)` although the note at :156 says section 3 only compared it with the formula and it is not a source. | A reader of the table column alone could take A.2 as turned into code. The note below the table explains it, so no action needed. |
 | 10 | note | docs/finished/s1-maths/doc-calc.md:11 | Still says "Palmer & Kaminski, *How to Brew*". | Outside this work's files (finished s1-maths); listed only so it is known. |
+
+## Re-review 2026-10-16 (round 2, finding 8)
+
+Diff: 5bfc66e (fix of finding 8)  ·  Verdict: ready for testing
+
+Checked: `pdftotext` puts the "TABLE 18.5—TYPICAL MALT YIELDS" heading and the flaked oat, corn,
+barley and wheat rows on PDF p. 315 (printed 289; p. 314 carries printed 288, so +26 holds);
+p. 316 (printed 290) holds the 0.81 × 0.75 × 46 = 27.9 PPG example that doc-calc.md §1 cites as
+"HTB p. 290". doc-calc.md names table 18.5 only in the R2 moisture remark, with no page, so
+`(adjuncts)` alone on 315 is right. The commit touches only BOOKS.md:138 and the finding 8
+severity cell in this file. Its message has a `Co-Authored-By` trailer, which conventions.md
+"Commits" does not allow (record only; history is not rewritten).
+
+| # | Earlier finding | Re-review |
+|---|---|---|
+| 8 | Table 18.5 page marks | Resolved. BOOKS.md:138 now reads `315 (adjuncts)` in the table column and `316 (s1 §1)` in the formula column, as the finding asked. |
