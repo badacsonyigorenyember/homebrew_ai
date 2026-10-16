@@ -4,7 +4,7 @@ Status: draft
 Slug: m8-recipe-sheet-chat · Branch: m8-recipe-sheet-chat
 Roadmap: [WORKFLOW-ROADMAP.md](../../WORKFLOW-ROADMAP.md) M8, checkpoint **G7** ·
 [RECIPE-ROADMAP.md](../../RECIPE-ROADMAP.md) §3 step 16, §4, §8 P8 · PROJECT.md §4 (D5)
-Needs: `m7-process` and `s4-books-kb` shipped
+Needs: `m7-process`, `s4-books-kb` and `s7-kb-articles` shipped
 
 ## Why
 Until now the pipeline's output is rows and JSON. The brewer needs one readable sheet: what to
@@ -72,3 +72,5 @@ A6. You brew one recipe from its sheet and record the outcome in PROJECT.md §8 
    recommend a first.
 
 ## Deviations
+- 2026-10-16 · Needs: `s7-kb-articles` added (dry-hop, souring, water and BJCP introduction
+  articles for the sheet's citations, [SOURCES.md](../../SOURCES.md)).

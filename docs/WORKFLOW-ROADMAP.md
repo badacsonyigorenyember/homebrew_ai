@@ -34,20 +34,27 @@ flowchart TD
     S2["s2 · Formulation rules + ingredient data (D7)"]
     S2 --> S3
     S3["s3 · Tags · envelopes · level() (P3, D9)<br/>G-S: Citra table"] --> M3
+    S6["s6 · Style neighbours: step 2 checks, envelope cross-check"] --> M3
     M3["m3 · Step 3: deviations<br/>G3: P4 done"] --> M4
+    S5["s5 · Mash temperature → attenuation, cited"] --> M4
     M4["m4 · Steps 0, 4–5: profile, targets, blueprint<br/>G4"] --> M5
     M5["m5 · Steps 6–9: choose<br/>G5: 0 invented"] --> M6
     M6["m6 · Steps 10–11: compute + validate<br/>G6: MVP, brewer's review"] --> M7
     M7["m7 · Steps 12–15: process<br/>(needs Water, Yeast doc→calc)"] --> M8
-    S4["s4 · Books → kb (P7)"] --> M8
+    S4["s4 · Books → kb (P7)"] --> S7
+    S7["s7 · Articles → kb"] --> M8
+    S5 --> M7
     M8["m8 · Step 16 + chat<br/>G7: you brew from it"]
 
     classDef side fill:#d6ecff,stroke:#2f6fb0,color:#000
-    class S1,S2,S3,S4 side
+    class S1,S2,S3,S4,S5,S6,S7 side
 ```
 
 Blue = side tracks outside n8n's step order. s1 → s2 → s3 is a chain (s3 needs s2's fermentable roles and `fermentable_style`), so m3 waits for s3.
-s4 can run any time after m0, once the doc → calc passes for its books are done.
+s4 can run any time after m0; it does not wait for the doc → calc passes, because tables never enter `kb` (2026-10-16). s5, s6 and s7
+were added 2026-10-16 from the new source files ([SOURCES.md](SOURCES.md)): s6 before m3's G3
+run, s5 before m4 (the mash knob and FG target) and m7, s7 after s4 and before m8. Build order:
+s4 → s7 → s6 → m3 → s5 → m4 → m5 → m6 → m7 → m8.
 
 **Work items.** Each row has a draft brief in `docs/work/<slug>/brief.md` (written 2026-10-12, not
 approved). The slug carries the roadmap id as a prefix, `m<N>-` for milestones and `s<N>-` for
@@ -67,9 +74,12 @@ names and dev-ship's move to `docs/finished/` assume `<slug>` is one folder name
 | M4 | [`m4-targets-blueprint`](work/m4-targets-blueprint/brief.md) | Steps 0, 4, 5: brewer profile, targets (ranges + hint knobs + stated numbers), blueprint (ratios) | m3, s1, s2 | **G4** |
 | M5 | [`m5-choose-ingredients`](work/m5-choose-ingredients/brief.md) | Steps 6–9: yeast, fermentables, hops, extras, scored by code; the resolver | m4, s3 | **G5** |
 | M6 | [`m6-compute-validate`](work/m6-compute-validate/brief.md) | Steps 10–11: amounts, OG/FG/ABV/IBU/SRM, validate + retry ≤ 3×, save; held-out briefs | m5, s1 | **G6** = MVP |
-| M7 | [`m7-process`](work/m7-process/brief.md) | Steps 12–15: water, mash + boil, ferment, package | m6; *Water* and *Yeast* PDFs | — (brief check only) |
-| S4 | [`s4-books-kb`](work/s4-books-kb/brief.md) | Books → `kb`, hybrid retrieval, retrieval eval (P7) | m0; doc→calc passes | **G7** (retrieval) |
-| M8 | [`m8-recipe-sheet-chat`](work/m8-recipe-sheet-chat/brief.md) | Step 16 recipe sheet with reasons, deviations, citations; n8n chat | m7, s4 | **G7** |
+| M7 | [`m7-process`](work/m7-process/brief.md) | Steps 12–15: water, mash + boil, ferment, package | m6, s5; sources in [SOURCES.md](SOURCES.md) (all present) | — (brief check only) |
+| S4 | [`s4-books-kb`](work/s4-books-kb/brief.md) | Books → `kb`, hybrid retrieval, retrieval eval (P7) | m0 | **G7** (retrieval) |
+| S5 | [`s5-mash-attenuation`](work/s5-mash-attenuation/brief.md) | A cited model of mash temperature's effect on attenuation (Troester, Terrill), replacing rule 10's uncited mapping | s2 | — (brief A1–A6) |
+| S6 | [`s6-style-neighbours`](work/s6-style-neighbours/brief.md) | Step 2 check set from the BJCP exam's 91 style triples; Barnes cross-check of the envelopes; D1 vs BJCP 2021 specialty-entry rules | m2, s3 | — (measured, report only) |
+| S7 | [`s7-kb-articles`](work/s7-kb-articles/brief.md) | 12 web articles and short papers → `kb` (Markdown path in the s4 loader), eval extended | s4 | G7 (books bar held) |
+| M8 | [`m8-recipe-sheet-chat`](work/m8-recipe-sheet-chat/brief.md) | Step 16 recipe sheet with reasons, deviations, citations; n8n chat | m7, s4, s7 | **G7** |
 
 ---
 

@@ -6,12 +6,20 @@ from pathlib import Path
 
 import pytest
 
+from evals import benchmark
 from loaders.db import connect
 
 pytestmark = pytest.mark.stack
 
 URL = "http://localhost:5678/webhook/recipe-pipeline"
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
+
+
+@pytest.fixture(scope="module", autouse=True)
+def unload_model():
+    """These are the only tests that call the model; unload it from Ollama once they are done."""
+    yield
+    benchmark.unload_all()
 
 
 @pytest.fixture

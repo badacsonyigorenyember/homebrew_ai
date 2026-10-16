@@ -4,8 +4,9 @@ Status: draft
 Slug: m4-targets-blueprint · Branch: m4-targets-blueprint
 Roadmap: [WORKFLOW-ROADMAP.md](../../WORKFLOW-ROADMAP.md) M4, checkpoint **G4** ·
 [RECIPE-ROADMAP.md](../../RECIPE-ROADMAP.md) §3 steps 0, 4, 5, §7 · [STYLE-PROFILES.md](../../STYLE-PROFILES.md)
-Needs: `m3-deviations`, `s1-maths` and `s2-corpus` shipped
-s2-corpus abandoned 2026-10-14; revisit in this brief
+Needs: `m3-deviations`, `s1-maths`, `s5-mash-attenuation` and `s2-corpus` shipped
+s2-corpus abandoned 2026-10-14; revisit in this brief. `s5-mash-attenuation` gives the cited
+mash temperature → attenuation model that the mash knob and the FG target use (2026-10-16)
 
 ## Why
 Stage B turns "what the user wants" into numbers to design against: target OG, FG, ABV, IBU and
@@ -83,3 +84,5 @@ A7. Every hint row in code has a source or is marked unsourced, and the unsource
    them before G6; b) source all first — recommend a.
 
 ## Deviations
+- 2026-10-16 · Needs: `s5-mash-attenuation` added, so step 4's FG target follows the mash knob
+  through a cited model ([SOURCES.md](../../SOURCES.md)).

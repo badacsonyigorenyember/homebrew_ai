@@ -4,7 +4,8 @@ Status: draft
 Slug: m3-deviations · Branch: m3-deviations
 Roadmap: [WORKFLOW-ROADMAP.md](../../WORKFLOW-ROADMAP.md) M3, checkpoint **G3** (= RECIPE-ROADMAP
 P4 done) · [RECIPE-ROADMAP.md](../../RECIPE-ROADMAP.md) §3 step 3, §4 · [STYLE-FIT.md](../../STYLE-FIT.md)
-Needs: `m2-best-fit-style` and `s3-style-fit` shipped (ingredient deviations use s3's `level()`)
+Needs: `m2-best-fit-style` and `s3-style-fit` shipped (ingredient deviations use s3's `level()`);
+`s6-style-neighbours` before the G3 run (its step 2 measurement, 2026-10-16)
 
 ## Why
 "The style is guidance, not law": anything the user asks for is accepted, never blocked, and
@@ -81,3 +82,5 @@ A7. WORKFLOW-ROADMAP G3 and RECIPE-ROADMAP P4 are marked with the measured score
    kind's default (malt → mash, hop → boil); b) always the kind's default — recommend a.
 
 ## Deviations
+- 2026-10-16 · Needs: `s6-style-neighbours` before the G3 run, so stage A is judged with the
+  neighbour check in hand ([SOURCES.md](../../SOURCES.md)).

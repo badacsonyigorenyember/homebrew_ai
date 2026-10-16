@@ -491,7 +491,7 @@ Not built; each comes with the feature or source that needs it.
 
 | What | When |
 |---|---|
-| `ref.fault` (name, descriptors, causes ← `beer_faults.json`, 21) | fault diagnosis (Priority 2) |
+| `ref.fault` (name, descriptors, causes ← BJCP fault list 2012 (24) and the study guide's *Beer Characteristics* (25), `shared/rag-files/sensory/`; `beer_faults.json` was lost) | fault diagnosis (Priority 2) |
 | `app.batch` + `tasting` | batch log feature |
 | `app.inventory.best_before` | when a step reads it |
 | `ref.beer_style.co2_vol` | P6 (step 15), together with a source that states it (e.g. Palmer ch. 11) |

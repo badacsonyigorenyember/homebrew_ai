@@ -84,9 +84,13 @@ A8. You read the picks of 3 briefs and agree a brewer would choose them (G5 dire
 1. b14 Berliner Weisse needs a souring culture. — options: a) add one Lactobacillus product to
    `ref` from hopline or a maker (its own small work item); b) keep it absent and let the sheet
    say "sour with Lactobacillus or a kettle sour"; c) swap b14 for another wheat style — recommend
-   a if hopline sells one, else b.
+   a if hopline sells one, else b. Either way, the souring method and its schedule are sourced from
+   the Milk The Funk pages in `shared/rag-files/articles/` (m7-process step 14, kb through
+   s7-kb-articles).
 2. Popularity vs inventory vs tags: equal weights or an order? — options: a) a strict order
    (inventory, then fit, then popularity); b) weighted sum — recommend a: easier to read and to
    explain on the sheet.
 
 ## Deviations
+- 2026-10-16 · Open question 1: Milk The Funk souring pages named as the source for option b and
+  for m7's souring step ([SOURCES.md](../../SOURCES.md)).
