@@ -212,7 +212,7 @@ Commit: `Ingest the PDF articles into kb`
 
 ### Task 6: The eval reports books and articles separately, and cites page-less chunks
 Why: R4, R6, A4.
-- [ ] `evals/retrieval.py`:
+- [x] `evals/retrieval.py`:
   - Docstring: books and articles.
   - Each row gets `group`: `"books"` if `q["book"] in books.BOOKS`, else `"articles"`.
   - `expect_pages` uses `e.get("page")`.
@@ -223,13 +223,13 @@ Why: R4, R6, A4.
   - New `cite(result) -> str`: `"<slug> p<page>"` when the result has a page, else
     `"<slug> | <title> | <url>"`. `show_question` uses it.
   - The bar constant and its comment stay as they are.
-- [ ] Unit tests in `tests/test_retrieval_eval.py`:
+- [x] Unit tests in `tests/test_retrieval_eval.py`:
   - `test_summarise_bar_on_books_only`: books rows at recall 0.5 and article rows at 0.0 give
     `bar_met` true, with the articles reported at 0.0.
   - `test_summarise_bar_not_met`: books at 0.3 give `bar_met` false, even with articles at 1.0.
   - `test_cite_without_page`: shows the title and URL.
   - `test_cite_with_page`.
-- [ ] Run `.venv/bin/pytest tests/test_retrieval_eval.py`, expect all to pass. Run
+- [x] Run `.venv/bin/pytest tests/test_retrieval_eval.py`, expect all to pass. Run
       `.venv/bin/python -m evals.retrieval --question "how long and how cold should I dry hop a hazy IPA"`.
       At least one article hit must show its title and URL (A4); if none does, try a question
       worded from a Janish heading. Keep the output for the Task 8 record.

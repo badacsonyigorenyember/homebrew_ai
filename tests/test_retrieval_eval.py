@@ -80,3 +80,33 @@ def test_every_quote_resolves():
                 if not any(normalise(e["quote"]) in t for t in texts[q["book"]]):
                     unresolved.append((q["id"], e["quote"]))
     assert not unresolved
+
+
+def _row(group, recall, book="water"):
+    return {"id": "q", "book": book, "group": group, "recall_at_5": recall, "rr": recall,
+            "expect_pages": [1], "ranks": [1]}
+
+
+def test_summarise_bar_on_books_only():
+    from evals.retrieval import summarise
+    s = summarise([_row("books", 0.5), _row("articles", 0.0, "mtf")])
+    assert s["bar_met"] is True
+    assert s["groups"]["articles"]["recall_at_5"] == 0.0
+    assert s["groups"]["books"]["recall_at_5"] == 0.5
+
+
+def test_summarise_bar_not_met():
+    from evals.retrieval import summarise
+    s = summarise([_row("books", 0.3), _row("articles", 1.0, "mtf")])
+    assert s["bar_met"] is False
+
+
+def test_cite_without_page():
+    from evals.retrieval import cite
+    r = {"source_slug": "mtf", "page": None, "source_title": "Lacto", "source_url": "https://x.test/a"}
+    assert cite(r) == "mtf | Lacto | https://x.test/a"
+
+
+def test_cite_with_page():
+    from evals.retrieval import cite
+    assert cite({"source_slug": "water", "page": 12, "source_title": "T", "source_url": None}) == "water p12"

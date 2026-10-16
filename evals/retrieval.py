@@ -1,4 +1,4 @@
-"""Retrieval eval: recall@5 and MRR@10 of app.kb_search over the book question set.
+"""Retrieval eval: recall@5 and MRR@10 of app.kb_search over the book and article question set.
 
     python -m evals.retrieval [--save LABEL]
     python -m evals.retrieval --question "how long should a diacetyl rest be"
@@ -81,7 +81,8 @@ def run_questions(conn, questions: list[dict]) -> list[dict]:
         results = search(conn, q["question"], MRR_K)
         rows.append({
             "id": q["id"], "book": q["book"], "question": q["question"],
-            "expect_pages": [e["page"] for e in q["expect"]],
+            "group": "books" if q["book"] in books.BOOKS else "articles",
+            "expect_pages": [e.get("page") for e in q["expect"]],
             "ranks": ranks_found(results, q["expect"], q["book"]),
             "recall_at_5": recall_at_k(results, q["expect"], q["book"], TOP_K),
             "rr": reciprocal_rank(results, q["expect"], q["book"], MRR_K),
@@ -98,38 +99,53 @@ def mean(values) -> float:
 
 
 def summarise(rows: list[dict]) -> dict:
+    """Overall numbers, books and articles apart, per source. The bar is judged on books only."""
     def part(subset):
         return {"questions": len(subset), "recall_at_5": mean(r["recall_at_5"] for r in subset),
                 "mrr_at_10": mean(r["rr"] for r in subset)}
     summary = part(rows)
+    summary["groups"] = {g: part([r for r in rows if r["group"] == g])
+                         for g in ("books", "articles")}
     summary["per_book"] = {b: part([r for r in rows if r["book"] == b])
                            for b in sorted({r["book"] for r in rows})}
     summary["bar"] = RECALL_AT_5_BAR
+    summary["bar_met"] = (None if RECALL_AT_5_BAR is None
+                          else summary["groups"]["books"]["recall_at_5"] >= RECALL_AT_5_BAR)
     return summary
 
 
 def print_report(rows: list[dict], summary: dict) -> None:
-    print(f"recall@5 {summary['recall_at_5']:.3f}   MRR@10 {summary['mrr_at_10']:.3f}"
-          f"   ({summary['questions']} questions)")
+    for group in ("books", "articles"):
+        g = summary["groups"][group]
+        print(f"{group:<8} recall@5 {g['recall_at_5']:.3f}   MRR@10 {g['mrr_at_10']:.3f}"
+              f"   ({g['questions']} questions)")
+        if group == "books":
+            if RECALL_AT_5_BAR is None:
+                print("bar: not set yet")
+            else:
+                print(f"bar {RECALL_AT_5_BAR}: {'bar met' if summary['bar_met'] else 'bar not met'}")
     for book, s in summary["per_book"].items():
-        print(f"  {book:<28} recall@5 {s['recall_at_5']:.3f}   MRR@10 {s['mrr_at_10']:.3f}"
+        print(f"  {book:<34} recall@5 {s['recall_at_5']:.3f}   MRR@10 {s['mrr_at_10']:.3f}"
               f"   ({s['questions']})")
-    print("misses (expected page, rank found; - = not in top 10):")
+    print("misses (expected page or md, rank found; - = not in top 10):")
     for r in rows:
         if r["recall_at_5"] < 1:
-            found = ", ".join(f"p{p}: {rank or '-'}" for p, rank in zip(r["expect_pages"], r["ranks"]))
+            found = ", ".join(f"{'p' + str(p) if p is not None else 'md'}: {rank or '-'}"
+                              for p, rank in zip(r["expect_pages"], r["ranks"]))
             print(f"  {r['id']} [{r['book']}] {found}")
-    if RECALL_AT_5_BAR is None:
-        print("bar: not set yet")
-    else:
-        met = summary["recall_at_5"] >= RECALL_AT_5_BAR
-        print(f"bar {RECALL_AT_5_BAR}: {'bar met' if met else 'bar not met'}")
+
+
+def cite(result: dict) -> str:
+    """How a hit is named: slug and page for a paged chunk, else slug, title and URL."""
+    if result["page"] is not None:
+        return f"{result['source_slug']} p{result['page']}"
+    return f"{result['source_slug']} | {result['source_title']} | {result['source_url']}"
 
 
 def show_question(conn, question: str) -> None:
     for i, r in enumerate(search(conn, question, TOP_K), 1):
         text = " ".join(r["text"].split())[:200]
-        print(f"{i}. {r['source_slug']} p{r['page']} | {r['section_path']} | "
+        print(f"{i}. {cite(r)} | {r['section_path']} | "
               f"{r['score']:.4f}\n   {text}")
 
 
