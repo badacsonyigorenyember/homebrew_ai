@@ -12,6 +12,7 @@ stored. Tables and formulas are cut out and go through the doc → calculation p
 |---|---|---|---|---|---|---|
 | `palmer-how-to-brew` | *How to Brew*, Palmer & Kaminski, fourth edition 2017 | `books/how_to_brew.pdf` | 612 | 1–26 (cover, praise, contents, preface, acknowledgments, abbreviations), 579–612 (bibliography, index) | 943 (tokens min 32, median 273, max 514; measured) | 2026-10-16 |
 | `palmer-kaminski-water` | *Water: A Comprehensive Guide for Brewers*, Palmer & Kaminski, 2013 | `books/palmer_kaminski_water.pdf` | 273 | 1–18 (cover, contents, figure list, acknowledgments, foreword), 238–273 (last table page, index) | 357 (tokens min 35, median 319, max 514; measured) | 2026-10-16 |
+| `white-zainasheff-yeast` | *Yeast: The Practical Guide to Beer Fermentation*, White & Zainasheff, 2010 | `books/white_zainasheff_yeast.pdf` | 325 | 1–21 (cover, contents, acknowledgments, foreword, blank pages), 305–325 (blank page, figure credits, references, index) | 454 (tokens min 31, median 298, max 514; measured) | 2026-10-16 |
 
 Docling's hybrid chunker made 1,276 chunks for *How to Brew*. 132 fell on the skipped pages and
 201 had fewer than 20 words once tables and formula placeholders were cut, leaving 943. A second
@@ -24,14 +25,23 @@ fewer than 20 words once tables were cut, leaving 357 (fingerprint `ef0c023d3add
 a second ingest from a fresh Docling run gave the same). The PDF page is the printed page + 18.
 Its edition line is just `2013`: the copyright page gives the year and no edition number.
 
+*Yeast* took 2.1 minutes in Docling and made 526 chunks. 46 fell on the skipped pages and 26 had
+fewer than 20 words once tables were cut, leaving 454 (fingerprint `39be2bdfe4ece6a181d29f1dba225c24`;
+a second ingest with `--reuse-docling` gave the same). The PDF page is the printed page + 21. Its
+edition line is `2010` (copyright page: year only). The foreword is by another author and sits in
+the skipped front matter; the authors' own text starts with the Introduction on PDF page 22.
+
 ## 2. Adding a book
 
 1. Put the PDF in `shared/rag-files/books/`.
-2. Check it has a text layer: `pdffonts FILE` lists fonts. If it lists none, set `ocr=True` on the entry.
+2. Check it has a text layer: `pdffonts FILE` lists fonts (poppler may print "Syntax Error" lines
+   first; they are harmless). If it lists none, set `ocr=True` on the entry.
 3. Add one `Book` entry to `BOOKS` in `loaders/books.py` (slug, title, edition, publisher, licence,
-   `file_path`; read the first three from the PDF's copyright page, `pdftotext -f 4 -l 4 FILE -`
-   usually shows it. The page may give only a year: use that as the edition).
-4. Run `.venv/bin/python -m loaders.books <slug>`. A long book takes 10–20+ minutes in Docling; the
+   `file_path`; read the first three from the PDF's copyright page, `pdftotext -f 3 -l 4 FILE -`
+   usually shows it, on page 3 or 4. The page may give only a year: use that as the edition. Leave
+   `skip_pages` empty for the first run).
+4. Run `.venv/bin/python -m loaders.books <slug>`, in the background if your tool times out. Docling
+   took 2–3 minutes for the 273- and 325-page books and longer for a 612-page one; the
    run saves Docling's answer to `shared/rag-files/docling-chunks/<slug>.chunks.json` (gitignored).
 5. Read the printed stats, and look at the saved JSON and `pdftotext -f N -l N FILE` to find the
    contents, index, bibliography and reading-list pages (`for p in $(seq 1 N); do pdftotext -f $p -l $p FILE - | head -3; done`
@@ -142,3 +152,28 @@ list is by the chunk's first page):
 
 The pages that matter most for m7-process are chapters 4–7 and Appendices B–D. Docling marks few
 formulas, so most equations are still in the prose, undecoded (unverified).
+
+### *Yeast*
+
+Nothing is passed yet: no formula or table from this book is in `ref` or code. Its tables (strain
+overviews, nutrient and aeration data, pitching-rate and propagation tables, lab media recipes,
+the troubleshooting charts) go to m7-process and the later yeast work; `ref.yeast` comes from the
+shop's catalogue and the makers' sources, not from this book.
+
+Pages where the loader cut a markdown table or Docling left a formula placeholder, by part (52
+table pages and 2 formula pages outside the skipped ranges, measured 2026-10-16; the contents
+pages 4–11 were cut too but are skipped; the formula list is by the chunk's first page):
+
+| Part | PDF pages | Table pages | Formula pages |
+|---|---|---|---|
+| 1 Importance of yeast and fermentation | 22–37 | – | – |
+| 2 Biology, enzymes, esters | 38–61 | 45–46, 49–50, 53–55 | 45, 55 |
+| 3 Choosing the right yeast | 62–85 | 73–76, 78–79 | – |
+| 4 Fermentation | 86–141 | 100–103, 117, 124–128 | – |
+| 5 Yeast growth, handling, storage | 142–193 | 150–151, 161–164, 187–188 | – |
+| 6 Your own yeast lab | 194–281 | 213–214, 230–235, 242–245, 248–249, 266 | – |
+| 7 Troubleshooting | 282–304 | 299–304 | – |
+
+Pages 299–304 are the troubleshooting charts (problem-by-factor grids), cut whole; their
+captions stay in `kb`. Docling marks few formulas, so most equations are still in the prose
+(unverified).

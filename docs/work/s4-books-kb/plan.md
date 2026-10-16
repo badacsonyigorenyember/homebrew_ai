@@ -179,10 +179,10 @@ Commit: `Ingest Water into kb`
 ### Task 6: Ingest *Yeast* by following the docs (A6)
 Why: R7, A6, A1, A2.
 The PDF is `shared/rag-files/books/white_zainasheff_yeast.pdf` (checked 2026-10-16).
-- [ ] Before touching anything, record every book's chunk count. Then follow BOOKS.md §2 literally, with no step from outside it (slug `white-zainasheff-yeast`). Note any step that was missing or wrong, fix BOOKS.md, and record it as a Deviation line.
-- [ ] After: Yeast has a `ref.source` row with `file_path` and chunks; How to Brew and Water counts are unchanged (A6).
-- [ ] Second ingest of Yeast with `--reuse-docling`: count and fingerprint unchanged (A1).
-- [ ] BOOKS.md row and doc → calc note; PROJECT.md §5 row, §8 entry (A6 result with the counts).
+- [x] Before touching anything, record every book's chunk count. Then follow BOOKS.md §2 literally, with no step from outside it (slug `white-zainasheff-yeast`). Note any step that was missing or wrong, fix BOOKS.md, and record it as a Deviation line.
+- [x] After: Yeast has a `ref.source` row with `file_path` and chunks; How to Brew and Water counts are unchanged (A6).
+- [x] Second ingest of Yeast with `--reuse-docling`: count and fingerprint unchanged (A1).
+- [x] BOOKS.md row and doc → calc note; PROJECT.md §5 row, §8 entry (A6 result with the counts).
 Done when: A6 holds as measured, and `select s.slug, count(*) from kb.chunk c join ref.source s on s.id = c.source_id group by 1` shows three books.
 Commit: `Ingest Yeast into kb following docs/BOOKS.md`
 
@@ -253,3 +253,4 @@ Commit: `Record first retrieval run and the recall@5 bar`
 - 2026-10-16 · Task 4: `test_both_arms_rank_first` queries `"zyxquorble"` instead of `"zyxquorble fermentation"` — with How to Brew loaded, real chunks full of "fermentation" outranked the synthetic chunk, so the test did not hold "whether or not real chunks are loaded".
 - 2026-10-16 · Task 4: `strip_tables` also drops Docling's `<!-- formula-not-decoded -->` lines (77 in the first run); `skip_pages` for How to Brew is 1–26 and 579–612.
 - 2026-10-16 · Task 5: edition recorded as `2013` (the copyright page gives only the year); BOOKS.md §2 steps 3 and 5 now say where to read the copyright page and how to find chapter starts and the first index page — the index's first page held index text under the last table page's chunk, so `skip_pages` for Water starts at 238.
+- 2026-10-16 · Task 6: BOOKS.md §2 steps 2, 3, 4 changed — poppler prints harmless "Syntax Error" lines before `pdffonts` output; *Yeast*'s copyright page is PDF page 3, not 4; `skip_pages` is left empty on the first run (the doc did not say); Docling took 2.1 min here, so "10–20+ minutes" was wrong for a 325-page book.

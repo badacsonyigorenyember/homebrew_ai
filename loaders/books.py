@@ -53,6 +53,17 @@ BOOKS: dict[str, Book] = {
         skip_pages=((1, 18), (238, 273)),
         notes="Prose in kb.chunk; tables and formulas not passed yet, see docs/BOOKS.md",
     ),
+    "white-zainasheff-yeast": Book(
+        slug="white-zainasheff-yeast",
+        title="Yeast: The Practical Guide to Beer Fermentation",
+        edition="2010",  # the copyright page gives only the year
+        publisher="Brewers Publications",
+        licence="© Brewers Association, all rights reserved; personal copy, local use only",
+        file_path="shared/rag-files/books/white_zainasheff_yeast.pdf",
+        # cover to foreword (contents, acknowledgments, foreword, blank pages); blank page, figure credits, references, index
+        skip_pages=((1, 21), (305, 325)),
+        notes="Prose in kb.chunk; tables and formulas not passed yet, see docs/BOOKS.md",
+    ),
 }
 
 DOCLING_URL = "http://localhost:5001"
