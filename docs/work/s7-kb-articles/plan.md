@@ -1,6 +1,6 @@
 # S7 · Web articles and short papers into the knowledge base — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: s7-kb-articles
 
@@ -51,12 +51,12 @@ only). An expected passage from a Markdown source has a quote and no page.
 
 ### Task 1: The loader takes a Markdown source and drops named sections
 Why: R1, R2 (entries), R3, A1. This is the pure part, tested without the stack.
-- [ ] `loaders/books.py`, `Book`: add `url: str | None = None` and
+- [x] `loaders/books.py`, `Book`: add `url: str | None = None` and
       `drop_sections: tuple[str, ...] = ()`, which holds the heading texts whose chunks are left
       out (matched case-insensitively anywhere in the chunk's heading path). Update the module
       docstring: books **and articles**, and adding an article is one `ARTICLES` entry plus the
       same command (see docs/BOOKS.md).
-- [ ] Add `ARTICLES: dict[str, Book]` with the 12 entries below and
+- [x] Add `ARTICLES: dict[str, Book]` with the 12 entries below and
       `SOURCES = BOOKS | ARTICLES`. All files are under `shared/rag-files/`.
       - **title**: the page's `#` title line, or the title printed on the PDF.
       - **edition**: the date the page or PDF gives (read it from the file), else
@@ -87,17 +87,17 @@ Why: R1, R2 (entries), R3, A1. This is the pure part, tested without the stack.
       snippet matches the PDF's first paragraph, and the page was last edited on 25 February 2009.
       A direct fetch of the page returned HTTP 500 that day. Fetch it once more; if it still fails,
       keep the URL and note in BOOKS.md that it was not reachable on that date.
-- [ ] `clean_markdown(text: str) -> str`. Keep line 1, the `# ` title. Drop the lines from
+- [x] `clean_markdown(text: str) -> str`. Keep line 1, the `# ` title. Drop the lines from
       line 2 through the first line that starts with `Saved `. Raise `ValueError` if that block
       has no `Source:` line or no `Saved ` line within the first 10 lines, because a file saved
       another way must not leak its header into `kb`. Then remove the reference markers with
       `re.sub(r" ?\[\d+\]", "", text)`. Measured 2026-10-16: only the two Milk The Funk files
       have such markers (26 and 7), and no file has Markdown links.
-- [ ] `docling_form`: set `convert_from_formats` to `"md"` for a `.md` file, else `"pdf"`; keep
+- [x] `docling_form`: set `convert_from_formats` to `"md"` for a `.md` file, else `"pdf"`; keep
       the other fields (the full form with `md` was measured to work).
       `run_docling`: for `.md`, upload `clean_markdown(file text).encode()` as `(name, bytes,
       "text/markdown")`; for PDFs, change nothing.
-- [ ] `chunk_rows`:
+- [x] `chunk_rows`:
   - `page = min(page_numbers)` when the list is not empty. When it is empty: `None` for a `.md`
     source, and `ValueError` for a PDF source.
   - Apply the skip-page check only when `page` is not `None`.
@@ -105,7 +105,7 @@ Why: R1, R2 (entries), R3, A1. This is the pure part, tested without the stack.
     `stats["dropped_section"]`.
   - Add `stats["table_chunks"]`, the number of chunks that had a table or formula cut.
   - `main`: `choices=sorted(SOURCES)`, and print the two new counts.
-- [ ] Tests in `tests/test_books.py`, all unit:
+- [x] Tests in `tests/test_books.py`, all unit:
   - `test_clean_markdown_drops_header_and_markers`: a small inline document (header block,
     `[2]` marker, sections) keeps its title, and loses the `Source:`, credit and `Saved` lines and
     the marker.
@@ -124,7 +124,7 @@ Why: R1, R2 (entries), R3, A1. This is the pure part, tested without the stack.
   - `test_article_urls_match_source_lines`: for each Markdown entry except
     `bjcp-2021-introductions`, the URL equals the file's `Source:` URL. Skip the test if the file
     is missing, since `shared/rag-files/` is gitignored.
-- [ ] Run `.venv/bin/pytest tests/test_books.py -m "not stack"`, expect all to pass.
+- [x] Run `.venv/bin/pytest tests/test_books.py -m "not stack"`, expect all to pass.
 Done when: the unit tests pass, and `python -m loaders.books --help` lists the 17 slugs.
 Commit: `Load Markdown articles in the books loader`
 
