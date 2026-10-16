@@ -1,6 +1,6 @@
 # M3 · Step 3: the deviation report — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: m3-deviations
 
@@ -80,7 +80,7 @@ grades steps 2 and 3. `app.run_step.step` allows 0–16. Pipeline today: `Step 2
 
 ### Task 1: a wanted word resolves to its `ref` products
 Why: R4 (resolver), A7; M5 extends this first version.
-- [ ] `db/036_ingredient_resolver.sql` (header like `db/022_step2.sql`: purpose, "first version,
+- [x] `db/036_ingredient_resolver.sql` (header like `db/022_step2.sql`: purpose, "first version,
       extended by M5", needs `010_ref_schema.sql` and `015_app.sql`, apply command, idempotent;
       `create or replace`; `immutable` where no table is read). Comment at the top: the resolver
       keeps its own synonym list and never reads `evals/` or the brief fixtures.
@@ -99,9 +99,9 @@ Why: R4 (resolver), A7; M5 extends this first version.
         rules in order, written as two commented CTEs (`same_name`, `all_words`); the kind word is
         removed from the words for rule 2 only, and only when another word remains. Rows ordered
         by `name, ingredient_id`. `rule` is `same name` or `all words`.
-- [ ] Apply twice: `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1
+- [x] Apply twice: `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1
       < db/036_ingredient_resolver.sql`. Check `pg_proc`: the four functions owned by `postgres`.
-- [ ] Write `tests/test_ingredient_resolver.py` (stack unless said):
+- [x] Write `tests/test_ingredient_resolver.py` (stack unless said):
       `test_brief_wanted_words_resolve` (A7: `oats`, `rice`, `corn`, `honey`, `lactose` → exactly
       Flaked Oats, Flaked Rice, Flaked Corn, Honey, Lactose, one row each; and every `wanted`
       item of b01–b22 in `evals/recipe_briefs.toml` resolves to at least one row);
@@ -113,9 +113,9 @@ Why: R4 (resolver), A7; M5 extends this first version.
       `abbey yeast`); `test_unknown_word_resolves_to_nothing` (`unicorn tears` → no rows);
       `test_resolver_reads_no_fixture` (not stack: the SQL file does not contain
       `recipe_briefs`, `evals` or `SYNONYMS`).
-- [ ] Run `.venv/bin/pytest tests/test_ingredient_resolver.py`, expect all pass; then
+- [x] Run `.venv/bin/pytest tests/test_ingredient_resolver.py`, expect all pass; then
       `.venv/bin/pytest`, expect all pass.
-- [ ] `docs/DATABASE.md` §5: one line for the resolver. PROJECT.md §8 entry.
+- [x] `docs/DATABASE.md` §5: one line for the resolver. PROJECT.md §8 entry.
 Done when: the file applies twice cleanly, owned by `postgres`, and the resolver tests pass.
 Commit: `Add the first ingredient-word resolver`
 
