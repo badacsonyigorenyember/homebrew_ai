@@ -53,6 +53,6 @@ New findings:
 
 | # | Severity | Where | Finding | Why it matters |
 |---|---|---|---|---|
-| 8 | should-fix | docs/BOOKS.md:138 | Table 18.5 (the flake rows `adjunct-fermentables` loaded) is on PDF p. 315 (`pdftotext`; the adjunct-fermentables review also says p. 315). The row leaves table page 315 unmarked, so it reads "not passed yet", and puts `adjuncts` on formula page 316 instead, which only uses the 18.5 values. | R3 note names the wrong page for the adjunct pass. Docs only; no data affected. Fix: `315 (adjuncts)` in the table column, `316 (s1 §1)` in the formula column. |
+| 8 | should-fix (fixed) | docs/BOOKS.md:138 | Table 18.5 (the flake rows `adjunct-fermentables` loaded) is on PDF p. 315 (`pdftotext`; the adjunct-fermentables review also says p. 315). The row leaves table page 315 unmarked, so it reads "not passed yet", and puts `adjuncts` on formula page 316 instead, which only uses the 18.5 values. | R3 note names the wrong page for the adjunct pass. Docs only; no data affected. Fix: `315 (adjuncts)` in the table column, `316 (s1 §1)` in the formula column. |
 | 9 | note | docs/BOOKS.md:146 | Table A.2 (p. 491) is marked `(s1 §3)` although the note at :156 says section 3 only compared it with the formula and it is not a source. | A reader of the table column alone could take A.2 as turned into code. The note below the table explains it, so no action needed. |
 | 10 | note | docs/finished/s1-maths/doc-calc.md:11 | Still says "Palmer & Kaminski, *How to Brew*". | Outside this work's files (finished s1-maths); listed only so it is known. |
