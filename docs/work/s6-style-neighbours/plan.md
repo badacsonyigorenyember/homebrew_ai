@@ -1,6 +1,6 @@
 # S6 · Neighbouring styles: step 2 checks and an envelope cross-check — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: s6-style-neighbours
 
@@ -8,7 +8,7 @@ Branch: s6-style-neighbours
 Three separate outputs, none of which changes step 2:
 
 1. **Check set and runner.** One TOML file, `evals/style_neighbours.toml`, holds the 91 study-guide
-   triples (study-guide id, names as printed, BJCP 2021 codes) and 84 briefs (one per distinct
+   triples (study-guide id, names as printed, BJCP 2021 codes) and 83 briefs (one per distinct
    code). Each brief is the user's sentence plus the step 1 brief it should produce: `named` empty,
    1–2 `stated` numbers, 2–4 descriptive words split into `hints` (step 1's hint words) and
    `unknown` (any other word, as step 1 files words that fit no field). Tests check the set
@@ -16,7 +16,7 @@ Three separate outputs, none of which changes step 2:
    brief to `app.step2_best_style(brief, request, 'any')` in two runs and reports right-first,
    top 3 and the confusions per triple for both, side by side, with the gap. No pass bar
    (decision 2).
-   - **Run A**: the brief as written, `named` empty. All 84 briefs.
+   - **Run A**: the brief as written, `named` empty. All 83 briefs.
    - **Run B**: the same brief with the triple's family noun as `named`. Only briefs in a triple
      whose three styles share one family (measured 2026-10-16: 50 triples, 61 briefs); the other
      41 triples run only in A and are marked `mixed` and counted.
@@ -58,7 +58,7 @@ for. Run B passes the same request; the family noun enters only as `named`.
 ## Files
 | Path | New / changed | Purpose |
 |---|---|---|
-| `evals/style_neighbours.toml` | new | 91 `[[triple]]` and 84 `[[brief]]` (R1, R2) |
+| `evals/style_neighbours.toml` | new | 91 `[[triple]]` and 83 `[[brief]]` (R1, R2) |
 | `evals/style_neighbours.py` | new | runner: `python -m evals.style_neighbours [--save]` (R3) |
 | `tests/test_style_neighbours.py` | new | check-set tests (A1, A2) and runner unit tests |
 | `evals/results/<date>-s6.json` | new | first measured run (R3, R4) |
@@ -72,11 +72,11 @@ for. Run B passes the same request; the family noun enters only as `named`.
 ## Tasks
 
 ### Task 1: The 91 study-guide triples, with their BJCP 2021 codes
-Why: R1, A1 (the triples and the 84 styles everything else is built on).
-- [ ] Extract the S0 table from `shared/rag-files/books/bjcp_exam_study_guide_2017.pdf` (pages
+Why: R1, A1 (the triples and the 83 styles everything else is built on).
+- [x] Extract the S0 table from `shared/rag-files/books/bjcp_exam_study_guide_2017.pdf` (pages
       30–33 as printed; `pdftotext -layout` into the scratchpad, never into the repo). IDs run 1–110;
       19 are "Pairing removed": 8, 19, 20, 33, 36, 40, 43, 45, 55, 72, 83, 97–104. 91 remain.
-- [ ] Create `evals/style_neighbours.toml`. Header comment: what the file is, the source (study
+- [x] Create `evals/style_neighbours.toml`. Header comment: what the file is, the source (study
       guide 2017, question S0, 91 triples), that briefs paraphrase the BJCP 2021 guidelines, the
       fields, and "checked by `tests/test_style_neighbours.py`". One `[[triple]]` per remaining ID:
       `id` (integer, the study-guide ID), `names` (three strings exactly as printed, accents kept),
@@ -86,9 +86,9 @@ Why: R1, A1 (the triples and the 84 styles everything else is built on).
       Kölsch = Kolsch 5B), except four names mapped by hand: `Vienna` → 7A Vienna Lager,
       `English Barleywine` → 17D English Barley Wine, `Trappist Single` → 26A Belgian Single,
       `Belgian IPA` → 21B Specialty IPA (Belgian IPA is one of its types).
-- [ ] Write `tests/test_style_neighbours.py` with:
+- [x] Write `tests/test_style_neighbours.py` with:
       `test_triples_are_the_91` (91 triples, ids unique, none of the 19 removed ids, each with 3
-      names and 3 distinct codes), `test_84_distinct_styles` (the union of codes has 84 members),
+      names and 3 distinct codes), `test_83_distinct_styles` (the union of codes has 83 members),
       and stack test `test_triple_names_match_2021` (every name, accent-folded and case-folded,
       equals the `ref.beer_style` name of its code, except the four hand-mapped names above, which
       must map to exactly those codes); stack test `test_triple_family_from_2021_tags` (each
@@ -98,14 +98,14 @@ Why: R1, A1 (the triples and the 84 styles everything else is built on).
       ipa, porter, stout, wheat; stack: it is no BJCP 2021 style name and no alias, after
       `app.style_words`); `test_one_family_per_style` (a style in several single-family triples
       gets the same noun in each).
-- [ ] Run `.venv/bin/pytest tests/test_style_neighbours.py`, expect all to pass.
-- [ ] PROJECT.md §8 line.
+- [x] Run `.venv/bin/pytest tests/test_style_neighbours.py`, expect all to pass.
+- [x] PROJECT.md §8 line.
 Done when: the tests pass.
 Commit: `Add the 91 BJCP exam style triples`
 
-### Task 2: One brief per triple style (84)
+### Task 2: One brief per triple style (83)
 Why: R1, R2, decision 1 (A1, A2).
-- [ ] Add 84 `[[brief]]` to `evals/style_neighbours.toml`, one per distinct code, ordered by code.
+- [ ] Add 83 `[[brief]]` to `evals/style_neighbours.toml`, one per distinct code, ordered by code.
       Fields: `code`, `partners` (sorted codes of every style that shares a triple with it),
       `request`, `named = ""`, `stated` (table, keys only from `abv`, `og`, `ibu`, `srm`),
       `hints` (only words from step 1's hint list: bitter, hoppy, juicy, dry, crisp, full, chewy,
@@ -126,7 +126,7 @@ Why: R1, R2, decision 1 (A1, A2).
         family noun (the list in `test_no_style_name_in_request`);
       - paraphrase only; no phrase of more than a few words copied from the guidelines.
 - [ ] Add to `tests/test_style_neighbours.py`:
-      - `test_one_brief_per_triple_style` (A1): brief codes are unique and equal the 84 triple codes;
+      - `test_one_brief_per_triple_style` (A1): brief codes are unique and equal the 83 triple codes;
       - `test_partners_match_triples` (A1): each `partners` equals the derivation from `[[triple]]`;
       - `test_brief_shape` (A2): `named` is empty; 1–2 `stated` keys, all in abv/og/ibu/srm;
         `hints` within the hint list; 2–4 words in `hints` + `unknown`, each one lower-case word
@@ -148,8 +148,8 @@ Why: R1, R2, decision 1 (A1, A2).
 - [ ] Run `.venv/bin/pytest tests/test_style_neighbours.py`, expect all to pass. Do not run step 2
       on the briefs while writing them (the set must not be fitted to the scorer).
 - [ ] PROJECT.md §8 line.
-Done when: 84 briefs exist and every test above passes.
-Commit: `Add 84 style-neighbour briefs`
+Done when: 83 briefs exist and every test above passes.
+Commit: `Add 83 style-neighbour briefs`
 
 ### Task 3: Runner and the first measured run
 Why: R3, R4 (A3, A4).
@@ -171,7 +171,7 @@ Why: R3, R4 (A3, A4).
         partner code picked instead, or `other <code>` (BA picks named) / `none`;
       - `name_scores(conn, family, codes)` → per style, `app.style_name_score(family, name,
         aliases)` (aliases from `app.style_alias()`), shown on Run B's triple lines;
-      - `main()` prints the guide, then a side-by-side table: Run A on all 84, Run A on the Run B
+      - `main()` prints the guide, then a side-by-side table: Run A on all 83, Run A on the Run B
         briefs, Run B, and the gap B − A on those same briefs (right-first and top 3, as `x/n` and
         %); then one line per triple with A's confusions and, for single-family triples, B's
         confusions and name scores; `mixed` triples are marked "A only" and counted.
@@ -185,7 +185,7 @@ Why: R3, R4 (A3, A4).
       is `other`, a BA pick is `other BA <code>`, no style is `none`),
       `test_run_b_only_single_family` (`run_b_family` holds exactly the styles of triples with a
       non-empty `family`, 61 codes on the real file), `test_gap_on_same_briefs` (the gap compares
-      Run A and Run B on the same codes, never A's 84 against B's subset).
+      Run A and Run B on the same codes, never A's 83 against B's subset).
       Stack tests: `test_measure_one_brief` (`measure()` returns all five keys, `picked` a code,
       `BA <code>` or None, at most 3 `top3`); `test_ba_candidate_written_as_pair` (a brief whose
       top candidates include a paired BA style shows the BJCP pair in `top3`; pick the brief by
@@ -195,7 +195,7 @@ Why: R3, R4 (A3, A4).
       change any brief after seeing the result (if a brief is found to break a Task 2 rule,
       fix it, re-run, and say so in a Deviations line).
 - [ ] Check A4: `git diff main -- db/022_step2.sql` is empty.
-- [ ] PROJECT.md §8 line with the measured numbers: Run A right-first and top 3 on 84; Run A and
+- [ ] PROJECT.md §8 line with the measured numbers: Run A right-first and top 3 on 83; Run A and
       Run B on the Run B briefs and the gap; no-style and BA-pick counts; mixed triples (A only);
       the triples with the most confusions; the results path; and "no pass bar; tuning step 2 is
       decided from this result, not in this work".
@@ -286,7 +286,7 @@ Commit: `Apply agreed envelope fixes from Barnes check`
 ## Critical behaviour and its tests
 | Behaviour | Test | Task |
 |---|---|---|
-| The triples and their codes match the study guide and `ref` (a wrong code makes every confusion wrong) | `test_triples_are_the_91`, `test_84_distinct_styles`, `test_triple_names_match_2021` | 1 |
+| The triples and their codes match the study guide and `ref` (a wrong code makes every confusion wrong) | `test_triples_are_the_91`, `test_83_distinct_styles`, `test_triple_names_match_2021` | 1 |
 | Each triple's family noun follows BJCP's family tags and is a family word only, never a style name | `test_triple_family_from_2021_tags`, `test_family_is_a_family_word_only`, `test_one_family_per_style` | 1 |
 | No brief gives its style away by name or alias | `test_no_style_name_in_request`, `test_brief_shape` (`named` empty) | 2 |
 | Every brief number and word comes from the style's 2021 entry, numbers in range | `test_stated_numbers_in_2021_range`, `test_words_from_2021_entry`, `test_brief_shape` | 2 |
@@ -304,3 +304,5 @@ Commit: `Apply agreed envelope fixes from Barnes check`
   with the triple's family noun as `named`, plus the gap; mixed triples A only, marked and counted.
   Triples get a `family` field from BJCP's 2021 family tags; how `named` scores is stated in the
   Approach — the user's answers "1b" and "2c" at plan review.
+- 2026-10-16 · Tasks 1-3: 83 distinct styles and briefs, not 84 — the 84 counted printed names, and
+  "Vienna" (hand-mapped) and "Vienna Lager" are both 7A. Run B stays at 61 briefs (measured).

@@ -63,8 +63,8 @@ Out:
   are BJCP only; BA styles are still scored, since the guide is `any`). Envelopes for new styles.
 
 ## Requirements
-R1. The check set has one brief per distinct style in the 91 triples (84 names, the four mapped as
-    above), each with the expected BJCP 2021 code and its triple partners; no brief's Run A text
+R1. The check set has one brief per distinct style in the 91 triples (83 styles from 84 names: Vienna, mapped
+    above, and Vienna Lager are both 7A), each with the expected BJCP 2021 code and its triple partners; no brief's Run A text
     contains the style's name or an alias from `app.style_alias()`. A family noun appears only in
     Run B, and only as the family word in `named`.
 R2. Each brief states one or two numbers and two to four descriptive words. Every number and
@@ -106,7 +106,7 @@ R7. A note in this folder compares the 2021 specialty-entry text with the D1 rul
   headers; check per style)*.
 
 ## Acceptance criteria
-A1. The check set exists with one brief per triple style (84), each with expected code and
+A1. The check set exists with one brief per triple style (83), each with expected code and
     partners; a test confirms no brief's Run A text contains its style's name or alias, and that
     each family noun is a family word only (R1).
 A2. A test confirms each brief has one or two stated numbers and two to four descriptive words,
@@ -137,3 +137,5 @@ A6. The specialty-entry note exists, and any D1 change was approved by you or re
   and runs every brief twice, A without and B with the triple's family noun as `named`, reported
   side by side with the gap; triples spanning families run only in A, marked and counted — your
   answers "1b" and "2c" at plan review. Assumption added: `named` boosts, it does not filter.
+- 2026-10-16 · R1, A1: 83 briefs, not 84 — 84 counted printed names; Vienna and Vienna Lager are the
+  same style (7A). Found when the triples were built.

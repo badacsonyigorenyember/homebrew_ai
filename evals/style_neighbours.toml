@@ -1,0 +1,571 @@
+# Style-neighbour check set (work item s6-style-neighbours).
+#
+# What it is: the BJCP exam's "which of these three similar styles?" groupings, as test cases for
+# step 2 (best-fit style). Checked by tests/test_style_neighbours.py; run by
+# `python -m evals.style_neighbours`.
+#
+# Source: BJCP Exam Study Guide 2017, question S0 (pages 30-33 as printed). 110 ids were issued;
+# 19 are "Pairing removed", so 91 triples remain. The guide's ids are kept as printed.
+#
+# [[triple]] fields
+#   id      the study-guide id
+#   names   the three style names exactly as the study guide prints them
+#   codes   their BJCP 2021 codes, same order. Found by name in ref.beer_style (accents folded:
+#           Märzen = Marzen 6A, Kölsch = Kolsch 5B), except four names mapped by hand:
+#           Vienna -> 7A Vienna Lager, English Barleywine -> 17D English Barley Wine,
+#           Trappist Single -> 26A Belgian Single, Belgian IPA -> 21B Specialty IPA
+#           (Belgian IPA is one of its types).
+#   family  the one family noun a user could write that fits all three styles, or "" when the
+#           styles span families. A style's family is its BJCP 2021 family tag, turned into a noun:
+#             amber-ale, brown-ale, pale-ale, strong-ale   -> ale
+#             amber-lager, dark-lager, pale-lager, pilsner -> lager
+#             bock -> bock, ipa -> ipa, porter -> porter, stout -> stout, wheat-beer -> wheat
+#           (the data's typos bockfamily and dark-lagerfamily read the same; specialty-family is
+#           ignored; styles with no family tag have no noun). BJCP files lambics and Berliner
+#           Weisse under wheat-beer, so their noun is wheat. That is BJCP's grouping, kept as is.
+#
+[[triple]]
+id = 1
+names = ["American Amber Ale", "American Brown Ale", "American Pale Ale"]
+codes = ["19A", "19C", "18B"]
+family = "ale"
+
+[[triple]]
+id = 2
+names = ["American Amber Ale", "American Pale Ale", "California Common"]
+codes = ["19A", "18B", "19B"]
+family = ""
+
+[[triple]]
+id = 3
+names = ["American Barleywine", "Double IPA", "English Barleywine"]
+codes = ["22C", "22A", "17D"]
+family = ""
+
+[[triple]]
+id = 4
+names = ["American Barleywine", "English Barleywine", "Wee Heavy"]
+codes = ["22C", "17D", "17C"]
+family = "ale"
+
+[[triple]]
+id = 5
+names = ["American Barleywine", "Old Ale", "Wee Heavy"]
+codes = ["22C", "17B", "17C"]
+family = "ale"
+
+[[triple]]
+id = 6
+names = ["American Brown Ale", "American Pale Ale", "California Common"]
+codes = ["19C", "18B", "19B"]
+family = ""
+
+[[triple]]
+id = 7
+names = ["American Brown Ale", "British Brown Ale", "Dark Mild"]
+codes = ["19C", "13B", "13A"]
+family = "ale"
+
+[[triple]]
+id = 9
+names = ["American IPA", "Double IPA", "English IPA"]
+codes = ["21A", "22A", "12C"]
+family = "ipa"
+
+[[triple]]
+id = 10
+names = ["American Pale Ale", "Belgian Pale Ale", "Strong Bitter"]
+codes = ["18B", "24B", "11C"]
+family = "ale"
+
+[[triple]]
+id = 11
+names = ["American Pale Ale", "English Barleywine", "Wee Heavy"]
+codes = ["18B", "17D", "17C"]
+family = "ale"
+
+[[triple]]
+id = 12
+names = ["American Stout", "Foreign Extra Stout", "Irish Stout"]
+codes = ["20B", "16D", "15B"]
+family = "stout"
+
+[[triple]]
+id = 13
+names = ["American Stout", "Irish Stout", "Oatmeal Stout"]
+codes = ["20B", "15B", "16B"]
+family = "stout"
+
+[[triple]]
+id = 14
+names = ["American Stout", "American Porter", "Irish Stout"]
+codes = ["20B", "20A", "15B"]
+family = ""
+
+[[triple]]
+id = 15
+names = ["American Stout", "Irish Stout", "Sweet Stout"]
+codes = ["20B", "15B", "16A"]
+family = "stout"
+
+[[triple]]
+id = 16
+names = ["American Stout", "Foreign Extra Stout", "Oatmeal Stout"]
+codes = ["20B", "16D", "16B"]
+family = "stout"
+
+[[triple]]
+id = 17
+names = ["American Porter", "American Stout", "Foreign Extra Stout"]
+codes = ["20A", "20B", "16D"]
+family = ""
+
+[[triple]]
+id = 18
+names = ["American Stout", "Foreign Extra Stout", "Sweet Stout"]
+codes = ["20B", "16D", "16A"]
+family = "stout"
+
+[[triple]]
+id = 21
+names = ["American Wheat Beer", "Lambic", "Weissbier"]
+codes = ["1D", "23D", "10A"]
+family = "wheat"
+
+[[triple]]
+id = 22
+names = ["American Wheat Beer", "Weissbier", "Witbier"]
+codes = ["1D", "10A", "24A"]
+family = "wheat"
+
+[[triple]]
+id = 23
+names = ["Baltic Porter", "Belgian Dark Strong Ale", "Imperial Stout"]
+codes = ["9C", "26D", "20C"]
+family = ""
+
+[[triple]]
+id = 24
+names = ["Belgian Blond Ale", "Belgian Dubbel", "Belgian Tripel"]
+codes = ["25A", "26B", "26C"]
+family = ""
+
+[[triple]]
+id = 25
+names = ["Belgian Blond Ale", "Belgian Golden Strong Ale", "Belgian Tripel"]
+codes = ["25A", "25C", "26C"]
+family = ""
+
+[[triple]]
+id = 26
+names = ["Belgian Blond Ale", "Belgian Pale Ale", "Saison"]
+codes = ["25A", "24B", "25B"]
+family = ""
+
+[[triple]]
+id = 27
+names = ["Belgian Dark Strong Ale", "Double IPA", "Wee Heavy"]
+codes = ["26D", "22A", "17C"]
+family = ""
+
+[[triple]]
+id = 28
+names = ["Belgian Dark Strong Ale", "Belgian Dubbel", "Weizenbock"]
+codes = ["26D", "26B", "10C"]
+family = ""
+
+[[triple]]
+id = 29
+names = ["Belgian Pale Ale", "Bière de Garde", "Saison"]
+codes = ["24B", "24C", "25B"]
+family = ""
+
+[[triple]]
+id = 30
+names = ["Berliner Weisse", "Flanders Red Ale", "Lambic"]
+codes = ["23A", "23B", "23D"]
+family = ""
+
+[[triple]]
+id = 31
+names = ["Berliner Weisse", "Gueuze", "Lambic"]
+codes = ["23A", "23E", "23D"]
+family = "wheat"
+
+[[triple]]
+id = 32
+names = ["Berliner Weisse", "Weissbier", "Witbier"]
+codes = ["23A", "10A", "24A"]
+family = "wheat"
+
+[[triple]]
+id = 34
+names = ["Bière de Garde", "California Common", "International Amber Lager"]
+codes = ["24C", "19B", "2B"]
+family = ""
+
+[[triple]]
+id = 35
+names = ["Blonde Ale", "Cream Ale", "Kölsch"]
+codes = ["18A", "1C", "5B"]
+family = "ale"
+
+[[triple]]
+id = 37
+names = ["Czech Premium Pale Lager", "German Pils", "International Pale Lager"]
+codes = ["3B", "5D", "2A"]
+family = "lager"
+
+[[triple]]
+id = 38
+names = ["American Lager", "Czech Premium Pale Lager", "German Pils"]
+codes = ["1B", "3B", "5D"]
+family = "lager"
+
+[[triple]]
+id = 39
+names = ["American Porter", "English Porter", "Irish Stout"]
+codes = ["20A", "13C", "15B"]
+family = ""
+
+[[triple]]
+id = 41
+names = ["British Brown Ale", "English Porter", "Munich Dunkel"]
+codes = ["13B", "13C", "8A"]
+family = ""
+
+[[triple]]
+id = 42
+names = ["English Porter", "Munich Dunkel", "Schwarzbier"]
+codes = ["13C", "8A", "8B"]
+family = ""
+
+[[triple]]
+id = 44
+names = ["California Common", "Irish Red Ale", "Märzen"]
+codes = ["19B", "15A", "6A"]
+family = ""
+
+[[triple]]
+id = 46
+names = ["Cream Ale", "Kölsch", "Munich Helles"]
+codes = ["1C", "5B", "4A"]
+family = ""
+
+[[triple]]
+id = 47
+names = ["International Dark Lager", "Munich Dunkel", "Schwarzbier"]
+codes = ["2C", "8A", "8B"]
+family = "lager"
+
+[[triple]]
+id = 48
+names = ["Doppelbock", "Eisbock", "Helles Bock"]
+codes = ["9A", "9B", "4C"]
+family = "bock"
+
+[[triple]]
+id = 49
+names = ["Doppelbock", "Dunkles Bock", "Eisbock"]
+codes = ["9A", "6C", "9B"]
+family = "bock"
+
+[[triple]]
+id = 50
+names = ["Doppelbock", "Dunkles Bock", "Helles Bock"]
+codes = ["9A", "6C", "4C"]
+family = "bock"
+
+[[triple]]
+id = 51
+names = ["Doppelbock", "Dunkles Bock", "Weizenbock"]
+codes = ["9A", "6C", "10C"]
+family = ""
+
+[[triple]]
+id = 52
+names = ["German Pils", "German Helles Exportbier", "Munich Helles"]
+codes = ["5D", "5C", "4A"]
+family = "lager"
+
+[[triple]]
+id = 53
+names = ["Foreign Extra Stout", "Irish Stout", "Sweet Stout"]
+codes = ["16D", "15B", "16A"]
+family = "stout"
+
+[[triple]]
+id = 54
+names = ["American Porter", "Irish Stout", "Schwarzbier"]
+codes = ["20A", "15B", "8B"]
+family = ""
+
+[[triple]]
+id = 56
+names = ["Dunkles Weissbier", "Weissbier", "Weizenbock"]
+codes = ["10B", "10A", "10C"]
+family = "wheat"
+
+[[triple]]
+id = 57
+names = ["Altbier", "International Amber Lager", "Irish Red Ale"]
+codes = ["7B", "2B", "15A"]
+family = ""
+
+[[triple]]
+id = 58
+names = ["Altbier", "International Amber Lager", "Märzen"]
+codes = ["7B", "2B", "6A"]
+family = ""
+
+[[triple]]
+id = 59
+names = ["Altbier", "Best Bitter", "Märzen"]
+codes = ["7B", "11B", "6A"]
+family = ""
+
+[[triple]]
+id = 60
+names = ["Altbier", "Märzen", "Vienna Lager"]
+codes = ["7B", "6A", "7A"]
+family = ""
+
+[[triple]]
+id = 61
+names = ["Dunkles Bock", "Eisbock", "Helles Bock"]
+codes = ["6C", "9B", "4C"]
+family = "bock"
+
+[[triple]]
+id = 62
+names = ["English Barleywine", "Imperial Stout", "Wee Heavy"]
+codes = ["17D", "20C", "17C"]
+family = ""
+
+[[triple]]
+id = 63
+names = ["English Barleywine", "Old Ale", "Wee Heavy"]
+codes = ["17D", "17B", "17C"]
+family = "ale"
+
+[[triple]]
+id = 64
+names = ["Flanders Red Ale", "Lambic", "Oud Bruin"]
+codes = ["23B", "23D", "23C"]
+family = ""
+
+[[triple]]
+id = 65
+names = ["American Porter", "Baltic Porter", "Foreign Extra Stout"]
+codes = ["20A", "9C", "16D"]
+family = ""
+
+[[triple]]
+id = 66
+names = ["American Porter", "Foreign Extra Stout", "Sweet Stout"]
+codes = ["20A", "16D", "16A"]
+family = ""
+
+[[triple]]
+id = 67
+names = ["Fruit Lambic", "Gueuze", "Lambic"]
+codes = ["23F", "23E", "23D"]
+family = "wheat"
+
+[[triple]]
+id = 68
+names = ["German Pils", "Munich Helles", "Schwarzbier"]
+codes = ["5D", "4A", "8B"]
+family = "lager"
+
+[[triple]]
+id = 69
+names = ["International Amber Lager", "Irish Red Ale", "Märzen"]
+codes = ["2B", "15A", "6A"]
+family = ""
+
+[[triple]]
+id = 70
+names = ["American Lager", "American Light Lager", "International Pale Lager"]
+codes = ["1B", "1A", "2A"]
+family = "lager"
+
+[[triple]]
+id = 71
+names = ["Dark Mild", "Ordinary Bitter", "Scottish Light"]
+codes = ["13A", "11A", "14A"]
+family = "ale"
+
+[[triple]]
+id = 73
+names = ["Munich Helles", "Munich Dunkel", "Märzen"]
+codes = ["4A", "8A", "6A"]
+family = "lager"
+
+[[triple]]
+id = 74
+names = ["Munich Helles", "Märzen", "Vienna Lager"]
+codes = ["4A", "6A", "7A"]
+family = "lager"
+
+[[triple]]
+id = 75
+names = ["Best Bitter", "International Amber Lager", "Märzen"]
+codes = ["11B", "2B", "6A"]
+family = ""
+
+[[triple]]
+id = 76
+names = ["Dunkles Bock", "Märzen", "Rauchbier"]
+codes = ["6C", "6A", "6B"]
+family = ""
+
+[[triple]]
+id = 77
+names = ["Scottish Export", "Scottish Heavy", "Wee Heavy"]
+codes = ["14C", "14B", "17C"]
+family = "ale"
+
+[[triple]]
+id = 78
+names = ["Dark Mild", "Scottish Heavy", "Scottish Light"]
+codes = ["13A", "14B", "14A"]
+family = "ale"
+
+[[triple]]
+id = 79
+names = ["Scottish Export", "Scottish Heavy", "Scottish Light"]
+codes = ["14C", "14B", "14A"]
+family = "ale"
+
+[[triple]]
+id = 80
+names = ["Ordinary Bitter", "Scottish Heavy", "Scottish Light"]
+codes = ["11A", "14B", "14A"]
+family = "ale"
+
+[[triple]]
+id = 81
+names = ["Scottish Heavy", "Scottish Light", "Wee Heavy"]
+codes = ["14B", "14A", "17C"]
+family = "ale"
+
+[[triple]]
+id = 82
+names = ["Scottish Export", "Scottish Light", "Wee Heavy"]
+codes = ["14C", "14A", "17C"]
+family = "ale"
+
+[[triple]]
+id = 84
+names = ["Best Bitter", "Ordinary Bitter", "Strong Bitter"]
+codes = ["11B", "11A", "11C"]
+family = "ale"
+
+[[triple]]
+id = 85
+names = ["Lambic", "Weissbier", "Witbier"]
+codes = ["23D", "10A", "24A"]
+family = "wheat"
+
+[[triple]]
+id = 86
+names = ["Dunkles Bock", "Märzen", "Munich Dunkel"]
+codes = ["6C", "6A", "8A"]
+family = ""
+
+[[triple]]
+id = 87
+names = ["American Lager", "American Wheat Beer", "Cream Ale"]
+codes = ["1B", "1D", "1C"]
+family = ""
+
+[[triple]]
+id = 88
+names = ["American Light Lager", "Czech Pale Lager", "German Leichtbier"]
+codes = ["1A", "3A", "5A"]
+family = "lager"
+
+[[triple]]
+id = 89
+names = ["Festbier", "Helles Bock", "Munich Helles"]
+codes = ["4B", "4C", "4A"]
+family = ""
+
+[[triple]]
+id = 90
+names = ["Czech Amber Lager", "Dunkles Bock", "Märzen"]
+codes = ["3C", "6C", "6A"]
+family = ""
+
+[[triple]]
+id = 91
+names = ["American Pale Ale", "Best Bitter", "British Golden Ale"]
+codes = ["18B", "11B", "12A"]
+family = "ale"
+
+[[triple]]
+id = 92
+names = ["Australian Sparkling Ale", "Best Bitter", "British Golden Ale"]
+codes = ["12B", "11B", "12A"]
+family = "ale"
+
+[[triple]]
+id = 93
+names = ["Foreign Extra Stout", "Irish Extra Stout", "Irish Stout"]
+codes = ["16D", "15C", "15B"]
+family = "stout"
+
+[[triple]]
+id = 94
+names = ["Foreign Extra Stout", "Sweet Stout", "Tropical Stout"]
+codes = ["16D", "16A", "16C"]
+family = "stout"
+
+[[triple]]
+id = 95
+names = ["British Strong Ale", "English Barleywine", "Old Ale"]
+codes = ["17A", "17D", "17B"]
+family = "ale"
+
+[[triple]]
+id = 96
+names = ["American IPA", "Belgian Golden Strong Ale", "Belgian IPA"]
+codes = ["21A", "25C", "21B"]
+family = ""
+
+[[triple]]
+id = 105
+names = ["American Barleywine", "American Strong Ale", "Double IPA"]
+codes = ["22C", "22B", "22A"]
+family = ""
+
+[[triple]]
+id = 106
+names = ["Belgian Tripel", "German Pils", "Trappist Single"]
+codes = ["26C", "5D", "26A"]
+family = ""
+
+[[triple]]
+id = 107
+names = ["Czech Amber Lager", "International Amber Lager", "Vienna"]
+codes = ["3C", "2B", "7A"]
+family = "lager"
+
+[[triple]]
+id = 108
+names = ["Czech Pale Lager", "Czech Premium Pale Lager", "German Pils"]
+codes = ["3A", "3B", "5D"]
+family = "lager"
+
+[[triple]]
+id = 109
+names = ["American Barleywine", "American Wheat Beer", "Wheatwine"]
+codes = ["22C", "1D", "22D"]
+family = ""
+
+[[triple]]
+id = 110
+names = ["American Porter", "American Stout", "Imperial Stout"]
+codes = ["20A", "20B", "20C"]
+family = ""
