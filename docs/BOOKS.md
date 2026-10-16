@@ -70,8 +70,9 @@ tuned; a tuning TODO is in [RECIPE-ROADMAP](RECIPE-ROADMAP.md) §8 Later.
 
 ## 1c. Articles in `kb`
 
-Ten Markdown sources, ingested 2026-10-16 with `python -m loaders.books <slug>` (205 chunks;
-`page` is null, `ref.source.url` is set). The saved page's header lines and the Milk The Funk
+Ten Markdown sources (205 chunks; `page` is null) and two PDF sources (53 chunks; every chunk has
+a page), ingested 2026-10-16 with `python -m loaders.books <slug>`; `ref.source.url` is set for all
+twelve. The saved page's header lines and the Milk The Funk
 `[n]` markers are cleaned off before Docling, and the sections named in the "Left out" column are
 dropped by heading afterwards. All figures measured. The books still hold 2,180 chunks (943 / 357 /
 454 / 341 / 85).
@@ -88,13 +89,19 @@ dropped by heading afterwards. All figures measured. The books still hold 2,180 
 | `mtf-lactobacillus-fermentation` | `articles/mtf_lactobacillus_fermentation.md` | https://www.milkthefunk.com/wiki/Lactobacillus_Fermentation | See Also, References (3 chunks) | 7 (70 / 187 / 481) | 1 |
 | `brunwater-water-knowledge` | `water/brunwater_water_knowledge.md` | https://www.brunwater.com/water-knowledge | 5. References (2 chunks) | 78 (72 / 374 / 514) | 0 |
 | `bjcp-2021-introductions` | `styles/bjcp_2021_introductions.md` | https://styles.bjcp.org/bjcp-2021-beer/ | – | 42 (39 / 290 / 515) | 2 |
+| `troester-mash-parameters` | `articles/braukaiser_mash_parameters_2009.pdf` | https://braukaiser.com/wiki/index.php/Effects_of_mash_parameters_on_fermentability_and_efficiency_in_single_infusion_mashing | pages 22-23 (appendix tables, "Sources" list) | 26 (100 / 362 / 507) | 2 (pp. 4, 5, 18, 19) |
+| `janish-dry-hop-best-practices-tq` | `articles/janish_dry_hop_best_practices_tq_2021.pdf` | https://doi.org/10.1094/TQ-58-1-0402-01 | page 1 (MBAA cover); References (3 chunks) | 27 (64 / 342 / 511) | 1 (p. 5) |
 
 Re-running `janish-ph-hoppy-beers` with `--reuse-docling` gave the same 9 chunks and the same
 fingerprint (`md5(string_agg(text, '|' order by section_path, text))` =
 `e9bee0aa94a984ac6ae6baed9c70c0e9`), and no other source's count changed.
 
-The two PDF articles (Troester's mash-parameters paper and Janish's TQ dry-hop paper) are loaded by
-the next step of s7; they are added here when they are.
+Troester's mash-parameters PDF: its page 21 holds the conclusion prose, which is kept (chunks on
+pp. 19-20 in `kb`); only the appendix tables and the "Sources" list on pp. 22-23 are skipped. The
+TQ paper's cover page was skipped and its three `REFERENCES` chunks (page 8) dropped by section.
+Checks for both PDFs (header lines, reference headings, `doi:` / `J. Am. Soc. Brew` / `Narziss, 2005`,
+null pages) returned 0 rows. All 12 article rows have a URL and chunks, and the books are unchanged
+at 2,180.
 
 The Troester articles are cited by their braukaiser.com wiki pages. The wiki page of the
 mash-parameters paper (`https://braukaiser.com/wiki/index.php/Effects_of_mash_parameters_on_fermentability_and_efficiency_in_single_infusion_mashing`)

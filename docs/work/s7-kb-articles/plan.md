@@ -196,17 +196,17 @@ Commit: `Ingest the Markdown articles into kb`
 
 ### Task 5: Ingest the two PDF articles
 Why: R1, R2, A2.
-- [ ] Run `.venv/bin/python -m loaders.books troester-mash-parameters` and
+- [x] Run `.venv/bin/python -m loaders.books troester-mash-parameters` and
       `… janish-dry-hop-best-practices-tq`. Check the stats. The TQ paper should show 3 chunks
       dropped by section (measured) and its cover page skipped. For Troester, look at the saved
       JSON for pages 21–23: if prose was lost or the "Sources" list kept, change `skip_pages` (or
       use `drop_sections=("Sources",)`), re-run with `--reuse-docling`, and add a Deviation line.
-- [ ] Run the Task 4 SQL checks for these two slugs (the page check doesn't apply: every PDF
+- [x] Run the Task 4 SQL checks for these two slugs (the page check doesn't apply: every PDF
       chunk has a page), plus `text ~* 'doi:|J\. Am\. Soc\. Brew|Narziss, 2005'` → 0 rows.
-- [ ] Run the full A2 query
+- [x] Run the full A2 query
       `select s.slug, s.url, count(c.*) from ref.source s join kb.chunk c on c.source_id = s.id group by 1, 2`:
       12 article rows, each with a URL and chunks, and the books unchanged.
-- [ ] Add both to BOOKS.md §1c.
+- [x] Add both to BOOKS.md §1c.
 Done when: A2 holds for all 12 articles.
 Commit: `Ingest the PDF articles into kb`
 

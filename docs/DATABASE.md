@@ -297,7 +297,7 @@ builds the name map and computes the profiles.
 
 ## 4. `kb`: book knowledge
 
-Defined in [`db/014_kb.sql`](../db/014_kb.sql). Filled by [`loaders/books.py`](../loaders/books.py), one book at a time; the books, how to add one and the doc → calc notes are in [BOOKS.md](BOOKS.md). Measured 2026-10-16: all five books loaded, 2,180 chunks (*How to Brew* 943, *Water* 357, *Yeast* 454, *Malt* 341, BJCP study guide 85). Ten Markdown articles added the same day: 205 chunks (`s7-kb-articles`; per source in [BOOKS.md](BOOKS.md) §1c).
+Defined in [`db/014_kb.sql`](../db/014_kb.sql). Filled by [`loaders/books.py`](../loaders/books.py), one book at a time; the books, how to add one and the doc → calc notes are in [BOOKS.md](BOOKS.md). Measured 2026-10-16: all five books loaded, 2,180 chunks (*How to Brew* 943, *Water* 357, *Yeast* 454, *Malt* 341, BJCP study guide 85). Twelve articles added the same day: 258 chunks, 205 from ten Markdown sources and 53 from two PDFs (`s7-kb-articles`; per source in [BOOKS.md](BOOKS.md) §1c).
 
 | Table | Holds |
 |---|---|
