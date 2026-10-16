@@ -245,7 +245,7 @@ Why: R7; A8 (logged as step 3). Load the n8n skills first (`using-n8n-skills-off
 validate → create / update → check `connections` → publish. Publish the sub-workflow before the
 pipeline run that uses it (OPERATIONS §5). Nodes with `onError` go in through the JSON file and
 `n8n import:workflow`, as OPERATIONS §5 says (the MCP drops `onError`).
-- [ ] New workflow `Step 3 · deviations`, a copy of step 2's shape: trigger *When Executed by
+- [x] New workflow `Step 3 · deviations`, a copy of step 2's shape: trigger *When Executed by
       Another Workflow* with inputs `run_id` (number), `brief` (object), `style` (object) →
       *Execute Workflow* "Check step 3 input" (`Check contract`, `step3.input`) → *Postgres*
       "Find deviations": `select app.step3_deviations($1::jsonb, $2::jsonb) as result` with the
@@ -253,22 +253,22 @@ pipeline run that uses it (OPERATIONS §5). Nodes with `onError` go in through t
       *Set* "Return result". Sticky note: what it does, that it writes nothing and calls no LLM;
       `Test data` note with `[{"run_id": 0, "brief": <the step 2 sample brief>, "style": <its step 2
       output for 21A>}]`.
-- [ ] `Recipe pipeline` (`eMkkdBar6NIqUa1g`): `Step 2 · log ok` now goes to *Set* "Step 3 ·
+- [x] `Recipe pipeline` (`eMkkdBar6NIqUa1g`): `Step 2 · log ok` now goes to *Set* "Step 3 ·
       input" `{run_id, brief: <Step 1 · read request output>, style: <Step 2 · best-fit style
       output>, started_at}` → *Execute Workflow* "Step 3 · deviations" (`onError:
       continueErrorOutput`) → ok: "Step 3 · log ok" (`app.run_step` step 3, try 1, input without
       `started_at`, ms as step 2) → `Finish run`; error: "Step 3 · log failure" → "Finish run
       (failed, step 3)" → "Respond failed (step 3)" with `failed_step: 3`. Update the per-step
       sticky note.
-- [ ] Validate, import / update, check `connections`, publish both. `.venv/bin/python -m
+- [x] Validate, import / update, check `connections`, publish both. `.venv/bin/python -m
       evals.workflows`; read the diff: no secrets, only the intended nodes changed.
-- [ ] Tests: `tests/test_workflows.py`: `SAMPLES["step-3-deviations.json"]`, `CONTRACT_OF` →
+- [x] Tests: `tests/test_workflows.py`: `SAMPLES["step-3-deviations.json"]`, `CONTRACT_OF` →
       `step3.input`, `STEP1_INPUT` entry. `tests/test_pipeline.py`: `test_b01_logs_step_1`
       expects steps `[1, 2, 3]`; new `test_step_3_logged` (R7: the West Coast IPA request →
       step 3 row `ok`, `ms >= 0`, `input == {run_id, brief: <step 1 output>, style: <step 2
       output>}`, output passes `step3.output`). `test_bad_guide_fails_at_step_2` keeps `[1, 2]`.
-- [ ] Run `.venv/bin/pytest`, expect all pass.
-- [ ] `docs/OPERATIONS.md` §5: five workflows to publish; `Step 3 · deviations` in the editor-run
+- [x] Run `.venv/bin/pytest`, expect all pass.
+- [x] `docs/OPERATIONS.md` §5: five workflows to publish; `Step 3 · deviations` in the editor-run
       list. PROJECT.md §4 Orchestration row (5 workflows, steps 1–3 logged) and §8 entry.
 Done when: both workflows run published, their files match n8n, and the pipeline tests pass.
 Commit: `Run step 3 in the pipeline`
@@ -312,3 +312,4 @@ Commit: `Measure G3 for step 3`
 ## Approved exceptions
 
 ## Deviations
+- 2026-10-17 · Task 5: added `tests/step3_sample_style.json` (step 2's output for the sample brief) so the `Test data` note and its test share one fixture — the note needs a real style object.

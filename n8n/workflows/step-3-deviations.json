@@ -1,0 +1,252 @@
+{
+  "id": "ST3deviations001",
+  "name": "Step 3 · deviations",
+  "nodes": [
+    {
+      "id": "e67ba916-775f-4441-bc84-25addb70cab8",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "run_id",
+              "type": "number"
+            },
+            {
+              "name": "brief",
+              "type": "object"
+            },
+            {
+              "name": "style",
+              "type": "object"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "23f4a8ee-6470-4a28-9360-a57ebc02349a",
+      "name": "Check step 3 input",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "step3.input",
+            "value": "={{ { run_id: $json.run_id, brief: $json.brief, style: $json.style } }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "95b26919-77ac-45ce-a015-2231ea7b684c",
+      "name": "Find deviations",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        448,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select app.step3_deviations($1::jsonb, $2::jsonb) as result",
+        "options": {
+          "queryReplacement": "={{ [JSON.stringify($(\"When Executed by Another Workflow\").item.json.brief), JSON.stringify($(\"When Executed by Another Workflow\").item.json.style)] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "08686489-945c-4c79-97ff-ab02cbd8fcfc",
+      "name": "Check step 3 output",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "step3.output",
+            "value": "={{ $json.result }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "ecb8c022-5edd-45ba-87de-493d7a1454ac",
+      "name": "Return result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        0
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $(\"Find deviations\").item.json.result }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "ac4e297b-c8f3-4720-87ef-19bd219efe2e",
+      "name": "Sticky Note 5c9b920a",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -304
+      ],
+      "parameters": {
+        "content": "### Step 3 · deviations\nChecks its input, then asks `app.step3_deviations` (SQL) to compare the brief with the chosen style: stated numbers against the style's ranges, step 2's mismatch, hints that pull in opposite directions, and wanted ingredients rated at their best possible choice. Returns the deviations, the unrated words and the guidance flag. The output is checked against the step 3 contract. Writes nothing and calls no LLM: the pipeline logs it.",
+        "color": 4,
+        "width": 300,
+        "height": 220
+      }
+    },
+    {
+      "id": "11ba9daa-dc24-40c5-9ab9-dbffcd263d26",
+      "name": "Test data",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {
+        "content": "### Test data · editor run\nPin this on `When Executed by Another Workflow` (open the node, use the output panel's edit / mock-data control, paste the JSON, save), then click *Execute workflow*.\nWrites nothing (`run_id: 0` belongs to no run).\n\n```json\n[{\"run_id\": 0, \"brief\": {\"named\": \"West Coast IPA\", \"stated\": {\"batch_l\": 20, \"abv\": 6.5}, \"hints\": [\"bitter\"], \"wanted\": [], \"excluded\": [], \"inventory\": [], \"unknown\": [], \"guidance\": true}, \"style\": {\"style\": {\"id\": 8, \"code\": \"21A\", \"name\": \"American IPA\", \"guide\": \"BJCP\"}, \"reason\": \"Picked 21A American IPA: the name matches (1.00).\", \"scores\": {\"name\": 4.0, \"total\": 6.33, \"words\": 1.0, \"numbers\": 1.33}, \"mismatch\": null, \"alt_styles\": [], \"candidates\": [{\"code\": \"21A\", \"guide\": \"BJCP\", \"score\": 6.33}, {\"code\": \"west-coast-style-india-pale-ale\", \"guide\": \"BA\", \"score\": 5.62}, {\"code\": \"21B\", \"guide\": \"BJCP\", \"score\": 4.03}, {\"code\": \"12C\", \"guide\": \"BJCP\", \"score\": 3.99}, {\"code\": \"21C\", \"guide\": \"BJCP\", \"score\": 3.72}], \"guide_reason\": \"no guide set or named in the request; both guides scored, best fit 21A\", \"unknown_reason\": null}}]\n```",
+        "color": 5,
+        "width": 520,
+        "height": 420
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Check step 3 input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check step 3 input": {
+      "main": [
+        [
+          {
+            "node": "Find deviations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find deviations": {
+      "main": [
+        [
+          {
+            "node": "Check step 3 output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check step 3 output": {
+      "main": [
+        [
+          {
+            "node": "Return result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  }
+}

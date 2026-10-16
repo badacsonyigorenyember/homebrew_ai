@@ -198,7 +198,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1996,
+        2444,
         -96
       ],
       "credentials": {
@@ -219,7 +219,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        2220,
+        2668,
         -96
       ]
     },
@@ -286,7 +286,7 @@
     },
     {
       "parameters": {
-        "content": "### Per-step block\nEach step is: set its input and start time, call its sub-workflow, then log ok or log the failure, and on to the next step. A failure logs its error, finishes the run with ok = false and responds. Steps 1 and 2 are built; steps 3 to 16 copy this block. The webhook body's optional `temperature` and `seed` (defaults 0 and 42) go to step 1. Its optional `guide` (`any`, `bjcp`, `ba`; null when not sent) goes to step 2. Step 1 also logs tokens and the `llm` details (model, tries, ms), then saves the brief in `app.brief` and sets `app.run.brief_id`.",
+        "content": "### Per-step block\nEach step is: set its input and start time, call its sub-workflow, then log ok or log the failure, and on to the next step. A failure logs its error, finishes the run with ok = false and responds. Steps 1 to 3 are built; steps 4 to 16 copy this block. The webhook body's optional `temperature` and `seed` (defaults 0 and 42) go to step 1. Its optional `guide` (`any`, `bjcp`, `ba`; null when not sent) goes to step 2. Step 1 also logs tokens and the `llm` details (model, tries, ms), then saves the brief in `app.brief` and sets `app.run.brief_id`.",
         "height": 200,
         "width": 300,
         "color": 4
@@ -507,6 +507,165 @@
         2220,
         288
       ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { run_id: $(\"Step 2 · input\").item.json.run_id, brief: $(\"Step 2 · input\").item.json.brief, style: $(\"Step 2 · best-fit style\").item.json, started_at: $now.toISO() } }}",
+        "options": {}
+      },
+      "id": "5181a893-a389-43af-9a04-a0f8a863775d",
+      "name": "Step 3 · input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1772,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ST3deviations001",
+          "cachedResultName": "Step 3 · deviations"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "brief": "={{ $json.brief }}",
+            "style": "={{ $json.style }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "brief",
+              "displayName": "brief",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "style",
+              "displayName": "style",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "94171ed4-327a-424b-bc55-91f52c6f069a",
+      "name": "Step 3 · deviations",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1996,
+        0
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms) values ($1, 3, 1, $2::jsonb, $3::jsonb, true, round(extract(epoch from clock_timestamp() - $4::timestamptz) * 1000)::int)",
+        "options": {
+          "queryReplacement": "={{ [$(\"Step 3 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 3 · input\").item.json.run_id, brief: $(\"Step 3 · input\").item.json.brief, style: $(\"Step 3 · input\").item.json.style }), JSON.stringify($json), $(\"Step 3 · input\").item.json.started_at] }}"
+        }
+      },
+      "id": "4343c119-e0a9-4926-badd-9266af2c1ee2",
+      "name": "Step 3 · log ok",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2220,
+        -96
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, error) values ($1, 3, 1, $2::jsonb, null, false, round(extract(epoch from clock_timestamp() - $3::timestamptz) * 1000)::int, $4)",
+        "options": {
+          "queryReplacement": "={{ [$(\"Step 3 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 3 · input\").item.json.run_id, brief: $(\"Step 3 · input\").item.json.brief, style: $(\"Step 3 · input\").item.json.style }), $(\"Step 3 · input\").item.json.started_at, $json.error] }}"
+        }
+      },
+      "id": "a237ba85-3f68-4254-a735-04660ee2f990",
+      "name": "Step 3 · log failure",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2220,
+        288
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "update app.run set finished_at = now(), ok = false where id = $1 returning id::int as id",
+        "options": {
+          "queryReplacement": "={{ [$(\"Start run\").item.json.id] }}"
+        }
+      },
+      "id": "8244acf1-432b-4ce6-8410-7a96d574dda2",
+      "name": "Finish run (failed, step 3)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2444,
+        288
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { run_id: $json.id, ok: false, failed_step: 3, error: $(\"Step 3 · deviations\").item.json.error } }}",
+        "options": {}
+      },
+      "id": "76f74c50-25a3-4611-9f22-f24039339786",
+      "name": "Respond failed (step 3)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2668,
+        288
+      ]
     }
   ],
   "connections": {
@@ -660,7 +819,7 @@
       "main": [
         [
           {
-            "node": "Finish run",
+            "node": "Step 3 · input",
             "type": "main",
             "index": 0
           }
@@ -683,6 +842,68 @@
         [
           {
             "node": "Respond failed (step 2)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 3 · input": {
+      "main": [
+        [
+          {
+            "node": "Step 3 · deviations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 3 · deviations": {
+      "main": [
+        [
+          {
+            "node": "Step 3 · log ok",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Step 3 · log failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 3 · log ok": {
+      "main": [
+        [
+          {
+            "node": "Finish run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 3 · log failure": {
+      "main": [
+        [
+          {
+            "node": "Finish run (failed, step 3)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish run (failed, step 3)": {
+      "main": [
+        [
+          {
+            "node": "Respond failed (step 3)",
             "type": "main",
             "index": 0
           }

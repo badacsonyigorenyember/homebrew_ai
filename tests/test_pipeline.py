@@ -76,7 +76,7 @@ def test_b01_logs_step_1(conn, post):
     assert model and finished_at is not None
 
     steps = _step_rows(conn, run_id)
-    assert [s[0] for s in steps] == [1, 2]
+    assert [s[0] for s in steps] == [1, 2, 3]
     step, attempt, step_ok, error, ms, step_input, output, tokens, llm = steps[0]
     assert (step, attempt, step_ok, error) == (1, 1, True, None)
     assert ms >= 0
@@ -132,6 +132,23 @@ def test_step_2_logged(conn, post):
         "run_id": answer["run_id"], "brief": steps[0][6], "request": request, "guide_preference": None,
     }
     assert output["style"]["code"]
+
+
+def test_step_3_logged(conn, post):
+    """Step 3 is logged with its input, output and time (R7)."""
+    answer = post({"request": "I want a classic West Coast IPA that is properly bitter."})
+    assert answer["ok"] is True
+    steps = _step_rows(conn, answer["run_id"])
+    step, attempt, step_ok, error, ms, step_input, output, _, _ = steps[2]
+    assert (step, attempt, step_ok, error) == (3, 1, True, None)
+    assert ms >= 0
+    assert step_input == {"run_id": answer["run_id"], "brief": steps[0][6], "style": steps[1][6]}
+    schema = (CONTRACTS / "step3.output.schema.json").read_text(encoding="utf-8")
+    errors = conn.execute(
+        "select extensions.jsonschema_validation_errors(%s::json, %s::json)",
+        (schema, json.dumps(output)),
+    ).fetchone()[0]
+    assert errors == []
 
 
 def test_guide_setting_reaches_step_2(conn, post):
