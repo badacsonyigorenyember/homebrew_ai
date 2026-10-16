@@ -179,3 +179,97 @@ def test_style_without_envelope_is_unrated(conn):
     assert code, "no style without an envelope found"
     got = rate(conn, code[0], "rice")
     assert got["level"] is None and "envelope" in got["reason"], got
+
+
+# ---- app.step3_deviations: the whole step 3 output ----
+
+from evals.grade import grade_step2, grade_step3  # noqa: E402
+
+CONTRACT = json.loads((ROOT / "shared" / "contracts" / "step3.output.schema.json").read_text())
+ALL_IDS = [f"b{n:02d}" for n in range(1, 23)]
+
+
+def step3(conn, b):
+    """Step 1's expected brief, through step 2 and step 3; returns (step 2 output, step 3 output)."""
+    brief = brief_of(b)
+    style = sql(conn, "step2_best_style", brief, b["request"], None)
+    return style, sql(conn, "step3_deviations", brief, style)
+
+
+def contract_errors(conn, value):
+    return conn.execute(
+        "select coalesce(extensions.jsonschema_validation_errors(%s::json, %s::json), '{}')",
+        (json.dumps(CONTRACT), json.dumps(value)),
+    ).fetchone()[0]
+
+
+@pytest.fixture(scope="module")
+def outputs(conn):
+    return {bid: step3(conn, BRIEFS[bid]) for bid in ALL_IDS}
+
+
+@pytest.mark.stack
+def test_a2_cases(outputs):
+    for bid, kind in [("b08", "number"), ("b17", "number"), ("b18", "number"), ("b05", "mismatch"),
+                      ("b11", "conflict"), ("b16", "ingredient"), ("b19", "ingredient"), ("b20", "ingredient")]:
+        got = outputs[bid][1]
+        assert [d["kind"] for d in got["deviations"]] == [kind], (bid, got)
+        assert got["unrated"] == [], (bid, got)
+
+
+@pytest.mark.stack
+def test_a3_no_false_deviations(outputs):
+    for bid in ["b02", "b06", "b07", "b10", "b12", "b15"]:
+        got = outputs[bid][1]
+        assert got["deviations"] == [] and got["unrated"] == [], (bid, got)
+
+
+@pytest.mark.stack
+def test_excluded_never_a_deviation(outputs):
+    for bid in ["b08", "b16"]:
+        text = json.dumps(outputs[bid][1])
+        for word in ("Saaz", "Citra", "Mosaic"):
+            if word.lower() in [e.lower() for e in BRIEFS[bid]["excluded"]]:
+                assert word not in text, (bid, word)
+
+
+@pytest.mark.stack
+def test_guidance_off_keeps_deviations(outputs):
+    got = outputs["b18"][1]
+    assert BRIEFS["b18"]["guidance"] is False and got["guidance"] is False
+    assert [d["kind"] for d in got["deviations"]] == ["number"] and "SRM" in got["deviations"][0]["subject"]
+
+
+@pytest.mark.stack
+def test_no_style_gives_conflicts_only(conn):
+    brief = {"named": None, "stated": {"abv": 9}, "hints": ["dry", "full"], "wanted": [{"item": "rice", "role": "background"}],
+             "excluded": [], "inventory": [], "unknown": [], "guidance": True}
+    got = sql(conn, "step3_deviations", brief, {"style": None, "mismatch": None})
+    assert [d["kind"] for d in got["deviations"]] == ["conflict"]
+    assert got["unrated"] == ["rice"]
+    assert not contract_errors(conn, got)
+
+
+@pytest.mark.stack
+def test_same_input_same_output(conn, outputs):
+    for bid in ALL_IDS:
+        assert step3(conn, BRIEFS[bid]) == outputs[bid], bid
+
+
+@pytest.mark.stack
+def test_output_meets_contract(conn, outputs):
+    for bid in ALL_IDS:
+        assert not contract_errors(conn, outputs[bid][1]), bid
+
+
+@pytest.mark.stack
+def test_briefs_reach_the_bar(outputs):
+    """A1 at SQL level: steps 2 and 3 both pass on at least 18 of b01-b20, and on b21 and b22."""
+    def passes(bid):
+        style, out = outputs[bid]
+        return grade_step2(BRIEFS[bid], style) and grade_step3(BRIEFS[bid], out)
+
+    misses = [f"{bid}: step2={grade_step2(BRIEFS[bid], outputs[bid][0])} deviations={outputs[bid][1]['deviations']}"
+              f" expected={BRIEFS[bid]['deviations']}" for bid in ALL_IDS if not passes(bid)]
+    first20 = [b for b in ALL_IDS[:20] if passes(b)]
+    assert len(first20) >= 18 and passes("b21") and passes("b22"), "\n".join(misses)

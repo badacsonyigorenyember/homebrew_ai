@@ -240,6 +240,7 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-17
+- m3-deviations Task 4: `app.step3_deviations(brief, style)` appended to `db/037_step3.sql` (owned by `postgres`, applied twice cleanly) assembles the step 3 output: numbers, mismatch, conflicts, wanted words; no style gives conflicts only (R8). Measured at SQL level (step 1's expected brief + `app.step2_best_style` + step 3, graded with `evals.grade`): 20/20 of b01-b20 pass steps 2 and 3, b21 and b22 pass; all 22 outputs meet `step3.output` and are identical on a second run. 25 step 3 tests pass.
 - m3-deviations Task 3: wanted words rated at their best choice (`app.level_rank`, `app.ingredient_choices`, `app.rate_wanted` appended to `db/037_step3.sql`; owned by `postgres`, applied twice cleanly). Measured: rice/18B, honey/17C, lactose/19C `out_of_style`; oats/21C, rice/1B, corn/1C, honey/31B `typical`; "abbey yeast" in 26B is Abbaye `typical`, Abbey Monk Ale `allowed` at a warm step, M47 Belgian Abbey `out_of_style`; Citra in 15B `out_of_style` as a feature hop, `allowed` at a boil as background. 17 step 3 tests pass.
 
 ### 2026-10-16

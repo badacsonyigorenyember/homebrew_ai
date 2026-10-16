@@ -204,7 +204,7 @@ Commit: `Rate wanted words at their best choice`
 
 ### Task 4: one SQL function returns the step 3 output
 Why: R1, R4–R8; A1 (SQL level), A2–A5, A8 (contract).
-- [ ] Append `app.step3_deviations(brief jsonb, style jsonb) returns jsonb`, `language plpgsql
+- [x] Append `app.step3_deviations(brief jsonb, style jsonb) returns jsonb`, `language plpgsql
       stable`, commented in this order: 1. *No style* (`style -> 'style'` null): deviations =
       conflicts only, `unrated` = every wanted `item` (R8). 2. *Numbers* from `brief.stated` and
       the style code. 3. *Mismatch* from `style.mismatch`. 4. *Conflicts* from `brief.hints`.
@@ -213,8 +213,8 @@ Why: R1, R4–R8; A1 (SQL level), A2–A5, A8 (contract).
       ingredient`, `subject` the item text, `from` "<code> <style name> ingredients", `level`,
       `because` from `rate_wanted`. `excluded` and `inventory` are not read. 6. Return
       `{deviations, unrated, guidance: brief.guidance}`.
-- [ ] Apply twice.
-- [ ] Add to `tests/test_step3.py` (helper `step3(conn, b)`: b's expected brief → 
+- [x] Apply twice.
+- [x] Add to `tests/test_step3.py` (helper `step3(conn, b)`: b's expected brief → 
       `app.step2_best_style(brief, request, null)` → `app.step3_deviations`):
       `test_a2_cases` (b08, b17, b18 one number each; b05 one mismatch; b11 one conflict; b16,
       b19, b20 one ingredient each; nothing else); `test_a3_no_false_deviations` (b02, b06, b07,
@@ -229,11 +229,11 @@ Why: R1, R4–R8; A1 (SQL level), A2–A5, A8 (contract).
       `test_briefs_reach_the_bar` (A1 at SQL level: `grade_step2` and `grade_step3` both pass on
       ≥ 18 of b01–b20, and on b21 and b22; the failure message lists each miss with its
       deviations).
-- [ ] Run `.venv/bin/pytest tests/test_step3.py tests/test_contracts.py`. If the bar test fails,
+- [x] Run `.venv/bin/pytest tests/test_step3.py tests/test_contracts.py`. If the bar test fails,
       find the rule that misleads; a fix may change a rule or the resolver only in a general way
       (never a rule for one brief), each as a dated Deviations line with the count before and
       after. If that does not reach the bar, stop and report `needs-input` with the misses.
-- [ ] Run `.venv/bin/pytest`, expect all pass. `docs/DATABASE.md` §5 line. PROJECT.md §8 entry
+- [x] Run `.venv/bin/pytest`, expect all pass. `docs/DATABASE.md` §5 line. PROJECT.md §8 entry
       with the SQL-level count.
 Done when: the step 3 tests pass and the SQL-level count is ≥ 18/20 with b21 and b22 passing.
 Commit: `Add the step 3 deviation report in SQL`

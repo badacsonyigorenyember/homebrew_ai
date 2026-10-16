@@ -258,3 +258,63 @@ begin
         'because', v_best.name || ' (' || v_best.label || ') is the closest choice: ' || (v_best.res ->> 'because'));
 end
 $$;
+
+-- The step 3 output for one request: brief = step 1's output, style = step 2's output.
+-- Reads only the brief's stated, hints, wanted and guidance. Excluded and inventory are not read.
+create or replace function app.step3_deviations(brief jsonb, style jsonb)
+returns jsonb
+language plpgsql
+stable
+as $$
+declare
+    v_code       text := style -> 'style' ->> 'code';
+    v_style_name text := style -> 'style' ->> 'name';
+    v_deviations jsonb := '[]';
+    v_unrated    jsonb := '[]';
+    w            record;
+    r            jsonb;
+begin
+    -- 1. No style: only the conflicts can be found; every wanted word is unrated.
+    if v_code is null then
+        select coalesce(jsonb_agg(x.w ->> 'item' order by x.ord), '[]') into v_unrated
+          from jsonb_array_elements(coalesce(brief -> 'wanted', '[]')) with ordinality as x(w, ord);
+        return jsonb_build_object(
+            'deviations', app.step3_conflicts(coalesce(brief -> 'hints', '[]')),
+            'unrated', v_unrated,
+            'guidance', coalesce((brief ->> 'guidance')::boolean, true));
+    end if;
+
+    -- 2. Numbers the request states, outside the style's range.
+    v_deviations := v_deviations || app.step3_numbers(coalesce(brief -> 'stated', '{}'), v_code);
+    -- 3. Step 2's mismatch between the named style and the numbers.
+    v_deviations := v_deviations || app.step3_mismatch(coalesce(brief -> 'stated', '{}'), style -> 'mismatch');
+    -- 4. Hints that pull one knob in opposite directions.
+    v_deviations := v_deviations || app.step3_conflicts(coalesce(brief -> 'hints', '[]'));
+
+    -- 5. Wanted words, in the order given, each at its best choice.
+    for w in
+        select x.w ->> 'item' as item, coalesce(x.w ->> 'role', 'background') as role
+          from jsonb_array_elements(coalesce(brief -> 'wanted', '[]')) with ordinality as x(w, ord)
+         order by x.ord
+    loop
+        r := app.rate_wanted(v_code, w.item, w.role);
+        if r ->> 'level' is null then
+            v_unrated := v_unrated || to_jsonb(w.item);
+        elsif r ->> 'level' in ('out_of_style', 'changes_style') then
+            v_deviations := v_deviations || jsonb_build_array(jsonb_build_object(
+                'kind', 'ingredient',
+                'subject', w.item,
+                'from', v_code || ' ' || coalesce(v_style_name, '') || ' ingredients',
+                'level', r ->> 'level',
+                'requested_by', 'user',
+                'because', r ->> 'because'));
+        end if;
+    end loop;
+
+    -- 6. The result; guidance is the brief's.
+    return jsonb_build_object(
+        'deviations', v_deviations,
+        'unrated', v_unrated,
+        'guidance', coalesce((brief ->> 'guidance')::boolean, true));
+end
+$$;
