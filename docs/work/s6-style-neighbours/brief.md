@@ -40,9 +40,15 @@ In:
   descriptive words, built from the 2021 guideline text (its stats and distinguishing words),
   with the expected style and its two triple partners. The 2008 comparison sheet may
   suggest which words set neighbours apart; every word must also be in the 2021 description.
-- A runner that sends each brief straight to `app.step2_best_style` (no step 1 LLM call) and
-  reports, with no pass bar: right style first, right style in the top 3, and a confusion list
-  per triple.
+- A runner that sends each brief straight to `app.step2_best_style` with guide `any`, the
+  pipeline default (no step 1 LLM call), in two runs, and reports them side by side with no pass
+  bar: right style first, right style in the top 3, and a confusion list per triple.
+  - **Run A**, without a family noun: numbers and words only, `named` empty. The end-to-end figure.
+  - **Run B**, with the triple's family noun (stout, bock, lager…) as `named`. The
+    neighbour-confusion figure. Only triples whose three styles share one family; a triple that
+    spans families runs only in Run A and is marked and counted in the report.
+  - The gap between A and B on the same briefs.
+  A BA style can win under `any`; that brief counts as a miss and the report names the BA pick.
 - The first measured result recorded in PROJECT.md §8.
 - A cross-check report in this folder: for each of the ~21 envelopes with a 2008 flashcard, the
   dimensions where Barnes' intensity or characters differ from `loaders/style_envelopes.toml`.
@@ -53,20 +59,24 @@ In:
 
 Out:
 - Tuning step 2's weights from the result (its own work item if the numbers call for it).
-- Loading anything from the 2008 sources into `ref` or `kb`. BA styles (the triples are BJCP
-  only). Envelopes for new styles.
+- Loading anything from the 2008 sources into `ref` or `kb`. Briefs for BA styles (the triples
+  are BJCP only; BA styles are still scored, since the guide is `any`). Envelopes for new styles.
 
 ## Requirements
 R1. The check set has one brief per distinct style in the 91 triples (84 names, the four mapped as
-    above), each with the expected BJCP 2021 code and its triple partners; no brief contains the
-    style's name or an alias from `app.style_alias()`.
+    above), each with the expected BJCP 2021 code and its triple partners; no brief's Run A text
+    contains the style's name or an alias from `app.style_alias()`. A family noun appears only in
+    Run B, and only as the family word in `named`.
 R2. Each brief states one or two numbers and two to four descriptive words. Every number and
     descriptive word in a brief comes from that style's BJCP 2021 entry in
     `ref.beer_style`; the brief file says so in its header, and a test checks the stated numbers
     lie inside the style's 2021 ranges.
-R3. The runner prints the share with the right style first, the share with it in the top 3, and,
-    per triple, which partner was picked instead; `--save` writes `evals/results/<date>-s6.json`.
-R4. The first run's numbers are recorded in PROJECT.md §8 as measured. There is no pass bar:
+R3. The runner calls step 2 with guide `any` and prints, for Run A and Run B side by side, the
+    share with the right style first, the share with it in the top 3, and, per triple, which
+    partner (or other style, BA picks named) was picked instead; the gap between A and B on the
+    briefs both runs cover; and the triples run only in A (spanning families), marked and counted.
+    `--save` writes `evals/results/<date>-s6.json`.
+R4. The first run's numbers (both runs and the gap) are recorded in PROJECT.md §8 as measured. There is no pass bar:
     whether to tune step 2 is decided from the result. No step 2 code changes in this work.
 R5. The envelope cross-check report lists, per envelope with a 2008 counterpart, each dimension
     that differs (Barnes' words, the envelope's level, the 2021 quote behind it), and your decision
@@ -84,18 +94,26 @@ R7. A note in this folder compares the 2021 specialty-entry text with the D1 rul
 
 ## Assumptions
 - Step 2 can be called with a hand-written brief JSON and request text, without step 1
-  *(true for `app.step2_best_style(brief, request, guide_preference)`; the request text is still
-  used for guide words)*.
+  *(true for `app.step2_best_style(brief, request, guide_preference)`; the request text is read
+  only for guide words, and not at all when the guide is passed)*.
+- `named` boosts, it does not filter *(measured 2026-10-16 from `db/022_step2.sql`)*: each style
+  gets 4 × the share of its name words matched, so a family noun lifts only styles whose name
+  holds that word, and unevenly ("stout" adds 2 to Irish Stout, 1.33 to Foreign Extra Stout;
+  "bock" adds 2 to Helles Bock and Dunkles Bock, 0 to Doppelbock and Eisbock). Run B is read with
+  this in mind: it is step 2's real behaviour with a family word, not a pick restricted to the
+  family.
 - About 21 of the 26 envelopes have a 2008 flashcard *(counted by hand from the flashcard
   headers; check per style)*.
 
 ## Acceptance criteria
 A1. The check set exists with one brief per triple style (84), each with expected code and
-    partners; a test confirms no brief contains its style's name or alias (R1).
+    partners; a test confirms no brief's Run A text contains its style's name or alias, and that
+    each family noun is a family word only (R1).
 A2. A test confirms each brief has one or two stated numbers and two to four descriptive words,
     and every stated number lies in the style's 2021 range (R2).
-A3. `python -m evals.<runner>` prints right-first, top-3 and the per-triple confusions; the first
-    run is saved and recorded in PROJECT.md §8 (R3, R4).
+A3. `python -m evals.<runner>` prints right-first, top-3 and the per-triple confusions for Run A
+    and Run B side by side, the gap, and the count of triples run only in A; the first run is
+    saved and recorded in PROJECT.md §8 (R3, R4).
 A4. `git diff` of the work shows no change to `db/022_step2.sql` (R4).
 A5. The cross-check report covers every envelope with a 2008 counterpart, each difference has
     your decision, agreed changes are in the toml, loaded twice, and the golden set passes (R5, R6).
@@ -109,5 +127,13 @@ A6. The specialty-entry note exists, and any D1 change was approved by you or re
    yet.
 3. The Barnes 2008 envelope cross-check stays in this work, as scoped — you want a second look at
    the envelopes.
+4. Guide `any` in the runner, the pipeline default: a BA pick counts as a miss and is named (plan
+   review, "1b").
+5. Two runs side by side: A without and B with the triple's family noun as `named`, plus the gap;
+   triples spanning families only in A, marked and counted (plan review, "2c").
 
 ## Deviations
+- 2026-10-16 · Scope, R1, R3, R4, A1, A3: the runner uses guide `any` (a BA pick is a named miss)
+  and runs every brief twice, A without and B with the triple's family noun as `named`, reported
+  side by side with the gap; triples spanning families run only in A, marked and counted — your
+  answers "1b" and "2c" at plan review. Assumption added: `named` boosts, it does not filter.
