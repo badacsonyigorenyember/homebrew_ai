@@ -1,6 +1,6 @@
 # S6 · Neighbouring styles: step 2 checks and an envelope cross-check — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: s6-style-neighbours
 
@@ -262,22 +262,22 @@ Commit: `Add Barnes envelope cross-check report`
 
 ### Task 6: Apply the agreed envelope changes
 Why: R6 (A5, second half).
-- [ ] If the user agreed to no change: write "No change agreed" in the report, skip the rest,
+- [x] If the user agreed to no change: write "No change agreed" in the report, skip the rest,
       and fold this task's §8 line into Task 5's commit.
-- [ ] Otherwise edit `loaders/style_envelopes.toml` for each agreed change, with a
+- [x] Otherwise edit `loaders/style_envelopes.toml` for each agreed change, with a
       `# s6 fix N` comment matching the report row. Each changed row keeps `reviewed = true` on
       its style and a `quote` that is a phrase from the style's 2021 text (the s3 test
       `test_26_styles_reviewed` checks the quote is in `raw`). New character words need a tag
       name or a synonym in `loaders/style_fit_vocab.toml` (then `.venv/bin/python -m loaders.tags`).
-- [ ] Load twice: `.venv/bin/python -m loaders.style_envelopes`, then again.
-- [ ] Run `.venv/bin/pytest tests/test_style_envelopes.py tests/test_style_fit_golden.py
+- [x] Load twice: `.venv/bin/python -m loaders.style_envelopes`, then again.
+- [x] Run `.venv/bin/pytest tests/test_style_envelopes.py tests/test_style_fit_golden.py
       tests/test_style_fit_recipe.py tests/test_style_level.py`, expect all to pass
       (`test_reload_is_identical` covers "loaded twice with identical results"). A golden case or
       reference-recipe line that fails is not fixed by editing the golden set: stop and return
       `needs-input` with the case, the change that broke it, and options (drop the change, or the
       user amends the case).
-- [ ] Run `.venv/bin/pytest`, expect all to pass.
-- [ ] PROJECT.md §8 line (changes applied, row counts of `ref.style_sensory` /
+- [x] Run `.venv/bin/pytest`, expect all to pass.
+- [x] PROJECT.md §8 line (changes applied, row counts of `ref.style_sensory` /
       `ref.style_character` before and after, golden set green); §5 row "BJCP 2008 style aids"
       status → done for s6.
 Done when: the agreed changes are loaded and the full suite passes (A5).
