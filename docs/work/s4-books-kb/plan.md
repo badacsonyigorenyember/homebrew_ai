@@ -1,6 +1,6 @@
 # S4 · Books into the knowledge base, with a retrieval eval — implementation plan
 
-Stage: draft
+Stage: approved
 Brief: [brief.md](brief.md)
 Branch: s4-books-kb
 
