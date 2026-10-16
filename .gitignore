@@ -18,14 +18,9 @@ supabase/docker/volumes/functions/*
 # =============================================================================
 # Ingestion working area — keep the folder skeleton, not the payloads (§6.5)
 # =============================================================================
-shared/rag-files/pending/*
-!shared/rag-files/pending/.gitkeep
-shared/rag-files/processing/*
-!shared/rag-files/processing/.gitkeep
-shared/rag-files/processed/*
-!shared/rag-files/processed/.gitkeep
-shared/rag-files/failed/*
-!shared/rag-files/failed/.gitkeep
+shared/rag-files/**
+!shared/rag-files/*/
+!shared/rag-files/*/.gitkeep
 shared/extracted-images/*
 !shared/extracted-images/.gitkeep
 shared/docling-scratch/

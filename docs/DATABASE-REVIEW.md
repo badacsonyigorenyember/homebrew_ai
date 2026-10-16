@@ -59,7 +59,7 @@ worth keeping in `raw`, because `raw` is what makes your second point true.
 | ❌ Field is in no source | CO₂ volumes per style (in neither style JSON), acids for mash pH | needs a new source (e.g. Palmer ch. 11), whenever it's added |
 
 ⚠️ **One risk:** the source files are git-ignored and exist only in
-`shared/rag-files/pending/` (and `~/Downloads`). The 2026-10-08 reset already emptied that folder
+`shared/rag-files/` (grouped folders since 2026-10-16; before that `pending/`) and `~/Downloads`. The 2026-10-08 reset already emptied that folder
 once, and the hand-built `malt_catalogue.json` would be expensive to recreate. Today the only
 other copy is the DB's `raw`.
 

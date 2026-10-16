@@ -47,7 +47,7 @@ Each step gets its own work item(s) when it is reached.
 | 1 | **Recover the stack** (`recover-stack`, resolves D6; ✅ done 2026-10-09) | Nothing can be loaded until the DB is back. | Run one `sudo` command |
 | 2 | **P0 test briefs**: 20 briefs (✅ done 2026-10-11, [`test-briefs`](finished/test-briefs/plan.md)) | Can run alongside P1a. Briefs decide which styles get envelopes first (P3). | You write or approve them |
 | 3 | **P1a: fill `ref`** (`ref-schema` … `ref-spotcheck`; ✅ done 2026-10-11) | Everything downstream picks from it. | Re-add the source files (table below) |
-| 4 | **P2: maths library**, starting with the doc → calc pass on *How to Brew* | Gravity, IBU, SRM and ABV are needed before any recipe step. `how_to_brew.pdf` is already in `pending/`. | — |
+| 4 | **P2: maths library**, starting with the doc → calc pass on *How to Brew* | Gravity, IBU, SRM and ABV are needed before any recipe step. `how_to_brew.pdf` is already in `shared/rag-files/books/`. | — |
 | 5 | **P1b: fill `corpus`** ← archive dump, `name_map`, profile job → `style_profile`, `style_grist`, `style_hop_use`, `style_ingredient` (tables created empty by `slim-ref`) | Ratios (D7). Mapping names to `ref` needs `ref` filled first. | Settle D7 |
 | 6 | **P3: tags, envelopes, `fermentable.role`** (tables created empty by `slim-ref`; usage effects and cut points are code, [DATABASE.md](DATABASE.md) §8) | Needs `ref` + `corpus`. | Review envelopes (D9) |
 | 7 | **P4–P5: the recipe workflow** (steps 0–11) | **Not yet.** It needs 3–6, and D3 (n8n vs SQL vs Python service) must be decided first. | Decide D3 |
@@ -56,7 +56,7 @@ Each step gets its own work item(s) when it is reached.
 ## Source files the loaders read
 
 You removed them on purpose (2026-10-08). Every loader takes its file paths as arguments, so put
-them wherever you like. The plans use `shared/rag-files/pending/`. The shapes below were
+them wherever you like. The plans used `shared/rag-files/pending/`, split on 2026-10-16 into `books/`, `styles/`, `hopline/`, `maltsters/` and `recipes/` under `shared/rag-files/`. The shapes below were
 measured on the 2026-10-08 copies. If a re-added file has a different shape, the parser tests
 catch it.
 
