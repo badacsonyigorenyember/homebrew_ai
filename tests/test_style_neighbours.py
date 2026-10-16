@@ -246,3 +246,71 @@ def test_briefs_fit_step1_contract(conn):
             (json.dumps(schema), json.dumps(step1_brief(b))),
         ).fetchone()
         assert errs == [], (b["code"], errs)
+
+
+# ---- the runner (evals/style_neighbours.py) --------------------------------------------------------
+
+from evals import style_neighbours as runner  # noqa: E402
+
+
+def result(code, picked, top3=()):
+    return {"code": code, "picked": picked, "top3": list(top3),
+            "right_first": picked == code, "in_top3": code in top3}
+
+
+def test_summarise_first_and_top3():
+    results = [
+        result("1A", "1A", ["1A", "1B", "2A"]),
+        result("1B", "1A", ["1A", "1B", "2A"]),   # wrong first, right in top 3
+        result("2A", None, []),                   # no style
+        result("3A", "BA x", ["BA x", "1A", "1B"]),  # a BA pick is wrong
+    ]
+    s = runner.summarise(results)
+    assert (s["n"], s["right_first"], s["in_top3"], s["no_style"], s["ba_picks"]) == (4, 1, 2, 1, 1)
+
+
+def test_confusions_partner_other_none():
+    triples = [{"id": 1, "codes": ["1A", "1B", "2A"]}]
+    results = [result("1A", "1A"), result("1B", "2A"), result("2A", "BA x")]
+    assert runner.confusions(triples, results)[0]["styles"] == {"1A": "ok", "1B": "2A", "2A": "other BA x"}
+    results = [result("1A", "9Z"), result("1B", None)]
+    assert runner.confusions(triples, results)[0]["styles"] == {"1A": "other 9Z", "1B": "none"}
+
+
+def test_run_b_only_single_family():
+    families = runner.run_b_family(TRIPLES)
+    single = {c for t in TRIPLES if t["family"] for c in t["codes"]}
+    assert set(families) == single
+    assert len(families) == 61
+    assert all(families[c] for c in families)
+
+
+def test_gap_on_same_briefs():
+    run_a = [result("1A", "1A"), result("1B", "1B"), result("2A", "2A")]
+    run_b = [result("1A", "1B")]  # Run B covers 1A only
+    g = runner.gap(run_a, run_b)
+    assert g["a"]["n"] == g["b"]["n"] == 1
+    assert g["right_first"] == -1
+
+
+@pytest.mark.stack
+def test_measure_one_brief(conn):
+    r = runner.measure(conn, BRIEFS[0])
+    assert set(r) == {"code", "picked", "top3", "right_first", "in_top3"}
+    assert r["picked"] is None or re.fullmatch(r"(BA )?[\w-]+", r["picked"])
+    assert len(r["top3"]) <= 3
+
+
+@pytest.mark.stack
+def test_ba_candidate_written_as_pair(conn):
+    pairs = runner.ba_pairs(conn)
+    for b in BRIEFS:
+        (out,) = conn.execute(runner.STEP2_SQL, (json.dumps(runner.step1_brief(b)), b["request"], runner.GUIDE)).fetchone()
+        top = out["candidates"][:3]
+        ba = [c["code"] for c in top if c["guide"] == "BA" and c["code"] in pairs]
+        if ba:
+            shown = runner.measure(conn, b)["top3"]
+            assert pairs[ba[0]] in shown
+            assert ba[0] not in shown
+            return
+    pytest.skip("no brief has a paired BA style in its top 3")

@@ -153,7 +153,7 @@ Commit: `Add 83 style-neighbour briefs`
 
 ### Task 3: Runner and the first measured run
 Why: R3, R4 (A3, A4).
-- [ ] Create `evals/style_neighbours.py` (`python -m evals.style_neighbours [--save]`), modelled on
+- [x] Create `evals/style_neighbours.py` (`python -m evals.style_neighbours [--save]`), modelled on
       `evals/retrieval.py`. Functions, each small and readable:
       - `load()` → triples and briefs from the TOML;
       - `GUIDE = "any"`, a named constant with a one-line why;
@@ -178,7 +178,7 @@ Why: R3, R4 (A3, A4).
         `--save` writes `evals/results/<date>-s6.json` (guide, both summaries, the gap, per-brief
         results of both runs, per-triple confusions, the mixed count).
       No pass bar and no exit code on the numbers (decision 2).
-- [ ] Unit tests in `tests/test_style_neighbours.py` (no stack, hand-made results):
+- [x] Unit tests in `tests/test_style_neighbours.py` (no stack, hand-made results):
       `test_summarise_first_and_top3` (right first counts only `picked == code`; top 3 counts the
       code in `top3`; a None pick and a `BA …` pick count as wrong),
       `test_confusions_partner_other_none` (a partner pick names the partner, a non-partner pick
@@ -190,12 +190,12 @@ Why: R3, R4 (A3, A4).
       `BA <code>` or None, at most 3 `top3`); `test_ba_candidate_written_as_pair` (a brief whose
       top candidates include a paired BA style shows the BJCP pair in `top3`; pick the brief by
       running step 2 in the test, not from a hard-coded score).
-- [ ] Run `.venv/bin/pytest tests/test_style_neighbours.py`, expect all to pass.
-- [ ] Run `.venv/bin/python -m evals.style_neighbours --save` once with the stack up. Do not
+- [x] Run `.venv/bin/pytest tests/test_style_neighbours.py`, expect all to pass.
+- [x] Run `.venv/bin/python -m evals.style_neighbours --save` once with the stack up. Do not
       change any brief after seeing the result (if a brief is found to break a Task 2 rule,
       fix it, re-run, and say so in a Deviations line).
-- [ ] Check A4: `git diff main -- db/022_step2.sql` is empty.
-- [ ] PROJECT.md §8 line with the measured numbers: Run A right-first and top 3 on 83; Run A and
+- [x] Check A4: `git diff main -- db/022_step2.sql` is empty.
+- [x] PROJECT.md §8 line with the measured numbers: Run A right-first and top 3 on 83; Run A and
       Run B on the Run B briefs and the gap; no-style and BA-pick counts; mixed triples (A only);
       the triples with the most confusions; the results path; and "no pass bar; tuning step 2 is
       decided from this result, not in this work".
