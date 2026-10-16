@@ -13,6 +13,8 @@ stored. Tables and formulas are cut out and go through the doc → calculation p
 | `palmer-how-to-brew` | *How to Brew*, Palmer & Kaminski, fourth edition 2017 | `books/how_to_brew.pdf` | 612 | 1–26 (cover, praise, contents, preface, acknowledgments, abbreviations), 579–612 (bibliography, index) | 943 (tokens min 32, median 273, max 514; measured) | 2026-10-16 |
 | `palmer-kaminski-water` | *Water: A Comprehensive Guide for Brewers*, Palmer & Kaminski, 2013 | `books/palmer_kaminski_water.pdf` | 273 | 1–18 (cover, contents, figure list, acknowledgments, foreword), 238–273 (last table page, index) | 357 (tokens min 35, median 319, max 514; measured) | 2026-10-16 |
 | `white-zainasheff-yeast` | *Yeast: The Practical Guide to Beer Fermentation*, White & Zainasheff, 2010 | `books/white_zainasheff_yeast.pdf` | 325 | 1–21 (cover, contents, acknowledgments, foreword, blank pages), 305–325 (blank page, figure credits, references, index) | 454 (tokens min 31, median 298, max 514; measured) | 2026-10-16 |
+| `mallett-malt` | *Malt: A Practical Guide from Field to Brewhouse*, Mallett, 2014 | `books/mallett_malt.pdf` | 335 | 1–16 (cover, contents, acknowledgments, foreword), 263–335 (bibliography, index) | 341 (tokens min 46, median 316, max 514; measured) | 2026-10-16 |
+| `bjcp-exam-study-guide-2017` | *BJCP Beer Exam Study Guide*, BJCP, last revised December 2017 | `books/bjcp_exam_study_guide_2017.pdf` | 77 | 1–45 (sections I–III: introduction, judging and exam rules, exam questions, style guidelines); section IV, Ingredients and the Brewing Process, is kept | 85 (tokens min 59, median 313, max 510; measured) | 2026-10-16 |
 
 Docling's hybrid chunker made 1,276 chunks for *How to Brew*. 132 fell on the skipped pages and
 201 had fewer than 20 words once tables and formula placeholders were cut, leaving 943. A second
@@ -30,6 +32,20 @@ fewer than 20 words once tables were cut, leaving 454 (fingerprint `39be2bdfe4ec
 a second ingest with `--reuse-docling` gave the same). The PDF page is the printed page + 21. Its
 edition line is `2010` (copyright page: year only). The foreword is by another author and sits in
 the skipped front matter; the authors' own text starts with the Introduction on PDF page 22.
+
+*Malt* took 2.3 minutes in Docling and made 458 chunks. 88 fell on the skipped pages and 29 had
+fewer than 20 words once tables were cut, leaving 341 (fingerprint `8e977294269bdb739c3fa4fbe44f881e`;
+a second ingest with `--reuse-docling` gave the same). The front matter is roman-numbered and
+chapter 1 starts on PDF page 25 (unverified: printed page offset). Its edition line is `2014`
+(copyright page: year only). The foreword is by another author. Appendix D (home malting, PDF
+pages 254–262) is prose and is kept.
+
+The *BJCP Beer Exam Study Guide* took 51 seconds in Docling and made 202 chunks. 111 fell on the
+skipped pages 1–45 and 6 had fewer than 20 words once tables were cut, leaving 85 (fingerprint
+`309e4923fc87bb4c0a6e58a48595c263`; a second ingest with `--reuse-docling` gave the same). Only
+section IV is kept (PDF pages 46–77, printed page + 4); sections I–III are exam rules, judging
+procedure and exam questions, not brewing knowledge. The PDF has a text layer without embedded
+fonts, so no OCR. The licence is the guide's own copyright line (free to download); local use.
 
 ## 2. Adding a book
 
@@ -177,3 +193,33 @@ pages 4–11 were cut too but are skipped; the formula list is by the chunk's fi
 Pages 299–304 are the troubleshooting charts (problem-by-factor grids), cut whole; their
 captions stay in `kb`. Docling marks few formulas, so most equations are still in the prose
 (unverified).
+
+### *Malt*
+
+Nothing is passed yet: no formula or table from this book is in `ref` or code. Malt data (colour,
+extract, diastatic power per malt) comes from the maltster catalogues, not from this book's
+Appendix A listing, which was cut as tables. The grain-bill and colour-calculation tables in
+chapter 2 (MCU, SRM) are covered by `s1-maths` colour (Morey), not by this book.
+
+Pages where the loader cut a markdown table, by chapter (29 table pages in total, 27 outside the
+skipped ranges 1–16 and 263–335, measured 2026-10-16; Docling left no formula placeholder in the
+kept pages). Chapter page ranges are read from the page headers (unverified at the boundaries):
+
+| Chapter | PDF pages | Table pages | Formula pages |
+|---|---|---|---|
+| 1–6 | 25–135 | 37–40 (ch. 2, grain bill and colour calculations) | – |
+| 7 Malt family descriptions | 136–149 | 148–149 (flavour descriptor lists) | – |
+| 8–12 | 150–231 | – | – |
+| App A commercially available malts | 232–248 | 232–248 | – |
+| App B malthouse capacities | 249–251 | 249–250 | – |
+| App C craft maltsters | 252–253 | 252–253 | – |
+| App D home malting | 254–262 | – | – |
+
+### *BJCP Beer Exam Study Guide*
+
+Nothing is passed yet. The §IV.B water table (famous brewing waters, ion levels, PDF pages 46–48)
+goes to m7-process with the water chemistry of *How to Brew* and *Water*. The style-triple table
+of question S0 (PDF page 21) is in the skipped sections and is `s6-style-neighbours` data.
+
+Table pages in the kept range 46–77: 46, 47, 48 (section IV.B Water). Formula pages: 46 (one
+placeholder in the same section; measured 2026-10-16).

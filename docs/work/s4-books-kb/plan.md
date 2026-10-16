@@ -188,9 +188,9 @@ Commit: `Ingest Yeast into kb following docs/BOOKS.md`
 
 ### Task 6b: Ingest *Malt* and the BJCP exam study guide
 Why: R1, R7, A1 (books four and five).
-- [ ] Record every book's chunk count. Follow BOOKS.md §2 for `shared/rag-files/books/mallett_malt.pdf` (slug `mallett-malt`, Brewers Publications) and then `shared/rag-files/books/bjcp_exam_study_guide_2017.pdf` (slug `bjcp-exam-study-guide-2017`, title *BJCP Beer Exam Study Guide*, edition `Last revised December 2017`, publisher `Beer Judge Certification Program`, licence `© 1998-2017 the authors and the BJCP; free to download; local use`). For the study guide, `skip_pages` covers the front matter and sections I–III (exam rules, judging procedure, exam questions); only section IV, Ingredients and the Brewing Process, is kept. Its S0 style-triple table is a table, so it is cut anyway (it is s6-style-neighbours' data).
-- [ ] After each: the new book has chunks, the other books' counts are unchanged.
-- [ ] BOOKS.md rows and doc → calc notes (*Malt*: no pass, malt data comes from the maltster catalogues; study guide: the §IV.B water table goes to m7-process). PROJECT.md §5 rows, §8 entry.
+- [x] Record every book's chunk count. Follow BOOKS.md §2 for `shared/rag-files/books/mallett_malt.pdf` (slug `mallett-malt`, Brewers Publications) and then `shared/rag-files/books/bjcp_exam_study_guide_2017.pdf` (slug `bjcp-exam-study-guide-2017`, title *BJCP Beer Exam Study Guide*, edition `Last revised December 2017`, publisher `Beer Judge Certification Program`, licence `© 1998-2017 the authors and the BJCP; free to download; local use`). For the study guide, `skip_pages` covers the front matter and sections I–III (exam rules, judging procedure, exam questions); only section IV, Ingredients and the Brewing Process, is kept. Its S0 style-triple table is a table, so it is cut anyway (it is s6-style-neighbours' data).
+- [x] After each: the new book has chunks, the other books' counts are unchanged.
+- [x] BOOKS.md rows and doc → calc notes (*Malt*: no pass, malt data comes from the maltster catalogues; study guide: the §IV.B water table goes to m7-process). PROJECT.md §5 rows, §8 entry.
 Done when: `select s.slug, count(*) from kb.chunk c join ref.source s on s.id = c.source_id group by 1` shows five books, and the first three kept their counts.
 Commit: `Ingest Malt and the BJCP study guide into kb`
 

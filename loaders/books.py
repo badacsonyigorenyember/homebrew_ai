@@ -64,6 +64,28 @@ BOOKS: dict[str, Book] = {
         skip_pages=((1, 21), (305, 325)),
         notes="Prose in kb.chunk; tables and formulas not passed yet, see docs/BOOKS.md",
     ),
+    "mallett-malt": Book(
+        slug="mallett-malt",
+        title="Malt: A Practical Guide from Field to Brewhouse",
+        edition="2014",  # the copyright page gives only the year
+        publisher="Brewers Publications",
+        licence="© Brewers Association, all rights reserved; personal copy, local use only",
+        file_path="shared/rag-files/books/mallett_malt.pdf",
+        # cover to foreword (contents, acknowledgments, foreword); bibliography and index
+        skip_pages=((1, 16), (263, 335)),
+        notes="Prose in kb.chunk; malt data comes from the maltster catalogues, see docs/BOOKS.md",
+    ),
+    "bjcp-exam-study-guide-2017": Book(
+        slug="bjcp-exam-study-guide-2017",
+        title="BJCP Beer Exam Study Guide",
+        edition="Last revised December 2017",
+        publisher="Beer Judge Certification Program",
+        licence="© 1998-2017 the authors and the BJCP; free to download; local use",
+        file_path="shared/rag-files/books/bjcp_exam_study_guide_2017.pdf",
+        # sections I-III (introduction, judging and exam, style guidelines); only section IV is kept
+        skip_pages=((1, 45),),
+        notes="Section IV (ingredients and brewing process) only; prose in kb.chunk, see docs/BOOKS.md",
+    ),
 }
 
 DOCLING_URL = "http://localhost:5001"
