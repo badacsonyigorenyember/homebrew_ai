@@ -1436,13 +1436,13 @@ characters = []
 unknown = []
 quote = "Very high attenuation, never with a sweet or heavy finish."
 
-[[style.sensory]]   # fix 5
+[[style.sensory]]   # fix 5; s6 fix 3 (D57): max raised to medium
 dimension = "body"
 min = "low"
-max = "medium-low"
+max = "medium"
 characters = []
 unknown = []
-quote = "Light to medium-low body."
+quote = "Stronger versions can have up to medium body"
 
 [[style.sensory]]   # fix 6
 dimension = "sourness"
@@ -2177,13 +2177,13 @@ reviewed = true
 extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 1 }
 problems = []
 
-[[style.sensory]]   # fix 1
+[[style.sensory]]   # fix 1; s6 fix 1 (D20): toasty, biscuit added
 dimension = "malt"
 min = "low"
 max = "medium"
-characters = ["bready"]
+characters = ["bready", "toasty", "biscuit"]
 unknown = []
-quote = "Light to moderate malty aroma, generally neutral or grainy, possibly with a light bread or caramel note."
+quote = "light character malt flavor (e.g., bread, toast, biscuit, wheat)"
 
 [[style.sensory]]
 dimension = "caramel"
@@ -2309,13 +2309,13 @@ reviewed = true
 extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-15", tries = 2 }
 problems = []
 
-[[style.sensory]]   # fix 1
+[[style.sensory]]   # fix 1; s6 fix 2 (D40): acrid added
 dimension = "roast"
 min = "medium"
 max = "very high"
-characters = ["roast", "coffee", "chocolate"]
+characters = ["roast", "coffee", "chocolate", "acrid"]
 unknown = []
-quote = "Moderate to very high roasted flavors, often tasting of coffee, dark or bittersweet chocolate, or roasted coffee beans."
+quote = "Burnt or charcoal aromas are acceptable at low levels."
 
 [[style.sensory]]
 dimension = "hop_aroma"
