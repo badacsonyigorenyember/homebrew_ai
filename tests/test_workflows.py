@@ -34,12 +34,15 @@ STEP2_BRIEF = {
 SAMPLES["step-2-best-fit-style.json"] = [
     {"run_id": 0, "brief": STEP2_BRIEF, "request": B01, "guide_preference": None}
 ]
+STEP3_STYLE = json.loads((ROOT / "tests" / "step3_sample_style.json").read_text())
+SAMPLES["step-3-deviations.json"] = [{"run_id": 0, "brief": STEP2_BRIEF, "style": STEP3_STYLE}]
 # The input contract each sample is checked against.
 CONTRACT_OF = {
     "recipe-pipeline.json": "step1.input",
     "step-1-read-request.json": "step1.input",
     "check-contract.json": "step1.input",
     "step-2-best-fit-style.json": "step2.input",
+    "step-3-deviations.json": "step3.input",
 }
 STEP1_INPUT = {
     "recipe-pipeline.json": lambda s: {
@@ -47,6 +50,7 @@ STEP1_INPUT = {
     "step-1-read-request.json": lambda s: s[0],
     "check-contract.json": lambda s: s[0]["value"],
     "step-2-best-fit-style.json": lambda s: s[0],
+    "step-3-deviations.json": lambda s: s[0],
 }
 
 

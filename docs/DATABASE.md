@@ -438,6 +438,14 @@ Function `app.style_pair()` (db/021_style_pairs.sql) lists the 151 decided BA 20
 
 Step 2 signal functions (db/022_step2.sql), each tested alone: `app.style_words`, `app.style_alias`, `app.style_name_score` (name match, 0 to 1), `app.style_number_score` (stated numbers against a style's ranges), `app.brief_words`, `app.style_tags`, `app.style_word_score` (hints and unknown words against tags and text), `app.style_name_covers` (every named word is in the style's name), `app.guide_from_request` and `app.specialty_style`.
 
+Ingredient-word resolver (`db/036_ingredient_resolver.sql`, first version, M5 extends it): `app.resolve_ingredient(word)` returns the `ref.ingredient` products a word names (kind words malt, hop and yeast restrict the kind; rule 1 the same words as a product's name, rule 2 every remaining word among name and producer words), with `app.ingredient_words`, `app.ingredient_synonym` and `app.ingredient_kind_word`.
+
+Step 3 rules (`db/037_step3.sql`, no LLM): `app.hint_knob()` (the RECIPE-ROADMAP §7 hint table, one row per hint and knob), `app.step3_conflicts(hints)` (one conflict per pair of sides pushing a knob in opposite directions), `app.step3_numbers(stated, style_code)` (abv, og, ibu, srm outside the style's range, bounds inclusive; batch_l never) and `app.step3_mismatch(stated, mismatch)` (step 2's mismatch as one deviation). Each returns a jsonb list of `step3.output` deviations.
+
+Step 3 best-case rating (`db/037_step3.sql`): `app.level_rank(level)` (order of the 5 levels), `app.ingredient_choices(ingredient_id, role)` (usage and dose choices a later step could make: mash or boil; hop boil bands, whirlpool, dry hop, feature hops late only; yeast range ends and warm steps) and `app.rate_wanted(style_code, item, role)` (best level over every product the word names and every choice; level null with a reason when it cannot be rated).
+
+Step 3 output (`db/037_step3.sql`): `app.step3_deviations(brief, style)` returns `{deviations, unrated, guidance}` (`step3.output`): numbers, mismatch, conflicts, then each wanted word at its best choice (`out_of_style` / `changes_style` is a deviation; a word that cannot be rated goes to `unrated`). With no style it gives conflicts only and every wanted word unrated. `excluded` and `inventory` are not read.
+
 Function `app.step2_best_style(brief, request, guide_preference)` (db/022_step2.sql) picks the best-fit style: scores both guides (name, numbers with a tightness bonus, words), returns the BJCP pair of a BA winner unless that pair is a catch-all in `app.bjcp_catch_all()`, applies the specialty and mismatch rules and returns the style, alternatives, scores and reasons.
 
 Later (§9): `batch`, `tasting`, `inventory.best_before`.
