@@ -107,6 +107,44 @@ The Troester articles are cited by their braukaiser.com wiki pages. The wiki pag
 mash-parameters paper (`https://braukaiser.com/wiki/index.php/Effects_of_mash_parameters_on_fermentability_and_efficiency_in_single_infusion_mashing`)
 was not reachable on 2026-10-16 (HTTP 500), so that URL is unverified.
 
+## 1d. Eval with articles (s7)
+
+Run 2026-10-16 after the 12 articles were in `kb` (`python -m evals.retrieval --save s7`, saved in
+`evals/results/2026-10-16-s7.json`; 60 questions: q01-q45 books, q46-q60 articles; no retrieval
+setting changed). Books and articles are reported apart. The 0.40 bar is judged on the books only
+and is **met**; the articles have no bar.
+
+| Group | Questions | recall@5 | MRR@10 |
+|---|---|---|---|
+| books (bar 0.40) | 45 | 0.422 | 0.345 |
+| articles (no bar) | 15 | 0.867 | 0.608 |
+
+Books recall@5 is the same as in the s4 run (0.422); MRR@10 is 0.345 against 0.354, so a few
+expected chunks now rank a place lower behind article chunks. Per source:
+
+| Source | Questions | recall@5 | MRR@10 |
+|---|---|---|---|
+| `palmer-how-to-brew` | 9 | 0.444 | 0.244 |
+| `palmer-kaminski-water` | 9 | 0.333 | 0.222 |
+| `white-zainasheff-yeast` | 9 | 0.444 | 0.429 |
+| `mallett-malt` | 9 | 0.556 | 0.581 |
+| `bjcp-exam-study-guide-2017` | 9 | 0.333 | 0.250 |
+| `bjcp-2021-introductions` | 2 | 1.000 | 1.000 |
+| `brunwater-water-knowledge` | 2 | 1.000 | 0.667 |
+| `troester-mash-parameters` | 2 | 1.000 | 0.350 |
+| `troester-mash-time-fermentability` | 1 | 1.000 | 0.500 |
+| `janish-coffee-beers` | 1 | 1.000 | 0.250 |
+| `janish-dry-hop-best-practices-tq` | 1 | 1.000 | 1.000 |
+| `janish-ph-hoppy-beers` | 1 | 1.000 | 1.000 |
+| `janish-short-cool-dry-hopping` | 1 | 1.000 | 1.000 |
+| `janish-survivables-hot-side` | 1 | 1.000 | 1.000 |
+| `mtf-berliner-weissbier` | 1 | 1.000 | 0.333 |
+| `mtf-lactobacillus-fermentation` | 1 | 0.000 | 0.000 |
+| `terrill-observations-on-attenuations` | 1 | 0.000 | 0.000 |
+
+Two article questions missed (q56 Lactobacillus, q59 Terrill); with one question each these
+figures say little about those sources.
+
 ## 2. Adding a book
 
 1. Put the PDF in `shared/rag-files/books/`.

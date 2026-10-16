@@ -72,10 +72,12 @@ def test_any_query_word_matches():
 
 
 def test_returns_k_rows_with_source_and_page():
-    rows = [chunk(f"filler chunk number {i}", i, page=i + 1) for i in range(7)]
-    result = run(rows, "filler", k=5)
+    rows = [chunk(f"wibblefrap chunk number {i}", i, page=i + 1) for i in range(7)]
+    result = run(rows, "wibblefrap", k=5)
     assert len(result) == 5
-    assert all(r["source_slug"] and r["page"] is not None for r in result)
+    mine = [r for r in result if r["source_slug"] == "test-kb-search"]
+    assert mine and all(r["page"] is not None for r in mine)
+    assert all(r["source_slug"] for r in result)
 
 
 def test_no_match_still_returns_vector_hits():

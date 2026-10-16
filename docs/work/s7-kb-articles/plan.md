@@ -265,14 +265,14 @@ Commit: `Add reviewed article retrieval questions`
 
 ### Task 8: The eval run, the books bar, and the record
 Why: R6, A6.
-- [ ] Run `.venv/bin/python -m evals.retrieval --save s7`. Read the books line: recall@5 on
+- [x] Run `.venv/bin/python -m evals.retrieval --save s7`. Read the books line: recall@5 on
       q01–q45 and the bar.
-- [ ] **If books recall@5 < 0.40: stop.** Don't change any retrieval setting, the bar, or any
+- [x] **If books recall@5 < 0.40: stop.** Don't change any retrieval setting, the bar, or any
       question. Commit the saved result and a PROJECT.md §8 line with the numbers. Add a
       Deviation line, then report `needs-input` with the books and articles numbers and the books
       misses that are new against `evals/results/2026-10-16-s4.json` (brief R6: tuning is its own
       work item).
-- [ ] If the bar is met, record:
+- [x] If the bar is met, record:
   - BOOKS.md: a new §1d "Eval with articles (s7)" with books and articles recall@5 and MRR@10,
     per source, and the date.
   - PROJECT.md §4: the vector search row (article chunk counts, `source_url`), the Eval guidance
@@ -282,7 +282,7 @@ Why: R6, A6.
     total.
   - PROJECT.md §8: a dated entry with books recall@5 / MRR@10 against the bar, the articles'
     numbers (no bar), and the chunk counts.
-- [ ] Run the full suite with `.venv/bin/pytest`, expect all to pass.
+- [x] Run the full suite with `.venv/bin/pytest`, expect all to pass.
 Done when: the books bar is met (or work stopped as above), and the numbers are in BOOKS.md and
 PROJECT.md.
 Commit: `Record the retrieval eval with articles`
@@ -307,3 +307,4 @@ Commit: `Record the retrieval eval with articles`
 ## Approved exceptions
 
 ## Deviations
+- 2026-10-16 · Task 8: `tests/test_kb_search.py::test_returns_k_rows_with_source_and_page` now queries a unique word and checks the page on its own rows only — with article chunks loaded (page null), real vector hits entered the top 5 and broke the old assertion.
