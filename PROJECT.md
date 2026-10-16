@@ -65,7 +65,9 @@ the knowledge base or to a clearly labelled assumption.
 Agreed 2026-10-08; ingredient choice and ratios revised 2026-10-14 (D7). Full design, diagrams and worked examples:
 [`docs/RECIPE-ROADMAP.md`](docs/RECIPE-ROADMAP.md). Database: [`docs/DATABASE.md`](docs/DATABASE.md).
 Build order in n8n, with checkpoints and brief checks (proposal, 2026-10-12):
-[`docs/WORKFLOW-ROADMAP.md`](docs/WORKFLOW-ROADMAP.md).
+[`docs/WORKFLOW-ROADMAP.md`](docs/WORKFLOW-ROADMAP.md). Adding ingredients by hand (all kinds,
+misc included), discovery with proposed side tracks s8 and s9, not decided:
+[`docs/INGREDIENT-INTAKE.md`](docs/INGREDIENT-INTAKE.md).
 
 The approach is **proportions first, quantities last**, and **compute first**: the LLM reads the
 request (step 1), picks the ingredients and proposes their percentages and hop-schedule intent
@@ -240,6 +242,7 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-17
+- Discovery: how to add fermentables, hops, yeasts and misc by hand, written up in [`docs/INGREDIENT-INTAKE.md`](docs/INGREDIENT-INTAKE.md) (no code changed). Measured: `ref.misc` 0 rows; misc is not handled by step 2's specialty map, `app.usage_effects`, `app.style_level`, `app.ingredient_choices` or the recipe checks. Proposes one intake file and loader (s8), misc support (s9), and changes to the M4–M8 briefs; 8 decisions open in that file.
 - Shipped m3-deviations ([`docs/work/m3-deviations/`](docs/finished/m3-deviations/plan.md), moved to `docs/finished/` on merge): step 3 as SQL (`db/036_ingredient_resolver.sql`, `db/037_step3.sql`), the `Step 3 · deviations` sub-workflow and step 3 logged in `Recipe pipeline`; G3 met (b01-b20 20/20, b21 and b22 pass). Verified: 6 of 6 checks, full `pytest` 709 passed (re-run on the branch before merge, measured 2026-10-17).
 - m3-deviations Task 6: G3 measured on the real pipeline (`python -m evals.run --save --label m3`, D2 model): b01-b20 20/20 with step 2 and step 3 passing (bar 18/20), b21 and b22 pass; step 1, 2 and 3 each 22/22, briefs 22/22. All 22 step 3 rows `ok` and valid against `step3.output` (A8). No step 3 miss. Saved in `evals/results/2026-10-17-m3.json`. G3 decided: stage B (M4) starts next; RECIPE-ROADMAP P4 done. ([`plan.md`](docs/finished/m3-deviations/plan.md))
 - m3-deviations Task 5: the pipeline runs step 3 and logs it. New sub-workflow `Step 3 · deviations` (input check, one `Find deviations` SQL call, output check, no writes, no LLM) and the step 3 block in `Recipe pipeline` (input, call with an error output, log ok / log failure, `failed_step: 3`). Both were written as JSON and imported with `n8n import:workflow` (the MCP drops `onError`), then published, the sub-workflow first. New `tests/test_step_3_logged`, step 3 `Test data` sample (`tests/step3_sample_style.json` is step 2's output for it); `pytest` 709 passed.
