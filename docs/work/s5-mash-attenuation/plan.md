@@ -1,6 +1,6 @@
 # S5 · A cited model of mash temperature's effect on attenuation — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: s5-mash-attenuation
 
@@ -200,15 +200,15 @@ Commit: `Replace mash mapping with Troester's curve`
 
 ### Task 3: Roadmap and source status show the TODO resolved
 Why: A6; PROJECT.md §10.
-- [ ] `docs/RECIPE-ROADMAP.md` §8 Later: remove the bullet "replacing rule 10's uncited linear
+- [x] `docs/RECIPE-ROADMAP.md` §8 Later: remove the bullet "replacing rule 10's uncited linear
       mash-temperature mapping with a cited model: now a work item, …". Leave the multi-step
       mash TODO, which is still out of scope.
-- [ ] `docs/SOURCES.md` rows for `braukaiser_mash_parameters_2009.pdf`,
+- [x] `docs/SOURCES.md` rows for `braukaiser_mash_parameters_2009.pdf`,
       `braukaiser_mash_time_fermentability.md` and `terrill_observations_on_attenuations.md`:
       the s5 calc pass is done (doc-calc link).
-- [ ] `PROJECT.md` §5 articles row: drop "calc still in s5-mash-attenuation" and keep
+- [x] `PROJECT.md` §5 articles row: drop "calc still in s5-mash-attenuation" and keep
       m7-process.
-- [ ] Run `.venv/bin/pytest`. Expect all pass.
+- [x] Run `.venv/bin/pytest`. Expect all pass.
 Done when: `grep -n "uncited" docs/RECIPE-ROADMAP.md` finds nothing, and full `pytest` passes.
 Commit: `Mark rule 10 mash model done in roadmap`
 
