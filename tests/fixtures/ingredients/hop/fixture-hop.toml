@@ -1,0 +1,16 @@
+# Test fixture: invented data.
+kind = "hop"
+name = "Fixture Hop"
+producer = ""
+source = "fixture-data-sheet"
+description = "An invented dual-purpose hop for tests. It smells of citrus and pine."
+description_ref = "fixture sheet p. 3"
+aliases = ["fixture hop variety"]
+descriptors = ["citrus", "pine"]
+
+alpha_pct = [10.0, 12.0]
+alpha_pct_ref = "fixture sheet p. 3"
+purpose = "dual"
+origins = ["US"]
+total_oil_ml_100g = [1.5, 2.0]
+total_oil_ml_100g_ref = "fixture sheet p. 3"

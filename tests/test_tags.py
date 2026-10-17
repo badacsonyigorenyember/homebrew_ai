@@ -112,7 +112,8 @@ def test_every_hop_tagged_or_flagged(conn):
         from ref.ingredient i where i.kind = 'hop'
         """
     ).fetchall()
-    assert len(rows) == 89  # Sterling removed (db/035_drop_sterling.sql, user 2026-10-15)
+    hopline = conn.execute("select count(*) from ref.ingredient where kind = 'hop' and not raw ? 'intake'").fetchone()[0]
+    assert hopline == 89  # intake hops come on top; Sterling removed (db/035_drop_sterling.sql, user 2026-10-15)
     assert [r[0] for r in rows if not (r[1] or r[2])] == []
 
 
@@ -184,3 +185,26 @@ def test_fermentable_tags(conn):
     smoked = ingredient_id(conn, "Beech Smoked Barley Malt", "fermentable")
     assert "smoke" in tag_names(conn, smoked, "character")
     assert tag_names(conn, ingredient_id(conn, "Lactose", "fermentable"), "family") == {"sugar"}
+
+
+def test_descriptor_tag(vocab):
+    synonyms = vocab["synonyms"]
+    characters = {t["name"] for t in vocab["tag"] if t["facet"] == "character"}
+    assert tags.descriptor_tag("dried-fruit", synonyms, characters) == "dried-fruit"  # a tag name
+    assert tags.descriptor_tag("Citrusos", synonyms, characters) == "citrus"  # a synonym, name_key compared
+    assert tags.descriptor_tag("zzword", synonyms, characters) is None
+
+
+def test_intake_words():
+    intake = {"intake": {"path": "x.toml", "text": "", "fields": {"descriptors": ["citrus", "Fenyő"]}}}
+    assert tags.intake_words(intake) == ["citrus", "Fenyő"]
+    assert tags.intake_words({"intake": {"fields": {}}}) == []  # an intake row with no descriptors
+    hopline = {"hopline-hops": {"1": {"spec": "Aroma: citrus"}}}
+    assert tags.intake_words(hopline) is None  # not an intake row: the old path reads it
+    assert tags.hop_words(hopline) == ["citrus"]
+
+
+def test_intake_yeast_family():
+    assert tags.INTAKE_YEAST_FAMILY["lacto"] == "sour"
+    assert tags.INTAKE_YEAST_FAMILY["pedio"] == "sour"
+    assert set(tags.INTAKE_YEAST_FAMILY) == {"ale", "lager", "kveik", "brett", "lacto", "pedio"}

@@ -1,5 +1,5 @@
 -- ref spot-check pack: what a person needs to check ref against the source documents.
--- Read-only. Prints row counts for all 15 ref tables, rows without a source, and 10 random
+-- Read-only. Prints row counts for all 16 ref tables, rows without a source, and 10 random
 -- rows from each of the 7 tables P1a loads. The 8 style-fit tables stay empty until P3.
 -- Run as postgres (docs/OPERATIONS.md §4):
 --   docker exec -i supabase-db psql -U postgres -d postgres < db/checks/ref_spotcheck.sql
@@ -17,6 +17,7 @@ from (
     union all select 'hop',               'loaded',    count(*) from ref.hop
     union all select 'yeast',             'loaded',    count(*) from ref.yeast
     union all select 'water_salt',        'loaded',    count(*) from ref.water_salt
+    union all select 'ingredient_alias',  'intake',    count(*) from ref.ingredient_alias
     union all select 'misc',              'style-fit', count(*) from ref.misc
     union all select 'tag',               'style-fit', count(*) from ref.tag
     union all select 'tag_synonym',       'style-fit', count(*) from ref.tag_synonym
@@ -29,6 +30,15 @@ from (
 
 \echo '== Ingredient rows per kind =='
 select kind, count(*) as rows from ref.ingredient group by kind order by kind;
+
+\echo '== Intake rows per kind (shared/ingredients/; 0 until a real item is added) =='
+select kind, count(*) as rows from ref.ingredient where raw ? 'intake' group by kind order by kind;
+
+\echo '== Intake rows with their source =='
+select i.kind, i.producer, i.name, s.slug as source, s.edition, i.raw->'intake'->>'path' as file,
+       (select string_agg(a.alias, ', ' order by a.alias) from ref.ingredient_alias a where a.ingredient_id = i.id) as aliases
+from ref.ingredient i join ref.source s on s.id = i.source_id
+where i.raw ? 'intake' order by i.kind, i.producer, i.name;
 
 \echo '== Rows without a source (must be 0) =='
 select 'beer_style' as "table", count(*) as no_source

@@ -1,0 +1,25 @@
+# Template: a yeast or a souring culture. Copy to shared/ingredients/yeast/<name>.toml.
+# "" or [] means "not filled". Required keys must be filled; a filled figure needs its *_ref.
+# Ranges are [low, high]; for a single value write [x, x].
+# Units: degrees C, %. Nothing is guessed: leave a key empty when the source does not say.
+# Optional extra: <field>_source = "<slug>" names another source for one field (e.g. "user-supplied").
+
+kind = "yeast"                     # required, must be "yeast" (the folder name)
+name = ""                          # required, as the maker sells it
+producer = ""                      # required, the maker
+source = ""                        # required, a slug in ref.source or in shared/ingredients/sources/
+description = ""                   # required, one to three English sentences from the source
+description_ref = ""               # required, page or URL of the description
+aliases = []                       # optional, words a brewer types for this product
+descriptors = []                   # required, at least one: a tag name or a word of the vocabulary file
+
+type = ""                          # required: ale, lager, kveik, brett, lacto or pedio
+temp_c = []                        # required, fermentation temperature, degrees C
+temp_c_ref = ""                    # page or URL, needed when filled
+attenuation_pct = []               # required, % (not for lacto or pedio: leave empty when the sheet states none)
+attenuation_pct_ref = ""           # page or URL, needed when filled
+flocculation = ""                  # optional: very low, low, medium low, medium, medium high, high or very high
+form = ""                          # optional: dry or liquid
+alcohol_tolerance_pct = ""         # optional, % ABV
+alcohol_tolerance_pct_ref = ""     # page or URL, needed when filled
+product_id = ""                    # optional, the maker's code, e.g. "US-05"

@@ -1,0 +1,9 @@
+# Template: a new source. Copy to shared/ingredients/sources/<slug>.toml (the file name is the slug).
+# Only needed when the slug is not in ref.source yet. A source must have an edition or version.
+
+slug = ""                          # required, same as the file name without .toml
+title = ""                         # required, e.g. the data sheet or book title
+edition = ""                       # required, edition, version or date of the document
+publisher = ""                     # optional
+url = ""                           # optional
+licence = ""                       # optional

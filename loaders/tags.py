@@ -19,6 +19,10 @@ Where the words come from:
               description (prose, so a word that is not in the dictionary is not flagged)
   yeast       family from the shop's Stílus (else ref.yeast.type); characters from the shop's
               Aroma field, else a keyword scan of the product text after "Aroma"
+  intake row  (raw has an "intake" key, written by loaders/extra_ingredients.py) the
+              "descriptors" list of its file, each word a synonym or a character tag name; a word
+              that is neither goes to ingredient_review. Hop origin and fermentable family come
+              as above; a yeast's family comes from its type (INTAKE_YEAST_FAMILY)
 
 Re-runnable, one transaction. Rows of ref.ingredient_tag with reviewed = true are kept.
 
@@ -35,6 +39,9 @@ from loaders.db import connect
 
 VOCAB_PATH = Path(__file__).with_name("style_fit_vocab.toml")
 YEAST_TYPE_FAMILIES = {"ale", "lager", "kveik", "brett"}  # ref.yeast.type values that are family tags
+
+# ref.yeast.type -> family tag, for intake yeasts (they have no shop Stílus); souring cultures are "sour"
+INTAKE_YEAST_FAMILY = {"ale": "ale", "lager": "lager", "kveik": "kveik", "brett": "brett", "lacto": "sour", "pedio": "sour"}
 
 
 def read_vocab(path: Path = VOCAB_PATH) -> dict:
@@ -115,6 +122,24 @@ def yeast_style(raw: dict) -> str | None:
         if style:
             return style
     return None
+
+
+def intake_words(raw: dict) -> list[str] | None:
+    """The descriptor words of an intake row, or None when the row is not an intake row."""
+    if "intake" not in raw:
+        return None
+    return list(raw["intake"]["fields"].get("descriptors") or [])
+
+
+def descriptor_tag(word: str, synonyms: dict, character_tags: set) -> str | None:
+    """The character tag a descriptor word of an intake file means, or None when it is unknown.
+
+    The word is a key of the synonym dictionary (compared as name_key) or a character tag name.
+    """
+    tag = synonyms.get(name_key(word))
+    if tag:
+        return tag
+    return word if word in character_tags else None
 
 
 def scan_text(text: str, synonyms: dict, no_character: set) -> tuple[list[str], bool]:
@@ -222,6 +247,19 @@ def derive_tags(conn, vocab: dict) -> dict:
                 unknown.append(word)
         return _unique(known), unknown
 
+    character_tags = {name for facet, name in tag_ids if facet == "character"}
+
+    def resolve_intake(words: list[str]) -> tuple[list[str], list[str]]:
+        """(character tag names, unknown words) for the descriptors of an intake file."""
+        known, unknown = [], []
+        for word in words:
+            tag = descriptor_tag(word, synonyms, character_tags)
+            if tag:
+                known.append(tag)
+            else:
+                unknown.append(word)
+        return _unique(known), unknown
+
     def save(ingredient_id: int, origin=(), family=(), character=(), reasons=()):
         wanted = [("origin", n) for n in origin] + [("family", n) for n in family] + [("character", n) for n in character]
         for facet, name in wanted:
@@ -238,8 +276,9 @@ def derive_tags(conn, vocab: dict) -> dict:
     for iid, raw, origins in conn.execute(
         "select i.id, i.raw, h.origins from ref.ingredient i join ref.hop h on h.ingredient_id = i.id order by i.id"
     ).fetchall():
-        words = hop_words(raw, filler)
-        known, unknown = resolve(words)
+        intake = intake_words(raw)
+        words = hop_words(raw, filler) if intake is None else intake
+        known, unknown = resolve(words) if intake is None else resolve_intake(words)
         reasons = []
         if not words:
             reasons.append("no descriptor text")
@@ -247,17 +286,36 @@ def derive_tags(conn, vocab: dict) -> dict:
             reasons.append("unknown words: " + ", ".join(unknown))
         save(iid, origin=origins or (), character=known, reasons=reasons)
 
-    for iid, name, description, role in conn.execute(
-        "select i.id, i.name, f.description, f.role from ref.ingredient i "
+    for iid, name, raw, description, role in conn.execute(
+        "select i.id, i.name, i.raw, f.description, f.role from ref.ingredient i "
         "join ref.fermentable f on f.ingredient_id = i.id order by i.id"
     ).fetchall():
-        found, _ = scan_text(f"{name}. {description or ''}", synonyms, no_character)
-        save(iid, family=[role] if role else [], character=found)
+        intake = intake_words(raw)
+        reasons = []
+        if intake is None:
+            found, _ = scan_text(f"{name}. {description or ''}", synonyms, no_character)
+        else:
+            found, unknown = resolve_intake(intake)
+            if unknown:
+                reasons.append("unknown words: " + ", ".join(unknown))
+        save(iid, family=[role] if role else [], character=found, reasons=reasons)
 
     for iid, name, raw, ytype in conn.execute(
         "select i.id, i.name, i.raw, y.type from ref.ingredient i join ref.yeast y on y.ingredient_id = i.id order by i.id"
     ).fetchall():
         reasons = []
+        intake = intake_words(raw)
+        if intake is not None:
+            family = INTAKE_YEAST_FAMILY.get(ytype)
+            if family is None:
+                reasons.append(f"no yeast family (type {ytype!r})")
+            known, unknown = resolve_intake(intake)
+            if not intake:
+                reasons.append("no descriptor text")
+            if unknown:
+                reasons.append("unknown words: " + ", ".join(unknown))
+            save(iid, family=[family] if family else [], character=known, reasons=reasons)
+            continue
         style = yeast_style(raw)
         family = vocab["yeast_family_override"].get(name_key(name)) or vocab["yeast_family"].get(name_key(style or ""))
         if family is None and ytype in YEAST_TYPE_FAMILIES:

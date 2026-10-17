@@ -1,0 +1,28 @@
+# Template: a fermentable (malt, adjunct or sugar). Copy to shared/ingredients/fermentable/<name>.toml.
+# "" or [] means "not filled". Required keys must be filled; a filled figure needs its *_ref.
+# Ranges are [low, high]; for a single value write [x, x].
+# Units: % , EBC, minutes. Nothing is guessed: leave a key empty when the source does not say.
+# Optional extra: <field>_source = "<slug>" names another source for one field (e.g. "user-supplied").
+
+kind = "fermentable"               # required, must be "fermentable" (the folder name)
+name = ""                          # required, as the maker prints it
+producer = ""                      # required, the maker
+source = ""                        # required, a slug in ref.source or in shared/ingredients/sources/
+description = ""                   # required, one to three English sentences from the source
+description_ref = ""               # required, page or URL of the description
+aliases = []                       # optional, words a brewer types for this product
+descriptors = []                   # optional, character words: a tag name or a word of the vocabulary file
+
+extract_dbfg_pct = ""              # required, extract, % dry basis
+extract_dbfg_pct_ref = ""          # page or URL, needed when the figure is filled
+ebc = []                           # optional, colour range, EBC
+ebc_ref = ""                       # page or URL, needed when filled
+role = ""                          # required: base, kilned, crystal, roast, adjunct or sugar
+fermentability = ""                # optional: full, normal or none (empty = normal)
+fermentability_ref = ""            # page or URL, needed when fermentability is not "normal"
+max_pct = ""                       # optional, maximum share of the grist, %
+max_pct_ref = ""                   # page or URL, needed when filled
+enzyme_activity = ""               # optional: none, low, normal or high
+enzyme_activity_ref = ""           # page or URL, needed when filled
+min_boil_min = ""                  # optional, minimum boil, minutes, 60 to 120 (empty = 60 by the Palmer rule)
+min_boil_min_ref = ""              # page or URL, needed when filled

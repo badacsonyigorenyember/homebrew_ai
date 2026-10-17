@@ -1,0 +1,17 @@
+# Test fixture: invented data. A souring culture: the sheet states no attenuation.
+kind = "yeast"
+name = "Fixture Lacto LB-1"
+producer = "Fixture Yeasts"
+source = "fixture-data-sheet"
+description = "An invented Lactobacillus culture for tests. It makes a clean sourness."
+description_ref = "fixture sheet p. 5"
+aliases = ["fixture lacto"]
+descriptors = ["sour"]
+
+type = "lacto"
+temp_c = [30, 40]
+temp_c_ref = "fixture sheet p. 5"
+attenuation_pct = []
+flocculation = ""
+form = "liquid"
+product_id = "LB-1"

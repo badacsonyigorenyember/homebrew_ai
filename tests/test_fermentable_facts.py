@@ -343,7 +343,10 @@ def test_style_codes_exist(conn, data):
 @pytest.mark.stack
 def test_file_matches_the_database(conn, data):
     """The file's names are the 81 rows of ref.fermentable, and every check against the DB passes."""
-    rows = ff.fetch_rows(conn)
+    intake = set(conn.execute(
+        "select i.producer, i.name from ref.ingredient i where i.kind = 'fermentable' and i.raw ? 'intake'"
+    ).fetchall())
+    rows = {key: row for key, row in ff.fetch_rows(conn).items() if key not in intake}
     assert set(by_key(data)) == set(rows) and len(rows) == 81
     ff.check(data, rows, ff.fetch_sources(conn), style_codes=ff.fetch_style_codes(conn))
 
@@ -360,7 +363,7 @@ def db_rows(conn, columns):
         label(p, n): rest
         for p, n, *rest in conn.execute(
             f"select i.producer, i.name, {columns} from ref.fermentable f "
-            "join ref.ingredient i on i.id = f.ingredient_id"
+            "join ref.ingredient i on i.id = f.ingredient_id where not i.raw ? 'intake'"
         )
     }
 
@@ -372,14 +375,20 @@ def test_db_roles(conn, data):
     for role, keys in EXPECTED_ROLES.items():
         for key in keys:
             assert rows[label(*key)] == [role], key
-    counts = dict(conn.execute("select role, count(*) from ref.fermentable group by role").fetchall())
+    counts = dict(conn.execute(
+        "select f.role, count(*) from ref.fermentable f join ref.ingredient i on i.id = f.ingredient_id "
+        "where not i.raw ? 'intake' group by f.role"
+    ).fetchall())
     assert counts == {"base": 20, "kilned": 13, "crystal": 27, "roast": 13, "adjunct": 5, "sugar": 3}
     assert rows["Viking Malt Sprau Malt"] == ["adjunct"]
 
 
 @pytest.mark.stack
 def test_db_max_pct(conn, data):
-    assert conn.execute("select count(*) from ref.fermentable where max_pct is null").fetchone()[0] == 0
+    assert conn.execute(
+        "select count(*) from ref.fermentable f join ref.ingredient i on i.id = f.ingredient_id "
+        "where f.max_pct is null and not i.raw ? 'intake'"
+    ).fetchone()[0] == 0
     expected = {label(*k): f["max_pct"] for k, f in by_key(data).items() if "max_pct" in f}
     assert len(expected) == 18
     loaded = dict(
@@ -434,7 +443,10 @@ def test_db_descriptions(conn):
         "or field_source->>'description' is null"
     ).fetchone()[0]
     assert missing == 0
-    assert conn.execute("select count(*) from ref.fermentable where description is not null").fetchone()[0] == 81
+    assert conn.execute(
+        "select count(*) from ref.fermentable f join ref.ingredient i on i.id = f.ingredient_id "
+        "where f.description is not null and not i.raw ? 'intake'"
+    ).fetchone()[0] == 81
     orphans = conn.execute(
         "select count(*) from ref.fermentable_style y left join ref.beer_style b on b.id = y.style_id "
         "where b.id is null"

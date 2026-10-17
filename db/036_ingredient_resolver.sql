@@ -1,7 +1,10 @@
 -- Ingredient-word resolver: a word the user typed ("oats", "abbey yeast") to its ref.ingredient
 -- products (docs/work/m3-deviations). First version, extended by M5.
+-- app.resolve_ingredient first tries the aliases in ref.ingredient_alias (written by
+-- loaders/extra_ingredients.py, docs/work/s8-ingredient-intake) and, only when none match, falls
+-- back to app.resolve_ingredient_by_name (the name rules, as before aliases existed).
 -- It keeps its own synonym list and never reads evals/ or the brief fixtures.
--- Needs db/010_ref_schema.sql and db/015_app.sql.
+-- Needs db/010_ref_schema.sql (incl. ref.ingredient_alias) and db/015_app.sql.
 -- Apply as postgres (docs/OPERATIONS.md §4):
 --   docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/036_ingredient_resolver.sql
 -- Idempotent: safe to re-run.
@@ -47,11 +50,11 @@ as $$
       left join app.ingredient_synonym() s on s.word = w.word;
 $$;
 
--- The products a word names. The kind words malt, hop and yeast restrict the kind, so "crystal malt"
+-- The products a word names, by name only (aliases are not read).  The kind words malt, hop and yeast restrict the kind, so "crystal malt"
 -- never reaches the Crystal hop. Two rules, the first that finds anything wins:
 -- 1. the same words as a product's name; 2. every remaining word (kind word removed, only when
 -- another word remains) among the words of the product's name and producer.
-create or replace function app.resolve_ingredient(word text)
+create or replace function app.resolve_ingredient_by_name(word text)
 returns table (ingredient_id bigint, kind text, name text, rule text)
 language sql
 stable
@@ -98,4 +101,35 @@ as $$
             union all
             select * from all_words where not exists (select 1 from same_name)) r
      order by r.name, r.id;
+$$;
+
+-- The products a word names: aliases first, then the name rules above. An alias matches when its
+-- words (app.ingredient_words, sorted) equal the query's words, or equal the query's words with
+-- the kind words removed when the alias's product is of that kind ("fixture crystal malt" finds
+-- the fermentable with alias "fixture crystal"; "fixture crystal yeast" does not).
+create or replace function app.resolve_ingredient(word text)
+returns table (ingredient_id bigint, kind text, name text, rule text)
+language sql
+stable
+as $$
+    with q as (
+        select app.ingredient_words(word) as w
+    ),
+    hit as (
+        select distinct i.id, i.kind, i.name, 'alias'::text as rule
+          from ref.ingredient_alias a
+          join ref.ingredient i on i.id = a.ingredient_id,
+               q
+         where cardinality(q.w) > 0
+           and (select array_agg(x order by x) from unnest(app.ingredient_words(a.alias)) x)
+             in ((select array_agg(x order by x) from unnest(q.w) x),
+                 (select array_agg(x order by x) from unnest(q.w) x
+                   where x not in (select k.word from app.ingredient_kind_word() k where k.kind = i.kind)))
+    )
+    select h.id, h.kind, h.name, h.rule from hit h
+    union all
+    select b.ingredient_id, b.kind, b.name, b.rule
+      from app.resolve_ingredient_by_name(word) b
+     where not exists (select 1 from hit)
+    order by 3, 1;
 $$;

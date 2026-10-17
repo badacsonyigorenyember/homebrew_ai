@@ -1,0 +1,7 @@
+# Test fixture: invented data. Loaded only inside rolled-back test transactions, never into the live ref.
+slug = "fixture-data-sheet"
+title = "Fixture data sheet (invented values)"
+edition = "test fixture"
+publisher = "Fixture Maltings"
+url = "https://example.invalid/fixture-data-sheet"
+licence = "none"

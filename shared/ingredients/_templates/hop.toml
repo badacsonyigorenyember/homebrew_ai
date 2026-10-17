@@ -1,0 +1,21 @@
+# Template: a hop. Copy to shared/ingredients/hop/<name>.toml.
+# "" or [] means "not filled". Required keys must be filled; a filled figure needs its *_ref.
+# Ranges are [low, high]; for a single value write [x, x].
+# Units: % , mL/100 g. Nothing is guessed: leave a key empty when the source does not say.
+# Optional extra: <field>_source = "<slug>" names another source for one field (e.g. "user-supplied").
+
+kind = "hop"                       # required, must be "hop" (the folder name)
+name = ""                          # required, as the grower or merchant prints it
+producer = ""                      # optional, may stay empty
+source = ""                        # required, a slug in ref.source or in shared/ingredients/sources/
+description = ""                   # required, one to three English sentences from the source
+description_ref = ""               # required, page or URL of the description
+aliases = []                       # optional, words a brewer types for this product
+descriptors = []                   # required, at least one: a tag name or a word of the vocabulary file
+
+alpha_pct = []                     # required, alpha acids, %
+alpha_pct_ref = ""                 # page or URL, needed when filled
+purpose = ""                       # required: aroma, bittering or dual
+origins = []                       # required, country codes of the origin tags, e.g. ["US"]
+total_oil_ml_100g = []             # optional, total oil, mL/100 g
+total_oil_ml_100g_ref = ""         # page or URL, needed when filled
