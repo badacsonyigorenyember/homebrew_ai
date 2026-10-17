@@ -446,7 +446,7 @@ aids join at the process steps only; who decides to add them is decision Q10.
 | [`m6-compute-validate`](work/m6-compute-validate/brief.md) | R1/R5: misc amounts (g from g/L × batch) saved as `recipe_item` rows, outside the gravity maths. R2: `formulation_check.input` and `app.style_fit_recipe` get an `extras` list (contract change). If fruit purée is a fermentable (Q3), it enters OG like any sugar. | G8 |
 | [`m7-process`](work/m7-process/brief.md) | R3/R4: extras and process aids appear in the schedule at their usage (boil minute, whirlpool, secondary day, packaging); process aids are added as Q10 decides. Lactobacillus from the intake files feeds the b14 souring schedule. Acids, if loaded, wait for the water maths of step 12. | G5, G9 |
 | [`m8-recipe-sheet-chat`](work/m8-recipe-sheet-chat/brief.md) | R2: an "Extras and process aids" section (grams, when, why). Later, lane B: an unmatched inventory word is listed as "not in the catalogue" with a pointer to the form. | lane B |
-| [`s5-mash-attenuation`](work/s5-mash-attenuation/brief.md) | No change now. An enzyme added through the form would need its effect on attenuation here or in m6 before it is usable. | §8 |
+| [`s5-mash-attenuation`](finished/s5-mash-attenuation/brief.md) | No change now. An enzyme added through the form would need its effect on attenuation here or in m6 before it is usable. | §8 |
 
 ### New work items
 
