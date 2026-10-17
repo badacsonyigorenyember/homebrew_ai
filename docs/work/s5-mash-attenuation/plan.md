@@ -1,6 +1,6 @@
 # S5 · A cited model of mash temperature's effect on attenuation — implementation plan
 
-Stage: verify
+Stage: shipped
 Brief: [brief.md](brief.md)
 Branch: s5-mash-attenuation
 
