@@ -29,9 +29,11 @@ from pathlib import Path
 import tomllib
 
 from loaders import adjunct_products, hop_products, malt_products, tags, yeast_products
-from loaders.db import connect
-from loaders.common import name_key
-from loaders.fermentable_facts import ENZYME, ROLES
+from psycopg.types.json import Jsonb
+
+from loaders.db import connect, source_id, upsert_ingredient
+from loaders.common import name_key, num, to_range
+from loaders.fermentable_facts import BOIL_SOURCE, ENZYME, ROLES
 from loaders.tags import descriptor_tag
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -448,32 +450,222 @@ def run_checks(conn, root: Path):
     return errors, sources, ingredients, orphans(known, ingredients)
 
 
+# ---------------------------------------------------------------- the load
+
+
+def load_source(conn, item: IntakeFile) -> int:
+    """Upsert a ref.source row on its slug; notes says which file it came from."""
+    f = item.fields
+    return conn.execute(
+        """
+        insert into ref.source (slug, title, edition, publisher, licence, url, notes)
+        values (%s, %s, %s, %s, %s, %s, %s)
+        on conflict (slug) do update
+           set title = excluded.title, edition = excluded.edition, publisher = excluded.publisher,
+               licence = excluded.licence, url = excluded.url, notes = excluded.notes
+        returning id
+        """,
+        (f["slug"], f["title"], f["edition"], f.get("publisher") or None, f.get("licence") or None,
+         f.get("url") or None, f"intake: {item.path}"),
+    ).fetchone()[0]
+
+
+def write_kind_row(conn, table: str, ingredient_id: int, values: dict, field_source: dict):
+    """Insert or update the one row of ref.fermentable / ref.hop / ref.yeast for an ingredient."""
+    columns = list(values) + ["field_source"]
+    params = [ingredient_id] + list(values.values()) + [Jsonb(field_source)]
+    conn.execute(
+        f"insert into {table} (ingredient_id, {', '.join(columns)}) "
+        f"values ({', '.join(['%s'] * (len(columns) + 1))}) "
+        f"on conflict (ingredient_id) do update set {', '.join(f'{c} = excluded.{c}' for c in columns)}",
+        params,
+    )
+
+
+def rng(value):
+    """A [low, high] list from a file as a numrange; "" or [] as None."""
+    return to_range(*value) if value else None
+
+
+def field_sources(f: dict, values: dict, skip=()) -> dict:
+    """{column: slug} for every filled column: its `<column>_source` if the file has one, else `source`.
+    Columns ending in _ref hold a page, not a figure, and are left out, as are the ones in skip."""
+    return {
+        column: f.get(f"{column}_source") or f["source"]
+        for column, value in values.items()
+        if value is not None and not column.endswith("_ref") and column not in skip
+    }
+
+
+def write_ingredient(conn, item: IntakeFile, kind: str, table: str, values: dict, sources: dict) -> int:
+    """The ref.ingredient row, its kind row (the not-None values) and its aliases for one file."""
+    f = item.fields
+    raw = {"intake": {"path": item.path, "text": item.text, "fields": f}}
+    ingredient_id = upsert_ingredient(conn, kind, f["name"], f.get("producer") or "", source_id(conn, f["source"]), raw)
+    write_kind_row(conn, table, ingredient_id, {k: v for k, v in values.items() if v is not None}, sources)
+    conn.execute("delete from ref.ingredient_alias where ingredient_id = %s", (ingredient_id,))
+    for alias in f.get("aliases", []):
+        conn.execute(
+            "insert into ref.ingredient_alias (ingredient_id, alias) values (%s, %s) on conflict do nothing",
+            (ingredient_id, alias),
+        )
+    return ingredient_id
+
+
+def load_fermentable(conn, item: IntakeFile) -> int:
+    f = item.fields
+    values = {
+        "extract_dbfg_pct": num(f["extract_dbfg_pct"]),
+        "ebc": rng(f.get("ebc")),
+        "role": f["role"],
+        "fermentability": f.get("fermentability") or "normal",
+        "max_pct": num(f.get("max_pct")),
+        "enzyme_activity": f.get("enzyme_activity") or None,
+        "min_boil_min": f.get("min_boil_min") or 60,
+        "description": f["description"],
+        "description_ref": f["description_ref"],
+    }
+    # fermentability has a column default, so it counts as a filled field only when the file sets it
+    sources = field_sources(f, values, skip=() if f.get("fermentability") else ("fermentability",))
+    if not f.get("min_boil_min"):
+        sources["min_boil_min"] = BOIL_SOURCE  # the rule fermentable_facts applies to every fermentable
+    return write_ingredient(conn, item, "fermentable", "ref.fermentable", values, sources)
+
+
+def load_hop(conn, item: IntakeFile) -> int:
+    f = item.fields
+    values = {
+        "alpha_pct": rng(f["alpha_pct"]),
+        "purpose": f["purpose"],
+        "origins": f["origins"],
+        "total_oil_ml_100g": rng(f.get("total_oil_ml_100g")),
+    }
+    return write_ingredient(conn, item, "hop", "ref.hop", values, field_sources(f, values))
+
+
+def load_yeast(conn, item: IntakeFile) -> int:
+    f = item.fields
+    values = {
+        "product_id": f.get("product_id") or None,
+        "type": f["type"],
+        "form": f.get("form") or None,
+        "attenuation_pct": rng(f.get("attenuation_pct")),
+        "temp_c": rng(f["temp_c"]),
+        "flocculation": f.get("flocculation") or None,
+        "alcohol_tolerance_pct": num(f.get("alcohol_tolerance_pct")),
+    }
+    return write_ingredient(conn, item, "yeast", "ref.yeast", values, field_sources(f, values))
+
+
+LOADERS = {"fermentable": load_fermentable, "hop": load_hop, "yeast": load_yeast}
+
+
+def load(conn, sources: list[IntakeFile], ingredients: list[IntakeFile]) -> dict:
+    """Write the sources, then each kind; then check that every alias finds its product only.
+
+    Returns {"counts": {kind: files loaded}, "new_sources": [slug], "aliases": n, "ids": {path: id}}.
+    Raises (so the caller rolls back) when an alias finds anything else.
+    """
+    existing = {slug for (slug,) in conn.execute("select slug from ref.source")}
+    new_sources = [s.fields["slug"] for s in sources if s.fields["slug"] not in existing]
+    for item in sources:
+        load_source(conn, item)
+    counts = {kind: 0 for kind in KINDS}
+    ids = {}
+    for kind in KINDS:
+        for item in ingredients:
+            if item.folder == kind:
+                ids[item.path] = LOADERS[kind](conn, item)
+                counts[kind] += 1
+    aliases = 0
+    for item in ingredients:
+        for alias in item.fields.get("aliases", []):
+            found = [row[0] for row in conn.execute("select ingredient_id from app.resolve_ingredient(%s)", (alias,))]
+            if found != [ids[item.path]]:
+                raise RuntimeError(f"{item.path}: aliases: {alias!r} finds ingredient ids {found}, not only {ids[item.path]}")
+            aliases += 1
+    return {"counts": counts, "new_sources": new_sources, "aliases": aliases, "ids": ids}
+
+
+def summary(conn, ingredients: list[IntakeFile], loaded: dict, orphan_list: list[str] | None = None) -> dict:
+    """What the run did, for the printout (R9). Call after the tagger has run."""
+    ids = loaded["ids"]
+    by_id = {ids[i.path]: i for i in ingredients if i.path in ids}
+    tagged, flagged = [], []
+    for ingredient_id, item in by_id.items():
+        label = f"{item.fields.get('producer') or ''} {item.fields['name']}".strip()
+        reasons = [r for (r,) in conn.execute("select reason from ref.ingredient_review where ingredient_id = %s", (ingredient_id,))]
+        n_tags = conn.execute("select count(*) from ref.ingredient_tag where ingredient_id = %s", (ingredient_id,)).fetchone()[0]
+        if reasons:
+            flagged.append((label, reasons))
+        elif n_tags:
+            tagged.append(label)
+        else:
+            flagged.append((label, ["no tags derived"]))
+    waits = [
+        f"{i.fields.get('producer') or ''} {i.fields['name']}".strip()
+        for i in ingredients
+        if i.folder == "yeast" and i.fields.get("type") in SOUR_TYPES
+    ]
+    return {
+        "loaded": loaded["counts"],
+        "new_sources": loaded["new_sources"],
+        "tagged": tagged,
+        "flagged": flagged,
+        "orphans": orphan_list or [],
+        "aliases_checked": loaded["aliases"],
+        "waits_for_maths": waits,
+        "ref_counts": dict(conn.execute("select kind, count(*) from ref.ingredient group by kind order by kind")),
+    }
+
+
+def print_summary(s: dict):
+    loaded = s["loaded"]
+    print(f"loaded: fermentable {loaded['fermentable']}, hop {loaded['hop']}, yeast {loaded['yeast']}")
+    print(f"sources added: {', '.join(s['new_sources']) or 'none'}")
+    print(f"tagged: {len(s['tagged'])}; flagged for review: {len(s['flagged'])}")
+    for label, reasons in s["flagged"]:
+        print(f"  flagged {label}: {'; '.join(reasons)}")
+    for line in s["orphans"]:
+        print(f"no file backs this intake row: {line}")
+    print(f"aliases checked: {s['aliases_checked']}")
+    for label in s["waits_for_maths"]:
+        print(f"waits for maths (souring culture, no model yet): {label}")
+    print("ref.ingredient per kind: " + ", ".join(f"{k} {n}" for k, n in s["ref_counts"].items()))
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="python -m loaders.extra_ingredients", description=__doc__.split("\n")[0])
     parser.add_argument("--check", action="store_true", help="check the files and write nothing")
     parser.add_argument("path", nargs="?", default=str(DEFAULT_ROOT), help="intake folder (default shared/ingredients)")
     args = parser.parse_args(argv)
-    if not args.check:
-        parser.error("loading is not built yet; use --check")
 
     conn = connect()
     try:
-        conn.read_only = True
+        conn.read_only = args.check
         errors, sources, ingredients, orphan_list = run_checks(conn, Path(args.path))
+        if errors:
+            for error in errors:
+                print(error)
+            print(f"{len(errors)} problem(s); nothing was written")
+            return 1
+        count = {kind: sum(1 for i in ingredients if i.folder == kind) for kind in KINDS}
+        if args.check:
+            print(f"ok: {len(sources) + len(ingredients)} files (fermentable {count['fermentable']}, "
+                  f"hop {count['hop']}, yeast {count['yeast']}, sources {len(sources)})")
+            for line in orphan_list:
+                print(f"no file backs this intake row: {line}")
+            return 0
+        loaded = load(conn, sources, ingredients)
+        vocab = tags.read_vocab()
+        tags.load_vocab(conn, vocab)
+        tags.derive_tags(conn, vocab)
+        print_summary(summary(conn, ingredients, loaded, orphan_list))
+        conn.commit()
+        return 0
     finally:
         conn.rollback()
         conn.close()
-    if errors:
-        for error in errors:
-            print(error)
-        print(f"{len(errors)} problem(s); nothing was written")
-        return 1
-    count = {kind: sum(1 for i in ingredients if i.folder == kind) for kind in KINDS}
-    print(f"ok: {len(sources) + len(ingredients)} files (fermentable {count['fermentable']}, "
-          f"hop {count['hop']}, yeast {count['yeast']}, sources {len(sources)})")
-    for line in orphan_list:
-        print(f"no file backs this intake row: {line}")
-    return 0
 
 
 if __name__ == "__main__":

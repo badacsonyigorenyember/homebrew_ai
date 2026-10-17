@@ -208,22 +208,22 @@ Commit: `Tag intake rows from their descriptor words`
 
 ### Task 5: Load intake files
 Why: R3, R4, R5, R6, R9, R10; A3–A7, A10.
-- [ ] `load_source`: upsert on `slug` with `notes = 'intake: <path>'`. `load_fermentable`,
+- [x] `load_source`: upsert on `slug` with `notes = 'intake: <path>'`. `load_fermentable`,
   `load_hop`, `load_yeast`: `upsert_ingredient(conn, kind, name, producer, source_id, raw)`, then
   insert-or-update the kind row (all columns of the format table, `common.num` / `common.to_range`),
   `field_source` = `{field: <field>_source or source}` for every filled field (fermentable also
   `min_boil_min`, defaulted or not; `fermentability` only when the file sets it). Aliases: delete
   this ingredient's rows in `ref.ingredient_alias`, insert the file's. No `fermentable_style`
   rows (`fermentable_facts` deletes and rebuilds that table).
-- [ ] `load(conn, sources, ingredients) -> dict` writes sources first, then each kind, then
+- [x] `load(conn, sources, ingredients) -> dict` writes sources first, then each kind, then
   checks every alias: `app.resolve_ingredient(alias)` must return exactly this row, else raise.
   `main` without `--check`: checks (exit 1 on errors), `load`, `tags.load_vocab` +
   `tags.derive_tags`, summary, commit (the `with connect()` block); any exception rolls back.
-- [ ] `summary(conn, ingredients, counts) -> dict` and its printout (R9): rows loaded per kind;
+- [x] `summary(conn, ingredients, counts) -> dict` and its printout (R9): rows loaded per kind;
   sources added (slugs new in this run); intake rows tagged / flagged for review (with names and
   reasons); rows no file backs; aliases checked; "waits for maths" for `lacto`/`pedio` yeasts
   (INGREDIENT-INTAKE §13 step 5); `ref.ingredient` count per kind.
-- [ ] Write tests (stack, every one in a transaction rolled back in `finally`, loading the
+- [x] Write tests (stack, every one in a transaction rolled back in `finally`, loading the
   fixtures): `test_load_twice_same_rows` (A3: same counts in `ref.source`, `ref.ingredient`, kind
   tables, aliases and the same row values); `test_field_source_covers_filled_fields` (A3: keys ==
   filled columns; `raw.intake` has path, text, fields); `test_intake_fermentable_usable` (A4: role
@@ -236,7 +236,7 @@ Why: R3, R4, R5, R6, R9, R10; A3–A7, A10.
   none in `ingredient_review`); `test_every_alias_resolves` (A7, A11: every fixture alias and
   every fixture name, the lacto culture included, resolves to that product only); `test_summary_counts` (A10:
   summary per-kind counts == `select kind, count(*) from ref.ingredient group by kind`).
-- [ ] Run `.venv/bin/pytest tests/test_extra_ingredients.py tests/test_tags.py tests/test_ingredient_resolver.py`, expect all pass; `ref` row counts unchanged afterwards (fixtures rolled back).
+- [x] Run `.venv/bin/pytest tests/test_extra_ingredients.py tests/test_tags.py tests/test_ingredient_resolver.py`, expect all pass; `ref` row counts unchanged afterwards (fixtures rolled back).
 Done when: all of the above pass and the live DB has no fixture rows (`select count(*) from ref.ingredient where raw ? 'intake'` → 0).
 Commit: `Load intake files into ref`
 
