@@ -223,6 +223,14 @@ def test_alias_same_words_other_order_or_kind_word_refused(conn, work, alias):
 
 
 @pytest.mark.stack
+def test_alias_equal_to_another_files_name_without_kind_word_refused(conn, work):
+    edit(work, "yeast/fixture-ale.toml", 'name = "Fixture Ale FA-1"', 'name = "Fixture Ale FA-1 Yeast"')
+    edit(work, "yeast/fixture-lacto.toml", '"fixture lacto"', '"fixture ale fa-1"')
+    errors = db_check(conn, work)
+    assert any("yeast/fixture-lacto.toml: aliases" in e and "is the name of" in e for e in errors)
+
+
+@pytest.mark.stack
 def test_source_slug_of_db011_refused(conn, work):
     (work / "sources" / "bjcp-2021.toml").write_text(
         toml_text({"slug": "bjcp-2021", "title": "BJCP", "edition": "2021"})

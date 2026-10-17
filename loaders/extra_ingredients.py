@@ -407,10 +407,10 @@ def check_aliases(conn, ingredients: list[IntakeFile]) -> list[str]:
     (as the resolver reads names), not an alias already stored for another ingredient."""
     errors = []
     seen = []  # (words, kind, file) of every alias met so far
-    names = {}  # sorted words of a product's name -> file (an alias must not take it over)
+    names = []  # (sorted words of a product's name, file): an alias must not take it over
     for item in ingredients:
         if product_key(item) is not None:
-            names.setdefault(alias_words(conn, item.fields["name"]), item)
+            names.append((alias_words(conn, item.fields["name"]), item))
     for item in ingredients:
         own = product_key(item)
         aliases = item.fields.get("aliases")
@@ -428,8 +428,9 @@ def check_aliases(conn, ingredients: list[IntakeFile]) -> list[str]:
             for other in sorted(others):
                 errors.append(f"{item.path}: aliases: {alias!r} is also an alias in {other}")
             seen.append((words, item.folder, item.path))
-            for w, named in names.items():
-                if named is not item and w == words:
+            for w, named in names:
+                if named is not item and (alias_matches(conn, words, w, named.folder)
+                                          or alias_matches(conn, w, words, named.folder)):
                     errors.append(f"{item.path}: aliases: {alias!r} is the name of {named.path}")
             found = conn.execute(
                 "select i.kind, i.producer_key, i.name_key, i.producer, i.name "

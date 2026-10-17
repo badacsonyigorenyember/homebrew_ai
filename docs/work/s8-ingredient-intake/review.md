@@ -64,3 +64,12 @@ probes, which ran in rolled-back transactions.
 |---|---|---|---|---|
 | 11 | should-fix | loaders/extra_ingredients.py:432-434 (`check_aliases`, name check) | The name check compares sorted words only. It misses the kind-word form that the resolver and the load check apply. Probe: the yeast `fixture-ale.toml` renamed to `Fixture Ale FA-1 Yeast` and `fixture-lacto.toml` given the alias `"fixture ale fa-1"`. `--check` found no errors, and the load raised `name: 'Fixture Ale FA-1 Yeast' finds ingredient id … by an alias` and rolled back. The plan.md deviation and the PROJECT.md §8 line say `--check` refuses this form too. | Nothing wrong gets written, because the load refuses it. This is the same gap as finding 3, for names: `--check` says ok and only the load fails, and the record claims more than the code does. |
 | 12 | note | PROJECT.md §4 Scripts row | It still says `tests/test_extra_ingredients.py` 52 passed. The file now has 58 tests. | A stale count. dev-verify can refresh it with its measured run. |
+
+## Fixes after the re-review (2026-10-17)
+
+Full pytest: 779 passed.
+
+- 11 fixed: the name check in `check_aliases` uses `alias_matches` in both directions with the file's
+  kind, so an alias equal to another file's name with the kind word removed (or added) is refused
+  by `--check`. Test: `test_alias_equal_to_another_files_name_without_kind_word_refused` (failed before the fix).
+- 12 fixed: PROJECT.md §4 now says 59 passed for `tests/test_extra_ingredients.py` (measured).
