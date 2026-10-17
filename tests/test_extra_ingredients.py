@@ -399,3 +399,40 @@ def test_main_loads_tags_and_prints_summary(rw, monkeypatch, capsys):
     assert "sources added: fixture-data-sheet" in out
     assert "waits for maths" in out and "Fixture Lacto LB-1" in out
     assert rw.execute("select count(*) from ref.ingredient where raw ? 'intake'").fetchone()[0] == 4
+
+
+@pytest.mark.stack
+def test_g10_counts_ignore_intake_rows(rw):
+    """With the fixtures loaded, the filtered G10 queries still count the hopline catalogue only."""
+    load_fixtures(rw)
+    hops_n = rw.execute("select count(*) from ref.ingredient where kind = 'hop' and not raw ? 'intake'").fetchone()[0]
+    ferm_n = rw.execute(
+        "select count(*) from ref.fermentable f join ref.ingredient i on i.id = f.ingredient_id "
+        "where not i.raw ? 'intake'"
+    ).fetchone()[0]
+    assert (hops_n, ferm_n) == (89, 81)
+    assert rw.execute("select count(*) from ref.ingredient where kind = 'hop'").fetchone()[0] == 90
+
+
+def spotcheck_statements(*headings):
+    """The SQL under each named \\echo heading of the spot-check pack."""
+    text = (REPO / "db" / "checks" / "ref_spotcheck.sql").read_text(encoding="utf-8")
+    parts = text.split("\\echo '== ")[1:]
+    found = {}
+    for part in parts:
+        title, _, body = part.partition(" ==")[0], None, part.partition("\n")[2]
+        found[title] = body.split("\\echo")[0].strip().rstrip(";")
+    return [found[h] for h in headings]
+
+
+@pytest.mark.stack
+def test_spotcheck_lists_intake_rows(rw):
+    load_fixtures(rw)
+    per_kind, with_source = spotcheck_statements(
+        "Intake rows per kind (shared/ingredients/; 0 until a real item is added)", "Intake rows with their source"
+    )
+    assert dict(rw.execute(per_kind).fetchall()) == {"fermentable": 1, "hop": 1, "yeast": 2}
+    rows = rw.execute(with_source).fetchall()
+    assert len(rows) == 4  # fermentable, hop, ale yeast, lacto culture
+    assert {r[3] for r in rows} == {"fixture-data-sheet"} and {r[4] for r in rows} == {"test fixture"}
+    assert all(r[5].startswith("tests/fixtures/ingredients/") for r in rows)

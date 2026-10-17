@@ -242,27 +242,27 @@ Commit: `Load intake files into ref`
 
 ### Task 6: Size-free tests and the spot-check pack
 Why: R7, R8; A8 (G10), A9.
-- [ ] `tests/test_tags.py::test_every_hop_tagged_or_flagged`: `count of hops where not raw ? 'intake'`
+- [x] `tests/test_tags.py::test_every_hop_tagged_or_flagged`: `count of hops where not raw ? 'intake'`
   == 89; every hop (intake too) tagged or flagged.
-- [ ] `tests/test_fermentable_facts.py`: restrict DB reads to `not i.raw ? 'intake'` in
+- [x] `tests/test_fermentable_facts.py`: restrict DB reads to `not i.raw ? 'intake'` in
   `test_file_matches_the_database` (the 81 vs `fetch_rows`), the `db_rows` helper (used by
   `test_db_roles`, `test_db_enzyme_and_boil`), the role counts in `test_db_roles`, the null
   `max_pct` count in `test_db_max_pct`, and the description count in `test_db_descriptions`.
   The map-size tests (`test_hops.py:169`, `test_yeasts.py:229`, `test_malts.py:170`) stay: they
   pin what the hopline loaders load.
-- [ ] Prove it: in a rolled-back transaction with the fixtures loaded, these assertions hold — add
+- [x] Prove it: in a rolled-back transaction with the fixtures loaded, these assertions hold — add
   `test_g10_counts_ignore_intake_rows` to `tests/test_extra_ingredients.py` that loads the fixtures
   and re-runs the same filtered queries (89 hops, 81 fermentables).
-- [ ] `db/checks/ref_spotcheck.sql`: `ingredient_alias` in the row counts (fix the table count in
+- [x] `db/checks/ref_spotcheck.sql`: `ingredient_alias` in the row counts (fix the table count in
   the header); new sections "Intake rows per kind" (`where raw ? 'intake'`) and "Intake rows with
   their source" (kind, producer, name, source slug, edition, `raw->'intake'->>'path'`, aliases).
-- [ ] Write test `tests/test_extra_ingredients.py::test_spotcheck_lists_intake_rows` (stack, A9):
+- [x] Write test `tests/test_extra_ingredients.py::test_spotcheck_lists_intake_rows` (stack, A9):
   load the fixtures in a transaction, read the statements under the two "Intake" `\echo` headings
   of `db/checks/ref_spotcheck.sql`, run them on the same connection, expect the five fixture rows
   with slug `fixture-data-sheet` and its edition; roll back.
-- [ ] Run `.venv/bin/pytest tests/test_tags.py tests/test_fermentable_facts.py tests/test_extra_ingredients.py`, expect all pass; run the pack (`docker exec -i supabase-db psql -U postgres -d postgres < db/checks/ref_spotcheck.sql`), expect the new sections with 0 intake rows (none are real).
-- [ ] Run `.venv/bin/python -m loaders.extra_ingredients --check` on the real (empty) folder, expect `ok: 0 files`.
-- [ ] Run `.venv/bin/pytest` (full, stack up), expect all pass (A8). A failure caused by intake rows
+- [x] Run `.venv/bin/pytest tests/test_tags.py tests/test_fermentable_facts.py tests/test_extra_ingredients.py`, expect all pass; run the pack (`docker exec -i supabase-db psql -U postgres -d postgres < db/checks/ref_spotcheck.sql`), expect the new sections with 0 intake rows (none are real).
+- [x] Run `.venv/bin/python -m loaders.extra_ingredients --check` on the real (empty) folder, expect `ok: 0 files`.
+- [x] Run `.venv/bin/pytest` (full, stack up), expect all pass (A8). A failure caused by intake rows
   outside the G10 list: stop and report it, do not widen this task.
 Done when: the G10 tests pass with fixture rows present and still pin 89 hops and 81 fermentables; full pytest passes; `select count(*) from ref.ingredient where raw ? 'intake'` → 0.
 Commit: `Make catalogue-size tests ignore intake rows`

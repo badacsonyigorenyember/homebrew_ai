@@ -112,7 +112,8 @@ def test_every_hop_tagged_or_flagged(conn):
         from ref.ingredient i where i.kind = 'hop'
         """
     ).fetchall()
-    assert len(rows) == 89  # Sterling removed (db/035_drop_sterling.sql, user 2026-10-15)
+    hopline = conn.execute("select count(*) from ref.ingredient where kind = 'hop' and not raw ? 'intake'").fetchone()[0]
+    assert hopline == 89  # intake hops come on top; Sterling removed (db/035_drop_sterling.sql, user 2026-10-15)
     assert [r[0] for r in rows if not (r[1] or r[2])] == []
 
 
