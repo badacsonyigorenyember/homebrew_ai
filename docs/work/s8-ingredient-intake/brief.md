@@ -40,8 +40,9 @@ In:
 - The tests that pin catalogue sizes (INGREDIENT-INTAKE G10) changed so an added row doesn't fail
   them, while they still pin what the hopline loaders load.
 - The spot-check pack lists the intake rows.
-- First real entries: Special B and one souring culture hopline sells, from data sheets you
-  name.
+- Test fixture files that prove the path: a source, a fermentable, a hop, an ale yeast and a
+  souring culture (`type = 'lacto'`). They load only inside rolled-back test transactions, never
+  into the live `ref`. No real ingredient is added in this work.
 - DATABASE.md (fill order, `ref.source`, the intake loader) and PROJECT.md updated.
 
 Out:
@@ -50,7 +51,9 @@ Out:
 - The n8n form: `s10-ingredient-form`. This work's templates are the form for now.
 - Lane B (an ingredient added from the chat), Priority 2.
 - Fruit as a fermentable (INGREDIENT-INTAKE Q3, s9).
-- New tags or sensory dimensions beyond the words the first entries need.
+- New tags or sensory dimensions (the fixtures use known words only).
+- Real ingredients, Special B and a souring culture included: added later through intake files,
+  when M5 needs them (user decision 2026-10-17).
 - Pipeline steps (resolver class matching, step 9, recipe checks): M5 and later.
 - Changing the hopline loaders, apart from the tests in G10.
 
@@ -89,8 +92,9 @@ R9. After loading, the command prints: rows loaded per kind, sources added, rows
     numbers for PROJECT.md and DATABASE.md).
 R10. A souring culture loads into `ref.yeast` with `type` `lacto` or `pedio` and is tagged with the
      `sour` family.
-R11. Special B and one souring culture hopline sells are loaded through intake files, each figure
-     from a data sheet you name.
+R11. The intake path is proven by test fixture files only (a source, a fermentable, a hop, an ale
+     yeast, a souring culture with `type` `lacto`), loaded inside test transactions that are rolled
+     back; the live `ref` gets no intake row in this work.
 
 ## Constraints
 - CLAUDE.md: readable over optimal, one plain function per kind, no config-driven machinery
@@ -108,9 +112,8 @@ R11. Special B and one souring culture hopline sells are loaded through intake f
 ## Assumptions
 - `ref.yeast.type` has no check constraint (values today: ale, brett, kveik, lager, NULL; measured
   2026-10-17), so a new type needs no schema change *(verified)*.
-- The tag vocabulary already has the words the first entries need *(unverified)*.
-- Data sheets with the needed figures exist for Special B and for the culture you choose
-  *(unverified; hopline sells LP-582, LP-652 and Helveticus Pitch, adjunct-fermentables report)*.
+- The tag vocabulary already has the words the fixtures use (`caramel`, `dried-fruit`, `citrus`,
+  `pine`, `fruity`, `sour`) *(verified in `loaders/style_fit_vocab.toml`, 2026-10-17)*.
 
 ## Acceptance criteria
 A1. The folder, the four templates and the README exist; a template copied and filled from a test
@@ -126,15 +129,17 @@ A5. After the intake loader, re-running the five loaders of R4 leaves every inta
 A6. An intake hop and yeast loaded from fixtures get their origin, family and character tags and
     no `ingredient_review` row (R5, R10).
 A7. Every alias of every loaded file resolves to its product only (R6).
-A8. Full `pytest` passes with the first entries loaded, and the G10 tests still assert the hopline
-    loaders' row counts (R7).
-A9. The spot-check pack prints the intake rows with their sources (R8).
+A8. Full `pytest` passes, and with the fixture rows loaded in a test transaction the G10 tests'
+    queries still give the hopline loaders' row counts (R7).
+A9. The spot-check pack's intake queries, run on the fixture rows in a test transaction, list
+    them with their sources (R8).
 A10. The load prints the R9 summary, and its counts match `select kind, count(*) from
      ref.ingredient group by kind` (R9).
-A11. `app.resolve_ingredient('Special B')` and the culture's name each return the new product
-     (R11).
-A12. You add one ingredient yourself from a template, using only the README checklist, and it
-     loads and tags without help (R1, Goal).
+A11. With the fixtures loaded in a test transaction, `app.resolve_ingredient` returns each fixture
+     product, the souring culture included, for its name; afterwards the live `ref` has no intake
+     row (R11).
+A12. You fill one template yourself, using only the README checklist, and it passes `--check`
+     without help; loading and tagging are shown by the fixture tests (R1, Goal).
 
 ## Open questions
 None open. Decided by you on 2026-10-17 (INGREDIENT-INTAKE §12):
@@ -144,7 +149,13 @@ None open. Decided by you on 2026-10-17 (INGREDIENT-INTAKE §12):
   reads; `app.ingredient_synonym()` stays for spelling rules. *Why: adding an alias needs no SQL edit.*
 - One file per ingredient (Q9): `shared/ingredients/<kind>/<name>.toml`. *Why: the later n8n form only
   creates files; diffs and deletes are per ingredient.*
-- First real entries: Special B and one souring culture hopline sells. *Why: proves the path on real
-  data and fills M5's gaps for b10 and b14.* The data sheets are named by you when the plan is written.
+- No real entries in this work (2026-10-17, replacing "Special B and one souring culture"): the
+  path is proven with test fixtures only. *Why: you want a working intake for later, not new items
+  yet; Special B and a culture are added when M5 needs them.*
 
 ## Deviations
+- 2026-10-17 · Scope, R11, A8, A9, A11, A12, Assumptions: no real ingredient is added; Special B and
+  the souring culture are dropped, and the intake is proven by test fixture files (source,
+  fermentable, hop, ale yeast, lacto culture) loaded only in rolled-back test transactions. A12
+  ends at `--check` so it adds no real item. — user decision during planning ("just wants to have
+  a working intake for future"); Special B and a culture come later, when M5 needs them.
