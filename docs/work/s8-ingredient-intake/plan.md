@@ -1,6 +1,6 @@
 # S8 · Ingredient intake: add fermentables, hops and yeasts by hand — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: s8-ingredient-intake
 
@@ -269,17 +269,17 @@ Commit: `Make catalogue-size tests ignore intake rows`
 
 ### Task 7: Docs and counts
 Why: brief scope (DATABASE.md, PROJECT.md); CLAUDE.md "PROJECT.md is the single source of truth".
-- [ ] `shared/ingredients/README.md` final check against what was built (one command loads and tags).
-- [ ] `docs/DATABASE.md`: `source` row ("also `shared/ingredients/sources/`"); new
+- [x] `shared/ingredients/README.md` final check against what was built (one command loads and tags).
+- [x] `docs/DATABASE.md`: `source` row ("also `shared/ingredients/sources/`"); new
   `ingredient_alias` row (0 rows, measured); `ingredient` row "filled from … and
   `shared/ingredients/` (0 intake rows)"; counts stay as measured (no real item added); §7 fill order step 2 adds `loaders.extra_ingredients`
   and the load order `malts → adjuncts → fermentable_facts → hops → yeasts → extra_ingredients →
   tags → style_envelopes`; the `fermentable` row's "loaded by fermentable_facts" note says intake
   fermentables carry their own facts.
-- [ ] `PROJECT.md`: §4 Scripts row (the intake loader, its command and test count), §8 dated entry
+- [x] `PROJECT.md`: §4 Scripts row (the intake loader, its command and test count), §8 dated entry
   linking `docs/work/s8-ingredient-intake/`, with the pytest result, and that no real ingredient
   was added (proven by fixtures; Special B and a souring culture wait for M5).
-- [ ] Run `.venv/bin/pytest -m "not stack"`, expect pass.
+- [x] Run `.venv/bin/pytest -m "not stack"`, expect pass.
 Done when: the docs state measured numbers only.
 Commit: `Document ingredient intake`
 
