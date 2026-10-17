@@ -1,6 +1,6 @@
 # S5 · A cited model of mash temperature's effect on attenuation — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: s5-mash-attenuation
 
@@ -67,7 +67,7 @@ Branch: s5-mash-attenuation
 
 ### Task 1: Doc → calc pass written and its image-read values approved
 Why: R1, R3 tolerance, R7, A1; every later number comes from here.
-- [ ] Write `docs/work/s5-mash-attenuation/doc-calc.md`, in the style of
+- [x] Write `docs/work/s5-mash-attenuation/doc-calc.md`, in the style of
       `docs/finished/s1-maths/doc-calc.md`. Sections:
   1. **Sources.** Each source with its file under `shared/rag-files/`, licence and page
      numbering:
@@ -230,3 +230,4 @@ Commit: `Mark rule 10 mash model done in roadmap`
 None.
 
 ## Deviations
+- 2026-10-17 · Task 1: the per-row spot check (OE − AE) / OE × 100 within 0.5 of the table's attenuation is dropped — measured: only sample 2 matches, the others differ by 1.4 to 7.0 points; the table's attenuation column is a limit of attenuation, so the model uses that column only (doc-calc §2). Measured model numbers agree with the plan: slope 4.153, knee 68.24, largest residual 1.98 (plan expected about 2.2).
