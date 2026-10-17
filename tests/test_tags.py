@@ -192,3 +192,18 @@ def test_descriptor_tag(vocab):
     assert tags.descriptor_tag("dried-fruit", synonyms, characters) == "dried-fruit"  # a tag name
     assert tags.descriptor_tag("Citrusos", synonyms, characters) == "citrus"  # a synonym, name_key compared
     assert tags.descriptor_tag("zzword", synonyms, characters) is None
+
+
+def test_intake_words():
+    intake = {"intake": {"path": "x.toml", "text": "", "fields": {"descriptors": ["citrus", "Fenyő"]}}}
+    assert tags.intake_words(intake) == ["citrus", "Fenyő"]
+    assert tags.intake_words({"intake": {"fields": {}}}) == []  # an intake row with no descriptors
+    hopline = {"hopline-hops": {"1": {"spec": "Aroma: citrus"}}}
+    assert tags.intake_words(hopline) is None  # not an intake row: the old path reads it
+    assert tags.hop_words(hopline) == ["citrus"]
+
+
+def test_intake_yeast_family():
+    assert tags.INTAKE_YEAST_FAMILY["lacto"] == "sour"
+    assert tags.INTAKE_YEAST_FAMILY["pedio"] == "sour"
+    assert set(tags.INTAKE_YEAST_FAMILY) == {"ale", "lager", "kveik", "brett", "lacto", "pedio"}

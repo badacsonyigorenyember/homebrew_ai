@@ -191,7 +191,7 @@ Commit: `Check intake files against the database`
 
 ### Task 4: The tagger reads intake rows
 Why: R5, R10; G3 (the tagger reads hopline page shapes only).
-- [ ] In `loaders/tags.py` `derive_tags`: an intake row (`'intake' in raw`) takes its words from
+- [x] In `loaders/tags.py` `derive_tags`: an intake row (`'intake' in raw`) takes its words from
   `raw["intake"]["fields"]["descriptors"]`, resolved with `descriptor_tag`; a word it cannot
   resolve goes to `ingredient_review` as "unknown words: …". Hop: origins from `ref.hop.origins` as
   today; empty descriptors → "no descriptor text". Fermentable: family from `role` as today,
@@ -199,10 +199,10 @@ Why: R5, R10; G3 (the tagger reads hopline page shapes only).
   selects `i.raw`). Yeast: family from `INTAKE_YEAST_FAMILY = {"ale": "ale", "lager": "lager",
   "kveik": "kveik", "brett": "brett", "lacto": "sour", "pedio": "sour"}` by `ref.yeast.type`.
   Hopline rows keep today's path untouched. Update the module docstring's "Where the words come from".
-- [ ] Write tests in `tests/test_tags.py` (no stack): `test_intake_words` (the descriptors of an
+- [x] Write tests in `tests/test_tags.py` (no stack): `test_intake_words` (the descriptors of an
   intake raw; a hopline raw unchanged); `test_intake_yeast_family` (lacto and pedio → sour).
   The existing `test_retag_is_identical` still passes.
-- [ ] Run `.venv/bin/pytest tests/test_tags.py`, expect all pass.
+- [x] Run `.venv/bin/pytest tests/test_tags.py`, expect all pass.
 Done when: tagging is unchanged for every existing row (retag test) and intake raws resolve as above.
 Commit: `Tag intake rows from their descriptor words`
 
