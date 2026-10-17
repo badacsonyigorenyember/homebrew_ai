@@ -117,6 +117,17 @@ def yeast_style(raw: dict) -> str | None:
     return None
 
 
+def descriptor_tag(word: str, synonyms: dict, character_tags: set) -> str | None:
+    """The character tag a descriptor word of an intake file means, or None when it is unknown.
+
+    The word is a key of the synonym dictionary (compared as name_key) or a character tag name.
+    """
+    tag = synonyms.get(name_key(word))
+    if tag:
+        return tag
+    return word if word in character_tags else None
+
+
 def scan_text(text: str, synonyms: dict, no_character: set) -> tuple[list[str], bool]:
     """Known descriptor words found in free text: (tag names, whether any known word was seen).
 

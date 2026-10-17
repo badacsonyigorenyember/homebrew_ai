@@ -184,3 +184,11 @@ def test_fermentable_tags(conn):
     smoked = ingredient_id(conn, "Beech Smoked Barley Malt", "fermentable")
     assert "smoke" in tag_names(conn, smoked, "character")
     assert tag_names(conn, ingredient_id(conn, "Lactose", "fermentable"), "family") == {"sugar"}
+
+
+def test_descriptor_tag(vocab):
+    synonyms = vocab["synonyms"]
+    characters = {t["name"] for t in vocab["tag"] if t["facet"] == "character"}
+    assert tags.descriptor_tag("dried-fruit", synonyms, characters) == "dried-fruit"  # a tag name
+    assert tags.descriptor_tag("Citrusos", synonyms, characters) == "citrus"  # a synonym, name_key compared
+    assert tags.descriptor_tag("zzword", synonyms, characters) is None

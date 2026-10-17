@@ -124,13 +124,13 @@ Commit: `Add ingredient aliases to the resolver`
 
 ### Task 2: Intake folder, templates and file checks
 Why: R1, R2 (the checks that need only the files, the vocab and the maps), A1, A2.
-- [ ] Create `shared/ingredients/` with `fermentable/`, `hop/`, `yeast/`, `sources/` (`.gitkeep`),
+- [x] Create `shared/ingredients/` with `fermentable/`, `hop/`, `yeast/`, `sources/` (`.gitkeep`),
   `_templates/` with `fermentable.toml`, `hop.toml`, `yeast.toml`, `source.toml` per the format
   table (every key present, empty, with a comment line: what, unit, required). No `misc/`.
-- [ ] Add `descriptor_tag(word, synonyms, character_tags) -> str | None` to `loaders/tags.py`:
+- [x] Add `descriptor_tag(word, synonyms, character_tags) -> str | None` to `loaders/tags.py`:
   `synonyms.get(name_key(word))`, else `word` when it is a character tag name, else None. Unit test
   in `tests/test_tags.py`.
-- [ ] `loaders/extra_ingredients.py`, first part: a module docstring (what, folder layout, load
+- [x] `loaders/extra_ingredients.py`, first part: a module docstring (what, folder layout, load
   order, usage); `read_folder(root) -> (sources, ingredients)` where each item keeps its relative
   path, text and parsed fields (a TOML syntax error is a check error naming the file);
   `Known` (a dataclass: source slugs and their notes, origin tags, character tags, synonyms,
@@ -142,12 +142,12 @@ Why: R1, R2 (the checks that need only the files, the vocab and the maps), A1, A
   edition, `fermentability` ≠ `normal` without ref, unknown descriptor word, unknown origin,
   `(kind, name_key(producer), name_key(name))` in the loader maps, two files with the same key.
   Keys compare with `loaders.common.name_key`.
-- [ ] Fixtures: `tests/fixtures/ingredients/` as in the Files table. Invented values, clearly
+- [x] Fixtures: `tests/fixtures/ingredients/` as in the Files table. Invented values, clearly
   fake names (producer `Fixture Maltings`, `Fixture Yeasts`), source slug `fixture-data-sheet`,
   edition `test fixture`; known descriptors only (`caramel`, `dried-fruit`, `citrus`, `pine`,
   `fruity`, `sour`); `fixture-lacto` has `type = "lacto"` and no attenuation. These are only ever
   loaded inside rolled-back test transactions.
-- [ ] Write tests in `tests/test_extra_ingredients.py` (no stack):
+- [x] Write tests in `tests/test_extra_ingredients.py` (no stack):
   `test_fixtures_pass` (no errors, with `fixture-data-sheet` coming from `sources/`);
   `test_template_filled_from_fixture_passes` (A1: each template's keys ⊇ the fixture's keys of that
   kind; template fields updated with the fixture's values pass);
@@ -158,7 +158,7 @@ Why: R1, R2 (the checks that need only the files, the vocab and the maps), A1, A
   `edition`, `fermentability = "none"` without ref, unknown descriptor, a hop named `Citra`
   (loader map), two files with one product, a file in `misc/`, an unknown key;
   `test_all_errors_reported` (two broken files → both named).
-- [ ] Run `.venv/bin/pytest -m "not stack" tests/test_extra_ingredients.py tests/test_tags.py`, expect all pass.
+- [x] Run `.venv/bin/pytest -m "not stack" tests/test_extra_ingredients.py tests/test_tags.py`, expect all pass.
 Done when: the folder and templates exist; every R2 refusal that needs no DB has a passing test.
 Commit: `Add ingredient intake folder, templates and checks`
 

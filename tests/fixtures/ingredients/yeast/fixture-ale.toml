@@ -1,0 +1,20 @@
+# Test fixture: invented data.
+kind = "yeast"
+name = "Fixture Ale FA-1"
+producer = "Fixture Yeasts"
+source = "fixture-data-sheet"
+description = "An invented ale yeast for tests. It gives fruity esters."
+description_ref = "fixture sheet p. 4"
+aliases = ["fa-1"]
+descriptors = ["fruity"]
+
+type = "ale"
+temp_c = [18, 22]
+temp_c_ref = "fixture sheet p. 4"
+attenuation_pct = [74, 78]
+attenuation_pct_ref = "fixture sheet p. 4"
+flocculation = "medium"
+form = "dry"
+alcohol_tolerance_pct = 12.0
+alcohol_tolerance_pct_ref = "fixture sheet p. 4"
+product_id = "FA-1"

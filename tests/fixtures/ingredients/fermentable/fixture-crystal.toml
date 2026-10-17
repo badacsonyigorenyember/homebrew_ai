@@ -1,0 +1,23 @@
+# Test fixture: invented data.
+kind = "fermentable"
+name = "Fixture Crystal 120"
+producer = "Fixture Maltings"
+source = "fixture-data-sheet"
+description = "An invented crystal malt for tests. It gives caramel and dried fruit notes."
+description_ref = "fixture sheet p. 1"
+aliases = ["fixture crystal"]
+descriptors = ["caramel", "dried-fruit"]
+
+extract_dbfg_pct = 75.0
+extract_dbfg_pct_ref = "fixture sheet p. 1"
+ebc = [230, 270]
+ebc_ref = "fixture sheet p. 1"
+role = "crystal"
+fermentability = ""
+fermentability_ref = ""
+max_pct = 15.0
+max_pct_ref = "fixture sheet p. 2"
+enzyme_activity = "none"
+enzyme_activity_ref = "fixture sheet p. 2"
+min_boil_min = ""
+min_boil_min_ref = ""
