@@ -252,16 +252,16 @@ model-chosen values stay inside the style range. Your explicit numbers always wi
 
 | Hint | Knobs |
 |---|---|
-| bitter | IBU → top 25 % of range · BU:GU ↑ |
+| bitter | IBU → middle of the top quarter of the range (87.5 %) · BU:GU ↑ |
 | hoppy / juicy | late + dry hop share ↑ (not IBU) |
-| dry / crisp | mash 64–65 °C (rule 10 predicts the same FG for any mash 64–68.3 °C, so this does not lower it; doc-calc §7) · high-attenuation yeast · sugar ≤ 10 % |
-| full / chewy | mash 68–69 °C · oats or dextrin malt · lower-attenuation yeast |
-| malty | Munich / Vienna share ↑ · BU:GU ↓ |
-| darker | SRM ↑ via crystal / roast |
-| stronger / session | OG ↑ / OG ↓ |
+| dry / crisp | mash 64.5 °C (middle of 64–65; rule 10 predicts the same FG for any mash 64–68.3 °C, so this does not lower it; doc-calc §7) · high-attenuation yeast · sugar ≤ 10 % |
+| full / chewy | mash 68.5 °C (middle of 68–69) · lower-attenuation yeast · oats or dextrin malt |
+| malty | IBU → middle of the bottom quarter (12.5 %) · Munich / Vienna share ↑ · BU:GU ↓ |
+| darker | SRM → 87.5 % of the range, via crystal / roast |
+| stronger / session | OG → 87.5 % / 12.5 % of the range |
 | *flavour words* (citrus, coffee…) | tag match in steps 7–9 |
 
-*Starter table. Each row gets a book source before it is trusted.*
+*Starter table. Rows with a book passage are sourced, the others are used marked `unsourced` and sourced before G6; every row's source is in [`hint-sources.md`](work/m4-targets-blueprint/hint-sources.md). Positions and mash values are the user's decision (2026-10-17).*
 
 ---
 

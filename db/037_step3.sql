@@ -7,40 +7,82 @@
 --   docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/037_step3.sql
 -- Idempotent: safe to re-run.
 
--- RECIPE-ROADMAP §7, "Hints -> knobs", as it stands (starter table):
---   bitter          IBU -> top 25 % of range · BU:GU up
+-- RECIPE-ROADMAP §7, "Hints -> knobs", as it now stands (docs/work/m4-targets-blueprint):
+--   bitter          IBU up (top quarter) · BU:GU up
 --   hoppy / juicy   late + dry hop share up (not IBU)
---   dry / crisp     mash 64-65 C · high-attenuation yeast · sugar <= 10 %
---   full / chewy    mash 68-69 C · oats or dextrin malt · lower-attenuation yeast
---   malty           Munich / Vienna share up · BU:GU down
---   darker          SRM up via crystal / roast
---   stronger / session   OG up / OG down
+--   dry / crisp     mash 64.5 C · high-attenuation yeast · sugar <= 10 %
+--   full / chewy    mash 68.5 C · lower-attenuation yeast · oats or dextrin malt
+--   malty           IBU down (bottom quarter) · Munich / Vienna share up · BU:GU down
+--   darker          SRM up (top quarter) via crystal / roast
+--   stronger / session   OG up (top quarter) / OG down (bottom quarter)
 -- One row per hint and knob. direction: +1 pushes the knob up, -1 down. Hints with the same
--- side are synonyms and never conflict. "sugar <= 10 %" is a cap, not a direction, so it is left
--- out. Two sides conflict when they push one knob in opposite directions.
-create or replace function app.hint_knob()
-returns table (hint text, side text, knob text, direction int)
+-- side are synonyms and never conflict. Two sides conflict when they push one knob in opposite
+-- directions. Columns after direction:
+--   position  for og, ibu, srm: where in the style's range the target goes, 0 = range minimum,
+--             1 = maximum. 0.875 is the middle of the top quarter, 0.125 the middle of the
+--             bottom quarter (user decision 2026-10-17). Null for other knobs.
+--   mash_c    for mash_temp: the target mash temperature, the middle of the §7 band
+--             (64-65 C -> 64.5, 68-69 C -> 68.5). Null for other knobs.
+--   intent    what step 5 passes on for a knob that has no number here. "sugar at most 10 %" is
+--             an intent, not a direction.
+--   source    '<ref.source slug>, <page or section>' of a passage that states this knob for this
+--             hint, or 'unsourced' (used as it is, to be sourced before G6). The positions and
+--             the exact mash values are the user's decision and are not themselves sourced.
+--             The passages are listed in docs/work/m4-targets-blueprint/hint-sources.md.
+-- "position" is quoted because it is a keyword. The return type changes, so the old function is
+-- dropped first.
+drop function if exists app.hint_knob();
+create function app.hint_knob()
+returns table (hint text, side text, knob text, direction int, "position" numeric,
+               mash_c numeric, intent text, source text)
 language sql
 immutable
 as $$
     values
-        ('bitter',   'bitter',      'ibu',             1),
-        ('bitter',   'bitter',      'bu_gu',           1),
-        ('hoppy',    'hoppy/juicy', 'late_hop_share',  1),
-        ('juicy',    'hoppy/juicy', 'late_hop_share',  1),
-        ('dry',      'dry/crisp',   'mash_temp',      -1),
-        ('dry',      'dry/crisp',   'attenuation',     1),
-        ('crisp',    'dry/crisp',   'mash_temp',      -1),
-        ('crisp',    'dry/crisp',   'attenuation',     1),
-        ('full',     'full/chewy',  'mash_temp',       1),
-        ('full',     'full/chewy',  'attenuation',    -1),
-        ('chewy',    'full/chewy',  'mash_temp',       1),
-        ('chewy',    'full/chewy',  'attenuation',    -1),
-        ('malty',    'malty',       'munich_share',    1),
-        ('malty',    'malty',       'bu_gu',          -1),
-        ('darker',   'darker',      'srm',             1),
-        ('stronger', 'stronger',    'og',              1),
-        ('session',  'session',     'og',             -1)
+        ('bitter',   'bitter',      'ibu',             1, 0.875, null, null,
+         'unsourced'),
+        ('bitter',   'bitter',      'bu_gu',           1, null,  null, null,
+         'bjcp-exam-study-guide-2017, p60'),
+        ('hoppy',    'hoppy/juicy', 'late_hop_share',  1, null,  null,
+         'a larger late and dry hop share (IBU unchanged)',
+         'janish-survivables-hot-side, Unpacking Hot-Side Hop Flavor'),
+        ('juicy',    'hoppy/juicy', 'late_hop_share',  1, null,  null,
+         'a larger late and dry hop share (IBU unchanged)',
+         'janish-survivables-hot-side, Unpacking Hot-Side Hop Flavor'),
+        ('dry',      'dry/crisp',   'mash_temp',      -1, null,  64.5, null,
+         'palmer-how-to-brew, p277'),
+        ('dry',      'dry/crisp',   'attenuation',     1, null,  null,
+         'a high-attenuation yeast; sugar at most 10 % of the grist',
+         'palmer-how-to-brew, p134'),
+        ('crisp',    'dry/crisp',   'mash_temp',      -1, null,  64.5, null,
+         'palmer-how-to-brew, p277'),
+        ('crisp',    'dry/crisp',   'attenuation',     1, null,  null,
+         'a high-attenuation yeast; sugar at most 10 % of the grist',
+         'palmer-how-to-brew, p134'),
+        ('full',     'full/chewy',  'mash_temp',       1, null,  68.5, null,
+         'palmer-how-to-brew, p277'),
+        ('full',     'full/chewy',  'attenuation',    -1, null,  null,
+         'a lower-attenuation yeast; oats or dextrin malt',
+         'bjcp-exam-study-guide-2017, p77'),
+        ('chewy',    'full/chewy',  'mash_temp',       1, null,  68.5, null,
+         'palmer-how-to-brew, p277'),
+        ('chewy',    'full/chewy',  'attenuation',    -1, null,  null,
+         'a lower-attenuation yeast; oats or dextrin malt',
+         'bjcp-exam-study-guide-2017, p77'),
+        ('malty',    'malty',       'ibu',            -1, 0.125, null, null,
+         'palmer-how-to-brew, p447'),
+        ('malty',    'malty',       'munich_share',    1, null,  null,
+         'a larger kilned share (Munich or Vienna)',
+         'palmer-how-to-brew, p255'),
+        ('malty',    'malty',       'bu_gu',          -1, null,  null, null,
+         'palmer-how-to-brew, p447'),
+        ('darker',   'darker',      'srm',             1, 0.875, null,
+         'colour from crystal or roast',
+         'mallett-malt, p143'),
+        ('stronger', 'stronger',    'og',              1, 0.875, null, null,
+         'unsourced'),
+        ('session',  'session',     'og',             -1, 0.125, null, null,
+         'unsourced')
 $$;
 
 -- Conflicts: wishes in the request that pull one knob in opposite directions. One deviation per
@@ -58,7 +100,7 @@ as $$
     -- table rows of the hints the brief gave
     present as (
         select h.hint, h.side, h.knob, h.direction, h.ord
-          from app.hint_knob() with ordinality as h(hint, side, knob, direction, ord)
+          from app.hint_knob() with ordinality as h(hint, side, knob, direction, "position", mash_c, intent, source, ord)
          where exists (select 1 from jsonb_array_elements_text(coalesce(hints, '[]'::jsonb)) x
                         where lower(trim(x)) = h.hint)
     ),

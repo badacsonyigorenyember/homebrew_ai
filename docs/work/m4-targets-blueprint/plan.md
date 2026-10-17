@@ -137,7 +137,7 @@ Commit: `Add step 0 profile reader and default profile`
 
 ### Task 2: one hint table says how far each knob moves and where that comes from
 Why: R5, R6, R7; A12. Step 3 and step 4 read the same table.
-- [ ] `db/037_step3.sql`: replace `app.hint_knob()` with `drop function if exists
+- [x] `db/037_step3.sql`: replace `app.hint_knob()` with `drop function if exists
       app.hint_knob();` then `create function app.hint_knob() returns table (hint text, side
       text, knob text, direction int, position numeric, mash_c numeric, intent text, source
       text)` (the return type changes, so `create or replace` cannot be used). Rows, in this
@@ -153,7 +153,7 @@ Why: R5, R6, R7; A12. Step 3 and step 4 read the same table.
       (`position` 0 = range min, 1 = max, user decision 2026-10-17: the middle of the top or
       bottom quarter; `mash_c` the middle of the §7 band); "sugar at most 10 %" is an intent,
       not a direction.
-- [ ] Sources (R6): for each row, look for a passage that states that knob for that hint, in
+- [x] Sources (R6): for each row, look for a passage that states that knob for that hint, in
       `kb.chunk` (full text: `select s.slug, c.page, c.section_path, left(c.text, 300) from
       kb.chunk c join ref.source s on s.id = c.source_id where c.fts @@ websearch_to_tsquery('english', '<words>')`;
       start with mash temperature and body or fermentability, oats and body, sugar and dryness,
@@ -163,18 +163,18 @@ Why: R5, R6, R7; A12. Step 3 and step 4 read the same table.
       `'unsourced'`. Write `docs/work/m4-targets-blueprint/hint-sources.md`: one line per row
       (hint, knob, source with a quote of at most 15 words, or *unsourced*), and the list of
       unsourced rows to source before G6 (brief Out of scope).
-- [ ] In `app.step3_conflicts`, change the alias list to
+- [x] In `app.step3_conflicts`, change the alias list to
       `with ordinality as h(hint, side, knob, direction, position, mash_c, intent, source, ord)`
       (the ordinality column comes after all of them); the rest is unchanged.
-- [ ] Apply twice; owner `postgres`.
-- [ ] Tests: `tests/test_step3.py` passes unchanged (the conflict texts keep their substrings;
+- [x] Apply twice; owner `postgres`.
+- [x] Tests: `tests/test_step3.py` passes unchanged (the conflict texts keep their substrings;
       bitter vs malty now also names IBU). New in `tests/test_step4.py` (stack):
       `test_hint_rows_sourced_or_marked` (A12: every `source` is `unsourced` or starts with a
       `ref.source.slug` followed by `, `); `test_hint_positions` (R5: every `og`, `ibu`, `srm`
       row has position 0.875 for +1 and 0.125 for −1; every `mash_temp` row has `mash_c` 64.5
       for −1 and 68.5 for +1; no other row has either); `test_malty_lowers_ibu`.
-- [ ] Run `.venv/bin/pytest tests/test_step3.py tests/test_step4.py`, expect all pass.
-- [ ] `docs/RECIPE-ROADMAP.md` §7: the table names the positions (top / bottom quarter → 87.5 %
+- [x] Run `.venv/bin/pytest tests/test_step3.py tests/test_step4.py`, expect all pass.
+- [x] `docs/RECIPE-ROADMAP.md` §7: the table names the positions (top / bottom quarter → 87.5 %
       / 12.5 %, mash 64.5 / 68.5 °C, malty IBU down) and links `hint-sources.md`; the "starter
       table" line says unsourced rows are used marked and sourced before G6. `docs/DATABASE.md`
       §5 `hint_knob` line. PROJECT.md §8 entry with the count of sourced and unsourced rows.
@@ -507,3 +507,4 @@ Commit: `Measure G4 for steps 0, 4 and 5`
 ## Deviations
 - 2026-10-17 · Approach: the three readings of the brief (A4 batch sizes, A1 solved OG, R11
   reference re-check with the ABV check) confirmed by the user, option a each; brief updated.
+- 2026-10-17 · Task 2: the column is declared and read as `"position"` (quoted) — `position` is a SQL keyword and a bare name is a syntax error in the return type and the alias list.
