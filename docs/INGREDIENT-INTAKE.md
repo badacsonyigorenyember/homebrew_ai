@@ -30,7 +30,7 @@
   load from the form too, but they also need maths code before the pipeline can use them.
 - **Three new side tracks** (`s8-ingredient-intake`, `s9-misc-extras`, later
   `s10-ingredient-form`), plus edits to the M4–M8 briefs and to eleven shipped pieces (§10, §11).
-- **Nine decisions** are still open (§12).
+- **Six decisions** are still open (§12); Q1, Q4, Q6 and Q9 are decided.
 
 ---
 
@@ -506,6 +506,9 @@ role.
 | # | Question | Decision | Why |
 |---|---|---|---|
 | Q1 | Where do hand-added products live, and how are they entered? | A form you fill in yourself writes the reviewed intake files; one loader checks and loads them. Phase 1 templates (s8), the n8n form later (s10). (You, 2026-10-17) | You want to add ingredients yourself, with the source, without Claude; files keep history and survive a reload |
+| Q4 | Souring cultures | `ref.yeast` with `type = 'lacto'` / `'pedio'`, family tag `sour` (you, 2026-10-17, s8 brief) | no new table; the yeast steps already read temperature and attenuation |
+| Q6 | Aliases | per product in its intake file, in a new `ref.ingredient_alias` table the resolver reads; `app.ingredient_synonym()` stays for spelling rules (you, 2026-10-17, s8 brief) | adding an alias needs no SQL edit |
+| Q9 | One file per ingredient or one file for all | one file per ingredient, `shared/ingredients/<kind>/<name>.toml` (you, 2026-10-17, s8 brief) | the form only creates files; diffs and deletes are per ingredient |
 
 ### Open
 
@@ -513,12 +516,9 @@ role.
 |---|---|---|---|
 | Q2 | Misc categories and usages | a) usages `mash · boil · whirlpool · ferment · secondary · packaging`; flavour categories as today (spice, herb, fruit, wood, coffee, cacao, vanilla, smoke, other); process categories `fining`, `nutrient`, `enzyme`, `acid`, `other-process`, with enzyme and acid marked "changes the numbers"; b) the 10 categories as they are, process aids under `fining` and `other` | **a**: Irish moss and yeast nutrient get real places, and the checker knows which ones wait for maths |
 | Q3 | Fruit | a) fruit with a sourced sugar content is a fermentable with a new role `fruit` (enters OG), fruit without one is flavour misc; b) all fruit is misc (no gravity) | **a**: keeps the "gravity → fermentable" rule true |
-| Q4 | Souring cultures | a) `ref.yeast` with `type = 'lacto'` / `'pedio'` (the `sour` family tag exists); b) a new kind `culture` | **a**: no new table; the yeast steps already handle temperature and attenuation |
 | Q5 | Coffee, cacao, vanilla: which sensation? | a) coffee and cacao → `roast` with their character tags, vanilla → `sweetness` + tag `vanilla`; b) new specialty dimensions `coffee`, `chocolate`, `vanilla` | **a** first; b only if a reviewed envelope needs it |
-| Q6 | Aliases | a) per product in its intake file (new `ref.ingredient_alias`); b) keep growing `app.ingredient_synonym()` | **a** for product aliases; b stays for spelling rules (abbaye → abbey) |
 | Q7 | Order | a) s8 → s9 → m4 → m5; b) m4 first, s8/s9 before m5 | **b**: m4 only needs the misc row shape for its slot, which s9's brief can fix first |
 | Q8 | Lane B (chat adds an ingredient) | a) later, Priority 2: the chat writes a proposal file you check and keep; b) now | **a** |
-| Q9 | One file per ingredient or one file for all | a) `shared/ingredients/<kind>/<name>.toml`, one per ingredient; b) one `extra_ingredients.toml` with a block per ingredient | **a**: a form creates a file and never edits a shared one; a diff and a delete are per ingredient |
 | Q10 | Who adds process aids to a recipe? | a) the brewer profile lists the aids you use (e.g. "Irish moss in every boil"), and m7 adds them from there and from inventory; b) only when the brief asks; c) the LLM decides in step 9 | **a**: it is your habit, not the recipe's choice, and it keeps the LLM out of it |
 
 ---
