@@ -254,7 +254,7 @@ model-chosen values stay inside the style range. Your explicit numbers always wi
 |---|---|
 | bitter | IBU → top 25 % of range · BU:GU ↑ |
 | hoppy / juicy | late + dry hop share ↑ (not IBU) |
-| dry / crisp | mash 64–65 °C · high-attenuation yeast · sugar ≤ 10 % |
+| dry / crisp | mash 64–65 °C (rule 10 predicts the same FG for any mash 64–68.3 °C, so this does not lower it; doc-calc §7) · high-attenuation yeast · sugar ≤ 10 % |
 | full / chewy | mash 68–69 °C · oats or dextrin malt · lower-attenuation yeast |
 | malty | Munich / Vienna share ↑ · BU:GU ↓ |
 | darker | SRM ↑ via crystal / roast |
@@ -296,7 +296,7 @@ flowchart LR
 | **P7** | Doc → calc pass per book, then ingest the rest into `kb`, retrieval eval | recall@5 measured, above an agreed bar |
 | **P6** | Steps 12–15, with the water functions (moved from P2, 2026-10-14, [`s1-maths`](finished/s1-maths/brief.md)) | every recipe has water, mash, ferment, package |
 | **P8** | Step 16 + interface: n8n chat trigger (D5, decided) | you can brew from the sheet |
-| **Later** | - inventory-first mode<br>- substitutions<br>- batch log → feedback<br>- whirlpool and dry-hop IBU from a cited model (they count as 0 IBU until then; [`s1-maths`](finished/s1-maths/brief.md), 2026-10-14)<br>- an enzyme rule using `enzyme_activity`<br>- the ratio corpus (old s2), revisited only if test-brief results show generic or off recipes<br>- replacing rule 10's uncited linear mash-temperature mapping with a cited model: now a work item, [`s5-mash-attenuation`](work/s5-mash-attenuation/brief.md) (Troester's mash-parameter experiments, Terrill's attenuation data; 2026-10-16)<br>- TODO: tune retrieval (`candidates`, `rrf_k`, `MAX_TOKENS`, `MIN_WORDS` in `app.kb_search` and `loaders/books.py`): the first run ([`s4-books-kb`](finished/s4-books-kb/plan.md), recall@5 0.422) showed chunks from other books outranking the expected one; re-run `python -m evals.retrieval`, then raise `RECALL_AT_5_BAR` (now 0.40) in a Deviation. The vector arm returns at most `hnsw.ef_search` rows (default 40), so raising `candidates` above 40 needs `ef_search` raised in the same session too (user request 2026-10-16)<br>- TODO: multi-step mash profiles (several rests, decoction) and their effect on predicted FG, replacing the single mash temperature in rule 10 and s1's FG ([`s2-formulation-rules`](finished/s2-formulation-rules/brief.md), user request 2026-10-15) | |
+| **Later** | - inventory-first mode<br>- substitutions<br>- batch log → feedback<br>- whirlpool and dry-hop IBU from a cited model (they count as 0 IBU until then; [`s1-maths`](finished/s1-maths/brief.md), 2026-10-14)<br>- an enzyme rule using `enzyme_activity`<br>- the ratio corpus (old s2), revisited only if test-brief results show generic or off recipes<br>- TODO: tune retrieval (`candidates`, `rrf_k`, `MAX_TOKENS`, `MIN_WORDS` in `app.kb_search` and `loaders/books.py`): the first run ([`s4-books-kb`](finished/s4-books-kb/plan.md), recall@5 0.422) showed chunks from other books outranking the expected one; re-run `python -m evals.retrieval`, then raise `RECALL_AT_5_BAR` (now 0.40) in a Deviation. The vector arm returns at most `hnsw.ef_search` rows (default 40), so raising `candidates` above 40 needs `ef_search` raised in the same session too (user request 2026-10-16)<br>- TODO: multi-step mash profiles (several rests, decoction) and their effect on predicted FG, replacing the single mash temperature in rule 10 and s1's FG ([`s2-formulation-rules`](finished/s2-formulation-rules/brief.md), user request 2026-10-15) | |
 
 ---
 
