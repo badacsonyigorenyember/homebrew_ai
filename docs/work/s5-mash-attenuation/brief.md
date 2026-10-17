@@ -88,14 +88,13 @@ A5. The 22 reference recipes' rule 10 results before and after are recorded; eve
 A6. RECIPE-ROADMAP §8 no longer has the rule 10 TODO; full `pytest` passes (R5, R6).
 
 ## Open questions
-1. Model shape? — options: a) keep the yeast range but replace the linear 64–69 °C mapping with
-   Troester's slope above his measured peak, flat below it, clamped to the yeast's range;
-   b) predicted attenuation = the smaller of the yeast's attenuation and the wort's limit of
-   attenuation from Troester's curve; c) a) plus a per-yeast-family factor from Terrill —
-   recommend a: closest to today's inputs, one cited slope; c needs data Terrill only shows as
+1. Model shape? — **decided 2026-10-17 (user): a)** keep the yeast range; flat below Troester's
+   measured peak, Troester's slope above it, clamped to the yeast's range. Why: closest to
+   today's inputs, one cited slope; b) drops the yeast range, c) needs data Terrill only shows as
    images for three strains.
-2. Reference temperature (where the yeast's stated range applies)? — options: a) Troester's peak;
-   b) the middle of 64–69 °C (66.5 °C); c) a value from *Yeast* if the book states one —
-   recommend c if found in the m7 pass of *Yeast*, else b.
+2. Reference temperature (where the yeast's stated range applies)? — **decided 2026-10-17 (user):
+   c, else b.** *Yeast* states no mash temperature for a strain's range (only "for the average
+   wort", PDF p. 130; full-text search of the book, 2026-10-17), so b: **66.5 °C**, the middle of
+   64–69 °C.
 
 ## Deviations
