@@ -1,6 +1,6 @@
 # S8 · Ingredient intake: add fermentables, hops and yeasts by hand — implementation plan
 
-Stage: verify
+Stage: shipped
 Brief: [brief.md](brief.md)
 Branch: s8-ingredient-intake
 
