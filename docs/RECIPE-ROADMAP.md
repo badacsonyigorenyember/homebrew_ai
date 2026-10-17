@@ -254,7 +254,7 @@ model-chosen values stay inside the style range. Your explicit numbers always wi
 |---|---|
 | bitter | IBU → top 25 % of range · BU:GU ↑ |
 | hoppy / juicy | late + dry hop share ↑ (not IBU) |
-| dry / crisp | mash 64–65 °C · high-attenuation yeast · sugar ≤ 10 % |
+| dry / crisp | mash 64–65 °C (rule 10 predicts the same FG for any mash 64–68.3 °C, so this does not lower it; doc-calc §7) · high-attenuation yeast · sugar ≤ 10 % |
 | full / chewy | mash 68–69 °C · oats or dextrin malt · lower-attenuation yeast |
 | malty | Munich / Vienna share ↑ · BU:GU ↓ |
 | darker | SRM ↑ via crystal / roast |

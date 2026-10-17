@@ -24,8 +24,11 @@ plan.
 
 Source: Troester 2009, appendix "Temperature series", **PDF p. 22**. The table is an image; the
 rows below were typed from it (read at 300 dpi on 2026-10-17). These are the points behind
-Figure 10 (PDF p. 11). **Approval needed: check each row against the image.**
-The attenuation is apparent attenuation, the same measure as `ref.yeast.attenuation_pct`. Sample
+Figure 10 (PDF p. 11). Rows checked against the
+image and approved by the user on 2026-10-17.
+The attenuation column is assumed to be apparent attenuation, the same measure as
+`ref.yeast.attenuation_pct`. **Unverified:** (OE − AE) / OE does not give this column for 10 of 11
+rows, and the paper does not say which readings OE and AE are. Sample
 numbers are Troester's; there is no sample 1, 3, 4 or 5 in this table.
 
 | Sample | Start °C | End °C | Average °C | OE °P | AE °P | Attenuation % | Efficiency % |
@@ -160,6 +163,9 @@ Worked values (scratch computation):
 - Rows below 64 °C (rising side) are not modelled.
 - The table's attenuation is a fast-ferment limit with one yeast; real yeasts leave more
   (see §8).
+- Under this model every mash from 64 to 68.3 °C predicts the same FG (the middle of the yeast's
+  range); only 68.3 to 69 °C lowers it. A `dry` mash hint of 64 to 65 °C (RECIPE-ROADMAP, hint
+  table) therefore does not change the predicted FG; M4 must not expect it to.
 - Sample 13 differs most from what OE and AE give (§2); only the attenuation column is used.
 
 ## 8. Terrill (R7)
