@@ -163,3 +163,109 @@ def test_style_without_ranges(conn):
     assert all(got[k]["value"] is None and got[k]["from"] == "none" for k in ("og", "fg", "abv", "ibu", "srm"))
     got = numbers(conn, "31B", {"ibu": 30})
     assert value(got["ibu"]) == 30 and got["ibu"]["from"] == "stated"
+
+
+# --- app.step4_targets: the whole step 4 output (Task 4) ---
+
+def sql(conn, fn, *args):
+    marks = ", ".join("%s::jsonb" if isinstance(a, (dict, list)) else "%s" for a in args)
+    params = [json.dumps(a) if isinstance(a, (dict, list)) else a for a in args]
+    return conn.execute(f"select app.{fn}({marks})", params).fetchone()[0]
+
+
+def brief_of(b):
+    return {
+        "named": b["named"] or None, "stated": b["stated"], "hints": b["hints"], "wanted": [dict(w) for w in b["wanted"]],
+        "excluded": b["excluded"], "inventory": b["inventory"], "unknown": [], "guidance": b["guidance"],
+    }
+
+
+def step4(conn, b):
+    """Step 1's expected brief through steps 2, 3, 0 and 4."""
+    brief = brief_of(b)
+    style = sql(conn, "step2_best_style", brief, b["request"], None)
+    deviations = sql(conn, "step3_deviations", brief, style)
+    profile = sql(conn, "step0_profile", None)
+    return sql(conn, "step4_targets", brief, style, profile, deviations)
+
+
+@pytest.fixture(scope="module")
+def outputs(conn):
+    return {bid: step4(conn, b) for bid, b in BRIEFS.items()}
+
+
+def test_a2_cases(outputs):
+    assert value(outputs["b01"]["targets"]["ibu"]) == 66.25
+    assert value(outputs["b09"]["targets"]["ibu"]) == 18.75
+    assert value(outputs["b06"]["mash_c"]) == 64.5 and outputs["b06"]["mash_c"]["from"] == "hint"
+    assert value(outputs["b03"]["mash_c"]) == 68.5
+    assert value(outputs["b19"]["targets"]["og"]) > 1.100 and value(outputs["b19"]["targets"]["abv"]) <= 10.0
+
+
+def test_b11_conflict(outputs):
+    out = outputs["b11"]
+    assert value(out["mash_c"]) == 66.5 and out["mash_c"]["from"] == "midpoint"
+    assert "attenuation" not in [k["knob"] for k in out["knobs"]]
+    assert len(out["conflicts"]) == 1
+    text = json.dumps(out["conflicts"][0])
+    assert "dry" in text and "full" in text and "chewy" in text
+
+
+def test_batch_and_stated(outputs):
+    assert value(outputs["b08"]["targets"]["ibu"]) == 50 and outputs["b08"]["targets"]["ibu"]["from"] == "stated"
+    assert value(outputs["b08"]["batch_l"]) == 10
+    assert value(outputs["b13"]["batch_l"]) == 15 and value(outputs["b15"]["batch_l"]) == 23
+    for bid in ("b01", "b19"):
+        assert outputs[bid]["batch_l"]["from"] == "stated", bid
+    assert value(outputs["b17"]["targets"]["abv"]) == 7
+    assert value(outputs["b18"]["targets"]["srm"]) == 20 and outputs["b18"]["guidance"] is False
+    stated_batch = {bid for bid, b in BRIEFS.items() if "batch_l" in b["stated"]}
+    for bid, out in outputs.items():
+        if bid not in stated_batch:
+            assert value(out["batch_l"]) == 20 and out["batch_l"]["from"] == "profile", bid
+
+
+def test_targets_inside_range(conn, outputs):
+    for bid, out in outputs.items():
+        code = out["style"]["code"]
+        for k in ("og", "fg", "abv", "ibu", "srm"):
+            item = out["targets"][k]
+            if item["value"] is None or item["from"] == "stated":
+                continue
+            if k in ("og", "fg") and item["from"] == "derived" and "abv" in BRIEFS[bid]["stated"]:
+                continue
+            inside = conn.execute(f"select {k} @> %s::numeric from ref.beer_style where code = %s order by id limit 1",
+                                  [item["value"], code]).fetchone()[0]
+            assert inside, (bid, k, item)
+
+
+def test_b12_base_style(conn, outputs):
+    out = outputs["b12"]
+    assert out["style"]["code"] == "18A" and out["style"]["from"] == "base_style"
+    assert "31B" in out["style"]["because"]
+    for k in ("og", "fg", "abv", "ibu", "srm"):
+        item = out["targets"][k]
+        inside = conn.execute(f"select {k} @> %s::numeric from ref.beer_style where code = '18A' order by id limit 1",
+                              [item["value"]]).fetchone()[0]
+        assert inside, (k, item)
+
+
+def test_every_value_has_from(outputs):
+    for bid, out in outputs.items():
+        items = [out["style"], out["batch_l"], out["mash_c"], *out["targets"].values()]
+        for item in items:
+            assert item["from"] and item["because"], (bid, item)
+
+
+def test_same_input_same_output(conn, outputs):
+    for bid, b in BRIEFS.items():
+        assert step4(conn, b) == outputs[bid], bid
+
+
+def test_output_meets_contract(conn, outputs):
+    schema = json.loads((ROOT / "shared" / "contracts" / "step4.output.schema.json").read_text())
+    for bid, out in outputs.items():
+        errs = conn.execute(
+            "select coalesce(extensions.jsonschema_validation_errors(%s::json, %s::json), '{}')",
+            (json.dumps(schema), json.dumps(out))).fetchone()[0]
+        assert errs == [], (bid, errs)

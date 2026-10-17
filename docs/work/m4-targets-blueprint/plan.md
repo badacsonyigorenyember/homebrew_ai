@@ -238,7 +238,7 @@ Commit: `Add step 4 target numbers in SQL`
 
 ### Task 4: one SQL function returns the step 4 output, with its contracts
 Why: R3, R7, R9, R12; A1–A6, A10 at SQL level.
-- [ ] Append `app.step4_targets(brief jsonb, style jsonb, profile jsonb, deviations jsonb)
+- [x] Append `app.step4_targets(brief jsonb, style jsonb, profile jsonb, deviations jsonb)
       returns jsonb`, `plpgsql stable`, commented in this order:
       1. *Style used*: step 2's `style.code`, `from: chosen`; when that style has none of OG, FG,
          ABV, IBU, SRM, the first `alt_styles` code that has them, `from: base_style`, because
@@ -253,7 +253,7 @@ Why: R3, R7, R9, R12; A1–A6, A10 at SQL level.
       6. *Conflicts*: the `kind: conflict` items of `deviations.deviations`, unchanged.
       7. Return `{style, batch_l, targets {og, fg, abv, ibu, srm}, mash_c, knobs, conflicts,
          guidance}` (`guidance` the brief's).
-- [ ] Contracts: `shared/contracts/step4.input.schema.json` (`run_id` integer, `brief`, `style`,
+- [x] Contracts: `shared/contracts/step4.input.schema.json` (`run_id` integer, `brief`, `style`,
       `profile`, `deviations` objects; description says each is an already-checked step
       output) and `step4.output.schema.json`: `additionalProperties: false` everywhere, every
       property required; each value object `{value: number|null, from, because: string
@@ -263,11 +263,11 @@ Why: R3, R7, R9, R12; A1–A6, A10 at SQL level.
       direction: -1|1, hints, intent: string|null, source}`; `conflicts` items = the
       `step3.output` deviation shape. Description names the absent slots: a target `value` null
       with `from: none`; `style.code` null.
-- [ ] `tests/test_contracts.py`: `NAMES` for steps 0–5; `ABSENT_SLOTS["step4.output"] =
+- [x] `tests/test_contracts.py`: `NAMES` for steps 0–5; `ABSENT_SLOTS["step4.output"] =
       [("targets.og.value", "null"), ("conflicts", "array")]`; a `GOOD` example and two `BAD`
       ones (a `from` outside the enum; a missing `because`).
-- [ ] Apply twice.
-- [ ] Add to `tests/test_step4.py` (helper `step4(conn, b)`: b's expected step 1 brief →
+- [x] Apply twice.
+- [x] Add to `tests/test_step4.py` (helper `step4(conn, b)`: b's expected step 1 brief →
       `app.step2_best_style` → `app.step3_deviations` → `app.step0_profile(null)` →
       `app.step4_targets`, as `tests/test_step3.py::step3` builds steps 2 and 3):
       `test_a2_cases` (b01 IBU 66.25, b09 IBU 18.75, b06 mash 64.5, b03 mash 68.5, b19 OG >
@@ -278,7 +278,7 @@ Why: R3, R7, R9, R12; A1–A6, A10 at SQL level.
       unless `stated`, or OG/FG `derived` from a stated ABV); `test_b12_base_style` (A6: style
       18A `base_style`, targets inside 18A's ranges); `test_every_value_has_from` (A10);
       `test_same_input_same_output` (all 22 twice); `test_output_meets_contract` (all 22).
-- [ ] Run `.venv/bin/pytest tests/test_step4.py tests/test_contracts.py`, expect all pass;
+- [x] Run `.venv/bin/pytest tests/test_step4.py tests/test_contracts.py`, expect all pass;
       then `.venv/bin/pytest`. `docs/DATABASE.md` §5 line. PROJECT.md §8 entry.
 Done when: the step 4 tests and the contract tests pass.
 Commit: `Add the step 4 targets output and contracts`
@@ -509,3 +509,4 @@ Commit: `Measure G4 for steps 0, 4 and 5`
   reference re-check with the ABV check) confirmed by the user, option a each; brief updated.
 - 2026-10-17 · Task 2: the column is declared and read as `"position"` (quoted) — `position` is a SQL keyword and a bare name is a syntax error in the return type and the alias list.
 - 2026-10-17 · Task 3: added helper `app.step4_pick` (one range-based target) beside the planned functions, and `app.step4_numbers` names its list parameter `hint_list` — a plpgsql parameter named `hints` clashes with the `hints` column of `app.hint_moves`; callers pass it by position.
+- 2026-10-17 · Task 4: `tests/test_contracts.py` `NAMES` covers steps 0–4 now, not 0–5 — step 5's contract files are written in Task 6, and the file-completeness test needs every name to exist; Task 6 adds step 5.

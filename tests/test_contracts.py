@@ -8,7 +8,7 @@ import pytest
 from loaders.db import connect
 
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
-NAMES = [f"step{n}.{side}" for n in range(4) for side in ("input", "output")]
+NAMES = [f"step{n}.{side}" for n in range(5) for side in ("input", "output")]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
 
 # Each output's slot for absent / unknown / conflict: (property, how the schema must allow it).
@@ -18,6 +18,7 @@ ABSENT_SLOTS = {
     "step1.output": [("named", "null"), ("unknown", "array")],
     "step2.output": [("style", "null"), ("unknown_reason", "null"), ("mismatch", "null")],
     "step3.output": [("deviations.kind", "enum:conflict"), ("unrated", "array")],
+    "step4.output": [("targets.og.value", "null"), ("conflicts", "array")],
     "formulation_check.output": [("results.status", "enum:unknown"), ("numbers.fg", "null")],
 }
 
@@ -126,17 +127,39 @@ CHECK_OUT = {
         "missing": [],
     }],
 }
+GOOD_PROFILE = {
+    "batch_l": 20, "efficiency_pct": 72, "boil_off_l_h": 3.5, "losses_l": 2,
+    "grain_abs_l_kg": 1.0,
+    "water": {"ca": None, "mg": 5, "na": None, "so4": None, "cl": None, "hco3": 40},
+    "units": "metric",
+    "inventory": [{"raw_name": "mystery malt", "ingredient_id": None, "amount": 1, "unit": "kg"}],
+}
+
+
+def _value(v, frm, because="because"):
+    return {"value": v, "from": frm, "because": because}
+
+
+STEP4_OUT = {
+    "style": {"code": "18A", "name": "Blonde Ale", "from": "chosen", "because": "step 2's style"},
+    "batch_l": _value(20, "profile"),
+    "targets": {
+        "og": _value(1.0475, "midpoint"), "fg": _value(1.0125, "midpoint"),
+        "abv": _value(4.6, "derived"), "ibu": _value(None, "none"), "srm": _value(4.5, "hint"),
+    },
+    "mash_c": _value(66.5, "midpoint"),
+    "knobs": [{"knob": "srm", "direction": 1, "hints": "darker", "intent": None, "source": "unsourced"}],
+    "conflicts": [{
+        "kind": "conflict", "subject": "dry vs full", "from": "bone dry vs chewy",
+        "level": None, "requested_by": "user", "because": "hints disagree",
+    }],
+    "guidance": True,
+}
 GOOD = {
     "formulation_check.input": CHECK_IN,
     "formulation_check.output": CHECK_OUT,
     "step0.input": {"run_id": 1, "profile_id": None},
-    "step0.output": {
-        "batch_l": 20, "efficiency_pct": 72, "boil_off_l_h": 3.5, "losses_l": 2,
-        "grain_abs_l_kg": 1.0,
-        "water": {"ca": None, "mg": 5, "na": None, "so4": None, "cl": None, "hco3": 40},
-        "units": "metric",
-        "inventory": [{"raw_name": "mystery malt", "ingredient_id": None, "amount": 1, "unit": "kg"}],
-    },
+    "step0.output": GOOD_PROFILE,
     "step1.input": {"run_id": 1, "request": "a dry stout", "model": "gemma4:12b", "think": False},
     "step1.output": BRIEF,
     "step2.input": {"run_id": 1, "brief": BRIEF, "request": "a dry stout", "guide_preference": "any"},
@@ -149,6 +172,8 @@ GOOD = {
         }],
         "unrated": ["mystery malt"], "guidance": False,
     },
+    "step4.input": {"run_id": 1, "brief": BRIEF, "style": STEP2_OUT, "profile": GOOD_PROFILE, "deviations": {}},
+    "step4.output": STEP4_OUT,
 }
 BAD = [
     ("formulation_check.input", {k: v for k, v in CHECK_IN.items() if k != "mash_c"}),
@@ -172,6 +197,8 @@ BAD = [
     ("step2.output", {k: v for k, v in STEP2_OUT.items() if k != "unknown_reason"}),
     ("step3.output", {**GOOD["step3.output"], "deviations": [
         {**GOOD["step3.output"]["deviations"][0], "kind": "typo"}]}),
+    ("step4.output", {**STEP4_OUT, "batch_l": _value(20, "guess")}),
+    ("step4.output", {**STEP4_OUT, "mash_c": {"value": 66.5, "from": "midpoint"}}),
 ]
 
 

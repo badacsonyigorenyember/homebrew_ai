@@ -208,3 +208,88 @@ begin
     return jsonb_build_object('og', og_j, 'fg', fg_j, 'abv', abv_j, 'ibu', ibu_j, 'srm', srm_j);
 end;
 $$;
+
+-- The step 4 output: style used, batch size, targets, mash temperature, applied knobs and
+-- conflicts. Order of work:
+--   1. Style used: step 2's style; when it has none of OG, FG, ABV, IBU, SRM, the first
+--      alt_styles code that has them (from base_style); otherwise code null (from none).
+--   2. Batch: the stated batch_l, else the profile's.
+--   3. Numbers: app.step4_numbers (guidance does not change it, R4).
+--   4. Mash: a mash_temp hint's mash_c, else the middle of rule 10's mash range.
+--   5. Knobs: every row of app.hint_moves.
+--   6. Conflicts: step 3's conflict items, unchanged.
+create or replace function app.step4_targets(brief jsonb, style jsonb, profile jsonb, deviations jsonb)
+returns jsonb
+language plpgsql
+stable
+as $$
+declare
+    chosen text := style #>> '{style,code}';
+    used text;
+    style_j jsonb;
+    batch_j jsonb;
+    mash_j jsonb;
+    m record;
+    lim jsonb := app.formulation_limits();
+    mash_mid numeric := ((lim->>'mash_min_c')::numeric + (lim->>'mash_max_c')::numeric) / 2;
+    alt text;
+begin
+    -- 1. Style used
+    if chosen is not null and exists (
+        select 1 from ref.beer_style b where b.code = chosen
+           and (b.og is not null or b.fg is not null or b.abv is not null or b.ibu is not null or b.srm is not null)) then
+        used := chosen;
+        style_j := jsonb_build_object('code', used, 'name', style #>> '{style,name}', 'from', 'chosen',
+                                      'because', format('step 2 chose %s', used));
+    else
+        for alt in select jsonb_array_elements_text(coalesce(style->'alt_styles', '[]'::jsonb)) loop
+            if exists (select 1 from ref.beer_style b where b.code = alt
+                          and (b.og is not null or b.fg is not null or b.abv is not null or b.ibu is not null or b.srm is not null)) then
+                used := alt;
+                exit;
+            end if;
+        end loop;
+        if used is not null then
+            style_j := jsonb_build_object('code', used,
+                'name', (select b.name from ref.beer_style b where b.code = used order by b.id limit 1),
+                'from', 'base_style',
+                'because', format('%s has no OG, FG, ABV, IBU or SRM range; its base style %s (step 2''s first alternative) is used',
+                                  coalesce(chosen, 'the chosen style'), used));
+        else
+            style_j := jsonb_build_object('code', null, 'name', null, 'from', 'none',
+                'because', 'step 2 chose no style with ranges and offered no usable alternative');
+        end if;
+    end if;
+
+    -- 2. Batch
+    if brief #>> '{stated,batch_l}' is not null then
+        batch_j := jsonb_build_object('value', (brief #>> '{stated,batch_l}')::numeric, 'from', 'stated',
+                                      'because', 'stated by the user');
+    else
+        batch_j := jsonb_build_object('value', (profile->>'batch_l')::numeric, 'from', 'profile',
+                                      'because', 'batch size of the brewer profile');
+    end if;
+
+    -- 4. Mash
+    select * into m from app.hint_moves(brief->'hints') x where x.knob = 'mash_temp';
+    if m.knob is not null then
+        mash_j := jsonb_build_object('value', m.mash_c, 'from', 'hint',
+                      'because', format('%s: mash at %s °C', m.hints, trim_scale(m.mash_c)));
+    else
+        mash_j := jsonb_build_object('value', mash_mid, 'from', 'midpoint',
+                      'because', format('middle of rule 10''s mash range %s–%s °C', lim->>'mash_min_c', lim->>'mash_max_c'));
+    end if;
+
+    return jsonb_build_object(
+        'style', style_j,
+        'batch_l', batch_j,
+        'targets', app.step4_numbers(used, brief->'stated', brief->'hints'),
+        'mash_c', mash_j,
+        'knobs', coalesce((select jsonb_agg(jsonb_build_object('knob', k.knob, 'direction', k.direction,
+                                'hints', k.hints, 'intent', k.intent, 'source', k.source))
+                             from app.hint_moves(brief->'hints') k), '[]'::jsonb),
+        'conflicts', coalesce((select jsonb_agg(d) from jsonb_array_elements(coalesce(deviations->'deviations', '[]'::jsonb)) d
+                                where d->>'kind' = 'conflict'), '[]'::jsonb),
+        'guidance', coalesce((brief->>'guidance')::boolean, true));
+end;
+$$;
