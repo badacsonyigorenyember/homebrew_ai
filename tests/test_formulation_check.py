@@ -446,13 +446,20 @@ def test_rule_10_unknown_without_attenuation(conn):
 
 @pytest.mark.stack
 def test_mash_mapping(conn):
-    def att(mash):
-        return conn.execute("select app.mash_attenuation('[78,82]'::numrange, %s::numeric)", (mash,)).fetchone()[0]
+    """Troester's curve (docs/work/s5-mash-attenuation/doc-calc.md section 6): flat up to the knee,
+    then 4.15 points lower per degree, clamped to the yeast's range."""
+    def att(mash, rng="[78,82]"):
+        return conn.execute("select app.mash_attenuation(%s::numrange, %s::numeric)", (rng, mash)).fetchone()[0]
 
-    assert (float(att(64)), float(att(69)), float(att(66.5))) == (82, 78, 80)
+    assert [float(att(m)) for m in (64, 66.5, 68.3)] == [80, 80, 80]
+    assert float(att(63)) == 80
+    assert float(att(69)) == 78 and float(att(70)) == 78  # 77.095 clamped to the range bottom
+    assert float(att(69, "[70,90]")) == pytest.approx(77.095)
+    assert conn.execute("select app.mash_attenuation(null, 66)").fetchone()[0] is None
+    assert conn.execute("select app.mash_attenuation('[78,82]'::numrange, null)").fetchone()[0] is None
     text = conn.execute("select sentence from app.formulation_rules() where rule = '10'").fetchone()[0]
-    assert "uncited assumption" in text
-    assert check(conn, recipe(conn, BASE, mash_c=64))["numbers"]["attenuation_pct"] == pytest.approx(82)
+    assert "uncited assumption" not in text
+    assert check(conn, recipe(conn, BASE, mash_c=64))["numbers"]["attenuation_pct"] == pytest.approx(80)
 
 
 @pytest.mark.stack

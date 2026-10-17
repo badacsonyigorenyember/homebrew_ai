@@ -62,8 +62,15 @@ LIMIT_RULES = {
     "crystal_dark_ebc": ["3", "4"], "crystal_very_dark_ebc": ["4"], "dark_total_pct": ["3"],
     "crystal_total_pct": ["4"], "crystal_dark_pct": ["4"], "crystal_very_dark_pct": ["4"],
     "adjunct_sugar_pct": ["5"], "late_hop_max_min": ["8"], "mash_min_c": ["10"],
-    "mash_max_c": ["10"], "min_boil_min": ["13"],
+    "mash_max_c": ["10"], "mash_ref_c": ["10"], "mash_knee_c": ["10"],
+    "mash_slope_pct_per_c": ["10"], "min_boil_min": ["13"],
 }
+
+
+@pytest.mark.stack
+def test_rule_10_names_its_source(conn):
+    sentence = rules(conn)["10"][1]
+    assert "Troester" in sentence and "uncited" not in sentence
 
 
 @pytest.mark.stack

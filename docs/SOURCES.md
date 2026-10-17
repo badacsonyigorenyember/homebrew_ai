@@ -79,9 +79,9 @@ comments, site menus and sidebars were left out.
 
 | File | What | Licence | Fate | Used by |
 |---|---|---|---|---|
-| `braukaiser_mash_parameters_2009.pdf` | Troester, *Effects of mash parameters on attenuation and efficiency*, 23 pp: limit of attenuation vs mash temperature, time, pH, crush, thickness | CC BY-NC 3.0 | calc · kb | s5-mash-attenuation (replaces rule 10's uncited mapping); s7-kb-articles |
-| `braukaiser_mash_time_fermentability.md` | Troester, *Mash Time Dependency of Wort Fermentability* (wiki) | braukaiser.com | calc · kb | s5-mash-attenuation; s7-kb-articles |
-| `terrill_observations_on_attenuations.md` | Terrill, *Observations on Attenuations* (2017): 44 batches, 3 strains, attenuation vs mash temperature; the plots are images, not saved | seanterrill.com | calc · kb | s5-mash-attenuation (strain dependence); s7-kb-articles |
+| `braukaiser_mash_parameters_2009.pdf` | Troester, *Effects of mash parameters on attenuation and efficiency*, 23 pp: limit of attenuation vs mash temperature, time, pH, crush, thickness | CC BY-NC 3.0 | calc · kb | calc done by s5-mash-attenuation ([doc-calc](work/s5-mash-attenuation/doc-calc.md)); s7-kb-articles |
+| `braukaiser_mash_time_fermentability.md` | Troester, *Mash Time Dependency of Wort Fermentability* (wiki) | braukaiser.com | calc · kb | calc done by s5-mash-attenuation ([doc-calc](work/s5-mash-attenuation/doc-calc.md)); s7-kb-articles |
+| `terrill_observations_on_attenuations.md` | Terrill, *Observations on Attenuations* (2017): 44 batches, 3 strains, attenuation vs mash temperature; the plots are images, not saved | seanterrill.com | calc · kb | calc done by s5-mash-attenuation ([doc-calc](work/s5-mash-attenuation/doc-calc.md); strain dependence not modelled); s7-kb-articles |
 | `janish_dry_hop_best_practices_tq_2021.pdf` | Janish, *Dry Hop Best Practices*, MBAA TQ 58(1) 2021, 8 pp, posted by the author with MBAA's permission | © MBAA | calc · kb | m7-process step 14 (dry-hop timing and temperature); s7-kb-articles |
 | `janish_short_cool_dry_hopping.md` | Janish, *A Case for Short and Cool Dry Hopping* | scottjanish.com | calc · kb | m7-process step 14; s7-kb-articles |
 | `janish_survivables_hot_side.md` | Janish, *Survivables: Unpacking Hot-Side Hop Flavor* | scottjanish.com | kb | s7-kb-articles; cited by m5 step 8 and m8 (no hop oil data in `ref` to compute from) |

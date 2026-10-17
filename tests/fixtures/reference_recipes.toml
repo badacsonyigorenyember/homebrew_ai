@@ -259,7 +259,7 @@ guidance = true
 stated = {}
 targets = { og = 1.046, fg = 1.0105, abv = 4.65, ibu = 21.5, srm = 4.5 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
-mash_c = 68
+mash_c = 69
 boil_min = 60
 fermentable = [
   { producer = "Weyermann", name = "Pale Ale Malt", pct = 66, purpose = "base malt" },
@@ -467,7 +467,7 @@ guidance = true
 stated = {}
 targets = { og = 1.0485, fg = 1.011, abv = 4.75, ibu = 18.5, srm = 11 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
-mash_c = 68
+mash_c = 69
 boil_min = 90
 fermentable = [
   { producer = "Weyermann", name = "Pilsner Malt", pct = 52, purpose = "pale base" },
