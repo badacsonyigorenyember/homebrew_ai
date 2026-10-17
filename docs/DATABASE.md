@@ -449,6 +449,8 @@ Step 3 output (`db/037_step3.sql`): `app.step3_deviations(brief, style)` returns
 
 Function `app.step2_best_style(brief, request, guide_preference)` (db/022_step2.sql) picks the best-fit style: scores both guides (name, numbers with a tightness bonus, words), returns the BJCP pair of a BA winner unless that pair is a catch-all in `app.bjcp_catch_all()`, applies the specialty and mismatch rules and returns the style, alternatives, scores and reasons.
 
+Step 0 (`db/038_step0.sql`, no LLM): `app.step0_profile(profile_id)` returns the `step0.output` shape for a profile id, or for the `default` row when the id is null (batch 20 L, efficiency 72 %, boil-off 4 L/h, losses 2 L, grain absorption 1.0 L/kg, six ions 0 = distilled water, `metric`; placeholder until the user can set their own water). The `default` row is inserted only when absent, so a re-run keeps edited values.
+
 Later (§9): `batch`, `tasting`, `inventory.best_before`.
 
 ---

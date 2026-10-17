@@ -1,6 +1,6 @@
 # M4 · Steps 0, 4 and 5: brewer profile, targets and design frame — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: m4-targets-blueprint
 
@@ -96,7 +96,7 @@ owners with `select proname, pg_get_userbyid(proowner) from pg_proc where pronam
 
 ### Task 1: step 0 reads a stored profile, with a cited default
 Why: R1, R2; A7. Step 0 is first needed here.
-- [ ] `db/038_step0.sql` (header as `db/037`: purpose, needs `015_app.sql`, apply command,
+- [x] `db/038_step0.sql` (header as `db/037`: purpose, needs `015_app.sql`, apply command,
       idempotent).
       - The `default` row: `insert into app.brewer_profile (name, batch_l, efficiency_pct,
         boil_off_l_h, losses_l, grain_abs_l_kg, ca_mg_l, mg_mg_l, na_mg_l, so4_mg_l, cl_mg_l,
@@ -114,9 +114,9 @@ Why: R1, R2; A7. Step 0 is first needed here.
         `grain_abs_l_kg`, `water {ca, mg, na, so4, cl, hco3}` (null stays null), `units`,
         `inventory` (the profile's `app.inventory` rows as `{raw_name, ingredient_id, amount,
         unit}`, ordered by id; `[]` today).
-- [ ] Apply twice; `select count(*) from app.brewer_profile where name = 'default'` is 1 after
+- [x] Apply twice; `select count(*) from app.brewer_profile where name = 'default'` is 1 after
       both runs; owner `postgres`.
-- [ ] Write `tests/test_step0.py` (stack): `test_default_profile` (A7: null → 20, 72, 4, 2, 1.0,
+- [x] Write `tests/test_step0.py` (stack): `test_default_profile` (A7: null → 20, 72, 4, 2, 1.0,
       six ions 0, `metric`, inventory `[]`); `test_output_meets_contract` (validates against
       `step0.output` with `extensions.jsonschema_validation_errors`); `test_profile_by_id` (a row
       inserted in a rolled-back transaction with two null ions and one inventory row is returned
@@ -125,12 +125,12 @@ Why: R1, R2; A7. Step 0 is first needed here.
       to 50, run the insert statement from the file again, `ca_mg_l` is still 50);
       `test_sql_cites_water_source` (not stack: the file contains `brunwater-water-knowledge`,
       `4.2.1` and `placeholder`).
-- [ ] `docs/RECIPE-ROADMAP.md` §8 Later cell: add `- TODO: let the user set their own water
+- [x] `docs/RECIPE-ROADMAP.md` §8 Later cell: add `- TODO: let the user set their own water
       ions in the brewer profile (input path, form or command); until then the default profile
       uses distilled water (all six ions 0 mg/L, Bru'n Water §4.2.1; user request 2026-10-17)`.
       `docs/SOURCES.md` `brunwater_water_knowledge.md` row: add "m4: default profile ions (§4.2.1)".
-- [ ] Run `.venv/bin/pytest tests/test_step0.py tests/test_contracts.py`, expect all pass.
-- [ ] `docs/DATABASE.md` §5: `app.step0_profile` and the `default` row. PROJECT.md §4 Database
+- [x] Run `.venv/bin/pytest tests/test_step0.py tests/test_contracts.py`, expect all pass.
+- [x] `docs/DATABASE.md` §5: `app.step0_profile` and the `default` row. PROJECT.md §4 Database
       row (`app.brewer_profile` 1 row) and §8 entry.
 Done when: the file applies twice with one `default` row, and the step 0 tests pass.
 Commit: `Add step 0 profile reader and default profile`

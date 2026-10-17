@@ -61,7 +61,7 @@ comments, site menus and sidebars were left out.
 
 | File | What | Licence | Fate | Used by |
 |---|---|---|---|---|
-| `brunwater_water_knowledge.md` | Brungard, Bru'n Water *Water Knowledge* (~17,000 words, updated 2020) | © Martin Brungard, all rights reserved | calc · kb | m7-process step 12; s7-kb-articles |
+| `brunwater_water_knowledge.md` | Brungard, Bru'n Water *Water Knowledge* (~17,000 words, updated 2020) | © Martin Brungard, all rights reserved | calc · kb | m7-process step 12; s7-kb-articles; m4: default profile ions (§4.2.1) |
 | `brunwater_1.25.xlsx` | Bru'n Water 1.25 spreadsheet (free edition, sheets protected) | © Martin Brungard, all rights reserved | oracle | m7-process step 12: expected salt and mash-pH values for test cases, entered by hand. Its formulas are not copied |
 | `bjcp_study_guide_water.md` | Web edition of the study guide's *Water* page (same 2017 text, 8-city ion table checked against the PDF) | © BJCP | copy | readable copy of the table for m7-process |
 
