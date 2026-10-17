@@ -381,7 +381,7 @@ Commit: `Add the step 5 design frame in SQL`
 
 ### Task 7: graders score steps 4 and 5
 Why: G4, A13; the bar is checked at SQL level before the pipeline run.
-- [ ] `evals/grade.py` (pure, no I/O; docstring updated):
+- [x] `evals/grade.py` (pure, no I/O; docstring updated):
       - `grade_step4(brief, output, facts) -> bool`, `facts = {"ranges": {og, fg, abv, ibu,
         srm: [lo, hi] | None} of output.style.code, "abv": app.abv(target og, fg)}`: style code
         is the brief's style, or with `from: base_style` the brief's first `alt_styles` code;
@@ -402,9 +402,9 @@ Why: G4, A13; the bar is checked at SQL level before the pipeline run.
         `needed_pct` = 100 × (OG − FG)/(OG − 1) of step 4 within 0.01 and `band_attenuation`
         within 0.01 of it.
       - `grade_run(brief, steps, facts=None)` adds `step4`, `step5`; `passed` needs all.
-- [ ] `evals/run.py`: `GRADED_STEPS = (2, 3, 4, 5)`; `read_facts(conn, steps)` builds the facts
+- [x] `evals/run.py`: `GRADED_STEPS = (2, 3, 4, 5)`; `read_facts(conn, steps)` builds the facts
       with three queries; `grade_result`, `table` and `totals` show steps 4 and 5.
-- [ ] Tests: `tests/test_grade.py` (not stack, hand-built outputs): `test_step4_right_passes`,
+- [x] Tests: `tests/test_grade.py` (not stack, hand-built outputs): `test_step4_right_passes`,
       `test_step4_hint_not_moved_fails`, `test_step4_out_of_range_fails`,
       `test_step4_stated_abv_og_outside_passes`, `test_step4_conflict_missing_fails`,
       `test_step5_right_passes`, `test_step5_missing_slot_fails`,
@@ -413,11 +413,11 @@ Why: G4, A13; the bar is checked at SQL level before the pipeline run.
       `tests/test_step5.py::test_briefs_reach_the_bar` (stack, SQL level: the Task 6 chain plus
       `read_facts`; `grade_step4` and `grade_step5` pass on 20/20 of b01–b20 and on b21, b22;
       the failure message lists each miss).
-- [ ] Run `.venv/bin/pytest tests/test_grade.py tests/test_run.py tests/test_step5.py`. If the bar
+- [x] Run `.venv/bin/pytest tests/test_grade.py tests/test_run.py tests/test_step5.py`. If the bar
       test fails, find the cause; a fix may change a rule only in a general way (never for one
       brief), each as a dated Deviations line; if that does not reach the bar, stop and report
       `needs-input` with the misses.
-- [ ] Run `.venv/bin/pytest`, expect all pass. PROJECT.md §8 entry with the SQL-level count.
+- [x] Run `.venv/bin/pytest`, expect all pass. PROJECT.md §8 entry with the SQL-level count.
 Done when: the grader tests pass and the SQL-level bar is 20/20 plus b21, b22.
 Commit: `Grade steps 4 and 5`
 

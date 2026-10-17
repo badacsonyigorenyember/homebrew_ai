@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parent.parent
 BRIEFS_FILE = ROOT / "evals" / "recipe_briefs.toml"
 RESULTS_DIR = ROOT / "evals" / "results"
 PIPELINE_URL = "http://localhost:5678/webhook/recipe-pipeline"
-GRADED_STEPS = (2, 3)
+GRADED_STEPS = (2, 3, 4, 5)
 
 
 def load_briefs() -> list[dict]:
@@ -73,29 +73,64 @@ def read_run(conn, run_id) -> dict:
             "llm": llm[0] if llm else None}
 
 
-def grade_result(brief: dict, answer: dict, steps: dict, llm=None) -> dict:
+def read_facts(conn, steps: dict) -> dict:
+    """What the step 4 and 5 graders need from the database (three queries): the ranges of the
+    style step 4 used, app.abv of its OG and FG, the rules, and the yeast band run back through
+    app.mash_attenuation. Missing steps give no facts, so the grader fails them."""
+    facts = {}
+    s4, s5 = steps.get(4), steps.get(5)
+    try:
+        t = s4["targets"]
+        row = conn.execute(
+            "select og, fg, abv, ibu, srm from ref.beer_style where code = %s order by id limit 1",
+            (s4["style"]["code"],)).fetchone()
+        ranges = {k: None if r is None or r.isempty else [r.lower, r.upper]
+                  for k, r in zip(("og", "fg", "abv", "ibu", "srm"), row)} if row else {}
+        abv = conn.execute("select app.abv(%s::numeric, %s::numeric)",
+                           (t["og"]["value"], t["fg"]["value"])).fetchone()[0]
+        facts["step4"] = {"ranges": ranges, "abv": abv}
+    except (TypeError, KeyError):
+        pass
+    try:
+        middle = s5["attenuation"]["yeast_middle_pct"]
+        band = conn.execute(
+            "select app.mash_attenuation(numrange(%s::numeric - 3, %s::numeric + 3), %s::numeric)",
+            (middle, middle, s4["mash_c"]["value"])).fetchone()[0]
+        rules = [{"rule": r, "checked": c, "sentence": t_}
+                 for r, c, t_ in conn.execute(
+                     "select rule, checked, sentence from app.formulation_rules()").fetchall()]
+        facts["step5"] = {"rules": rules, "band_attenuation": band}
+    except (TypeError, KeyError):
+        pass
+    conn.commit()
+    return facts
+
+
+def grade_result(brief: dict, answer: dict, steps: dict, llm=None, facts=None) -> dict:
     """Grade one run. `answer` holds run_id, ok and error; a run that is not ok never passes."""
-    graded = grade.grade_run(brief, steps)
+    graded = grade.grade_run(brief, steps, facts)
     ran = {n: n in steps for n in (1, *GRADED_STEPS)}
     run_ok = bool(answer.get("ok"))
     return {
         "id": brief["id"], "run_id": answer.get("run_id"), "run_ok": run_ok,
         "error": answer.get("error"), "failed_step": answer.get("failed_step"),
         "step1": graded["step1"], "step2": graded["step2"], "step3": graded["step3"],
+        "step4": graded["step4"], "step5": graded["step5"],
         "ran": ran, "passed": run_ok and graded["passed"], "llm": llm,
     }
 
 
 def run_brief(conn, brief: dict, model=None, think=False, timeout=1800) -> dict:
     answer = send(brief["request"], brief["id"], model, think, timeout=timeout)
-    steps, llm, run_ok = {}, None, bool(answer.get("ok"))
+    steps, llm, facts, run_ok = {}, None, None, bool(answer.get("ok"))
     if answer.get("run_id") is not None:
         stored = read_run(conn, answer["run_id"])
         steps, llm = stored["steps"], stored.get("llm")
+        facts = read_facts(conn, steps)
         if not (stored["finished"] and stored["ok"]):
             run_ok = False
             answer = {**answer, "error": answer.get("error") or "run not finished ok"}
-    return grade_result(brief, {**answer, "ok": run_ok}, steps, llm)
+    return grade_result(brief, {**answer, "ok": run_ok}, steps, llm, facts)
 
 
 def table(results: list[dict]) -> str:
@@ -104,7 +139,7 @@ def table(results: list[dict]) -> str:
             return "not run"
         return "pass" if r[f"step{n}"] else "FAIL"
 
-    lines = [f"{'brief':<6} {'run':<8} {'step 1':<26} {'step 2':<8} {'step 3':<8} result"]
+    lines = [f"{'brief':<6} {'run':<8} {'step 1':<26} {'step 2':<8} {'step 3':<8} {'step 4':<8} {'step 5':<8} result"]
     for r in results:
         if r["run_ok"]:
             run_col = "ok"
@@ -117,7 +152,7 @@ def table(results: list[dict]) -> str:
         else:
             step1 = "fail: " + ",".join(f for f, v in r["step1"].items() if f != "ok" and not v)
         lines.append(f"{r['id']:<6} {'ok' if r['run_ok'] else 'FAILED':<8} {step1:<26} "
-                     f"{cell(r, 2):<8} {cell(r, 3):<8} {'pass' if r['passed'] else 'FAIL'}"
+                     f"{cell(r, 2):<8} {cell(r, 3):<8} {cell(r, 4):<8} {cell(r, 5):<8} {'pass' if r['passed'] else 'FAIL'}"
                      + ("" if r["run_ok"] else f"  [{run_col}]"))
     return "\n".join(lines)
 

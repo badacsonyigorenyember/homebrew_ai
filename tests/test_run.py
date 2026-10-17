@@ -27,9 +27,13 @@ def test_not_run_steps_count_as_failed():
     assert totals["step1"] == {"passed": 0, "total": 1, "not_run": 0}
     assert totals["step2"] == {"passed": 0, "total": 1, "not_run": 1}
     assert totals["step3"] == {"passed": 0, "total": 1, "not_run": 1}
+    assert totals["step4"] == {"passed": 0, "total": 1, "not_run": 1}
+    assert totals["step5"] == {"passed": 0, "total": 1, "not_run": 1}
     assert totals["briefs"] == {"passed": 0, "total": 1}
     row = run.table(results).splitlines()[-1]
     assert "not run" in row and "wanted" in row
+    assert "step 4" in run.table(results).splitlines()[0] and "step 5" in run.table(results).splitlines()[0]
+    assert "step 4 0/1 (1 not run)" in run.format_totals(totals)
 
 
 def test_failed_run_is_reported_failed():
@@ -45,7 +49,8 @@ def _all_pass(monkeypatch):
     ok = {"ok": True}
     monkeypatch.setattr(
         run.grade, "grade_run",
-        lambda brief, steps: {"step1": ok, "step2": True, "step3": True, "passed": True},
+        lambda brief, steps, facts=None: {"step1": ok, "step2": True, "step3": True,
+                                          "step4": True, "step5": True, "passed": True},
     )
 
 
@@ -62,6 +67,7 @@ def test_unfinished_run_is_not_passed(monkeypatch):
     _all_pass(monkeypatch)
     brief = next(b for b in BRIEFS if b["id"] == "b01")
     monkeypatch.setattr(run, "send", lambda *a, **k: {"ok": True, "run_id": 7})
+    monkeypatch.setattr(run, "read_facts", lambda conn, steps: {})
     monkeypatch.setattr(
         run, "read_run", lambda conn, run_id: {"finished": False, "ok": False, "steps": {1: {}}}
     )

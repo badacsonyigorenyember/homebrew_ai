@@ -195,3 +195,17 @@ def test_output_meets_contract(conn, frames):
             "select coalesce(extensions.jsonschema_validation_errors(%s::json, %s::json), '{}')",
             (json.dumps(schema), json.dumps(frame))).fetchone()[0]
         assert errs == [], (bid, errs)
+
+
+def test_briefs_reach_the_bar(conn, frames, step4s):
+    """G4 at SQL level: the graders pass step 4 and step 5 on b01-b22 (bar: 20/20 of b01-b20, b21, b22)."""
+    from evals import grade, run
+    misses = []
+    for bid, b in BRIEFS.items():
+        steps = {4: step4s[bid], 5: frames[bid]}
+        facts = run.read_facts(conn, steps)
+        if not grade.grade_step4(b, steps[4], facts.get("step4")):
+            misses.append(f"{bid} step 4")
+        if not grade.grade_step5(b, steps[5], steps[4], facts.get("step5")):
+            misses.append(f"{bid} step 5")
+    assert misses == [], misses
