@@ -23,10 +23,14 @@ as $$
     end
 $$;
 
--- Attenuation at a mash temperature: the yeast's attenuation range maps linearly onto the mash
--- temperature limits, the low limit (64 C) giving the top of the range and the high limit (69 C)
--- the bottom. mash_c is clamped to the limits. UNCITED ASSUMPTION (rule 10); a cited model is on
--- docs/RECIPE-ROADMAP.md section 8, Later.
+-- Attenuation at a mash temperature, after Troester's curve of the limit of attenuation against
+-- mash temperature (Troester 2009, "Effects of mash parameters on attenuation and efficiency",
+-- braukaiser.com, CC BY-NC 3.0, Figure 10 and the appendix temperature series; constants and
+-- derivation in docs/work/s5-mash-attenuation/doc-calc.md). The middle of the yeast's range is
+-- its attenuation at the reference temperature; the curve's difference is added for any other
+-- mash temperature. Up to the knee (68.3 C) the attenuation is the middle of the yeast's range;
+-- above it, it is 4.15 points lower per degree, never outside the yeast's range. mash_c is
+-- clamped to the mash limits (rule 10).
 create or replace function app.mash_attenuation(attenuation numrange, mash_c numeric)
 returns numeric
 language plpgsql
@@ -36,15 +40,22 @@ declare
     l jsonb := app.formulation_limits();
     low_c numeric := (l->>'mash_min_c')::numeric;
     high_c numeric := (l->>'mash_max_c')::numeric;
+    ref_c numeric := (l->>'mash_ref_c')::numeric;
+    knee_c numeric := (l->>'mash_knee_c')::numeric;
+    slope numeric := (l->>'mash_slope_pct_per_c')::numeric;
     top numeric := upper(attenuation);
     bottom numeric := lower(attenuation);
+    middle numeric;
     clamped numeric;
+    result numeric;
 begin
     if attenuation is null or top is null or bottom is null or mash_c is null then
         return null;
     end if;
     clamped := greatest(low_c, least(high_c, mash_c));
-    return top - (clamped - low_c) / (high_c - low_c) * (top - bottom);
+    middle := (top + bottom) / 2;
+    result := middle - slope * (greatest(clamped, knee_c) - greatest(ref_c, knee_c));
+    return greatest(bottom, least(top, result));
 end;
 $$;
 

@@ -1,9 +1,11 @@
 # S5 · Doc → calc pass
 
+Approved by the user 2026-10-17
+
 Work: [brief.md](brief.md) · [plan.md](plan.md) · written 2026-10-17 (PROJECT.md §6.7, brief A1)
 
-Status: **waiting for the user's approval** of the transcribed rows (§2) and the derived numbers
-(§3, §4).
+Status: approved by the user 2026-10-17 (was: waiting for approval of the transcribed rows (§2) and the derived numbers
+(§3, §4)).
 
 This is the doc → calculation pass for the new `app.mash_attenuation`. Every number was
 recomputed with a scratch script (not kept in the repo), so it is measured, not copied from the

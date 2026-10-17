@@ -114,7 +114,7 @@ Why: R1, R3 tolerance, R7, A1; every later number comes from here.
        known limit: per-strain behaviour is not modelled.
   9. **Version log.** `calc_version` is not changed: it covers `db/030_maths.sql` only, and this
      work does not touch that file.
-- [ ] Commit, then **stop and report `needs-approval`**. The user checks the 11 transcribed rows
+- [x] Commit, then **stop and report `needs-approval`**. The user checks the 11 transcribed rows
       against PDF p. 22 and approves the derived knee, slope and tolerance. On approval add
       `Approved by the user <date>` at the top of `doc-calc.md`, in Task 2's commit.
       If the approved numbers differ from 68.3 / 4.15, update the expected values in this plan
@@ -125,13 +125,13 @@ Commit: `Add doc-calc pass for mash attenuation`
 
 ### Task 2: Mash attenuation follows Troester's curve, recipes re-checked
 Why: R2–R6, A2–A5.
-- [ ] **Before anything is applied**, measure the 22 reference recipes with the current
+- [x] **Before anything is applied**, measure the 22 reference recipes with the current
       function. For each, record the brief, `mash_c`, yeast `attenuation_pct`,
       `numbers.attenuation_pct`, `numbers.fg`, rule 10 status and the target FG range. Use a
       scratch script in the scratchpad that imports `RECIPES`, `build_input` and `check` from
       `tests.test_reference_recipes`, run with `.venv/bin/python`. Write the "before" columns
       of `reference-recheck.md`.
-- [ ] Write the tests first and see them fail against the current function:
+- [x] Write the tests first and see them fail against the current function:
   - `tests/test_mash_attenuation.py`:
     - `TEMPERATURE_SERIES`: sample → (average °C, attenuation %), the 11 approved rows, with a
       comment citing Troester 2009, appendix table, PDF p. 22, and doc-calc §2.
@@ -154,7 +154,7 @@ Why: R2–R6, A2–A5.
     - `LIMIT_RULES` gains `"mash_ref_c": ["10"], "mash_knee_c": ["10"],
       "mash_slope_pct_per_c": ["10"]`.
     - New `test_rule_10_names_its_source`: the sentence contains "Troester" and not "uncited".
-- [ ] `db/031_formulation_rules.sql`:
+- [x] `db/031_formulation_rules.sql`:
   - Add `"mash_ref_c": 66.5, "mash_knee_c": 68.3, "mash_slope_pct_per_c": 4.15` to
     `app.formulation_limits()`, with a comment line pointing to the s5 doc-calc.
   - Rewrite rule 10's sentence with `format()` from those limits. It keeps the mash limits and
@@ -164,7 +164,7 @@ Why: R2–R6, A2–A5.
     2009, limit of attenuation against mash temperature)."
   - The sentence must not use "some", "usually", "typically", "about" (`VAGUE`) or any
     ingredient name (so no "Pilsner").
-- [ ] `db/032_formulation_check.sql`: rewrite `app.mash_attenuation(attenuation numrange,
+- [x] `db/032_formulation_check.sql`: rewrite `app.mash_attenuation(attenuation numrange,
       mash_c numeric) returns numeric` (plpgsql, immutable, same signature).
   - Read the five mash limits.
   - Return null on a null range, an open bound or a null mash, as today.
@@ -174,16 +174,16 @@ Why: R2–R6, A2–A5.
   - The comment replaces "UNCITED ASSUMPTION". It cites Troester 2009 (braukaiser.com,
     CC BY-NC 3.0, Figure 10 and appendix temperature series) and the doc-calc, and gives the
     R4 sentence.
-- [ ] Apply both files twice each as postgres, 031 first:
+- [x] Apply both files twice each as postgres, 031 first:
       `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/031_formulation_rules.sql`
       then the same for `db/032_formulation_check.sql`. Expect no error either time.
       Check the owner: `select proowner::regrole from pg_proc where proname in
       ('mash_attenuation','formulation_limits','formulation_rules')` gives `postgres` for each.
-- [ ] Run `.venv/bin/pytest tests/test_mash_attenuation.py tests/test_formulation_check.py
+- [x] Run `.venv/bin/pytest tests/test_mash_attenuation.py tests/test_formulation_check.py
       tests/test_formulation_rules.py`. Expect all pass.
-- [ ] Measure the 22 recipes again with the same script and fill the "after" columns of
+- [x] Measure the 22 recipes again with the same script and fill the "after" columns of
       `reference-recheck.md`, with one line on which statuses changed.
-- [ ] If any recipe's rule 10 status changed: **stop before committing and report
+- [x] If any recipe's rule 10 status changed: **stop before committing and report
       `needs-input`**. Show the user the before/after rows with old and new predicted FG and
       the target range. Options per recipe:
   - a) change the recipe in `tests/fixtures/reference_recipes.toml`, for example raising
@@ -192,7 +192,7 @@ Why: R2–R6, A2–A5.
   - c) revisit the model, which goes back to Task 1.
 
   Apply the user's answer and record it in `reference-recheck.md` (decision and date).
-- [ ] Run `.venv/bin/pytest`. Expect all pass.
+- [x] Run `.venv/bin/pytest`. Expect all pass.
 Done when: A2–A5 hold. Both SQL files applied twice cleanly and owned by `postgres`; the new
 tests pass and were seen failing first; the rule 10 sentence names Troester; every rule 10
 change is settled by the user and recorded; full `pytest` passes.

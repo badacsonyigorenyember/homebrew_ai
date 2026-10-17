@@ -15,6 +15,7 @@ returns jsonb
 language sql
 immutable
 as $$
+    -- mash_ref_c, mash_knee_c, mash_slope_pct_per_c: docs/work/s5-mash-attenuation/doc-calc.md
     select '{
         "max_fermentables": 5,
         "max_specialty": 3,
@@ -29,6 +30,9 @@ as $$
         "late_hop_max_min": 15,
         "mash_min_c": 64,
         "mash_max_c": 69,
+        "mash_ref_c": 66.5,
+        "mash_knee_c": 68.3,
+        "mash_slope_pct_per_c": 4.15,
         "min_boil_min": 60,
         "pct_sum_tolerance": 0.1,
         "midpoint_tolerance": {"og": 0.001, "fg": 0.002, "abv": 0.1, "ibu": 1, "srm": 1}
@@ -80,10 +84,12 @@ as $$
         ('10', true, format('The mash temperature is between %s and %s °C, and the FG predicted from the '
             || 'yeast''s attenuation_pct, each fermentable''s fermentability and the mash temperature '
             || 'is inside the target FG range: the style''s FG range, or the target FG ± %s when the '
-            || 'user stated the FG or the ABV. The mash temperature maps linearly onto the yeast''s '
-            || 'attenuation_pct range: %s °C gives the top of the range and %s °C the bottom. This '
-            || 'mapping is an uncited assumption.',
-            j->>'mash_min_c', j->>'mash_max_c', tol->>'fg', j->>'mash_min_c', j->>'mash_max_c')),
+            || 'user stated the FG or the ABV. Up to %s °C the attenuation is the middle of the '
+            || 'yeast''s attenuation_pct range, which applies at %s °C; above %s °C it is %s points '
+            || 'lower per °C, never outside that range (Troester 2009, limit of attenuation against '
+            || 'mash temperature).',
+            j->>'mash_min_c', j->>'mash_max_c', tol->>'fg', j->>'mash_knee_c', j->>'mash_ref_c',
+            j->>'mash_knee_c', j->>'mash_slope_pct_per_c')),
         ('11', true, 'The planned ABV is at most the yeast''s alcohol_tolerance_pct, and the '
             || 'fermentation temperature is inside the yeast''s temp_c range.'),
         ('12', true, 'Every fermentable, hop and yeast in the recipe has a purpose that is not empty.'),
