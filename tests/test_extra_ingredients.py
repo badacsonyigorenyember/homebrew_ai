@@ -143,3 +143,74 @@ def test_all_errors_reported(known, work):
     errors = check_folder(work, known)
     assert any(e.startswith(shown(one)) for e in errors)
     assert any(e.startswith(shown(two)) for e in errors)
+
+
+# ---------------------------------------------------------------- with the database (stack)
+
+from loaders.db import connect  # noqa: E402
+
+COUNT_TABLES = ["ref.source", "ref.ingredient", "ref.fermentable", "ref.hop", "ref.yeast", "ref.ingredient_alias"]
+
+
+@pytest.fixture
+def conn():
+    connection = connect()
+    connection.read_only = True
+    yield connection
+    connection.rollback()
+    connection.close()
+
+
+def counts(conn):
+    return {t: conn.execute(f"select count(*) from {t}").fetchone()[0] for t in COUNT_TABLES}
+
+
+def db_check(conn, root, mutate_known=None):
+    """All errors for a folder, as `--check` finds them."""
+    sources, ingredients = extra.read_folder(root)
+    known = extra.known_from_db(conn, extra.known_from_files(tags.read_vocab()))
+    if mutate_known:
+        mutate_known(known)
+    return extra.check_files(sources, ingredients, known) + extra.check_aliases(conn, ingredients)
+
+
+@pytest.mark.stack
+def test_check_writes_nothing(conn, work, capsys):
+    before = counts(conn)
+    edit(work, "hop/fixture-hop.toml", 'purpose = "dual"', 'purpose = "sideways"')
+    assert extra.main(["--check", str(work)]) == 1
+    assert "hop/fixture-hop.toml: purpose" in capsys.readouterr().out
+    assert extra.main(["--check", str(FIXTURES)]) == 0
+    assert capsys.readouterr().out.startswith("ok: 5 files (fermentable 1, hop 1, yeast 2, sources 1)")
+    assert counts(conn) == before
+
+
+@pytest.mark.stack
+def test_clash_with_db_row(conn, work):
+    edit(work, "yeast/fixture-ale.toml", 'name = "Fixture Ale FA-1"', 'name = "SafAle US-05"')
+    edit(work, "yeast/fixture-ale.toml", 'producer = "Fixture Yeasts"', 'producer = "Fermentis"')
+    errors = db_check(conn, work, lambda k: k.loader_keys.clear())
+    assert any("clashes with Fermentis SafAle US-05 loaded by another loader" in e for e in errors)
+
+
+@pytest.mark.stack
+def test_alias_finding_another_product_refused(conn, work):
+    edit(work, "hop/fixture-hop.toml", '"fixture hop variety"', '"citra"')
+    errors = db_check(conn, work)
+    assert any("hop/fixture-hop.toml: aliases" in e and "Citra" in e for e in errors)
+
+
+@pytest.mark.stack
+def test_alias_on_two_files_refused(conn, work):
+    edit(work, "hop/fixture-hop.toml", '"fixture hop variety"', '"fixture crystal"')
+    errors = db_check(conn, work)
+    assert any("aliases" in e and "is also an alias in" in e for e in errors)
+
+
+@pytest.mark.stack
+def test_source_slug_of_db011_refused(conn, work):
+    (work / "sources" / "bjcp-2021.toml").write_text(
+        toml_text({"slug": "bjcp-2021", "title": "BJCP", "edition": "2021"})
+    )
+    errors = db_check(conn, work)
+    assert any("sources/bjcp-2021.toml: slug" in e and "already a source" in e for e in errors)

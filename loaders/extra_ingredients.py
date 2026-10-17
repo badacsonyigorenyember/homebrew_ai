@@ -11,14 +11,25 @@ docs/work/s8-ingredient-intake/plan.md. "" or [] in a file means "not filled".
 This part reads the folder and checks every file. check_files returns ALL problems, one text
 each, in the form "<file>: <field>: <problem>"; an empty list means the set is good. It looks
 only at the files, the tag vocabulary and the hopline product maps. The checks against the
-database, the load and the command line follow in later tasks.
+database come next (known_from_db, check_aliases, orphans), then the command line (main). The load
+follows in a later task.
+
+Usage (from the repo root):
+
+    .venv/bin/python -m loaders.extra_ingredients --check [folder]
+
+--check runs every check, prints each problem (or "ok: ..."), and writes nothing: its connection is
+read only and always rolled back. The folder defaults to shared/ingredients.
 """
 
+import argparse
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 import tomllib
 
-from loaders import adjunct_products, hop_products, malt_products, yeast_products
+from loaders import adjunct_products, hop_products, malt_products, tags, yeast_products
+from loaders.db import connect
 from loaders.common import name_key
 from loaders.fermentable_facts import ENZYME, ROLES
 from loaders.tags import descriptor_tag
@@ -71,7 +82,8 @@ class Known:
     characters: set = field(default_factory=set)  # character tag names
     synonyms: dict = field(default_factory=dict)  # name_key(word) -> character tag
     loader_keys: set = field(default_factory=set)  # (kind, producer_key, name_key) the hopline loaders write
-    db_rows: dict = field(default_factory=dict)  # (kind, producer_key, name_key) -> row info (from the DB)
+    # (kind, producer_key, name_key) -> {"label", "intake" (bool), "path"} (from the DB)
+    db_rows: dict = field(default_factory=dict)
 
 
 def shown_path(path: Path) -> str:
@@ -121,6 +133,23 @@ def known_from_files(vocab: dict) -> Known:
         synonyms=dict(vocab["synonyms"]),
         loader_keys=loader_keys(),
     )
+
+
+def known_from_db(conn, known: Known) -> Known:
+    """Fill the database parts of Known: ref.source slugs with their notes, ref.ingredient rows."""
+    known.source_notes = {slug: notes for slug, notes in conn.execute("select slug, notes from ref.source")}
+    known.db_rows = {}
+    rows = conn.execute(
+        "select kind, producer_key, name_key, producer, name, raw ? 'intake', raw->'intake'->>'path' "
+        "from ref.ingredient"
+    )
+    for kind, producer_key, key, producer, name, is_intake, path in rows:
+        known.db_rows[(kind, producer_key, key)] = {
+            "label": f"{producer} {name}".strip(),
+            "intake": is_intake,
+            "path": path,
+        }
+    return known
 
 
 # ---------------------------------------------------------------- small checks on one value
@@ -328,6 +357,10 @@ def check_files(sources: list[IntakeFile], ingredients: list[IntakeFile], known:
     source_slugs = set(known.source_notes) | {s.stem for s in sources}
     for item in sources:
         errors += check_source(item)
+        slug = item.fields.get("slug") or item.stem
+        if slug in known.source_notes and not (known.source_notes[slug] or "").startswith("intake:"):
+            errors.append(f"{item.path}: slug: {slug!r} is already a source in ref.source (not from the intake); "
+                          "use it as `source` in the ingredient file instead")
     for item in ingredients:
         errors += check_ingredient(item, known, source_slugs)
 
@@ -339,7 +372,109 @@ def check_files(sources: list[IntakeFile], ingredients: list[IntakeFile], known:
         label = f"{item.fields.get('producer') or ''} {item.fields['name']}".strip()
         if key in known.loader_keys:
             errors.append(f"{item.path}: name: {label} is loaded by another loader")
+        row = known.db_rows.get(key)
+        if row and not row["intake"]:
+            errors.append(f"{item.path}: name: clashes with {row['label']} loaded by another loader")
         if key in seen:
             errors.append(f"{item.path}: name: {label} is the same product as {seen[key]}")
         seen.setdefault(key, item.path)
     return errors
+
+
+# ---------------------------------------------------------------- checks that need the database
+
+
+def alias_words(conn, text: str) -> tuple:
+    return tuple(conn.execute("select app.ingredient_words(%s)", (text,)).fetchone()[0])
+
+
+def check_aliases(conn, ingredients: list[IntakeFile]) -> list[str]:
+    """An alias must name this product only: not another file's alias, not another product's name
+    (as the resolver reads names), not an alias already stored for another ingredient."""
+    errors = []
+    seen = {}  # alias words -> file that has them
+    for item in ingredients:
+        own = product_key(item)
+        aliases = item.fields.get("aliases")
+        if own is None or not isinstance(aliases, list):
+            continue
+        for alias in aliases:
+            if not isinstance(alias, str) or not alias.strip():
+                continue
+            words = alias_words(conn, alias)
+            if not words:
+                errors.append(f"{item.path}: aliases: {alias!r} has no words")
+                continue
+            if words in seen and seen[words] != item.path:
+                errors.append(f"{item.path}: aliases: {alias!r} is also an alias in {seen[words]}")
+            seen.setdefault(words, item.path)
+            found = conn.execute(
+                "select i.kind, i.producer_key, i.name_key, i.producer, i.name "
+                "from app.resolve_ingredient_by_name(%s) r join ref.ingredient i on i.id = r.ingredient_id",
+                (alias,),
+            ).fetchall()
+            for kind, producer_key, key, producer, name in found:
+                if (kind, producer_key, key) != own:
+                    errors.append(f"{item.path}: aliases: {alias!r} already finds {f'{producer} {name}'.strip()}")
+            stored = conn.execute(
+                "select i.kind, i.producer_key, i.name_key, i.producer, i.name from ref.ingredient_alias a "
+                "join ref.ingredient i on i.id = a.ingredient_id where app.ingredient_words(a.alias) = %s",
+                (list(words),),
+            ).fetchall()
+            for kind, producer_key, key, producer, name in stored:
+                if (kind, producer_key, key) != own:
+                    errors.append(f"{item.path}: aliases: {alias!r} is already an alias of {f'{producer} {name}'.strip()}")
+    return errors
+
+
+def orphans(known: Known, ingredients: list[IntakeFile]) -> list[str]:
+    """Intake rows in the database that no file backs any more (reported, never deleted)."""
+    keys = {product_key(item) for item in ingredients}
+    return [
+        f"{row['label']} ({row['path']})"
+        for key, row in sorted(known.db_rows.items())
+        if row["intake"] and key not in keys
+    ]
+
+
+# ---------------------------------------------------------------- command line
+
+
+def run_checks(conn, root: Path):
+    """(errors, sources, ingredients, orphan list) for a folder; reads the database only."""
+    sources, ingredients = read_folder(root)
+    known = known_from_db(conn, known_from_files(tags.read_vocab()))
+    errors = check_files(sources, ingredients, known) + check_aliases(conn, ingredients)
+    return errors, sources, ingredients, orphans(known, ingredients)
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(prog="python -m loaders.extra_ingredients", description=__doc__.split("\n")[0])
+    parser.add_argument("--check", action="store_true", help="check the files and write nothing")
+    parser.add_argument("path", nargs="?", default=str(DEFAULT_ROOT), help="intake folder (default shared/ingredients)")
+    args = parser.parse_args(argv)
+    if not args.check:
+        parser.error("loading is not built yet; use --check")
+
+    conn = connect()
+    try:
+        conn.read_only = True
+        errors, sources, ingredients, orphan_list = run_checks(conn, Path(args.path))
+    finally:
+        conn.rollback()
+        conn.close()
+    if errors:
+        for error in errors:
+            print(error)
+        print(f"{len(errors)} problem(s); nothing was written")
+        return 1
+    count = {kind: sum(1 for i in ingredients if i.folder == kind) for kind in KINDS}
+    print(f"ok: {len(sources) + len(ingredients)} files (fermentable {count['fermentable']}, "
+          f"hop {count['hop']}, yeast {count['yeast']}, sources {len(sources)})")
+    for line in orphan_list:
+        print(f"no file backs this intake row: {line}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -164,28 +164,28 @@ Commit: `Add ingredient intake folder, templates and checks`
 
 ### Task 3: Database checks and `--check`
 Why: R2 (source in DB, clash with a loaded row, aliases), R4 (clash either order, orphans), A2, A5.
-- [ ] `known_from_db(conn)`: `ref.source` slugs with notes; `ref.ingredient` keys with whether
+- [x] `known_from_db(conn)`: `ref.source` slugs with notes; `ref.ingredient` keys with whether
   `raw ? 'intake'` and the stored path. Add to `check_files`: a file key that matches a DB row
   without `intake` → "clashes with <producer name> loaded by another loader"; a source file whose
   slug is a non-intake `ref.source` row → refused.
-- [ ] `check_aliases(conn, ingredients) -> list[str]`: per alias, `app.ingredient_words` for each;
+- [x] `check_aliases(conn, ingredients) -> list[str]`: per alias, `app.ingredient_words` for each;
   refuse equal words on two files; refuse when `app.resolve_ingredient_by_name(alias)` returns any
   row that is not this file's own row (by key); refuse when `ref.ingredient_alias` holds the same
   words for another ingredient.
-- [ ] `orphans(known, ingredients)`: intake rows in the DB whose key no file has (reported, never
+- [x] `orphans(known, ingredients)`: intake rows in the DB whose key no file has (reported, never
   deleted).
-- [ ] CLI `python -m loaders.extra_ingredients [--check] [path]` (default `shared/ingredients`,
+- [x] CLI `python -m loaders.extra_ingredients [--check] [path]` (default `shared/ingredients`,
   resolved from the repo root). `--check`: connection with `read_only = True`, run all checks,
   print each error and exit 1, or print `ok: N files (fermentable a, hop b, yeast c, sources d)`
   plus the orphan list; always roll back. `main(argv=None)` so tests can call it.
-- [ ] Write tests (stack): `test_check_writes_nothing` (row counts of `ref.source`,
+- [x] Write tests (stack): `test_check_writes_nothing` (row counts of `ref.source`,
   `ref.ingredient`, the three kind tables and `ref.ingredient_alias` equal before and after
   `main(["--check", bad])` exits 1 and after `main(["--check", fixtures])` passes);
   `test_clash_with_db_row` (a fixture yeast renamed to `SafAle US-05`, producer `Fermentis`, checked
   with `Known.loader_keys` emptied, so only the DB row can catch it → refused); `test_alias_finding_another_product_refused` (fixture hop alias `citra`
   → refused naming Citra); `test_source_slug_of_db011_refused` (a source file with slug
   `bjcp-2021`).
-- [ ] Run `.venv/bin/pytest tests/test_extra_ingredients.py`, expect all pass.
+- [x] Run `.venv/bin/pytest tests/test_extra_ingredients.py`, expect all pass.
 Done when: `--check` on the fixtures prints ok, on each bad case names file and field, and writes nothing.
 Commit: `Check intake files against the database`
 
