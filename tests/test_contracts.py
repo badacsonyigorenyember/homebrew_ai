@@ -106,6 +106,7 @@ STEP2_OUT = {
 }
 CHECK_IN = {
     "style_code": "18A", "guidance": True, "stated": {"abv": 5.2},
+    "hints": [],
     "targets": {"og": 1.050, "fg": 1.011, "abv": 5.2, "ibu": 30, "srm": 5},
     "batch": {"volume_l": 20, "efficiency_pct": 72, "boil_off_l_h": 4, "losses_l": 2},
     "mash_c": 66, "boil_min": 60,

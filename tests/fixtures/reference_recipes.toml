@@ -9,8 +9,9 @@
 #   style_code   the brief's style (b12: 18A, see its comment)
 #   guidance     the brief's guidance flag
 #   stated       the brief's stated numbers except batch_l
-#   targets      the style midpoints (ref.beer_style), or the stated numbers; with a stated ABV,
-#                OG and FG are chosen so that app.abv gives that ABV
+#   hints        the brief's hints
+#   targets      step 4's targets for the brief's stated numbers and hints
+#                (app.step4_numbers(style_code, stated, hints), values as returned)
 #   batch        volume_l is the brief's batch_l or 20; efficiency, boil-off and losses are
 #                fixture assumptions (the same for every recipe), not data about any system
 #   mash_c, boil_min   process settings (the yeast table carries its own ferm_c)
@@ -25,7 +26,8 @@ brief = "b01"
 style_code = "21A"
 guidance = true
 stated = { abv = 6.5 }
-targets = { og = 1.0615, fg = 1.011, abv = 6.5, ibu = 55, srm = 10 }
+hints = ["bitter"]
+targets = { og = 1.0613, fg = 1.011, abv = 6.5, ibu = 66.25, srm = 10 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 65
 boil_min = 60
@@ -47,7 +49,8 @@ brief = "b02"
 style_code = "21C"
 guidance = true
 stated = {}
-targets = { og = 1.0725, fg = 1.0125, abv = 7.5, ibu = 42.5, srm = 5 }
+hints = ["juicy", "hoppy"]
+targets = { og = 1.0725, fg = 1.0125, abv = 7.78, ibu = 42.5, srm = 5 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 65
 boil_min = 90
@@ -70,7 +73,8 @@ brief = "b03"
 style_code = "16B"
 guidance = true
 stated = {}
-targets = { og = 1.055, fg = 1.014, abv = 5.05, ibu = 32.5, srm = 31 }
+hints = ["full", "chewy"]
+targets = { og = 1.055, fg = 1.014, abv = 5.27, ibu = 32.5, srm = 31 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 67
 boil_min = 60
@@ -92,7 +96,8 @@ brief = "b04"
 style_code = "16A"
 guidance = true
 stated = {}
-targets = { og = 1.052, fg = 1.018, abv = 5.0, ibu = 30, srm = 35 }
+hints = []
+targets = { og = 1.052, fg = 1.018, abv = 4.35, ibu = 30, srm = 35 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 67
 boil_min = 60
@@ -114,7 +119,8 @@ brief = "b05"
 style_code = "15B"
 guidance = true
 stated = { abv = 4 }
-targets = { og = 1.0405, fg = 1.0095, abv = 4.0, ibu = 35, srm = 32.5 }
+hints = []
+targets = { og = 1.0401, fg = 1.009, abv = 4, ibu = 35, srm = 32.5 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 66
 boil_min = 60
@@ -134,7 +140,8 @@ brief = "b06"
 style_code = "1B"
 guidance = true
 stated = {}
-targets = { og = 1.045, fg = 1.007, abv = 4.75, ibu = 13, srm = 2.8 }
+hints = ["crisp", "dry"]
+targets = { og = 1.045, fg = 1.007, abv = 4.91, ibu = 13, srm = 2.75 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 64
 boil_min = 90
@@ -153,7 +160,8 @@ brief = "b07"
 style_code = "1C"
 guidance = true
 stated = {}
-targets = { og = 1.0485, fg = 1.009, abv = 4.9, ibu = 14, srm = 3.5 }
+hints = []
+targets = { og = 1.0485, fg = 1.009, abv = 5.1, ibu = 14, srm = 3.5 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 65
 boil_min = 90
@@ -173,7 +181,8 @@ brief = "b08"
 style_code = "5D"
 guidance = true
 stated = { ibu = 50 }
-targets = { og = 1.047, fg = 1.0105, abv = 4.8, ibu = 50, srm = 3 }
+hints = ["bitter"]
+targets = { og = 1.047, fg = 1.0105, abv = 4.7, ibu = 50, srm = 3 }
 batch = { volume_l = 10, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 67
 boil_min = 90
@@ -193,7 +202,8 @@ brief = "b09"
 style_code = "6A"
 guidance = true
 stated = {}
-targets = { og = 1.057, fg = 1.012, abv = 5.95, ibu = 21, srm = 12.5 }
+hints = ["malty"]
+targets = { og = 1.057, fg = 1.012, abv = 5.8, ibu = 18.75, srm = 12.5 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 67
 boil_min = 90
@@ -214,7 +224,8 @@ brief = "b10"
 style_code = "26B"
 guidance = true
 stated = {}
-targets = { og = 1.0685, fg = 1.013, abv = 6.8, ibu = 20, srm = 13.5 }
+hints = []
+targets = { og = 1.0685, fg = 1.013, abv = 7.18, ibu = 20, srm = 13.5 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 67
 boil_min = 90
@@ -235,7 +246,8 @@ brief = "b11"
 style_code = "25B"
 guidance = true
 stated = {}
-targets = { og = 1.0565, fg = 1.005, abv = 6.5, ibu = 27.5, srm = 13.5 }
+hints = ["dry", "full", "chewy"]
+targets = { og = 1.0565, fg = 1.005, abv = 6.69, ibu = 27.5, srm = 13.5 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 68
 boil_min = 90
@@ -257,7 +269,8 @@ brief = "b12"
 style_code = "18A"
 guidance = true
 stated = {}
-targets = { og = 1.046, fg = 1.0105, abv = 4.65, ibu = 21.5, srm = 4.5 }
+hints = []
+targets = { og = 1.046, fg = 1.0105, abv = 4.57, ibu = 21.5, srm = 4.5 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 69
 boil_min = 60
@@ -278,7 +291,8 @@ brief = "b13"
 style_code = "10A"
 guidance = true
 stated = {}
-targets = { og = 1.0485, fg = 1.011, abv = 4.95, ibu = 11.5, srm = 4 }
+hints = []
+targets = { og = 1.0485, fg = 1.011, abv = 4.83, ibu = 11.5, srm = 4 }
 batch = { volume_l = 15, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 66
 boil_min = 90
@@ -297,7 +311,8 @@ brief = "b14"
 style_code = "23A"
 guidance = true
 stated = { abv = 3 }
-targets = { og = 1.0275, fg = 1.004, abv = 3.0, ibu = 5.5, srm = 2.5 }
+hints = ["session"]
+targets = { og = 1.0278, fg = 1.0045, abv = 3, ibu = 5.5, srm = 2.5 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 68
 boil_min = 90
@@ -316,7 +331,8 @@ brief = "b15"
 style_code = "11B"
 guidance = true
 stated = {}
-targets = { og = 1.044, fg = 1.010, abv = 4.2, ibu = 32.5, srm = 12 }
+hints = []
+targets = { og = 1.044, fg = 1.01, abv = 4.37, ibu = 32.5, srm = 12 }
 batch = { volume_l = 23, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 66
 boil_min = 60
@@ -336,7 +352,8 @@ brief = "b16"
 style_code = "18B"
 guidance = true
 stated = {}
-targets = { og = 1.0525, fg = 1.0125, abv = 5.35, ibu = 40, srm = 7.5 }
+hints = ["crisp"]
+targets = { og = 1.0525, fg = 1.0125, abv = 5.15, ibu = 40, srm = 7.5 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 67
 boil_min = 60
@@ -358,7 +375,8 @@ brief = "b17"
 style_code = "8B"
 guidance = true
 stated = { abv = 7 }
-targets = { og = 1.0675, fg = 1.0135, abv = 7.0, ibu = 27.5, srm = 24.5 }
+hints = []
+targets = { og = 1.0671, fg = 1.013, abv = 7, ibu = 27.5, srm = 24.5 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 68
 boil_min = 90
@@ -379,7 +397,8 @@ brief = "b18"
 style_code = "15A"
 guidance = false
 stated = { srm = 20 }
-targets = { og = 1.041, fg = 1.012, abv = 4.4, ibu = 23, srm = 20 }
+hints = ["darker"]
+targets = { og = 1.0417, fg = 1.012, abv = 3.81, ibu = 23, srm = 20 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 67
 boil_min = 60
@@ -400,7 +419,8 @@ brief = "b19"
 style_code = "17C"
 guidance = true
 stated = {}
-targets = { og = 1.100, fg = 1.029, abv = 8.25, ibu = 26, srm = 19.5 }
+hints = ["malty", "stronger"]
+targets = { og = 1.1064, fg = 1.029, abv = 9.99, ibu = 19.25, srm = 19.5 }
 batch = { volume_l = 10, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 68
 boil_min = 60
@@ -421,7 +441,8 @@ brief = "b20"
 style_code = "19C"
 guidance = true
 stated = {}
-targets = { og = 1.0525, fg = 1.013, abv = 5.25, ibu = 25, srm = 26.5 }
+hints = ["full"]
+targets = { og = 1.0525, fg = 1.013, abv = 5.08, ibu = 25, srm = 26.5 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 66
 boil_min = 60
@@ -443,7 +464,8 @@ brief = "b21"
 style_code = "session-india-pale-ale"
 guidance = true
 stated = { abv = 4 }
-targets = { og = 1.0385, fg = 1.0075, abv = 4.0, ibu = 37.5, srm = 7.5 }
+hints = ["hoppy", "session"]
+targets = { og = 1.0406, fg = 1.0095, abv = 4, ibu = 37.5, srm = 7.5 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 66
 boil_min = 60
@@ -465,7 +487,8 @@ brief = "b22"
 style_code = "mexican-style-amber-lager"
 guidance = true
 stated = {}
-targets = { og = 1.0485, fg = 1.011, abv = 4.75, ibu = 18.5, srm = 11 }
+hints = ["malty"]
+targets = { og = 1.0485, fg = 1.011, abv = 4.83, ibu = 13.625, srm = 11 }
 batch = { volume_l = 20, efficiency_pct = 72, boil_off_l_h = 4, losses_l = 2 }
 mash_c = 69
 boil_min = 90

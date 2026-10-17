@@ -54,6 +54,7 @@ def build_input(conn, rec):
         "style_code": rec["style_code"],
         "guidance": rec["guidance"],
         "stated": rec["stated"],
+        "hints": rec["hints"],
         "targets": rec["targets"],
         "batch": rec["batch"],
         "mash_c": rec["mash_c"],
@@ -87,6 +88,7 @@ def test_recipe_follows_its_brief():
         assert rec["guidance"] == brief["guidance"], rec["brief"]
         stated = {k: v for k, v in brief["stated"].items() if k != "batch_l"}
         assert rec["stated"] == stated, rec["brief"]
+        assert rec["hints"] == brief["hints"], rec["brief"]
         assert rec["batch"]["volume_l"] == brief["stated"].get("batch_l", 20), rec["brief"]
         for key, value in stated.items():
             assert rec["targets"][key] == value, f"{rec['brief']}: target {key} is not the stated one"

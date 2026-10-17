@@ -447,6 +447,8 @@ Step 4 numbers (`db/039_step4.sql`, no LLM): `app.range_position(range, fraction
 
 Step 4 output (`db/039_step4.sql`, no LLM): `app.step4_targets(brief, style, profile, deviations)` returns the style used (step 2's, or its first alternative with ranges, `from: base_style`), batch size (stated or profile), the `app.step4_numbers` targets, the mash temperature (hinted, else the middle of rule 10's range), the applied knobs and step 3's conflicts. Contracts `step4.input` and `step4.output`.
 
+Rule 9 (`app.check_rule_9`, `db/032_formulation_check.sql`) calls `app.step4_numbers` with the recipe's `hints`: an unstated OG, FG, IBU or SRM must be where step 4 puts it (within `midpoint_tolerance`), and the ABV target must be `app.abv` of the OG and FG targets within `midpoint_tolerance.abv`. The `formulation_check` input requires `hints`.
+
 Step 3 best-case rating (`db/037_step3.sql`): `app.level_rank(level)` (order of the 5 levels), `app.ingredient_choices(ingredient_id, role)` (usage and dose choices a later step could make: mash or boil; hop boil bands, whirlpool, dry hop, feature hops late only; yeast range ends and warm steps) and `app.rate_wanted(style_code, item, role)` (best level over every product the word names and every choice; level null with a reason when it cannot be rated).
 
 Step 3 output (`db/037_step3.sql`): `app.step3_deviations(brief, style)` returns `{deviations, unrated, guidance}` (`step3.output`): numbers, mismatch, conflicts, then each wanted word at its best choice (`out_of_style` / `changes_style` is a deviation; a word that cannot be rated goes to `unrated`). With no style it gives conflicts only and every wanted word unrated. `excluded` and `inventory` are not read.

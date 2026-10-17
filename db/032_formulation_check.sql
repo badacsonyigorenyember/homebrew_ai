@@ -3,7 +3,8 @@
 -- function per rule, written out in plain SQL; there is no rule table. Every threshold comes from
 -- app.formulation_limits() and the rule text from app.formulation_rules() (db/031).
 -- Built task by task; later tasks append to this file. Bad input raises, it never becomes a pass.
--- Needs db/010_ref_schema.sql, db/015_app.sql, db/030_maths.sql, db/031_formulation_rules.sql.
+-- Needs db/010_ref_schema.sql, db/015_app.sql, db/030_maths.sql, db/031_formulation_rules.sql,
+-- db/039_step4.sql (rule 9 calls app.step4_numbers).
 -- Apply as postgres (docs/OPERATIONS.md §4):
 --   docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/032_formulation_check.sql
 -- Idempotent: safe to re-run.
@@ -440,8 +441,11 @@ begin
 end;
 $$;
 
--- Rule 9: a target the user did not state is the style's midpoint (within midpoint_tolerance),
--- when guidance is on; OG and FG count as stated when the ABV is stated. A stated target, or any
+-- Rule 9: with guidance on, a target the user did not state is where step 4 puts it
+-- (app.step4_numbers, db/039): the style's midpoint, moved by the request's hints, with OG moved
+-- inside its range as far as the ABV range needs; within midpoint_tolerance. OG and FG count as
+-- stated when the ABV is stated. The ABV target is not compared with a midpoint: it must be
+-- app.abv of the OG and FG targets, within midpoint_tolerance.abv. A stated target, or any
 -- target with guidance off, may sit anywhere.
 create or replace function app.check_rule_9(items jsonb, recipe jsonb)
 returns jsonb
@@ -450,40 +454,49 @@ stable
 as $$
 declare
     l jsonb := app.formulation_limits();
-    style record;
     stated jsonb := coalesce(recipe->'stated', '{}'::jsonb);
     guidance boolean := coalesce((recipe->>'guidance')::boolean, true);
+    expected jsonb;
     k text;
-    rng numrange;
-    mid numeric;
     target numeric;
+    want numeric;
     tol numeric;
-    is_stated boolean;
+    computed_abv numeric;
     failures jsonb := '[]'::jsonb;
     missing jsonb := '[]'::jsonb;
 begin
-    select og, fg, abv, ibu, srm into style from ref.beer_style where code = items->>'style_code';
-    foreach k in array array['og', 'fg', 'abv', 'ibu', 'srm'] loop
-        is_stated := stated ? k or (k in ('og', 'fg') and stated ? 'abv');
-        continue when is_stated or not guidance;
-        rng := case k when 'og' then style.og when 'fg' then style.fg when 'abv' then style.abv
-                      when 'ibu' then style.ibu else style.srm end;
-        mid := app.ebc_mid(rng);  -- midpoint of any numeric range
-        if mid is null then
-            missing := missing || to_jsonb('ref.beer_style.' || k);
-            continue;
+    if guidance then
+        expected := app.step4_numbers(items->>'style_code', stated, coalesce(recipe->'hints', '[]'::jsonb));
+        foreach k in array array['og', 'fg', 'ibu', 'srm'] loop
+            continue when stated ? k or (k in ('og', 'fg') and stated ? 'abv');
+            want := (expected->k->>'value')::numeric;
+            if want is null then
+                missing := missing || to_jsonb('ref.beer_style.' || k);
+                continue;
+            end if;
+            target := (recipe->'targets'->>k)::numeric;
+            tol := (l->'midpoint_tolerance'->>k)::numeric;
+            if abs(target - want) > tol then
+                failures := failures || app.rule_failure(
+                    format('Rule 9: the %s target %s was not stated and is not %s (%s), within %s.',
+                           upper(k), trim_scale(target), trim_scale(want), expected->k->>'because', trim_scale(tol)),
+                    '[]'::jsonb, target, want);
+            end if;
+        end loop;
+        if not stated ? 'abv' then
+            computed_abv := app.abv((recipe->'targets'->>'og')::numeric, (recipe->'targets'->>'fg')::numeric);
+            target := (recipe->'targets'->>'abv')::numeric;
+            tol := (l->'midpoint_tolerance'->>'abv')::numeric;
+            if abs(target - computed_abv) > tol then
+                failures := failures || app.rule_failure(
+                    format('Rule 9: the ABV target %s is not app.abv of the OG and FG targets (%s), within %s.',
+                           trim_scale(target), trim_scale(round(computed_abv, 2)), trim_scale(tol)),
+                    '[]'::jsonb, target, round(computed_abv, 2));
+            end if;
         end if;
-        target := (recipe->'targets'->>k)::numeric;
-        tol := (l->'midpoint_tolerance'->>k)::numeric;
-        if abs(target - mid) > tol then
-            failures := failures || app.rule_failure(
-                format('Rule 9: the %s target %s was not stated and is not the style midpoint %s (within %s).',
-                       upper(k), trim_scale(target), trim_scale(mid), trim_scale(tol)),
-                '[]'::jsonb, target, mid);
-        end if;
-    end loop;
+    end if;
     return app.rule_result(9, failures, missing,
-        'Rule 9: every target the user did not state is the style midpoint.');
+        'Rule 9: every target the user did not state is where step 4 puts it.');
 end;
 $$;
 

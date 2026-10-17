@@ -285,7 +285,7 @@ Commit: `Add the step 4 targets output and contracts`
 
 ### Task 5: rule 9 accepts what step 4 produces
 Why: R11; A11. Rule 9 must not reject step 4's targets in M6.
-- [ ] `db/032_formulation_check.sql` `app.check_rule_9`, rewritten in place (header Needs adds
+- [x] `db/032_formulation_check.sql` `app.check_rule_9`, rewritten in place (header Needs adds
       `039_step4.sql`): when guidance is off, pass as today. Else
       `expected := app.step4_numbers(style_code, stated, recipe->'hints')`; for `og`, `fg`,
       `ibu`, `srm` not stated (OG and FG count as stated when ABV is stated, as today), fail when
@@ -294,35 +294,35 @@ Why: R11; A11. Rule 9 must not reject step 4's targets in M6.
       expected value goes to `missing` as today. ABV: fail when
       `|targets.abv − app.abv(targets.og, targets.fg)| > midpoint_tolerance.abv`. Pass message:
       "Rule 9: every target the user did not state is where step 4 puts it."
-- [ ] `db/031_formulation_rules.sql` rule 9 sentence (still built with `format()` from every
+- [x] `db/031_formulation_rules.sql` rule 9 sentence (still built with `format()` from every
       `midpoint_tolerance` value): with guidance on, an unstated OG, FG, IBU or SRM is the
       style's midpoint, moved by the request's hints to 87.5 % (up) or 12.5 % (down) of the
       range, with OG moved inside its range as far as needed for the ABV from OG and FG to reach
       the ABV range; within the tolerances; OG and FG count as stated when the ABV is stated;
       the ABV target is app.abv of the OG and FG targets within the ABV tolerance; a target is
       outside the range only when stated or guidance is off.
-- [ ] `shared/contracts/formulation_check.input.schema.json`: required `hints`, the
+- [x] `shared/contracts/formulation_check.input.schema.json`: required `hints`, the
       `step1.output` hints array (same enum, unique). `tests/test_contracts.py` `CHECK_IN` gets
       `"hints": []`.
-- [ ] `tests/fixtures/reference_recipes.toml`: each recipe gets `hints` = its brief's hints;
+- [x] `tests/fixtures/reference_recipes.toml`: each recipe gets `hints` = its brief's hints;
       `targets` become step 4's (`app.step4_numbers(style_code, stated, hints)`, values as
       returned; stated ones unchanged); header comment updated ("targets: step 4's targets for
       the brief's stated numbers and hints"). Nothing else changes.
       `tests/test_reference_recipes.py`: `build_input` passes `hints`;
       `test_recipe_follows_its_brief` asserts `rec["hints"] == brief["hints"]`.
-- [ ] Apply 031 and 032 twice.
-- [ ] `tests/test_formulation_check.py`: `recipe()` base gets `"hints": []` and an ABV target
+- [x] Apply 031 and 032 twice.
+- [x] `tests/test_formulation_check.py`: `recipe()` base gets `"hints": []` and an ABV target
       equal to `app.abv` of its OG and FG; `test_rule_9` keeps its cases (stated ABV, unstated
       IBU off midpoint fails, stated IBU passes, guidance off passes, OG tolerance) and gains
       (A11): 18A + `bitter` with IBU at 87.5 % passes; the same with IBU at the midpoint fails
       and the message names "bitter"; 15A with the OG moved for ABV 3.8 passes; an ABV target 0.3
       away from `app.abv(og, fg)` fails. `tests/test_formulation_rules.py` keeps passing (each
       tolerance in the sentence).
-- [ ] Run `.venv/bin/pytest tests/test_formulation_check.py tests/test_formulation_rules.py
+- [x] Run `.venv/bin/pytest tests/test_formulation_check.py tests/test_formulation_rules.py
       tests/test_reference_recipes.py tests/test_contracts.py`. **If a reference recipe fails
       any rule**, do not change its ingredients or process: stop and report `needs-input` with
       each failure (brief, rule, message) for the user to decide (R11).
-- [ ] Run `.venv/bin/pytest`, expect all pass. `docs/DATABASE.md` rule 9 note. PROJECT.md §8
+- [x] Run `.venv/bin/pytest`, expect all pass. `docs/DATABASE.md` rule 9 note. PROJECT.md §8
       entry with the re-check result (22 recipes, which targets changed).
 Done when: rule 9 tests pass and all 22 reference recipes pass every rule, or the failures are
 reported.

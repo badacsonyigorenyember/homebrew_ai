@@ -62,7 +62,8 @@ def recipe(conn, fermentables, hops=("Magnum", "Saaz"), boil_min=90, **over):
         })
     base = {
         "style_code": "18A", "guidance": True, "stated": {},
-        "targets": {"og": 1.046, "fg": 1.0105, "abv": 4.65, "ibu": 21.5, "srm": 4.5},  # 18A midpoints
+        "hints": [],
+        "targets": {"og": 1.046, "fg": 1.0105, "abv": 4.57, "ibu": 21.5, "srm": 4.5},  # 18A midpoints; abv = app.abv(og, fg)
         "batch": {"volume_l": 20, "efficiency_pct": 72, "boil_off_l_h": 4, "losses_l": 2},
         "mash_c": 66.5, "boil_min": boil_min,
         "fermentables": [
@@ -78,6 +79,11 @@ def recipe(conn, fermentables, hops=("Magnum", "Saaz"), boil_min=90, **over):
 
 def hop_id(conn, name):
     return conn.execute("select id from ref.ingredient where kind = 'hop' and name = %s", (name,)).fetchone()[0]
+
+
+def abv_of(conn, og, fg):
+    """app.abv of an OG and FG, rounded to 2 decimals, for an ABV target that follows them."""
+    return float(conn.execute("select round(app.abv(%s::numeric, %s::numeric), 2)", (og, fg)).fetchone()[0])
 
 
 def check(conn, recipe_json):
@@ -381,10 +387,30 @@ def test_rule_9(conn):
     only_rule_differs(check(conn, dark), 9, "fail")
     # tolerance: OG 0.001 off passes, 0.002 off fails
     near = recipe(conn, BASE)
-    near["targets"]["og"] = 1.047
+    near["targets"].update(og=1.047, abv=abv_of(conn, 1.047, 1.0105))
     only_rule_differs(check(conn, near), 9, "pass")
-    near["targets"]["og"] = 1.0485
+    near["targets"].update(og=1.0485, abv=abv_of(conn, 1.0485, 1.0105))
     only_rule_differs(check(conn, near), 9, "fail")
+    # a hint moves the expected target (A11): bitter puts 18A's IBU at 87.5 % of 15-28
+    bitter = recipe(conn, BASE, hints=["bitter"])
+    bitter["targets"]["ibu"] = 26.375
+    only_rule_differs(check(conn, bitter), 9, "pass")
+    bitter["targets"]["ibu"] = 21.5
+    out = check(conn, bitter)
+    only_rule_differs(out, 9, "fail")
+    assert "bitter" in result(out, 9)["message"]
+    # 15A: the OG moved for the ABV range passes, an OG 0.0017 lower (ABV below the range) fails
+    moved = recipe(conn, BASE, style_code="15A",
+                   targets={"og": 1.0417, "fg": 1.012, "abv": 3.81, "ibu": 23, "srm": 11.5})
+    assert result(check(conn, moved), 9)["status"] == "pass"
+    moved["targets"].update(og=1.040, abv=abv_of(conn, 1.040, 1.012))
+    assert result(check(conn, moved), 9)["status"] == "fail"
+    # the ABV target must be app.abv of the OG and FG targets, within 0.1
+    wrong_abv = recipe(conn, BASE)
+    wrong_abv["targets"]["abv"] = 4.87
+    out = check(conn, wrong_abv)
+    only_rule_differs(out, 9, "fail")
+    assert "ABV" in result(out, 9)["message"]
 
 
 @pytest.mark.stack
@@ -409,7 +435,7 @@ def test_rule_10(conn):
         failure = result(out, 10)["failures"][0]
         assert (failure["value"], failure["limit"]) == (mash, limit)
     # predicted FG outside the style range: a strong wort at 80 % attenuation ends above 1.013
-    high_fg = recipe(conn, BASE, stated={"og": 1.075}, targets={"og": 1.075, "fg": 1.0105, "abv": 4.65, "ibu": 21.5, "srm": 4.5})
+    high_fg = recipe(conn, BASE, stated={"og": 1.075}, targets={"og": 1.075, "fg": 1.0105, "abv": abv_of(conn, 1.075, 1.0105), "ibu": 21.5, "srm": 4.5})
     out = check(conn, high_fg)
     only_rule_differs(out, 10, "fail")
     assert "predicted FG" in result(out, 10)["message"]
