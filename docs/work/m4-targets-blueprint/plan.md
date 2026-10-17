@@ -1,6 +1,6 @@
 # M4 · Steps 0, 4 and 5: brewer profile, targets and design frame — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: m4-targets-blueprint
 
@@ -464,21 +464,21 @@ Commit: `Run steps 0, 4 and 5 in the pipeline`
 
 ### Task 9: G4 is measured on the real pipeline
 Why: G4; A13.
-- [ ] `.venv/bin/python -m evals.run --save --label m4` (stack up, D2 model). Count b01–b20 with
+- [x] `.venv/bin/python -m evals.run --save --label m4` (stack up, D2 model). Count b01–b20 with
       steps 4 and 5 passing; report b21, b22 and steps 1–3 beside it (bar: steps 1–3 22/22 as at
       G3). A step 4 or 5 miss not seen at SQL level (Task 7) comes from step 1's output: name
       the field.
-- [ ] Check on the saved run: every step 0, 4 and 5 row is `ok` and meets its contract (one
+- [x] Check on the saved run: every step 0, 4 and 5 row is `ok` and meets its contract (one
       `psql` query with `extensions.jsonschema_validation_errors`).
-- [ ] **If the bar is not met:** fix only in a general way as in Task 7, re-run, record each
+- [x] **If the bar is not met:** fix only in a general way as in Task 7, re-run, record each
       change in Deviations; else stop and report `needs-input` with the misses. The bar is not
       lowered.
-- [ ] `docs/WORKFLOW-ROADMAP.md`: G4 **Measured** line (counts, A2 cases, results file) and
+- [x] `docs/WORKFLOW-ROADMAP.md`: G4 **Measured** line (counts, A2 cases, results file) and
       **Decided** line left for the user; M4 row text "blueprint (ratios)" → "design frame".
       `docs/RECIPE-ROADMAP.md` §3: step 4 and step 5 rows of the step table and the step 5 box
       of the flow describe what was built (design frame, no ratios). PROJECT.md §8 entry with the
       measured numbers.
-- [ ] Commit `evals/results/<date>-m4.json`.
+- [x] Commit `evals/results/<date>-m4.json`.
 Done when: the saved run shows steps 4 and 5 passing on 20/20 of b01–b20 and on b21, b22, steps
 1–3 no worse than G3, and the docs carry the measured numbers.
 Commit: `Measure G4 for steps 0, 4 and 5`

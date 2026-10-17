@@ -65,7 +65,7 @@ flowchart LR
     C --> D["median + IQR per role<br/>yeast ranking · hop dosage"]:::code
     D --> E[("corpus.style_profile")]:::sql
     F["rules of thumb<br/>AHA · OBC · BJCP text"]:::sql --> G
-    E --> G["5 · BLUEPRINT<br/>starting ratios, capped by rules"]:::code
+    E --> G["5 · DESIGN FRAME<br/>rules, slots, limits (no ratios)"]:::code
 
     classDef sql fill:#d6ecff,stroke:#2f6fb0,color:#000
     classDef code fill:#dff5d8,stroke:#3c8a2e,color:#000
@@ -89,7 +89,7 @@ flowchart TD
     end
     subgraph stB["B · DESIGN"]
       S4["4 · Targets<br/>range midpoints + hint knobs<br/>+ user's own numbers"]:::code
-      S5["5 · Blueprint<br/>grist % · hop split · dosage"]:::sql
+      S5["5 · Design frame<br/>rules · slots · limits · attenuation needed"]:::sql
     end
     subgraph stC["C · CHOOSE: scored by code"]
       S6["6 · Yeast"]:::code
@@ -133,8 +133,8 @@ flowchart TD
 | 1 | Brief | `{style:"American IPA", hints:["bitter"], extras:["cinnamon"]}` | 🟪 |
 | 2 | Style | **21A American IPA**: OG 1.056–1.070 · IBU 40–70 · SRM 6–14 *(styles.json)* | 🟦 score: name + numbers + sensory words |
 | 3 | Deviations | cinnamon: ⚠️ not part of 21A → listed; closest category 30A (info only) | 🟩 |
-| 4 | Targets | "bitter" → IBU 65 · OG 1.062 · FG 1.011 · SRM 7 | 🟩 |
-| 5 | Blueprint | base ~90 % · crystal ≤ 5 % · hop split from the corpus profile | 🟦🟩 |
+| 4 | Targets | "bitter" → IBU 66.25 (87.5 % of 21A 40–70) · OG 1.0613 · FG 1.011 · ABV from `app.abv`; built in `db/039_step4.sql`, measured G4 2026-10-17 | 🟩 |
+| 5 | Design frame | rules and limits · one slot per wanted item with its `ref` products (role, `max_pct`) · excluded and inventory words · hint intents · attenuation the targets need; no ratio numbers (D7); built in `db/041_step5.sql`, measured G4 2026-10-17 | 🟦 |
 | 6 | Yeast | top 21A yeast in the corpus that fits FG 1.011 and is in stock | 🟩 score |
 | 7 | Fermentables | fill each grist role: inventory first, then corpus popularity | 🟩 score |
 | 8 | Hops | bittering = high alpha · late/dry = tags match hints (citrus, pine) | 🟩 score |
