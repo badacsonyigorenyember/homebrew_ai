@@ -96,8 +96,10 @@ R10. Step 5 outputs the design frame for steps 6–9: the formulation rules in f
     yeast attenuation band that reaches it at the mash target through `app.mash_attenuation`
     (s5). It holds no grist, hop-split or dosage numbers.
 R11. Rule 9 of `app.check_recipe` accepts what step 4 produces: it no longer checks ABV against
-    its midpoint; it gets the brief's hints in its input and accepts a target at the position
-    R5 gives for them; an unstated, unhinted target off its midpoint still fails. All 22
+    its midpoint but checks that the ABV target is `app.abv(OG target, FG target)` within 0.1;
+    it gets the brief's hints in its input and accepts a target at the position R5 gives for
+    them; an unstated, unhinted target off its midpoint still fails. The reference recipes get
+    their briefs' hints and step 4's targets (ingredients and process unchanged). All 22
     reference recipes pass every rule after the change, or each failure is reported and the user
     decides.
 R12. Every value in steps 4 and 5 says where it came from: range midpoint, hint (which one),
@@ -138,14 +140,16 @@ R13. Steps 0, 4 and 5 are deterministic SQL called from n8n's Postgres node, wit
 
 ## Acceptance criteria
 A1. For b01–b22, every target is inside the style range (the base style's for b12), except a
-    stated number, with guidance on or off (R4, R9, G4).
+    stated number or an OG solved from a stated ABV (marked derived, naming the stated ABV),
+    with guidance on or off (R4, R8, R9, G4).
 A2. b01's IBU target is 66.25 (87.5 % of 21A's 40–70); b09's IBU is 18.75 (12.5 % of 6A's
     18–24); b06's mash target is 64.5 °C; b03's is 68.5 °C; b19's OG is above 17C's midpoint
     1.100 and its ABV at most 10.0 (R5, R8).
 A3. b11's mash target is 66.5 °C with no attenuation intent, and the "dry vs full, chewy"
     conflict is in step 4's output (R7).
-A4. b08 targets IBU 50 and 10 L; b13 15 L; b15 23 L; b17 ABV 7; b18 SRM 20 with guidance off;
-    every other brief 20 L marked "profile" (R3, R4).
+A4. b08 targets IBU 50 and 10 L; b13 15 L; b15 23 L; b01 20 L and b19 10 L, both marked
+    "stated"; b17 ABV 7; b18 SRM 20 with guidance off; every other brief 20 L marked "profile"
+    (R3, R4).
 A5. For every brief, `app.abv(target OG, target FG)` is within 0.1 of the target ABV and inside
     the ABV range unless the ABV was stated; b01's target ABV is 6.5, b14's 3, b17's 7 and b21's
     4, each with FG at its midpoint and OG solved (R8).
@@ -199,3 +203,11 @@ None. All five were answered by the user on 2026-10-17 (see Deviations).
   ions is in scope, the input path itself is out. R2, A7 — the user's decision.
 - 2026-10-17 · Q5: build with unsourced hint rows, marked, and source them before G6 (option a).
   R6, A12 — the user's decision.
+- 2026-10-17 · Planning: A4 left out b19's stated 10 L and counted b01's stated 20 L as
+  "profile"; A4 now follows R3 (option a) — the user's decision.
+- 2026-10-17 · Planning: an OG solved from a stated ABV may leave the OG range (b14 1.0279 below
+  23A's 1.028, b17 1.0672 above 8B's 1.052); A1 counts it as following the stated number, marked
+  derived (option a) — the user's decision.
+- 2026-10-17 · Planning: R11's re-check gives the reference recipes their briefs' hints and step
+  4's targets, and rule 9 checks the ABV target against `app.abv` of OG and FG within 0.1
+  (option a) — the user's decision.
