@@ -8,7 +8,7 @@ import pytest
 from loaders.db import connect
 
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
-NAMES = [f"step{n}.{side}" for n in range(5) for side in ("input", "output")]
+NAMES = [f"step{n}.{side}" for n in range(6) for side in ("input", "output")]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
 
 # Each output's slot for absent / unknown / conflict: (property, how the schema must allow it).
@@ -19,6 +19,7 @@ ABSENT_SLOTS = {
     "step2.output": [("style", "null"), ("unknown_reason", "null"), ("mismatch", "null")],
     "step3.output": [("deviations.kind", "enum:conflict"), ("unrated", "array")],
     "step4.output": [("targets.og.value", "null"), ("conflicts", "array")],
+    "step5.output": [("slots.refs", "array"), ("attenuation.needed_pct", "null")],
     "formulation_check.output": [("results.status", "enum:unknown"), ("numbers.fg", "null")],
 }
 
@@ -156,6 +157,23 @@ STEP4_OUT = {
     }],
     "guidance": True,
 }
+_REF = {"ingredient_id": 3393, "kind": "fermentable", "name": "Flaked Oats", "role": "adjunct", "max_pct": 30}
+STEP5_OUT = {
+    "style_code": "21C",
+    "rules": {"from": "app.formulation_rules() (db/031)",
+              "rows": [{"rule": "1", "checked": True, "sentence": "A recipe has at most 5 fermentables."}]},
+    "limits": {"from": "app.formulation_limits() (db/031)", "values": {"max_fermentables": 5}},
+    "slots": [{"item": "oats", "wanted_role": "background", "refs": [_REF], "from": "wanted in the request"},
+              {"item": "xyzzy", "wanted_role": "feature", "refs": [], "from": "not in the catalogue"}],
+    "excluded": [{"word": "Saaz", "refs": [], "from": "request"}],
+    "inventory": [{"word": "mystery malt", "refs": [], "from": "profile"}],
+    "intents": [{"hints": "dry", "knob": "attenuation", "intent": "a high-attenuation yeast",
+                 "source": "unsourced", "from": "hint"}],
+    "attenuation": {"needed_pct": 75.5, "low_pct": 74, "high_pct": 77, "mash_c": 66.5,
+                    "yeast_middle_pct": 75.5, "yeast_low_pct": 74, "yeast_high_pct": 77,
+                    "from": "derived", "because": "100 x (OG - FG) / (OG - 1)"},
+    "guidance": True,
+}
 GOOD = {
     "formulation_check.input": CHECK_IN,
     "formulation_check.output": CHECK_OUT,
@@ -175,6 +193,8 @@ GOOD = {
     },
     "step4.input": {"run_id": 1, "brief": BRIEF, "style": STEP2_OUT, "profile": GOOD_PROFILE, "deviations": {}},
     "step4.output": STEP4_OUT,
+    "step5.input": {"run_id": 1, "brief": BRIEF, "profile": GOOD_PROFILE, "targets": STEP4_OUT},
+    "step5.output": STEP5_OUT,
 }
 BAD = [
     ("formulation_check.input", {k: v for k, v in CHECK_IN.items() if k != "mash_c"}),
@@ -200,6 +220,8 @@ BAD = [
         {**GOOD["step3.output"]["deviations"][0], "kind": "typo"}]}),
     ("step4.output", {**STEP4_OUT, "batch_l": _value(20, "guess")}),
     ("step4.output", {**STEP4_OUT, "mash_c": {"value": 66.5, "from": "midpoint"}}),
+    ("step5.output", {**STEP5_OUT, "grist": [{"pct": 60}]}),
+    ("step5.output", {**STEP5_OUT, "slots": [{"item": "oats", "wanted_role": "feature", "from": "wanted"}]}),
 ]
 
 

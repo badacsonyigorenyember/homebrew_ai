@@ -1,0 +1,366 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step5.output",
+  "description": "Step 5, design frame: what step 6 onward may choose from, with no ratio numbers: the formulation rules and limits, one slot per wanted ingredient with the products it resolves to (role, max_pct), the excluded and inventory words with their products, the ingredient intents of the hints applied, and the attenuation the targets need. Absent: a slot's refs [] with from \"not in the catalogue\" (no product found); attenuation numbers null with from none (no OG or FG target); style_code null (no style).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "style_code",
+    "rules",
+    "limits",
+    "slots",
+    "excluded",
+    "inventory",
+    "intents",
+    "attenuation",
+    "guidance"
+  ],
+  "properties": {
+    "style_code": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "rows"
+      ],
+      "properties": {
+        "from": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rule",
+              "checked",
+              "sentence"
+            ],
+            "properties": {
+              "rule": {
+                "type": "string"
+              },
+              "checked": {
+                "type": "boolean"
+              },
+              "sentence": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "values"
+      ],
+      "properties": {
+        "from": {
+          "type": "string",
+          "minLength": 1
+        },
+        "values": {
+          "type": "object"
+        }
+      }
+    },
+    "slots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "item",
+          "wanted_role",
+          "refs",
+          "from"
+        ],
+        "properties": {
+          "item": {
+            "type": "string"
+          },
+          "wanted_role": {
+            "enum": [
+              "feature",
+              "background"
+            ]
+          },
+          "refs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "ingredient_id",
+                "kind",
+                "name",
+                "role",
+                "max_pct"
+              ],
+              "properties": {
+                "ingredient_id": {
+                  "type": "integer"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "role": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "max_pct": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "from": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "excluded": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "word",
+          "refs",
+          "from"
+        ],
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "refs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "ingredient_id",
+                "kind",
+                "name",
+                "role",
+                "max_pct"
+              ],
+              "properties": {
+                "ingredient_id": {
+                  "type": "integer"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "role": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "max_pct": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "from": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "word",
+          "refs",
+          "from"
+        ],
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "refs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "ingredient_id",
+                "kind",
+                "name",
+                "role",
+                "max_pct"
+              ],
+              "properties": {
+                "ingredient_id": {
+                  "type": "integer"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "role": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "max_pct": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "from": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "intents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "hints",
+          "knob",
+          "intent",
+          "source",
+          "from"
+        ],
+        "properties": {
+          "hints": {
+            "type": "string"
+          },
+          "knob": {
+            "type": "string"
+          },
+          "intent": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "attenuation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "needed_pct",
+        "low_pct",
+        "high_pct",
+        "mash_c",
+        "yeast_middle_pct",
+        "yeast_low_pct",
+        "yeast_high_pct",
+        "from",
+        "because"
+      ],
+      "properties": {
+        "needed_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "low_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "high_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "mash_c": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "yeast_middle_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "yeast_low_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "yeast_high_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "from": {
+          "enum": [
+            "derived",
+            "none"
+          ]
+        },
+        "because": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "guidance": {
+      "type": "boolean"
+    }
+  }
+}

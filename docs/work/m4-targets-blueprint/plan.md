@@ -330,7 +330,7 @@ Commit: `Align rule 9 with step 4 targets`
 
 ### Task 6: step 5 builds the design frame
 Why: R10, R12; A8, A9, A10 at SQL level.
-- [ ] `db/041_step5.sql` (header as `db/037`; needs `031`, `032` (`app.mash_attenuation`),
+- [x] `db/041_step5.sql` (header as `db/037`; needs `031`, `032` (`app.mash_attenuation`),
       `036`, `039`):
       - `app.step5_refs(word text) returns jsonb`, stable: `app.resolve_ingredient(word)` rows as
         `[{ingredient_id, kind, name, role, max_pct}]` (`role`, `max_pct` from
@@ -353,14 +353,14 @@ Why: R10, R12; A8, A9, A10 at SQL level.
         `inventory`: brief words `from: request`, then profile inventory rows `from: profile`
         (refs from the row's `ingredient_id` when set); `intents`: step 4's knobs that have an
         intent, `{hints, knob, intent, source, from: "hint"}`; `attenuation`; `guidance`.
-- [ ] Contracts `step5.input` (`run_id`, `brief`, `profile`, `targets` objects) and
+- [x] Contracts `step5.input` (`run_id`, `brief`, `profile`, `targets` objects) and
       `step5.output` (`additionalProperties: false` throughout; the only numbers are ids,
       `max_pct`, `limits.values`, rule numbers in text and the attenuation fields).
       `tests/test_contracts.py`: `ABSENT_SLOTS["step5.output"] = [("slots.refs", "array"),
       ("attenuation.needed_pct", "null")]`, GOOD and BAD examples (an extra `grist` key; a slot
       without `refs`).
-- [ ] Apply twice.
-- [ ] Write `tests/test_step5.py` (helper `step5(conn, b)` on top of `step4`): `test_slots`
+- [x] Apply twice.
+- [x] Write `tests/test_step5.py` (helper `step5(conn, b)` on top of `step4`): `test_slots`
       (A8: b02 oats → Flaked Oats adjunct 30; b06, b16 rice → Flaked Rice; b07 corn → Flaked
       Corn; b12, b19 honey → Honey sugar 20; b20 lactose → Lactose sugar 10; each `wanted_role`
       the brief's); `test_excluded_and_inventory` (b08 Saaz, b16 Citra and Mosaic with their hop
@@ -374,7 +374,7 @@ Why: R10, R12; A8, A9, A10 at SQL level.
       `app.mash_attenuation(numrange(m − 3, m + 3), mash_c)` with m = `yeast_middle_pct` is within
       0.01 of `needed_pct`); `test_every_value_has_from` (A10); `test_same_input_same_output`;
       `test_output_meets_contract`.
-- [ ] Run `.venv/bin/pytest tests/test_step5.py tests/test_contracts.py`, expect all pass; then
+- [x] Run `.venv/bin/pytest tests/test_step5.py tests/test_contracts.py`, expect all pass; then
       `.venv/bin/pytest`. `docs/DATABASE.md` §5 lines. PROJECT.md §8 entry.
 Done when: the step 5 tests pass.
 Commit: `Add the step 5 design frame in SQL`
@@ -510,3 +510,4 @@ Commit: `Measure G4 for steps 0, 4 and 5`
 - 2026-10-17 · Task 2: the column is declared and read as `"position"` (quoted) — `position` is a SQL keyword and a bare name is a syntax error in the return type and the alias list.
 - 2026-10-17 · Task 3: added helper `app.step4_pick` (one range-based target) beside the planned functions, and `app.step4_numbers` names its list parameter `hint_list` — a plpgsql parameter named `hints` clashes with the `hints` column of `app.hint_moves`; callers pass it by position.
 - 2026-10-17 · Task 4: `tests/test_contracts.py` `NAMES` covers steps 0–4 now, not 0–5 — step 5's contract files are written in Task 6, and the file-completeness test needs every name to exist; Task 6 adds step 5.
+- 2026-10-17 · Task 6: added helper `app.step5_refs_of_id` (refs for a profile inventory row's `ingredient_id`); a brief word that resolves to nothing gets `from: not in the catalogue` in `excluded` and `inventory` as in `slots` (found: `request`); attenuation fields are `needed_pct`, `low_pct`, `high_pct`, `mash_c`, `yeast_middle_pct`, `yeast_low_pct`, `yeast_high_pct`; `step5_frame`'s `targets` is the whole step 4 output — the plan left these shapes open.
