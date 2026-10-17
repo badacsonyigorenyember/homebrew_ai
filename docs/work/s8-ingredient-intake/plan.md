@@ -1,6 +1,6 @@
 # S8 · Ingredient intake: add fermentables, hops and yeasts by hand — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: s8-ingredient-intake
 
@@ -100,25 +100,25 @@ as `source` instead.
 
 ### Task 1: The resolver reads aliases
 Why: R6, A7 need a place for aliases and a resolver that reads them (Q6).
-- [ ] Append to `db/010_ref_schema.sql`:
+- [x] Append to `db/010_ref_schema.sql`:
   `create table if not exists ref.ingredient_alias (ingredient_id bigint not null references ref.ingredient (id) on delete cascade, alias text not null, primary key (ingredient_id, alias));`
   with a comment: written by `loaders/extra_ingredients.py`, read by `app.resolve_ingredient`.
-- [ ] In `db/036_ingredient_resolver.sql`: rename today's `app.resolve_ingredient` body to
+- [x] In `db/036_ingredient_resolver.sql`: rename today's `app.resolve_ingredient` body to
   `app.resolve_ingredient_by_name(word text)` (same columns, rules 1–2 unchanged). New
   `app.resolve_ingredient(word text)`, same return columns: rule `alias` first — every product
   with an alias whose `app.ingredient_words` (sorted) equal the query's words, or equal the query's
   words with kind words removed when the product is of that kind (alias "fixture crystal": "fixture crystal malt" → that
   product; "fixture crystal yeast" finds no alias); `distinct`, ordered by name, id. Only when that finds nothing,
   return `app.resolve_ingredient_by_name(word)`. Update the header comment.
-- [ ] Apply as `postgres`, table first:
+- [x] Apply as `postgres`, table first:
   `docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/010_ref_schema.sql`, then the same for `db/036_ingredient_resolver.sql`.
   Check the owner: `select tableowner from pg_tables where tablename = 'ingredient_alias'` → `postgres`.
-- [ ] Write tests in `tests/test_ingredient_resolver.py` (stack; insert a temporary alias for an
+- [x] Write tests in `tests/test_ingredient_resolver.py` (stack; insert a temporary alias for an
   existing product, roll back in `finally`):
   `test_alias_finds_only_its_product` (alias `"zz test alias"` on Citra → `[Citra]`, rule `alias`),
   `test_alias_with_kind_word` (`"zz test alias hop"` → Citra; `"zz test alias malt"` → not via the alias),
   `test_by_name_ignores_aliases` (`resolve_ingredient_by_name("zz test alias")` → `[]`).
-- [ ] Run `.venv/bin/pytest tests/test_ingredient_resolver.py tests/test_step3.py`, expect all pass (existing tests unchanged).
+- [x] Run `.venv/bin/pytest tests/test_ingredient_resolver.py tests/test_step3.py`, expect all pass (existing tests unchanged).
 Done when: the table exists owned by `postgres`, both functions exist, all resolver and step 3 tests pass.
 Commit: `Add ingredient aliases to the resolver`
 

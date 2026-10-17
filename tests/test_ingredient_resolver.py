@@ -79,3 +79,45 @@ def test_resolver_reads_no_fixture():
     text = SQL_FILE.read_text()
     for forbidden in ("recipe_briefs", "evals", "SYNONYMS"):
         assert forbidden not in text.replace("never reads evals/", ""), forbidden
+
+
+def citra_with_alias(conn, alias):
+    """Insert a temporary alias for Citra; the caller rolls back."""
+    citra = conn.execute(
+        "select id from ref.ingredient where kind = 'hop' and name = 'Citra'"
+    ).fetchone()[0]
+    conn.execute(
+        "insert into ref.ingredient_alias (ingredient_id, alias) values (%s, %s)", (citra, alias)
+    )
+    return citra
+
+
+@pytest.mark.stack
+def test_alias_finds_only_its_product(conn):
+    try:
+        citra = citra_with_alias(conn, "zz test alias")
+        assert [(r[0], r[2], r[3]) for r in resolve(conn, "zz test alias")] == [
+            (citra, "Citra", "alias")]
+    finally:
+        conn.rollback()
+
+
+@pytest.mark.stack
+def test_alias_with_kind_word(conn):
+    try:
+        citra = citra_with_alias(conn, "zz test alias")
+        assert [(r[0], r[3]) for r in resolve(conn, "zz test alias hop")] == [(citra, "alias")]
+        assert [r for r in resolve(conn, "zz test alias malt") if r[3] == "alias"] == []
+    finally:
+        conn.rollback()
+
+
+@pytest.mark.stack
+def test_by_name_ignores_aliases(conn):
+    try:
+        citra_with_alias(conn, "zz test alias")
+        rows = conn.execute(
+            "select * from app.resolve_ingredient_by_name('zz test alias')").fetchall()
+        assert rows == []
+    finally:
+        conn.rollback()

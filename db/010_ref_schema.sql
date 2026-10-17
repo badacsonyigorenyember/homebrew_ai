@@ -170,3 +170,10 @@ create table if not exists ref.fermentable_style (
     style_id      bigint not null references ref.beer_style (id),
     source_id     bigint not null references ref.source (id),
     primary key (ingredient_id, style_id));
+
+-- Words a brewer types for a product, beyond its name (docs/work/s8-ingredient-intake).
+-- Written by loaders/extra_ingredients.py, read by app.resolve_ingredient.
+create table if not exists ref.ingredient_alias (
+    ingredient_id bigint not null references ref.ingredient (id) on delete cascade,
+    alias         text   not null,
+    primary key (ingredient_id, alias));
