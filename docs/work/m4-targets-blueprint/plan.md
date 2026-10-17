@@ -184,7 +184,7 @@ Commit: `Extend the hint table with positions and sources`
 
 ### Task 3: target numbers follow the style, the hints and the user's numbers
 Why: R4, R5, R7, R8; A1, A2, A5 at function level. Wrong targets corrupt every later step.
-- [ ] `db/039_step4.sql` (header as `db/037`; needs `030_maths.sql`, `031`, `037`):
+- [x] `db/039_step4.sql` (header as `db/037`; needs `030_maths.sql`, `031`, `037`):
       - `app.range_position(r numrange, fraction numeric) returns numeric`, immutable: null for
         a null or empty range; the one bound when the other is open; else
         `lower + fraction × (upper − lower)`.
@@ -214,8 +214,8 @@ Why: R4, R5, R7, R8; A1, A2, A5 at function level. Wrong targets corrupt every l
         4. Rounding: OG and FG to 4 decimals, ABV to 2; IBU and SRM not rounded (66.25, 13.625).
            An OG solved to reach an ABV range end is rounded toward the inside (down for the
            maximum, up for the minimum), so the rounded ABV stays in range.
-- [ ] Apply twice; owner `postgres`.
-- [ ] Add to `tests/test_step4.py` (stack): `test_range_position` (21A IBU 0.875 → 66.25, 6A IBU
+- [x] Apply twice; owner `postgres`.
+- [x] Add to `tests/test_step4.py` (stack): `test_range_position` (21A IBU 0.875 → 66.25, 6A IBU
       0.125 → 18.75, open range `[40,)` → 40, null → null); `test_og_for_abv_inverts_abv`
       (for ABV 3, 4, 6.5, 7, 10 and FG 1.0045–1.029: `app.abv(app.og_for_abv(a, fg), fg)` within
       0.01 of a; same for `fg_for_abv`); `test_midpoints_without_hints` (16A: OG 1.052, FG 1.018,
@@ -231,7 +231,7 @@ Why: R4, R5, R7, R8; A1, A2, A5 at function level. Wrong targets corrupt every l
       stated and hints: ABV within 0.1 of `app.abv(og, fg)`, and inside the ABV range unless
       stated); `test_style_without_ranges` (31B: every value null with `none`, a stated IBU
       still `stated`).
-- [ ] Run `.venv/bin/pytest tests/test_step4.py`, expect all pass. `docs/DATABASE.md` §5 lines.
+- [x] Run `.venv/bin/pytest tests/test_step4.py`, expect all pass. `docs/DATABASE.md` §5 lines.
       PROJECT.md §8 entry.
 Done when: the target tests pass and the file applies twice cleanly.
 Commit: `Add step 4 target numbers in SQL`
@@ -508,3 +508,4 @@ Commit: `Measure G4 for steps 0, 4 and 5`
 - 2026-10-17 · Approach: the three readings of the brief (A4 batch sizes, A1 solved OG, R11
   reference re-check with the ABV check) confirmed by the user, option a each; brief updated.
 - 2026-10-17 · Task 2: the column is declared and read as `"position"` (quoted) — `position` is a SQL keyword and a bare name is a syntax error in the return type and the alias list.
+- 2026-10-17 · Task 3: added helper `app.step4_pick` (one range-based target) beside the planned functions, and `app.step4_numbers` names its list parameter `hint_list` — a plpgsql parameter named `hints` clashes with the `hints` column of `app.hint_moves`; callers pass it by position.
