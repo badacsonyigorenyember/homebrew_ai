@@ -35,3 +35,32 @@ Main was merged first (e495ab2), so the 3 old failing tests pass. Full pytest: 7
   (`alias_matches`). Test: `test_alias_same_words_other_order_or_kind_word_refused` (3 cases).
 - 4 fixed: `test_reload_after_editing_files` loads, edits the files (clears fields, drops an alias) and loads again.
 - 5 fixed: the module docstring now describes the load and shows both commands.
+
+## Re-review 2026-10-17
+
+Diff: main...s8-ingredient-intake at d8d5678  ·  Verdict: ready for testing
+
+Checked: findings 1–5 against d8d5678, the merge e495ab2, and the rest of the fix commit. `main`
+has no commits the branch lacks. The merge conflicted only in PROJECT.md, and the resolution keeps
+both sides (main's s5 entries and the Scripts row text, plus the s8 lines). Full `pytest`:
+778 passed (182 s). Live `ref` still has 0 intake rows and 0 aliases after the run and after my
+probes, which ran in rolled-back transactions.
+
+- 1 fixed. `write_ingredient` passes every column to `write_kind_row`, so a cleared field is
+  written as NULL and `field_sources` leaves its key out. With the old not-None filter put back,
+  `test_reload_after_editing_files` fails.
+- 2 fixed. `check_aliases` refuses an alias whose sorted words equal another file's name, and
+  `load` raises when a product's name finds another ingredient by an alias. With both checks
+  switched off, the two new tests fail.
+- 3 fixed. `alias_words` sorts, and `alias_matches` applies the resolver's kind-word rule in
+  both directions between files and against stored aliases. It matches `app.resolve_ingredient`
+  in db/036. With the sort removed, 2 of the 3 new cases fail. The third case (`Fixture Crystal Malt`)
+  passes either way, but it covers the kind-word rule.
+- 4 fixed. `test_reload_after_editing_files` loads, clears `ebc`/`ebc_ref`, drops the hop's alias,
+  loads again, and checks the column, `field_source`, `raw` and the alias count.
+- 5 fixed. The docstring describes the load and shows both commands.
+
+| # | Severity | Where | Finding | Why it matters |
+|---|---|---|---|---|
+| 11 | should-fix | loaders/extra_ingredients.py:432-434 (`check_aliases`, name check) | The name check compares sorted words only. It misses the kind-word form that the resolver and the load check apply. Probe: the yeast `fixture-ale.toml` renamed to `Fixture Ale FA-1 Yeast` and `fixture-lacto.toml` given the alias `"fixture ale fa-1"`. `--check` found no errors, and the load raised `name: 'Fixture Ale FA-1 Yeast' finds ingredient id … by an alias` and rolled back. The plan.md deviation and the PROJECT.md §8 line say `--check` refuses this form too. | Nothing wrong gets written, because the load refuses it. This is the same gap as finding 3, for names: `--check` says ok and only the load fails, and the record claims more than the code does. |
+| 12 | note | PROJECT.md §4 Scripts row | It still says `tests/test_extra_ingredients.py` 52 passed. The file now has 58 tests. | A stale count. dev-verify can refresh it with its measured run. |
