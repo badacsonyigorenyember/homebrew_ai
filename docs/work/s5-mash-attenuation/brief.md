@@ -1,6 +1,6 @@
 # S5 · A cited model of mash temperature's effect on attenuation
 
-Status: draft
+Status: approved
 Slug: s5-mash-attenuation · Branch: s5-mash-attenuation
 Roadmap: [RECIPE-ROADMAP.md](../../RECIPE-ROADMAP.md) §8 Later (the rule 10 TODO) ·
 [`s2-formulation-rules`](../../finished/s2-formulation-rules/brief.md) rule 10 ·
