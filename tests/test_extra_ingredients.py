@@ -208,6 +208,21 @@ def test_alias_on_two_files_refused(conn, work):
 
 
 @pytest.mark.stack
+def test_alias_equal_to_another_files_name_refused(conn, work):
+    edit(work, "hop/fixture-hop.toml", '"fixture hop variety"', '"Fixture Ale FA-1"')
+    errors = db_check(conn, work)
+    assert any("hop/fixture-hop.toml: aliases" in e and "Fixture Ale FA-1" in e for e in errors)
+
+
+@pytest.mark.stack
+@pytest.mark.parametrize("alias", ["crystal fixture", "Fixture Crystal Malt", "malt crystal fixture"])
+def test_alias_same_words_other_order_or_kind_word_refused(conn, work, alias):
+    edit(work, "hop/fixture-hop.toml", '"fixture hop variety"', json.dumps(alias))
+    errors = db_check(conn, work)
+    assert any("hop/fixture-hop.toml: aliases" in e and "is also an alias in" in e for e in errors)
+
+
+@pytest.mark.stack
 def test_source_slug_of_db011_refused(conn, work):
     (work / "sources" / "bjcp-2021.toml").write_text(
         toml_text({"slug": "bjcp-2021", "title": "BJCP", "edition": "2021"})
@@ -269,6 +284,37 @@ def test_load_twice_same_rows(rw):
     load_fixtures(rw)
     assert counts(rw) == first_counts
     assert intake_snapshot(rw) == first
+
+
+@pytest.mark.stack
+def test_reload_after_editing_files(rw, work):
+    def load_work():
+        sources, ingredients = extra.read_folder(work)
+        assert extra.check_files(sources, ingredients, extra.known_from_files(tags.read_vocab())) == []
+        return extra.load(rw, sources, ingredients)
+
+    load_work()
+    crystal = ("select f.ebc, f.field_source, i.raw->'intake'->'fields'->'ebc' from ref.fermentable f "
+               "join ref.ingredient i on i.id = f.ingredient_id where i.name = 'Fixture Crystal 120'")
+    assert rw.execute(crystal).fetchone()[0] is not None
+    edit(work, "fermentable/fixture-crystal.toml", "ebc = [230, 270]", "ebc = []")
+    edit(work, "fermentable/fixture-crystal.toml", 'ebc_ref = "fixture sheet p. 1"', 'ebc_ref = ""')
+    edit(work, "hop/fixture-hop.toml", '["fixture hop variety"]', "[]")
+    load_work()
+    ebc, field_source, raw_ebc = rw.execute(crystal).fetchone()
+    assert ebc is None and "ebc" not in field_source and raw_ebc == []
+    assert rw.execute("select count(*) from ref.ingredient_alias a join ref.ingredient i on i.id = a.ingredient_id "
+                      "where i.name = 'Fixture Hop'").fetchone()[0] == 0
+
+
+@pytest.mark.stack
+def test_alias_equal_to_another_files_name_rolls_back(rw):
+    sources, ingredients = extra.read_folder(FIXTURES)
+    for item in ingredients:
+        if item.folder == "hop":
+            item.fields["aliases"] = ["Fixture Ale FA-1"]
+    with pytest.raises(RuntimeError, match="by an alias"):
+        extra.load(rw, sources, ingredients)
 
 
 @pytest.mark.stack

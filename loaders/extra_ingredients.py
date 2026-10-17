@@ -8,18 +8,22 @@ Folder layout (default shared/ingredients/, one TOML file per ingredient, one pe
 The file format (keys, units, which are required) is in the templates and in the plan,
 docs/work/s8-ingredient-intake/plan.md. "" or [] in a file means "not filled".
 
-This part reads the folder and checks every file. check_files returns ALL problems, one text
-each, in the form "<file>: <field>: <problem>"; an empty list means the set is good. It looks
-only at the files, the tag vocabulary and the hopline product maps. The checks against the
-database come next (known_from_db, check_aliases, orphans), then the command line (main). The load
-follows in a later task.
+This module reads the folder, checks every file, and loads it. check_files returns ALL problems,
+one text each, in the form "<file>: <field>: <problem>"; an empty list means the set is good. It
+looks only at the files, the tag vocabulary and the hopline product maps. The checks against the
+database are known_from_db, check_aliases and orphans. load writes the sources and each kind (one
+row per ingredient, re-loading a file overwrites it, aliases included), checks that every alias
+and name finds its product only, and main ties it together on the command line.
 
 Usage (from the repo root):
 
     .venv/bin/python -m loaders.extra_ingredients --check [folder]
+    .venv/bin/python -m loaders.extra_ingredients [folder]
 
 --check runs every check, prints each problem (or "ok: ..."), and writes nothing: its connection is
-read only and always rolled back. The folder defaults to shared/ingredients.
+read only and always rolled back. Without it, a clean set is loaded, tagged (loaders.tags) and
+committed; any problem stops the run before anything is written. The folder defaults to
+shared/ingredients.
 """
 
 import argparse
@@ -387,14 +391,26 @@ def check_files(sources: list[IntakeFile], ingredients: list[IntakeFile], known:
 
 
 def alias_words(conn, text: str) -> tuple:
-    return tuple(conn.execute("select app.ingredient_words(%s)", (text,)).fetchone()[0])
+    """The words of a text as the resolver compares them: sorted."""
+    return tuple(sorted(conn.execute("select app.ingredient_words(%s)", (text,)).fetchone()[0]))
+
+
+def alias_matches(conn, query: tuple, alias: tuple, kind: str) -> bool:
+    """Does a query with these (sorted) words find an alias of a product of this kind? The same
+    rule as app.resolve_ingredient: equal words, or equal once the kind's word is removed."""
+    kind_words = {w for (w,) in conn.execute("select word from app.ingredient_kind_word() where kind = %s", (kind,))}
+    return query == alias or tuple(w for w in query if w not in kind_words) == alias
 
 
 def check_aliases(conn, ingredients: list[IntakeFile]) -> list[str]:
     """An alias must name this product only: not another file's alias, not another product's name
     (as the resolver reads names), not an alias already stored for another ingredient."""
     errors = []
-    seen = {}  # alias words -> file that has them
+    seen = []  # (words, kind, file) of every alias met so far
+    names = {}  # sorted words of a product's name -> file (an alias must not take it over)
+    for item in ingredients:
+        if product_key(item) is not None:
+            names.setdefault(alias_words(conn, item.fields["name"]), item)
     for item in ingredients:
         own = product_key(item)
         aliases = item.fields.get("aliases")
@@ -407,9 +423,14 @@ def check_aliases(conn, ingredients: list[IntakeFile]) -> list[str]:
             if not words:
                 errors.append(f"{item.path}: aliases: {alias!r} has no words")
                 continue
-            if words in seen and seen[words] != item.path:
-                errors.append(f"{item.path}: aliases: {alias!r} is also an alias in {seen[words]}")
-            seen.setdefault(words, item.path)
+            others = {path for w, kind, path in seen if path != item.path
+                      and (alias_matches(conn, words, w, kind) or alias_matches(conn, w, words, item.folder))}
+            for other in sorted(others):
+                errors.append(f"{item.path}: aliases: {alias!r} is also an alias in {other}")
+            seen.append((words, item.folder, item.path))
+            for w, named in names.items():
+                if named is not item and w == words:
+                    errors.append(f"{item.path}: aliases: {alias!r} is the name of {named.path}")
             found = conn.execute(
                 "select i.kind, i.producer_key, i.name_key, i.producer, i.name "
                 "from app.resolve_ingredient_by_name(%s) r join ref.ingredient i on i.id = r.ingredient_id",
@@ -418,11 +439,13 @@ def check_aliases(conn, ingredients: list[IntakeFile]) -> list[str]:
             for kind, producer_key, key, producer, name in found:
                 if (kind, producer_key, key) != own:
                     errors.append(f"{item.path}: aliases: {alias!r} already finds {f'{producer} {name}'.strip()}")
-            stored = conn.execute(
-                "select i.kind, i.producer_key, i.name_key, i.producer, i.name from ref.ingredient_alias a "
-                "join ref.ingredient i on i.id = a.ingredient_id where app.ingredient_words(a.alias) = %s",
-                (list(words),),
-            ).fetchall()
+            stored = set()
+            for kind, producer_key, key, producer, name, stored_alias in conn.execute(
+                "select i.kind, i.producer_key, i.name_key, i.producer, i.name, a.alias from ref.ingredient_alias a "
+                "join ref.ingredient i on i.id = a.ingredient_id"
+            ).fetchall():
+                if alias_matches(conn, words, alias_words(conn, stored_alias), kind):
+                    stored.add((kind, producer_key, key, producer, name))
             for kind, producer_key, key, producer, name in stored:
                 if (kind, producer_key, key) != own:
                     errors.append(f"{item.path}: aliases: {alias!r} is already an alias of {f'{producer} {name}'.strip()}")
@@ -498,11 +521,11 @@ def field_sources(f: dict, values: dict, skip=()) -> dict:
 
 
 def write_ingredient(conn, item: IntakeFile, kind: str, table: str, values: dict, sources: dict) -> int:
-    """The ref.ingredient row, its kind row (the not-None values) and its aliases for one file."""
+    """The ref.ingredient row, its kind row (every column, so a cleared field becomes NULL again) and its aliases."""
     f = item.fields
     raw = {"intake": {"path": item.path, "text": item.text, "fields": f}}
     ingredient_id = upsert_ingredient(conn, kind, f["name"], f.get("producer") or "", source_id(conn, f["source"]), raw)
-    write_kind_row(conn, table, ingredient_id, {k: v for k, v in values.items() if v is not None}, sources)
+    write_kind_row(conn, table, ingredient_id, values, sources)
     conn.execute("delete from ref.ingredient_alias where ingredient_id = %s", (ingredient_id,))
     for alias in f.get("aliases", []):
         conn.execute(
@@ -584,6 +607,10 @@ def load(conn, sources: list[IntakeFile], ingredients: list[IntakeFile]) -> dict
             if found != [ids[item.path]]:
                 raise RuntimeError(f"{item.path}: aliases: {alias!r} finds ingredient ids {found}, not only {ids[item.path]}")
             aliases += 1
+    for item in ingredients:  # an alias must not take over another product's name either
+        for ingredient_id, rule in conn.execute("select ingredient_id, rule from app.resolve_ingredient(%s)", (item.fields["name"],)):
+            if rule == "alias" and ingredient_id != ids[item.path]:
+                raise RuntimeError(f"{item.path}: name: {item.fields['name']!r} finds ingredient id {ingredient_id} by an alias")
     return {"counts": counts, "new_sources": new_sources, "aliases": aliases, "ids": ids}
 
 

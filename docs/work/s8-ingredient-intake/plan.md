@@ -311,3 +311,6 @@ dev-verify; the filled file is not loaded and not committed.
   lacto culture), loaded in rolled-back test transactions; Task 6 gains the full pytest run, the
   spot-check test (A9) and `--check` on the empty folder; Task 5's alias test also covers A11. —
   user decision during planning: a working intake for later, no new items yet (brief.md R11).
+- 2026-10-17 · Review fixes: `main` merged into the branch; `check_aliases` and `load` also refuse an
+  alias that equals another product's name or its sorted/kind-word form; `write_ingredient` writes
+  every column so a cleared field returns to NULL — review findings 1–5 (see review.md).

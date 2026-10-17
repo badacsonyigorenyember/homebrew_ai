@@ -21,3 +21,17 @@ from probes I ran on the fixtures in rolled-back transactions.
 | 8 | note | tests/test_extra_ingredients.py:405; tests/test_tags.py, tests/test_fermentable_facts.py | Implementers' point 4: I checked that the Task 6 tests do fail without the edits. With the fixtures loaded in a rolled-back transaction, `main`'s versions of `test_every_hop_tagged_or_flagged`, `test_file_matches_the_database`, `test_db_roles` and `test_db_descriptions` fail, and the branch's versions of all 11 G10 DB tests pass. `test_g10_counts_ignore_intake_rows` also asserts 90 hops in all, so it proves the fixture rows are there. The filter in `test_db_max_pct` is not exercised, because the fixture fermentable has a `max_pct`. | None needed. |
 | 9 | note | loaders/extra_ingredients.py:347-353, 375-379 | The clash key includes the producer. An intake hop named `Citra` with a non-empty producer is not refused (hopline hops have producer `""`), and `resolve_ingredient('citra')` then returns both. | This is within R2's wording ("(kind, producer, name)"). It is a way to get a near-duplicate hop. |
 | 10 | note | commit 2c34372 | The draft briefs for s9 and s10 are committed on this branch. They are not in the s8 plan. | Docs only, and recorded in PROJECT.md §8. |
+
+## Fixes (2026-10-17)
+
+Main was merged first (e495ab2), so the 3 old failing tests pass. Full pytest: 778 passed.
+
+- 1 fixed: `write_ingredient` now writes every column, so a cleared field goes back to NULL and
+  `field_source` loses its key. Test: `test_reload_after_editing_files` (also drops an alias).
+- 2 fixed: `check_aliases` refuses an alias equal to another file's product name, and `load` raises
+  when a product's name finds another ingredient by an alias. Tests:
+  `test_alias_equal_to_another_files_name_refused`, `test_alias_equal_to_another_files_name_rolls_back`.
+- 3 fixed: alias words are compared sorted, and with the kind word removed as the resolver does
+  (`alias_matches`). Test: `test_alias_same_words_other_order_or_kind_word_refused` (3 cases).
+- 4 fixed: `test_reload_after_editing_files` loads, edits the files (clears fields, drops an alias) and loads again.
+- 5 fixed: the module docstring now describes the load and shows both commands.
