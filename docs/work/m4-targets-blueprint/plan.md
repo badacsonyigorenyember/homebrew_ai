@@ -428,7 +428,7 @@ Why: R13; A13 (logged). Load the n8n skills first (`using-n8n-skills-official`,
 validate → create / update → check `connections` → publish. Publish each sub-workflow before the
 pipeline that calls it (OPERATIONS §5). Nodes with `onError` go in through the JSON file and
 `n8n import:workflow` (OPERATIONS §5; the MCP drops `onError`).
-- [ ] Three sub-workflows, each a copy of `Step 3 · deviations`' shape (trigger *When Executed by
+- [x] Three sub-workflows, each a copy of `Step 3 · deviations`' shape (trigger *When Executed by
       Another Workflow* → "Check step N input" → *Postgres* → "Check step N output" → "Return
       result", sticky note saying it writes nothing and calls no LLM, `Test data` note):
       - `Step 0 · load profile`: inputs `run_id`, `profile_id`; query
@@ -439,24 +439,24 @@ pipeline that calls it (OPERATIONS §5). Nodes with `onError` go in through the 
         `select app.step4_targets($1::jsonb, $2::jsonb, $3::jsonb, $4::jsonb) as result`.
       - `Step 5 · design frame`: inputs `run_id`, `brief`, `profile`, `targets`;
         `select app.step5_frame($1::jsonb, $2::jsonb, $3::jsonb) as result`.
-- [ ] `Recipe pipeline` (`eMkkdBar6NIqUa1g`): `Run settings` gets `profile_id` (body field,
+- [x] `Recipe pipeline` (`eMkkdBar6NIqUa1g`): `Run settings` gets `profile_id` (body field,
       default null). `Start run` → "Step 0 · input" → "Step 0 · load profile" (`onError:
       continueErrorOutput`) → "Step 0 · log ok" (`app.run_step` step 0, try 1) → "Step 1 ·
       input"; error → "Step 0 · log failure" → "Finish run (failed, step 0)" → "Respond failed
       (step 0)" with `failed_step: 0`. After "Step 3 · log ok": step 4 and step 5 blocks of the
       same shape (inputs from the named nodes' outputs), then `Finish run`. Update the per-step
       sticky note.
-- [ ] Validate, import / update, check `connections`, publish all four.
+- [x] Validate, import / update, check `connections`, publish all four.
       `.venv/bin/python -m evals.workflows`; read the diff: no secrets, only the intended nodes.
-- [ ] Tests: `tests/test_workflows.py` `SAMPLES`, `CONTRACT_OF`, `STEP1_INPUT` for the three new
+- [x] Tests: `tests/test_workflows.py` `SAMPLES`, `CONTRACT_OF`, `STEP1_INPUT` for the three new
       files (step 4 and 5 samples from the step 3 sample's brief and style, with
       `tests/step3_sample_style.json`). `tests/test_pipeline.py`: `test_b01_logs_step_1`
       expects steps `[0, 1, 2, 3, 4, 5]`; new `test_step_0_logged`, `test_step_4_logged`,
       `test_step_5_logged` (row `ok`, `ms >= 0`, input as the block sends it, output meets its
       contract); `test_profile_id_reaches_step_0` (an unknown `profile_id` fails at step 0 with
       `failed_step: 0`); the step 2 failure test expects `[0, 1, 2]`.
-- [ ] Run `.venv/bin/pytest`, expect all pass.
-- [ ] `docs/OPERATIONS.md` §5: eight workflows to publish; the webhook body's `profile_id`; the
+- [x] Run `.venv/bin/pytest`, expect all pass.
+- [x] `docs/OPERATIONS.md` §5: eight workflows to publish; the webhook body's `profile_id`; the
       three new workflows in the editor-run list. PROJECT.md §4 Orchestration row (8 workflows,
       steps 0–5 logged) and §8 entry.
 Done when: all four workflows run published, their files match n8n, and the pipeline tests pass.
@@ -505,6 +505,7 @@ Commit: `Measure G4 for steps 0, 4 and 5`
 ## Approved exceptions
 
 ## Deviations
+- 2026-10-17 · Task 8: the three new sub-workflows were authored as JSON files and imported with `n8n import:workflow` (fixed ids `ST0loadprofile01`, `ST4targets00001x`, `ST5designframe01`), then published, rather than built through `create_workflow_from_code`; the plan allows the file route for `onError` and it keeps the files as the source. `Step 1 · input` now reads `run_id` from `Start run` (it came from the previous node). Test samples for steps 4 and 5 use `tests/step45_sample.json` (profile, deviations, targets for the step 3 sample).
 - 2026-10-17 · Approach: the three readings of the brief (A4 batch sizes, A1 solved OG, R11
   reference re-check with the ABV check) confirmed by the user, option a each; brief updated.
 - 2026-10-17 · Task 2: the column is declared and read as `"position"` (quoted) — `position` is a SQL keyword and a bare name is a syntax error in the return type and the alias list.

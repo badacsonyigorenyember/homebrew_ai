@@ -36,6 +36,15 @@ SAMPLES["step-2-best-fit-style.json"] = [
 ]
 STEP3_STYLE = json.loads((ROOT / "tests" / "step3_sample_style.json").read_text())
 SAMPLES["step-3-deviations.json"] = [{"run_id": 0, "brief": STEP2_BRIEF, "style": STEP3_STYLE}]
+FX = json.loads((ROOT / "tests" / "step45_sample.json").read_text())
+SAMPLES["step-0-load-profile.json"] = [{"run_id": 0, "profile_id": 1}]
+SAMPLES["step-4-targets.json"] = [{
+    "run_id": 0, "brief": STEP2_BRIEF, "style": STEP3_STYLE,
+    "profile": FX["profile"], "deviations": FX["deviations"],
+}]
+SAMPLES["step-5-design-frame.json"] = [{
+    "run_id": 0, "brief": STEP2_BRIEF, "profile": FX["profile"], "targets": FX["targets"],
+}]
 # The input contract each sample is checked against.
 CONTRACT_OF = {
     "recipe-pipeline.json": "step1.input",
@@ -43,6 +52,9 @@ CONTRACT_OF = {
     "check-contract.json": "step1.input",
     "step-2-best-fit-style.json": "step2.input",
     "step-3-deviations.json": "step3.input",
+    "step-0-load-profile.json": "step0.input",
+    "step-4-targets.json": "step4.input",
+    "step-5-design-frame.json": "step5.input",
 }
 STEP1_INPUT = {
     "recipe-pipeline.json": lambda s: {
@@ -51,6 +63,9 @@ STEP1_INPUT = {
     "check-contract.json": lambda s: s[0]["value"],
     "step-2-best-fit-style.json": lambda s: s[0],
     "step-3-deviations.json": lambda s: s[0],
+    "step-0-load-profile.json": lambda s: s[0],
+    "step-4-targets.json": lambda s: s[0],
+    "step-5-design-frame.json": lambda s: s[0],
 }
 
 
