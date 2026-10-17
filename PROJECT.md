@@ -4,7 +4,7 @@
 > is trying to do, how it is built, and how far along it is. If code and this file
 > disagree, one of them is wrong. Fix it, and record the fix in the [Progress log](#8-progress-log).
 >
-> Last updated: **2026-10-16**
+> Last updated: **2026-10-17**
 
 ---
 
@@ -243,6 +243,7 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-17
+- Wrote brief for m4-targets-blueprint ([`docs/work/m4-targets-blueprint/`](docs/work/m4-targets-blueprint/brief.md)), revised from the 2026-10-12 draft: step 5 is a design frame from s2's rules and `ref` data, with no ratio numbers, instead of a corpus blueprint (D7; `corpus.style_profile` has 0 rows, measured); Needs lists `s2-formulation-rules` and `s5-mash-attenuation`. Measured while checking: rule 9 (`db/032`) fails any unstated target off its midpoint, and midpoint ABV disagrees with `app.abv` of the midpoint OG and FG for most brief styles (17C 9.14 vs 8.25). User decisions: OG and FG from midpoints and hints with ABV derived, hints move a target to the middle of the top or bottom quarter (mash 64.5 / 68.5 °C), rule 9 learns the hints and drops its ABV midpoint check, the test profile is 20 L, 72 %, 4 L/h, 2 L, 1.0 L/kg with distilled-water ions as a cited default (TODO: user-set ions), unsourced hint rows built marked and sourced before G6.
 - Shipped s8-ingredient-intake ([`docs/finished/s8-ingredient-intake/`](docs/finished/s8-ingredient-intake/verification.md)): merged into `main`. Hand-written TOML ingredient files in `shared/ingredients/` load fermentables, hops and yeasts with sources, aliases and field sources; intake proven by 5 fixture files only (no real items added, user decision), live `ref` holds 0 intake rows. Verification: 7/7 checks, full `pytest` 779 passed (measured on the branch).
 - s8-ingredient-intake re-review fix ([`docs/finished/s8-ingredient-intake/`](docs/finished/s8-ingredient-intake/review.md)): `check_aliases` now compares a file's name with its kind word removed too (same rule as the resolver), so `--check` refuses an alias that takes over another file's name in that form; test `test_alias_equal_to_another_files_name_without_kind_word_refused` (failed before the fix). `tests/test_extra_ingredients.py` 59 passed; full `pytest`: 779 passed (176 s, measured 2026-10-17).
 - s8-ingredient-intake review fixes ([`docs/finished/s8-ingredient-intake/`](docs/finished/s8-ingredient-intake/review.md)): merged `main` (the 3 old failing tests now pass); a cleared field is NULL again on re-load; an alias equal to another product's name, or the same words in another order or with the kind word, is refused by `--check` and the load; reload test and docstring added. Full pytest 778 passed; live `ref` has 0 intake rows.
