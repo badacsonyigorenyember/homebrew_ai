@@ -493,7 +493,7 @@ def test_main_loads_tags_and_prints_summary(rw, monkeypatch, capsys):
     assert "waits (not loaded)" in out and "Fixture Vanilla Extract" in out
     assert "sources added: fixture-data-sheet" in out
     assert "waits for maths" in out and "Fixture Lacto LB-1" in out
-    assert rw.execute("select count(*) from ref.ingredient where raw ? 'intake'").fetchone()[0] == 13
+    assert rw.execute("select count(*) from ref.ingredient where raw ? 'intake'").fetchone()[0] == 17  # 13 fixtures + 4 real misc entries
 
 
 @pytest.mark.stack
@@ -526,11 +526,12 @@ def test_spotcheck_lists_intake_rows(rw):
     per_kind, with_source = spotcheck_statements(
         "Intake rows per kind (shared/ingredients/; 0 until a real item is added)", "Intake rows with their source"
     )
-    assert dict(rw.execute(per_kind).fetchall()) == {"fermentable": 1, "hop": 1, "yeast": 2, "misc": 9}
+    assert dict(rw.execute(per_kind).fetchall()) == {"fermentable": 1, "hop": 1, "yeast": 2, "misc": 13}  # misc: 9 fixtures + 4 real
     rows = rw.execute(with_source).fetchall()
-    assert len(rows) == 13  # fermentable, hop, ale yeast, lacto culture, 9 misc
-    assert {r[3] for r in rows} == {"fixture-data-sheet"} and {r[4] for r in rows} == {"test fixture"}
-    assert all(r[5].startswith("tests/fixtures/ingredients/") for r in rows)
+    assert len(rows) == 17  # fermentable, hop, ale yeast, lacto culture, 9 misc fixtures, 4 real misc
+    fixture_rows = [r for r in rows if r[3] == "fixture-data-sheet"]
+    assert len(fixture_rows) == 13 and {r[4] for r in fixture_rows} == {"test fixture"}
+    assert all(r[5].startswith("tests/fixtures/ingredients/") for r in fixture_rows)
 
 
 @pytest.mark.stack
@@ -538,7 +539,7 @@ def test_spotcheck_lists_intake_misc_rows(rw):
     load_fixtures(rw)
     (misc_rows,) = spotcheck_statements("Intake misc rows")
     rows = rw.execute(misc_rows).fetchall()
-    assert len(rows) == 9
+    assert len(rows) == 13  # 9 fixtures + 4 real
     by_name = {r[0]: r for r in rows}
     purpose, category, usages, time_min, dose, source, file = by_name["Fixture Coffee Beans"][1:]
     assert (purpose, category, usages, time_min) == ("flavour", "coffee", ["secondary"], 2880)

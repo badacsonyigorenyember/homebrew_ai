@@ -358,17 +358,17 @@ Commit: `Add the reviewed 30A envelope`
 
 ### Task 11: the coffee, vanilla and orange peel entries are in `ref`
 Why: R11, R14, A11. Needs Task 1 accepted (§E) and Tasks 3–4.
-- [ ] Write the files of `doc-calc.md` §E in `shared/ingredients/misc/` from
+- [x] Write the files of `doc-calc.md` §E in `shared/ingredients/misc/` from
       `misc-flavour.toml`, every figure exactly as accepted, sources `janish-coffee-beers` and
       `palmer-how-to-brew` (both already in `ref.source`, measured). A descriptor word that is
       not a tag yet is added to `loaders/style_fit_vocab.toml` first (one line).
-- [ ] `.venv/bin/python -m loaders.extra_ingredients --check`, then without `--check`; paste the
+- [x] `.venv/bin/python -m loaders.extra_ingredients --check`, then without `--check`; paste the
       summary into the PROJECT.md line.
-- [ ] Test `tests/test_misc.py::test_live_misc_entries` (stack, read only): each accepted file
+- [x] Test `tests/test_misc.py::test_live_misc_entries` (stack, read only): each accepted file
       has its `ref.misc` row with every filled figure in `field_source`; the live `ref.misc` has
       no `purpose = 'process'` row (A11); "coffee", "vanilla" and "orange peel" each resolve to
       their entries only.
-- [ ] Run `pytest tests/test_misc.py tests/test_extra_ingredients.py tests/test_tags.py tests/test_fermentable_facts.py`.
+- [x] Run `pytest tests/test_misc.py tests/test_extra_ingredients.py tests/test_tags.py tests/test_fermentable_facts.py`.
 Done when: A11 holds on the live database.
 Commit: `Add coffee, vanilla and orange peel misc entries`
 
@@ -472,3 +472,8 @@ None.
 - 2026-10-18 · Task 6: `tests/test_style_fit_effects.py::test_every_cut_point_has_a_basis` counts 26 entries with a basis, not 23. — `misc_dose` adds M1, M2 and M3.
 - 2026-10-18 · Task 9: `tests/test_contracts.py` also changed (the step 5 example and bad cases gain the now-required `misc` field); it was not in the Files table. — `misc` is a required slot field, so the old example no longer validated.
 - 2026-10-18 · Task 10: `tests/test_style_envelopes.py` gains `NO_INGREDIENT_ROWS = {"30A"}`, which `test_characteristic_ingredients` accepts with no ingredient rows. The 30A spice row (very low to very high) is hand-written from the Flavor sentence because the model returned no rows. — 30A's "Characteristic ingredients" is "-"; your answers to the Task 10 review.
+- 2026-10-18 · Task 11: the alias "coffee" is not on `coffee-whole-beans`; `doc-calc.md` §E lists it, but
+  `--check` refuses an alias that already finds another entry ("coffee" is a name word of both coffee
+  entries), and the second load run failed. "coffee" still resolves, to both coffee entries by name word,
+  as §E says. Cold brew and vanilla carry an extra `usages_ref` key for the usage source.
+  `test_extra_ingredients.py` counts (13/9) now include the 4 live entries (17/13).

@@ -140,7 +140,7 @@ tags needed):
 
 | File | Description | Descriptors | Aliases |
 |---|---|---|---|
-| coffee-whole-beans | "Whole roasted beans added to the finished beer, like a dry hop. Janish used 2 oz per 5 gal for 48 hours; the aroma was big and fruity, with less saturated coffee flavour." | `coffee` | coffee, coffee beans, whole bean coffee, dry-beaned coffee |
+| coffee-whole-beans | "Whole roasted beans added to the finished beer, like a dry hop. Janish used 2 oz per 5 gal for 48 hours; the aroma was big and fruity, with less saturated coffee flavour." | `coffee` | coffee beans, whole bean coffee, dry-beaned coffee (not "coffee": it is a name word of both coffee entries, so it finds both anyway) |
 | coffee-cold-brew | "Coarse ground coffee steeped cold in a little water for 16 hours, then added to the beer. Janish used 4 oz per 5 gal; it gave a saturated coffee flavour with a fainter nose." | `coffee` | cold brew, cold brew coffee |
 | vanilla-bean | "A delicate spice, used after fermentation. How to Brew gives 1 to 10 g per batch for most spices including vanilla; the book gives no vanilla-only dose." | `vanilla` | vanilla, vanilla beans, vanilla pod |
 | orange-peel | "Thin peel of washed oranges, without the white pith, hot-steeped 15 minutes after the boil. About 50 g for a 5 gal batch in How to Brew's witbier recipes." | `orange`, `citrus` | orange peel, orange zest |

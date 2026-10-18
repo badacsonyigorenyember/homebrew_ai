@@ -1,0 +1,15 @@
+kind = "misc"
+name = "Orange peel"
+source = "palmer-how-to-brew"
+description = "Thin peel of washed oranges, without the white pith, hot-steeped 15 minutes after the boil. About 50 g for a 5 gal batch in How to Brew's witbier recipes."
+description_ref = "How to Brew p. 409 (PDF page), Casual Wit recipe"
+aliases = ["orange peel", "orange zest"]
+descriptors = ["orange", "citrus"]
+purpose = "flavour"
+category = "spice"
+usages = ["whirlpool"]
+usages_ref = "How to Brew p. 409 (PDF page), Casual Wit recipe"
+time_min = 15
+time_min_ref = "How to Brew p. 409 and p. 240 (PDF pages), recipe notes"
+dose_g_per_l = [2.64, 2.64]
+dose_g_per_l_ref = "How to Brew p. 409 and p. 240 (PDF pages): 50 g per 18.93 L"

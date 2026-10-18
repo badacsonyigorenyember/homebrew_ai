@@ -1,0 +1,13 @@
+kind = "misc"
+name = "Vanilla bean"
+source = "palmer-how-to-brew"
+description = "A delicate spice, used after fermentation. How to Brew gives 1 to 10 g per batch for most spices including vanilla; the book gives no vanilla-only dose."
+description_ref = "How to Brew p. 225 (PDF page), Brewing with Spices"
+aliases = ["vanilla", "vanilla beans", "vanilla pod"]
+descriptors = ["vanilla"]
+purpose = "flavour"
+category = "vanilla"
+usages = ["secondary"]
+usages_ref = "How to Brew p. 225 (PDF page), Brewing with Spices"
+dose_g_per_l = [0.05, 0.53]
+dose_g_per_l_ref = "How to Brew p. 225 (PDF page), Brewing with Spices: 1-10 g per batch of 18.93 L"

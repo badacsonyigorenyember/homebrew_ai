@@ -396,3 +396,38 @@ def test_step5_misc_in_excluded_and_inventory(conn):
     pid = refs[0]["ingredient_id"]
     by_id = conn.execute("select app.step5_refs_of_id(%s)", (pid,)).fetchone()[0]
     assert by_id[0]["misc"] == refs[0]["misc"]
+
+
+LIVE_ENTRIES = {
+    "Coffee, whole beans": ("coffee", ["secondary"], 2880, (3.0, 3.0)),
+    "Coffee, cold brew": ("coffee", ["packaging"], None, (6.0, 6.0)),
+    "Vanilla bean": ("vanilla", ["secondary"], None, (0.05, 0.53)),
+    "Orange peel": ("spice", ["whirlpool"], 15, (2.64, 2.64)),
+}
+
+
+def test_live_misc_entries(conn):
+    """Read only: the real coffee, vanilla and orange peel entries (doc-calc.md section E)."""
+    rows = {r[0]: r[1:] for r in conn.execute(
+        "select i.name, m.category, m.usages, m.time_min, lower(m.dose_g_per_l), upper(m.dose_g_per_l), m.field_source"
+        " from ref.misc m join ref.ingredient i on i.id = m.ingredient_id where i.name = any(%s)",
+        (list(LIVE_ENTRIES),))}
+    assert set(rows) == set(LIVE_ENTRIES)
+    for name, (category, usages, time_min, dose) in LIVE_ENTRIES.items():
+        got_category, got_usages, got_time, low, high, field_source = rows[name]
+        assert (got_category, got_usages, got_time) == (category, usages, time_min)
+        assert (float(low), float(high)) == dose
+        filled = ["dose_g_per_l"] + (["time_min"] if time_min is not None else [])
+        assert all(f in field_source for f in filled), name
+    # A11: no process aid in the live table
+    assert conn.execute("select count(*) from ref.misc where purpose = 'process'").fetchone()[0] == 0
+    only = {
+        "coffee": {"Coffee, whole beans", "Coffee, cold brew"},
+        "cold brew coffee": {"Coffee, cold brew"},
+        "vanilla beans": {"Vanilla bean"},
+        "vanilla": {"Vanilla bean"},
+        "orange peel": {"Orange peel"},
+    }
+    for word, names in only.items():
+        found = {r[2] for r in resolve(conn, word)}
+        assert found == names, word

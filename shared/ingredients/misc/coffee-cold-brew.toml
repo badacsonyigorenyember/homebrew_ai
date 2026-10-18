@@ -1,0 +1,13 @@
+kind = "misc"
+name = "Coffee, cold brew"
+source = "janish-coffee-beers"
+description = "Coarse ground coffee steeped cold in a little water for 16 hours, then added to the beer. Janish used 4 oz per 5 gal; it gave a saturated coffee flavour with a fainter nose."
+description_ref = "Janish, Guide to Coffee Beers, Cold Brew vs. Dry Bean (web page, no page number)"
+aliases = ["cold brew", "cold brew coffee"]
+descriptors = ["coffee"]
+purpose = "flavour"
+category = "coffee"
+usages = ["packaging"]
+usages_ref = "Janish, Guide to Coffee Beers, Bangun Recipe (web page, no page number)"
+dose_g_per_l = [6.0, 6.0]
+dose_g_per_l_ref = "Janish, Guide to Coffee Beers, Cold Brew vs. Dry Bean (web page, no page number)"
