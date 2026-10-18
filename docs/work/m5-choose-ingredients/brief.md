@@ -79,8 +79,9 @@ R4. With guidance on, every pick the pipeline makes on its own is ✅, 👍 or �
     step 4's style used. A wanted item is picked as a product and usage that keep the best level
     step 3 gave it (m3-deviations R4). With guidance off (b18) any level is allowed. Every pick
     carries its level and reason, so M6 can list model-made deviations.
-R5. The yeast's attenuation range overlaps the band step 5 gives (`attenuation.low_pct` to
-    `high_pct`); a yeast with no attenuation figure is reported, not assumed. When the style's
+R5. The yeast's attenuation range overlaps step 5's yeast band (`attenuation.yeast_low_pct` to
+    `yeast_high_pct`: the beer band put in a yeast's own figures at this mash; user decision
+    2026-10-18); a yeast with no attenuation figure is reported, not assumed. When the style's
     envelope has sourness, step 6 adds one souring culture (`type = 'lacto'`) next to the main
     yeast: b14 gets YF-998 or YF-999 besides its ale yeast. Lager styles get a
     lager yeast: BJCP styles tagged `bottom-fermented` and BA lager styles (b06, b08, b09, b17,
@@ -163,7 +164,7 @@ A3. b10 and b15 use every inventory item that fits, as listed in R3 (R3, G5).
 A4. With guidance on (every brief but b18), no pipeline-made pick is ⚠️ or ⛔, and every wanted
     item keeps step 3's best level (R4).
 A5. b06, b08, b09, b17 and b22 get lager yeasts, b13 a weizen-family yeast, and every brief's
-    yeast overlaps step 5's attenuation band or the run reports why not (R5).
+    yeast overlaps step 5's yeast band or the run reports why not (R5).
 A6. Every recipe's fermentable shares add up to 100, each at most its `max_pct`; every hop
     addition has usage, minutes and a share; b08's late hop is not Saaz and is ✅ or 👍 in 5D (R6).
 A7. b23's coffee and vanilla and b24's orange peel each have a misc product, a usage from the row
@@ -227,3 +228,7 @@ None. The five questions of 2026-10-18 are answered (see Deviations).
 - 2026-10-18 · R3, A16 (Open question 4, option a): alias "dark candi sugar" → Brown Candi Sugar.
 - 2026-10-18 · R7, A16 (Open question 5, option a): `background` takes the low end of the sourced
   dose range, `feature` the high end, a one-point dose as it is.
+- 2026-10-18 · R5, A5 (user decision while planning): the yeast is checked against step 5's yeast
+  band (`yeast_low_pct`–`yeast_high_pct`), not the beer band (`low_pct`–`high_pct`); the yeast
+  band is in a yeast's own figures at the mash temperature. Measured: they differ only for b03
+  and b20 (mash 68.5 °C), by 0.83 points.
