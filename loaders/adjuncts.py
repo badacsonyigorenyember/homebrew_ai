@@ -22,7 +22,7 @@ import psycopg
 from psycopg.types.json import Jsonb
 from psycopg.types.range import Range
 
-from loaders.adjunct_products import COLOUR, PACK_SIZES, PALMER, PALMER_ONLY, PRODUCTS, SKIPPED
+from loaders.adjunct_products import ALIASES, COLOUR, PACK_SIZES, PALMER, PALMER_ONLY, PRODUCTS, SKIPPED
 from loaders.common import num, to_range
 from loaders.db import connect, source_id, upsert_ingredient
 
@@ -188,6 +188,20 @@ def load(conn: psycopg.Connection, items: list[Adjunct]) -> int:
                 Jsonb(a.field_source),
             ),
         )
+        conn.execute("delete from ref.ingredient_alias where ingredient_id = %s", (ingredient_id,))
+        for alias in ALIASES.get(a.name, ()):
+            conn.execute(
+                "insert into ref.ingredient_alias (ingredient_id, alias) values (%s, %s) on conflict do nothing",
+                (ingredient_id, alias),
+            )
+    for name, aliases in ALIASES.items():
+        for alias in aliases:
+            ids = [r[0] for r in conn.execute("select ingredient_id from app.resolve_ingredient(%s)", (alias,))]
+            own = conn.execute(
+                "select id from ref.ingredient where kind = 'fermentable' and name = %s", (name,)
+            ).fetchone()
+            if own is None or ids != [own[0]]:
+                raise ValueError(f"alias {alias!r} must resolve to {name!r} only, got ids {ids}")
     return len(items)
 
 

@@ -157,26 +157,26 @@ Commit: `Mark lacto cultures and resolve Lactobacillus`
 
 ### Task 2: "dark candi sugar" finds Brown Candi Sugar
 Why: R3, A16 (user decision 4). b10's inventory word must resolve before the table is built.
-- [ ] `loaders/adjunct_products.py`: `ALIASES: dict[str, tuple[str, ...]] = {"Brown Candi Sugar":
+- [x] `loaders/adjunct_products.py`: `ALIASES: dict[str, tuple[str, ...]] = {"Brown Candi Sugar":
       ("dark candi sugar",)}` with the comment: the brewer's common name for this product (user
       decision 2026-10-18); add a name only for a word that names this product.
-- [ ] `loaders/adjuncts.py` `load`: after each upsert, `delete from ref.ingredient_alias where
+- [x] `loaders/adjuncts.py` `load`: after each upsert, `delete from ref.ingredient_alias where
       ingredient_id = %s`, then insert that product's `ALIASES` (as `loaders/extra_ingredients.py`
       `load_ingredient` does), so a re-run gives the same rows. After the loop, each alias must
       resolve to its product only (`select ingredient_id from app.resolve_ingredient(%s)`), else
       raise (the connection rolls back).
-- [ ] Write `tests/test_adjuncts.py::test_aliases_name_mapped_products` (no stack: every key of
+- [x] Write `tests/test_adjuncts.py::test_aliases_name_mapped_products` (no stack: every key of
       `ALIASES` is a product name in `PRODUCTS`) and `test_dark_candi_sugar_alias` (stack:
       "dark candi sugar" → [3396's id] with rule `alias`; "candi sugar" still finds it by name).
       See the stack test fail first.
-- [ ] Reload: `.venv/bin/python -m loaders.adjuncts --hopline shared/rag-files/hopline/hopline_adjuncts.json`,
+- [x] Reload: `.venv/bin/python -m loaders.adjuncts --hopline shared/rag-files/hopline/hopline_adjuncts.json`,
       twice; `select count(*) from ref.ingredient_alias` is 11 both times.
       `.venv/bin/python -m loaders.extra_ingredients --check` still ok (its alias check reads
       the stored alias and must not complain).
-- [ ] `tests/test_step5.py::test_excluded_and_inventory`: b10's "dark candi sugar" now has refs
+- [x] `tests/test_step5.py::test_excluded_and_inventory`: b10's "dark candi sugar" now has refs
       `[Brown Candi Sugar]` and `from` `request`.
-- [ ] Run `.venv/bin/pytest tests/test_adjuncts.py tests/test_step5.py tests/test_ingredient_resolver.py tests/test_extra_ingredients.py`, expect all pass.
-- [ ] `docs/DATABASE.md` `ingredient_alias` row (11, one from the adjunct loader). PROJECT.md §8.
+- [x] Run `.venv/bin/pytest tests/test_adjuncts.py tests/test_step5.py tests/test_ingredient_resolver.py tests/test_extra_ingredients.py`, expect all pass.
+- [x] `docs/DATABASE.md` `ingredient_alias` row (11, one from the adjunct loader). PROJECT.md §8.
 Done when: the alias is written by the adjunct loader on every run and b10's frame lists Brown
 Candi Sugar.
 Commit: `Add dark candi sugar alias to the adjunct loader`
@@ -523,3 +523,4 @@ None needed: imports go through the n8n CLI as OPERATIONS §5 says; no container
   (`yeast_low_pct`–`yeast_high_pct`), not the beer band the brief first named — user decision
   (brief R5, A5 and Deviations updated). The resolver's culture-type word rule (Task 1) and the
   needs gap rule (Task 8) are confirmed by the user as planned.
+- 2026-10-18 · Task 2: after reloading the adjunct loader, `loaders.fermentable_facts` is re-run (twice) — the adjunct loader nulls `max_pct`/`field_source` (documented load order); no plan text changed.

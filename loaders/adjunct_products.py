@@ -51,6 +51,10 @@ PALMER: dict[str, dict] = {
     },
 }
 
+# Words a brewer types for a product, written to ref.ingredient_alias by loaders.adjuncts
+# (user decision 2026-10-18). Add a name only for a word that names this product.
+ALIASES: dict[str, tuple[str, ...]] = {"Brown Candi Sugar": ("dark candi sugar",)}
+
 PRODUCTS: dict[str, tuple[str, str, dict[str, tuple[str, str]]]] = {
     "400150": ("Flaked Oats", "Oatmeal (flaked)", {}),  # Zabpehely 100g
     "400270": ("Flaked Corn", "Corn (flaked)", {}),  # Kukoricapehely 100g

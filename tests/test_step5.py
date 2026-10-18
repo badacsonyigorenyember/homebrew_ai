@@ -75,7 +75,7 @@ def test_excluded_and_inventory(frames):
     for bid in ("b10", "b15"):
         assert [i["word"] for i in frames[bid]["inventory"]] == BRIEFS[bid]["inventory"], bid
     candi = next(i for i in frames["b10"]["inventory"] if i["word"] == "dark candi sugar")
-    assert candi["refs"] == [] and candi["from"] == "not in the catalogue"
+    assert [r["name"] for r in candi["refs"]] == ["Brown Candi Sugar"] and candi["from"] == "request"
     assert all(i["from"] == "request" for i in frames["b15"]["inventory"])
     assert all(i["refs"] for i in frames["b15"]["inventory"])
 
