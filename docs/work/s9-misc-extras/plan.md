@@ -470,3 +470,4 @@ None.
 - 2026-10-18 · Task 5: the "kind word with another kind's name" test uses "herb Citra", not "spice fixture hop". — "spice fixture hop" reads `spice` as the first kind word, drops both kind words and matches every fixture misc by "fixture", so it cannot find nothing.
 - 2026-10-18 · Task 6: the "inside the range, `allowed` in 25B" tests first set 25B's spice envelope to 0-7 (rolled back), and a separate test shows a noticeable dose is `out_of_style` "too much" under 25B's real maximum (2). — a noticeable dose is level 4 (M3), above 25B's max of low.
 - 2026-10-18 · Task 6: `tests/test_style_fit_effects.py::test_every_cut_point_has_a_basis` counts 26 entries with a basis, not 23. — `misc_dose` adds M1, M2 and M3.
+- 2026-10-18 · Task 9: `tests/test_contracts.py` also changed (the step 5 example and bad cases gain the now-required `misc` field); it was not in the Files table. — `misc` is a required slot field, so the old example no longer validated.
