@@ -114,6 +114,12 @@ declare
     v_lower_bound  text := (select string_agg(n, ', ') from jsonb_array_elements_text(coalesce(v_dose -> 'srm_lower_bound', '[]'::jsonb)) n);
     v_oil_range    numrange;
     v_ebc_range    numrange;
+    v_misc         ref.misc%rowtype;
+    v_dim          text;
+    v_dose_range   numrange;
+    v_g            numeric;
+    v_word         text;
+    v_cut          text;
 begin
     select * into st from ref.beer_style b where b.code = v_style_code;
     if not found then
@@ -125,8 +131,15 @@ begin
     end if;
     if not (ing.kind = 'hop' and v_usage in ('boil', 'whirlpool', 'dry_hop')
             or ing.kind = 'fermentable' and v_usage in ('mash', 'boil')
-            or ing.kind = 'yeast' and v_usage = 'ferment') then
+            or ing.kind = 'yeast' and v_usage = 'ferment'
+            or ing.kind = 'misc') then
         raise exception 'usage % is not valid for a % (ingredient %)', v_usage, ing.kind, v_ingredient;
+    end if;
+    if ing.kind = 'misc' then
+        select * into v_misc from ref.misc m where m.ingredient_id = ing.id;
+        if not found or not (v_usage = any (v_misc.usages)) then
+            raise exception 'usage % is not a usage of % (ingredient %)', v_usage, ing.name, v_ingredient;
+        end if;
     end if;
     if ing.kind = 'hop' and v_usage = 'boil' and v_minutes is null then
         raise exception 'a hop boil needs dose.minutes';
@@ -141,6 +154,13 @@ begin
         from ref.ingredient_tag it join ref.tag t on t.id = it.tag_id
         where it.ingredient_id = ing.id and t.facet = 'character';
     v_review := exists (select 1 from ref.ingredient_review r where r.ingredient_id = ing.id);
+
+    -- a process aid adds no flavour: allowed in any style, before the envelope is looked at
+    if ing.kind = 'misc' and v_misc.purpose = 'process' then
+        return jsonb_build_object('level', 'allowed',
+            'because', 'no flavour effect: ' || ing.name || ' is a process aid (' || v_misc.category
+                       || ') and adds no sensation to ' || v_style_label || '.');
+    end if;
 
     -- 0. rated at all?
     if not exists (select 1 from ref.style_sensory s where s.style_id = st.id and s.reviewed)
@@ -162,6 +182,63 @@ begin
     if found then
         return jsonb_build_object('level', v_rule.level,
             'because', 'rule for ' || v_style_label || ': ''' || v_rule.quote || '''');
+    end if;
+
+    -- 1b. a flavour misc (docs/work/s9-misc-extras): one added-character dimension chosen by its
+    -- category, scored by the dose against the entry's own sourced dose; its tags are never read
+    if ing.kind = 'misc' then
+        select ue.dimension into v_dim from app.usage_effects() ue
+            where ue.kind = 'misc' and ue.applies_to = v_misc.category;
+        if v_dim is null then
+            return jsonb_build_object('level', null,
+                'because', 'no added-character dimension for category ' || v_misc.category
+                           || ', so ' || ing.name || ' is not rated against ' || v_style_label || '.');
+        end if;
+        select * into sens from ref.style_sensory s
+            where s.style_id = st.id and s.dimension = v_dim and s.reviewed;
+        if not found then
+            return jsonb_build_object('level', 'out_of_style',
+                'because', 'specialty ' || v_dim || ' on ' || v_style_label || '.');
+        end if;
+        v_dose_range := v_misc.dose_g_per_l;
+        v_what := v_dim || ' from ' || ing.name;
+        if v_dose_range is null then
+            v_notes := array[v_what || ': no sourced dose, intensity not checked.'];
+        elsif not (v_dose ? 'g_per_l') then
+            v_notes := array[v_what || ': dose not given, intensity not checked.'];
+        else
+            v_g := (v_dose ->> 'g_per_l')::numeric;
+            if v_g < (v_cuts -> 'misc_dose' -> 'subtle_below' ->> 'ratio')::numeric * lower(v_dose_range) then
+                v_word := 'subtle';
+                v_cut := 'M1: below ' || (v_cuts -> 'misc_dose' -> 'subtle_below' ->> 'ratio') || ' x the lower sourced dose, '
+                         || split_part(v_cuts -> 'misc_dose' -> 'subtle_below' ->> 'basis', ' (', 1);
+            elsif v_g > (v_cuts -> 'misc_dose' -> 'aggressive_above' ->> 'ratio')::numeric * upper(v_dose_range) then
+                v_word := 'aggressive';
+                v_cut := 'M2: above ' || (v_cuts -> 'misc_dose' -> 'aggressive_above' ->> 'ratio') || ' x the upper sourced dose, '
+                         || split_part(v_cuts -> 'misc_dose' -> 'aggressive_above' ->> 'basis', ' (', 1);
+            else
+                v_word := 'noticeable';
+            end if;
+            v_lvl := (v_cuts -> 'misc_dose' -> 'levels' ->> v_word)::int;
+            v_what := v_what || ': ' || to_char(v_g, 'FM990.0#') || ' g/L is ' || v_word || ' ('
+                      || app.level_word(v_lvl) || ') against the sourced '
+                      || to_char(lower(v_dose_range), 'FM990.0#') || '-' || to_char(upper(v_dose_range), 'FM990.0#') || ' g/L'
+                      || case when v_cut is not null then ' (' || v_cut || ')' else '' end;
+            if v_lvl > sens.max_level then
+                return jsonb_build_object('level', 'out_of_style',
+                    'because', 'too much: ' || v_what || '; ' || v_style_label || ' allows up to '
+                               || app.level_word(sens.max_level::int) || ' ' || v_dim || ': ''' || sens.quote || '''.');
+            end if;
+            v_notes := array[v_what || '.'];
+        end if;
+        if sens.min_level >= 1 then
+            return jsonb_build_object('level', 'typical',
+                'because', array_to_string(v_notes, ' ') || ' ' || v_style_label || ' asks for ' || v_dim || ': '''
+                           || sens.quote || '''.');
+        end if;
+        return jsonb_build_object('level', 'allowed',
+            'because', array_to_string(v_notes, ' ') || ' ' || v_style_label || ' allows ' || v_dim || ' but does not ask for it: '''
+                       || sens.quote || '''.');
     end if;
 
     -- 2. adjunct or sugar: named in the characteristic ingredients, or not usual

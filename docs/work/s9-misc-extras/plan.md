@@ -251,20 +251,20 @@ Commit: `Add misc kind words to the resolver`
 
 ### Task 6: `app.style_level` rates a flavour misc and a process aid
 Why: R5, R6, R15; A5, A6, A15. Needs Task 1 accepted (M1–M3).
-- [ ] `db/033_style_fit_effects.sql`: 8 rows in `app.usage_effects()`, `kind = 'misc'`,
+- [x] `db/033_style_fit_effects.sql`: 8 rows in `app.usage_effects()`, `kind = 'misc'`,
       `applies_to` = the category, `usage` null, `carries_character` false:
       spice, herb, coffee, cacao, vanilla → `spice`; fruit → `fruit`; wood → `wood`; smoke → `smoke`.
       `app.style_fit_cut_points()` gains `misc_dose`: `{"subtle_below": {"id": "M1", "ratio": …,
       "basis": …}, "aggressive_above": {"id": "M2", "ratio": …, "basis": …}, "levels": {"id": "M3",
       "subtle": …, "noticeable": …, "aggressive": …, "basis": …}}`, values and bases from
       `doc-calc.md` §D.
-- [ ] `db/034_style_level.sql` `app.style_level`: accept `ing.kind = 'misc'` with a usage in
+- [x] `db/034_style_level.sql` `app.style_level`: accept `ing.kind = 'misc'` with a usage in
       the row's `usages` (else raise "usage % is not a usage of %"); the misc branch of the
       Approach, steps 1–7, before section "2. adjunct or sugar". A process aid returns before
       the "rated at all?" check. The because names the dimension, the intensity word, the dose
       and the sourced range ("3.0 g/L against the sourced 3.0–3.0 g/L"), and quotes the envelope
       row where one is used.
-- [ ] Tests in `tests/test_misc.py` (fixtures loaded, rolled back; 25B is the reviewed envelope
+- [x] Tests in `tests/test_misc.py` (fixtures loaded, rolled back; 25B is the reviewed envelope
       with a `spice` row, measured): for each usage of `fixture-spice`, a level and a because in
       25B; doses below, inside and above the sourced range give subtle, noticeable, aggressive,
       and the because names M1/M2's basis; `fixture-spice` and `fixture-spice-citrus` at the same
@@ -274,7 +274,7 @@ Why: R5, R6, R15; A5, A6, A15. Needs Task 1 accepted (M1–M3).
       envelope and in a style with none (A6); `fixture-no-dose` with a `g_per_l` says "no sourced dose"
       (A15); `fixture-other` gives level null "no added-character dimension"; a usage not in the
       row raises; `tests/test_style_fit_effects.py` keeps passing (misc dimensions exist).
-- [ ] Apply `db/033`, `db/034` twice; run `pytest tests/test_misc.py tests/test_style_level.py tests/test_style_fit_effects.py tests/test_style_fit_golden.py tests/test_style_fit_recipe.py`, expect pass (the golden results for hops, malts and yeasts unchanged).
+- [x] Apply `db/033`, `db/034` twice; run `pytest tests/test_misc.py tests/test_style_level.py tests/test_style_fit_effects.py tests/test_style_fit_golden.py tests/test_style_fit_recipe.py`, expect pass (the golden results for hops, malts and yeasts unchanged).
 Done when: A5, A6 and the style-level part of A15 hold, and the existing style-fit tests pass.
 Commit: `Rate flavour misc and process aids in style_level`
 
@@ -468,3 +468,5 @@ None.
 - 2026-10-18 · Task 3: the misc count in `--check`'s ok line and the `waits:` lines moved into Task 3. — they belong to the checker, not the loader.
 - 2026-10-18 · Task 4: `waits_for_maths` entries are now "label: reason" lines (yeast: "souring culture, no model yet"), `summary` gained `waits` for skipped liquid extracts, and the `ref.misc` count moved to the spot-check's `intake` group. — one line format for all reasons.
 - 2026-10-18 · Task 5: the "kind word with another kind's name" test uses "herb Citra", not "spice fixture hop". — "spice fixture hop" reads `spice` as the first kind word, drops both kind words and matches every fixture misc by "fixture", so it cannot find nothing.
+- 2026-10-18 · Task 6: the "inside the range, `allowed` in 25B" tests first set 25B's spice envelope to 0-7 (rolled back), and a separate test shows a noticeable dose is `out_of_style` "too much" under 25B's real maximum (2). — a noticeable dose is level 4 (M3), above 25B's max of low.
+- 2026-10-18 · Task 6: `tests/test_style_fit_effects.py::test_every_cut_point_has_a_basis` counts 26 entries with a basis, not 23. — `misc_dose` adds M1, M2 and M3.

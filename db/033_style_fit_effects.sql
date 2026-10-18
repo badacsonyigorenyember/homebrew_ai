@@ -7,7 +7,9 @@
 --   docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/033_style_fit_effects.sql
 -- Idempotent: safe to re-run.
 
--- STYLE-FIT.md §3. applies_to is a role, a family or a tag name, as kind says: a hop (any),
+-- STYLE-FIT.md §3. For a misc, applies_to is its category and the dimension is the one
+-- sensation it adds (docs/work/s9-misc-extras); a misc never carries its tags into the match.
+-- applies_to is a role, a family or a tag name, as kind says: a hop (any),
 -- a fermentable role, a yeast (any, or a family), or any ingredient with a tag. A null usage
 -- means any usage; min_minutes / max_minutes bound a hop's boil time. carries_character says
 -- whether the use shows the ingredient's character tags (hop bitterness does not).
@@ -42,7 +44,15 @@ as $$
         ('yeast',       'yeast',   'ferment',   null, null,      'phenols',     true),
         ('yeast',       'brett',   'ferment',   null, null,      'brett_funk',  false),
         ('yeast',       'sour',    'ferment',   null, null,      'sourness',    false),
-        ('any',         'smoke',   null,        null, null,      'smoke',       false)
+        ('any',         'smoke',   null,        null, null,      'smoke',       false),
+        ('misc',        'spice',   null,        null, null,      'spice',       false),
+        ('misc',        'herb',    null,        null, null,      'spice',       false),
+        ('misc',        'coffee',  null,        null, null,      'spice',       false),
+        ('misc',        'cacao',   null,        null, null,      'spice',       false),
+        ('misc',        'vanilla', null,        null, null,      'spice',       false),
+        ('misc',        'fruit',   null,        null, null,      'fruit',       false),
+        ('misc',        'wood',    null,        null, null,      'wood',        false),
+        ('misc',        'smoke',   null,        null, null,      'smoke',       false)
     ) as t(kind, applies_to, usage, min_minutes, max_minutes, dimension, carries_character)
 $$;
 
@@ -82,6 +92,11 @@ as $$
             "phenolic_character": {"id": "P1", "level": 4, "basis": "set by the user, 2026-10-15"},
             "phenolic_tags":      {"id": "P2", "tags": ["clove", "pepper", "phenolic", "spicy"], "basis": "set by the user, 2026-10-15"},
             "warm_step":          {"id": "P3", "step": 1, "above_c": 21, "basis": "HTB p. 443; step set by the user, 2026-10-15"}
+        },
+        "misc_dose": {
+            "subtle_below":     {"id": "M1", "ratio": 0.5, "basis": "set by the user, 2026-10-18 (docs/work/s9-misc-extras/doc-calc.md D): below this share of the lower sourced dose of the entry"},
+            "aggressive_above": {"id": "M2", "ratio": 2.0, "basis": "set by the user, 2026-10-18 (doc-calc.md D): above this multiple of the upper sourced dose of the entry; HTB p. 225 top coffee dose is 1.98 x the Janish cold brew dose"},
+            "levels":           {"id": "M3", "subtle": 2, "noticeable": 4, "aggressive": 6, "basis": "set by the user, 2026-10-18 (doc-calc.md D): low, medium, high on the 0-7 scale"}
         },
         "min_tolerance": {"levels": 1, "basis": "set by the user, 2026-10-15"},
         "character_match": {"typical": 0.8, "allowed": 0.3, "basis": "decided, STYLE-FIT.md §5"}
