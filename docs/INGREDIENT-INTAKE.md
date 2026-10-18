@@ -4,7 +4,7 @@
 > aids, "fully usable" conditions). No code, SQL, loader, workflow or test was changed.
 > Everything under "today" was read from the repo or measured on the live DB on 2026-10-17
 > (read-only queries). Everything under "proposed" is a proposal for you to accept, change or drop.
-> **Update 2026-10-18:** s8 is shipped and s9 is built ([`work/s9-misc-extras`](work/s9-misc-extras/plan.md)); §11 marks the rows s9 did, §12 moves Q2, Q3, Q5 and Q7 to Made, and §13 names the misc templates. The sections above still describe the state at discovery.
+> **Update 2026-10-18:** s8 is shipped and s9 is built ([`work/s9-misc-extras`](finished/s9-misc-extras/plan.md)); §11 marks the rows s9 did, §12 moves Q2, Q3, Q5 and Q7 to Made, and §13 names the misc templates. The sections above still describe the state at discovery.
 > Links: [PROJECT.md](../PROJECT.md) · [DATABASE.md](DATABASE.md) · [STYLE-FIT.md](STYLE-FIT.md) ·
 > [RECIPE-ROADMAP.md](RECIPE-ROADMAP.md) · [WORKFLOW-ROADMAP.md](WORKFLOW-ROADMAP.md)
 

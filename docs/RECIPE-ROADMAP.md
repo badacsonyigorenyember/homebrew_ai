@@ -138,7 +138,7 @@ flowchart TD
 | 6 | Yeast | top 21A yeast in the corpus that fits FG 1.011 and is in stock | 🟩 score |
 | 7 | Fermentables | fill each grist role: inventory first, then corpus popularity | 🟩 score |
 | 8 | Hops | bittering = high alpha · late/dry = tags match hints (citrus, pine) | 🟩 score |
-| 9 | Extras | coffee: usage (secondary) + dose (3.0 g/L, 2880 min) from the `ref.misc` row, sourced (Janish); step 5 already gives the slot these fields (`misc`: purpose, category, usages, time, dose range, `because`); the amount in grams is step 10's job (dose × batch L) and never enters OG/IBU/SRM. Built so far: the rows, the slot fields and step 3's rating ([`s9-misc-extras`](work/s9-misc-extras/plan.md)); the choice itself is M5 | 🟩 |
+| 9 | Extras | coffee: usage (secondary) + dose (3.0 g/L, 2880 min) from the `ref.misc` row, sourced (Janish); step 5 already gives the slot these fields (`misc`: purpose, category, usages, time, dose range, `because`); the amount in grams is step 10's job (dose × batch L) and never enters OG/IBU/SRM. Built so far: the rows, the slot fields and step 3's rating ([`s9-misc-extras`](finished/s9-misc-extras/plan.md)); the choice itself is M5 | 🟩 |
 | 10 | Calculate | kg / g → OG, FG, ABV, IBU, SRM | 🟩 |
 | 11 | Validate | in targets · rules · no invented items · loop max 3× | 🟩 |
 | 12 | Water | SO₄:Cl high → gypsum + CaCl₂ grams from the source-water ions | 🟩 |

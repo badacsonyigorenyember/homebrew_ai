@@ -57,7 +57,7 @@ flowchart LR
 
 - **The descriptor dictionary is the only hand-made part** (~150 words → tags, in
   `ref.tag_synonym`). A new hop that uses known words needs no work.
-- **Three layers for a flavour misc** (your model, 2026-10-18; [`s9-misc-extras`](work/s9-misc-extras/brief.md)).
+- **Three layers for a flavour misc** (your model, 2026-10-18; [`s9-misc-extras`](finished/s9-misc-extras/brief.md)).
   The *category* is the cause and drives step 2: it picks the specialty style (fruit → 29A;
   spice, herb, coffee, cacao, vanilla → 30A; wood → 33A; smoke → 32A; BA equivalents), with the
   base style kept first among the alternatives. The *added-character dimension* is the effect and
@@ -136,7 +136,7 @@ against the 22 reference recipes.
 
 M1, M2 and M3 live in `app.style_fit_cut_points()` under `misc_dose` with their basis ("set by
 the user, 2026-10-18"; M2 is checked against *How to Brew* p. 225, whose top coffee dose is 1.98
-times Janish's cold-brew dose). Doses and sources: [doc-calc.md](work/s9-misc-extras/doc-calc.md).
+times Janish's cold-brew dose). Doses and sources: [doc-calc.md](finished/s9-misc-extras/doc-calc.md).
 The dimension for BJCP's coffee, cacao and vanilla is `spice`, because BJCP states no rule for
 them; filing them under 30A is also set by the user.
 
