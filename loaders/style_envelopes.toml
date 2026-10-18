@@ -2400,3 +2400,20 @@ tag = "american-ale"
 required = false
 unknown = []
 quote = "Common American base malts, yeast, and hops."
+
+# 30A (s9, Task 10): the model found no row (the text says "Varies by base style" for everything
+# else), so the spice row below is written by hand from the Flavor sentence and waits for review.
+[[style]]
+code = "30A"
+name = "Spice, Herb, or Vegetable Beer"
+reviewed = true
+extracted = { model = "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", date = "2026-10-18", tries = 1 }
+problems = []
+
+[[style.sensory]]
+dimension = "spice"
+min = "very low"
+max = "very high"
+characters = []
+unknown = []
+quote = "As with aroma, distinctive SHV flavors should be noticeable, and may range in intensity from subtle to aggressive."

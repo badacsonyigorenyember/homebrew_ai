@@ -49,6 +49,7 @@ S3_STYLES = [
     "23A", "25B", "26B", "31B", "5D", "6A", "8B", "mexican-style-amber-lager",
     "session-india-pale-ale",
     "20C", "18A", "specialty-honey-beer", "20B",
+    "30A",  # the specialty style of b23 (coffee and vanilla), added by s9
 ]
 
 SCALE = {"none": 0, "very low": 1, "low": 2, "medium-low": 3, "medium": 4, "medium-high": 5,

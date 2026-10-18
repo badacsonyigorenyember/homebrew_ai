@@ -136,13 +136,14 @@ def test_schema_dimensions_are_the_vocabulary_minus_colour_and_bitterness():
 
 
 @pytest.mark.stack
-def test_s3_styles_are_the_26():
+def test_s3_styles_are_the_27():
     with open(ROOT / "evals" / "recipe_briefs.toml", "rb") as f:
         briefs = {b["style"] for b in tomllib.load(f)["brief"]}
     assert len(briefs) == 22
-    expected = briefs | {"20C", "18A", "specialty-honey-beer", "20B"}
-    assert len(expected) == 26
-    assert set(se.S3_STYLES) == expected and len(se.S3_STYLES) == 26
+    # b23's style (30A) is not in the briefs file until Task 12, so it is written out here
+    expected = briefs | {"20C", "18A", "specialty-honey-beer", "20B", "30A"}
+    assert len(expected) == 27
+    assert set(se.S3_STYLES) == expected and len(se.S3_STYLES) == 27
     with connect() as conn:
         found = {c for (c,) in conn.execute("select code from ref.beer_style where code = any(%s)", (se.S3_STYLES,))}
         assert found == expected
@@ -162,6 +163,8 @@ def test_extraction_not_in_pipeline():
 
 # 31B and the Specialty Honey Beer say "same as the base beer": only a sugar row (user, 2026-10-15)
 NO_SENSORY_ROWS = {"31B", "specialty-honey-beer"}
+# 30A's "Characteristic ingredients" is "-": the guideline names none (user, 2026-10-18)
+NO_INGREDIENT_ROWS = {"30A"}
 
 
 @pytest.mark.stack
@@ -200,6 +203,9 @@ def test_characteristic_ingredients():
 
         for code in se.S3_STYLES:
             rows = ingredients(code)
+            if code in NO_INGREDIENT_ROWS:
+                assert rows == [], code
+                continue
             assert rows, f"{code}: no characteristic ingredient"
             assert conn.execute(
                 "select bool_and(reviewed) from ref.style_ingredient i join ref.beer_style b on b.id = i.style_id "

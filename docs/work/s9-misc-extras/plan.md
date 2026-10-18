@@ -342,16 +342,16 @@ Commit: `Carry misc fields in the step 5 slot`
 
 ### Task 10: 30A has a reviewed envelope (review point)
 Why: B4, D9; R5 and R10 need 30A's `spice` row for the coffee-vanilla brief.
-- [ ] Add `"30A"` to `S3_STYLES` in `loaders/style_envelopes.py` (comment: the specialty style
+- [x] Add `"30A"` to `S3_STYLES` in `loaders/style_envelopes.py` (comment: the specialty style
       of b23) and update `tests/test_style_envelopes.py::test_s3_styles_are_the_26` to the new
       set and count (27 styles; briefs counted after Task 12, so write the expected set out).
-- [ ] Extract offline with the D2 model: `.venv/bin/python -m loaders.style_envelopes --extract <scratchpad>/30A.toml --style 30A`
+- [x] Extract offline with the D2 model: `.venv/bin/python -m loaders.style_envelopes --extract <scratchpad>/30A.toml --style 30A`
       (Ollama on the host, `NUM_CTX` as set). Paste the draft style into
       `loaders/style_envelopes.toml` with `reviewed = false`.
-- [ ] Stop and report `needs-approval`. **Review point (you):** review the 30A rows (the `spice`
+- [x] Stop and report `needs-approval`. **Review point (you):** review the 30A rows (the `spice`
       min and max from "subtle to aggressive", and which other rows to keep, since 30A's other
       sensations "vary by base style"), edit as you decide, set `reviewed = true`.
-- [ ] Load: `.venv/bin/python -m loaders.style_envelopes`, twice; the counts in
+- [x] Load: `.venv/bin/python -m loaders.style_envelopes`, twice; the counts in
       `ref.style_sensory` are equal after both runs. Run `pytest tests/test_style_envelopes.py tests/test_style_fit_golden.py`.
 Done when: 30A is reviewed and loaded, and the envelope tests pass.
 Commit: `Add the reviewed 30A envelope`
@@ -471,3 +471,4 @@ None.
 - 2026-10-18 · Task 6: the "inside the range, `allowed` in 25B" tests first set 25B's spice envelope to 0-7 (rolled back), and a separate test shows a noticeable dose is `out_of_style` "too much" under 25B's real maximum (2). — a noticeable dose is level 4 (M3), above 25B's max of low.
 - 2026-10-18 · Task 6: `tests/test_style_fit_effects.py::test_every_cut_point_has_a_basis` counts 26 entries with a basis, not 23. — `misc_dose` adds M1, M2 and M3.
 - 2026-10-18 · Task 9: `tests/test_contracts.py` also changed (the step 5 example and bad cases gain the now-required `misc` field); it was not in the Files table. — `misc` is a required slot field, so the old example no longer validated.
+- 2026-10-18 · Task 10: `tests/test_style_envelopes.py` gains `NO_INGREDIENT_ROWS = {"30A"}`, which `test_characteristic_ingredients` accepts with no ingredient rows. The 30A spice row (very low to very high) is hand-written from the Flavor sentence because the model returned no rows. — 30A's "Characteristic ingredients" is "-"; your answers to the Task 10 review.
