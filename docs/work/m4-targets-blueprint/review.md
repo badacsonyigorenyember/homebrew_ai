@@ -24,3 +24,31 @@ three workflows, `tests/step45_sample.json`). A1–A13 are each covered by a nam
 saved G4 run (`evals/results/2026-10-17-m4.json`: 22/22 on every step). No scope creep found. DB
 changes are `.sql` files, and the workflow files carry only credential references. Commits are
 one line each, with no body or trailer.
+
+## Re-review 2026-10-18
+
+Diff: e5dde47..3ed0c71 (1 commit: `tests/test_grade.py` +50, `PROJECT.md` §8)  ·  Verdict: ready for testing
+
+Checked only findings 1 and 2 and the new commit. `.venv/bin/pytest tests/test_grade.py`: 38
+passed (6 new). Mutations re-run in memory on `evals/grade.py` (repo file not changed):
+
+| Mutation (from finding 1) | Caught by |
+|---|---|
+| (a) skip widened (`and abv_stated` dropped) | `test_step4_derived_og_outside_range_fails_without_stated_abv` |
+| (b) `app.abv` agreement removed | `test_step4_abv_must_agree_with_app_abv` |
+| (c) final ABV-in-range check removed | nothing (38 pass) — see below |
+| (d) `_every_from_set` → `return True` | `test_step4_every_from_must_be_set` |
+| (e) step 5 rules equality removed | `test_step5_rules_must_equal_the_database_rules` |
+
+**(c) is acceptable.** With no stated ABV, the per-target loop (`evals/grade.py:229`) already
+range-checks `abv`: it is not stated and not og/fg, so the derived-skip does not apply. Measured:
+dropping only the `abv` range check from the loop also leaves 38 passing, while dropping both
+makes `test_step4_abv_outside_range_fails_without_stated_abv` fail. So the ABV range is guarded
+by two overlapping checks and the new test fails if both go. No test can separate them, and the
+grader cannot become laxer on ABV range without that test failing.
+
+**Finding 2 closed.** The Task 5 §8 entry now says ABV of 17 recipes (the five stated ones
+named) and includes b06 SRM 2.8 to 2.75, matching the fixture diff counted in the first review.
+The new §8 line for the fixes is dated, linked to this file, and states the redundancy.
+
+No new findings. Commit is one line, no body or trailer; only the two expected files changed.
