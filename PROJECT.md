@@ -4,7 +4,7 @@
 > is trying to do, how it is built, and how far along it is. If code and this file
 > disagree, one of them is wrong. Fix it, and record the fix in the [Progress log](#8-progress-log).
 >
-> Last updated: **2026-10-17**
+> Last updated: **2026-10-18**
 
 ---
 
@@ -241,6 +241,9 @@ Several of these are lessons from the first build (see §9).
 ## 8. Progress log
 
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
+
+### 2026-10-18
+- Wrote brief for s9-misc-extras ([`docs/work/s9-misc-extras/`](docs/work/s9-misc-extras/brief.md)), revised from the 2026-10-17 draft against what s8 and m4 built: s8's names and paths (`misc/` folder, `load_misc`, `<field>_ref` keys, `ref.ingredient_alias`, misc kind words), steps 1–5 measured at G4's level instead of steps 1–3 at G3's. Measured (2026-10-18): `ref.misc` has 2 columns, 10 categories and 0 rows; `app.specialty_style()` 3 rows (honey, molasses); `app.ingredient_kind_word()` 3 rows; no envelope for a BJCP 29–34 style. User decisions: process categories added; all fruit is flavour misc, fruit with a sourced sugar content marked "waits for maths" with a TODO for M6; a three-layer model (category → specialty style, one of the four specialty dimensions scored by dose, character tags never scored); step 5 misc slots carry usage, time and dose; real entries only for the new test briefs' products (coffee, vanilla, orange peel), one per form, process aids as fixtures. Still unverified: the vanilla and orange-peel doses and the subtle/aggressive cut points (Janish gives one coffee point per form).
 
 ### 2026-10-17
 - Shipped m4-targets-blueprint ([`docs/work/m4-targets-blueprint/`](docs/finished/m4-targets-blueprint/verification.md)): merged into `main`. Steps 0, 4 and 5 run in `Recipe pipeline` (brewer profile, targets, design frame), G4 met (22/22 briefs). Verification: 14/14 checks, full `pytest` 849 passed (measured on the branch, 2026-10-18).
