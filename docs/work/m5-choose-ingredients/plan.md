@@ -86,7 +86,7 @@ changes) is from memory and **unverified**; Task 5 guards against each one by me
 | `loaders/yeast_products.py`, `loaders/yeasts.py` | changed | `LACTO` map: YF-998, YF-999 get type `lacto`, quoted from their hopline text |
 | `db/036_ingredient_resolver.sql` | changed | `app.yeast_type_word()`; third fallback in `app.resolve_ingredient` |
 | `loaders/adjunct_products.py`, `loaders/adjuncts.py` | changed | `ALIASES`: "dark candi sugar" → Brown Candi Sugar, written by the adjunct loader |
-| `db/042_choose_table.sql` | new | `app.hop_form_word`, `app.choose_excluded`, `app.choose_table`, `app.choose_prompt` |
+| `db/042_choose_table.sql` | new | `app.hop_form_word`, `app.choose_excluded`, `app.choose_table`, `app.choose_prompt`, and their helpers (`app.choose_levels`, `choose_keeps_best`, `choose_yeast_rules`, `choose_fit_reason`, `choose_row_line` …) |
 | `db/043_choose_check.sql` | new | `app.misc_dose`, `app.step6_errors` … `app.step9_errors`, `app.choose_check`, `app.choose_read_answer` |
 | `db/044_choose_outputs.sql` | new | `app.step6_output` … `app.step9_output`, `app.choose_outputs` |
 | `shared/contracts/choose.proposal.schema.json` | new | the LLM's `format` and the shape the check reads |
@@ -183,7 +183,7 @@ Commit: `Add dark candi sugar alias to the adjunct loader`
 
 ### Task 3: code builds the candidate table and its prompt text
 Why: R1, R2, R3, R4, R5, R8, R9 (the facts code adds); scope "candidate table".
-- [ ] `db/042_choose_table.sql` (needs 034, 036, 037, 041):
+- [x] `db/042_choose_table.sql` (needs 034, 036, 037, 041):
       - `app.hop_form_word() returns table (word text, note text)`: `('lupomax', 'LUPOMAX pellets:
         concentrated lupulin of the same variety')`.
       - `app.choose_excluded(frame jsonb) returns jsonb`: every product in `frame.excluded[].refs`
@@ -226,8 +226,8 @@ Why: R1, R2, R3, R4, R5, R8, R9 (the facts code adds); scope "candidate table".
         name and `characteristic_ingredients`; the targets; the band; the yeast rules; the slots,
         absents and unused inventory. Levels as words (`typical`). No JSON; every number comes
         from `tbl`.
-- [ ] Apply twice; owners `postgres`.
-- [ ] Write `tests/test_choose_table.py` (stack; inputs via `tests.test_step4.step4` and
+- [x] Apply twice; owners `postgres`.
+- [x] Write `tests/test_choose_table.py` (stack; inputs via `tests.test_step4.step4` and
       `tests.test_step5.step5`, step 2 via `app.step2_best_style`). See each fail first:
       `test_b16_excludes_siblings` (A2: no 470, 471, 488, 489 in any row; `excluded` names
       471 and 489 as siblings); `test_b08_has_no_saaz` (A2); `test_inventory_marked_and_fitting`
@@ -242,7 +242,7 @@ Why: R1, R2, R3, R4, R5, R8, R9 (the facts code adds); scope "candidate table".
       background}` gives one `absent` row with the reason, and every other part equals b01's
       table); `test_prompt_uses_table_numbers` (every number in the prompt text is a number in
       the table JSON or the brief).
-- [ ] Measure and write in the PROJECT.md §8 entry: rows per kind and prompt characters for
+- [x] Measure and write in the PROJECT.md §8 entry: rows per kind and prompt characters for
       b01, b18 (guidance off, the largest) and b23.
 Done when: the table tests pass and the largest prompt's size is recorded.
 Commit: `Build the steps 6-9 candidate table`
@@ -524,3 +524,4 @@ None needed: imports go through the n8n CLI as OPERATIONS §5 says; no container
   (brief R5, A5 and Deviations updated). The resolver's culture-type word rule (Task 1) and the
   needs gap rule (Task 8) are confirmed by the user as planned.
 - 2026-10-18 · Task 2: after reloading the adjunct loader, `loaders.fermentable_facts` is re-run (twice) — the adjunct loader nulls `max_pct`/`field_source` (documented load order); no plan text changed.
+- 2026-10-18 · Task 3: `app.choose_table` also returns `style_name` and `characteristic_ingredients` (the prompt shows them and every prompt number must come from the table), `kind` on each `slots` and `inventory_words` entry, and `db/042` holds helper functions beyond the four listed — implementation detail, no scope change.
