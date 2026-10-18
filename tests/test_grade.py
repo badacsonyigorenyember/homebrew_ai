@@ -269,6 +269,56 @@ def test_step5_wrong_attenuation_fails():
     assert not grade.grade_step5(b, frame_b02(), STEP4_B02, {**FACTS5, "band_attenuation": 76.0})
 
 
+def unstated_abv_b01():
+    """b01 with no stated ABV: OG and ABV are derived and must sit inside the style's ranges."""
+    b = copy.deepcopy(BRIEFS["b01"])
+    del b["stated"]["abv"]
+    out = right_step4_b01()
+    out["targets"]["og"] = val(1.0613)
+    out["targets"]["abv"] = val(6.5, "derived")
+    return b, out
+
+
+def test_step4_unstated_abv_baseline_passes():
+    b, out = unstated_abv_b01()
+    assert grade.grade_step4(b, out, FACTS4)
+
+
+def test_step4_derived_og_outside_range_fails_without_stated_abv():
+    b, out = unstated_abv_b01()
+    out["targets"]["og"] = val(1.080, "derived")
+    assert not grade.grade_step4(b, out, FACTS4)
+
+
+def test_step4_abv_must_agree_with_app_abv():
+    assert not grade.grade_step4(BRIEFS["b01"], right_step4_b01(), {**FACTS4, "abv": 6.0})
+
+
+def test_step4_abv_outside_range_fails_without_stated_abv():
+    b, out = unstated_abv_b01()
+    out["targets"]["abv"] = val(8.0, "derived")
+    assert not grade.grade_step4(b, out, {**FACTS4, "abv": 8.0})
+
+
+def test_step4_every_from_must_be_set():
+    for target in ("ibu", "srm"):
+        out = right_step4_b01()
+        out["targets"][target]["from"] = ""
+        assert not grade.grade_step4(BRIEFS["b01"], out, FACTS4)
+    out = right_step4_b01()
+    out["mash_c"]["from"] = None
+    assert not grade.grade_step4(BRIEFS["b01"], out, FACTS4)
+
+
+def test_step5_rules_must_equal_the_database_rules():
+    b = BRIEFS["b02"]
+    other = [{"rule": "1", "checked": False, "sentence": "s"}]
+    assert not grade.grade_step5(b, frame_b02(), STEP4_B02, {**FACTS5, "rules": other})
+    out = frame_b02()
+    out["rules"]["rows"] = other
+    assert not grade.grade_step5(b, out, STEP4_B02, FACTS5)
+
+
 def test_grade_run_combines_steps():
     b = BRIEFS["b01"]
     steps = {1: right_step1(b), 2: style("21A"), 3: {"deviations": []}}
