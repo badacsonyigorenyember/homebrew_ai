@@ -125,9 +125,17 @@ def test_by_name_ignores_aliases(conn):
 
 @pytest.mark.stack
 def test_misc_kind_words_leave_brief_words_alone(conn):
-    # every wanted word of b01-b22 resolved to these products before the misc kind words existed
-    # (measured 2026-10-18 on the live database, which had no misc rows). b23 and b24 want misc.
-    assert all(r[1] != "misc" for b in BRIEFS if b["id"] not in ("b23", "b24")
-               for w in b["wanted"] for r in resolve(conn, w["item"]))
+    # every wanted word of b01-b22 must find the same products with the misc kind words as without
+    # them: the "without" run swaps in the three-word kind list (rolled back). b23, b24 want misc.
+    words = [w["item"] for b in BRIEFS if b["id"] not in ("b23", "b24") for w in b["wanted"]]
+    try:
+        with_misc = {w: sorted(r[0] for r in resolve(conn, w)) for w in words}
+        conn.execute("""create or replace function app.ingredient_kind_word()
+            returns table (word text, kind text) language sql immutable as
+            $$ values ('malt', 'fermentable'), ('hop', 'hop'), ('yeast', 'yeast') $$""")
+        without_misc = {w: sorted(r[0] for r in resolve(conn, w)) for w in words}
+    finally:
+        conn.rollback()
+    assert with_misc == without_misc
     rows = resolve(conn, "smoked malt cherry wood")
     assert rows and {r[1] for r in rows} == {"fermentable"}
