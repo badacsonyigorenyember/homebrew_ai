@@ -220,9 +220,9 @@ begin
                 v_word := 'noticeable';
             end if;
             v_lvl := (v_cuts -> 'misc_dose' -> 'levels' ->> v_word)::int;
-            v_what := v_what || ': ' || to_char(v_g, 'FM990.0#') || ' g/L is ' || v_word || ' ('
+            v_what := v_what || ': ' || trim_scale(round(v_g, 2))::text || ' g/L is ' || v_word || ' ('
                       || app.level_word(v_lvl) || ') against the sourced '
-                      || to_char(lower(v_dose_range), 'FM990.0#') || '-' || to_char(upper(v_dose_range), 'FM990.0#') || ' g/L'
+                      || trim_scale(round(lower(v_dose_range), 2))::text || '-' || trim_scale(round(upper(v_dose_range), 2))::text || ' g/L'
                       || case when v_cut is not null then ' (' || v_cut || ')' else '' end;
             if v_lvl > sens.max_level then
                 return jsonb_build_object('level', 'out_of_style',

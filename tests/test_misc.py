@@ -153,7 +153,7 @@ def test_flavour_misc_dose_words_in_25b(conn):
     for usage in ("whirlpool", "secondary"):
         result = level(conn, "25B", "Fixture Spice", usage, {"g_per_l": 0.8})
         assert result["level"] == "allowed"
-        assert "noticeable" in result["because"] and "0.5" in result["because"] and "1.0" in result["because"]
+        assert "noticeable" in result["because"] and "sourced 0.5-1 g/L" in result["because"]
     subtle = level(conn, "25B", "Fixture Spice", "secondary", {"g_per_l": 0.2})
     assert subtle["level"] == "allowed" and "subtle" in subtle["because"]
     assert "set by the user, 2026-10-18" in subtle["because"]
@@ -431,3 +431,13 @@ def test_live_misc_entries(conn):
     for word, names in only.items():
         found = {r[2] for r in resolve(conn, word)}
         assert found == names, word
+
+
+def test_dose_reason_text_prints_doses_plainly(conn):
+    """C6: doses read as numbers: no stray character, small doses keep their digits."""
+    coffee = level(conn, "30A", "Coffee, whole beans", "secondary", {"g_per_l": 3.0})["because"]
+    assert "3 g/L is noticeable" in coffee and "against the sourced 3-3 g/L" in coffee
+    assert "#" not in coffee
+    vanilla = level(conn, "30A", "Vanilla bean", "secondary", {"g_per_l": 0.02})["because"]
+    assert "0.02 g/L is subtle" in vanilla and "against the sourced 0.05-0.53 g/L" in vanilla
+    assert "#" not in vanilla
