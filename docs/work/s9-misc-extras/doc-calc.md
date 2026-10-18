@@ -1,10 +1,18 @@
 # S9 · Doc → calc pass: misc doses, filing and cut points
 
-Status: waiting for your review
+Status: accepted 2026-10-18
 Plan: [plan.md](plan.md) Task 1 · Brief: [brief.md](brief.md) B3
 Read 2026-10-18. Conversions: 1 US gal = 3.785 L, 5 gal = 18.93 L, 1 oz = 28.35 g.
 *How to Brew* page numbers are PDF pages (printed page + 26, BOOKS.md §1). The recipe tables that
 `kb` lost were read in the PDF with `pdftotext -layout`.
+
+## Decisions (you, 2026-10-18)
+All five recommendations accepted:
+1. Spice, herb, coffee, cacao, vanilla → 30A: set by the user, 2026-10-18 (BJCP states no such rule).
+2. M1 = 0.5, M2 = 2.0, M3 = 2 / 4 / 6: set by the user, 2026-10-18.
+3. Orange peel category: `spice`.
+4. Cold brew: usage `packaging`, `time_min` empty.
+5. Vanilla: dose from *How to Brew*'s 1-10 g per batch spice range, `time_min` empty.
 
 Nothing here is guessed. Where a source gives no number, the entry stays empty (R15). Where I
 propose a value that no source gives, it says "set by the user" and waits for your yes.

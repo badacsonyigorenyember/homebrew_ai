@@ -94,7 +94,7 @@ Each task adds a dated PROJECT.md §8 line in its own commit (CLAUDE.md, PROJECT
 
 ### Task 1: the doc → calc pass says what each source states (review point)
 Why: B3; R5, R8, R11, R14, R15 take their figures from it (PROJECT.md §6.7).
-- [ ] Write `docs/work/s9-misc-extras/doc-calc.md` with `Status: waiting for your review` and
+- [x] Write `docs/work/s9-misc-extras/doc-calc.md` with `Status: waiting for your review` and
       these sections, each figure with its quote (under 15 words where it is copyrighted text),
       page or URL, and arithmetic (1 US gal = 3.785 L, 5 gal = 18.93 L, 1 oz = 28.35 g):
   - **A. BJCP filing.** Does BJCP 2021 put coffee, cacao and vanilla under 30A? Read
@@ -132,7 +132,7 @@ Why: B3; R5, R8, R11, R14, R15 take their figures from it (PROJECT.md §6.7).
     (packaging or secondary, as the source says), `vanilla-bean.toml` (secondary),
     `orange-peel.toml` (whirlpool). A figure no source gives stays empty (R15).
   - **F. Not taken.** Figures read but not used, and why (e.g. a liquid extract dosed in mL).
-- [ ] Stop and report `needs-approval` with `doc-calc.md`. **Review point (you):** accept or
+- [x] Stop and report `needs-approval` with `doc-calc.md`. **Review point (you):** accept or
       change sections A–E. On acceptance set `Status: accepted <date>` and commit.
 Done when: `doc-calc.md` is accepted by you.
 Commit: `Add doc-calc pass for s9 misc doses and styles`
