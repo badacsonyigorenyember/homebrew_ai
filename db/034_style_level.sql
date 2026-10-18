@@ -451,9 +451,12 @@ $$;
 -- Whole recipe (Task 9): every line through app.style_level with the recipe's totals, the
 -- required characteristic ingredients, and the min check on the recipe's late-hop oil dose and
 -- roast index (one-level tolerance, user 2026-10-15). recipe is the app.check_recipe input.
+-- extras (optional) is [{ingredient_id, usage, g}] (g optional): misc lines, each rated with
+-- g / batch volume as its dose and added to lines as kind 'misc'.
 -- Output: {style_code, lines[{kind, ingredient_id, name, usage, level, because}],
 --          required[{requirement, met, because}], too_little[{dimension, level, min, because}]}
-create or replace function app.style_fit_recipe(recipe jsonb)
+drop function if exists app.style_fit_recipe(jsonb);
+create or replace function app.style_fit_recipe(recipe jsonb, extras jsonb default '[]')
 returns jsonb
 language plpgsql
 stable
@@ -562,6 +565,18 @@ begin
         jsonb_build_object('ferm_c', x -> 'ferm_c', 'ibu', v_ibu, 'srm', v_srm, 'srm_lower_bound', v_no_colour));
     v_lines := v_lines || jsonb_build_object('kind', 'yeast', 'ingredient_id', x -> 'ingredient_id',
         'name', x -> 'name', 'usage', 'ferment', 'level', v_res -> 'level', 'because', v_res -> 'because');
+
+    -- extras: misc lines, rated at their own dose
+    for x in select * from jsonb_array_elements(coalesce(extras, '[]'::jsonb)) loop
+        v_dose := '{}'::jsonb;
+        if x ->> 'g' is not null then
+            v_dose := jsonb_build_object('g_per_l', (x ->> 'g')::numeric / v_volume);
+        end if;
+        v_res := app.style_level(v_style, (x ->> 'ingredient_id')::bigint, x ->> 'usage', v_dose);
+        v_lines := v_lines || jsonb_build_object('kind', 'misc', 'ingredient_id', x -> 'ingredient_id',
+            'name', (select i.name from ref.ingredient i where i.id = (x ->> 'ingredient_id')::bigint),
+            'usage', x ->> 'usage', 'level', v_res -> 'level', 'because', v_res -> 'because');
+    end loop;
 
     -- required characteristic ingredients
     for r in

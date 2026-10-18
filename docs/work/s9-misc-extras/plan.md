@@ -280,22 +280,22 @@ Commit: `Rate flavour misc and process aids in style_level`
 
 ### Task 7: step 3 rates misc words; the recipe check takes extras
 Why: R7, R9; A7 (SQL level), A9.
-- [ ] `db/037_step3.sql` `app.ingredient_choices`: for a misc, one choice per entry of its
+- [x] `db/037_step3.sql` `app.ingredient_choices`: for a misc, one choice per entry of its
       `usages`, dose `'{}'`, label = the usage (e.g. "secondary"), in the order of `MISC_USAGES`.
-- [ ] `db/034_style_level.sql`: `drop function if exists app.style_fit_recipe(jsonb)`, then
+- [x] `db/034_style_level.sql`: `drop function if exists app.style_fit_recipe(jsonb)`, then
       `app.style_fit_recipe(recipe jsonb, extras jsonb default '[]')`. `extras` is
       `[{ingredient_id, usage, g}]` (`g` optional); each line goes through `app.style_level`
       with `g_per_l = g / batch volume`, and is added to `lines` as
       `{kind: 'misc', ingredient_id, name, usage, level, because}`. A one-argument call works as
       before. Check first that nothing in `n8n/workflows/` calls `style_fit_recipe` (none did,
       2026-10-18).
-- [ ] Tests in `tests/test_misc.py`: `app.rate_wanted('25B', 'fixture spice', 'background')`
+- [x] Tests in `tests/test_misc.py`: `app.rate_wanted('25B', 'fixture spice', 'background')`
       gives a level, not null; in 18B it is `out_of_style` and `app.step3_deviations` lists it as
       an ingredient deviation from "18B … ingredients"; Irish moss in a brief gives no deviation;
       `app.style_fit_recipe` on reference recipe b16 with extras = one `fixture-spice` (g given)
       and one Irish moss returns a line for each (A9), and the other lines equal the one-argument
       call.
-- [ ] Apply `db/037`, `db/034` twice; run `pytest tests/test_misc.py tests/test_step3.py tests/test_style_fit_recipe.py`.
+- [x] Apply `db/037`, `db/034` twice; run `pytest tests/test_misc.py tests/test_step3.py tests/test_style_fit_recipe.py`.
 Done when: A9 holds and step 3's b01–b22 outputs are unchanged (`test_step3.py` passes).
 Commit: `Rate misc in step 3 and in style_fit_recipe`
 

@@ -237,3 +237,72 @@ def test_misc_usage_must_belong_to_the_row(conn):
             level(conn, "25B", name, usage)
         conn.rollback()
         load_fixtures(conn)
+
+
+# ---------------------------------------------------------------- step 3 and recipe check (Task 7)
+
+from tests.test_reference_recipes import RECIPES, build_input  # noqa: E402
+
+
+def choices(conn, name, role="background"):
+    return conn.execute(
+        "select usage, dose, label from app.ingredient_choices(%s, %s) order by ord",
+        (ingredient_id(conn, name), role),
+    ).fetchall()
+
+
+def test_misc_choices_are_its_usages(conn):
+    load_fixtures(conn)
+    assert [(c[0], c[1], c[2]) for c in choices(conn, "Fixture Spice")] == [
+        ("whirlpool", {}, "whirlpool"), ("secondary", {}, "secondary")]
+    assert [c[0] for c in choices(conn, "Fixture Irish Moss")] == ["boil"]
+
+
+def test_rate_wanted_misc(conn):
+    load_fixtures(conn)
+    in_25b = conn.execute("select app.rate_wanted('25B', 'fixture spice', 'background')").fetchone()[0]
+    assert in_25b["level"] is not None
+    in_18b = conn.execute("select app.rate_wanted('18B', 'fixture spice', 'background')").fetchone()[0]
+    assert in_18b["level"] == "out_of_style"
+
+
+def step3(conn, style_code, wanted):
+    brief = {"named": None, "stated": {}, "hints": [], "wanted": wanted, "excluded": [],
+             "inventory": [], "unknown": [], "guidance": True}
+    style = {"style": {"code": style_code, "name": "Test style"}, "mismatch": None}
+    return conn.execute(
+        "select app.step3_deviations(%s::jsonb, %s::jsonb)", (Jsonb(brief), Jsonb(style))).fetchone()[0]
+
+
+def test_step3_lists_a_silent_spice_as_a_deviation(conn):
+    load_fixtures(conn)
+    got = step3(conn, "18B", [{"item": "fixture spice", "role": "background"}])
+    assert [(d["kind"], d["subject"], d["level"]) for d in got["deviations"]] == [
+        ("ingredient", "fixture spice", "out_of_style")]
+    assert got["deviations"][0]["from"].startswith("18B") and got["deviations"][0]["from"].endswith("ingredients")
+    assert got["unrated"] == []
+
+
+def test_step3_process_aid_is_no_deviation(conn):
+    load_fixtures(conn)
+    got = step3(conn, "18B", [{"item": "fixture irish moss", "role": "background"}])
+    assert got["deviations"] == [] and got["unrated"] == []
+
+
+def test_style_fit_recipe_takes_extras(conn):
+    load_fixtures(conn)
+    rec = next(r for r in RECIPES if r["brief"] == "b16")
+    base_input = build_input(conn, rec)
+    plain = conn.execute("select app.style_fit_recipe(%s::jsonb)", (Jsonb(base_input),)).fetchone()[0]
+    extras = [
+        {"ingredient_id": ingredient_id(conn, "Fixture Spice"), "usage": "secondary", "g": 19},
+        {"ingredient_id": ingredient_id(conn, "Fixture Irish Moss"), "usage": "boil"},
+    ]
+    with_extras = conn.execute(
+        "select app.style_fit_recipe(%s::jsonb, %s::jsonb)", (Jsonb(base_input), Jsonb(extras))).fetchone()[0]
+    misc_lines = [l for l in with_extras["lines"] if l["kind"] == "misc"]
+    assert [(l["name"], l["usage"]) for l in misc_lines] == [
+        ("Fixture Spice", "secondary"), ("Fixture Irish Moss", "boil")]
+    assert all(l["level"] for l in misc_lines)
+    assert [l for l in with_extras["lines"] if l["kind"] != "misc"] == plain["lines"]
+    assert with_extras["required"] == plain["required"] and with_extras["too_little"] == plain["too_little"]

@@ -218,16 +218,18 @@ $$;
 -- Fermentable: mash or boil. Hop: boil at the start minute of each boil band of
 -- app.usage_effects(), then whirlpool and dry hop; a feature hop is late only. Yeast: ferment at
 -- both ends of its temperature range and at each warm-step temperature that lies inside it.
--- Other kinds (water salt) have no choices.
+-- Misc: one choice per usage of its row, with no dose (the level is "is this sensation in the
+-- style"; a chosen dose is rated by app.style_fit_recipe). Other kinds (water salt) have no choices.
 create or replace function app.ingredient_choices(ingredient_id bigint, role text)
 returns table (usage text, dose jsonb, label text, ord int)
 language sql
 stable
 as $$
     with ing as (
-        select i.id, i.kind, y.temp_c
+        select i.id, i.kind, y.temp_c, m.usages
         from ref.ingredient i
         left join ref.yeast y on y.ingredient_id = i.id
+        left join ref.misc m on m.ingredient_id = i.id
         where i.id = ingredient_choices.ingredient_id
     ),
     -- every temperature at which a yeast's level can change, kept when inside its range
@@ -260,6 +262,12 @@ as $$
         select 'ferment', jsonb_build_object('ferm_c', c), 'ferment at ' || trim_scale(c) || ' °C',
                200 + (c * 10)::int
           from temps
+        union all
+        -- a misc: one choice per usage of its row, no dose, in the order of the intake usages
+        select u, '{}'::jsonb, u,
+               300 + array_position(array['mash', 'boil', 'whirlpool', 'ferment', 'secondary', 'packaging'], u)
+          from ing, unnest(ing.usages) as u
+         where ing.kind = 'misc'
     )
     select usage, dose, label, (row_number() over (order by ord))::int from choices order by ord
 $$;
