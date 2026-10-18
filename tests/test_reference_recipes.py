@@ -76,7 +76,9 @@ def check(conn, recipe_input):
 
 
 def test_every_brief_has_exactly_one_recipe():
-    brief_ids = [b["id"] for b in BRIEFS]
+    """b01-b22 have one recipe each. b23 and b24 (extras) get theirs with M6, when
+    app.check_recipe takes extras (RECIPE-ROADMAP Later TODO; decided 2026-10-18)."""
+    brief_ids = [b["id"] for b in BRIEFS if b["id"] not in ("b23", "b24")]
     assert len(brief_ids) == 22
     assert sorted(r["brief"] for r in RECIPES) == sorted(brief_ids)
 

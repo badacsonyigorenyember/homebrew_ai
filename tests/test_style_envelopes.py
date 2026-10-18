@@ -139,9 +139,8 @@ def test_schema_dimensions_are_the_vocabulary_minus_colour_and_bitterness():
 def test_s3_styles_are_the_27():
     with open(ROOT / "evals" / "recipe_briefs.toml", "rb") as f:
         briefs = {b["style"] for b in tomllib.load(f)["brief"]}
-    assert len(briefs) == 22
-    # b23's style (30A) is not in the briefs file until Task 12, so it is written out here
-    expected = briefs | {"20C", "18A", "specialty-honey-beer", "20B", "30A"}
+    assert len(briefs) == 23  # includes 30A (b23); b24 is 18B again
+    expected = briefs | {"20C", "18A", "specialty-honey-beer", "20B"}
     assert len(expected) == 27
     assert set(se.S3_STYLES) == expected and len(se.S3_STYLES) == 27
     with connect() as conn:

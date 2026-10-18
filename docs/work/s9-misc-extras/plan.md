@@ -374,7 +374,7 @@ Commit: `Add coffee, vanilla and orange peel misc entries`
 
 ### Task 12: two test briefs with extras (review point)
 Why: B4, R10; A7, A8, A12 at SQL level.
-- [ ] **Review point (you), before writing them:** approve or change these two briefs.
+- [x] **Review point (you), before writing them:** approve or change these two briefs.
   - `b23`: request "An American stout with the coffee up front and a little vanilla in the
     background."; named "American stout"; style `30A`; alt_styles `["20B"]`; deviations `[]`;
     wanted `[{coffee, feature}, {vanilla, background}]`; why "A featured coffee moves the style to
@@ -387,18 +387,18 @@ Why: B4, R10; A7, A8, A12 at SQL level.
     style; 18B is silent on spice, so the peel is a deviation."; needs fermentables
     `["pale ale malt", "crystal malt"]`, hops `["Cascade", "Centennial"]`, yeast
     `["American ale yeast"]`, misc `["orange peel"]`.
-- [ ] Add them to `evals/recipe_briefs.toml` (file header: 24 briefs, `needs.misc`).
+- [x] Add them to `evals/recipe_briefs.toml` (file header: 24 briefs, `needs.misc`).
       `tests/test_recipe_briefs.py`: 24 briefs, `NEEDS_KEYS` gains `misc`, docstring. `tests/test_reference_recipes.py`
       keeps one recipe per brief for b01–b22 and its docstring says why (decided by you,
       2026-10-18): b23/b24 recipes come with M6, when `app.check_recipe` takes extras (Later TODO,
       Task 14). `tests/test_step3.py`
       `ALL_IDS` and `tests/test_step4.py` / `test_step5.py` (they iterate all briefs) run on 24.
-- [ ] SQL-level checks (step 1's expected brief through steps 2–5, as `tests/test_step5.py::test_briefs_reach_the_bar` does):
+- [x] SQL-level checks (step 1's expected brief through steps 2–5, as `tests/test_step5.py::test_briefs_reach_the_bar` does):
       b23 step 2 gives 30A with 20B first; step 3 rates coffee and vanilla, none unrated (A7) and
       no deviation; step 4 uses 20B's ranges (`from base_style`); step 5's coffee slot has
       `misc` filled (A12). b24 keeps 18B and lists "orange peel" as an ingredient deviation (A8).
       Grade with `evals.grade`.
-- [ ] Run `pytest -m "not stack"` and `pytest tests/test_recipe_briefs.py tests/test_step3.py tests/test_step4.py tests/test_step5.py tests/test_reference_recipes.py tests/test_style_envelopes.py tests/test_prompt.py`.
+- [x] Run `pytest -m "not stack"` and `pytest tests/test_recipe_briefs.py tests/test_step3.py tests/test_step4.py tests/test_step5.py tests/test_reference_recipes.py tests/test_style_envelopes.py tests/test_prompt.py`.
 Done when: both briefs pass steps 2–5 at SQL level and the brief tests pass.
 Commit: `Add test briefs b23 and b24 with extras`
 
@@ -477,3 +477,7 @@ None.
   entries), and the second load run failed. "coffee" still resolves, to both coffee entries by name word,
   as §E says. Cold brew and vanilla carry an extra `usages_ref` key for the usage source.
   `test_extra_ingredients.py` counts (13/9) now include the 4 live entries (17/13).
+- 2026-10-18 · Task 12: `tests/test_recipe_briefs.py` skips b23 and b24 in the non-gravity word count (`EXTRAS_BRIEFS`); b01-b22 still must have none. — the two briefs are about coffee, vanilla and orange peel.
+- 2026-10-18 · Task 12: `tests/test_style_envelopes.py::test_s3_styles_are_the_27` expects 23 distinct brief styles and no longer writes 30A out. — b23 puts 30A in the briefs file; b24 is 18B again.
+- 2026-10-18 · Task 12: `tests/test_step3.py` `ALL_IDS` runs to b24 and its bar requires b23 and b24 to pass.
+- 2026-10-18 · Task 12: `tests/test_reference_recipes.py` counts b01-b22 for one recipe per brief, with a docstring saying why. — your answer to plan question 2.
