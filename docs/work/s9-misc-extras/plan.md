@@ -1,6 +1,6 @@
 # S9 · Misc extras: spices, fruit, coffee and process aids through the pipeline — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: s9-misc-extras
 
@@ -415,21 +415,21 @@ Commit: `Measure steps 1-5 on 24 briefs (s9)`
 
 ### Task 14: the docs describe misc as built
 Why: brief Scope (docs), R13 (TODO).
-- [ ] `docs/DATABASE.md`: the `ref.misc` row (columns, categories, usages, `field_source`),
+- [x] `docs/DATABASE.md`: the `ref.misc` row (columns, categories, usages, `field_source`),
       fill order (misc through intake), spot-check section.
-- [ ] `docs/STYLE-FIT.md` §2 (misc row: category → family tag, descriptors → character tags,
+- [x] `docs/STYLE-FIT.md` §2 (misc row: category → family tag, descriptors → character tags,
       process aids none), §3 (the 8 misc rows, `carries_character` false), §4 (dose against the
       row's sourced dose, M1–M3), and a short "three layers" paragraph (category → step 2,
       one dimension scored, tags never scored).
-- [ ] `docs/RECIPE-ROADMAP.md`: step 9 reads `ref.misc` usages and sourced doses (no "corpus
+- [x] `docs/RECIPE-ROADMAP.md`: step 9 reads `ref.misc` usages and sourced doses (no "corpus
       misc usage stats"); Later list: "TODO: fruit as a fermentable is decided with M6 (s9,
       decision 2)" and "TODO: reference recipes for b23 and b24 with M6, when `app.check_recipe`
       takes extras (s9)".
-- [ ] `docs/WORKFLOW-ROADMAP.md`: rows for s8 (shipped), s9 and s10 in the path table, and
+- [x] `docs/WORKFLOW-ROADMAP.md`: rows for s8 (shipped), s9 and s10 in the path table, and
       their node in the diagram.
-- [ ] `docs/INGREDIENT-INTAKE.md` §12: Q2, Q3, Q5 move to Made with their one-line why; §11
+- [x] `docs/INGREDIENT-INTAKE.md` §12: Q2, Q3, Q5 move to Made with their one-line why; §11
       rows marked done in s9; §13 checklist names the misc templates.
-- [ ] `shared/ingredients/README.md`: adding a misc (both templates, waits lines).
+- [x] `shared/ingredients/README.md`: adding a misc (both templates, waits lines).
 Done when: each doc names what was built and links the work folder.
 Commit: `Document misc extras (s9)`
 
@@ -481,3 +481,5 @@ None.
 - 2026-10-18 · Task 12: `tests/test_style_envelopes.py::test_s3_styles_are_the_27` expects 23 distinct brief styles and no longer writes 30A out. — b23 puts 30A in the briefs file; b24 is 18B again.
 - 2026-10-18 · Task 12: `tests/test_step3.py` `ALL_IDS` runs to b24 and its bar requires b23 and b24 to pass.
 - 2026-10-18 · Task 12: `tests/test_reference_recipes.py` counts b01-b22 for one recipe per brief, with a docstring saying why. — your answer to plan question 2.
+- 2026-10-18 · Task 14: `tests/test_ingredient_resolver.py::test_misc_kind_words_leave_brief_words_alone` skips b23 and b24 (they want misc, and the live database has had misc rows since Task 11); it was not in the Files table. — it failed on the full suite (1 failed, 898 passed) after Task 12 added the two briefs.
+- 2026-10-18 · Task 14: `docs/INGREDIENT-INTAKE.md` §12 moves Q2, Q3, Q5 and Q7 to a "Made in s9" table; Q3 and Q5 record your decisions (all fruit is flavour misc with a TODO for M6; the three-layer model), not the original options a/b. — the brief's decisions 2 and 3 replaced them.
