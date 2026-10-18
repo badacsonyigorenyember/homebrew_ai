@@ -1,0 +1,11 @@
+# Test fixture: invented data.
+kind = "misc"
+name = "Fixture Irish Moss"
+source = "fixture-data-sheet"
+description = "An invented fining agent for tests. It clears the wort in the boil."
+description_ref = "fixture sheet p. 10"
+purpose = "process"
+category = "fining"
+usages = ["boil"]
+time_min = 15
+time_min_ref = "fixture sheet p. 10"

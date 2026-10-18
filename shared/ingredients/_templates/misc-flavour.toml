@@ -1,0 +1,28 @@
+# Template: a flavour misc (spice, herb, fruit, coffee ...). Copy to shared/ingredients/misc/<name>.toml.
+# "" or [] means "not filled". Required keys must be filled; a filled figure needs its *_ref.
+# Ranges are [low, high]; for a single value write [x, x].
+# Units: g per litre of finished beer (dose_g_per_l), minutes (time_min), % (sugar_pct).
+# Nothing is guessed: leave a key empty when the source does not say.
+# Optional extra: <field>_source = "<slug>" names another source for one field (e.g. "user-supplied").
+# A liquid extract dosed in mL/L passes --check but waits: it is not loaded yet.
+
+kind = "misc"                      # required, must be "misc" (the folder name)
+name = ""                          # required, as the merchant or the book prints it
+producer = ""                      # optional, may stay empty
+source = ""                        # required, a slug in ref.source or in shared/ingredients/sources/
+description = ""                   # required, one to three English sentences from the source
+description_ref = ""               # required, page or URL of the description
+aliases = []                       # optional, words a brewer types for this product
+descriptors = []                   # required for a flavour misc: a tag name or a word of the vocabulary file
+
+purpose = "flavour"                # required, must be "flavour" for this template
+category = ""                      # required: spice, herb, fruit, wood, coffee, cacao, vanilla, smoke or other
+usages = []                        # required, at least one of: mash, boil, whirlpool, ferment, secondary, packaging
+time_min = ""                      # optional, contact time in whole minutes
+time_min_ref = ""                  # page or URL, needed when filled
+dose_g_per_l = []                  # optional, sourced dose in g per litre of finished beer; leave empty if no source gives one
+dose_g_per_l_ref = ""              # page or URL, needed when filled
+dose_ml_per_l = []                 # optional, only for a liquid extract (waits, not loaded); not together with dose_g_per_l
+dose_ml_per_l_ref = ""             # page or URL, needed when filled
+sugar_pct = ""                     # optional, only for category fruit: sugar content in % (waits for maths)
+sugar_pct_ref = ""                 # page or URL, needed when filled

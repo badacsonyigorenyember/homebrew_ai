@@ -1,0 +1,12 @@
+# Test fixture: invented data.
+kind = "misc"
+name = "Fixture Fruit"
+source = "fixture-data-sheet"
+description = "An invented fruit for tests, with a sourced sugar content."
+description_ref = "fixture sheet p. 8"
+descriptors = ["fruity"]
+purpose = "flavour"
+category = "fruit"
+usages = ["secondary"]
+sugar_pct = 12
+sugar_pct_ref = "fixture sheet p. 8"

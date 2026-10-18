@@ -160,27 +160,27 @@ Commit: `Add misc fields to ref.misc`
 
 ### Task 3: misc files pass the checker
 Why: R2, R13, R14, A2 (checks), A13, A14 (check side). No database in this task.
-- [ ] `loaders/extra_ingredients.py`: `KINDS` gains `misc`; remove the "misc arrives in s9"
+- [x] `loaders/extra_ingredients.py`: `KINDS` gains `misc`; remove the "misc arrives in s9"
       refusal (and change `test_misc_file_refused` to a test that a misc file is checked).
       `KIND_KEYS["misc"]`: `purpose`, `category`, `usages`, `time_min`, `dose_g_per_l`,
       `dose_ml_per_l`, `sugar_pct`. `FIGURES["misc"]`: `time_min`, `dose_g_per_l`,
       `dose_ml_per_l`, `sugar_pct` (each needs `<field>_ref` when filled, s8's rule).
       New sets `MISC_PURPOSES`, `FLAVOUR_CATEGORIES` (9), `PROCESS_CATEGORIES` (5),
       `CHANGES_THE_NUMBERS = {"enzyme", "acid"}`, `MISC_USAGES` (6).
-- [ ] `check_misc(p, f)`: always `purpose`, `category`, `usages`; category must belong to the
+- [x] `check_misc(p, f)`: always `purpose`, `category`, `usages`; category must belong to the
       purpose; usages from `MISC_USAGES`; `time_min` a whole number ≥ 0; `dose_g_per_l` a range
       in 0–1000; `dose_ml_per_l` a range; both doses filled → refused; `sugar_pct` only for
       category `fruit`, 0–100. Flavour: `descriptors` required. Process: `descriptors` must be
       empty ("a process aid has no flavour"). `producer` optional.
-- [ ] A function `misc_waits(item) -> str | None` gives the one waiting reason of a misc file:
+- [x] A function `misc_waits(item) -> str | None` gives the one waiting reason of a misc file:
       "liquid extract dosed in mL/L, not loaded until a later work item adds mL/L" (filled
       `dose_ml_per_l`), "changes the numbers (<category>): waits for maths" (enzyme, acid), "fruit
       sugar: waits for maths; TODO: fruit as a fermentable is decided with M6" (fruit with
       `sugar_pct`). `--check` prints these lines and still exits 0.
-- [ ] Templates `shared/ingredients/_templates/misc-flavour.toml` and `misc-process.toml`, in
+- [x] Templates `shared/ingredients/_templates/misc-flavour.toml` and `misc-process.toml`, in
       the style of `hop.toml` (every key, comments: required, unit g/L or minutes, "leave empty
       when the source does not say").
-- [ ] Fixtures in `tests/fixtures/ingredients/misc/`, all with `source = "fixture-data-sheet"`:
+- [x] Fixtures in `tests/fixtures/ingredients/misc/`, all with `source = "fixture-data-sheet"`:
       `fixture-spice.toml` (spice, whirlpool + secondary, dose [0.5, 1.0], descriptors
       `["spicy"]`, one alias), `fixture-spice-citrus.toml` (same category and dose, descriptors
       `["citrus"]`), `fixture-coffee-beans.toml` and `fixture-coffee-cold-brew.toml` (coffee, two
@@ -188,14 +188,14 @@ Why: R2, R13, R14, A2 (checks), A13, A14 (check side). No database in this task.
       (fruit, `sugar_pct` with ref), `fixture-other.toml` (flavour `other`),
       `fixture-irish-moss.toml` (process, fining, boil), `fixture-enzyme.toml` (process,
       enzyme), `fixture-vanilla-extract.toml` (vanilla, `dose_ml_per_l`).
-- [ ] Tests in `tests/test_extra_ingredients.py`: misc fixtures pass `check_files`; each
+- [x] Tests in `tests/test_extra_ingredients.py`: misc fixtures pass `check_files`; each
       template filled from a fixture passes and the empty template is refused (extend
       `test_template_filled_from_fixture_passes`); new `REFUSALS` rows: missing `purpose`,
       missing `usages`, flavour without descriptors, process with descriptors, category not of
       its purpose, unknown usage, both doses filled, `sugar_pct` on a non-fruit, `dose_g_per_l`
       without its ref; `test_misc_waits_reasons` (the three reasons, and none for
       `fixture-spice`). Update s8's fixture counts (`len(ingredients) == 4` and the like).
-- [ ] Run `pytest -m "not stack" tests/test_extra_ingredients.py`, expect pass.
+- [x] Run `pytest -m "not stack" tests/test_extra_ingredients.py`, expect pass.
 Done when: `python -m loaders.extra_ingredients --check tests/fixtures/ingredients` prints ok
 plus the three waits lines, and a refused file names file and field.
 Commit: `Check misc intake files`

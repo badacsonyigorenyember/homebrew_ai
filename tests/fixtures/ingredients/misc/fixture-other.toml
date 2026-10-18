@@ -1,0 +1,10 @@
+# Test fixture: invented data.
+kind = "misc"
+name = "Fixture Other"
+source = "fixture-data-sheet"
+description = "An invented flavouring for tests that fits no named category."
+description_ref = "fixture sheet p. 9"
+descriptors = ["fruity"]
+purpose = "flavour"
+category = "other"
+usages = ["secondary"]

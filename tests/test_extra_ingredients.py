@@ -59,7 +59,7 @@ def test_fixtures_pass(known):
     assert check_folder(FIXTURES, known) == []
     sources, ingredients = extra.read_folder(FIXTURES)
     assert [s.fields["slug"] for s in sources] == ["fixture-data-sheet"]
-    assert len(ingredients) == 4
+    assert len(ingredients) == 14
     assert "fixture-data-sheet" not in known.source_notes  # it comes from sources/, not from ref
 
 
@@ -68,6 +68,12 @@ def test_fixtures_pass(known):
     ("hop", "hop/fixture-hop.toml"),
     ("yeast", "yeast/fixture-ale.toml"),
     ("yeast", "yeast/fixture-lacto.toml"),
+    ("misc-flavour", "misc/fixture-spice.toml"),
+    ("misc-flavour", "misc/fixture-coffee-beans.toml"),
+    ("misc-flavour", "misc/fixture-fruit.toml"),
+    ("misc-flavour", "misc/fixture-vanilla-extract.toml"),
+    ("misc-process", "misc/fixture-irish-moss.toml"),
+    ("misc-process", "misc/fixture-enzyme.toml"),
     ("source", "sources/fixture-data-sheet.toml"),
 ])
 def test_template_filled_from_fixture_passes(known, work, kind, fixture):
@@ -110,6 +116,17 @@ REFUSALS = [
     ("folder-differs-from-kind", "hop/fixture-hop.toml", 'kind = "hop"', 'kind = "yeast"', None, "kind"),
     ("unknown-key", "hop/fixture-hop.toml", 'purpose = "dual"', 'purpose = "dual"\ncolour = 3', None, "colour"),
     ("bad-toml", "hop/fixture-hop.toml", 'purpose = "dual"', 'purpose = = "dual"', None, "toml"),
+    ("misc-missing-purpose", "misc/fixture-spice.toml", 'purpose = "flavour"\n', "", None, "purpose"),
+    ("misc-missing-usages", "misc/fixture-spice.toml", 'usages = ["whirlpool", "secondary"]\n', "", None, "usages"),
+    ("misc-flavour-without-descriptors", "misc/fixture-spice.toml", 'descriptors = ["spicy"]', "descriptors = []", None, "descriptors"),
+    ("misc-process-with-descriptors", "misc/fixture-irish-moss.toml", 'purpose = "process"', 'purpose = "process"\ndescriptors = ["spicy"]', None, "descriptors"),
+    ("misc-category-not-of-purpose", "misc/fixture-spice.toml", 'category = "spice"', 'category = "fining"', None, "category"),
+    ("misc-unknown-usage", "misc/fixture-spice.toml", '"secondary"]', '"bottle"]', None, "usages"),
+    ("misc-both-doses", "misc/fixture-spice.toml", 'dose_g_per_l = [0.5, 1.0]', 'dose_g_per_l = [0.5, 1.0]\ndose_ml_per_l = [1, 2]', None, "dose_ml_per_l"),
+    ("misc-sugar-on-non-fruit", "misc/fixture-spice.toml", 'purpose = "flavour"', 'purpose = "flavour"\nsugar_pct = 5', None, "sugar_pct"),
+    ("misc-dose-without-ref", "misc/fixture-spice.toml", 'dose_g_per_l_ref = "fixture sheet p. 5"\n', "", None, "dose_g_per_l_ref"),
+    ("misc-time-not-whole", "misc/fixture-coffee-beans.toml", "time_min = 2880", "time_min = 1.5", None, "time_min"),
+    ("misc-dose-out-of-range", "misc/fixture-spice.toml", "dose_g_per_l = [0.5, 1.0]", "dose_g_per_l = [0.5, 2000]", None, "dose_g_per_l"),
 ]
 
 
@@ -129,12 +146,22 @@ def test_two_files_one_product_refused(known, work):
     assert any(e.startswith(f"{shown(copy)}: name") and first in e for e in errors), errors
 
 
-def test_misc_file_refused(known, work):
-    (work / "misc").mkdir()
+def test_misc_file_is_checked(known, work):
     misc = work / "misc" / "honey.toml"
     misc.write_text(toml_text({"kind": "misc", "name": "Honey"}))
     errors = check_folder(work, known)
-    assert any(e.startswith(f"{shown(misc)}: kind") and "misc arrives in s9" in e for e in errors), errors
+    for field in ("purpose", "category", "usages", "source", "description"):
+        assert any(e.startswith(f"{shown(misc)}: {field}") for e in errors), (field, errors)
+
+
+def test_misc_waits_reasons(known):
+    _, ingredients = extra.read_folder(FIXTURES)
+    reasons = {i.stem: extra.misc_waits(i) for i in ingredients if i.folder == "misc"}
+    assert "mL/L" in reasons["fixture-vanilla-extract"]
+    assert "changes the numbers (enzyme)" in reasons["fixture-enzyme"]
+    assert "decided with M6" in reasons["fixture-fruit"]
+    assert [k for k, v in reasons.items() if v] == ["fixture-enzyme", "fixture-fruit", "fixture-vanilla-extract"]
+    assert reasons["fixture-spice"] is None
 
 
 def test_all_errors_reported(known, work):
@@ -181,7 +208,9 @@ def test_check_writes_nothing(conn, work, capsys):
     assert extra.main(["--check", str(work)]) == 1
     assert "hop/fixture-hop.toml: purpose" in capsys.readouterr().out
     assert extra.main(["--check", str(FIXTURES)]) == 0
-    assert capsys.readouterr().out.startswith("ok: 5 files (fermentable 1, hop 1, yeast 2, sources 1)")
+    out = capsys.readouterr().out
+    assert out.startswith("ok: 15 files (fermentable 1, hop 1, yeast 2, misc 10, sources 1)")
+    assert out.count("\nwaits: ") == 3
     assert counts(conn) == before
 
 
@@ -261,7 +290,8 @@ def rw():
 
 def load_fixtures(conn):
     sources, ingredients = extra.read_folder(FIXTURES)
-    return ingredients, extra.load(conn, sources, ingredients)
+    loadable = [i for i in ingredients if i.folder in extra.LOADERS]  # misc has no loader until Task 4
+    return loadable, extra.load(conn, sources, ingredients)
 
 
 def intake_snapshot(conn):
