@@ -1,7 +1,7 @@
 # Verification: s9-misc-extras
 
-Stage: verify  ·  Verified at 07a1076, 2026-10-18
-Overall: ❌ 1 of 14 checks failed (C6: the style-level reason prints a literal `#` in doses) · 🧪 899 of 899 tests pass
+Stage: verify  ·  Verified at 07a1076, re-verified at 503ab9f, 2026-10-18
+Overall: ✅ all 14 checks and 900 tests pass (C6 failed first, fixed in 503ab9f; see Re-verify)
 
 ## Part 1: Summary
 
@@ -11,7 +11,7 @@ Overall: ❌ 1 of 14 checks failed (C6: the style-level reason prints a literal 
 
 🤔 **Why this way:** Your three-layer model (category picks the style, one existing dimension is scored, tags only describe), with every dose and cut point sourced or set by you, so a new spice needs only its file.
 
-🏁 **Result:** 4 real misc rows (2 coffee forms, vanilla bean, orange peel), b23 picks 30A with 20B first, b24 keeps 18B with an orange-peel deviation, steps 1-5 pass 24/24 briefs, 899 tests pass.
+🏁 **Result:** 4 real misc rows (2 coffee forms, vanilla bean, orange peel), b23 picks 30A with 20B first, b24 keeps 18B with an orange-peel deviation, steps 1-5 pass 24/24 briefs, 900 tests pass.
 
 ### 🚦 Steps
 
@@ -27,7 +27,7 @@ Overall: ❌ 1 of 14 checks failed (C6: the style-level reason prints a literal 
   - ⚠️ Task 13: the n8n grep was not run then (done in review and again here).
   - ⚠️ Task 14: one test failed after Task 12, fixed.
 - ❌ 🔍 **Review:** Ready for testing, 0 must-fix, 3 should-fix (status column, 30A comment, kind-word test) 🔧 fixed in 07a1076.
-- ❌ 🧪 **Verify:** All acceptance criteria hold except one found here: the reason text printed by `app.style_level` shows a literal `#` and a rounded zero for doses (`3.0#`, `0.0#`). 🧮 spot checks ✅ 13/14 · 🧪 tests ✅ 899/899
+- ❌ 🧪 **Verify:** All acceptance criteria held except one found here: the reason text printed by `app.style_level` showed a literal `#` and rounded small doses (`3.0#`, `0.0#`) 🔧 fixed in 503ab9f, re-verified. 🧮 spot checks ✅ 14/14 · 🧪 tests ✅ 900/900
 
 👀 **Start here:** Part 2, the b23 and b24 lines: "coffee up front" gives 30A with 20B first, "a little orange peel" keeps 18B and lists the peel as a deviation.
 
@@ -174,10 +174,10 @@ docker exec supabase-db psql -U postgres -d postgres -tAc "select app.style_leve
 ```
 
 ```text
-{"level": "typical", "because": "spice from Coffee, whole beans: 7.0# g/L is aggressive (high) against the sourced 3.0#-3.0# g/L (M2: above 2.0 x the upper sourced dose, set by the user, 2026-10-18). Spice, Herb, or Vegetable Beer (30A) asks for spice: 'As with aroma, distinctive SHV flavors should be noticeable, and may range in intensity from subtle to aggressive.'."}
+{"level": "typical", "because": "spice from Coffee, whole beans: 7 g/L is aggressive (high) against the sourced 3-3 g/L (M2: above 2.0 x the upper sourced dose, set by the user, 2026-10-18). Spice, Herb, or Vegetable Beer (30A) asks for spice: 'As with aroma, distinctive SHV flavors should be noticeable, and may range in intensity from subtle to aggressive.'."}
 ```
 
-The stray `#` after each dose is the C6 failure. The level is also `typical` for an aggressive dose in 30A, because 30A's real envelope reaches "very high".
+The level is `typical` for an aggressive dose because 30A's real envelope reaches "very high". (Re-run at 503ab9f; before the fix this text read "7.0# g/L … 3.0#-3.0# g/L", see C6.)
 
 ## Part 3: Spot checks
 
@@ -235,7 +235,7 @@ docker exec supabase-db psql -U postgres -d postgres -tAc "select app.style_fit_
 |---|---|---|
 | M1, M2 and M3 each with a `basis` | M1 0.5 "set by the user, 2026-10-18 …", M2 2.0 "set by the user … HTB p. 225 …", M3 2/4/6 "set by the user …" | ✅ pass |
 
-### ❌ C6 · The reason text for a dose reads correctly (A5)
+### ❌ C6 (failed at 07a1076, fixed in 503ab9f; passes in Re-verify) · The reason text for a dose reads correctly (A5)
 
 ```bash
 docker exec supabase-db psql -U postgres -d postgres -tAc "select app.style_level('30A', 26306, 'secondary', '{\"g_per_l\": 3.0}')->>'because', app.style_level('30A', 26308, 'secondary', '{\"g_per_l\": 0.02}')->>'because'"
@@ -338,7 +338,7 @@ Criteria that need a fixture load (A2 load twice, A3, A5 tag independence, A6, A
 
 ## Part 4: Regression tests
 
-Command: `.venv/bin/python -m pytest -q -p no:cacheprovider`  ·  Result: ✅ 899 passed in 271 s (stack up, 07a1076)
+Command: `.venv/bin/python -m pytest -q -p no:cacheprovider`  ·  Result: ✅ 899 passed in 271 s (stack up, 07a1076); after the C6 fix see Re-verify (900 passed)
 
 No critical test was missing; none added.
 
@@ -358,4 +358,36 @@ No critical test was missing; none added.
 | tests/test_step3.py, tests/test_step5.py::test_briefs_reach_the_bar | Steps 3 and 5 hold on b01-b24 | ✅ |
 | tests/test_misc.py::test_live_misc_entries | The 4 live rows equal doc-calc §E; no process row | ✅ |
 
-Failures: none. The C6 text defect is not covered by any test, which is why the suite stays green.
+Failures: none. The C6 text defect was not covered by any test, which is why the suite stayed green; `test_dose_reason_text_prints_doses_plainly` now covers it.
+
+## Re-verify 2026-10-18
+
+Fix under test: 503ab9f (`db/034_style_level.sql` formats doses with `trim_scale(round(x, 2))::text`; new test `test_dose_reason_text_prints_doses_plainly`; `test_flavour_misc_dose_words_in_25b` expects "sourced 0.5-1 g/L").
+
+### ✅ C6 · The reason text for a dose reads correctly (A5)
+
+```bash
+docker exec supabase-db psql -U postgres -d postgres -tAc "select app.style_level('30A', 26306, 'secondary', '{\"g_per_l\": 3.0}')->>'because', app.style_level('30A', 26308, 'secondary', '{\"g_per_l\": 0.02}')->>'because'"
+```
+
+| Expected | Actual | Result |
+|---|---|---|
+| "3 g/L is noticeable … against the sourced 3-3 g/L"; "0.02 g/L is subtle … 0.05-0.53 g/L" | "3 g/L is noticeable (medium) against the sourced 3-3 g/L."; "0.02 g/L is subtle (low) against the sourced 0.05-0.53 g/L (M1: …)" | ✅ pass |
+
+The expected values are the same as the first run apart from trailing zeros (`3.0` prints as `3`), the form the fix chose.
+
+### Other checks
+
+C1-C5 and C7-C14 are unaffected by the fix (it changes only the reason text in `db/034`); the level in the Part 2 dose example is unchanged (`typical`), and its text is updated in place above. The full suite below covers the rest.
+
+### Regression tests
+
+Command: `.venv/bin/python -m pytest -q -p no:cacheprovider`  ·  Result: ✅ 900 passed in 276 s (stack up, 503ab9f)
+
+| Test | Protects | Result |
+|---|---|---|
+| tests/test_misc.py::test_dose_reason_text_prints_doses_plainly | Doses in the reason text print without `#` and without rounding a small dose to 0 | ✅ |
+| tests/test_misc.py::test_flavour_misc_dose_words_in_25b | Dose words in 25B; text expects "sourced 0.5-1 g/L" | ✅ |
+| all other rows of Part 4 | as above | ✅ (suite 900 passed) |
+
+Failures: none.
