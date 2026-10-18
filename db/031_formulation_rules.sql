@@ -76,11 +76,14 @@ as $$
         ('8', true, format('A recipe has exactly one bittering addition: a boil addition whose time '
             || 'equals the boil time. Every other hop addition is a boil addition of at most %s min, '
             || 'a whirlpool addition or a dry hop.', j->>'late_hop_max_min')),
-        ('9', true, format('When style guidance is on, a target OG, FG, ABV, IBU or SRM that the user did not '
-            || 'state is the style''s midpoint, within %s for OG, %s for FG, %s %% for ABV, %s IBU and %s SRM; OG '
-            || 'and FG count as stated when the user stated the ABV. A target is outside the style''s '
-            || 'range only when the user stated it or style guidance is off.',
-            tol->>'og', tol->>'fg', tol->>'abv', tol->>'ibu', tol->>'srm')),
+        ('9', true, format('When style guidance is on, a target OG, FG, IBU or SRM that the user did not '
+            || 'state is the style''s midpoint, moved by the request''s hints to 87.5 %% (up) or 12.5 %% '
+            || '(down) of the style''s range, with the OG moved inside its range as far as needed for the '
+            || 'ABV from the OG and FG to reach the style''s ABV range; within %s for OG, %s for FG, %s IBU '
+            || 'and %s SRM. OG and FG count as stated when the user stated the ABV. The ABV target is '
+            || 'app.abv of the OG and FG targets, within %s %%. A target is outside the style''s range '
+            || 'only when the user stated it or style guidance is off.',
+            tol->>'og', tol->>'fg', tol->>'ibu', tol->>'srm', tol->>'abv')),
         ('10', true, format('The mash temperature is between %s and %s °C, and the FG predicted from the '
             || 'yeast''s attenuation_pct, each fermentable''s fermentability and the mash temperature '
             || 'is inside the target FG range: the style''s FG range, or the target FG ± %s when the '

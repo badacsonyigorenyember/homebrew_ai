@@ -65,7 +65,7 @@ flowchart LR
     C --> D["median + IQR per role<br/>yeast ranking · hop dosage"]:::code
     D --> E[("corpus.style_profile")]:::sql
     F["rules of thumb<br/>AHA · OBC · BJCP text"]:::sql --> G
-    E --> G["5 · BLUEPRINT<br/>starting ratios, capped by rules"]:::code
+    E --> G["5 · DESIGN FRAME<br/>rules, slots, limits (no ratios)"]:::code
 
     classDef sql fill:#d6ecff,stroke:#2f6fb0,color:#000
     classDef code fill:#dff5d8,stroke:#3c8a2e,color:#000
@@ -89,7 +89,7 @@ flowchart TD
     end
     subgraph stB["B · DESIGN"]
       S4["4 · Targets<br/>range midpoints + hint knobs<br/>+ user's own numbers"]:::code
-      S5["5 · Blueprint<br/>grist % · hop split · dosage"]:::sql
+      S5["5 · Design frame<br/>rules · slots · limits · attenuation needed"]:::sql
     end
     subgraph stC["C · CHOOSE: scored by code"]
       S6["6 · Yeast"]:::code
@@ -133,8 +133,8 @@ flowchart TD
 | 1 | Brief | `{style:"American IPA", hints:["bitter"], extras:["cinnamon"]}` | 🟪 |
 | 2 | Style | **21A American IPA**: OG 1.056–1.070 · IBU 40–70 · SRM 6–14 *(styles.json)* | 🟦 score: name + numbers + sensory words |
 | 3 | Deviations | cinnamon: ⚠️ not part of 21A → listed; closest category 30A (info only) | 🟩 |
-| 4 | Targets | "bitter" → IBU 65 · OG 1.062 · FG 1.011 · SRM 7 | 🟩 |
-| 5 | Blueprint | base ~90 % · crystal ≤ 5 % · hop split from the corpus profile | 🟦🟩 |
+| 4 | Targets | "bitter" → IBU 66.25 (87.5 % of 21A 40–70) · OG 1.0613 · FG 1.011 · ABV from `app.abv`; built in `db/039_step4.sql`, measured G4 2026-10-17 | 🟩 |
+| 5 | Design frame | rules and limits · one slot per wanted item with its `ref` products (role, `max_pct`) · excluded and inventory words · hint intents · attenuation the targets need; no ratio numbers (D7); built in `db/041_step5.sql`, measured G4 2026-10-17 | 🟦 |
 | 6 | Yeast | top 21A yeast in the corpus that fits FG 1.011 and is in stock | 🟩 score |
 | 7 | Fermentables | fill each grist role: inventory first, then corpus popularity | 🟩 score |
 | 8 | Hops | bittering = high alpha · late/dry = tags match hints (citrus, pine) | 🟩 score |
@@ -252,16 +252,16 @@ model-chosen values stay inside the style range. Your explicit numbers always wi
 
 | Hint | Knobs |
 |---|---|
-| bitter | IBU → top 25 % of range · BU:GU ↑ |
+| bitter | IBU → middle of the top quarter of the range (87.5 %) · BU:GU ↑ |
 | hoppy / juicy | late + dry hop share ↑ (not IBU) |
-| dry / crisp | mash 64–65 °C (rule 10 predicts the same FG for any mash 64–68.3 °C, so this does not lower it; doc-calc §7) · high-attenuation yeast · sugar ≤ 10 % |
-| full / chewy | mash 68–69 °C · oats or dextrin malt · lower-attenuation yeast |
-| malty | Munich / Vienna share ↑ · BU:GU ↓ |
-| darker | SRM ↑ via crystal / roast |
-| stronger / session | OG ↑ / OG ↓ |
+| dry / crisp | mash 64.5 °C (middle of 64–65; rule 10 predicts the same FG for any mash 64–68.3 °C, so this does not lower it; doc-calc §7) · high-attenuation yeast · sugar ≤ 10 % |
+| full / chewy | mash 68.5 °C (middle of 68–69) · lower-attenuation yeast · oats or dextrin malt |
+| malty | IBU → middle of the bottom quarter (12.5 %) · Munich / Vienna share ↑ · BU:GU ↓ |
+| darker | SRM → 87.5 % of the range, via crystal / roast |
+| stronger / session | OG → 87.5 % / 12.5 % of the range |
 | *flavour words* (citrus, coffee…) | tag match in steps 7–9 |
 
-*Starter table. Each row gets a book source before it is trusted.*
+*Starter table. Rows with a book passage are sourced, the others are used marked `unsourced` and sourced before G6; every row's source is in [`hint-sources.md`](work/m4-targets-blueprint/hint-sources.md). Positions and mash values are the user's decision (2026-10-17).*
 
 ---
 
@@ -296,7 +296,7 @@ flowchart LR
 | **P7** | Doc → calc pass per book, then ingest the rest into `kb`, retrieval eval | recall@5 measured, above an agreed bar |
 | **P6** | Steps 12–15, with the water functions (moved from P2, 2026-10-14, [`s1-maths`](finished/s1-maths/brief.md)) | every recipe has water, mash, ferment, package |
 | **P8** | Step 16 + interface: n8n chat trigger (D5, decided) | you can brew from the sheet |
-| **Later** | - inventory-first mode<br>- substitutions<br>- batch log → feedback<br>- whirlpool and dry-hop IBU from a cited model (they count as 0 IBU until then; [`s1-maths`](finished/s1-maths/brief.md), 2026-10-14)<br>- an enzyme rule using `enzyme_activity`<br>- the ratio corpus (old s2), revisited only if test-brief results show generic or off recipes<br>- TODO: tune retrieval (`candidates`, `rrf_k`, `MAX_TOKENS`, `MIN_WORDS` in `app.kb_search` and `loaders/books.py`): the first run ([`s4-books-kb`](finished/s4-books-kb/plan.md), recall@5 0.422) showed chunks from other books outranking the expected one; re-run `python -m evals.retrieval`, then raise `RECALL_AT_5_BAR` (now 0.40) in a Deviation. The vector arm returns at most `hnsw.ef_search` rows (default 40), so raising `candidates` above 40 needs `ef_search` raised in the same session too (user request 2026-10-16)<br>- TODO: multi-step mash profiles (several rests, decoction) and their effect on predicted FG, replacing the single mash temperature in rule 10 and s1's FG ([`s2-formulation-rules`](finished/s2-formulation-rules/brief.md), user request 2026-10-15) | |
+| **Later** | - inventory-first mode<br>- substitutions<br>- batch log → feedback<br>- whirlpool and dry-hop IBU from a cited model (they count as 0 IBU until then; [`s1-maths`](finished/s1-maths/brief.md), 2026-10-14)<br>- an enzyme rule using `enzyme_activity`<br>- the ratio corpus (old s2), revisited only if test-brief results show generic or off recipes<br>- TODO: tune retrieval (`candidates`, `rrf_k`, `MAX_TOKENS`, `MIN_WORDS` in `app.kb_search` and `loaders/books.py`): the first run ([`s4-books-kb`](finished/s4-books-kb/plan.md), recall@5 0.422) showed chunks from other books outranking the expected one; re-run `python -m evals.retrieval`, then raise `RECALL_AT_5_BAR` (now 0.40) in a Deviation. The vector arm returns at most `hnsw.ef_search` rows (default 40), so raising `candidates` above 40 needs `ef_search` raised in the same session too (user request 2026-10-16)<br>- TODO: multi-step mash profiles (several rests, decoction) and their effect on predicted FG, replacing the single mash temperature in rule 10 and s1's FG ([`s2-formulation-rules`](finished/s2-formulation-rules/brief.md), user request 2026-10-15)<br>- TODO: let the user set their own water ions in the brewer profile (input path, form or command); until then the default profile uses distilled water (all six ions 0 mg/L, Bru'n Water §4.2.1; user request 2026-10-17) | |
 
 ---
 

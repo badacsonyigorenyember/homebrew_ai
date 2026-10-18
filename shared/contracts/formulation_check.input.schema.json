@@ -7,6 +7,7 @@
     "style_code",
     "guidance",
     "stated",
+    "hints",
     "targets",
     "batch",
     "mash_c",
@@ -45,6 +46,26 @@
           "type": "number"
         }
       }
+    },
+    "hints": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "bitter",
+          "hoppy",
+          "juicy",
+          "dry",
+          "crisp",
+          "full",
+          "chewy",
+          "malty",
+          "darker",
+          "stronger",
+          "session"
+        ]
+      },
+      "uniqueItems": true,
+      "maxItems": 11
     },
     "targets": {
       "type": "object",

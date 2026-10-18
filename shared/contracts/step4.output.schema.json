@@ -1,0 +1,351 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step4.output",
+  "description": "Step 4, targets: the style used, batch size, OG, FG, ABV, IBU and SRM targets, mash temperature, the hint knobs applied and the conflicts, each number with where it came from. Absent: a target value null with from none (the style has no such range); style.code and style.name null with from none (no usable style).",
+  "type": "object",
+  "required": [
+    "style",
+    "batch_l",
+    "targets",
+    "mash_c",
+    "knobs",
+    "conflicts",
+    "guidance"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "style": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "name",
+        "from",
+        "because"
+      ],
+      "properties": {
+        "code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "from": {
+          "enum": [
+            "chosen",
+            "base_style",
+            "none"
+          ]
+        },
+        "because": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "batch_l": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "from",
+        "because"
+      ],
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "from": {
+          "enum": [
+            "stated",
+            "profile"
+          ]
+        },
+        "because": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "targets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "og",
+        "fg",
+        "abv",
+        "ibu",
+        "srm"
+      ],
+      "properties": {
+        "og": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "from",
+            "because"
+          ],
+          "properties": {
+            "value": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "from": {
+              "enum": [
+                "midpoint",
+                "hint",
+                "stated",
+                "derived",
+                "none"
+              ]
+            },
+            "because": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "fg": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "from",
+            "because"
+          ],
+          "properties": {
+            "value": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "from": {
+              "enum": [
+                "midpoint",
+                "hint",
+                "stated",
+                "derived",
+                "none"
+              ]
+            },
+            "because": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "abv": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "from",
+            "because"
+          ],
+          "properties": {
+            "value": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "from": {
+              "enum": [
+                "midpoint",
+                "hint",
+                "stated",
+                "derived",
+                "none"
+              ]
+            },
+            "because": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "ibu": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "from",
+            "because"
+          ],
+          "properties": {
+            "value": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "from": {
+              "enum": [
+                "midpoint",
+                "hint",
+                "stated",
+                "derived",
+                "none"
+              ]
+            },
+            "because": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "srm": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "from",
+            "because"
+          ],
+          "properties": {
+            "value": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "from": {
+              "enum": [
+                "midpoint",
+                "hint",
+                "stated",
+                "derived",
+                "none"
+              ]
+            },
+            "because": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "mash_c": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "from",
+        "because"
+      ],
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "from": {
+          "enum": [
+            "midpoint",
+            "hint"
+          ]
+        },
+        "because": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "knobs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "knob",
+          "direction",
+          "hints",
+          "intent",
+          "source"
+        ],
+        "properties": {
+          "knob": {
+            "type": "string"
+          },
+          "direction": {
+            "enum": [
+              -1,
+              1
+            ]
+          },
+          "hints": {
+            "type": "string"
+          },
+          "intent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "subject",
+          "from",
+          "level",
+          "requested_by",
+          "because"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "ingredient",
+              "number",
+              "mismatch",
+              "conflict"
+            ]
+          },
+          "subject": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "level": {
+            "enum": [
+              "out_of_style",
+              "changes_style",
+              null
+            ]
+          },
+          "requested_by": {
+            "enum": [
+              "user",
+              "model"
+            ]
+          },
+          "because": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "guidance": {
+      "type": "boolean"
+    }
+  }
+}

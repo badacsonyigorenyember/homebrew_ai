@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step4.input",
+  "description": "Step 4, targets: numbers for the style from the brief, the hints and the profile. brief is a step1.output, style a step2.output, profile a step0.output and deviations a step3.output, each already checked. No absent slot.",
+  "type": "object",
+  "required": [
+    "run_id",
+    "brief",
+    "style",
+    "profile",
+    "deviations"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "brief": {
+      "type": "object"
+    },
+    "style": {
+      "type": "object"
+    },
+    "profile": {
+      "type": "object"
+    },
+    "deviations": {
+      "type": "object"
+    }
+  }
+}

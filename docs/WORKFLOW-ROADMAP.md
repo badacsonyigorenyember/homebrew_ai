@@ -37,7 +37,7 @@ flowchart TD
     S6["s6 · Style neighbours: step 2 checks, envelope cross-check"] --> M3
     M3["m3 · Step 3: deviations<br/>G3: P4 done"] --> M4
     S5["s5 · Mash temperature → attenuation, cited"] --> M4
-    M4["m4 · Steps 0, 4–5: profile, targets, blueprint<br/>G4"] --> M5
+    M4["m4 · Steps 0, 4–5: profile, targets, design frame<br/>G4"] --> M5
     M5["m5 · Steps 6–9: choose<br/>G5: 0 invented"] --> M6
     M6["m6 · Steps 10–11: compute + validate<br/>G6: MVP, brewer's review"] --> M7
     M7["m7 · Steps 12–15: process<br/>(needs Water, Yeast doc→calc)"] --> M8
@@ -71,7 +71,7 @@ names and dev-ship's move to `docs/finished/` assume `<slug>` is one folder name
 | S2 | [`s2-formulation-rules`](finished/s2-formulation-rules/brief.md) | Fermentable roles, limits, enzyme activity, minimum boil, substitutes, descriptions; 13 formulation rules and the rule check; 22 reference recipes (D7 decided) | s1 | — (brief A1–A16) |
 | S3 | [`s3-style-fit`](finished/s3-style-fit/brief.md) | Tags, envelopes for 26 styles (22 brief styles, 3 alternates, 20B), `level()`, golden set (D9) | s2 | **G-S** |
 | M3 | [`m3-deviations`](finished/m3-deviations/brief.md) | Step 3: number, mismatch, conflict and ingredient deviations | m2, s3 | **G3** = RECIPE-ROADMAP P4 done |
-| M4 | [`m4-targets-blueprint`](work/m4-targets-blueprint/brief.md) | Steps 0, 4, 5: brewer profile, targets (ranges + hint knobs + stated numbers), blueprint (ratios) | m3, s1, s2 | **G4** |
+| M4 | [`m4-targets-blueprint`](work/m4-targets-blueprint/brief.md) | Steps 0, 4, 5: brewer profile, targets (ranges + hint knobs + stated numbers), design frame | m3, s1, s2 | **G4** |
 | M5 | [`m5-choose-ingredients`](work/m5-choose-ingredients/brief.md) | Steps 6–9: yeast, fermentables, hops, extras, scored by code; the resolver | m4, s3 | **G5** |
 | M6 | [`m6-compute-validate`](work/m6-compute-validate/brief.md) | Steps 10–11: amounts, OG/FG/ABV/IBU/SRM, validate + retry ≤ 3×, save; held-out briefs | m5, s1 | **G6** = MVP |
 | M7 | [`m7-process`](work/m7-process/brief.md) | Steps 12–15: water, mash + boil, ferment, package | m6, s5; sources in [SOURCES.md](SOURCES.md) (all present) | — (brief check only) |
@@ -164,6 +164,9 @@ vocabulary before adding override rows.
 guidance-off says otherwise; each hint moves its knob as the §7 table says (b01 IBU in the top
 25 %, b11's conflict leaves body at the midpoint and is reported). Checked by code against
 `ref.beer_style`, so the briefs don't need target numbers.
+
+**Measured (2026-10-17, [`m4-targets-blueprint`](work/m4-targets-blueprint/plan.md)):** met. `python -m evals.run --save --label m4` on the real pipeline (D2 model): b01-b20 20/20 with step 4 and step 5 both passing, b21 and b22 also pass; step 1 22/22, step 2 22/22, step 3 22/22, step 4 22/22, step 5 22/22, briefs 22/22. A2 cases: b01 IBU 66.25 (top quarter of 21A), b09 IBU 18.75 (bottom quarter of 6A), b06 mash 64.5 °C, b03 mash 68.5 °C, b19 OG 1.1064 and ABV 9.99, b11 mash 66.5 °C with the dry vs full, chewy conflict reported, b12 targets from base style 18A. All 22 step 0, 4 and 5 rows are `ok` and their input and output meet the step contracts (132 checks with `extensions.jsonschema_validation_errors`, 0 errors). No step 4 or 5 miss, so none came from step 1's output. Saved in `evals/results/2026-10-17-m4.json`.
+**Decided:** (left for the user)
 
 ### G5 · Choices are real and honour the user
 

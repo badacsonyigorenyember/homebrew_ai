@@ -1,0 +1,87 @@
+{
+ "profile": {
+  "units": "metric",
+  "water": {
+   "ca": 0.0,
+   "cl": 0.0,
+   "mg": 0.0,
+   "na": 0.0,
+   "so4": 0.0,
+   "hco3": 0.0
+  },
+  "batch_l": 20.0,
+  "losses_l": 2.0,
+  "inventory": [],
+  "boil_off_l_h": 4.0,
+  "efficiency_pct": 72.0,
+  "grain_abs_l_kg": 1.0
+ },
+ "deviations": {
+  "unrated": [],
+  "guidance": true,
+  "deviations": []
+ },
+ "targets": {
+  "knobs": [
+   {
+    "knob": "ibu",
+    "hints": "bitter",
+    "intent": null,
+    "source": "unsourced",
+    "direction": 1
+   },
+   {
+    "knob": "bu_gu",
+    "hints": "bitter",
+    "intent": null,
+    "source": "bjcp-exam-study-guide-2017, p60",
+    "direction": 1
+   }
+  ],
+  "style": {
+   "code": "21A",
+   "from": "chosen",
+   "name": "American IPA",
+   "because": "step 2 chose 21A"
+  },
+  "mash_c": {
+   "from": "midpoint",
+   "value": 66.5,
+   "because": "middle of rule 10's mash range 64–69 °C"
+  },
+  "batch_l": {
+   "from": "stated",
+   "value": 20,
+   "because": "stated by the user"
+  },
+  "targets": {
+   "fg": {
+    "from": "midpoint",
+    "value": 1.011,
+    "because": "midpoint of 21A FG 1.008–1.014"
+   },
+   "og": {
+    "from": "derived",
+    "value": 1.0613,
+    "because": "solved so app.abv gives the stated ABV 6.5 at FG 1.011"
+   },
+   "abv": {
+    "from": "stated",
+    "value": 6.5,
+    "because": "stated by the user"
+   },
+   "ibu": {
+    "from": "hint",
+    "value": 66.25,
+    "because": "bitter: 87.5 % of 21A IBU 40–70"
+   },
+   "srm": {
+    "from": "midpoint",
+    "value": 10.0,
+    "because": "midpoint of 21A SRM 6–14"
+   }
+  },
+  "guidance": true,
+  "conflicts": []
+ }
+}
