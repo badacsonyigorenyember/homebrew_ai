@@ -1,6 +1,6 @@
 # S9 · Misc extras: spices, fruit, coffee and process aids through the pipeline — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: s9-misc-extras
 
