@@ -202,24 +202,24 @@ Commit: `Check misc intake files`
 
 ### Task 4: misc files load, tag and report
 Why: R2, R3, R13, R14, R15; A2, A3, A13, A14, A15.
-- [ ] `load_misc(conn, item)`: `ref.ingredient` (kind `misc`) and the `ref.misc` row through
+- [x] `load_misc(conn, item)`: `ref.ingredient` (kind `misc`) and the `ref.misc` row through
       `write_ingredient` (every column written, so a cleared field becomes NULL), aliases as s8.
       `load` loads misc after yeast and **skips** a file whose `misc_waits` is the liquid-extract
       reason (its aliases are not stored or checked). `sugar_pct` stays in `raw.intake` only.
-- [ ] `loaders/style_fit_vocab.toml`: 9 family tags named after the flavour categories
+- [x] `loaders/style_fit_vocab.toml`: 9 family tags named after the flavour categories
       (`spice`, `herb`, `fruit`, `wood`, `coffee`, `cacao`, `vanilla`, `smoke`, `other`).
       Family and character tags may share a name (`ref.tag` is unique per facet); `app.style_level`
       never reads a misc's tags (Task 6), so no clash.
-- [ ] `loaders/tags.py` misc branch: for each `ref.misc` row, flavour → family tag = category,
+- [x] `loaders/tags.py` misc branch: for each `ref.misc` row, flavour → family tag = category,
       character tags from `descriptors` through `resolve_intake` (unknown words to
       `ingredient_review`, as s8); process → nothing saved, no review row. Docstring updated.
-- [ ] `summary` / `print_summary`: `loaded` counts misc; a process aid is neither tagged nor
+- [x] `summary` / `print_summary`: `loaded` counts misc; a process aid is neither tagged nor
       flagged (no "no tags derived"); `waits_for_maths` lists the enzyme/acid and fruit-sugar
       lines with their reasons; a new `waits` list names skipped liquid extracts; `--check`'s ok
       line counts misc.
-- [ ] `db/checks/ref_spotcheck.sql`: `misc` moves to the `intake` group; a section "Intake misc
+- [x] `db/checks/ref_spotcheck.sql`: `misc` moves to the `intake` group; a section "Intake misc
       rows" with purpose, category, usages, time_min, dose_g_per_l, source and file.
-- [ ] Tests (stack, `rw` rolled back): misc fixtures load, a second load gives the same rows
+- [x] Tests (stack, `rw` rolled back): misc fixtures load, a second load gives the same rows
       (extend `test_load_twice_same_rows` and `intake_snapshot` with `ref.misc`); every filled
       column has a `field_source` entry; `fixture-no-dose` has `dose_g_per_l` NULL (A15);
       the two coffee forms are two rows with their own dose and time (A14); the vanilla extract
@@ -227,7 +227,7 @@ Why: R2, R3, R13, R14, R15; A2, A3, A13, A14, A15.
       `waits_for_maths` with "decided with M6" (A13); in `tests/test_tags.py`
       `test_misc_tags`: `fixture-spice` has family `spice` and character `spicy`, Irish moss
       has no tag and no `ingredient_review` row, and is not in `flagged` (A3).
-- [ ] Run `pytest tests/test_extra_ingredients.py tests/test_tags.py`; run
+- [x] Run `pytest tests/test_extra_ingredients.py tests/test_tags.py`; run
       `docker exec -i supabase-db psql -U postgres -d postgres < db/checks/ref_spotcheck.sql`,
       expect the misc lines (0 rows on the live database).
 Done when: the tests pass and the live `ref.misc` still has 0 rows.
@@ -464,3 +464,6 @@ None.
 - 2026-10-18 · Approach (style fit step 7), Task 6: a flavour misc within the envelope's range is
   `typical` when the envelope's `min_level` is at least 1, else `allowed`. — your answer to plan
   question 4.
+- 2026-10-18 · Task 3 (carried to Task 4): `load` skipped misc files and the `load_fixtures` test helper returned only loadable kinds until `load_misc` existed; Task 4 lifted both (the helper now returns all files and the loader's ids). — Task 3 left them for Task 4.
+- 2026-10-18 · Task 3: the misc count in `--check`'s ok line and the `waits:` lines moved into Task 3. — they belong to the checker, not the loader.
+- 2026-10-18 · Task 4: `waits_for_maths` entries are now "label: reason" lines (yeast: "souring culture, no model yet"), `summary` gained `waits` for skipped liquid extracts, and the `ref.misc` count moved to the spot-check's `intake` group. — one line format for all reasons.

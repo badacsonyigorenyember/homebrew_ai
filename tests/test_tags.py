@@ -208,3 +208,41 @@ def test_intake_yeast_family():
     assert tags.INTAKE_YEAST_FAMILY["lacto"] == "sour"
     assert tags.INTAKE_YEAST_FAMILY["pedio"] == "sour"
     assert set(tags.INTAKE_YEAST_FAMILY) == {"ale", "lager", "kveik", "brett", "lacto", "pedio"}
+
+
+@pytest.mark.stack
+def test_misc_tags():
+    """A flavour misc gets its category as family and its descriptors as characters; a process aid
+    gets no tag and no review row and is not flagged (A3)."""
+    from pathlib import Path
+
+    from loaders import extra_ingredients as extra
+
+    fixtures = Path(__file__).resolve().parent / "fixtures" / "ingredients"
+    rw = connect()
+    try:
+        sources, ingredients = extra.read_folder(fixtures)
+        loaded = extra.load(rw, sources, ingredients)
+        vocab = tags.read_vocab()
+        tags.load_vocab(rw, vocab)
+        tags.derive_tags(rw, vocab)
+
+        def tags_of(name):
+            return {(facet, tag) for facet, tag in rw.execute(
+                "select t.facet, t.name from ref.ingredient_tag it join ref.tag t on t.id = it.tag_id "
+                "join ref.ingredient i on i.id = it.ingredient_id where i.name = %s", (name,))}
+
+        assert tags_of("Fixture Spice") == {("family", "spice"), ("character", "spicy")}
+        assert ("family", "coffee") in tags_of("Fixture Coffee Beans")
+        assert ("family", "herb") in tags_of("Fixture No Dose")
+        assert tags_of("Fixture Irish Moss") == set() and tags_of("Fixture Enzyme") == set()
+        reviews = rw.execute(
+            "select count(*) from ref.ingredient_review r join ref.ingredient i on i.id = r.ingredient_id "
+            "where i.kind = 'misc'").fetchone()[0]
+        assert reviews == 0
+        s = extra.summary(rw, ingredients, loaded)
+        assert not any("Irish Moss" in label or "Enzyme" in label for label, _ in s["flagged"])
+        assert not any("Irish Moss" in label for label in s["tagged"])
+    finally:
+        rw.rollback()
+        rw.close()

@@ -18,8 +18,8 @@ from (
     union all select 'yeast',             'loaded',    count(*) from ref.yeast
     union all select 'water_salt',        'loaded',    count(*) from ref.water_salt
     union all select 'ingredient_alias',  'intake',    count(*) from ref.ingredient_alias
-    union all select 'misc',              'style-fit', count(*) from ref.misc
-    union all select 'tag',               'style-fit', count(*) from ref.tag
+    union all select 'misc',              'intake',    count(*) from ref.misc
+        union all select 'tag',               'style-fit', count(*) from ref.tag
     union all select 'tag_synonym',       'style-fit', count(*) from ref.tag_synonym
     union all select 'ingredient_tag',    'style-fit', count(*) from ref.ingredient_tag
     union all select 'sensory_dimension', 'style-fit', count(*) from ref.sensory_dimension
@@ -39,6 +39,12 @@ select i.kind, i.producer, i.name, s.slug as source, s.edition, i.raw->'intake'-
        (select string_agg(a.alias, ', ' order by a.alias) from ref.ingredient_alias a where a.ingredient_id = i.id) as aliases
 from ref.ingredient i join ref.source s on s.id = i.source_id
 where i.raw ? 'intake' order by i.kind, i.producer, i.name;
+
+\echo '== Intake misc rows =='
+select i.name, m.purpose, m.category, m.usages, m.time_min, m.dose_g_per_l, s.slug as source,
+       i.raw->'intake'->>'path' as file
+from ref.misc m join ref.ingredient i on i.id = m.ingredient_id join ref.source s on s.id = i.source_id
+where i.raw ? 'intake' order by i.name;
 
 \echo '== Rows without a source (must be 0) =='
 select 'beer_style' as "table", count(*) as no_source

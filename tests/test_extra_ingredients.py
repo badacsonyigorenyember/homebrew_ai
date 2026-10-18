@@ -176,7 +176,7 @@ def test_all_errors_reported(known, work):
 
 from loaders.db import connect  # noqa: E402
 
-COUNT_TABLES = ["ref.source", "ref.ingredient", "ref.fermentable", "ref.hop", "ref.yeast", "ref.ingredient_alias"]
+COUNT_TABLES = ["ref.source", "ref.ingredient", "ref.fermentable", "ref.hop", "ref.yeast", "ref.misc", "ref.ingredient_alias"]
 
 
 @pytest.fixture
@@ -290,8 +290,8 @@ def rw():
 
 def load_fixtures(conn):
     sources, ingredients = extra.read_folder(FIXTURES)
-    loadable = [i for i in ingredients if i.folder in extra.LOADERS]  # misc has no loader until Task 4
-    return loadable, extra.load(conn, sources, ingredients)
+    loaded = extra.load(conn, sources, ingredients)
+    return ingredients, loaded  # a liquid extract is in ingredients but not in loaded["ids"]
 
 
 def intake_snapshot(conn):
@@ -301,7 +301,7 @@ def intake_snapshot(conn):
         "select row_to_json(s)::text from ref.source s where notes like 'intake:%' order by slug")]
     out["ingredient"] = [r[0] for r in conn.execute(
         "select row_to_json(i)::text from ref.ingredient i where raw ? 'intake' order by id")]
-    for table in ("fermentable", "hop", "yeast"):
+    for table in ("fermentable", "hop", "yeast", "misc"):
         out[table] = [r[0] for r in conn.execute(
             f"select row_to_json(t)::text from ref.{table} t join ref.ingredient i on i.id = t.ingredient_id "
             "where i.raw ? 'intake' order by t.ingredient_id")]
@@ -316,9 +316,10 @@ def test_load_twice_same_rows(rw):
     before = counts(rw)
     load_fixtures(rw)
     first_counts, first = counts(rw), intake_snapshot(rw)
-    assert first_counts["ref.ingredient"] == before["ref.ingredient"] + 4
+    assert first_counts["ref.ingredient"] == before["ref.ingredient"] + 13  # 4 + 9 misc (the vanilla extract waits)
+    assert first_counts["ref.misc"] == before["ref.misc"] + 9
     assert first_counts["ref.source"] == before["ref.source"] + 1
-    assert first_counts["ref.ingredient_alias"] == before["ref.ingredient_alias"] + 4
+    assert first_counts["ref.ingredient_alias"] == before["ref.ingredient_alias"] + 5
     load_fixtures(rw)
     assert counts(rw) == first_counts
     assert intake_snapshot(rw) == first
@@ -357,8 +358,10 @@ def test_alias_equal_to_another_files_name_rolls_back(rw):
 
 @pytest.mark.stack
 def test_field_source_covers_filled_fields(rw):
-    ingredients, _ = load_fixtures(rw)
+    ingredients, loaded = load_fixtures(rw)
     for item in ingredients:
+        if item.path not in loaded["ids"]:
+            continue
         kind = item.folder
         row = rw.execute(
             f"select to_jsonb(t) from ref.{kind} t join ref.ingredient i on i.id = t.ingredient_id "
@@ -433,6 +436,8 @@ def test_intake_rows_tagged(rw):
 def test_every_alias_resolves(rw):
     ingredients, loaded = load_fixtures(rw)
     for item in ingredients:
+        if item.path not in loaded["ids"]:
+            continue
         ingredient_id = loaded["ids"][item.path]
         for word in [item.fields["name"], *item.fields.get("aliases", [])]:
             found = [r[0] for r in rw.execute("select ingredient_id from app.resolve_ingredient(%s)", (word,))]
@@ -456,10 +461,15 @@ def test_summary_counts(rw):
     tags.derive_tags(rw, vocab)
     s = extra.summary(rw, ingredients, loaded)
     assert s["ref_counts"] == dict(rw.execute("select kind, count(*) from ref.ingredient group by kind"))
-    assert s["loaded"] == {"fermentable": 1, "hop": 1, "yeast": 2}
+    assert s["loaded"] == {"fermentable": 1, "hop": 1, "yeast": 2, "misc": 9}
     assert s["new_sources"] == ["fixture-data-sheet"]
-    assert s["aliases_checked"] == 4 and s["flagged"] == []
-    assert s["waits_for_maths"] == ["Fixture Yeasts Fixture Lacto LB-1"]
+    assert s["aliases_checked"] == 5 and s["flagged"] == []
+    assert len(s["tagged"]) == 11  # everything but the two process aids
+    assert len(s["waits_for_maths"]) == 3
+    assert any("Fixture Lacto LB-1" in line for line in s["waits_for_maths"])
+    assert any("Fixture Enzyme" in line and "changes the numbers (enzyme)" in line for line in s["waits_for_maths"])
+    assert any("Fixture Fruit" in line and "decided with M6" in line for line in s["waits_for_maths"])
+    assert len(s["waits"]) == 1 and "Fixture Vanilla Extract" in s["waits"][0] and "mL/L" in s["waits"][0]
 
 
 @pytest.mark.stack
@@ -479,10 +489,11 @@ def test_main_loads_tags_and_prints_summary(rw, monkeypatch, capsys):
     monkeypatch.setattr(extra, "connect", lambda: NoCommit())
     assert extra.main([str(FIXTURES)]) == 0
     out = capsys.readouterr().out
-    assert "loaded: fermentable 1, hop 1, yeast 2" in out
+    assert "loaded: fermentable 1, hop 1, yeast 2, misc 9" in out
+    assert "waits (not loaded)" in out and "Fixture Vanilla Extract" in out
     assert "sources added: fixture-data-sheet" in out
     assert "waits for maths" in out and "Fixture Lacto LB-1" in out
-    assert rw.execute("select count(*) from ref.ingredient where raw ? 'intake'").fetchone()[0] == 4
+    assert rw.execute("select count(*) from ref.ingredient where raw ? 'intake'").fetchone()[0] == 13
 
 
 @pytest.mark.stack
@@ -515,8 +526,72 @@ def test_spotcheck_lists_intake_rows(rw):
     per_kind, with_source = spotcheck_statements(
         "Intake rows per kind (shared/ingredients/; 0 until a real item is added)", "Intake rows with their source"
     )
-    assert dict(rw.execute(per_kind).fetchall()) == {"fermentable": 1, "hop": 1, "yeast": 2}
+    assert dict(rw.execute(per_kind).fetchall()) == {"fermentable": 1, "hop": 1, "yeast": 2, "misc": 9}
     rows = rw.execute(with_source).fetchall()
-    assert len(rows) == 4  # fermentable, hop, ale yeast, lacto culture
+    assert len(rows) == 13  # fermentable, hop, ale yeast, lacto culture, 9 misc
     assert {r[3] for r in rows} == {"fixture-data-sheet"} and {r[4] for r in rows} == {"test fixture"}
     assert all(r[5].startswith("tests/fixtures/ingredients/") for r in rows)
+
+
+@pytest.mark.stack
+def test_spotcheck_lists_intake_misc_rows(rw):
+    load_fixtures(rw)
+    (misc_rows,) = spotcheck_statements("Intake misc rows")
+    rows = rw.execute(misc_rows).fetchall()
+    assert len(rows) == 9
+    by_name = {r[0]: r for r in rows}
+    purpose, category, usages, time_min, dose, source, file = by_name["Fixture Coffee Beans"][1:]
+    assert (purpose, category, usages, time_min) == ("flavour", "coffee", ["secondary"], 2880)
+    assert source == "fixture-data-sheet" and file.startswith("tests/fixtures/ingredients/misc/")
+    assert by_name["Fixture No Dose"][5] is None  # no dose
+
+
+@pytest.mark.stack
+def test_misc_rows_load(rw):
+    """Fixtures load as misc rows: figures, field_source, own dose and time per form (A14, A15)."""
+    ingredients, loaded = load_fixtures(rw)
+
+    def row(name):
+        return rw.execute(
+            "select m.purpose, m.category, m.usages, m.time_min, m.dose_g_per_l, m.description, m.field_source "
+            "from ref.misc m join ref.ingredient i on i.id = m.ingredient_id where i.name = %s", (name,)).fetchone()
+
+    spice = row("Fixture Spice")
+    assert spice[:4] == ("flavour", "spice", ["whirlpool", "secondary"], None)
+    assert (float(spice[4].lower), float(spice[4].upper)) == (0.5, 1.0)
+    assert spice[6] == {"purpose": "fixture-data-sheet", "category": "fixture-data-sheet",
+                        "usages": "fixture-data-sheet", "dose_g_per_l": "fixture-data-sheet",
+                        "description": "fixture-data-sheet"}
+    assert row("Fixture No Dose")[4] is None and "dose_g_per_l" not in row("Fixture No Dose")[6]  # A15
+    beans, brew = row("Fixture Coffee Beans"), row("Fixture Coffee Cold Brew")  # A14: two rows, own dose and time
+    assert (beans[3], float(beans[4].lower)) == (2880, 3.0)
+    assert (brew[3], float(brew[4].lower), brew[2]) == (960, 6.0, ["packaging"])
+    # a process aid has no flavour descriptors; the fruit's sugar stays in raw.intake only
+    assert row("Fixture Irish Moss")[:2] == ("process", "fining") and row("Fixture Enzyme")[:2] == ("process", "enzyme")
+    assert row("Fixture Fruit")[1] == "fruit"
+    sugar = rw.execute("select raw->'intake'->'fields'->>'sugar_pct' from ref.ingredient where name = 'Fixture Fruit'").fetchone()[0]
+    assert sugar == "12" or sugar == "12.0"
+
+
+@pytest.mark.stack
+def test_liquid_extract_is_not_loaded(rw):
+    ingredients, loaded = load_fixtures(rw)
+    assert rw.execute("select count(*) from ref.ingredient where name = 'Fixture Vanilla Extract'").fetchone()[0] == 0
+    assert all("vanilla-extract" not in path for path in loaded["ids"])
+
+
+@pytest.mark.stack
+def test_reload_clears_a_misc_dose(rw, work):
+    def load_work():
+        sources, ingredients = extra.read_folder(work)
+        return extra.load(rw, sources, ingredients)
+
+    load_work()
+    q = ("select m.dose_g_per_l, m.field_source from ref.misc m join ref.ingredient i on i.id = m.ingredient_id "
+         "where i.name = 'Fixture Spice'")
+    assert rw.execute(q).fetchone()[0] is not None
+    edit(work, "misc/fixture-spice.toml", "dose_g_per_l = [0.5, 1.0]", "dose_g_per_l = []")
+    edit(work, "misc/fixture-spice.toml", 'dose_g_per_l_ref = "fixture sheet p. 5"', 'dose_g_per_l_ref = ""')
+    load_work()
+    dose, field_source = rw.execute(q).fetchone()
+    assert dose is None and "dose_g_per_l" not in field_source

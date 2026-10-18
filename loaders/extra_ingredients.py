@@ -635,7 +635,27 @@ def load_yeast(conn, item: IntakeFile) -> int:
     return write_ingredient(conn, item, "yeast", "ref.yeast", values, field_sources(f, values))
 
 
-LOADERS = {"fermentable": load_fermentable, "hop": load_hop, "yeast": load_yeast}
+def load_misc(conn, item: IntakeFile) -> int:
+    f = item.fields
+    values = {
+        "category": f["category"],
+        "purpose": f["purpose"],
+        "usages": f["usages"],
+        "time_min": f.get("time_min") if not is_blank(f.get("time_min")) else None,
+        "dose_g_per_l": rng(f.get("dose_g_per_l")),
+        "description": f["description"],
+    }
+    # sugar_pct is not a column: it stays in raw.intake until fruit as a fermentable is decided (M6)
+    return write_ingredient(conn, item, "misc", "ref.misc", values, field_sources(f, values))
+
+
+LOADERS = {"fermentable": load_fermentable, "hop": load_hop, "yeast": load_yeast, "misc": load_misc}
+LIQUID_EXTRACT = "liquid extract"
+
+
+def not_loaded(item: IntakeFile) -> bool:
+    """A misc file that passes --check but is not loaded: a liquid extract dosed in mL/L."""
+    return (misc_waits(item) or "").startswith(LIQUID_EXTRACT)
 
 
 def load(conn, sources: list[IntakeFile], ingredients: list[IntakeFile]) -> dict:
@@ -650,7 +670,7 @@ def load(conn, sources: list[IntakeFile], ingredients: list[IntakeFile]) -> dict
         load_source(conn, item)
     counts = {kind: 0 for kind in LOADERS}
     ids = {}
-    ingredients = [i for i in ingredients if i.folder in LOADERS]  # misc has no loader yet
+    ingredients = [i for i in ingredients if i.folder in LOADERS and not not_loaded(i)]
     for kind in LOADERS:
         for item in ingredients:
             if item.folder == kind:
@@ -677,6 +697,8 @@ def summary(conn, ingredients: list[IntakeFile], loaded: dict, orphan_list: list
     tagged, flagged = [], []
     for ingredient_id, item in by_id.items():
         label = f"{item.fields.get('producer') or ''} {item.fields['name']}".strip()
+        if item.folder == "misc" and item.fields["purpose"] == "process":
+            continue  # a process aid has no flavour: no tags, nothing to flag
         reasons = [r for (r,) in conn.execute("select reason from ref.ingredient_review where ingredient_id = %s", (ingredient_id,))]
         n_tags = conn.execute("select count(*) from ref.ingredient_tag where ingredient_id = %s", (ingredient_id,)).fetchone()[0]
         if reasons:
@@ -685,11 +707,16 @@ def summary(conn, ingredients: list[IntakeFile], loaded: dict, orphan_list: list
             tagged.append(label)
         else:
             flagged.append((label, ["no tags derived"]))
-    waits = [
-        f"{i.fields.get('producer') or ''} {i.fields['name']}".strip()
+    def label_of(i):
+        return f"{i.fields.get('producer') or ''} {i.fields['name']}".strip()
+
+    waits_for_maths = [
+        f"{label_of(i)}: souring culture, no model yet"
         for i in ingredients
         if i.folder == "yeast" and i.fields.get("type") in SOUR_TYPES
     ]
+    waits_for_maths += [f"{label_of(i)}: {misc_waits(i)}" for i in ingredients if i.path in ids and misc_waits(i)]
+    not_loaded_files = [f"{label_of(i)}: {misc_waits(i)}" for i in ingredients if not_loaded(i)]
     return {
         "loaded": loaded["counts"],
         "new_sources": loaded["new_sources"],
@@ -697,14 +724,15 @@ def summary(conn, ingredients: list[IntakeFile], loaded: dict, orphan_list: list
         "flagged": flagged,
         "orphans": orphan_list or [],
         "aliases_checked": loaded["aliases"],
-        "waits_for_maths": waits,
+        "waits_for_maths": waits_for_maths,
+        "waits": not_loaded_files,
         "ref_counts": dict(conn.execute("select kind, count(*) from ref.ingredient group by kind order by kind")),
     }
 
 
 def print_summary(s: dict):
     loaded = s["loaded"]
-    print(f"loaded: fermentable {loaded['fermentable']}, hop {loaded['hop']}, yeast {loaded['yeast']}")
+    print(f"loaded: fermentable {loaded['fermentable']}, hop {loaded['hop']}, yeast {loaded['yeast']}, misc {loaded['misc']}")
     print(f"sources added: {', '.join(s['new_sources']) or 'none'}")
     print(f"tagged: {len(s['tagged'])}; flagged for review: {len(s['flagged'])}")
     for label, reasons in s["flagged"]:
@@ -712,8 +740,10 @@ def print_summary(s: dict):
     for line in s["orphans"]:
         print(f"no file backs this intake row: {line}")
     print(f"aliases checked: {s['aliases_checked']}")
-    for label in s["waits_for_maths"]:
-        print(f"waits for maths (souring culture, no model yet): {label}")
+    for line in s["waits_for_maths"]:
+        print(f"waits for maths: {line}")
+    for line in s["waits"]:
+        print(f"waits (not loaded): {line}")
     print("ref.ingredient per kind: " + ", ".join(f"{k} {n}" for k, n in s["ref_counts"].items()))
 
 
