@@ -1,4 +1,4 @@
-"""Shape and coverage checks for the 22 recipe test briefs in evals/recipe_briefs.toml.
+"""Shape and coverage checks for the 24 recipe test briefs in evals/recipe_briefs.toml.
 
 Requirements R1-R3 and R5-R11 of docs/work/test-briefs/brief.md. Each coverage test fails
 with the measured count in its message. `pytest -s` prints the whole coverage dict.
@@ -23,7 +23,7 @@ FIELDS = {
     "wanted", "excluded", "inventory", "guidance", "needs",
 }
 STATED_KEYS = {"batch_l", "abv", "og", "ibu", "srm"}
-NEEDS_KEYS = {"fermentables", "hops", "yeast", "water_salts"}
+NEEDS_KEYS = {"fermentables", "hops", "yeast", "water_salts", "misc"}
 DEVIATION_KINDS = {"ingredient", "number", "mismatch", "conflict"}
 
 # Style buckets for R5, as BJCP 2021 codes. A brief counts by its `style`, not its alt_styles.
@@ -56,6 +56,8 @@ HINT_ROWS = {
 }
 
 # Words that mean fruit or an extra without gravity (R11). Not "chocolate": that is a malt.
+# b01-b22 use none; b23 and b24 are the briefs with extras (s9) and are not counted.
+EXTRAS_BRIEFS = {"b23", "b24"}
 NON_GRAVITY_WORDS = {
     "fruit", "fruity", "apple", "apricot", "banana", "blackberry", "blueberry", "cherry",
     "grape", "grapefruit", "lemon", "lime", "mango", "orange", "peach", "pineapple", "plum",
@@ -81,6 +83,8 @@ def coverage(briefs: list[dict]) -> dict[str, int]:
     batch_sizes = {b["stated"]["batch_l"] for b in briefs if "batch_l" in b["stated"]}
     non_gravity = 0
     for b in briefs:
+        if b["id"] in EXTRAS_BRIEFS:
+            continue
         texts = [b["request"], *(w["item"] for w in b["wanted"]), *(item for v in b["needs"].values() for item in v)]
         non_gravity += sum(len(words(t) & NON_GRAVITY_WORDS) for t in texts)
 
@@ -113,9 +117,9 @@ def at_least(c: dict[str, int], key: str, minimum: int) -> None:
 
 
 def test_briefs_with_every_field():
-    assert len(BRIEFS) == 22, f"briefs: {len(BRIEFS)} (need exactly 22)"
+    assert len(BRIEFS) == 24, f"briefs: {len(BRIEFS)} (need exactly 24)"
     ids = [b.get("id") for b in BRIEFS]
-    assert len(set(ids)) == 22, f"duplicate ids: {sorted(i for i in set(ids) if ids.count(i) > 1)}"
+    assert len(set(ids)) == 24, f"duplicate ids: {sorted(i for i in set(ids) if ids.count(i) > 1)}"
     hint_words = set().union(*HINT_ROWS.values())
     for b in BRIEFS:
         bid = b.get("id")

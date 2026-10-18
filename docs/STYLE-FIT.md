@@ -52,10 +52,20 @@ flowchart LR
 | Hop | origins, purpose, page description, alpha, oil | origin → origin tag · descriptor dictionary (*grapefruit → citrus*, *mango → tropical*, *pine → resin*) · purpose as loaded (`ref.hop.purpose`, from hopline) | Citra → `US` `citrus` `tropical` |
 | Fermentable | EBC, name keywords | role from **colour (EBC) + name keywords** (`ref.fermentable.role`): base · kilned · crystal · roast · adjunct · sugar | Carafa III → `roast` |
 | Yeast | type, notes, attenuation, temperature | family from type (`lager`, `american-ale`, `belgian`, `wheat`, `kveik`, `brett`, `lacto`) · character from notes (*banana, clove, clean, fruity*) | SafAle US-05 → `american-ale` `clean` |
-| Misc | type, name | category → sensation (*spice*, *fruit*, *wood*) | cinnamon → `spice` |
+| Misc · flavour | category, descriptors | category → one **family tag** named after it (`spice`, `herb`, `fruit`, `wood`, `coffee`, `cacao`, `vanilla`, `smoke`, `other`); each descriptor word → a **character tag** (`coffee`, `vanilla`, `citrus`, `orange`, …) | orange peel (`spice`; descriptors citrus, orange) → family `spice`, characters `citrus` `orange` |
+| Misc · process aid | category | **none**: no tags and no `ingredient_review` row (fining, nutrient, enzyme, acid, other-process) | Irish moss → no tags |
 
 - **The descriptor dictionary is the only hand-made part** (~150 words → tags, in
   `ref.tag_synonym`). A new hop that uses known words needs no work.
+- **Three layers for a flavour misc** (your model, 2026-10-18; [`s9-misc-extras`](work/s9-misc-extras/brief.md)).
+  The *category* is the cause and drives step 2: it picks the specialty style (fruit → 29A;
+  spice, herb, coffee, cacao, vanilla → 30A; wood → 33A; smoke → 32A; BA equivalents), with the
+  base style kept first among the alternatives. The *added-character dimension* is the effect and
+  is the only thing scored, in step 3: each category maps to exactly one of the four specialty
+  dimensions (§3), so coffee and cacao never drive `roast` and vanilla never drives `sweetness`.
+  The *tags* describe the taste, explain a choice and help match brief words; **they are never
+  scored**: two spices with different character tags and the same dose get the same level. One tag
+  can sit on products of different categories (`vanilla` on a pod and on oak chips).
 - **Unknown words never get guessed** (PROJECT.md §6.3). The ingredient is flagged
   `needs_review`. Optionally the LLM proposes tags once, and you approve them.
 - **The tag tree gives partial matches:** grapefruit ⊂ citrus ⊂ fruity. Exact = 1.0, parent =
@@ -63,7 +73,7 @@ flowchart LR
 
 ---
 
-## 3. Usage effects (in code, ~20 entries)
+## 3. Usage effects (in code, ~35 entries)
 
 They say how the algorithm behaves, so they are a dict next to their tests, not a table
 (PROJECT.md §6.8).
@@ -78,7 +88,14 @@ They say how the algorithm behaves, so they are a dict next to their tests, not 
 | crystal malt | mash | caramel, sweetness, colour, body | ✅ |
 | yeast | ferment | esters, phenols, dryness | ✅ |
 | lacto / kettle sour | ferment / boil | sourness | — |
-| spice · fruit · wood · smoke | any | spice · fruit · wood · smoke | ✅ |
+| any · tag `smoke` (smoked malt) | any | smoke | ❌ |
+| misc · spice, herb, coffee, cacao, vanilla | any usage of its row | `spice` (BJCP's spice, herb or vegetable) | ❌ |
+| misc · fruit · wood · smoke | any usage of its row | `fruit` · `wood` · `smoke` | ❌ |
+| misc · `other` | any | none: not rated ("no added-character dimension") | — |
+| misc · process aid | any | none: `allowed` in every style, "no flavour effect" | — |
+
+The 8 `kind = 'misc'` rows are keyed by **category** (`app.usage_effects()` in
+`db/033_style_fit_effects.sql`), and a misc never carries its tags into the character match.
 
 ---
 
@@ -91,13 +108,37 @@ They say how the algorithm behaves, so they are a dict next to their tests, not 
 | hop aroma / flavour | **oil dose** = late + dry hop g/L × total oil (mL/100 g) → level |
 | roast | roast index = Σ % of grist × EBC → level |
 | esters / phenols | yeast family and character tags + fermentation temperature: esters lager 0 · no ester character 1 · an ester character (a tag under *fruity* or *estery*) 3; phenols 4 for a phenolic character (*clove, pepper, phenolic, spicy*), else 0; each +1 when fermented above 21 °C (*How to Brew* p. 443) |
-| sourness, smoke, spice… | present / absent |
+| sourness, smoke | present / absent |
+| spice, fruit, wood, smoke from a **misc** | the dose against the **row's own sourced dose** (below) |
 
 **Level cut points come from the books, not from a corpus.** They are the figures cited in
 *How to Brew* and the OBC *Recipe Formulation* PDF (a doc → calc pass: book figure, page,
 arithmetic). Where the books give none, the user sets the cut point. Each cut point lives in
 code next to its tests with its basis (book and page, or "set by the user"), and is checked
 against the 22 reference recipes.
+
+**A flavour misc is read against its own sourced dose** (`s9-misc-extras`, your decision
+2026-10-18), so a new spice needs only its file and no cut point of its own. In
+`app.style_level`, in this order:
+
+1. process aid → `allowed`, "no flavour effect", in any style, before the envelope is looked at;
+2. no reviewed envelope → not rated; an explicit `style_rule` still wins;
+3. category `other` → no level, "no added-character dimension";
+4. the style's envelope has no row for the category's dimension → `out_of_style`, "specialty
+   <dimension> on <style>";
+5. the row has no sourced dose → "no sourced dose", intensity not checked; the dose has no `g_per_l`
+   (step 3 rates without a dose) → "dose not given", intensity not checked;
+6. otherwise the dose is compared with the sourced range: below **M1** (0.5) × its lower end →
+   *subtle*; above **M2** (2.0) × its upper end → *aggressive*; else *noticeable*. **M3** maps
+   the word to a 0–7 level: 2, 4, 6 (low, medium, high). Above the envelope's `max_level` →
+   `out_of_style`, "too much";
+7. within range: `typical` when the envelope's `min_level` is at least 1, else `allowed`.
+
+M1, M2 and M3 live in `app.style_fit_cut_points()` under `misc_dose` with their basis ("set by
+the user, 2026-10-18"; M2 is checked against *How to Brew* p. 225, whose top coffee dose is 1.98
+times Janish's cold-brew dose). Doses and sources: [doc-calc.md](work/s9-misc-extras/doc-calc.md).
+The dimension for BJCP's coffee, cacao and vanilla is `spice`, because BJCP states no rule for
+them; filing them under 30A is also set by the user.
 
 Colour and bitterness are not levels: the recipe's SRM and IBU (s1's `app.srm` and `app.ibu`,
 via `app.check_recipe`) are compared with the style's `srm` and `ibu` ranges in
@@ -120,6 +161,9 @@ level(style, ingredient, usage, dose):
    1b. ingredient is a fermentable with role adjunct or sugar:
          named in the style's reviewed characteristic ingredients     → 👍
          not named                                                    → ⚠️  "not a usual ingredient of <style>"
+         (return; the usage effects below do not apply)
+   1c. ingredient is a misc: a process aid → allowed (before step 0); otherwise its category's one
+         dimension, scored by dose against the row's sourced dose (§4); tags are not read
          (return; the usage effects below do not apply)
     2. for each sensation the usage drives:
          env = envelope[style][sensation]

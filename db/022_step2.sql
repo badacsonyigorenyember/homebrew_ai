@@ -202,16 +202,36 @@ as $$
                    coalesce(request, '') ~ '\mBA\M' or coalesce(request, '') ~* 'brewers\s+association' as a) g;
 $$;
 
--- Adjuncts that have a specialty style of their own, per guide.
-create or replace function app.specialty_style()
-returns table (adjunct text, guide text, code text, source text)
+-- Specialty styles per guide. An adjunct row is matched by word against a wanted item (honey,
+-- molasses); a category row is matched through the misc product the item resolves to
+-- (ref.misc.category). Each row has exactly one of adjunct or category. No row for the category
+-- "other". The category rows come from docs/work/s9-misc-extras/doc-calc.md sections A and B.
+drop function if exists app.specialty_style();
+create function app.specialty_style()
+returns table (adjunct text, category text, guide text, code text, source text)
 language sql
 immutable
 as $$
     values
-        ('honey',    'BJCP', '31B', 'BJCP 31B aroma: additional fermentables (e.g., honey, molasses)'),
-        ('molasses', 'BJCP', '31B', 'BJCP 31B aroma: additional fermentables (e.g., honey, molasses)'),
-        ('honey',    'BA',   'specialty-honey-beer', 'BA style name: Specialty Honey Beer')
+        ('honey',    null, 'BJCP', '31B', 'BJCP 31B aroma: additional fermentables (e.g., honey, molasses)'),
+        ('molasses', null, 'BJCP', '31B', 'BJCP 31B aroma: additional fermentables (e.g., honey, molasses)'),
+        ('honey',    null, 'BA',   'specialty-honey-beer', 'BA style name: Specialty Honey Beer'),
+        (null, 'fruit',   'BJCP', '29A', 'BJCP style name: 29A Fruit Beer'),
+        (null, 'spice',   'BJCP', '30A', 'set by the user, 2026-10-18'),
+        (null, 'herb',    'BJCP', '30A', 'set by the user, 2026-10-18'),
+        (null, 'coffee',  'BJCP', '30A', 'set by the user, 2026-10-18'),
+        (null, 'cacao',   'BJCP', '30A', 'set by the user, 2026-10-18'),
+        (null, 'vanilla', 'BJCP', '30A', 'set by the user, 2026-10-18'),
+        (null, 'wood',    'BJCP', '33A', 'BJCP 33A characteristic ingredients: wood-based additives (e.g., chips, staves)'),
+        (null, 'smoke',   'BJCP', '32A', 'BJCP style name: 32A Classic Style Smoked Beer'),
+        (null, 'fruit',   'BA', 'american-style-fruit-beer', 'BA characteristic ingredients: fruit or fruit extracts, used as an adjunct'),
+        (null, 'spice',   'BA', 'herb-and-spice-beer', 'BA characteristic ingredients: herbs or spices derived from leaves, roots, seeds, fruits'),
+        (null, 'herb',    'BA', 'herb-and-spice-beer', 'BA characteristic ingredients: herbs or spices derived from leaves, roots, seeds, fruits'),
+        (null, 'vanilla', 'BA', 'herb-and-spice-beer', 'BA characteristic ingredients: seeds, fruits (reading, doc-calc B)'),
+        (null, 'coffee',  'BA', 'coffee-beer', 'BA characteristic ingredients: coffee beers incorporate coffee in any form'),
+        (null, 'cacao',   'BA', 'chocolate-or-cocoa-beer', 'BA characteristic ingredients: dark chocolate or cocoa in any form'),
+        (null, 'wood',    'BA', 'wood-and-barrel-aged-beer', 'BA characteristic ingredients: wooden barrel or wood chips, spirals, strips'),
+        (null, 'smoke',   'BA', 'smoke-beer', 'BA characteristic ingredients: any style of beer can be smoked')
 $$;
 
 -- BJCP catch-all styles: a BA style paired with one of these keeps the BA style (no swap to
@@ -266,6 +286,7 @@ declare
     style_out  jsonb;
     spec_code  text;
     spec_item  text;
+    spec_detail text;
     strongest  text;
     reason     text;
     unknown_r  text := null;
@@ -397,6 +418,26 @@ begin
      where w ->> 'role' = 'feature'
      order by sp.adjunct
      limit 1;
+    -- A misc category: the first feature item, in brief order, whose first misc product (resolver
+    -- order) has a category row for this guide.
+    if spec_code is null then
+        select w.item, sp.code, m.name || ', category ' || sp.category
+          into spec_item, spec_code, spec_detail
+          from (select x ->> 'item' as item, x ->> 'role' as role, o as ord
+                  from jsonb_array_elements(coalesce(brief -> 'wanted', '[]'::jsonb)) with ordinality as e(x, o)) w
+         cross join lateral (select r.ingredient_id, r.name
+                               from app.resolve_ingredient(w.item) r
+                              where r.kind = 'misc'
+                              order by r.name, r.ingredient_id limit 1) m
+          join ref.misc rm on rm.ingredient_id = m.ingredient_id
+          join app.specialty_style() sp on sp.guide = base.guide and sp.category = rm.category
+         where w.role = 'feature'
+         order by w.ord
+         limit 1;
+        if spec_detail is not null then
+            spec_item := spec_item || ' (' || spec_detail || ')';
+        end if;
+    end if;
     if spec_code is not null then
         select jsonb_build_object('id', s.id, 'guide', s.guide, 'code', s.code, 'name', s.name)
           into style_out

@@ -40,7 +40,7 @@ def entries(node, path=""):
 @pytest.mark.stack
 def test_every_cut_point_has_a_basis(conn):
     found = list(entries(cut_points(conn)))
-    assert len(found) == 7 + 7 + 4 + 3 + 1 + 1
+    assert len(found) == 7 + 7 + 4 + 3 + 3 + 1 + 1  # oil, roast, esters, phenols, misc_dose, tolerance, match
     for path, entry in found:
         basis = entry["basis"]
         assert re.search(r"p\. ?\d+", basis) or basis.startswith(("set by the user", "decided, STYLE-FIT")), path

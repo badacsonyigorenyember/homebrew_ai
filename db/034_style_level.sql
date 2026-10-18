@@ -114,6 +114,12 @@ declare
     v_lower_bound  text := (select string_agg(n, ', ') from jsonb_array_elements_text(coalesce(v_dose -> 'srm_lower_bound', '[]'::jsonb)) n);
     v_oil_range    numrange;
     v_ebc_range    numrange;
+    v_misc         ref.misc%rowtype;
+    v_dim          text;
+    v_dose_range   numrange;
+    v_g            numeric;
+    v_word         text;
+    v_cut          text;
 begin
     select * into st from ref.beer_style b where b.code = v_style_code;
     if not found then
@@ -125,8 +131,15 @@ begin
     end if;
     if not (ing.kind = 'hop' and v_usage in ('boil', 'whirlpool', 'dry_hop')
             or ing.kind = 'fermentable' and v_usage in ('mash', 'boil')
-            or ing.kind = 'yeast' and v_usage = 'ferment') then
+            or ing.kind = 'yeast' and v_usage = 'ferment'
+            or ing.kind = 'misc') then
         raise exception 'usage % is not valid for a % (ingredient %)', v_usage, ing.kind, v_ingredient;
+    end if;
+    if ing.kind = 'misc' then
+        select * into v_misc from ref.misc m where m.ingredient_id = ing.id;
+        if not found or not (v_usage = any (v_misc.usages)) then
+            raise exception 'usage % is not a usage of % (ingredient %)', v_usage, ing.name, v_ingredient;
+        end if;
     end if;
     if ing.kind = 'hop' and v_usage = 'boil' and v_minutes is null then
         raise exception 'a hop boil needs dose.minutes';
@@ -141,6 +154,13 @@ begin
         from ref.ingredient_tag it join ref.tag t on t.id = it.tag_id
         where it.ingredient_id = ing.id and t.facet = 'character';
     v_review := exists (select 1 from ref.ingredient_review r where r.ingredient_id = ing.id);
+
+    -- a process aid adds no flavour: allowed in any style, before the envelope is looked at
+    if ing.kind = 'misc' and v_misc.purpose = 'process' then
+        return jsonb_build_object('level', 'allowed',
+            'because', 'no flavour effect: ' || ing.name || ' is a process aid (' || v_misc.category
+                       || ') and adds no sensation to ' || v_style_label || '.');
+    end if;
 
     -- 0. rated at all?
     if not exists (select 1 from ref.style_sensory s where s.style_id = st.id and s.reviewed)
@@ -162,6 +182,63 @@ begin
     if found then
         return jsonb_build_object('level', v_rule.level,
             'because', 'rule for ' || v_style_label || ': ''' || v_rule.quote || '''');
+    end if;
+
+    -- 1b. a flavour misc (docs/work/s9-misc-extras): one added-character dimension chosen by its
+    -- category, scored by the dose against the entry's own sourced dose; its tags are never read
+    if ing.kind = 'misc' then
+        select ue.dimension into v_dim from app.usage_effects() ue
+            where ue.kind = 'misc' and ue.applies_to = v_misc.category;
+        if v_dim is null then
+            return jsonb_build_object('level', null,
+                'because', 'no added-character dimension for category ' || v_misc.category
+                           || ', so ' || ing.name || ' is not rated against ' || v_style_label || '.');
+        end if;
+        select * into sens from ref.style_sensory s
+            where s.style_id = st.id and s.dimension = v_dim and s.reviewed;
+        if not found then
+            return jsonb_build_object('level', 'out_of_style',
+                'because', 'specialty ' || v_dim || ' on ' || v_style_label || '.');
+        end if;
+        v_dose_range := v_misc.dose_g_per_l;
+        v_what := v_dim || ' from ' || ing.name;
+        if v_dose_range is null then
+            v_notes := array[v_what || ': no sourced dose, intensity not checked.'];
+        elsif not (v_dose ? 'g_per_l') then
+            v_notes := array[v_what || ': dose not given, intensity not checked.'];
+        else
+            v_g := (v_dose ->> 'g_per_l')::numeric;
+            if v_g < (v_cuts -> 'misc_dose' -> 'subtle_below' ->> 'ratio')::numeric * lower(v_dose_range) then
+                v_word := 'subtle';
+                v_cut := 'M1: below ' || (v_cuts -> 'misc_dose' -> 'subtle_below' ->> 'ratio') || ' x the lower sourced dose, '
+                         || split_part(v_cuts -> 'misc_dose' -> 'subtle_below' ->> 'basis', ' (', 1);
+            elsif v_g > (v_cuts -> 'misc_dose' -> 'aggressive_above' ->> 'ratio')::numeric * upper(v_dose_range) then
+                v_word := 'aggressive';
+                v_cut := 'M2: above ' || (v_cuts -> 'misc_dose' -> 'aggressive_above' ->> 'ratio') || ' x the upper sourced dose, '
+                         || split_part(v_cuts -> 'misc_dose' -> 'aggressive_above' ->> 'basis', ' (', 1);
+            else
+                v_word := 'noticeable';
+            end if;
+            v_lvl := (v_cuts -> 'misc_dose' -> 'levels' ->> v_word)::int;
+            v_what := v_what || ': ' || trim_scale(round(v_g, 2))::text || ' g/L is ' || v_word || ' ('
+                      || app.level_word(v_lvl) || ') against the sourced '
+                      || trim_scale(round(lower(v_dose_range), 2))::text || '-' || trim_scale(round(upper(v_dose_range), 2))::text || ' g/L'
+                      || case when v_cut is not null then ' (' || v_cut || ')' else '' end;
+            if v_lvl > sens.max_level then
+                return jsonb_build_object('level', 'out_of_style',
+                    'because', 'too much: ' || v_what || '; ' || v_style_label || ' allows up to '
+                               || app.level_word(sens.max_level::int) || ' ' || v_dim || ': ''' || sens.quote || '''.');
+            end if;
+            v_notes := array[v_what || '.'];
+        end if;
+        if sens.min_level >= 1 then
+            return jsonb_build_object('level', 'typical',
+                'because', array_to_string(v_notes, ' ') || ' ' || v_style_label || ' asks for ' || v_dim || ': '''
+                           || sens.quote || '''.');
+        end if;
+        return jsonb_build_object('level', 'allowed',
+            'because', array_to_string(v_notes, ' ') || ' ' || v_style_label || ' allows ' || v_dim || ' but does not ask for it: '''
+                       || sens.quote || '''.');
     end if;
 
     -- 2. adjunct or sugar: named in the characteristic ingredients, or not usual
@@ -374,9 +451,12 @@ $$;
 -- Whole recipe (Task 9): every line through app.style_level with the recipe's totals, the
 -- required characteristic ingredients, and the min check on the recipe's late-hop oil dose and
 -- roast index (one-level tolerance, user 2026-10-15). recipe is the app.check_recipe input.
+-- extras (optional) is [{ingredient_id, usage, g}] (g optional): misc lines, each rated with
+-- g / batch volume as its dose and added to lines as kind 'misc'.
 -- Output: {style_code, lines[{kind, ingredient_id, name, usage, level, because}],
 --          required[{requirement, met, because}], too_little[{dimension, level, min, because}]}
-create or replace function app.style_fit_recipe(recipe jsonb)
+drop function if exists app.style_fit_recipe(jsonb);
+create or replace function app.style_fit_recipe(recipe jsonb, extras jsonb default '[]')
 returns jsonb
 language plpgsql
 stable
@@ -485,6 +565,18 @@ begin
         jsonb_build_object('ferm_c', x -> 'ferm_c', 'ibu', v_ibu, 'srm', v_srm, 'srm_lower_bound', v_no_colour));
     v_lines := v_lines || jsonb_build_object('kind', 'yeast', 'ingredient_id', x -> 'ingredient_id',
         'name', x -> 'name', 'usage', 'ferment', 'level', v_res -> 'level', 'because', v_res -> 'because');
+
+    -- extras: misc lines, rated at their own dose
+    for x in select * from jsonb_array_elements(coalesce(extras, '[]'::jsonb)) loop
+        v_dose := '{}'::jsonb;
+        if x ->> 'g' is not null then
+            v_dose := jsonb_build_object('g_per_l', (x ->> 'g')::numeric / v_volume);
+        end if;
+        v_res := app.style_level(v_style, (x ->> 'ingredient_id')::bigint, x ->> 'usage', v_dose);
+        v_lines := v_lines || jsonb_build_object('kind', 'misc', 'ingredient_id', x -> 'ingredient_id',
+            'name', (select i.name from ref.ingredient i where i.id = (x ->> 'ingredient_id')::bigint),
+            'usage', x ->> 'usage', 'level', v_res -> 'level', 'because', v_res -> 'because');
+    end loop;
 
     -- required characteristic ingredients
     for r in

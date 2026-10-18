@@ -1,10 +1,10 @@
-"""Tags for hops, fermentables and yeasts (s3-style-fit Task 3).
+"""Tags for hops, fermentables, yeasts and misc (s3-style-fit Task 3, s9-misc-extras Task 4).
 
 The hand-made part is loaders/style_fit_vocab.toml: the sensory dimensions, the tag tree and the
 descriptor dictionary (a Hungarian or English word -> a character tag). This module
 
   1. loads that file into ref.sensory_dimension, ref.tag and ref.tag_synonym (load_vocab), and
-  2. derives ref.ingredient_tag (reviewed = false) for every hop, fermentable and yeast from the
+  2. derives ref.ingredient_tag (reviewed = false) for every hop, fermentable, yeast and misc from the
      ingredient's own ref data (derive_tags).
 
 Nothing is guessed. A word that is in neither the dictionary nor the no-character list is not
@@ -23,6 +23,8 @@ Where the words come from:
               "descriptors" list of its file, each word a synonym or a character tag name; a word
               that is neither goes to ingredient_review. Hop origin and fermentable family come
               as above; a yeast's family comes from its type (INTAKE_YEAST_FAMILY)
+  misc        a flavour misc: family tag = its category, characters from its file's "descriptors";
+              a process aid (fining, enzyme, ...) has no flavour: no tag and no review row
 
 Re-runnable, one transaction. Rows of ref.ingredient_tag with reviewed = true are kept.
 
@@ -334,6 +336,20 @@ def derive_tags(conn, vocab: dict) -> dict:
         if unknown:
             reasons.append("unknown words: " + ", ".join(unknown))
         save(iid, family=[family] if family else [], character=known, reasons=reasons)
+
+    for iid, raw, category, purpose in conn.execute(
+        "select i.id, i.raw, m.category, m.purpose from ref.ingredient i join ref.misc m on m.ingredient_id = i.id order by i.id"
+    ).fetchall():
+        if purpose == "process":
+            continue  # a process aid has no flavour: no tags and no review row
+        words = intake_words(raw) or []
+        known, unknown = resolve_intake(words)
+        reasons = []
+        if not words:
+            reasons.append("no descriptor text")
+        if unknown:
+            reasons.append("unknown words: " + ", ".join(unknown))
+        save(iid, family=[category], character=known, reasons=reasons)
 
     return {}
 

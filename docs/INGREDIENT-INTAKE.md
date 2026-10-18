@@ -4,6 +4,7 @@
 > aids, "fully usable" conditions). No code, SQL, loader, workflow or test was changed.
 > Everything under "today" was read from the repo or measured on the live DB on 2026-10-17
 > (read-only queries). Everything under "proposed" is a proposal for you to accept, change or drop.
+> **Update 2026-10-18:** s8 is shipped and s9 is built ([`work/s9-misc-extras`](work/s9-misc-extras/plan.md)); §11 marks the rows s9 did, §12 moves Q2, Q3, Q5 and Q7 to Made, and §13 names the misc templates. The sections above still describe the state at discovery.
 > Links: [PROJECT.md](../PROJECT.md) · [DATABASE.md](DATABASE.md) · [STYLE-FIT.md](STYLE-FIT.md) ·
 > [RECIPE-ROADMAP.md](RECIPE-ROADMAP.md) · [WORKFLOW-ROADMAP.md](WORKFLOW-ROADMAP.md)
 
@@ -482,17 +483,17 @@ Each of these is already merged; the change goes into the work item named.
 
 | Shipped piece | Change | Gap | In |
 |---|---|---|---|
-| `db/012_style_fit.sql` · `ref.misc` | add `purpose` (`flavour` · `process`), `usages text[]`, `time_min`, `dose_g_per_l numrange`, `description`, `field_source jsonb`; categories as decided (Q2) | G5 | s9 |
-| `loaders/tags.py` | read `raw.descriptors` for rows the intake loader wrote (hop, yeast, misc); a misc branch: category → family tag, descriptors → character tags; process aids get no tags | G3 | s8 (hop, yeast) · s9 (misc) |
-| `db/036_ingredient_resolver.sql` | read aliases (new `ref.ingredient_alias`, loaded from the intake files); kind words for misc (`spice`, `fruit`, …) | G4 | s8 |
-| `db/022_step2.sql` · `app.specialty_style()` | specialty codes by misc category rather than by word (spice/herb → 30A, fruit → 29A, wood → 33A, smoke → 32A, BA equivalents), so an added misc product needs no new row here; keep the honey and molasses rows | G6 | s9 |
-| `db/033_style_fit_effects.sql` | flavour misc rows in `app.usage_effects()` (spice → spice, fruit → fruit, wood → wood, smoke → smoke; coffee, cacao, vanilla as decided in Q5); dose cut points for those dimensions, with a source; none for process aids | G6 | s9 |
-| `db/034_style_level.sql` | accept misc usages; a process aid is `allowed` with "no flavour effect"; `style_fit_recipe` takes an `extras` list | G6, G8 | s9 |
-| `db/037_step3.sql` · `app.ingredient_choices` | misc choices from the row's `usages` | G6 | s9 |
+| `db/012_style_fit.sql` · `ref.misc` | add `purpose` (`flavour` · `process`), `usages text[]`, `time_min`, `dose_g_per_l numrange`, `description`, `field_source jsonb`; categories as decided (Q2) | G5 | s9 ✅ 2026-10-18 |
+| `loaders/tags.py` | read `raw.descriptors` for rows the intake loader wrote (hop, yeast, misc); a misc branch: category → family tag, descriptors → character tags; process aids get no tags | G3 | s8 (hop, yeast) · s9 (misc) ✅ 2026-10-18 |
+| `db/036_ingredient_resolver.sql` | read aliases (new `ref.ingredient_alias`, loaded from the intake files); kind words for misc (`spice`, `fruit`, …) | G4 | s8 (aliases) · s9 (kind words `spice`, `herb`, `fruit`) ✅ 2026-10-18 |
+| `db/022_step2.sql` · `app.specialty_style()` | specialty codes by misc category rather than by word (spice/herb → 30A, fruit → 29A, wood → 33A, smoke → 32A, BA equivalents), so an added misc product needs no new row here; keep the honey and molasses rows | G6 | s9 ✅ 2026-10-18 |
+| `db/033_style_fit_effects.sql` | flavour misc rows in `app.usage_effects()` (spice → spice, fruit → fruit, wood → wood, smoke → smoke; coffee, cacao, vanilla as decided in Q5); dose cut points for those dimensions, with a source; none for process aids | G6 | s9 ✅ 2026-10-18 (coffee, cacao and vanilla also drive `spice`, see Q5) |
+| `db/034_style_level.sql` | accept misc usages; a process aid is `allowed` with "no flavour effect"; `style_fit_recipe` takes an `extras` list | G6, G8 | s9 ✅ 2026-10-18 (the formulation-check contract is untouched) |
+| `db/037_step3.sql` · `app.ingredient_choices` | misc choices from the row's `usages` | G6 | s9 ✅ 2026-10-18 |
 | `shared/contracts/formulation_check.input.schema.json` | optional `extras` array | G8 | m6 (or s9) |
 | tests pinning sizes (G10 list) | count only the hopline rows (`raw ? 'hopline-…'`) or the map, so an added row doesn't fail them | G10 | s8 |
 | `db/checks/ref_spotcheck.sql` | add the intake rows to the pack | — | s8 |
-| envelopes (`loaders/style_envelopes.toml`) | envelopes for the specialty styles the new test briefs need (e.g. 30A, 30B, 20C with coffee), extracted and reviewed as in s3 | G7 | s9 |
+| envelopes (`loaders/style_envelopes.toml`) | envelopes for the specialty styles the new test briefs need (e.g. 30A, 30B, 20C with coffee), extracted and reviewed as in s3 | G7 | s9: 30A only ✅ 2026-10-18 (30B and 20C not needed by b23, b24) |
 
 Step 1 needs no change: it already outputs free `wanted` words with a `feature` / `background`
 role.
@@ -510,24 +511,30 @@ role.
 | Q6 | Aliases | per product in its intake file, in a new `ref.ingredient_alias` table the resolver reads; `app.ingredient_synonym()` stays for spelling rules (you, 2026-10-17, s8 brief) | adding an alias needs no SQL edit |
 | Q9 | One file per ingredient or one file for all | one file per ingredient, `shared/ingredients/<kind>/<name>.toml` (you, 2026-10-17, s8 brief) | the form only creates files; diffs and deletes are per ingredient |
 
+### Made in s9 (you, 2026-10-18)
+
+| # | Question | Decision | Why |
+|---|---|---|---|
+| Q2 | Misc categories and usages | a: usages `mash · boil · whirlpool · ferment · secondary · packaging`; 9 flavour categories (spice, herb, fruit, wood, coffee, cacao, vanilla, smoke, other) and 5 process categories (fining, nutrient, enzyme, acid, other-process); enzyme and acid load and are reported "waits for maths" | Irish moss and yeast nutrient get real places, and the checker knows which ones wait for maths |
+| Q3 | Fruit | neither a nor b: **all fruit is flavour misc**; a fruit file with a sourced sugar content loads and is reported "waits for maths"; fruit as a fermentable is a Later TODO decided with M6 (RECIPE-ROADMAP Later list) | a fruit role needs a new fermentable usage, rule changes and gravity maths for additions, which is M6's work |
+| Q5 | Coffee, cacao, vanilla: which sensation? | neither a nor b: the **three-layer model** ([STYLE-FIT.md](STYLE-FIT.md) §2): the category drives step 2 (coffee, cacao, vanilla → 30A, set by the user, BJCP states no such rule), each category scores on one existing dimension (coffee, cacao and vanilla on `spice`), tags are never scored | no new dimensions and no `roast` or `sweetness` side effects; one dose reading for every category |
+| Q7 | Order | b: m4 first, then s9 before m5 | m4 only needed the misc row shape for its slot; m4 shipped before s9 |
+
 ### Open
 
 | # | Question | Options | Recommend |
 |---|---|---|---|
-| Q2 | Misc categories and usages | a) usages `mash · boil · whirlpool · ferment · secondary · packaging`; flavour categories as today (spice, herb, fruit, wood, coffee, cacao, vanilla, smoke, other); process categories `fining`, `nutrient`, `enzyme`, `acid`, `other-process`, with enzyme and acid marked "changes the numbers"; b) the 10 categories as they are, process aids under `fining` and `other` | **a**: Irish moss and yeast nutrient get real places, and the checker knows which ones wait for maths |
-| Q3 | Fruit | a) fruit with a sourced sugar content is a fermentable with a new role `fruit` (enters OG), fruit without one is flavour misc; b) all fruit is misc (no gravity) | **a**: keeps the "gravity → fermentable" rule true |
-| Q5 | Coffee, cacao, vanilla: which sensation? | a) coffee and cacao → `roast` with their character tags, vanilla → `sweetness` + tag `vanilla`; b) new specialty dimensions `coffee`, `chocolate`, `vanilla` | **a** first; b only if a reviewed envelope needs it |
-| Q7 | Order | a) s8 → s9 → m4 → m5; b) m4 first, s8/s9 before m5 | **b**: m4 only needs the misc row shape for its slot, which s9's brief can fix first |
 | Q8 | Lane B (chat adds an ingredient) | a) later, Priority 2: the chat writes a proposal file you check and keep; b) now | **a** |
 | Q10 | Who adds process aids to a recipe? | a) the brewer profile lists the aids you use (e.g. "Irish moss in every boil"), and m7 adds them from there and from inventory; b) only when the brief asks; c) the LLM decides in step 9 | **a**: it is your habit, not the recipe's choice, and it keeps the LLM out of it |
 
 ---
 
-## 13. After s8 (and s9 for misc): adding an ingredient, as a checklist
+## 13. After s8 and s9: adding an ingredient, as a checklist
 
 1. Find a source with the figures (§3 lists what each kind needs).
 2. Fill the form for the kind (phase 1: copy `shared/ingredients/_templates/<kind>.toml` to
-   `shared/ingredients/<kind>/<name>.toml`). A new source: add `shared/ingredients/sources/<slug>.toml`.
+   `shared/ingredients/<kind>/<name>.toml`; for a misc, `misc-flavour.toml` or `misc-process.toml`
+   into `shared/ingredients/misc/`, one file per form of the product). A new source: add `shared/ingredients/sources/<slug>.toml`.
 3. `python -m loaders.extra_ingredients --check`, fix what it names (a new descriptor word: add it
    to `loaders/style_fit_vocab.toml`).
 4. `python -m loaders.extra_ingredients`, then `python -m loaders.tags`.

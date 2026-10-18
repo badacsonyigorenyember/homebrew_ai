@@ -157,13 +157,17 @@ STEP4_OUT = {
     }],
     "guidance": True,
 }
-_REF = {"ingredient_id": 3393, "kind": "fermentable", "name": "Flaked Oats", "role": "adjunct", "max_pct": 30}
+_REF = {"ingredient_id": 3393, "kind": "fermentable", "name": "Flaked Oats", "role": "adjunct", "max_pct": 30, "misc": None}
+_MISC = {"purpose": "flavour", "category": "coffee", "usages": ["secondary"], "time_min": 2880,
+         "dose_g_per_l": {"low_g_per_l": 3.0, "high_g_per_l": 3.0}, "because": "sourced dose from x p. 1"}
+_MISC_REF = {"ingredient_id": 9, "kind": "misc", "name": "Coffee", "role": None, "max_pct": None, "misc": _MISC}
 STEP5_OUT = {
     "style_code": "21C",
     "rules": {"from": "app.formulation_rules() (db/031)",
               "rows": [{"rule": "1", "checked": True, "sentence": "A recipe has at most 5 fermentables."}]},
     "limits": {"from": "app.formulation_limits() (db/031)", "values": {"max_fermentables": 5}},
     "slots": [{"item": "oats", "wanted_role": "background", "refs": [_REF], "from": "wanted in the request"},
+              {"item": "coffee", "wanted_role": "feature", "refs": [_MISC_REF], "from": "wanted in the request"},
               {"item": "xyzzy", "wanted_role": "feature", "refs": [], "from": "not in the catalogue"}],
     "excluded": [{"word": "Saaz", "refs": [], "from": "request"}],
     "inventory": [{"word": "mystery malt", "refs": [], "from": "profile"}],
@@ -221,6 +225,8 @@ BAD = [
     ("step4.output", {**STEP4_OUT, "batch_l": _value(20, "guess")}),
     ("step4.output", {**STEP4_OUT, "mash_c": {"value": 66.5, "from": "midpoint"}}),
     ("step5.output", {**STEP5_OUT, "grist": [{"pct": 60}]}),
+    ("step5.output", {**STEP5_OUT, "slots": [{"item": "coffee", "wanted_role": "feature", "from": "x", "refs": [
+        {**_MISC_REF, "misc": {**_MISC, "usages": ["dry-hop"]}}]}]}),
     ("step5.output", {**STEP5_OUT, "slots": [{"item": "oats", "wanted_role": "feature", "from": "wanted"}]}),
 ]
 

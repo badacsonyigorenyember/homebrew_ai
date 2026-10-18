@@ -1,0 +1,14 @@
+kind = "misc"
+name = "Coffee, whole beans"
+source = "janish-coffee-beers"
+description = "Whole roasted beans added to the finished beer, like a dry hop. Janish used 2 oz per 5 gal for 48 hours; the aroma was big and fruity, with less saturated coffee flavour."
+description_ref = "Janish, Guide to Coffee Beers, Cold Brew vs. Dry Bean (web page, no page number)"
+aliases = ["coffee beans", "whole bean coffee", "dry-beaned coffee"]
+descriptors = ["coffee"]
+purpose = "flavour"
+category = "coffee"
+usages = ["secondary"]
+time_min = 2880
+time_min_ref = "Janish, Guide to Coffee Beers, Cold Brew vs. Dry Bean (web page, no page number)"
+dose_g_per_l = [3.0, 3.0]
+dose_g_per_l_ref = "Janish, Guide to Coffee Beers, Cold Brew vs. Dry Bean (web page, no page number)"

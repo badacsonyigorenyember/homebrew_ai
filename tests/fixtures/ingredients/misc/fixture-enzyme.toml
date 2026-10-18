@@ -1,0 +1,9 @@
+# Test fixture: invented data.
+kind = "misc"
+name = "Fixture Enzyme"
+source = "fixture-data-sheet"
+description = "An invented enzyme for tests. It breaks down starch."
+description_ref = "fixture sheet p. 11"
+purpose = "process"
+category = "enzyme"
+usages = ["ferment"]

@@ -172,3 +172,13 @@ def test_every_alias_has_a_source(conn):
             assert source and source.strip(), f"{fn}: {guide} {code} has no source"
             found = one(conn, "select count(*) from ref.beer_style where guide = %s and code = %s", guide, code)
             assert found == 1, f"{fn}: {guide} {code} is not in ref.beer_style"
+
+
+@pytest.mark.stack
+def test_specialty_rows_have_one_of_adjunct_or_category(conn):
+    rows = conn.execute("select adjunct, category from app.specialty_style()").fetchall()
+    assert rows
+    for adjunct, category in rows:
+        assert (adjunct is None) != (category is None), (adjunct, category)
+    categories = {c for _, c in rows if c}
+    assert categories == {"fruit", "spice", "herb", "coffee", "cacao", "vanilla", "wood", "smoke"}

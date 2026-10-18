@@ -1,0 +1,12 @@
+# Test fixture: invented data.
+kind = "misc"
+name = "Fixture Vanilla Extract"
+source = "fixture-data-sheet"
+description = "An invented liquid vanilla extract for tests, dosed in millilitres."
+description_ref = "fixture sheet p. 12"
+descriptors = ["vanilla"]
+purpose = "flavour"
+category = "vanilla"
+usages = ["secondary"]
+dose_ml_per_l = [0.5, 1.0]
+dose_ml_per_l_ref = "fixture sheet p. 12"

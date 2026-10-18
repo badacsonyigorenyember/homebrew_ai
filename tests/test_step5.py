@@ -118,7 +118,7 @@ def test_rules_equal_formulation_rules(conn, frames):
         assert "db/031" in frame["rules"]["from"] and "db/031" in frame["limits"]["from"]
 
 
-ALLOWED_NUMBERS = {"ingredient_id", "max_pct", "needed_pct", "low_pct", "high_pct", "mash_c",
+ALLOWED_NUMBERS = {"ingredient_id", "max_pct", "time_min", "low_g_per_l", "high_g_per_l", "needed_pct", "low_pct", "high_pct", "mash_c",
                    "yeast_middle_pct", "yeast_low_pct", "yeast_high_pct"}
 
 

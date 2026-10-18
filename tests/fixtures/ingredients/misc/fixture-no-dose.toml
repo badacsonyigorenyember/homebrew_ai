@@ -1,0 +1,10 @@
+# Test fixture: invented data.
+kind = "misc"
+name = "Fixture No Dose"
+source = "fixture-data-sheet"
+description = "An invented herb for tests whose source gives no dose."
+description_ref = "fixture sheet p. 7"
+descriptors = ["herbal"]
+purpose = "flavour"
+category = "herb"
+usages = ["boil"]

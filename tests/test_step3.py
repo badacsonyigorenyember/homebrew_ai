@@ -186,7 +186,7 @@ def test_style_without_envelope_is_unrated(conn):
 from evals.grade import grade_step2, grade_step3  # noqa: E402
 
 CONTRACT = json.loads((ROOT / "shared" / "contracts" / "step3.output.schema.json").read_text())
-ALL_IDS = [f"b{n:02d}" for n in range(1, 23)]
+ALL_IDS = [f"b{n:02d}" for n in range(1, 25)]
 
 
 def step3(conn, b):
@@ -264,7 +264,7 @@ def test_output_meets_contract(conn, outputs):
 
 @pytest.mark.stack
 def test_briefs_reach_the_bar(outputs):
-    """A1 at SQL level: steps 2 and 3 both pass on at least 18 of b01-b20, and on b21 and b22."""
+    """A1 at SQL level: steps 2 and 3 both pass on at least 18 of b01-b20, and on b21 to b24."""
     def passes(bid):
         style, out = outputs[bid]
         return grade_step2(BRIEFS[bid], style) and grade_step3(BRIEFS[bid], out)
@@ -272,4 +272,4 @@ def test_briefs_reach_the_bar(outputs):
     misses = [f"{bid}: step2={grade_step2(BRIEFS[bid], outputs[bid][0])} deviations={outputs[bid][1]['deviations']}"
               f" expected={BRIEFS[bid]['deviations']}" for bid in ALL_IDS if not passes(bid)]
     first20 = [b for b in ALL_IDS[:20] if passes(b)]
-    assert len(first20) >= 18 and passes("b21") and passes("b22"), "\n".join(misses)
+    assert len(first20) >= 18 and passes("b21") and passes("b22") and passes("b23") and passes("b24"), "\n".join(misses)

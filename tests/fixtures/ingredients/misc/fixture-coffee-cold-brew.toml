@@ -1,0 +1,14 @@
+# Test fixture: invented data.
+kind = "misc"
+name = "Fixture Coffee Cold Brew"
+source = "fixture-data-sheet"
+description = "Invented cold-brew coffee for tests, added at packaging."
+description_ref = "fixture sheet p. 6"
+descriptors = ["coffee"]
+purpose = "flavour"
+category = "coffee"
+usages = ["packaging"]
+time_min = 960
+time_min_ref = "fixture sheet p. 6"
+dose_g_per_l = [6.0, 6.0]
+dose_g_per_l_ref = "fixture sheet p. 6"

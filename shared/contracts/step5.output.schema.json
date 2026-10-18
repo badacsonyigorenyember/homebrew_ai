@@ -107,7 +107,8 @@
                 "kind",
                 "name",
                 "role",
-                "max_pct"
+                "max_pct",
+                "misc"
               ],
               "properties": {
                 "ingredient_id": {
@@ -130,6 +131,82 @@
                     "number",
                     "null"
                   ]
+                },
+                "misc": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "additionalProperties": false,
+                  "required": [
+                    "purpose",
+                    "category",
+                    "usages",
+                    "time_min",
+                    "dose_g_per_l",
+                    "because"
+                  ],
+                  "properties": {
+                    "purpose": {
+                      "type": "string",
+                      "enum": [
+                        "flavour",
+                        "process"
+                      ]
+                    },
+                    "category": {
+                      "type": "string"
+                    },
+                    "usages": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "mash",
+                          "boil",
+                          "whirlpool",
+                          "ferment",
+                          "secondary",
+                          "packaging"
+                        ]
+                      }
+                    },
+                    "time_min": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "dose_g_per_l": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "additionalProperties": false,
+                      "required": [
+                        "low_g_per_l",
+                        "high_g_per_l"
+                      ],
+                      "properties": {
+                        "low_g_per_l": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "high_g_per_l": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        }
+                      }
+                    },
+                    "because": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
                 }
               }
             }
@@ -165,7 +242,8 @@
                 "kind",
                 "name",
                 "role",
-                "max_pct"
+                "max_pct",
+                "misc"
               ],
               "properties": {
                 "ingredient_id": {
@@ -188,6 +266,82 @@
                     "number",
                     "null"
                   ]
+                },
+                "misc": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "additionalProperties": false,
+                  "required": [
+                    "purpose",
+                    "category",
+                    "usages",
+                    "time_min",
+                    "dose_g_per_l",
+                    "because"
+                  ],
+                  "properties": {
+                    "purpose": {
+                      "type": "string",
+                      "enum": [
+                        "flavour",
+                        "process"
+                      ]
+                    },
+                    "category": {
+                      "type": "string"
+                    },
+                    "usages": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "mash",
+                          "boil",
+                          "whirlpool",
+                          "ferment",
+                          "secondary",
+                          "packaging"
+                        ]
+                      }
+                    },
+                    "time_min": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "dose_g_per_l": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "additionalProperties": false,
+                      "required": [
+                        "low_g_per_l",
+                        "high_g_per_l"
+                      ],
+                      "properties": {
+                        "low_g_per_l": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "high_g_per_l": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        }
+                      }
+                    },
+                    "because": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
                 }
               }
             }
@@ -223,7 +377,8 @@
                 "kind",
                 "name",
                 "role",
-                "max_pct"
+                "max_pct",
+                "misc"
               ],
               "properties": {
                 "ingredient_id": {
@@ -246,6 +401,82 @@
                     "number",
                     "null"
                   ]
+                },
+                "misc": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "additionalProperties": false,
+                  "required": [
+                    "purpose",
+                    "category",
+                    "usages",
+                    "time_min",
+                    "dose_g_per_l",
+                    "because"
+                  ],
+                  "properties": {
+                    "purpose": {
+                      "type": "string",
+                      "enum": [
+                        "flavour",
+                        "process"
+                      ]
+                    },
+                    "category": {
+                      "type": "string"
+                    },
+                    "usages": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "mash",
+                          "boil",
+                          "whirlpool",
+                          "ferment",
+                          "secondary",
+                          "packaging"
+                        ]
+                      }
+                    },
+                    "time_min": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "dose_g_per_l": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "additionalProperties": false,
+                      "required": [
+                        "low_g_per_l",
+                        "high_g_per_l"
+                      ],
+                      "properties": {
+                        "low_g_per_l": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "high_g_per_l": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        }
+                      }
+                    },
+                    "because": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
                 }
               }
             }

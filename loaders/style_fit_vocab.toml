@@ -166,6 +166,35 @@ name = "brett"
 facet = "family"
 name = "sour"
 
+# misc: one family tag per flavour category (ref.misc.category)
+[[tag]]
+facet = "family"
+name = "spice"
+[[tag]]
+facet = "family"
+name = "herb"
+[[tag]]
+facet = "family"
+name = "fruit"
+[[tag]]
+facet = "family"
+name = "wood"
+[[tag]]
+facet = "family"
+name = "coffee"
+[[tag]]
+facet = "family"
+name = "cacao"
+[[tag]]
+facet = "family"
+name = "vanilla"
+[[tag]]
+facet = "family"
+name = "smoke"
+[[tag]]
+facet = "family"
+name = "other"
+
 # ---------------------------------------------------------------- tags: character
 
 [[tag]]

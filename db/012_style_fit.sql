@@ -17,11 +17,41 @@ create table if not exists ref.misc (
 
 -- Lactose is a fermentable now (adjunct-fermentables), so it is no longer a misc category.
 -- Brings a table created by an earlier version of this file up to date.
+-- s9-misc-extras: a misc has a purpose (flavour or process), usages, a time, a sourced dose in
+-- g/L and the source of each figure. The table had 0 rows when these not-null columns were added.
+alter table ref.misc
+    add column if not exists purpose      text   not null,
+    add column if not exists usages       text[] not null,
+    add column if not exists time_min     integer,
+    add column if not exists dose_g_per_l numrange,
+    add column if not exists description  text,
+    add column if not exists field_source jsonb;
+
 alter table ref.misc
     drop constraint if exists misc_category_check,
     add  constraint misc_category_check
-         check (category in ('spice', 'herb', 'fruit', 'wood', 'coffee', 'cacao',
-                             'vanilla', 'smoke', 'fining', 'other'));
+         check (category in ('spice', 'herb', 'fruit', 'wood', 'coffee', 'cacao', 'vanilla',
+                             'smoke', 'other',
+                             'fining', 'nutrient', 'enzyme', 'acid', 'other-process')),
+    drop constraint if exists misc_purpose_check,
+    add  constraint misc_purpose_check
+         check (purpose in ('flavour', 'process')),
+    drop constraint if exists misc_category_purpose_check,
+    add  constraint misc_category_purpose_check
+         check ((purpose = 'flavour' and category in ('spice', 'herb', 'fruit', 'wood', 'coffee',
+                                                      'cacao', 'vanilla', 'smoke', 'other'))
+             or (purpose = 'process' and category in ('fining', 'nutrient', 'enzyme', 'acid',
+                                                      'other-process'))),
+    drop constraint if exists misc_usages_check,
+    add  constraint misc_usages_check
+         check (cardinality(usages) > 0
+                and usages <@ array['mash', 'boil', 'whirlpool', 'ferment', 'secondary', 'packaging']),
+    drop constraint if exists misc_time_min_check,
+    add  constraint misc_time_min_check
+         check (time_min >= 0),
+    drop constraint if exists misc_dose_check,
+    add  constraint misc_dose_check
+         check (lower(dose_g_per_l) >= 0);
 
 -- Flavour and origin vocabulary; parent gives partial matches (grapefruit ⊂ citrus ⊂ fruity)
 create table if not exists ref.tag (

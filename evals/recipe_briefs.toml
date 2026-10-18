@@ -1,4 +1,4 @@
-# Recipe test briefs (P0): 22 natural-language recipe requests, each with the outcome a
+# Recipe test briefs (P0): 24 natural-language recipe requests, each with the outcome a
 # correct pipeline must produce for the first three steps (style, deviations, what the user asked for).
 # Later phases score against this file (RECIPE-ROADMAP P4 and P5).
 #
@@ -487,3 +487,47 @@ fermentables = ["pilsner malt", "Vienna malt", "crystal malt", "flaked corn"]
 hops = ["Hallertau Mittelfrüh"]
 yeast = ["German lager yeast"]
 water_salts = []
+
+[[brief]]
+id = "b23"
+request = "An American stout with the coffee up front and a little vanilla in the background."
+named = "American stout"
+why = "A featured coffee moves the style to 30A on a 20B base; vanilla is a background spice inside 30A."
+style = "30A"
+alt_styles = ["20B"]
+deviations = []
+stated = {}
+hints = []
+wanted = [{ item = "coffee", role = "feature" }, { item = "vanilla", role = "background" }]
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pale ale malt", "roasted barley", "chocolate malt"]
+hops = ["Cascade"]
+yeast = ["American ale yeast"]
+water_salts = []
+misc = ["coffee", "vanilla beans"]
+
+[[brief]]
+id = "b24"
+request = "An American pale ale with a little orange peel for a hint of citrus."
+named = "American pale ale"
+why = "A background extra keeps the base style; 18B is silent on spice, so the peel is a deviation."
+style = "18B"
+alt_styles = []
+deviations = [
+  { kind = "ingredient", what = "orange peel", from = "18B ingredients" },
+]
+stated = {}
+hints = []
+wanted = [{ item = "orange peel", role = "background" }]
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pale ale malt", "crystal malt"]
+hops = ["Cascade", "Centennial"]
+yeast = ["American ale yeast"]
+water_salts = []
+misc = ["orange peel"]

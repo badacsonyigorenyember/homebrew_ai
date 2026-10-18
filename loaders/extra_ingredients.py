@@ -1,8 +1,9 @@
-"""Ingredient intake (s8-ingredient-intake): add a fermentable, hop or yeast by filling a file.
+"""Ingredient intake (s8-ingredient-intake, s9-misc-extras): add a fermentable, hop, yeast or misc by filling a file.
 
 Folder layout (default shared/ingredients/, one TOML file per ingredient, one per new source):
 
-    fermentable/<name>.toml   hop/<name>.toml   yeast/<name>.toml   sources/<slug>.toml
+    fermentable/<name>.toml   hop/<name>.toml   yeast/<name>.toml   misc/<name>.toml
+    sources/<slug>.toml
     _templates/               the commented templates to copy (never read by this module)
 
 The file format (keys, units, which are required) is in the templates and in the plan,
@@ -43,13 +44,18 @@ from loaders.tags import descriptor_tag
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_ROOT = REPO_ROOT / "shared" / "ingredients"
 
-KINDS = ("fermentable", "hop", "yeast")
+KINDS = ("fermentable", "hop", "yeast", "misc")
 FERMENTABILITY = {"full", "normal", "none"}
 PURPOSES = {"aroma", "bittering", "dual"}
 YEAST_TYPES = {"ale", "lager", "kveik", "brett", "lacto", "pedio"}
 SOUR_TYPES = {"lacto", "pedio"}  # a souring culture's sheet usually states no attenuation
 FLOCCULATION = {"very low", "low", "medium low", "medium", "medium high", "high", "very high"}
 FORMS = {"dry", "liquid"}
+MISC_PURPOSES = {"flavour", "process"}
+FLAVOUR_CATEGORIES = {"spice", "herb", "fruit", "wood", "coffee", "cacao", "vanilla", "smoke", "other"}
+PROCESS_CATEGORIES = {"fining", "nutrient", "enzyme", "acid", "other-process"}
+CHANGES_THE_NUMBERS = {"enzyme", "acid"}  # these alter gravity or pH, so they wait for the maths
+MISC_USAGES = ["mash", "boil", "whirlpool", "ferment", "secondary", "packaging"]  # the order of a brew day
 
 # Every key of a kind's template, apart from the *_ref and *_source keys that follow from them.
 COMMON_KEYS = ["kind", "name", "producer", "source", "description", "description_ref", "aliases", "descriptors"]
@@ -57,12 +63,14 @@ KIND_KEYS = {
     "fermentable": ["extract_dbfg_pct", "ebc", "role", "fermentability", "max_pct", "enzyme_activity", "min_boil_min"],
     "hop": ["alpha_pct", "purpose", "origins", "total_oil_ml_100g"],
     "yeast": ["type", "temp_c", "attenuation_pct", "flocculation", "form", "alcohol_tolerance_pct", "product_id"],
+    "misc": ["purpose", "category", "usages", "time_min", "dose_g_per_l", "dose_ml_per_l", "sugar_pct"],
 }
 # Figures that need a page or URL (`<field>_ref`) when filled; description is checked for all kinds.
 FIGURES = {
     "fermentable": ["extract_dbfg_pct", "ebc", "max_pct", "enzyme_activity", "min_boil_min"],
     "hop": ["alpha_pct", "total_oil_ml_100g"],
     "yeast": ["temp_c", "attenuation_pct", "alcohol_tolerance_pct"],
+    "misc": ["time_min", "dose_g_per_l", "dose_ml_per_l", "sugar_pct"],
 }
 SOURCE_KEYS = ["slug", "title", "edition", "publisher", "url", "licence"]
 
@@ -73,7 +81,7 @@ class IntakeFile:
 
     path: str  # as printed in messages: relative to the repo root when inside it
     stem: str  # the file name without .toml
-    folder: str  # "fermentable", "hop", "yeast", "sources", or a folder that is not allowed
+    folder: str  # "fermentable", "hop", "yeast", "misc", "sources", or a folder that is not allowed
     text: str  # the file as written
     fields: dict = field(default_factory=dict)  # parsed; {} when the file has a syntax error
     syntax_error: str | None = None
@@ -273,7 +281,56 @@ def check_yeast(p: Problems, f: dict):
     check_text(p, f, "product_id")
 
 
-KIND_CHECKS = {"fermentable": check_fermentable, "hop": check_hop, "yeast": check_yeast}
+def check_misc(p: Problems, f: dict):
+    need(p, f, "purpose")
+    need(p, f, "category")
+    need(p, f, "usages")
+    check_choice(p, f, "purpose", MISC_PURPOSES)
+    purpose, category = f.get("purpose"), f.get("category")
+    categories = {"flavour": FLAVOUR_CATEGORIES, "process": PROCESS_CATEGORIES}
+    if purpose in categories and not is_blank(category) and category not in categories[purpose]:
+        p.add("category", f"{category!r} is not a {purpose} category; use one of {sorted(categories[purpose])}")
+    elif purpose not in categories and not is_blank(category) and category not in FLAVOUR_CATEGORIES | PROCESS_CATEGORIES:
+        p.add("category", f"{category!r} is not one of {sorted(FLAVOUR_CATEGORIES | PROCESS_CATEGORIES)}")
+    usages = f.get("usages")
+    if isinstance(usages, list):
+        for usage in usages:
+            if usage not in MISC_USAGES:
+                p.add("usages", f"{usage!r} is not one of {MISC_USAGES}")
+    elif not is_blank(usages):
+        p.add("usages", "must be a list of usages")
+    minutes = f.get("time_min")
+    if not is_blank(minutes) and not (isinstance(minutes, int) and not isinstance(minutes, bool) and minutes >= 0):
+        p.add("time_min", "must be a whole number of minutes, 0 or more")
+    check_range(p, f, "dose_g_per_l", 0, 1000)
+    check_range(p, f, "dose_ml_per_l", 0, 1000)
+    if not is_blank(f.get("dose_g_per_l")) and not is_blank(f.get("dose_ml_per_l")):
+        p.add("dose_ml_per_l", "fill dose_g_per_l or dose_ml_per_l, not both")
+    if not is_blank(f.get("sugar_pct")):
+        if category != "fruit":
+            p.add("sugar_pct", "only a fruit has a sugar_pct")
+        check_number(p, f, "sugar_pct", 0, 100)
+    if purpose == "flavour":
+        need(p, f, "descriptors")
+    elif purpose == "process" and not is_blank(f.get("descriptors")):
+        p.add("descriptors", "a process aid has no flavour; leave descriptors empty")
+
+
+def misc_waits(item: IntakeFile) -> str | None:
+    """Why a misc file that passes the checks is not (fully) used yet, or None."""
+    f = item.fields
+    if item.folder != "misc" or item.syntax_error:
+        return None
+    if not is_blank(f.get("dose_ml_per_l")):
+        return "liquid extract dosed in mL/L, not loaded until a later work item adds mL/L"
+    if f.get("category") in CHANGES_THE_NUMBERS:
+        return f"changes the numbers ({f['category']}): waits for maths"
+    if f.get("category") == "fruit" and not is_blank(f.get("sugar_pct")):
+        return "fruit sugar: waits for maths; TODO: fruit as a fermentable is decided with M6"
+    return None
+
+
+KIND_CHECKS = {"fermentable": check_fermentable, "hop": check_hop, "yeast": check_yeast, "misc": check_misc}
 
 
 def check_source(item: IntakeFile) -> list[str]:
@@ -302,9 +359,6 @@ def check_ingredient(item: IntakeFile, known: Known, source_slugs: set) -> list[
         p.add("toml", item.syntax_error)
         return p.errors
     kind = item.folder
-    if kind == "misc":
-        p.add("kind", "misc arrives in s9")
-        return p.errors
     if kind not in KINDS:
         p.add("kind", f"folder {kind!r} is not one of {list(KINDS)}")
         return p.errors
@@ -581,7 +635,27 @@ def load_yeast(conn, item: IntakeFile) -> int:
     return write_ingredient(conn, item, "yeast", "ref.yeast", values, field_sources(f, values))
 
 
-LOADERS = {"fermentable": load_fermentable, "hop": load_hop, "yeast": load_yeast}
+def load_misc(conn, item: IntakeFile) -> int:
+    f = item.fields
+    values = {
+        "category": f["category"],
+        "purpose": f["purpose"],
+        "usages": f["usages"],
+        "time_min": f.get("time_min") if not is_blank(f.get("time_min")) else None,
+        "dose_g_per_l": rng(f.get("dose_g_per_l")),
+        "description": f["description"],
+    }
+    # sugar_pct is not a column: it stays in raw.intake until fruit as a fermentable is decided (M6)
+    return write_ingredient(conn, item, "misc", "ref.misc", values, field_sources(f, values))
+
+
+LOADERS = {"fermentable": load_fermentable, "hop": load_hop, "yeast": load_yeast, "misc": load_misc}
+LIQUID_EXTRACT = "liquid extract"
+
+
+def not_loaded(item: IntakeFile) -> bool:
+    """A misc file that passes --check but is not loaded: a liquid extract dosed in mL/L."""
+    return (misc_waits(item) or "").startswith(LIQUID_EXTRACT)
 
 
 def load(conn, sources: list[IntakeFile], ingredients: list[IntakeFile]) -> dict:
@@ -594,9 +668,10 @@ def load(conn, sources: list[IntakeFile], ingredients: list[IntakeFile]) -> dict
     new_sources = [s.fields["slug"] for s in sources if s.fields["slug"] not in existing]
     for item in sources:
         load_source(conn, item)
-    counts = {kind: 0 for kind in KINDS}
+    counts = {kind: 0 for kind in LOADERS}
     ids = {}
-    for kind in KINDS:
+    ingredients = [i for i in ingredients if i.folder in LOADERS and not not_loaded(i)]
+    for kind in LOADERS:
         for item in ingredients:
             if item.folder == kind:
                 ids[item.path] = LOADERS[kind](conn, item)
@@ -622,6 +697,8 @@ def summary(conn, ingredients: list[IntakeFile], loaded: dict, orphan_list: list
     tagged, flagged = [], []
     for ingredient_id, item in by_id.items():
         label = f"{item.fields.get('producer') or ''} {item.fields['name']}".strip()
+        if item.folder == "misc" and item.fields["purpose"] == "process":
+            continue  # a process aid has no flavour: no tags, nothing to flag
         reasons = [r for (r,) in conn.execute("select reason from ref.ingredient_review where ingredient_id = %s", (ingredient_id,))]
         n_tags = conn.execute("select count(*) from ref.ingredient_tag where ingredient_id = %s", (ingredient_id,)).fetchone()[0]
         if reasons:
@@ -630,11 +707,16 @@ def summary(conn, ingredients: list[IntakeFile], loaded: dict, orphan_list: list
             tagged.append(label)
         else:
             flagged.append((label, ["no tags derived"]))
-    waits = [
-        f"{i.fields.get('producer') or ''} {i.fields['name']}".strip()
+    def label_of(i):
+        return f"{i.fields.get('producer') or ''} {i.fields['name']}".strip()
+
+    waits_for_maths = [
+        f"{label_of(i)}: souring culture, no model yet"
         for i in ingredients
         if i.folder == "yeast" and i.fields.get("type") in SOUR_TYPES
     ]
+    waits_for_maths += [f"{label_of(i)}: {misc_waits(i)}" for i in ingredients if i.path in ids and misc_waits(i)]
+    not_loaded_files = [f"{label_of(i)}: {misc_waits(i)}" for i in ingredients if not_loaded(i)]
     return {
         "loaded": loaded["counts"],
         "new_sources": loaded["new_sources"],
@@ -642,14 +724,15 @@ def summary(conn, ingredients: list[IntakeFile], loaded: dict, orphan_list: list
         "flagged": flagged,
         "orphans": orphan_list or [],
         "aliases_checked": loaded["aliases"],
-        "waits_for_maths": waits,
+        "waits_for_maths": waits_for_maths,
+        "waits": not_loaded_files,
         "ref_counts": dict(conn.execute("select kind, count(*) from ref.ingredient group by kind order by kind")),
     }
 
 
 def print_summary(s: dict):
     loaded = s["loaded"]
-    print(f"loaded: fermentable {loaded['fermentable']}, hop {loaded['hop']}, yeast {loaded['yeast']}")
+    print(f"loaded: fermentable {loaded['fermentable']}, hop {loaded['hop']}, yeast {loaded['yeast']}, misc {loaded['misc']}")
     print(f"sources added: {', '.join(s['new_sources']) or 'none'}")
     print(f"tagged: {len(s['tagged'])}; flagged for review: {len(s['flagged'])}")
     for label, reasons in s["flagged"]:
@@ -657,8 +740,10 @@ def print_summary(s: dict):
     for line in s["orphans"]:
         print(f"no file backs this intake row: {line}")
     print(f"aliases checked: {s['aliases_checked']}")
-    for label in s["waits_for_maths"]:
-        print(f"waits for maths (souring culture, no model yet): {label}")
+    for line in s["waits_for_maths"]:
+        print(f"waits for maths: {line}")
+    for line in s["waits"]:
+        print(f"waits (not loaded): {line}")
     print("ref.ingredient per kind: " + ", ".join(f"{k} {n}" for k, n in s["ref_counts"].items()))
 
 
@@ -680,7 +765,11 @@ def main(argv=None) -> int:
         count = {kind: sum(1 for i in ingredients if i.folder == kind) for kind in KINDS}
         if args.check:
             print(f"ok: {len(sources) + len(ingredients)} files (fermentable {count['fermentable']}, "
-                  f"hop {count['hop']}, yeast {count['yeast']}, sources {len(sources)})")
+                  f"hop {count['hop']}, yeast {count['yeast']}, misc {count['misc']}, sources {len(sources)})")
+            for item in ingredients:
+                reason = misc_waits(item)
+                if reason:
+                    print(f"waits: {item.path}: {reason}")
             for line in orphan_list:
                 print(f"no file backs this intake row: {line}")
             return 0
