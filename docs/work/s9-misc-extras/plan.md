@@ -139,7 +139,7 @@ Commit: `Add doc-calc pass for s9 misc doses and styles`
 
 ### Task 2: `ref.misc` holds the misc fields
 Why: R1, A1.
-- [ ] In `db/012_style_fit.sql`, after the `ref.misc` table: `add column if not exists`
+- [x] In `db/012_style_fit.sql`, after the `ref.misc` table: `add column if not exists`
       `purpose text`, `usages text[]`, `time_min integer`, `dose_g_per_l numrange`,
       `description text`, `field_source jsonb`. `purpose` and `usages` are not null on new rows
       (the table has 0 rows, measured 2026-10-18); use `not null` with the add. Replace
@@ -150,11 +150,11 @@ Why: R1, A1.
       `misc_usages_check` (`cardinality(usages) > 0 and usages <@ array['mash','boil','whirlpool','ferment','secondary','packaging']`);
       `time_min >= 0`; `lower(dose_g_per_l) >= 0`. Each `drop constraint if exists` before its
       `add`, as the file already does.
-- [ ] Write `tests/test_misc.py::test_misc_columns_and_checks` (stack, rolled back): the
+- [x] Write `tests/test_misc.py::test_misc_columns_and_checks` (stack, rolled back): the
       columns and types from `information_schema`, owner `postgres`, and that an insert with a
       flavour category under `process`, an unknown usage, an empty usages array, or category
       `fining` under `flavour` each fails.
-- [ ] Apply `db/012` twice; run `pytest tests/test_misc.py tests/test_style_fit_effects.py`, expect pass.
+- [x] Apply `db/012` twice; run `pytest tests/test_misc.py tests/test_style_fit_effects.py`, expect pass.
 Done when: the test passes and `\d ref.misc` shows the columns.
 Commit: `Add misc fields to ref.misc`
 
