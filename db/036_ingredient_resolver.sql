@@ -28,7 +28,8 @@ returns table (word text, kind text)
 language sql
 immutable
 as $$
-    values ('malt', 'fermentable'), ('hop', 'hop'), ('yeast', 'yeast')
+    values ('malt', 'fermentable'), ('hop', 'hop'), ('yeast', 'yeast'),
+           ('spice', 'misc'), ('herb', 'misc'), ('fruit', 'misc')
 $$;
 
 -- Words of an ingredient name: lower case, accents removed, anything not a letter or digit read as
@@ -50,7 +51,7 @@ as $$
       left join app.ingredient_synonym() s on s.word = w.word;
 $$;
 
--- The products a word names, by name only (aliases are not read).  The kind words malt, hop and yeast restrict the kind, so "crystal malt"
+-- The products a word names, by name only (aliases are not read).  The kind words malt, hop, yeast, spice, herb and fruit restrict the kind, so "crystal malt"
 -- never reaches the Crystal hop. Two rules, the first that finds anything wins:
 -- 1. the same words as a product's name; 2. every remaining word (kind word removed, only when
 -- another word remains) among the words of the product's name and producer.

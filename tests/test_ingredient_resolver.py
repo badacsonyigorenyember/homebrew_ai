@@ -121,3 +121,12 @@ def test_by_name_ignores_aliases(conn):
         assert rows == []
     finally:
         conn.rollback()
+
+
+@pytest.mark.stack
+def test_misc_kind_words_leave_brief_words_alone(conn):
+    # every wanted word of b01-b22 resolved to these products before the misc kind words existed
+    # (measured 2026-10-18 on the live database, which has no misc rows)
+    assert all(r[1] != "misc" for b in BRIEFS for w in b["wanted"] for r in resolve(conn, w["item"]))
+    rows = resolve(conn, "smoked malt cherry wood")
+    assert rows and {r[1] for r in rows} == {"fermentable"}

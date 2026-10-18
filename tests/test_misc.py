@@ -77,3 +77,25 @@ def test_misc_columns_and_checks(conn):
                 (ingredient_id, value),
             )
         conn.execute("rollback to savepoint s")
+
+
+# ---------------------------------------------------------------- resolver (Task 5)
+
+from pathlib import Path  # noqa: E402
+
+from tests.test_extra_ingredients import load_fixtures  # noqa: E402
+
+
+def resolve(conn, word):
+    return conn.execute(
+        "select ingredient_id, kind, name, rule from app.resolve_ingredient(%s)", (word,)
+    ).fetchall()
+
+
+def test_misc_kind_words_find_misc_products(conn):
+    load_fixtures(conn)
+    assert [(r[1], r[2]) for r in resolve(conn, "Fixture Spice")] == [("misc", "Fixture Spice")]
+    assert [(r[1], r[2]) for r in resolve(conn, "fixture spice seed")] == [("misc", "Fixture Spice")]
+    assert [(r[1], r[2]) for r in resolve(conn, "herb fixture no dose")] == [("misc", "Fixture No Dose")]
+    # a misc kind word restricts to misc, so another kind's name finds nothing
+    assert resolve(conn, "herb Citra") == []

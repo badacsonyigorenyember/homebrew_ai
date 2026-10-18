@@ -235,17 +235,17 @@ Commit: `Load and tag misc intake files`
 
 ### Task 5: misc kind words find misc products
 Why: R4, A4.
-- [ ] `db/036_ingredient_resolver.sql` `app.ingredient_kind_word()`: add `('spice','misc')`,
+- [x] `db/036_ingredient_resolver.sql` `app.ingredient_kind_word()`: add `('spice','misc')`,
       `('herb','misc')`, `('fruit','misc')`. Not `wood` (measured: "Smoked Malt (cherry wood)"
       and "(pear wood)" would be read as misc, because the first kind word wins), not `smoke`
       (brewers type it for smoked malt), not `coffee`, `cacao`, `vanilla` (product words). Decided by
       you, 2026-10-18: these three only.
-- [ ] Tests in `tests/test_misc.py` (fixtures loaded, rolled back): `app.resolve_ingredient`
+- [x] Tests in `tests/test_misc.py` (fixtures loaded, rolled back): `app.resolve_ingredient`
       finds `fixture-spice` by its name and by its alias, finds `fixture-no-dose` by its kind
-      word plus name ("herb fixture no dose"), and a kind word with another kind's name
-      ("spice fixture hop") finds nothing; in `tests/test_ingredient_resolver.py`, every b01–b22 wanted word still resolves to
+      word plus name ("herb fixture no dose"), and a misc kind word with another kind's name
+      ("herb Citra") finds nothing; in `tests/test_ingredient_resolver.py`, every b01–b22 wanted word still resolves to
       the same products, and "smoked malt cherry wood" still finds only the fermentable.
-- [ ] Apply `db/036` twice; run `pytest tests/test_ingredient_resolver.py tests/test_misc.py tests/test_extra_ingredients.py`.
+- [x] Apply `db/036` twice; run `pytest tests/test_ingredient_resolver.py tests/test_misc.py tests/test_extra_ingredients.py`.
 Done when: A4 holds and the resolver tests pass unchanged.
 Commit: `Add misc kind words to the resolver`
 
@@ -467,3 +467,4 @@ None.
 - 2026-10-18 · Task 3 (carried to Task 4): `load` skipped misc files and the `load_fixtures` test helper returned only loadable kinds until `load_misc` existed; Task 4 lifted both (the helper now returns all files and the loader's ids). — Task 3 left them for Task 4.
 - 2026-10-18 · Task 3: the misc count in `--check`'s ok line and the `waits:` lines moved into Task 3. — they belong to the checker, not the loader.
 - 2026-10-18 · Task 4: `waits_for_maths` entries are now "label: reason" lines (yeast: "souring culture, no model yet"), `summary` gained `waits` for skipped liquid extracts, and the `ref.misc` count moved to the spot-check's `intake` group. — one line format for all reasons.
+- 2026-10-18 · Task 5: the "kind word with another kind's name" test uses "herb Citra", not "spice fixture hop". — "spice fixture hop" reads `spice` as the first kind word, drops both kind words and matches every fixture misc by "fixture", so it cannot find nothing.
