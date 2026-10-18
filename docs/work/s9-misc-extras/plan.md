@@ -404,10 +404,10 @@ Commit: `Add test briefs b23 and b24 with extras`
 
 ### Task 13: steps 1–5 are measured on all 24 briefs
 Why: R10, A10 (PROJECT.md §6.6).
-- [ ] `.venv/bin/python -m evals.run --save --label s9` (D2 model, the live pipeline; no
+- [x] `.venv/bin/python -m evals.run --save --label s9` (D2 model, the live pipeline; no
       workflow change is needed, the step functions keep their signatures; confirm with
       `grep -l` on `n8n/workflows/`).
-- [ ] Expect b23 and b24 to pass steps 1–5, and steps 1–5 each 22/22 on b01–b22. A miss is
+- [x] Expect b23 and b24 to pass steps 1–5, and steps 1–5 each 22/22 on b01–b22. A miss is
       recorded with its step and output, and reported before any change (a step 1 prompt
       change is outside this brief and needs your answer).
 Done when: `evals/results/2026-10-<dd>-s9.json` is saved with A10 met, or the misses are reported.
