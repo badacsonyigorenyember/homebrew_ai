@@ -1,6 +1,6 @@
 # M4 · Steps 0, 4 and 5: brewer profile, targets and design frame — implementation plan
 
-Stage: verify
+Stage: shipped
 Brief: [brief.md](brief.md)
 Branch: m4-targets-blueprint
 
