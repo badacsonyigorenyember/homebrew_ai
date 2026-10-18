@@ -9,6 +9,7 @@ from loaders.db import connect
 
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
 NAMES = [f"step{n}.{side}" for n in range(6) for side in ("input", "output")]
+NAMES += ["choose.proposal"]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
 
 # Each output's slot for absent / unknown / conflict: (property, how the schema must allow it).
@@ -178,7 +179,14 @@ STEP5_OUT = {
                     "from": "derived", "because": "100 x (OG - FG) / (OG - 1)"},
     "guidance": True,
 }
+PROPOSAL = {
+    "yeast": {"main": {"ingredient_id": 1, "purpose": "clean"}, "souring": None},
+    "fermentables": [{"ingredient_id": 2, "usage": "mash", "pct": 100, "purpose": "base"}],
+    "hops": [{"ingredient_id": 3, "usage": "boil", "minutes": 60, "share_pct": 100, "purpose": "bitter"}],
+    "extras": [{"ingredient_id": 4, "usage": "secondary", "purpose": "coffee"}],
+}
 GOOD = {
+    "choose.proposal": PROPOSAL,
     "formulation_check.input": CHECK_IN,
     "formulation_check.output": CHECK_OUT,
     "step0.input": {"run_id": 1, "profile_id": None},
@@ -201,6 +209,11 @@ GOOD = {
     "step5.output": STEP5_OUT,
 }
 BAD = [
+    ("choose.proposal", {**PROPOSAL, "extras": [{**PROPOSAL["extras"][0], "dose_g_per_l": 3.0}]}),
+    ("choose.proposal", {**PROPOSAL, "fermentables": [{**PROPOSAL["fermentables"][0], "pct": 0}]}),
+    ("choose.proposal", {**PROPOSAL, "fermentables": [{**PROPOSAL["fermentables"][0], "usage": "whirlpool"}]}),
+    ("choose.proposal", {**PROPOSAL, "hops": [{**PROPOSAL["hops"][0], "minutes": -1}]}),
+    ("choose.proposal", {**PROPOSAL, "yeast": {"main": PROPOSAL["yeast"]["main"]}}),
     ("formulation_check.input", {k: v for k, v in CHECK_IN.items() if k != "mash_c"}),
     ("formulation_check.input", {**CHECK_IN, "hops": [{**CHECK_IN["hops"][0], "usage": "mash"}]}),
     ("formulation_check.input", {**CHECK_IN, "stated": {"colour": 5}}),

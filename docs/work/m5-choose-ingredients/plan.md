@@ -249,18 +249,18 @@ Commit: `Build the steps 6-9 candidate table`
 
 ### Task 4: the proposal contract, the system prompt and the check
 Why: R1–R8; A1, A2, A3, A5, A6, A7. The fit test's quality half needs this check (R13).
-- [ ] `shared/contracts/choose.proposal.schema.json` (the `format` sent to Ollama; every property
+- [x] `shared/contracts/choose.proposal.schema.json` (the `format` sent to Ollama; every property
       required, `additionalProperties: false` at every level):
       `yeast {main {ingredient_id integer, purpose string}, souring {ingredient_id, purpose} or null}`;
       `fermentables [{ingredient_id, usage enum mash|boil, pct number > 0, purpose}]`;
       `hops [{ingredient_id, usage enum boil|whirlpool|dry_hop, minutes number >= 0, share_pct
       number > 0, purpose}]`; `extras [{ingredient_id, usage string, purpose}]`. No dose field
       anywhere.
-- [ ] `shared/prompts/choose.system.md`: what each step picks and from where (only ids in the
+- [x] `shared/prompts/choose.system.md`: what each step picks and from where (only ids in the
       table), the rules the check applies (below) in plain words, prefer `typical` over
       `allowed`, use marked inventory, put each wanted item at a `keeps_best` choice, write a
       short purpose, never a dose or an amount.
-- [ ] `db/043_choose_check.sql` (needs 042):
+- [x] `db/043_choose_check.sql` (needs 042):
       - `app.misc_dose(product_id bigint, role text) returns jsonb` → `{g_per_l, because}`: a
         one-point range gives that value ("one sourced dose"); `background` (and a null role)
         the low end, `feature` the high end ("<role>: low/high end of the sourced range");
@@ -288,8 +288,8 @@ Why: R1–R8; A1, A2, A3, A5, A6, A7. The fit test's quality half needs this che
         jsonb, errors text[])`, as `app.step1_read_answer`: not JSON → one error; contract
         errors (`extensions.jsonschema_validation_errors`) prefixed `contract: `; then
         `app.choose_check`.
-- [ ] Apply twice; owners `postgres`.
-- [ ] Write `tests/test_choose_check.py` (stack). A helper builds a good proposal from a table
+- [x] Apply twice; owners `postgres`.
+- [x] Write `tests/test_choose_check.py` (stack). A helper builds a good proposal from a table
       (first in-style rows, wanted and inventory ids, shares 100). Tests, each seen failing
       first: the good proposals for b01, b08, b10, b14, b15, b16, b23 pass; and one test per
       rule, each with the smallest change to a good proposal: invented id (A1), excluded Saaz
@@ -301,9 +301,9 @@ Why: R1–R8; A1, A2, A3, A5, A6, A7. The fit test's quality half needs this che
       `test_misc_dose_rule` (A16: b23 coffee whole beans `feature` 3.0, vanilla `background`
       0.05, orange peel 2.64, a fixture misc with no dose null); `test_guidance_off_allows_any_level`
       (b18).
-- [ ] `tests/test_contracts.py`: `NAMES` gains `choose.proposal` (Task 6 adds the rest).
-- [ ] Run `.venv/bin/pytest tests/test_choose_check.py tests/test_choose_table.py tests/test_contracts.py`, expect all pass.
-- [ ] PROJECT.md §8 entry.
+- [x] `tests/test_contracts.py`: `NAMES` gains `choose.proposal` (Task 6 adds the rest).
+- [x] Run `.venv/bin/pytest tests/test_choose_check.py tests/test_choose_table.py tests/test_contracts.py`, expect all pass.
+- [x] PROJECT.md §8 entry.
 Done when: every rule has a failing-proposal test and the good proposals pass.
 Commit: `Add the steps 6-9 proposal check`
 
@@ -525,3 +525,4 @@ None needed: imports go through the n8n CLI as OPERATIONS §5 says; no container
   needs gap rule (Task 8) are confirmed by the user as planned.
 - 2026-10-18 · Task 2: after reloading the adjunct loader, `loaders.fermentable_facts` is re-run (twice) — the adjunct loader nulls `max_pct`/`field_source` (documented load order); no plan text changed.
 - 2026-10-18 · Task 3: `app.choose_table` also returns `style_name` and `characteristic_ingredients` (the prompt shows them and every prompt number must come from the table), `kind` on each `slots` and `inventory_words` entry, and `db/042` holds helper functions beyond the four listed — implementation detail, no scope change.
+- 2026-10-18 · Task 4: R5's band rule skips a wanted or inventory yeast and applies only when a usable (non-lacto, lager/family-fitting) yeast reaches the band, so it cannot clash with R3; a hop's boil minutes map to the table's own boil choice (largest `minutes` not above); `db/043` also holds helpers `choose_row`, `choose_names`, `choose_pick_errors` — implementation detail, no scope change.

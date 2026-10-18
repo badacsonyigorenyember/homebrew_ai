@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "choose.proposal",
+  "description": "Steps 6-9, the LLM's proposal: ids from the candidate table with usage, share and a purpose. Never a dose or an amount: code sets those. Absent: souring is null when no souring culture is added; extras is empty when the recipe has no extras.",
+  "type": "object",
+  "required": [
+    "yeast",
+    "fermentables",
+    "hops",
+    "extras"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "yeast": {
+      "type": "object",
+      "required": [
+        "main",
+        "souring"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "main": {
+          "type": "object",
+          "required": [
+            "ingredient_id",
+            "purpose"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "ingredient_id": {
+              "type": "integer"
+            },
+            "purpose": {
+              "type": "string"
+            }
+          }
+        },
+        "souring": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "ingredient_id",
+                "purpose"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "ingredient_id": {
+                  "type": "integer"
+                },
+                "purpose": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "fermentables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "ingredient_id",
+          "usage",
+          "pct",
+          "purpose"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "usage": {
+            "enum": [
+              "mash",
+              "boil"
+            ]
+          },
+          "pct": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "purpose": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "hops": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "ingredient_id",
+          "usage",
+          "minutes",
+          "share_pct",
+          "purpose"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "usage": {
+            "enum": [
+              "boil",
+              "whirlpool",
+              "dry_hop"
+            ]
+          },
+          "minutes": {
+            "type": "number",
+            "minimum": 0
+          },
+          "share_pct": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "purpose": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "extras": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "ingredient_id",
+          "usage",
+          "purpose"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "usage": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
