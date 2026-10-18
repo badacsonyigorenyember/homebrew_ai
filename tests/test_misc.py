@@ -306,3 +306,39 @@ def test_style_fit_recipe_takes_extras(conn):
     assert all(l["level"] for l in misc_lines)
     assert [l for l in with_extras["lines"] if l["kind"] != "misc"] == plain["lines"]
     assert with_extras["required"] == plain["required"] and with_extras["too_little"] == plain["too_little"]
+
+
+# ---------------------------------------------------------------- step 2 (Task 8)
+
+
+def step2(conn, wanted, request="An American stout"):
+    brief = {"named": "American stout", "stated": {}, "hints": [], "wanted": wanted, "excluded": [],
+             "inventory": [], "unknown": [], "guidance": True}
+    return conn.execute(
+        "select app.step2_best_style(%s::jsonb, %s, %s)", (Jsonb(brief), request, None)).fetchone()[0]
+
+
+def test_featured_misc_moves_step2_to_its_specialty_style(conn):
+    load_fixtures(conn)
+    out = step2(conn, [{"item": "fixture coffee beans", "role": "feature"}])
+    assert out["style"]["code"] == "30A"
+    assert out["alt_styles"][0] == "20B"
+    assert "Fixture Coffee Beans" in out["reason"] and "category coffee" in out["reason"]
+    assert "base style 20B" in out["reason"]
+
+
+def test_background_misc_keeps_the_base_style(conn):
+    load_fixtures(conn)
+    out = step2(conn, [{"item": "fixture coffee beans", "role": "background"}])
+    assert out["style"]["code"] == "20B"
+
+
+def test_featured_misc_without_a_style_keeps_the_base(conn):
+    load_fixtures(conn)
+    out = step2(conn, [{"item": "fixture other", "role": "feature"}])
+    assert out["style"]["code"] == "20B"
+
+
+def test_featured_honey_still_gives_31b(conn):
+    out = step2(conn, [{"item": "honey", "role": "feature"}])
+    assert out["style"]["code"] == "31B"

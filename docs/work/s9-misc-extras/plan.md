@@ -301,24 +301,24 @@ Commit: `Rate misc in step 3 and in style_fit_recipe`
 
 ### Task 8: a featured misc moves step 2 to its specialty style
 Why: R8, A8 (SQL level). Needs Task 1 accepted (§A, §B).
-- [ ] `db/022_step2.sql`: `drop function if exists app.specialty_style()` and recreate it as
+- [x] `db/022_step2.sql`: `drop function if exists app.specialty_style()` and recreate it as
       `(adjunct text, category text, guide text, code text, source text)`: the 3 honey/molasses
       rows keep `adjunct` (category null); one BJCP row per mapped flavour category (fruit 29A;
       spice, herb, coffee, cacao, vanilla 30A; wood 33A; smoke 32A) and one BA row per category
       from `doc-calc.md` §B, `adjunct` null, `source` = the quote or "set by the user, <date>".
       No row for `other`.
-- [ ] Section 7 of `app.step2_best_style`: keep the adjunct word match; when it finds nothing,
+- [x] Section 7 of `app.step2_best_style`: keep the adjunct word match; when it finds nothing,
       take the first `feature` item (in brief order) whose first misc product (resolver order)
       has a category row for `base.guide`; style = that code, `alt_styles` = base first, as for
       honey; reason: "Picked 30A …: coffee (Fixture Coffee Beans, category coffee) has the role
       "feature" in step 1's brief; base style 20B."
-- [ ] Tests: `tests/test_step2_signals.py::test_every_alias_has_a_source` reads the new columns
+- [x] Tests: `tests/test_step2_signals.py::test_every_alias_has_a_source` reads the new columns
       (every row has a source and an existing code; each row has exactly one of adjunct or
       category); in `tests/test_misc.py`: a brief "an American stout" with
       `wanted = [{item: "fixture coffee beans", role: "feature"}]` gives 30A with 20B first in
       `alt_styles`; the same item as `background` keeps 20B; a `feature` `fixture-other` keeps
       the base; b12 (honey) still gives 31B (`tests/test_step2_pick.py` passes).
-- [ ] Apply `db/022` twice; run `pytest tests/test_misc.py tests/test_step2_pick.py tests/test_step2_signals.py tests/test_step3.py`.
+- [x] Apply `db/022` twice; run `pytest tests/test_misc.py tests/test_step2_pick.py tests/test_step2_signals.py tests/test_step3.py`.
 Done when: the featured misc test passes and step 2's b01–b22 picks are unchanged.
 Commit: `Pick the specialty style by misc category in step 2`
 
