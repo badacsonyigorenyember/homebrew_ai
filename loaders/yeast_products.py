@@ -22,6 +22,13 @@ An SKU in none of the three raises in loaders.yeasts.build, so a new hopline pro
 loads without a decision here. Comments are hopline's product names (2026-10-11).
 """
 
+# LACTO: SKU -> the words of its hopline text that name the culture. hopline files these under
+# Stílus "sour", which says no culture type; the text does (user decision 2026-10-18).
+LACTO: dict[str, str] = {
+    "301244": "Lactobacillus Plantarius törzs",  # YF-998 Yeastflow Sour, yes sour
+    "301245": "A lactobacillus brevis",  # YF-999 Yeastflow Sourprise
+}
+
 YEASTS: dict[str, tuple[str, str | None, str]] = {
     # Brewline (no codes; the comment's "copies" is what its page says)
     "301101": ("Brewline", None, "German Lager"),  # Brewline German Lager - W34/70 - 12g (copies W-34/70)

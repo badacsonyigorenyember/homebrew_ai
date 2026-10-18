@@ -1,6 +1,6 @@
 # M5 · Steps 6–9: choose yeast, fermentables, hops and extras — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: m5-choose-ingredients
 
@@ -118,39 +118,39 @@ idempotent).
 
 ### Task 1: YF-998 and YF-999 are lacto cultures, and "Lactobacillus" finds them
 Why: R5, A15. Step 6's souring rule and the b14 needs class read `type = 'lacto'`.
-- [ ] `loaders/yeast_products.py`: `LACTO: dict[str, str]` from SKU to the quote that names the
+- [x] `loaders/yeast_products.py`: `LACTO: dict[str, str]` from SKU to the quote that names the
       culture: `"301244": "Lactobacillus Plantarius törzs"`, `"301245": "A lactobacillus brevis"`
       (exact words from `details.text` in `hopline_yeasts.json`). Comment: hopline files these
       under `Stílus` `sour`, which says no culture type; the text does (user decision
       2026-10-18).
-- [ ] `loaders/yeasts.py`: `make_yeast` takes the type from `LACTO` when the SKU is in it
+- [x] `loaders/yeasts.py`: `make_yeast` takes the type from `LACTO` when the SKU is in it
       (`field_source["type"]` stays `hopline-yeasts`), else from `type_of(Stílus)` as now; the
       report lists the two with their quote. `TYPES["sour"]` stays `None` (Philly Sour and others
       keep NULL).
-- [ ] Write `tests/test_yeasts.py::test_lacto_cultures` (no stack): a product dict shaped like
+- [x] Write `tests/test_yeasts.py::test_lacto_cultures` (no stack): a product dict shaped like
       `US05` with SKU 301244, `Stílus` `sour` and the text gives type `lacto` with field source
       `hopline-yeasts`; the same dict with SKU 301030 gives None. See it fail first.
-- [ ] Reload: `.venv/bin/python -m loaders.yeasts --hopline shared/rag-files/hopline/hopline_yeasts.json --report <scratchpad>/yeast-report.md`
+- [x] Reload: `.venv/bin/python -m loaders.yeasts --hopline shared/rag-files/hopline/hopline_yeasts.json --report <scratchpad>/yeast-report.md`
       (a path outside the repo: the shipped report in `docs/finished/yeast-loader/` stays as it
       is). Run it twice. Expect `select type, count(*) from ref.yeast group by type`: ale 75,
       kveik 20, lager 17, brett 2, lacto 2, null 3; `ref.ingredient_tag` row count unchanged
       (the hopline tagger reads `Stílus`, not `type`).
-- [ ] `db/036_ingredient_resolver.sql`: `app.yeast_type_word() returns table (word text, type text)`,
+- [x] `db/036_ingredient_resolver.sql`: `app.yeast_type_word() returns table (word text, type text)`,
       immutable, values `('lactobacillus', 'lacto'), ('lacto', 'lacto')`; comment: a word that
       names a culture type, never a product. `app.resolve_ingredient` gains a third branch, rule
       `'yeast type'`: when the alias branch and `app.resolve_ingredient_by_name` both find
       nothing, and the query's words (`app.ingredient_words`, kind word `yeast` removed when
       another word remains) equal the words of one `yeast_type_word` row, return every
       `ref.yeast` of that type. Keep the `order by 3, 1`.
-- [ ] Apply twice; owners `postgres`.
-- [ ] Write `tests/test_ingredient_resolver.py::test_lactobacillus_finds_lacto_cultures` (stack):
+- [x] Apply twice; owners `postgres`.
+- [x] Write `tests/test_ingredient_resolver.py::test_lactobacillus_finds_lacto_cultures` (stack):
       "Lactobacillus" and "lacto yeast" give YF-998 and YF-999 with rule `yeast type`;
       "lactose" still gives Lactose only.
       `test_type_words_change_no_brief_word`: every wanted, excluded and inventory word of
       b01–b24 resolves to the same ids as `app.resolve_ingredient_by_name` or the alias branch
       did before (compare with the rule column: no row has rule `yeast type`).
-- [ ] Run `.venv/bin/pytest tests/test_yeasts.py tests/test_ingredient_resolver.py tests/test_step3.py tests/test_step5.py`, expect all pass.
-- [ ] `docs/DATABASE.md`: `ref.yeast` row (type values incl. `lacto`, 2 rows), resolver line.
+- [x] Run `.venv/bin/pytest tests/test_yeasts.py tests/test_ingredient_resolver.py tests/test_step3.py tests/test_step5.py`, expect all pass.
+- [x] `docs/DATABASE.md`: `ref.yeast` row (type values incl. `lacto`, 2 rows), resolver line.
       PROJECT.md §8 entry with the measured type counts.
 Done when: YF-998 and YF-999 are `lacto` after two reloads, and "Lactobacillus" resolves to them.
 Commit: `Mark lacto cultures and resolve Lactobacillus`

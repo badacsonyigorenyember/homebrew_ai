@@ -104,7 +104,18 @@ as $$
      order by r.name, r.id;
 $$;
 
--- The products a word names: aliases first, then the name rules above. An alias matches when its
+-- Words that name a culture type, never a product: "Lactobacillus" finds every yeast of type lacto
+-- (docs/work/m5-choose-ingredients). Used only when aliases and names find nothing.
+create or replace function app.yeast_type_word()
+returns table (word text, type text)
+language sql
+immutable
+as $$
+    values ('lactobacillus', 'lacto'), ('lacto', 'lacto')
+$$;
+
+-- The products a word names: aliases first, then the name rules above, then (when both find
+-- nothing) the culture type the word names. An alias matches when its
 -- words (app.ingredient_words, sorted) equal the query's words, or equal the query's words with
 -- the kind words removed when the alias's product is of that kind ("fixture crystal malt" finds
 -- the fermentable with alias "fixture crystal"; "fixture crystal yeast" does not).
@@ -126,11 +137,30 @@ as $$
              in ((select array_agg(x order by x) from unnest(q.w) x),
                  (select array_agg(x order by x) from unnest(q.w) x
                    where x not in (select k.word from app.ingredient_kind_word() k where k.kind = i.kind)))
+    ),
+    by_name as (
+        select b.ingredient_id, b.kind, b.name, b.rule
+          from app.resolve_ingredient_by_name(word) b
+         where not exists (select 1 from hit)
+    ),
+    type_words as (  -- the query's words, kind word "yeast" removed when another word remains
+        select case when exists (select 1 from unnest(q.w) x where x <> 'yeast')
+                    then array(select x from unnest(q.w) x where x <> 'yeast')
+                    else q.w end as w
+          from q
+    ),
+    by_type as (
+        select i.id as ingredient_id, i.kind, i.name, 'yeast type'::text as rule
+          from type_words t
+          join app.yeast_type_word() tw on app.ingredient_words(tw.word) = t.w
+          join ref.yeast y on y.type = tw.type
+          join ref.ingredient i on i.id = y.ingredient_id
+         where not exists (select 1 from hit) and not exists (select 1 from by_name)
     )
     select h.id, h.kind, h.name, h.rule from hit h
     union all
-    select b.ingredient_id, b.kind, b.name, b.rule
-      from app.resolve_ingredient_by_name(word) b
-     where not exists (select 1 from hit)
+    select * from by_name
+    union all
+    select * from by_type
     order by 3, 1;
 $$;
