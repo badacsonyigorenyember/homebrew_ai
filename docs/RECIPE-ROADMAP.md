@@ -261,7 +261,7 @@ model-chosen values stay inside the style range. Your explicit numbers always wi
 | stronger / session | OG → 87.5 % / 12.5 % of the range |
 | *flavour words* (citrus, coffee…) | tag match in steps 7–9 |
 
-*Starter table. Rows with a book passage are sourced, the others are used marked `unsourced` and sourced before G6; every row's source is in [`hint-sources.md`](work/m4-targets-blueprint/hint-sources.md). Positions and mash values are the user's decision (2026-10-17).*
+*Starter table. Rows with a book passage are sourced, the others are used marked `unsourced` and sourced before G6; every row's source is in [`hint-sources.md`](finished/m4-targets-blueprint/hint-sources.md). Positions and mash values are the user's decision (2026-10-17).*
 
 ---
 
