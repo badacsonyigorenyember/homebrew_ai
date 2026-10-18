@@ -10,8 +10,30 @@
 --   docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < db/041_step5.sql
 -- Idempotent: safe to re-run.
 
+-- The misc fields of one product: null when it is not a misc, else purpose, category, usages,
+-- time_min, the sourced dose range in g/L (null when no source gives one) and a because naming
+-- the source and page of that dose (s9-misc-extras R12, R15). The page comes from the intake file.
+create or replace function app.step5_misc(product_id bigint)
+returns jsonb
+language sql
+stable
+as $$
+    select jsonb_build_object(
+               'purpose', m.purpose, 'category', m.category, 'usages', to_jsonb(m.usages),
+               'time_min', m.time_min,
+               'dose_g_per_l', case when m.dose_g_per_l is null then null
+                   else jsonb_build_object('low_g_per_l', lower(m.dose_g_per_l), 'high_g_per_l', upper(m.dose_g_per_l)) end,
+               'because', case when m.dose_g_per_l is null then 'no sourced dose'
+                   else 'sourced dose from ' || coalesce(m.field_source->>'dose_g_per_l', 'unknown source')
+                        || coalesce(' ' || (i.raw #>> '{intake,fields,dose_g_per_l_ref}'), '') end)
+      from ref.misc m
+      join ref.ingredient i on i.id = m.ingredient_id
+     where m.ingredient_id = product_id
+$$;
+
 -- The products a word names, as [{ingredient_id, kind, name, role, max_pct}] in the resolver's
 -- order. role and max_pct come from ref.fermentable; they are null for other kinds or when unset.
+-- misc is app.step5_misc: null unless the product is a misc.
 create or replace function app.step5_refs(word text)
 returns jsonb
 language sql
@@ -19,7 +41,8 @@ stable
 as $$
     select coalesce(jsonb_agg(jsonb_build_object(
                'ingredient_id', r.ingredient_id, 'kind', r.kind, 'name', r.name,
-               'role', f.role, 'max_pct', f.max_pct) order by r.ord), '[]'::jsonb)
+               'role', f.role, 'max_pct', f.max_pct,
+               'misc', app.step5_misc(r.ingredient_id)) order by r.ord), '[]'::jsonb)
       from (select x.*, row_number() over () as ord from app.resolve_ingredient(word) x) r
       left join ref.fermentable f on f.ingredient_id = r.ingredient_id
 $$;
@@ -32,7 +55,8 @@ stable
 as $$
     select coalesce(jsonb_agg(jsonb_build_object(
                'ingredient_id', i.id, 'kind', i.kind, 'name', i.name,
-               'role', f.role, 'max_pct', f.max_pct)), '[]'::jsonb)
+               'role', f.role, 'max_pct', f.max_pct,
+               'misc', app.step5_misc(i.id))), '[]'::jsonb)
       from ref.ingredient i
       left join ref.fermentable f on f.ingredient_id = i.id
      where i.id = product_id

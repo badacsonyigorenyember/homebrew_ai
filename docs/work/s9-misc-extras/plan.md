@@ -324,19 +324,19 @@ Commit: `Pick the specialty style by misc category in step 2`
 
 ### Task 9: a misc product in a step 5 slot carries its misc fields
 Why: R12, R15; A12, A15 (step 5 part).
-- [ ] `db/041_step5.sql`: `app.step5_refs` and `app.step5_refs_of_id` add `misc` to every ref:
+- [x] `db/041_step5.sql`: `app.step5_refs` and `app.step5_refs_of_id` add `misc` to every ref:
       null when the product is not misc; else `{purpose, category, usages, time_min,
       dose_g_per_l: {low_g_per_l, high_g_per_l} | null, because}`. `because` is "sourced dose from
       <slug> <ref>" or "no sourced dose".
-- [ ] `shared/contracts/step5.output.schema.json`: the ref object (in `slots`, `excluded`,
+- [x] `shared/contracts/step5.output.schema.json`: the ref object (in `slots`, `excluded`,
       `inventory`) gets required `misc`: null or an object with those keys
       (`additionalProperties: false`, usages enum of the 6 usages, purpose enum).
-- [ ] `tests/test_step5.py`: `ALLOWED_NUMBERS` gains `time_min`, `low_g_per_l`,
+- [x] `tests/test_step5.py`: `ALLOWED_NUMBERS` gains `time_min`, `low_g_per_l`,
       `high_g_per_l` (sourced row figures, not ratio numbers; R10 of m4 is about recipe
       ratios). In `tests/test_misc.py`: a frame with `fixture-coffee-beans` wanted has its
       `misc` fields equal to the row, `fixture-no-dose` says "no sourced dose", and both frames
       meet `step5.output` (A12, A15).
-- [ ] Apply `db/041` twice; run `pytest tests/test_step5.py tests/test_misc.py tests/test_workflows.py tests/test_contracts.py`.
+- [x] Apply `db/041` twice; run `pytest tests/test_step5.py tests/test_misc.py tests/test_workflows.py tests/test_contracts.py`.
 Done when: A12 holds on fixtures and the 22 frames still meet the contract.
 Commit: `Carry misc fields in the step 5 slot`
 

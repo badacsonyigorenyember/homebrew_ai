@@ -342,3 +342,57 @@ def test_featured_misc_without_a_style_keeps_the_base(conn):
 def test_featured_honey_still_gives_31b(conn):
     out = step2(conn, [{"item": "honey", "role": "feature"}])
     assert out["style"]["code"] == "31B"
+
+
+# ---------------------------------------------------------------- step 5 (Task 9)
+
+import json  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+from tests.test_step4 import BRIEFS, sql  # noqa: E402
+
+CONTRACT = Path(__file__).resolve().parent.parent / "shared" / "contracts" / "step5.output.schema.json"
+
+
+def frame_with(conn, items):
+    """Step 5's frame for b01's brief with the wanted list replaced by `items` (all background)."""
+    b = dict(BRIEFS["b01"], wanted=[{"item": i, "role": "background"} for i in items])
+    brief = {"named": b["named"] or None, "stated": b["stated"], "hints": b["hints"], "wanted": b["wanted"],
+             "excluded": b["excluded"], "inventory": b["inventory"], "unknown": [], "guidance": b["guidance"]}
+    style = sql(conn, "step2_best_style", brief, b["request"], None)
+    deviations = sql(conn, "step3_deviations", brief, style)
+    profile = sql(conn, "step0_profile", None)
+    targets = sql(conn, "step4_targets", brief, style, profile, deviations)
+    return sql(conn, "step5_frame", brief, profile, targets)
+
+
+def meets_contract(conn, frame):
+    return conn.execute(
+        "select coalesce(extensions.jsonschema_validation_errors(%s::json, %s::json), '{}')",
+        (CONTRACT.read_text(), json.dumps(frame))).fetchone()[0]
+
+
+def test_step5_slot_carries_misc_fields(conn):
+    load_fixtures(conn)
+    frame = frame_with(conn, ["fixture coffee beans", "fixture no dose", "Cascade"])
+    by_item = {s["item"]: s["refs"][0] for s in frame["slots"]}
+    row = conn.execute(
+        "select purpose, category, usages, time_min, lower(dose_g_per_l), upper(dose_g_per_l)"
+        " from ref.misc where ingredient_id = %s", (by_item["fixture coffee beans"]["ingredient_id"],)).fetchone()
+    misc = by_item["fixture coffee beans"]["misc"]
+    assert (misc["purpose"], misc["category"], misc["usages"], misc["time_min"]) == row[:4]
+    assert (float(misc["dose_g_per_l"]["low_g_per_l"]), float(misc["dose_g_per_l"]["high_g_per_l"])) == (3.0, 3.0)
+    assert "fixture-data-sheet" in misc["because"] and "fixture sheet p. 6" in misc["because"]
+    none = by_item["fixture no dose"]["misc"]
+    assert none["dose_g_per_l"] is None and none["because"] == "no sourced dose"
+    assert by_item["Cascade"]["misc"] is None
+    assert meets_contract(conn, frame) == []
+
+
+def test_step5_misc_in_excluded_and_inventory(conn):
+    load_fixtures(conn)
+    refs = conn.execute("select app.step5_refs('fixture coffee beans')").fetchone()[0]
+    assert refs[0]["misc"]["category"] == "coffee"
+    pid = refs[0]["ingredient_id"]
+    by_id = conn.execute("select app.step5_refs_of_id(%s)", (pid,)).fetchone()[0]
+    assert by_id[0]["misc"] == refs[0]["misc"]
