@@ -309,7 +309,7 @@ Commit: `Add the steps 6-9 proposal check`
 
 ### Task 5: fit test: does one call for steps 6–9 fit and work? (decision gate)
 Why: R13, A14 (user decision 1). Its result picks Task 7a or 7b.
-- [ ] `evals/fit_test.py` (`python -m evals.fit_test [--runs evals/results/2026-10-18-s9.json]
+- [x] `evals/fit_test.py` (`python -m evals.fit_test [--runs evals/results/2026-10-18-s9.json]
       [--num-ctx 8192] [--brief b01] [--save]`). For each brief: read the run's stored outputs of
       steps 0, 1, 2 and 4 from `app.run_step` (run ids from the results file), rebuild step 5 with
       `app.step5_frame` (so Tasks 1–2 count), build `app.choose_table` and `app.choose_prompt`,
@@ -325,25 +325,25 @@ Why: R13, A14 (user decision 1). Its result picks Task 7a or 7b.
       `prompt_tokens`, `output_tokens`, `done_reason`, `load_ms`, `llm_ms`, fits, errors; per
       option the `ollama ps` processor split. A brief **passes** when every try it made fits and
       a try's proposal has no errors.
-- [ ] Write `tests/test_fit_test.py` (no stack): the fit rule on numbers (8192: 4096 fits,
+- [x] Write `tests/test_fit_test.py` (no stack): the fit rule on numbers (8192: 4096 fits,
       4097 does not), the truncation line makes it not fit, a brief passes on try 2, a brief
       whose try 2 does not fit fails.
-- [ ] Run with `--num-ctx 8192` on all 24 (long: start it in the background and wait on its
+- [x] Run with `--num-ctx 8192` on all 24 (long: start it in the background and wait on its
       results file, not on the process). If every brief fits and passes, stop here: one call at
       8192. If some do not fit, run again with 16384, then 32768, but count an option only when
       the model loads and answers (record its processor split and median `llm_ms`, and the
       `load_ms` a step-1-to-step-6 switch costs, since step 1 stays at 8192). If the fits pass but
       the check fails, you may revise `choose.system.md` at most twice (each time re-run all 24 at
       that option and keep both results); the brief's table fields are not cut.
-- [ ] Save `evals/results/<date>-m5-fit.json` and write `fit-test.md`: per brief the prompt
+- [x] Save `evals/results/<date>-m5-fit.json` and write `fit-test.md`: per brief the prompt
       tokens, output budget, context used, tries and pass; the worst case; each option's split and
       timing; the shape picked and the `num_ctx` it runs at. PROJECT.md §8 entry with the same
       numbers and the choice (R13).
-- [ ] **Gate.** Pass → write the shape and `num_ctx` into the `Shape:` line below and go on with
+- [x] **Gate.** Pass → write the shape and `num_ctx` into the `Shape:` line below and go on with
       Task 6 and Task 7a. Fail → stop and hand back `needs-input`: the numbers, and the question
       whether to build one call per step (5 LLM calls through stage D, above the P5/G6 bar of
       "≤ 2 plus tie-breaks"), with options. PROJECT.md §2, §3, §6 are not changed.
-Shape: *(set by Task 5)*
+Shape: **one call for steps 6-9 at `num_ctx` 32768** (Task 7a). 24 of 24 briefs fit and pass within two tries (worst prompt 26,554 tokens + 4096 = 30,650); 8192 and 16384 fit none. See [`fit-test.md`](fit-test.md).
 Done when: `fit-test.md` records the numbers and the choice, and the gate is passed or handed back.
 Commit: `Add the steps 6-9 fit test and its result`
 
@@ -526,3 +526,4 @@ None needed: imports go through the n8n CLI as OPERATIONS §5 says; no container
 - 2026-10-18 · Task 2: after reloading the adjunct loader, `loaders.fermentable_facts` is re-run (twice) — the adjunct loader nulls `max_pct`/`field_source` (documented load order); no plan text changed.
 - 2026-10-18 · Task 3: `app.choose_table` also returns `style_name` and `characteristic_ingredients` (the prompt shows them and every prompt number must come from the table), `kind` on each `slots` and `inventory_words` entry, and `db/042` holds helper functions beyond the four listed — implementation detail, no scope change.
 - 2026-10-18 · Task 4: R5's band rule skips a wanted or inventory yeast and applies only when a usable (non-lacto, lager/family-fitting) yeast reaches the band, so it cannot clash with R3; a hop's boil minutes map to the table's own boil choice (largest `minutes` not above); `db/043` also holds helpers `choose_row`, `choose_names`, `choose_pick_errors` — implementation detail, no scope change.
+- 2026-10-19 · Task 5: the one call runs at `num_ctx` 32768, not 8192 — the prompts are 16.6k-26.6k tokens and Ollama refuses (HTTP 400) a prompt longer than `num_ctx`, so 8192 and 16384 fit none of 24; `evals/fit_test.py` counts that refusal as a try that does not fit. `shared/prompts/choose.system.md` was revised once (zero pct/share, roasted-malt maximum) after 22 of 24 passed; revision 1 passes 24 of 24. The step-1 to step-6 model switch costs about 4 s of reload.

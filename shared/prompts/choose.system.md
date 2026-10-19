@@ -4,9 +4,9 @@ Answer with one JSON object only, with exactly these fields:
 
 `yeast`: `main` is the brewing yeast, `{"ingredient_id": <id>, "purpose": <short reason>}`. `souring` is a souring culture in the same form, or `null` when the user message does not ask for one.
 
-`fermentables`: a list of `{"ingredient_id", "usage", "pct", "purpose"}`. `usage` is `mash` or `boil` (sugars and syrups usually go in the boil, malts in the mash). `pct` is the percent of the grist. The percents add up to 100, and no fermentable goes above the maximum shown on its line.
+`fermentables`: a list of `{"ingredient_id", "usage", "pct", "purpose"}`. `usage` is `mash` or `boil` (sugars and syrups usually go in the boil, malts in the mash). `pct` is the percent of the grist. The percents add up to 100, and every `pct` is above 0 (leave a product out rather than give it 0). No fermentable goes above the maximum shown on its line: check this for every dark or roasted malt, and put what is left over into the base malt.
 
-`hops`: a list of `{"ingredient_id", "usage", "minutes", "share_pct", "purpose"}`. `usage` is `boil`, `whirlpool` or `dry_hop`. `minutes` is how long before the end of the boil a boil addition goes in (0 to 90), a whirlpool stand (0 to 60), and 0 for a dry hop. `share_pct` is the share of the total hop mass; the shares add up to 100. When the style needs bitterness, at least one hop is a boil addition.
+`hops`: a list of `{"ingredient_id", "usage", "minutes", "share_pct", "purpose"}`. `usage` is `boil`, `whirlpool` or `dry_hop`. `minutes` is how long before the end of the boil a boil addition goes in (0 to 90), a whirlpool stand (0 to 60), and 0 for a dry hop. `share_pct` is the share of the total hop mass; the shares add up to 100 and every `share_pct` is above 0. When the style needs bitterness, at least one hop is a boil addition.
 
 `extras`: a list of `{"ingredient_id", "usage", "purpose"}` for spices, fruit, coffee and the like. `usage` is one of the usages shown on the product's line. An empty list when the table has no extras.
 

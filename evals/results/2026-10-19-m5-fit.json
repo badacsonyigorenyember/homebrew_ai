@@ -1,0 +1,2356 @@
+{
+  "date": "2026-10-19",
+  "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+  "options": {
+    "8192-rev0": {
+      "num_ctx": 8192,
+      "num_predict": 4096,
+      "summary": {
+        "briefs": 24,
+        "passed": 0,
+        "fit_all": 0,
+        "max_prompt_tokens": 26118,
+        "median_llm_ms": null,
+        "processors": [
+          "36%/64% CPU/GPU"
+        ]
+      },
+      "results": [
+        {
+          "id": "b01",
+          "run_id": 3874,
+          "prompt_chars": 59948,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19098,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (19098 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":19098,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b02",
+          "run_id": 3875,
+          "prompt_chars": 67466,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21580,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (21580 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":21580,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b03",
+          "run_id": 3876,
+          "prompt_chars": 73734,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23136,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (23136 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":23136,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b04",
+          "run_id": 3877,
+          "prompt_chars": 75297,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23574,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (23574 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":23574,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b05",
+          "run_id": 3878,
+          "prompt_chars": 75614,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23589,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (23589 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":23589,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b06",
+          "run_id": 3879,
+          "prompt_chars": 61976,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19390,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (19390 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":19390,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b07",
+          "run_id": 3880,
+          "prompt_chars": 61554,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19296,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (19296 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":19296,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b08",
+          "run_id": 3881,
+          "prompt_chars": 60981,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19114,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (19114 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":19114,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b09",
+          "run_id": 3882,
+          "prompt_chars": 52542,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 16631,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (16631 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":16631,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b10",
+          "run_id": 3883,
+          "prompt_chars": 60903,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19095,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (19095 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":19095,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b11",
+          "run_id": 3884,
+          "prompt_chars": 65417,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 20595,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (20595 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":20595,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b12",
+          "run_id": 3885,
+          "prompt_chars": 68536,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21709,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (21709 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":21709,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b13",
+          "run_id": 3886,
+          "prompt_chars": 54379,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 16989,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (16989 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":16989,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b14",
+          "run_id": 3887,
+          "prompt_chars": 74288,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23303,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (23303 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":23303,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b15",
+          "run_id": 3888,
+          "prompt_chars": 72329,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 22837,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (22837 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":22837,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b16",
+          "run_id": 3889,
+          "prompt_chars": 67716,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21542,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (21542 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":21542,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b17",
+          "run_id": 3890,
+          "prompt_chars": 60625,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19082,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (19082 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":19082,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b18",
+          "run_id": 3891,
+          "prompt_chars": 83892,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 26118,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (26118 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":26118,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b19",
+          "run_id": 3892,
+          "prompt_chars": 67692,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21352,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (21352 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":21352,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b20",
+          "run_id": 3893,
+          "prompt_chars": 74844,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23568,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (23568 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":23568,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b21",
+          "run_id": 3894,
+          "prompt_chars": 72926,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 22908,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (22908 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":22908,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b22",
+          "run_id": 3895,
+          "prompt_chars": 60838,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19046,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (19046 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":19046,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b23",
+          "run_id": 3896,
+          "prompt_chars": 77865,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 24511,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (24511 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":24511,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b24",
+          "run_id": 3897,
+          "prompt_chars": 68251,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21757,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "36%/64% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (21757 tokens) exceeds the available context size (8192 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":21757,\\\"n_ctx\\\":8192}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "prompt_sha256": "083d86a2d59bfcfc27a6d3fd01b9cd526a4318e9df5346545935a5e59974dcba"
+    },
+    "16384-rev0": {
+      "num_ctx": 16384,
+      "num_predict": 4096,
+      "summary": {
+        "briefs": 24,
+        "passed": 0,
+        "fit_all": 0,
+        "max_prompt_tokens": 26118,
+        "median_llm_ms": null,
+        "processors": [
+          "38%/62% CPU/GPU"
+        ]
+      },
+      "results": [
+        {
+          "id": "b01",
+          "run_id": 3874,
+          "prompt_chars": 59948,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19098,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (19098 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":19098,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b02",
+          "run_id": 3875,
+          "prompt_chars": 67466,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21580,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (21580 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":21580,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b03",
+          "run_id": 3876,
+          "prompt_chars": 73734,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23136,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (23136 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":23136,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b04",
+          "run_id": 3877,
+          "prompt_chars": 75297,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23574,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (23574 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":23574,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b05",
+          "run_id": 3878,
+          "prompt_chars": 75614,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23589,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (23589 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":23589,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b06",
+          "run_id": 3879,
+          "prompt_chars": 61976,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19390,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (19390 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":19390,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b07",
+          "run_id": 3880,
+          "prompt_chars": 61554,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19296,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (19296 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":19296,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b08",
+          "run_id": 3881,
+          "prompt_chars": 60981,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19114,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (19114 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":19114,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b09",
+          "run_id": 3882,
+          "prompt_chars": 52542,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 16631,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (16631 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":16631,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b10",
+          "run_id": 3883,
+          "prompt_chars": 60903,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19095,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (19095 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":19095,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b11",
+          "run_id": 3884,
+          "prompt_chars": 65417,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 20595,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (20595 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":20595,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b12",
+          "run_id": 3885,
+          "prompt_chars": 68536,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21709,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (21709 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":21709,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b13",
+          "run_id": 3886,
+          "prompt_chars": 54379,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 16989,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (16989 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":16989,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b14",
+          "run_id": 3887,
+          "prompt_chars": 74288,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23303,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (23303 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":23303,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b15",
+          "run_id": 3888,
+          "prompt_chars": 72329,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 22837,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (22837 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":22837,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b16",
+          "run_id": 3889,
+          "prompt_chars": 67716,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21542,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (21542 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":21542,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b17",
+          "run_id": 3890,
+          "prompt_chars": 60625,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19082,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (19082 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":19082,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b18",
+          "run_id": 3891,
+          "prompt_chars": 83892,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 26118,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (26118 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":26118,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b19",
+          "run_id": 3892,
+          "prompt_chars": 67692,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21352,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (21352 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":21352,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b20",
+          "run_id": 3893,
+          "prompt_chars": 74844,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23568,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (23568 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":23568,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b21",
+          "run_id": 3894,
+          "prompt_chars": 72926,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 22908,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (22908 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":22908,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b22",
+          "run_id": 3895,
+          "prompt_chars": 60838,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19046,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (19046 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":19046,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b23",
+          "run_id": 3896,
+          "prompt_chars": 77865,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 24511,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (24511 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":24511,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b24",
+          "run_id": 3897,
+          "prompt_chars": 68251,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21757,
+              "output_tokens": 0,
+              "done_reason": null,
+              "load_ms": 0,
+              "llm_ms": 0,
+              "truncated": false,
+              "rejected": true,
+              "processor": "38%/62% CPU/GPU",
+              "fits": false,
+              "errors": [
+                "rejected by Ollama: {\"error\":\"{\\\"error\\\":{\\\"code\\\":400,\\\"message\\\":\\\"request (21757 tokens) exceeds the available context size (16384 tokens), try increasing it\\\",\\\"type\\\":\\\"exceed_context_size_error\\\",\\\"n_prompt_tokens\\\":21757,\\\"n_ctx\\\":16384}}\"}"
+              ]
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "prompt_sha256": "083d86a2d59bfcfc27a6d3fd01b9cd526a4318e9df5346545935a5e59974dcba"
+    },
+    "32768-rev0": {
+      "num_ctx": 32768,
+      "num_predict": 4096,
+      "summary": {
+        "briefs": 24,
+        "passed": 22,
+        "fit_all": 24,
+        "max_prompt_tokens": 26569,
+        "median_llm_ms": 118020,
+        "processors": [
+          "40%/60% CPU/GPU"
+        ]
+      },
+      "results": [
+        {
+          "id": "b01",
+          "run_id": 3874,
+          "prompt_chars": 59948,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19098,
+              "output_tokens": 438,
+              "done_reason": "stop",
+              "load_ms": 13689,
+              "llm_ms": 121661,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b02",
+          "run_id": 3875,
+          "prompt_chars": 67466,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21580,
+              "output_tokens": 460,
+              "done_reason": "stop",
+              "load_ms": 4099,
+              "llm_ms": 132858,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b03",
+          "run_id": 3876,
+          "prompt_chars": 73734,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23136,
+              "output_tokens": 380,
+              "done_reason": "stop",
+              "load_ms": 3903,
+              "llm_ms": 125530,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b04",
+          "run_id": 3877,
+          "prompt_chars": 75297,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23574,
+              "output_tokens": 372,
+              "done_reason": "stop",
+              "load_ms": 4068,
+              "llm_ms": 125618,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b05",
+          "run_id": 3878,
+          "prompt_chars": 75614,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23589,
+              "output_tokens": 325,
+              "done_reason": "stop",
+              "load_ms": 3894,
+              "llm_ms": 118020,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: Roasted Barley is 10 % of the grist, above its maximum of 2 %"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 23970,
+              "output_tokens": 323,
+              "done_reason": "stop",
+              "load_ms": 3925,
+              "llm_ms": 119907,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b06",
+          "run_id": 3879,
+          "prompt_chars": 61976,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19390,
+              "output_tokens": 268,
+              "done_reason": "stop",
+              "load_ms": 3905,
+              "llm_ms": 95251,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b07",
+          "run_id": 3880,
+          "prompt_chars": 61554,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19296,
+              "output_tokens": 263,
+              "done_reason": "stop",
+              "load_ms": 3936,
+              "llm_ms": 94156,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b08",
+          "run_id": 3881,
+          "prompt_chars": 60981,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19114,
+              "output_tokens": 321,
+              "done_reason": "stop",
+              "load_ms": 3916,
+              "llm_ms": 102640,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b09",
+          "run_id": 3882,
+          "prompt_chars": 52542,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 16631,
+              "output_tokens": 328,
+              "done_reason": "stop",
+              "load_ms": 3917,
+              "llm_ms": 95871,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b10",
+          "run_id": 3883,
+          "prompt_chars": 60903,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19095,
+              "output_tokens": 380,
+              "done_reason": "stop",
+              "load_ms": 4026,
+              "llm_ms": 112003,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b11",
+          "run_id": 3884,
+          "prompt_chars": 65417,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 20595,
+              "output_tokens": 381,
+              "done_reason": "stop",
+              "load_ms": 3930,
+              "llm_ms": 116979,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b12",
+          "run_id": 3885,
+          "prompt_chars": 68536,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21709,
+              "output_tokens": 264,
+              "done_reason": "stop",
+              "load_ms": 4018,
+              "llm_ms": 101568,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b13",
+          "run_id": 3886,
+          "prompt_chars": 54379,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 16989,
+              "output_tokens": 272,
+              "done_reason": "stop",
+              "load_ms": 3929,
+              "llm_ms": 87942,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b14",
+          "run_id": 3887,
+          "prompt_chars": 74288,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23303,
+              "output_tokens": 313,
+              "done_reason": "stop",
+              "load_ms": 3891,
+              "llm_ms": 114908,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b15",
+          "run_id": 3888,
+          "prompt_chars": 72329,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 22837,
+              "output_tokens": 314,
+              "done_reason": "stop",
+              "load_ms": 3936,
+              "llm_ms": 114329,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: Black Malt is 5 % of the grist, above its maximum of 2 %"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 23205,
+              "output_tokens": 312,
+              "done_reason": "stop",
+              "load_ms": 3934,
+              "llm_ms": 115434,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b16",
+          "run_id": 3889,
+          "prompt_chars": 67716,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21542,
+              "output_tokens": 374,
+              "done_reason": "stop",
+              "load_ms": 3965,
+              "llm_ms": 119133,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b17",
+          "run_id": 3890,
+          "prompt_chars": 60625,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19082,
+              "output_tokens": 452,
+              "done_reason": "stop",
+              "load_ms": 3938,
+              "llm_ms": 126406,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b18",
+          "run_id": 3891,
+          "prompt_chars": 83892,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 26118,
+              "output_tokens": 396,
+              "done_reason": "stop",
+              "load_ms": 4121,
+              "llm_ms": 139678,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: Roasted Barley is 5 % of the grist, above its maximum of 2 %"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 26569,
+              "output_tokens": 394,
+              "done_reason": "stop",
+              "load_ms": 3968,
+              "llm_ms": 140875,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b19",
+          "run_id": 3892,
+          "prompt_chars": 67692,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21352,
+              "output_tokens": 328,
+              "done_reason": "stop",
+              "load_ms": 3926,
+              "llm_ms": 112004,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b20",
+          "run_id": 3893,
+          "prompt_chars": 74844,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23568,
+              "output_tokens": 443,
+              "done_reason": "stop",
+              "load_ms": 3949,
+              "llm_ms": 137899,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "contract: 0 is less than or equal to the minimum of 0"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 24058,
+              "output_tokens": 442,
+              "done_reason": "stop",
+              "load_ms": 3964,
+              "llm_ms": 140171,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "contract: 0 is less than or equal to the minimum of 0"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b21",
+          "run_id": 3894,
+          "prompt_chars": 72926,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 22908,
+              "output_tokens": 431,
+              "done_reason": "stop",
+              "load_ms": 4029,
+              "llm_ms": 133679,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b22",
+          "run_id": 3895,
+          "prompt_chars": 60838,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19046,
+              "output_tokens": 319,
+              "done_reason": "stop",
+              "load_ms": 3967,
+              "llm_ms": 102272,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b23",
+          "run_id": 3896,
+          "prompt_chars": 77865,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 24511,
+              "output_tokens": 483,
+              "done_reason": "stop",
+              "load_ms": 4018,
+              "llm_ms": 147864,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: Roasted Barley is 5 % of the grist, above its maximum of 2 %",
+                "step 7: Black Malt is 5 % of the grist, above its maximum of 2 %"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 25073,
+              "output_tokens": 481,
+              "done_reason": "stop",
+              "load_ms": 3918,
+              "llm_ms": 150359,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: Black Malt is 3 % of the grist, above its maximum of 2 %"
+              ]
+            }
+          ],
+          "passed": false
+        },
+        {
+          "id": "b24",
+          "run_id": 3897,
+          "prompt_chars": 68251,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21757,
+              "output_tokens": 357,
+              "done_reason": "stop",
+              "load_ms": 4031,
+              "llm_ms": 117056,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "prompt_sha256": "083d86a2d59bfcfc27a6d3fd01b9cd526a4318e9df5346545935a5e59974dcba"
+    },
+    "32768-rev1": {
+      "num_ctx": 32768,
+      "num_predict": 4096,
+      "summary": {
+        "briefs": 24,
+        "passed": 24,
+        "fit_all": 24,
+        "max_prompt_tokens": 26554,
+        "median_llm_ms": 117167.5,
+        "processors": [
+          "40%/60% CPU/GPU"
+        ]
+      },
+      "results": [
+        {
+          "id": "b01",
+          "run_id": 3874,
+          "prompt_chars": 60138,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19149,
+              "output_tokens": 439,
+              "done_reason": "stop",
+              "load_ms": 3959,
+              "llm_ms": 121897,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b02",
+          "run_id": 3875,
+          "prompt_chars": 67656,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21631,
+              "output_tokens": 387,
+              "done_reason": "stop",
+              "load_ms": 3955,
+              "llm_ms": 121795,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b03",
+          "run_id": 3876,
+          "prompt_chars": 73924,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23187,
+              "output_tokens": 378,
+              "done_reason": "stop",
+              "load_ms": 3942,
+              "llm_ms": 125390,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b04",
+          "run_id": 3877,
+          "prompt_chars": 75487,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23625,
+              "output_tokens": 374,
+              "done_reason": "stop",
+              "load_ms": 4186,
+              "llm_ms": 126135,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: Lactose is 18 % of the grist, above its maximum of 10 %"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 24055,
+              "output_tokens": 372,
+              "done_reason": "stop",
+              "load_ms": 3950,
+              "llm_ms": 128213,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b05",
+          "run_id": 3878,
+          "prompt_chars": 75804,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23640,
+              "output_tokens": 314,
+              "done_reason": "stop",
+              "load_ms": 3965,
+              "llm_ms": 116794,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: Roasted Barley is 10 % of the grist, above its maximum of 2 %"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 24010,
+              "output_tokens": 312,
+              "done_reason": "stop",
+              "load_ms": 4227,
+              "llm_ms": 118388,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b06",
+          "run_id": 3879,
+          "prompt_chars": 62166,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19441,
+              "output_tokens": 262,
+              "done_reason": "stop",
+              "load_ms": 4039,
+              "llm_ms": 94377,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b07",
+          "run_id": 3880,
+          "prompt_chars": 61744,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19347,
+              "output_tokens": 259,
+              "done_reason": "stop",
+              "load_ms": 4070,
+              "llm_ms": 93716,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b08",
+          "run_id": 3881,
+          "prompt_chars": 61171,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19165,
+              "output_tokens": 272,
+              "done_reason": "stop",
+              "load_ms": 3906,
+              "llm_ms": 94830,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b09",
+          "run_id": 3882,
+          "prompt_chars": 52732,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 16682,
+              "output_tokens": 282,
+              "done_reason": "stop",
+              "load_ms": 4190,
+              "llm_ms": 88203,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b10",
+          "run_id": 3883,
+          "prompt_chars": 61093,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19146,
+              "output_tokens": 393,
+              "done_reason": "stop",
+              "load_ms": 3966,
+              "llm_ms": 114193,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b11",
+          "run_id": 3884,
+          "prompt_chars": 65607,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 20646,
+              "output_tokens": 379,
+              "done_reason": "stop",
+              "load_ms": 3936,
+              "llm_ms": 116910,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b12",
+          "run_id": 3885,
+          "prompt_chars": 68726,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21760,
+              "output_tokens": 327,
+              "done_reason": "stop",
+              "load_ms": 3957,
+              "llm_ms": 112042,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b13",
+          "run_id": 3886,
+          "prompt_chars": 54569,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 17040,
+              "output_tokens": 277,
+              "done_reason": "stop",
+              "load_ms": 4193,
+              "llm_ms": 88928,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b14",
+          "run_id": 3887,
+          "prompt_chars": 74478,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23354,
+              "output_tokens": 304,
+              "done_reason": "stop",
+              "load_ms": 3940,
+              "llm_ms": 113440,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b15",
+          "run_id": 3888,
+          "prompt_chars": 72519,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 22888,
+              "output_tokens": 323,
+              "done_reason": "stop",
+              "load_ms": 3917,
+              "llm_ms": 116061,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: Black Malt is 5 % of the grist, above its maximum of 2 %"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 23265,
+              "output_tokens": 322,
+              "done_reason": "stop",
+              "load_ms": 4209,
+              "llm_ms": 116762,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b16",
+          "run_id": 3889,
+          "prompt_chars": 67906,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21593,
+              "output_tokens": 383,
+              "done_reason": "stop",
+              "load_ms": 3933,
+              "llm_ms": 120999,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b17",
+          "run_id": 3890,
+          "prompt_chars": 60815,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19133,
+              "output_tokens": 318,
+              "done_reason": "stop",
+              "load_ms": 3928,
+              "llm_ms": 102199,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b18",
+          "run_id": 3891,
+          "prompt_chars": 84082,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 26169,
+              "output_tokens": 330,
+              "done_reason": "stop",
+              "load_ms": 3938,
+              "llm_ms": 128350,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: Roasted Barley is 5 % of the grist, above its maximum of 2 %"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 26554,
+              "output_tokens": 329,
+              "done_reason": "stop",
+              "load_ms": 4203,
+              "llm_ms": 130297,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b19",
+          "run_id": 3892,
+          "prompt_chars": 67882,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21403,
+              "output_tokens": 327,
+              "done_reason": "stop",
+              "load_ms": 3939,
+              "llm_ms": 111348,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b20",
+          "run_id": 3893,
+          "prompt_chars": 75034,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23619,
+              "output_tokens": 320,
+              "done_reason": "stop",
+              "load_ms": 3956,
+              "llm_ms": 117425,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: the wanted \"lactose\" has no pick; pick one of: 3397 Lactose"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 23998,
+              "output_tokens": 375,
+              "done_reason": "stop",
+              "load_ms": 3958,
+              "llm_ms": 128463,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b21",
+          "run_id": 3894,
+          "prompt_chars": 73116,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 22959,
+              "output_tokens": 447,
+              "done_reason": "stop",
+              "load_ms": 3954,
+              "llm_ms": 136275,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b22",
+          "run_id": 3895,
+          "prompt_chars": 61028,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19097,
+              "output_tokens": 324,
+              "done_reason": "stop",
+              "load_ms": 3972,
+              "llm_ms": 102922,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b23",
+          "run_id": 3896,
+          "prompt_chars": 78055,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 24562,
+              "output_tokens": 439,
+              "done_reason": "stop",
+              "load_ms": 3940,
+              "llm_ms": 140390,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: Black Malt is 5 % of the grist, above its maximum of 2 %"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 25055,
+              "output_tokens": 438,
+              "done_reason": "stop",
+              "load_ms": 3969,
+              "llm_ms": 142650,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b24",
+          "run_id": 3897,
+          "prompt_chars": 68441,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21808,
+              "output_tokens": 361,
+              "done_reason": "stop",
+              "load_ms": 3977,
+              "llm_ms": 117556,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "prompt_sha256": "98724fdb25f1ade60a9e79c7002fd553cccedeb024909b23c4c89e2729f2c8df"
+    }
+  }
+}
