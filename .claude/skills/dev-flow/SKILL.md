@@ -114,6 +114,8 @@ continue?". Keep going.
 
 ## What the user sees
 
+- Every question or approval request: first open each file it mentions beside the chat, and
+  the file where each id it uses is defined (CLAUDE.md "Show the files you ask about").
 - After step 4: the must-fix and should-fix findings, one line each. Ask about the should-fix
   ones.
 - After step 5, always before /dev-ship: read `verification.md` and show the Overall line and
