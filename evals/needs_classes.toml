@@ -1,0 +1,300 @@
+# Which products count for each word in a brief's `needs` (R10).
+#
+# Written in docs/work/m5-choose-ingredients Task 8 and reviewed by the brewer. evals/grade.py
+# `grade_needs` reads it: a class is covered when a pick matches it; a gap when the candidate
+# table has a matching product that no pick covers (that fails the brief); absent when the table
+# has no matching product. Water salts are M7's and are not here.
+#
+# A class is either `names` (product names, exact) or all of the fields given:
+#   role, ebc [low, high] (overlaps the product's EBC), family (yeast family tag),
+#   type (yeast type), origin (hop origin tag), purpose (hop purpose), category (misc).
+# `kind` is the key of the brief's `needs`.
+
+[[class]]
+kind = "fermentables"
+word = "pale ale malt"
+names = ["Pale Ale Malt", "Finest Pale Ale Maris Otter", "Finest Pale Ale Golden Promise"]
+why = "a pale base malt: the pale ale malts, Maris Otter and Golden Promise"
+
+[[class]]
+kind = "fermentables"
+word = "crystal malt"
+role = "crystal"
+ebc = [5, 300]
+why = "any crystal-role malt from light to medium-dark (up to EBC 300); the very dark ones are the Special B class"
+
+[[class]]
+kind = "fermentables"
+word = "pilsner malt"
+names = ["Pilsner Malt", "Bohemian Pilsner Malt", "Eraclea Pilsner Malt", "Extra Pale Premium Pilsner Malt"]
+why = "the pilsner malts"
+
+[[class]]
+kind = "fermentables"
+word = "wheat malt"
+names = ["Wheat Malt", "Wheat Malt Pale"]
+why = "pale wheat malts (not the dark one)"
+
+[[class]]
+kind = "fermentables"
+word = "flaked oats"
+names = ["Flaked Oats"]
+why = "flaked oats"
+
+[[class]]
+kind = "fermentables"
+word = "Maris Otter"
+names = ["Finest Pale Ale Maris Otter"]
+why = "Maris Otter"
+
+[[class]]
+kind = "fermentables"
+word = "chocolate malt"
+names = ["Chocolate Light Malt", "Chocolate Dark Malt", "Chocolate Wheat Malt"]
+why = "light, dark and wheat chocolate malts"
+
+[[class]]
+kind = "fermentables"
+word = "roasted barley"
+names = ["Roasted Barley", "Black Malt"]
+why = "roasted barley and black malt, the other fully roasted dry grain"
+
+[[class]]
+kind = "fermentables"
+word = "lactose"
+names = ["Lactose"]
+why = "lactose"
+
+[[class]]
+kind = "fermentables"
+word = "flaked barley"
+names = ["Flaked Barley"]
+why = "flaked barley"
+
+[[class]]
+kind = "fermentables"
+word = "flaked rice"
+names = ["Flaked Rice"]
+why = "flaked rice"
+
+[[class]]
+kind = "fermentables"
+word = "flaked corn"
+names = ["Flaked Corn"]
+why = "flaked corn"
+
+[[class]]
+kind = "fermentables"
+word = "Munich malt"
+names = ["Munich Light Malt", "Munich Dark Malt", "Munich Malt Type 1", "Munich Malt Type 2"]
+why = "the Munich malts (light, dark, type 1, type 2)"
+
+[[class]]
+kind = "fermentables"
+word = "Vienna malt"
+names = ["Vienna Malt"]
+why = "Vienna malt"
+
+[[class]]
+kind = "fermentables"
+word = "Special B"
+names = ["Special W", "Caraaroma"]
+why = "a dark crystal malt: Special B is not in the catalogue, so the class is Special W or Caraaroma (user decision 2026-10-18)"
+
+[[class]]
+kind = "fermentables"
+word = "candi sugar"
+names = ["Brown Candi Sugar"]
+why = "candi sugar; the catalogue has Brown Candi Sugar"
+
+[[class]]
+kind = "fermentables"
+word = "honey"
+names = ["Honey"]
+why = "honey"
+
+[[class]]
+kind = "fermentables"
+word = "Carafa Special"
+names = ["Carafa Special Type 1", "Carafa Special Type 2", "Carafa Special Type 3"]
+why = "the Carafa Special types 1 to 3"
+
+[[class]]
+kind = "hops"
+word = "Columbus"
+names = ["Columbus"]
+why = "Columbus (hopline sells it as Columbus)"
+
+[[class]]
+kind = "hops"
+word = "Centennial"
+names = ["Centennial"]
+why = "Centennial (hopline sells it as Centennial)"
+
+[[class]]
+kind = "hops"
+word = "Simcoe"
+names = ["Simcoe"]
+why = "Simcoe (hopline sells it as Simcoe)"
+
+[[class]]
+kind = "hops"
+word = "Citra"
+names = ["Citra", "Citra LUPOMAX"]
+why = "Citra, also as LUPOMAX pellets"
+
+[[class]]
+kind = "hops"
+word = "Mosaic"
+names = ["Mosaic", "Mosaic LUPOMAX"]
+why = "Mosaic, also as LUPOMAX pellets"
+
+[[class]]
+kind = "hops"
+word = "Galaxy"
+names = ["Galaxy"]
+why = "Galaxy (hopline sells it as Galaxy)"
+
+[[class]]
+kind = "hops"
+word = "East Kent Goldings"
+names = ["East Kent Golding"]
+why = "the catalogue spells it East Kent Golding"
+
+[[class]]
+kind = "hops"
+word = "Magnum"
+names = ["Magnum"]
+why = "Magnum (hopline sells it as Magnum)"
+
+[[class]]
+kind = "hops"
+word = "Willamette"
+names = ["Willamette"]
+why = "Willamette (hopline sells it as Willamette)"
+
+[[class]]
+kind = "hops"
+word = "Hallertau Mittelfrüh"
+names = ["Hallertau Mittelfrüh"]
+why = "Hallertau Mittelfrüh (hopline sells it as Hallertau Mittelfrüh)"
+
+[[class]]
+kind = "hops"
+word = "Tettnang"
+names = ["Tettnanger"]
+why = "Tettnang is the place; the catalogue has Tettnanger"
+
+[[class]]
+kind = "hops"
+word = "Styrian Golding"
+names = ["Styrian Golding"]
+why = "Styrian Golding (hopline sells it as Styrian Golding)"
+
+[[class]]
+kind = "hops"
+word = "Saaz"
+names = ["Saaz"]
+why = "Saaz (hopline sells it as Saaz)"
+
+[[class]]
+kind = "hops"
+word = "Cascade"
+names = ["Cascade"]
+why = "Cascade (hopline sells it as Cascade)"
+
+[[class]]
+kind = "hops"
+word = "Fuggle"
+names = ["Fuggle"]
+why = "Fuggle (hopline sells it as Fuggle)"
+
+[[class]]
+kind = "yeast"
+word = "American ale yeast"
+family = "american-ale"
+why = "a yeast of the american-ale family"
+
+[[class]]
+kind = "yeast"
+word = "New England ale yeast"
+family = "american-ale"
+why = "the american-ale family (it holds the New England and Conan strains)"
+
+[[class]]
+kind = "yeast"
+word = "English ale yeast"
+family = "english-ale"
+why = "a yeast of the english-ale family"
+
+[[class]]
+kind = "yeast"
+word = "Irish ale yeast"
+family = "english-ale"
+why = "the english-ale family, which holds the Irish strain YF-106 Redshamrock"
+
+[[class]]
+kind = "yeast"
+word = "American lager yeast"
+names = ["M54 Californian Lager", "YF-302 Californithologist", "Diamond"]
+why = "clean American lager strains"
+
+[[class]]
+kind = "yeast"
+word = "German lager yeast"
+names = ["German Lager", "SafLager W-34/70", "W-34/70", "SafLager S-189", "YF-303 Yeastoberfest", "YF-304 Bockster", "YF-306 Herr Schnellager"]
+why = "German lager strains"
+
+[[class]]
+kind = "yeast"
+word = "abbey ale yeast"
+family = "belgian"
+why = "a yeast of the belgian family"
+
+[[class]]
+kind = "yeast"
+word = "saison yeast"
+family = "saison"
+why = "a yeast of the saison family"
+
+[[class]]
+kind = "yeast"
+word = "weizen yeast"
+names = ["Bavarian Wheat", "M20 Bavarian Wheat", "Munich Classic", "SafAle W-68", "SafAle WB-06", "YF-401 Mr. Weizen", "YF-402 Herr Weizen", "YF-403 Frau Weizen"]
+why = "the Bavarian wheat strains (not the Belgian wit ones)"
+
+[[class]]
+kind = "yeast"
+word = "German ale yeast"
+names = ["Köln", "Old German Altbier", "YF-108 Jawohl!", "YF-110 Kölschermeister", "SafAle K-97"]
+why = "Kolsch and Alt strains"
+
+[[class]]
+kind = "yeast"
+word = "Scottish ale yeast"
+names = ["Real Scotland", "YF-105 Haggis"]
+why = "Scottish ale strains"
+
+[[class]]
+kind = "yeast"
+word = "Lactobacillus"
+type = "lacto"
+why = "a lactic culture (type lacto): YF-998 and YF-999"
+
+[[class]]
+kind = "misc"
+word = "coffee"
+category = "coffee"
+why = "any coffee product"
+
+[[class]]
+kind = "misc"
+word = "vanilla beans"
+category = "vanilla"
+why = "any vanilla product"
+
+[[class]]
+kind = "misc"
+word = "orange peel"
+names = ["Orange peel"]
+why = "orange peel"

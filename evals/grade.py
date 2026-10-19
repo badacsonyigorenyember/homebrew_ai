@@ -282,8 +282,260 @@ def grade_step5(brief: dict, output: dict | None, step4: dict | None, facts: dic
         return False
 
 
-def grade_run(brief: dict, steps: dict[int, dict | None], facts: dict | None = None) -> dict:
-    """`facts` holds what steps 4 and 5 need from the database: {"step4": ..., "step5": ...}."""
+# --- steps 6-9 and the needs classes --------------------------------------------------------
+# The graders read the ref facts and the logged candidate rows, never app.choose_check, so a
+# fault in the check cannot hide itself. `facts` is facts["choose"] (evals/run.py read_choose_facts):
+#   inputs  the logged step 6..9 inputs (candidate rows, slots, inventory words, targets)
+#   refs    ingredient id -> kind, name, type, family tags, role, max_pct, ebc, usages, dose
+#   excluded_ids  ids of the excluded products and their siblings
+#   style   lager, families, souring of the style used (step 4's)
+
+KIND_OF_STEP = {6: "yeast", 7: "fermentable", 8: "hop", 9: "misc"}
+STEP_OF_NEEDS = {"yeast": 6, "fermentables": 7, "hops": 8, "misc": 9}
+BAD_LEVELS = ("out_of_style", "changes_style")
+HOP_MINUTES = {"boil": 90, "whirlpool": 60, "dry_hop": 0}
+SUM_TOLERANCE = 0.1
+
+
+def _picks(step: int, output: dict) -> list[dict]:
+    if step == 6:
+        return [p for p in (output.get("yeast"), output.get("souring")) if p]
+    key = {7: "fermentables", 8: "hops", 9: "extras"}[step]
+    return list(output[key])
+
+
+def expected_dose(dose, role):
+    """The dose rule (R7): no range gives None, one point is used as it is, a background item takes
+    the low end and a feature the high end."""
+    if not dose:
+        return None
+    low, high = dose
+    if low == high:
+        return low
+    return high if role == "feature" else low
+
+
+def _pick_problems(step: int, output: dict, facts: dict) -> list[str]:
+    """What every pick of a step must meet: A1 (a candidate of the right kind), A2 (not excluded),
+    A3 (fitting inventory used), A4 (a good level), A9 (level and because), and the slots."""
+    inp = facts["inputs"][step]
+    kind = KIND_OF_STEP[step]
+    candidates = {r["ingredient_id"] for r in inp["candidates"]}
+    problems = []
+    picks = _picks(step, output)
+    for p in picks:
+        i, ref = p["ingredient_id"], facts["refs"].get(p["ingredient_id"])
+        if ref is None or ref["kind"] != kind or i not in candidates:
+            problems.append(f"A1: {i} is not a {kind} in the candidate table")
+            continue
+        if i in facts["excluded_ids"]:
+            problems.append(f"A2: {ref['name']} is excluded")
+        if inp["guidance"] and not p.get("inventory") and not p.get("wanted") and p.get("level") in BAD_LEVELS:
+            problems.append(f"A4: {ref['name']} is {p['level']} in {inp['style_used']}")
+        if not str(p.get("because") or "").strip() or (inp["guidance"] and not p.get("level")):
+            problems.append(f"A9: {ref['name']} has no because or level")
+    picked = {p["ingredient_id"] for p in picks}
+    fitting = [w for w in inp["inventory_words"] if w["kind"] == kind and w["fits"] and w["ids"]]
+    if kind == "yeast":
+        if fitting and not any(set(w["ids"]) & picked for w in fitting):
+            problems.append("A3: no fitting inventory yeast is used")
+    else:
+        problems += [f"A3: inventory \"{w['word']}\" is not used" for w in fitting if not set(w["ids"]) & picked]
+    problems += [f"slot \"{s['item']}\" is not filled" for s in inp["slots"]
+                 if s["kind"] == kind and s["ids"] and not set(s["ids"]) & picked]
+    return problems
+
+
+def step6_problems(output: dict | None, facts: dict | None) -> list[str]:
+    if output is None or facts is None:
+        return ["step did not run"]
+    try:
+        problems = _pick_problems(6, output, facts)
+        main, souring = output["yeast"], output.get("souring")
+        ref, style = facts["refs"].get(main["ingredient_id"]), facts["style"]
+        if ref is None:
+            return problems
+        if ref["type"] == "lacto":
+            problems.append("A5: the main yeast is a lacto culture")
+        if style["lager"] and ref["type"] != "lager":
+            problems.append(f"A5: {ref['name']} is not a lager yeast for a lager style")
+        missing = [f for f in style["families"] if f not in ref["family"]]
+        if missing:
+            problems.append(f"A5: {ref['name']} lacks the family {', '.join(missing)}")
+        if style["souring"] and not (souring and (facts["refs"].get(souring["ingredient_id"]) or {}).get("type") == "lacto"):
+            problems.append("A15: the style is sour and no lacto culture is picked")
+        if souring:
+            if (facts["refs"].get(souring["ingredient_id"]) or {}).get("type") != "lacto":
+                problems.append("A15: the souring pick is not a lacto culture")
+            if not style["souring"] and not souring.get("inventory") and not souring.get("wanted"):
+                problems.append("A15: a souring culture nobody asked for")
+        rows = {r["ingredient_id"]: r for r in facts["inputs"][6]["candidates"]}
+        row = rows.get(main["ingredient_id"], {})
+        usable = [r for r in rows.values() if r["type"] != "lacto"
+                  and (not style["lager"] or r["type"] == "lager")
+                  and all(f in r["family"] for f in style["families"])]
+        marked = main.get("inventory") or main.get("wanted")
+        if (row.get("overlaps_band") is False and not marked
+                and any(r["overlaps_band"] is True for r in usable)):
+            problems.append("A5: the yeast misses the attenuation band while another usable one reaches it")
+        return problems
+    except (KeyError, TypeError):
+        return ["step 6 output is malformed"]
+
+
+def step7_problems(output: dict | None, facts: dict | None) -> list[str]:
+    if output is None or facts is None:
+        return ["step did not run"]
+    try:
+        problems = _pick_problems(7, output, facts)
+        picks = output["fermentables"]
+        ids = [p["ingredient_id"] for p in picks]
+        if len(ids) != len(set(ids)):
+            problems.append("A6: a fermentable is picked twice")
+        if abs(sum(float(p["pct"]) for p in picks) - 100) > SUM_TOLERANCE:
+            problems.append("A6: fermentable shares do not add up to 100")
+        for p in picks:
+            ref = facts["refs"].get(p["ingredient_id"]) or {}
+            if float(p["pct"]) <= 0:
+                problems.append(f"A6: {ref.get('name')} has no share")
+            if ref.get("max_pct") is not None and float(p["pct"]) > float(ref["max_pct"]) + EPS:
+                problems.append(f"A6: {ref['name']} {p['pct']} % is above its maximum {ref['max_pct']} %")
+        return problems
+    except (KeyError, TypeError, ValueError):
+        return ["step 7 output is malformed"]
+
+
+def step8_problems(output: dict | None, facts: dict | None) -> list[str]:
+    if output is None or facts is None:
+        return ["step did not run"]
+    try:
+        problems = _pick_problems(8, output, facts)
+        hops = output["hops"]
+        if hops and abs(sum(float(h["share_pct"]) for h in hops) - 100) > SUM_TOLERANCE:
+            problems.append("A6: hop shares do not add up to 100")
+        for h in hops:
+            name = (facts["refs"].get(h["ingredient_id"]) or {}).get("name")
+            top = HOP_MINUTES.get(h.get("usage"))
+            if top is None or not 0 <= float(h["minutes"]) <= top:
+                problems.append(f"A6: {name} has usage {h.get('usage')} and minutes {h.get('minutes')}")
+            if float(h["share_pct"]) <= 0:
+                problems.append(f"A6: {name} has no share")
+        ibu = facts["inputs"][8]["targets"].get("ibu") or 0
+        if ibu > 0 and not any(h["usage"] == "boil" for h in hops):
+            problems.append("A6: the IBU target is above 0 and no hop is boiled")
+        return problems
+    except (KeyError, TypeError, ValueError):
+        return ["step 8 output is malformed"]
+
+
+def step9_problems(output: dict | None, facts: dict | None) -> list[str]:
+    if output is None or facts is None:
+        return ["step did not run"]
+    try:
+        problems = _pick_problems(9, output, facts)
+        for e in output["extras"]:
+            ref = facts["refs"].get(e["ingredient_id"]) or {}
+            if e["usage"] not in ref.get("usages", []):
+                problems.append(f"A7: {ref.get('name')} usage {e['usage']} is not one of its usages")
+            role = (e.get("wanted") or {}).get("role")
+            want = expected_dose(ref.get("dose"), role)
+            got = e["dose_g_per_l"]
+            if (want is None) != (got is None) or (want is not None and abs(float(got) - float(want)) > 1e-9):
+                problems.append(f"A7/A16: {ref.get('name')} dose {got} is not the {role or 'default'} rule's {want}")
+        return problems
+    except (KeyError, TypeError, ValueError):
+        return ["step 9 output is malformed"]
+
+
+def grade_step6(brief, output, facts) -> bool:
+    return not step6_problems(output, facts)
+
+
+def grade_step7(brief, output, facts) -> bool:
+    return not step7_problems(output, facts)
+
+
+def grade_step8(brief, output, facts) -> bool:
+    return not step8_problems(output, facts)
+
+
+def grade_step9(brief, output, facts) -> bool:
+    return not step9_problems(output, facts)
+
+
+def _overlaps(bounds, row_ebc) -> bool:
+    if not row_ebc or row_ebc.get("low") is None or row_ebc.get("high") is None:
+        return False
+    return float(row_ebc["low"]) <= bounds[1] and float(row_ebc["high"]) >= bounds[0]
+
+
+def class_matches(cls: dict, row: dict) -> bool:
+    """A candidate row belongs to a needs class: by product name, or by all the fields the class gives."""
+    if "names" in cls:
+        return normalise(row["name"]) in {normalise(n) for n in cls["names"]}
+    if "role" in cls and row.get("role") != cls["role"]:
+        return False
+    if "ebc" in cls and not _overlaps(cls["ebc"], row.get("ebc")):
+        return False
+    if "family" in cls and cls["family"] not in (row.get("family") or []):
+        return False
+    if "type" in cls and row.get("type") != cls["type"]:
+        return False
+    if "origin" in cls and cls["origin"] not in (row.get("origins") or []):
+        return False
+    if "purpose" in cls and row.get("purpose") != cls["purpose"]:
+        return False
+    if "category" in cls and row.get("category") != cls["category"]:
+        return False
+    return True
+
+
+def grade_needs(brief: dict, steps: dict, facts: dict | None, classes: list[dict]) -> dict:
+    """Per kind and word of the brief's needs: `covered` (a pick is in the class), `gap` (the candidate
+    table has a product of the class and no pick is one), or `absent: <reason>` (the table has none).
+    Water salts are M7's and are skipped."""
+    by_word = {(c["kind"], normalise(c["word"])): c for c in classes}
+    result = {}
+    for kind, words in brief["needs"].items():
+        step = STEP_OF_NEEDS.get(kind)
+        if step is None:
+            continue
+        out = steps.get(step)
+        inputs = (facts or {}).get("inputs", {}).get(step)
+        result[kind] = {}
+        for word in words:
+            cls = by_word.get((kind, normalise(word)))
+            if cls is None:
+                verdict = "gap: no class for this word in evals/needs_classes.toml"
+            elif out is None or inputs is None:
+                verdict = f"gap: step {step} did not run"
+            else:
+                try:
+                    picked = {p["ingredient_id"] for p in _picks(step, out)}
+                    rows = [r for r in inputs["candidates"] if class_matches(cls, r)]
+                except (KeyError, TypeError):
+                    rows, picked = [], set()
+                    verdict = f"gap: step {step} output is malformed"
+                    result[kind][word] = verdict
+                    continue
+                if any(r["ingredient_id"] in picked for r in rows):
+                    verdict = "covered"
+                elif rows:
+                    verdict = "gap"
+                else:
+                    verdict = f"absent: no product of the class \"{word}\" is in the candidate table"
+            result[kind][word] = verdict
+    return result
+
+
+def needs_ok(needs: dict) -> bool:
+    return all(v == "covered" or v.startswith("absent") for words in needs.values() for v in words.values())
+
+
+def grade_run(brief: dict, steps: dict[int, dict | None], facts: dict | None = None,
+              classes: list[dict] | None = None) -> dict:
+    """`facts` holds what steps 4 and 5 need from the database: {"step4": ..., "step5": ...}, and for
+    steps 6-9 and the needs {"choose": ...}. `classes` is the needs class map."""
     facts = facts or {}
     fields = grade_step1(brief, steps.get(1))
     step1 = {**fields, "ok": all(fields.values())}
@@ -291,5 +543,14 @@ def grade_run(brief: dict, steps: dict[int, dict | None], facts: dict | None = N
     step3 = grade_step3(brief, steps.get(3))
     step4 = grade_step4(brief, steps.get(4), facts.get("step4"))
     step5 = grade_step5(brief, steps.get(5), steps.get(4), facts.get("step5"))
+    choose = facts.get("choose")
+    problems = {n: fn(steps.get(n), choose) for n, fn in
+                ((6, step6_problems), (7, step7_problems), (8, step8_problems), (9, step9_problems))}
+    needs = grade_needs(brief, steps, choose, classes or [])
+    chosen = {n: not p for n, p in problems.items()}
     return {"step1": step1, "step2": step2, "step3": step3, "step4": step4, "step5": step5,
-            "passed": step1["ok"] and step2 and step3 and step4 and step5}
+            "step6": chosen[6], "step7": chosen[7], "step8": chosen[8], "step9": chosen[9],
+            "needs": needs, "needs_ok": needs_ok(needs),
+            "problems": {n: p for n, p in problems.items() if p},
+            "passed": step1["ok"] and step2 and step3 and step4 and step5 and all(chosen.values())
+            and needs_ok(needs)}

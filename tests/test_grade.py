@@ -351,3 +351,332 @@ def test_plain_string_or_missing_role_fails_wanted():
         out = right_step1(b)
         out["wanted"] = bad
         assert grade.grade_step1(b, out)["wanted"] is False
+
+
+# --- steps 6-9 and the needs classes (docs/work/m5-choose-ingredients Task 8) ----------------------
+# tests/fixtures/choose_samples.json holds real outputs of the good proposals of
+# tests/test_choose_check.py and the facts evals/run.py read_choose_facts reads for them. Regenerate it
+# with the helpers of tests/test_choose_outputs.py (step_inputs, outputs) and run.read_choose_facts.
+import json  # noqa: E402
+
+import pytest  # noqa: E402
+
+from evals import run  # noqa: E402
+
+SAMPLES = json.loads((Path(__file__).resolve().parent / "fixtures" / "choose_samples.json").read_text("utf-8"))
+CLASSES = run.load_classes()
+GRADERS = {6: grade.step6_problems, 7: grade.step7_problems, 8: grade.step8_problems, 9: grade.step9_problems}
+
+
+def sample(bid):
+    """(steps 6-9 outputs, facts) of a good proposal, deep-copied so a test can break them."""
+    s = copy.deepcopy(SAMPLES[bid])
+    facts = s["facts"]
+    facts["refs"] = {int(k): v for k, v in facts["refs"].items()}
+    facts["inputs"] = {int(k): v for k, v in facts["inputs"].items()}
+    facts["excluded_ids"] = set(facts["excluded_ids"])
+    return {int(k): v for k, v in s["steps"].items()}, facts
+
+
+def problems(step, steps, facts):
+    return GRADERS[step](steps[step], facts)
+
+
+def mentions(found, code):
+    return any(code in p for p in found)
+
+
+@pytest.mark.parametrize("bid", ["b01", "b08", "b10", "b14", "b16", "b23", "b24"])
+def test_good_picks_pass_steps_6_to_9(bid):
+    steps, facts = sample(bid)
+    for n in (6, 7, 8, 9):
+        assert problems(n, steps, facts) == []
+        assert getattr(grade, f"grade_step{n}")(BRIEFS[bid], steps[n], facts) is True
+
+
+def test_missing_step_or_facts_fails():
+    steps, facts = sample("b01")
+    for n in (6, 7, 8, 9):
+        assert GRADERS[n](None, facts) and GRADERS[n](steps[n], None)
+
+
+def test_a1_id_must_be_a_candidate_of_the_kind():
+    steps, facts = sample("b01")
+    steps[7]["fermentables"][0]["ingredient_id"] = 987654321  # invented
+    assert mentions(problems(7, steps, facts), "A1")
+    steps, facts = sample("b01")
+    hop = steps[8]["hops"][0]["ingredient_id"]
+    steps[7]["fermentables"][0]["ingredient_id"] = hop  # a hop in the fermentables
+    assert mentions(problems(7, steps, facts), "A1")
+    steps, facts = sample("b01")
+    first = steps[7]["fermentables"][0]["ingredient_id"]
+    facts["inputs"][7]["candidates"] = [r for r in facts["inputs"][7]["candidates"] if r["ingredient_id"] != first]
+    assert mentions(problems(7, steps, facts), "A1")  # a real product the table did not list
+
+
+def test_a2_excluded_products():
+    steps, facts = sample("b16")
+    assert facts["excluded_ids"]  # Citra, Mosaic and their LUPOMAX siblings
+    facts["excluded_ids"].add(steps[8]["hops"][0]["ingredient_id"])
+    assert mentions(problems(8, steps, facts), "A2")
+
+
+def test_run_py_finds_siblings_by_form_word():
+    assert run._stripped("Citra LUPOMAX") == run._stripped("Citra") == "citra"
+    assert run._stripped("Citra Blanc") != run._stripped("Citra")
+
+
+def test_a3_fitting_inventory_must_be_used():
+    steps, facts = sample("b10")
+    munich = next(w for w in facts["inputs"][7]["inventory_words"] if w["word"] == "Munich malt")
+    steps[7]["fermentables"] = [f for f in steps[7]["fermentables"] if f["ingredient_id"] not in munich["ids"]]
+    assert mentions(problems(7, steps, facts), "A3")
+    steps, facts = sample("b10")  # an inventory word that does not fit may stay unused
+    for w in facts["inputs"][7]["inventory_words"]:
+        w["fits"] = False
+    steps[7]["fermentables"] = [f for f in steps[7]["fermentables"] if f["ingredient_id"] not in munich["ids"]]
+    assert not mentions(problems(7, steps, facts), "A3")
+
+
+def test_a3_one_fitting_inventory_yeast_is_enough():
+    steps, facts = sample("b10")
+    word = next(w for w in facts["inputs"][6]["inventory_words"] if w["kind"] == "yeast")
+    other = [i for i in word["ids"] if i != steps[6]["yeast"]["ingredient_id"]]
+    assert other
+    facts["inputs"][6]["inventory_words"].append({"word": "second", "kind": "yeast", "fits": True, "ids": other})
+    assert problems(6, steps, facts) == []
+    steps[6]["yeast"]["ingredient_id"] = next(r["ingredient_id"] for r in facts["inputs"][6]["candidates"]
+                                              if r["ingredient_id"] not in word["ids"] + other and r["type"] == "ale")
+    facts["refs"][steps[6]["yeast"]["ingredient_id"]] = {**facts["refs"][word["ids"][0]], "name": "Other"}
+    assert mentions(problems(6, steps, facts), "A3")
+
+
+def test_a4_pipeline_pick_in_style():
+    steps, facts = sample("b01")
+    pick = steps[7]["fermentables"][0]
+    pick["level"], pick["inventory"], pick["wanted"] = "out_of_style", None, None
+    assert mentions(problems(7, steps, facts), "A4")
+    pick["level"] = "changes_style"
+    assert mentions(problems(7, steps, facts), "A4")
+    pick["inventory"] = "my malt"  # an inventory pick is judged by the table (R3), not by A4
+    assert not mentions(problems(7, steps, facts), "A4")
+    facts["inputs"][7]["guidance"] = False
+    pick["inventory"] = None
+    assert not mentions(problems(7, steps, facts), "A4")
+
+
+def test_a5_yeast_rules():
+    steps, facts = sample("b08")  # a lager style that requires the lager family
+    assert facts["style"]["lager"] is True
+    ale = next(r for r in facts["inputs"][6]["candidates"] if r["type"] == "ale")
+    steps[6]["yeast"]["ingredient_id"] = ale["ingredient_id"]
+    facts["refs"][ale["ingredient_id"]] = {"kind": "yeast", "name": ale["name"], "type": "ale", "family": ["ale"]}
+    found = problems(6, steps, facts)
+    assert mentions(found, "not a lager yeast") and mentions(found, "lacks the family")
+    steps, facts = sample("b10")  # needs the belgian family
+    main = steps[6]["yeast"]["ingredient_id"]
+    facts["refs"][main]["family"] = ["ale"]
+    assert mentions(problems(6, steps, facts), "lacks the family belgian")
+    steps, facts = sample("b01")
+    facts["refs"][steps[6]["yeast"]["ingredient_id"]]["type"] = "lacto"
+    assert mentions(problems(6, steps, facts), "lacto culture")
+
+
+def test_a5_band_only_when_another_yeast_reaches_it():
+    steps, facts = sample("b01")
+    rows = {r["ingredient_id"]: r for r in facts["inputs"][6]["candidates"]}
+    main = rows[steps[6]["yeast"]["ingredient_id"]]
+    main["overlaps_band"] = False
+    assert mentions(problems(6, steps, facts), "attenuation band")
+    steps[6]["yeast"]["inventory"] = "my yeast"  # an inventory yeast is exempt
+    assert not mentions(problems(6, steps, facts), "attenuation band")
+    steps[6]["yeast"]["inventory"] = None
+    for r in rows.values():
+        r["overlaps_band"] = False  # no usable yeast reaches the band: reported, not failed
+    assert not mentions(problems(6, steps, facts), "attenuation band")
+    main["overlaps_band"] = None  # no figure: not assumed
+    rows[next(i for i in rows if i != main["ingredient_id"])]["overlaps_band"] = True
+    assert not mentions(problems(6, steps, facts), "attenuation band")
+
+
+def test_a15_sour_style_needs_a_lacto_culture():
+    steps, facts = sample("b14")
+    assert facts["style"]["souring"] and steps[6]["souring"]
+    assert problems(6, steps, facts) == []
+    steps[6]["souring"] = None
+    assert mentions(problems(6, steps, facts), "A15")
+    steps, facts = sample("b14")
+    facts["refs"][steps[6]["souring"]["ingredient_id"]]["type"] = "ale"
+    assert mentions(problems(6, steps, facts), "A15")
+    steps, facts = sample("b01")  # a culture nobody asked for
+    facts["style"]["souring"] = False
+    culture = 990001  # a lacto culture in the table
+    facts["inputs"][6]["candidates"].append({"ingredient_id": culture, "name": "Culture", "kind": "yeast", "type": "lacto",
+                                             "family": ["sour"], "overlaps_band": None})
+    steps[6]["souring"] = {**steps[6]["yeast"], "ingredient_id": culture, "inventory": None, "wanted": None}
+    facts["refs"][culture] = {"kind": "yeast", "name": "Culture", "type": "lacto", "family": ["sour"]}
+    assert mentions(problems(6, steps, facts), "nobody asked")
+
+
+def test_a6_fermentable_shares():
+    steps, facts = sample("b01")
+    steps[7]["fermentables"][0]["pct"] -= 1  # sum 99
+    assert mentions(problems(7, steps, facts), "100")
+    steps, facts = sample("b01")
+    pick = steps[7]["fermentables"][-1]
+    facts["refs"][pick["ingredient_id"]]["max_pct"] = pick["pct"] - 1
+    assert mentions(problems(7, steps, facts), "above its maximum")
+    steps, facts = sample("b01")
+    steps[7]["fermentables"].append(dict(steps[7]["fermentables"][0], pct=0.0))
+    found = problems(7, steps, facts)
+    assert mentions(found, "twice") and mentions(found, "no share")
+
+
+def test_a6_hop_fields():
+    steps, facts = sample("b01")
+    assert facts["inputs"][8]["targets"]["ibu"] > 0
+    steps[8]["hops"][0]["share_pct"] += 1
+    assert mentions(problems(8, steps, facts), "100")
+    steps, facts = sample("b01")
+    for h in steps[8]["hops"]:
+        h["usage"], h["minutes"] = "dry_hop", 0
+    assert mentions(problems(8, steps, facts), "no hop is boiled")
+    steps, facts = sample("b01")
+    steps[8]["hops"][0].update(usage="dry_hop", minutes=3)
+    assert mentions(problems(8, steps, facts), "minutes 3")
+    steps, facts = sample("b01")
+    steps[8]["hops"][0].update(usage="boil", minutes=120)
+    assert mentions(problems(8, steps, facts), "minutes 120")
+    steps, facts = sample("b01")
+    steps[8]["hops"][0].update(usage="mash")
+    assert mentions(problems(8, steps, facts), "usage mash")
+
+
+def test_a7_dose_rule():
+    assert grade.expected_dose(None, "feature") is None
+    assert grade.expected_dose([3.0, 3.0], "feature") == 3.0
+    assert grade.expected_dose([3.0, 3.0], "background") == 3.0
+    assert grade.expected_dose([0.05, 0.53], "background") == 0.05
+    assert grade.expected_dose([0.05, 0.53], "feature") == 0.53
+    assert grade.expected_dose([0.05, 0.53], None) == 0.05
+    assert grade.expected_dose([2.64, 2.64], "background") == 2.64
+
+
+def test_a7_a16_extras_follow_the_rule():
+    steps, facts = sample("b23")
+    vanilla = next(e for e in steps[9]["extras"] if e["name"] == "Vanilla bean")
+    wanted = facts["refs"][vanilla["ingredient_id"]]["dose"]
+    assert vanilla["dose_g_per_l"] == grade.expected_dose(wanted, vanilla["wanted"]["role"])
+    wrong = wanted[1] if vanilla["dose_g_per_l"] == wanted[0] else wanted[0]
+    vanilla["dose_g_per_l"] = wrong  # the other end of the range
+    assert mentions(problems(9, steps, facts), "A7/A16")
+    steps, facts = sample("b23")
+    steps[9]["extras"][0]["dose_g_per_l"] = 99.0
+    assert mentions(problems(9, steps, facts), "A7/A16")
+    steps, facts = sample("b24")
+    steps[9]["extras"][0]["dose_g_per_l"] = None  # a sourced dose must be set
+    assert mentions(problems(9, steps, facts), "A7/A16")
+    steps, facts = sample("b24")
+    steps[9]["extras"][0]["usage"] = "mash"
+    assert mentions(problems(9, steps, facts), "not one of its usages")
+
+
+def test_a9_every_pick_has_because_and_level():
+    for step, key in ((7, "fermentables"), (8, "hops"), (9, "extras")):
+        bid = "b23" if step == 9 else "b01"
+        steps, facts = sample(bid)
+        steps[step][key][0]["because"] = " "
+        assert mentions(problems(step, steps, facts), "A9")
+        steps, facts = sample(bid)
+        steps[step][key][0]["level"] = None
+        assert mentions(problems(step, steps, facts), "A9")
+        facts["inputs"][step]["guidance"] = False  # no level without guidance
+        assert not mentions(problems(step, steps, facts), "A9")
+    steps, facts = sample("b01")
+    steps[6]["yeast"]["because"] = ""
+    assert mentions(problems(6, steps, facts), "A9")
+
+
+def test_slot_must_be_filled():
+    steps, facts = sample("b23")
+    slot = next(s for s in facts["inputs"][9]["slots"] if s["kind"] == "misc" and s["ids"])
+    steps[9]["extras"] = [e for e in steps[9]["extras"] if e["ingredient_id"] not in slot["ids"]]
+    assert mentions(problems(9, steps, facts), "is not filled")
+
+
+# needs classes
+
+def needs_of(bid, steps, facts):
+    return grade.grade_needs(BRIEFS[bid], steps, facts, CLASSES)
+
+
+def test_needs_classes_cover_every_needs_word():
+    """Every needs word of the 24 briefs has a class, and no class is unused; water salts are M7's."""
+    words = {(kind, w) for b in BRIEFS.values() for kind, ws in b["needs"].items() if kind != "water_salts" for w in ws}
+    classes = {(c["kind"], c["word"]) for c in CLASSES}
+    assert classes == words and len(CLASSES) == 48
+    for c in CLASSES:
+        assert c["why"].strip()
+        fields = set(c) - {"kind", "word", "why"}
+        assert fields == {"names"} or (fields and "names" not in fields and fields <= {"role", "ebc", "family", "type", "origin", "purpose", "category"})
+
+
+def test_needs_special_b_is_covered_by_special_w_or_caraaroma():
+    steps, facts = sample("b10")
+    rows = {r["name"]: r for r in facts["inputs"][7]["candidates"]}
+    assert "Special W" in rows and "Caraaroma" in rows
+    assert needs_of("b10", steps, facts)["fermentables"]["Special B"] == "gap"  # in the table, not picked
+    for name in ("Special W", "Caraaroma"):
+        steps, facts = sample("b10")
+        steps[7]["fermentables"].append(dict(steps[7]["fermentables"][0], ingredient_id=rows[name]["ingredient_id"]))
+        assert needs_of("b10", steps, facts)["fermentables"]["Special B"] == "covered"
+
+
+def test_needs_lactobacillus_is_covered_by_a_lacto_pick():
+    steps, facts = sample("b14")
+    assert needs_of("b14", steps, facts)["yeast"]["Lactobacillus"] == "covered"
+    steps[6]["souring"] = None
+    assert needs_of("b14", steps, facts)["yeast"]["Lactobacillus"] == "gap"
+
+
+def test_needs_absent_when_no_product_is_in_the_table():
+    steps, facts = sample("b10")
+    special = {"Special W", "Caraaroma"}
+    facts["inputs"][7]["candidates"] = [r for r in facts["inputs"][7]["candidates"] if r["name"] not in special]
+    verdict = needs_of("b10", steps, facts)["fermentables"]["Special B"]
+    assert verdict.startswith("absent") and "Special B" in verdict
+    assert grade.needs_ok({"fermentables": {"Special B": verdict}})
+    assert not grade.needs_ok({"fermentables": {"Special B": "gap"}})
+
+
+def test_needs_by_attribute_class_and_missing_pieces():
+    steps, facts = sample("b01")
+    verdicts = needs_of("b01", steps, facts)
+    assert "water_salts" not in verdicts
+    rows = facts["inputs"][7]["candidates"]
+    crystal = grade.class_matches(next(c for c in CLASSES if c["word"] == "crystal malt"), {
+        "name": "x", "role": "crystal", "ebc": {"low": 100, "high": 120}})
+    assert crystal
+    cls = {"role": "crystal", "ebc": [5, 300]}
+    assert not grade.class_matches(cls, {"name": "x", "role": "crystal", "ebc": {"low": 350, "high": 450}})
+    assert not grade.class_matches(cls, {"name": "x", "role": "base", "ebc": {"low": 100, "high": 120}})
+    assert not grade.class_matches(cls, {"name": "x", "role": "crystal", "ebc": None})
+    assert grade.class_matches({"names": ["Tettnanger"]}, {"name": "tettnanger"})
+    assert grade.class_matches({"origin": "DE", "purpose": "aroma"}, {"name": "x", "origins": ["DE"], "purpose": "aroma"})
+    assert not grade.class_matches({"origin": "DE", "purpose": "aroma"}, {"name": "x", "origins": ["DE"], "purpose": "bittering"})
+    assert rows
+    # a step that did not run is a gap, and so is a word with no class
+    none = grade.grade_needs(BRIEFS["b01"], {}, None, CLASSES)
+    assert all(v.startswith("gap") for ws in none.values() for v in ws.values())
+    assert grade.grade_needs(BRIEFS["b01"], steps, facts, [])["yeast"]["American ale yeast"].startswith("gap: no class")
+
+
+def test_grade_run_includes_steps_6_to_9_and_needs():
+    steps, facts = sample("b10")
+    graded = grade.grade_run(BRIEFS["b10"], steps, {"choose": facts}, CLASSES)
+    assert [graded[f"step{n}"] for n in (6, 7, 8, 9)] == [True] * 4
+    assert graded["needs_ok"] is False and graded["passed"] is False  # Special B is a gap
+    assert graded["problems"] == {}
+    steps[7]["fermentables"][0]["because"] = ""
+    graded = grade.grade_run(BRIEFS["b10"], steps, {"choose": facts}, CLASSES)
+    assert graded["step7"] is False and 7 in graded["problems"]

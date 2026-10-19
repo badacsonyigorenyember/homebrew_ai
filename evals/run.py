@@ -22,11 +22,18 @@ ROOT = Path(__file__).resolve().parent.parent
 BRIEFS_FILE = ROOT / "evals" / "recipe_briefs.toml"
 RESULTS_DIR = ROOT / "evals" / "results"
 PIPELINE_URL = "http://localhost:5678/webhook/recipe-pipeline"
-GRADED_STEPS = (2, 3, 4, 5)
+CLASSES_FILE = ROOT / "evals" / "needs_classes.toml"
+GRADED_STEPS = (2, 3, 4, 5, 6, 7, 8, 9)
+CHOOSE_STEPS = (6, 7, 8, 9)
+FORM_WORDS = ("lupomax",)  # a hop's form word: Citra and Citra LUPOMAX are siblings (app.hop_form_word)
 
 
 def load_briefs() -> list[dict]:
     return tomllib.loads(BRIEFS_FILE.read_text(encoding="utf-8"))["brief"]
+
+
+def load_classes() -> list[dict]:
+    return tomllib.loads(CLASSES_FILE.read_text(encoding="utf-8"))["class"]
 
 
 def send(request, brief_id, model=None, think=False, url=PIPELINE_URL, timeout=1800,
@@ -64,16 +71,18 @@ def read_run(conn, run_id) -> dict:
     ).fetchall():
         steps[step] = output
     conn.commit()
-    llm = conn.execute(
-        "select llm from app.run_step where run_id = %s and step = 1 and ok "
-        "order by try desc limit 1", (run_id,)
-    ).fetchone()
+    rows = conn.execute(
+        "select distinct on (step) step, llm, input from app.run_step "
+        "where run_id = %s and ok order by step, try desc", (run_id,)
+    ).fetchall()
     conn.commit()
+    llms = {step: llm for step, llm, _ in rows if llm}
+    inputs = {step: inp for step, _, inp in rows if step in CHOOSE_STEPS}
     return {"finished": bool(row and row[0]), "ok": bool(row and row[1]), "steps": steps,
-            "llm": llm[0] if llm else None}
+            "llm": llms.get(1), "llms": llms, "inputs": inputs}
 
 
-def read_facts(conn, steps: dict) -> dict:
+def read_facts(conn, steps: dict, inputs: dict | None = None) -> dict:
     """What the step 4 and 5 graders need from the database (three queries): the ranges of the
     style step 4 used, app.abv of its OG and FG, the rules, and the yeast band run back through
     app.mash_attenuation. Missing steps give no facts, so the grader fails them."""
@@ -103,34 +112,119 @@ def read_facts(conn, steps: dict) -> dict:
     except (TypeError, KeyError):
         pass
     conn.commit()
+    if inputs and all(n in inputs and n in steps for n in CHOOSE_STEPS):
+        facts["choose"] = read_choose_facts(conn, steps, inputs)
     return facts
 
 
-def grade_result(brief: dict, answer: dict, steps: dict, llm=None, facts=None) -> dict:
-    """Grade one run. `answer` holds run_id, ok and error; a run that is not ok never passes."""
-    graded = grade.grade_run(brief, steps, facts)
+def _stripped(name: str) -> str:
+    """A product name without its form words, so Citra and Citra LUPOMAX compare equal."""
+    return " ".join(w for w in grade.normalise(name).split() if w not in FORM_WORDS)
+
+
+def read_choose_facts(conn, steps: dict, inputs: dict) -> dict:
+    """What the step 6-9 graders need (see grade.py): the ref facts of every picked id, the excluded
+    ids with their siblings, the style used's lager, family and sourness rules, and the logged
+    step inputs. Read from `ref`, never from the candidate table functions."""
+    ids = sorted({p["ingredient_id"] for n in CHOOSE_STEPS for p in grade._picks(n, steps[n])})
+    tags = {t[0]: (t[1], t[2]) for t in conn.execute(
+        "select id, name, parent_id from ref.tag where facet = 'family'").fetchall()}
+
+    def with_parents(tag_id):
+        names = []
+        while tag_id in tags:
+            names.append(tags[tag_id][0])
+            tag_id = tags[tag_id][1]
+        return names
+
+    family = {}
+    for ing, tag_id in conn.execute(
+            "select ingredient_id, tag_id from ref.ingredient_tag").fetchall():
+        family.setdefault(ing, set()).update(with_parents(tag_id))
+    refs = {}
+    for (i, kind, name, ytype, role, max_pct, elo, ehi, usages, dlo, dhi) in conn.execute(
+            "select i.id, i.kind, i.name, y.type, f.role, f.max_pct, lower(f.ebc), upper(f.ebc), "
+            "m.usages, lower(m.dose_g_per_l), upper(m.dose_g_per_l) from ref.ingredient i "
+            "left join ref.yeast y on y.ingredient_id = i.id left join ref.fermentable f on f.ingredient_id = i.id "
+            "left join ref.misc m on m.ingredient_id = i.id where i.id = any(%s)", (ids,)).fetchall():
+        num = lambda x: None if x is None else float(x)
+        refs[i] = {"kind": kind, "name": name, "type": ytype, "family": sorted(family.get(i, ())), "role": role,
+                   "max_pct": num(max_pct), "ebc": None if elo is None else [num(elo), num(ehi)],
+                   "usages": list(usages or []),
+                   "dose": None if dlo is None and dhi is None else [num(dlo), num(dhi)]}
+    # excluded products and their siblings by name
+    everything = conn.execute("select id, kind, name from ref.ingredient").fetchall()
+    excluded = {r["ingredient_id"]: r for w in steps[5]["excluded"] for r in w["refs"]}
+    excluded_ids = set(excluded)
+    for i, kind, name in everything:
+        if any(kind == e["kind"] and _stripped(name) == _stripped(e["name"]) for e in excluded.values()):
+            excluded_ids.add(i)
+    # the style used: lager, required yeast families, sourness (guidance off switches the first two off)
+    code, guidance = steps[4]["style"]["code"], inputs[6]["guidance"]
+    row = conn.execute("select id, guide, category, raw ->> 'tags' from ref.beer_style where code = %s "
+                       "order by id limit 1", (code,)).fetchone()
+    lager, families, souring = False, [], False
+    if row:
+        style_id, guide, category, tag_text = row
+        if guidance:
+            lager = (guide == "BJCP" and "bottom-fermented" in (tag_text or "")) or \
+                    (guide == "BA" and "lager" in (category or "").lower())
+            yeast_tags = {n for (i,) in conn.execute("select y.ingredient_id from ref.yeast y").fetchall()
+                          for n in family.get(i, ())}
+            families = sorted({tags[t][0] for (t,) in conn.execute(
+                "select tag_id from ref.style_ingredient where style_id = %s and required "
+                "and tag_id is not null", (style_id,)).fetchall()
+                if t in tags and tags[t][0] in yeast_tags})
+        souring = conn.execute(
+            "select exists (select 1 from ref.style_sensory where style_id = %s and dimension = 'sourness' "
+            "and min_level >= 1 and reviewed)", (style_id,)).fetchone()[0]
+    conn.commit()
+    return {"inputs": {n: inputs[n] for n in CHOOSE_STEPS}, "refs": refs, "excluded_ids": excluded_ids,
+            "style": {"lager": lager, "families": families, "souring": souring}}
+
+
+def grade_result(brief: dict, answer: dict, steps: dict, llm=None, facts=None, llms=None, classes=None) -> dict:
+    """Grade one run. `answer` holds run_id, ok and error; a run that is not ok never passes.
+    `llm` is step 1's, `llms` the llm of every step that has one; `calls` adds up their tries."""
+    graded = grade.grade_run(brief, steps, facts, load_classes() if classes is None else classes)
     ran = {n: n in steps for n in (1, *GRADED_STEPS)}
     run_ok = bool(answer.get("ok"))
+    llms = llms if llms is not None else ({1: llm} if llm else {})
     return {
         "id": brief["id"], "run_id": answer.get("run_id"), "run_ok": run_ok,
         "error": answer.get("error"), "failed_step": answer.get("failed_step"),
-        "step1": graded["step1"], "step2": graded["step2"], "step3": graded["step3"],
-        "step4": graded["step4"], "step5": graded["step5"],
+        **{f"step{n}": graded[f"step{n}"] for n in (1, *GRADED_STEPS)},
+        "needs": graded["needs"], "needs_ok": graded["needs_ok"], "problems": graded["problems"],
         "ran": ran, "passed": run_ok and graded["passed"], "llm": llm,
+        "calls": sum(int((x or {}).get("tries") or 0) for x in llms.values()),
     }
 
 
 def run_brief(conn, brief: dict, model=None, think=False, timeout=1800) -> dict:
     answer = send(brief["request"], brief["id"], model, think, timeout=timeout)
-    steps, llm, facts, run_ok = {}, None, None, bool(answer.get("ok"))
+    steps, llm, llms, facts, run_ok = {}, None, None, None, bool(answer.get("ok"))
     if answer.get("run_id") is not None:
         stored = read_run(conn, answer["run_id"])
-        steps, llm = stored["steps"], stored.get("llm")
-        facts = read_facts(conn, steps)
+        steps, llm, llms = stored["steps"], stored.get("llm"), stored.get("llms")
+        facts = read_facts(conn, steps, stored.get("inputs"))
         if not (stored["finished"] and stored["ok"]):
             run_ok = False
             answer = {**answer, "error": answer.get("error") or "run not finished ok"}
-    return grade_result(brief, {**answer, "ok": run_ok}, steps, llm, facts)
+    return grade_result(brief, {**answer, "ok": run_ok}, steps, llm, facts, llms)
+
+
+def needs_summary(needs: dict) -> str:
+    """covered/total of the needs words, with the gaps and the absent words named."""
+    verdicts = [(w, v) for words in needs.values() for w, v in words.items()]
+    covered = sum(v == "covered" for _, v in verdicts)
+    absent = [w for w, v in verdicts if v.startswith("absent")]
+    gaps = [w for w, v in verdicts if v not in ("covered",) and not v.startswith("absent")]
+    text = f"{covered}/{len(verdicts)}"
+    if absent:
+        text += " absent: " + ", ".join(absent)
+    if gaps:
+        text += " GAP: " + ", ".join(gaps)
+    return text
 
 
 def table(results: list[dict]) -> str:
@@ -139,7 +233,8 @@ def table(results: list[dict]) -> str:
             return "not run"
         return "pass" if r[f"step{n}"] else "FAIL"
 
-    lines = [f"{'brief':<6} {'run':<8} {'step 1':<26} {'step 2':<8} {'step 3':<8} {'step 4':<8} {'step 5':<8} result"]
+    steps = " ".join(f"{'step ' + str(n):<8}" for n in GRADED_STEPS)
+    lines = [f"{'brief':<6} {'run':<8} {'step 1':<26} {steps} {'calls':<6} result   needs"]
     for r in results:
         if r["run_ok"]:
             run_col = "ok"
@@ -151,8 +246,10 @@ def table(results: list[dict]) -> str:
             step1 = "pass"
         else:
             step1 = "fail: " + ",".join(f for f, v in r["step1"].items() if f != "ok" and not v)
-        lines.append(f"{r['id']:<6} {'ok' if r['run_ok'] else 'FAILED':<8} {step1:<26} "
-                     f"{cell(r, 2):<8} {cell(r, 3):<8} {cell(r, 4):<8} {cell(r, 5):<8} {'pass' if r['passed'] else 'FAIL'}"
+        cells = " ".join(f"{cell(r, n):<8}" for n in GRADED_STEPS)
+        lines.append(f"{r['id']:<6} {'ok' if r['run_ok'] else 'FAILED':<8} {step1:<26} {cells} "
+                     f"{r.get('calls', 0):<6} {'pass' if r['passed'] else 'FAIL':<8} "
+                     f"{needs_summary(r.get('needs') or {})}"
                      + ("" if r["run_ok"] else f"  [{run_col}]"))
     return "\n".join(lines)
 
@@ -166,6 +263,10 @@ def totals(results: list[dict]) -> dict:
             "passed": sum(r["ran"][step] and r[f"step{step}"] for r in results), "total": n,
             "not_run": sum(not r["ran"][step] for r in results),
         }
+    out["needs"] = {"passed": sum(bool(r.get("needs_ok")) for r in results), "total": n,
+                    "gaps": sum(v not in ("covered",) and not v.startswith("absent")
+                                for r in results for words in (r.get("needs") or {}).values() for v in words.values())}
+    out["calls"] = {"total": sum(r.get("calls", 0) for r in results), "runs": n}
     out["briefs"] = {"passed": sum(r["passed"] for r in results), "total": n}
     return out
 
@@ -175,6 +276,8 @@ def format_totals(t: dict) -> str:
     for step in (1, *GRADED_STEPS):
         s = t[f"step{step}"]
         parts.append(f"step {step} {s['passed']}/{s['total']} ({s['not_run']} not run)")
+    parts.append(f"needs {t['needs']['passed']}/{t['needs']['total']} ({t['needs']['gaps']} gaps)")
+    parts.append(f"LLM calls {t['calls']['total']} in {t['calls']['runs']} runs")
     parts.append(f"briefs {t['briefs']['passed']}/{t['briefs']['total']}")
     return "; ".join(parts)
 
@@ -199,6 +302,9 @@ def main(argv=None) -> int:
         conn.close()
     t = totals(results)
     print(table(results))
+    for r in results:
+        for step, found in (r.get("problems") or {}).items():
+            print(f"{r['id']} step {step}: " + "; ".join(found))
     print(format_totals(t))
     if args.save:
         date = datetime.date.today().isoformat()

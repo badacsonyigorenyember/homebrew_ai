@@ -435,34 +435,34 @@ Commit: `Run steps 6-9 in the recipe pipeline`
 
 ### Task 8: graders for steps 6–9 and the needs class map
 Why: R10, A1–A11, A15, A16.
-- [ ] `evals/needs_classes.toml`: one `[[class]]` per needs word of `fermentables`, `hops`, `yeast`
+- [x] `evals/needs_classes.toml`: one `[[class]]` per needs word of `fermentables`, `hops`, `yeast`
       and `misc` (48 words, water salts are M7's): `word`, `kind`, and either `names` (product
       names that count) or a conjunction of `role`, `ebc` `[low, high]` (overlaps the product's
       EBC), `family` (yeast family tag), `type` (yeast type), `origin`, `purpose`, `category`;
       plus `why`. Special B = `names = ["Special W", "Caraaroma"]` (the dark-crystal class, user
       decision 3); Lactobacillus = `type = "lacto"`; Tettnang = `names =
       ["Tettnanger"]`; the yeast class words by family tag.
-- [ ] **Gate:** hand back `needs-input` with the class map for your review (A10) before the G5
+- [x] **Gate:** hand back `needs-input` with the class map for your review (A10) before the G5
       run; record your answer in the PROJECT.md §8 entry.
-- [ ] `evals/run.py`: `GRADED_STEPS` 2–9; `read_run` reads `llm` of every step; `read_facts`
+- [x] `evals/run.py`: `GRADED_STEPS` 2–9; `read_run` reads `llm` of every step; `read_facts`
       adds, for steps 6–9, the `ref` facts of every picked id (exists, kind, name, type, family
       tags, role, `max_pct`, EBC, alpha, origins, misc usages and dose), the excluded ids with
       siblings by name (Python, form word `lupomax`), the style used's lager and sourness facts and
       required families (read from `ref.beer_style`, `ref.style_sensory`, `ref.style_ingredient`),
       and the candidate ids from each logged step input. `table` and `totals` gain step 6–9 and
       `needs` columns and `calls` (sum of `llm.tries` over the run's rows).
-- [ ] `evals/grade.py`: `grade_step6` … `grade_step9` (pure Python): every id exists and is a
+- [x] `evals/grade.py`: `grade_step6` … `grade_step9` (pure Python): every id exists and is a
       candidate (A1); none excluded (A2); fitting inventory used (A3); lager / family / souring
       (A5, A15); shares and `max_pct`, hop fields (A6); doses equal the role rule from the misc
       facts (A7, A16); every pick has `because` and `level` (A9); with guidance on no pipeline pick
       `out_of_style` or `changes_style` (A4). `grade_needs(brief, steps, facts, classes)` →
       per word `covered` / `absent: <reason>` / `gap`.
-- [ ] Tests in `tests/test_grade.py` (no stack), each seen failing when its grader check is
+- [x] Tests in `tests/test_grade.py` (no stack), each seen failing when its grader check is
       broken: one passing output per step, and one failing case per check above; `grade_needs`
       on Special B covered by Special W, Lactobacillus by a lacto pick, a gap.
       `tests/test_run.py`: the new columns, `calls`, not-run steps count as failed.
-- [ ] Run `.venv/bin/pytest tests/test_grade.py tests/test_run.py`, expect all pass.
-- [ ] PROJECT.md §8.
+- [x] Run `.venv/bin/pytest tests/test_grade.py tests/test_run.py`, expect all pass.
+- [x] PROJECT.md §8.
 Done when: the graders and the class map are in, and you have reviewed the map.
 Commit: `Grade steps 6-9 and needs classes`
 
