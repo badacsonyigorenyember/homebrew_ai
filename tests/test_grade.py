@@ -680,3 +680,84 @@ def test_grade_run_includes_steps_6_to_9_and_needs():
     steps[7]["fermentables"][0]["because"] = ""
     graded = grade.grade_run(BRIEFS["b10"], steps, {"choose": facts}, CLASSES)
     assert graded["step7"] is False and 7 in graded["problems"]
+
+
+# a gap the style explains: a pick of the same kind stands in for the class (R10, A10)
+
+def stand_in(kind, step, key, class_row, rows, picked_ids, word="W"):
+    """grade_needs on a one-word brief: `rows` are the candidate table, `picked_ids` the picks."""
+    cls = dict(class_row, kind=kind, word=word, why="test")
+    steps = {step: {key: [{"ingredient_id": i} for i in picked_ids]}}
+    if step == 6:
+        steps[6] = {"yeast": {"ingredient_id": picked_ids[0]}, "souring": None}
+    facts = {"inputs": {step: {"candidates": rows}}}
+    return grade.grade_needs({"needs": {kind: [word]}}, steps, facts, [cls])[kind][word]
+
+
+HOP_ROWS = [
+    {"ingredient_id": 1, "name": "Hallertau Mittelfrüh", "origins": ["DE"], "purpose": "aroma"},
+    {"ingredient_id": 2, "name": "Magnum", "origins": ["DE"], "purpose": "bittering"},
+    {"ingredient_id": 3, "name": "Tettnanger", "origins": ["DE"], "purpose": "dual"},
+    {"ingredient_id": 4, "name": "Citra", "origins": ["US"], "purpose": "dual"},
+]
+
+
+def test_hop_of_the_same_origin_and_purpose_stands_in():
+    cls = {"names": ["Hallertau Mittelfrüh"]}
+    verdict = stand_in("hops", 8, "hops", cls, HOP_ROWS, [3])
+    assert verdict == "substituted: Tettnanger"
+    assert grade.needs_ok({"hops": {"W": verdict}})
+
+
+def test_hop_stand_in_needs_same_origin_and_a_fitting_purpose():
+    cls = {"names": ["Hallertau Mittelfrüh"]}
+    assert stand_in("hops", 8, "hops", cls, HOP_ROWS, [2]) == "gap"  # bittering for aroma
+    assert stand_in("hops", 8, "hops", cls, HOP_ROWS, [4]) == "gap"  # another origin
+    assert stand_in("hops", 8, "hops", cls, HOP_ROWS, [1]) == "covered"  # the class itself is covered
+
+
+def test_fermentable_stand_in_needs_the_same_role():
+    rows = [
+        {"ingredient_id": 1, "name": "Pilsner Malt", "role": "base"},
+        {"ingredient_id": 2, "name": "Pale Ale Malt", "role": "base"},
+        {"ingredient_id": 3, "name": "Black Malt", "role": "roast"},
+    ]
+    cls = {"names": ["Pilsner Malt"]}
+    assert stand_in("fermentables", 7, "fermentables", cls, rows, [2]) == "substituted: Pale Ale Malt"
+    assert stand_in("fermentables", 7, "fermentables", cls, rows, [3]) == "gap"
+
+
+def test_yeast_stand_in_needs_the_type_and_a_family_beyond_the_bare_type():
+    rows = [
+        {"ingredient_id": 1, "name": "W-34/70", "type": "lager", "family": ["lager"]},
+        {"ingredient_id": 2, "name": "Diamond", "type": "lager", "family": ["lager"]},
+        {"ingredient_id": 3, "name": "US-05", "type": "ale", "family": ["ale", "american-ale"]},
+        {"ingredient_id": 4, "name": "S-04", "type": "ale", "family": ["ale", "english-ale"]},
+        {"ingredient_id": 5, "name": "Philly Sour", "type": None, "family": ["sour"]},
+    ]
+    lager = {"names": ["W-34/70"]}
+    assert stand_in("yeast", 6, "yeast", lager, rows, [2]) == "substituted: Diamond"
+    american = {"family": "american-ale"}
+    assert stand_in("yeast", 6, "yeast", american, rows, [4]) == "gap"  # shares only "ale"
+    assert stand_in("yeast", 6, "yeast", american, rows, [5]) == "gap"  # no type
+
+
+def test_misc_stand_in_needs_the_same_category():
+    rows = [
+        {"ingredient_id": 1, "name": "Coffee, whole beans", "category": "coffee"},
+        {"ingredient_id": 2, "name": "Coffee, ground", "category": "coffee"},
+        {"ingredient_id": 3, "name": "Orange peel", "category": "peel"},
+    ]
+    cls = {"names": ["Coffee, whole beans"]}
+    assert stand_in("misc", 9, "extras", cls, rows, [2]) == "substituted: Coffee, ground"
+    assert stand_in("misc", 9, "extras", cls, rows, [3]) == "gap"
+
+
+def test_substituted_counts_in_the_needs_summary_and_totals():
+    from evals import run
+    needs = {"hops": {"A": "covered", "B": "substituted: Tettnanger", "C": "gap"}}
+    text = run.needs_summary(needs)
+    assert text.startswith("1/3") and "SUBSTITUTED: B" in text and "GAP: C" in text
+    result = {"ran": {n: True for n in range(1, 10)}, "needs": {"hops": {"B": "substituted: Tettnanger"}}, "needs_ok": True}
+    assert run.needs_summary(result["needs"]).startswith("0/1")
+    assert "GAP" not in run.needs_summary(result["needs"])

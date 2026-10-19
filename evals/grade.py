@@ -490,9 +490,35 @@ def class_matches(cls: dict, row: dict) -> bool:
     return True
 
 
+def stands_in(kind: str, class_rows: list[dict], pick: dict) -> bool:
+    """A pick that is not in the class but plays its part (R10, user decision 2026-10-19), by kind:
+    a fermentable of the same role; a hop of the same origin whose purpose is the same or one of the two is
+    `dual`; a yeast of the same type that shares a family tag other than the bare `ale` (a lager yeast
+    for a lager class needs no more); an extra of the same category. The pick already passed the
+    step's checks, so it is in the style."""
+    for row in class_rows:
+        if kind == "fermentables":
+            if pick.get("role") and pick.get("role") == row.get("role"):
+                return True
+        elif kind == "hops":
+            purposes = {pick.get("purpose"), row.get("purpose")}
+            if set(pick.get("origins") or ()) & set(row.get("origins") or ()) and \
+                    (len(purposes) == 1 or "dual" in purposes):
+                return True
+        elif kind == "yeast":
+            shared = set(pick.get("family") or ()) & set(row.get("family") or ())
+            if pick.get("type") and pick.get("type") == row.get("type") and shared - {"ale"}:
+                return True
+        elif kind == "misc":
+            if pick.get("category") and pick.get("category") == row.get("category"):
+                return True
+    return False
+
+
 def grade_needs(brief: dict, steps: dict, facts: dict | None, classes: list[dict]) -> dict:
-    """Per kind and word of the brief's needs: `covered` (a pick is in the class), `gap` (the candidate
-    table has a product of the class and no pick is one), or `absent: <reason>` (the table has none).
+    """Per kind and word of the brief's needs: `covered` (a pick is in the class), `substituted: <picks>`
+    (no pick is in the class but a pick of the same kind stands in for it, see `stands_in`), `gap` (the candidate
+    table has a product of the class and no pick is one or stands in), or `absent: <reason>` (the table has none).
     Water salts are M7's and are skipped."""
     by_word = {(c["kind"], normalise(c["word"])): c for c in classes}
     result = {}
@@ -521,7 +547,10 @@ def grade_needs(brief: dict, steps: dict, facts: dict | None, classes: list[dict
                 if any(r["ingredient_id"] in picked for r in rows):
                     verdict = "covered"
                 elif rows:
-                    verdict = "gap"
+                    by_id = {r["ingredient_id"]: r for r in inputs["candidates"]}
+                    standing = [by_id[i]["name"] for i in sorted(picked)
+                                if i in by_id and stands_in(kind, rows, by_id[i])]
+                    verdict = f"substituted: {', '.join(standing)}" if standing else "gap"
                 else:
                     verdict = f"absent: no product of the class \"{word}\" is in the candidate table"
             result[kind][word] = verdict
@@ -529,7 +558,7 @@ def grade_needs(brief: dict, steps: dict, facts: dict | None, classes: list[dict
 
 
 def needs_ok(needs: dict) -> bool:
-    return all(v == "covered" or v.startswith("absent") for words in needs.values() for v in words.values())
+    return all(v == "covered" or v.startswith(("absent", "substituted")) for words in needs.values() for v in words.values())
 
 
 def grade_run(brief: dict, steps: dict[int, dict | None], facts: dict | None = None,

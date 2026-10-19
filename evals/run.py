@@ -218,8 +218,11 @@ def needs_summary(needs: dict) -> str:
     verdicts = [(w, v) for words in needs.values() for w, v in words.items()]
     covered = sum(v == "covered" for _, v in verdicts)
     absent = [w for w, v in verdicts if v.startswith("absent")]
-    gaps = [w for w, v in verdicts if v not in ("covered",) and not v.startswith("absent")]
+    substituted = [w for w, v in verdicts if v.startswith("substituted")]
+    gaps = [w for w, v in verdicts if v != "covered" and not v.startswith(("absent", "substituted"))]
     text = f"{covered}/{len(verdicts)}"
+    if substituted:
+        text += " SUBSTITUTED: " + ", ".join(substituted)
     if absent:
         text += " absent: " + ", ".join(absent)
     if gaps:
@@ -264,7 +267,7 @@ def totals(results: list[dict]) -> dict:
             "not_run": sum(not r["ran"][step] for r in results),
         }
     out["needs"] = {"passed": sum(bool(r.get("needs_ok")) for r in results), "total": n,
-                    "gaps": sum(v not in ("covered",) and not v.startswith("absent")
+                    "gaps": sum(v != "covered" and not v.startswith(("absent", "substituted"))
                                 for r in results for words in (r.get("needs") or {}).values() for v in words.values())}
     out["calls"] = {"total": sum(r.get("calls", 0) for r in results), "runs": n}
     out["briefs"] = {"passed": sum(r["passed"] for r in results), "total": n}

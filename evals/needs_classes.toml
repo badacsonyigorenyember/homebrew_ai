@@ -44,8 +44,8 @@ why = "flaked oats"
 [[class]]
 kind = "fermentables"
 word = "Maris Otter"
-names = ["Finest Pale Ale Maris Otter"]
-why = "Maris Otter"
+names = ["Finest Pale Ale Maris Otter", "Finest Pale Ale Golden Promise"]
+why = "Maris Otter, and Golden Promise, the other floor-malted British pale ale malt (widened 2026-10-19)"
 
 [[class]]
 kind = "fermentables"
@@ -92,8 +92,8 @@ why = "the Munich malts (light, dark, type 1, type 2)"
 [[class]]
 kind = "fermentables"
 word = "Vienna malt"
-names = ["Vienna Malt"]
-why = "Vienna malt"
+names = ["Vienna Malt", "Munich Light Malt"]
+why = "Vienna malt, and Munich Light Malt, the nearest kilned malt in colour and flavour (widened 2026-10-19)"
 
 [[class]]
 kind = "fermentables"
@@ -128,8 +128,8 @@ why = "Columbus (hopline sells it as Columbus)"
 [[class]]
 kind = "hops"
 word = "Centennial"
-names = ["Centennial"]
-why = "Centennial (hopline sells it as Centennial)"
+names = ["Centennial", "Cascade"]
+why = "Centennial, the stronger Cascade-type hop: Cascade counts (widened 2026-10-19)"
 
 [[class]]
 kind = "hops"
@@ -158,8 +158,8 @@ why = "Galaxy (hopline sells it as Galaxy)"
 [[class]]
 kind = "hops"
 word = "East Kent Goldings"
-names = ["East Kent Golding"]
-why = "the catalogue spells it East Kent Golding"
+names = ["East Kent Golding", "Styrian Golding", "Fuggle"]
+why = "the catalogue spells it East Kent Golding; Styrian Golding and Fuggle are the usual English-type swaps (widened 2026-10-19)"
 
 [[class]]
 kind = "hops"
@@ -170,44 +170,44 @@ why = "Magnum (hopline sells it as Magnum)"
 [[class]]
 kind = "hops"
 word = "Willamette"
-names = ["Willamette"]
-why = "Willamette (hopline sells it as Willamette)"
+names = ["Willamette", "Fuggle"]
+why = "Willamette is the American Fuggle, so Fuggle counts (widened 2026-10-19)"
 
 [[class]]
 kind = "hops"
 word = "Hallertau Mittelfrüh"
-names = ["Hallertau Mittelfrüh"]
-why = "Hallertau Mittelfrüh (hopline sells it as Hallertau Mittelfrüh)"
+names = ["Hallertau Mittelfrüh", "Hallertau Hersbrücker", "Hallertau Tradition", "Tettnanger", "Spalt Select", "Saaz"]
+why = "Hallertau Mittelfrüh and the other noble aroma hops of Germany and Bohemia: Hersbrücker, Tradition, Tettnang, Spalt and Saaz (widened 2026-10-19)"
 
 [[class]]
 kind = "hops"
 word = "Tettnang"
-names = ["Tettnanger"]
-why = "Tettnang is the place; the catalogue has Tettnanger"
+names = ["Tettnanger", "Hallertau Mittelfrüh", "Spalt Select"]
+why = "Tettnang (the catalogue has Tettnanger) and its close noble relatives Hallertau Mittelfrüh and Spalt (widened 2026-10-19)"
 
 [[class]]
 kind = "hops"
 word = "Styrian Golding"
-names = ["Styrian Golding"]
-why = "Styrian Golding (hopline sells it as Styrian Golding)"
+names = ["Styrian Golding", "East Kent Golding", "Fuggle"]
+why = "Styrian Golding, a Fuggle-type hop: East Kent Golding and Fuggle stand in for it (widened 2026-10-19)"
 
 [[class]]
 kind = "hops"
 word = "Saaz"
-names = ["Saaz"]
-why = "Saaz (hopline sells it as Saaz)"
+names = ["Saaz", "Tettnanger", "Spalt Select", "Hallertau Mittelfrüh"]
+why = "Saaz and the noble hops that brewers swap for it: Tettnang, Spalt, Hallertau Mittelfrüh (widened 2026-10-19)"
 
 [[class]]
 kind = "hops"
 word = "Cascade"
-names = ["Cascade"]
-why = "Cascade (hopline sells it as Cascade)"
+names = ["Cascade", "Centennial"]
+why = "Cascade, and Centennial as its stronger relative (widened 2026-10-19)"
 
 [[class]]
 kind = "hops"
 word = "Fuggle"
-names = ["Fuggle"]
-why = "Fuggle (hopline sells it as Fuggle)"
+names = ["Fuggle", "East Kent Golding", "Styrian Golding"]
+why = "Fuggle, and the Golding hops that are swapped for it (widened 2026-10-19)"
 
 [[class]]
 kind = "yeast"

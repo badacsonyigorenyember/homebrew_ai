@@ -105,8 +105,11 @@ R9. Every pick carries a `because`: the LLM's purpose plus code's facts (level a
     inventory, wanted, the step 5 slot it fills). M6 and the sheet (M8) read it.
 R10. Each brief's `needs` (fermentables, hops, yeast, misc) is graded as classes through a class
     map in the grader (kind, role, EBC band, family tag or product names per needs word),
-    written in this work and reviewed by you. Each class is covered by a pick or reported
-    absent. Special B (b10) is the class dark crystal, covered by Special W or Caraaroma (user
+    written in this work and reviewed by you. Each class is covered by a pick, reported
+    absent, or substituted: no pick is in the class but a pick of the same kind stands in for it
+    (same role; same origin and a fitting purpose; same type and a family beyond `ale`; same
+    category; user decision 2026-10-19). A class with a product in the table that no pick covers
+    or stands in for is a gap and fails the brief. Special B (b10) is the class dark crystal, covered by Special W or Caraaroma (user
     decision 2026-10-18). (Measured 2026-10-18: 10 of the 48 needs words resolve to no product: Special B,
     Tettnang, Lactobacillus and 7 yeast class words such as "American ale yeast".)
 R11. Steps 6–9 run in `Recipe pipeline` after step 5, each logged to `app.run_step` with its own
@@ -172,8 +175,9 @@ A7. b23's coffee and vanilla and b24's orange peel each have a misc product, a u
 A8. A test with a made-up wanted word returns `absent` with its reason, and the rest of the
     recipe is still chosen (R8).
 A9. Every pick in the 24 outputs has a `because` with its level (R9).
-A10. The runner prints `needs` coverage per brief, every gap is an `absent` with a reason, and
-     you have reviewed the class map (R10, G5).
+A10. The runner prints `needs` coverage per brief; every word is `covered`, `substituted: <pick>`
+     or `absent` with a reason, and any other word is a gap that fails the brief; you have
+     reviewed the class map (R10, G5).
 A11. All 24 runs log `ok` rows for steps 6–9 whose input and output meet their contracts, and the
      runner prints the LLM calls per run (R11).
 A12. You read the picks of 3 briefs and agree a brewer would choose them (G5 direction check).
@@ -232,3 +236,4 @@ None. The five questions of 2026-10-18 are answered (see Deviations).
   band (`yeast_low_pct`–`yeast_high_pct`), not the beer band (`low_pct`–`high_pct`); the yeast
   band is in a yeast's own figures at the mash temperature. Measured: they differ only for b03
   and b20 (mash 68.5 °C), by 0.83 points.
+- 2026-10-19 · R10, A10 (user decision after G5 needs 4/24): the class map was widened for true equivalents (other noble hops for Hallertau Mittelfrüh, Golding-type hops for each other, Golden Promise for Maris Otter, Munich Light for Vienna, Cascade and Centennial for each other, Fuggle for Willamette), and a gap the style explains is a `substituted: <pick>` verdict (`evals/grade.py` `stands_in`) that does not fail the brief; a plain gap still fails. The model is given no needs information.
