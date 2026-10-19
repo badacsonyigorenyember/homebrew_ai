@@ -76,7 +76,7 @@ def test_b01_logs_step_1(conn, post):
     assert model and finished_at is not None
 
     steps = _step_rows(conn, run_id)
-    assert [s[0] for s in steps] == [0, 1, 2, 3, 4, 5]
+    assert [s[0] for s in steps] == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     step, attempt, step_ok, error, ms, step_input, output, tokens, llm = steps[1]
     assert (step, attempt, step_ok, error) == (1, 1, True, None)
     assert ms >= 0
@@ -212,6 +212,22 @@ def test_step_5_logged(conn, post):
         "run_id": answer["run_id"], "brief": steps[1][6], "profile": steps[0][6], "targets": steps[4][6],
     }
     assert _valid(conn, "step5.output", output) == []
+
+
+def test_steps_6_to_9_logged(conn, post):
+    """Steps 6-9 run as one model call and log four ok rows that meet their contracts."""
+    answer = post({"request": IPA, "brief_id": "b01"})
+    assert answer["ok"] is True
+    steps = _by_step(conn, answer["run_id"])
+    for n in (6, 7, 8, 9):
+        step, attempt, step_ok, error, ms, step_input, output, tokens, llm = steps[n]
+        assert (step, attempt, step_ok, error) == (n, 1, True, None)
+        assert step_input["run_id"] == answer["run_id"]
+        assert _valid(conn, f"step{n}.input", step_input) == []
+        assert _valid(conn, f"step{n}.output", output) == []
+    assert steps[6][8]["tries"] in (1, 2) and steps[6][8]["steps"] == [6, 7, 8, 9]
+    assert steps[6][7] > 0
+    assert steps[7][8] is None and steps[8][8] is None and steps[9][8] is None
 
 
 def test_guide_setting_reaches_step_2(conn, post):

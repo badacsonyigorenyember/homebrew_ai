@@ -275,10 +275,11 @@ as $$
 declare
     v_style_used   text := targets #>> '{style,code}';
     v_wanted_style text := style #>> '{style,code}';
-    v_guidance     boolean := coalesce((brief ->> 'guidance')::boolean, true);
+    v_rated        boolean;
+    v_guidance     boolean;
     v_excluded     jsonb := app.choose_excluded(frame);
     v_excluded_ids bigint[];
-    v_rules        jsonb := app.choose_yeast_rules(targets #>> '{style,code}', coalesce((brief ->> 'guidance')::boolean, true));
+    v_rules        jsonb;
     v_band_low     numeric := (frame #>> '{attenuation,yeast_low_pct}')::numeric;
     v_band_high    numeric := (frame #>> '{attenuation,yeast_high_pct}')::numeric;
     v_style_name   text;
@@ -294,6 +295,14 @@ declare
     v_fit          boolean;
     v_reason       text;
 begin
+    -- a style with no reviewed envelope has no levels (app.style_level says "not rated"), so the
+    -- guidance cannot apply to it: it is treated as guidance off and the table lists every product
+    v_rated := exists (select 1 from ref.beer_style b
+                         left join ref.style_sensory s on s.style_id = b.id and s.reviewed
+                         left join ref.style_ingredient si on si.style_id = b.id and si.reviewed
+                        where b.code = v_style_used and (s.style_id is not null or si.style_id is not null));
+    v_guidance := coalesce((brief ->> 'guidance')::boolean, true) and v_rated;
+    v_rules := app.choose_yeast_rules(v_style_used, v_guidance);
     v_excluded_ids := array(select (e.value ->> 'ingredient_id')::bigint from jsonb_array_elements(v_excluded) e);
     select b.name, b.characteristic_ingredients into v_style_name, v_char_ingr
       from ref.beer_style b where b.code = v_style_used order by b.id limit 1;
@@ -418,7 +427,7 @@ begin
 
     return jsonb_build_object(
         'style_used', v_style_used, 'style_name', v_style_name, 'characteristic_ingredients', v_char_ingr,
-        'wanted_style', v_wanted_style, 'guidance', v_guidance,
+        'wanted_style', v_wanted_style, 'guidance', v_guidance, 'style_rated', v_rated,
         'targets', jsonb_build_object(
             'og', targets #> '{targets,og,value}', 'fg', targets #> '{targets,fg,value}',
             'ibu', targets #> '{targets,ibu,value}', 'srm', targets #> '{targets,srm,value}'),
@@ -536,7 +545,8 @@ begin
     v_text := v_text || E'\nStyle the request was rated in (for wanted items): ' || coalesce(tbl ->> 'wanted_style', 'none') || '.';
     v_text := v_text || E'\n' || case when (tbl ->> 'guidance')::boolean
         then 'Style guidance is on: pick levels required, typical or allowed in the style used; prefer typical over allowed.'
-        else 'Style guidance is off: any level may be picked.' end;
+        when coalesce((tbl ->> 'style_rated')::boolean, true) then 'Style guidance is off: any level may be picked.'
+        else 'The style used has no reviewed ingredient guidance: any level may be picked.' end;
     v_text := v_text || E'\nTargets: OG ' || coalesce(app.choose_num(tbl -> 'targets' -> 'og'), 'none')
               || ', FG ' || coalesce(app.choose_num(tbl -> 'targets' -> 'fg'), 'none')
               || ', IBU ' || coalesce(app.choose_num(tbl -> 'targets' -> 'ibu'), 'none')

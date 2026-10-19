@@ -387,7 +387,7 @@ Commit: `Finish steps 6-9 picks and add their contracts`
 
 ### Task 7a (one call): steps 6–9 run in the pipeline
 Why: R11, A11. Only if Task 5 picked one call.
-- [ ] Sub-workflow `Steps 6–9 · choose ingredients` (id `ST69chooseingr01`), written as JSON from
+- [x] Sub-workflow `Steps 6–9 · choose ingredients` (id `ST69chooseingr01`), written as JSON from
       `n8n/workflows/step-1-read-request.json`'s pattern and imported with the n8n CLI
       (OPERATIONS §5; the pipeline needs `onError`, so the pipeline goes this way too):
       trigger with the `choose.input` fields → `Check contract` (`choose.input`) → Postgres
@@ -400,23 +400,23 @@ Why: R11, A11. Only if Task 5 picked one call.
       failure stops with `steps 6-9 answer failed twice: try 1: …; try 2: …`. `llm` as step 1's
       plus `num_ctx` and `steps: [6, 7, 8, 9]`. Sticky note and a `Test data` note with
       `tests/step69_sample.json` (b01's inputs from Task 3's helpers, `run_id` 0).
-- [ ] `Recipe pipeline`: `Step 5 · log ok` → `Steps 6–9 · input` → `Steps 6–9 · choose
+- [x] `Recipe pipeline`: `Step 5 · log ok` → `Steps 6–9 · input` → `Steps 6–9 · choose
       ingredients` (continueErrorOutput) → `Step 6 · log ok` (input `step6.input` built from
       `table`, output `step6`, `tokens` and `llm` from the call) → `Step 7 · log ok` →
       `Step 8 · log ok` → `Step 9 · log ok` (no `llm`) → `Finish run`. Error branch:
       `Steps 6–9 · log failure` writes the row for the lowest `step N:` in the error text (6 when
       none) → `Finish run (failed, steps 6–9)` → `Respond failed` with that `failed_step`. Update
       the per-step sticky note (steps 0–9 built).
-- [ ] Import both, publish the sub-workflow first, then the pipeline (MCP), delete the copies in
+- [x] Import both, publish the sub-workflow first, then the pipeline (MCP), delete the copies in
       `shared/`; `.venv/bin/python -m evals.workflows`.
-- [ ] `tests/test_workflows.py`: `SAMPLES` and `CONTRACT_OF` (`choose.input`) for the new file;
+- [x] `tests/test_workflows.py`: `SAMPLES` and `CONTRACT_OF` (`choose.input`) for the new file;
       `test_choose_num_ctx_matches_fit_test` (the `Build model request` holds `num_ctx:
       <evals.fit_test.CHOOSE_NUM_CTX>`; set that constant to Task 5's value).
       `tests/test_pipeline.py`: `test_steps_6_to_9_logged` (b01: four ok rows, inputs and
       outputs valid against their contracts, step 6 `llm.tries` 1 or 2, steps 7–9 `llm` null),
       `test_step_5_logged` unchanged; time the file (each run now has a second LLM call).
-- [ ] Run `.venv/bin/pytest tests/test_workflows.py tests/test_pipeline.py`, expect all pass.
-- [ ] `docs/OPERATIONS.md` §5: nine workflows, the new one, its `num_ctx`, the reload cost if
+- [x] Run `.venv/bin/pytest tests/test_workflows.py tests/test_pipeline.py`, expect all pass.
+- [x] `docs/OPERATIONS.md` §5: nine workflows, the new one, its `num_ctx`, the reload cost if
       it differs from step 1's. PROJECT.md §4 Orchestration row and §8.
 Done when: a webhook run of b01 logs ok rows for steps 0–9.
 Commit: `Run steps 6-9 in the recipe pipeline`
@@ -528,3 +528,4 @@ None needed: imports go through the n8n CLI as OPERATIONS §5 says; no container
 - 2026-10-18 · Task 4: R5's band rule skips a wanted or inventory yeast and applies only when a usable (non-lacto, lager/family-fitting) yeast reaches the band, so it cannot clash with R3; a hop's boil minutes map to the table's own boil choice (largest `minutes` not above); `db/043` also holds helpers `choose_row`, `choose_names`, `choose_pick_errors` — implementation detail, no scope change.
 - 2026-10-19 · Task 5: the one call runs at `num_ctx` 32768, not 8192 — the prompts are 16.6k-26.6k tokens and Ollama refuses (HTTP 400) a prompt longer than `num_ctx`, so 8192 and 16384 fit none of 24; `evals/fit_test.py` counts that refusal as a try that does not fit. `shared/prompts/choose.system.md` was revised once (zero pct/share, roasted-malt maximum) after 22 of 24 passed; revision 1 passes 24 of 24. The step-1 to step-6 model switch costs about 4 s of reload.
 - 2026-10-19 · Task 6: step 6-9 outputs also carry `unused_inventory` (steps 6-9) and step 8 a `solver` list and `ibu_target`; the `step6.input` to `step9.input` contracts are built by the workflow from the table (the test mirrors that in `step_inputs`) — implementation detail, no scope change.
+- 2026-10-19 · Task 7a: `app.choose_table` treats a style with no reviewed envelope (`app.style_level` says "not rated"; 259 of 285 styles, e.g. 24B or any Brewers Association style) as guidance off: it lists every product, `guidance` is false and `style_rated` false, and the prompt says the style has no reviewed ingredient guidance. Without this the table was empty for such styles and the pipeline failed at step 6 (found by `test_guide_setting_reaches_step_2` and `test_request_kept_verbatim`); the 24 briefs all use rated styles, so G5 picks are unchanged. Test `test_unrated_style_lists_every_product`. Also: the pipeline logs steps 7-9 with `ms` 0 and `tokens`/`llm` only on step 6; `Build outputs` passes `(table, proposal)` in that order (a swapped argument order failed the first live run).

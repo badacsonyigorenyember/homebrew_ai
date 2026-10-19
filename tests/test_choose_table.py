@@ -190,3 +190,18 @@ def test_prompt_uses_table_numbers(conn):
             assert f"\n{r['ingredient_id']} | {r['name']}" in prompt, (bid, r["name"])
         for e in tbl["excluded"]:
             assert f"\n{e['ingredient_id']} | " not in prompt
+
+
+def test_unrated_style_lists_every_product(conn):
+    """A style with no reviewed envelope has no levels: the table is built as with guidance off."""
+    b = BRIEFS["b01"]
+    brief = brief_of(b)
+    style = sql(conn, "step2_best_style", brief, b["request"], None)
+    targets = copy.deepcopy(step4(conn, b))
+    targets["style"]["code"] = "24B"  # Belgian Pale Ale: "not rated: has no reviewed envelope"
+    frame = sql(conn, "step5_frame", brief, sql(conn, "step0_profile", None), targets)
+    tbl = sql(conn, "choose_table", brief, style, targets, frame)
+    assert tbl["style_rated"] is False and tbl["guidance"] is False
+    assert all(len(tbl[k]) > 0 for k in ("fermentables", "hops", "yeasts"))
+    assert "no reviewed ingredient guidance" in sql(conn, "choose_prompt", tbl, brief)
+    assert table_of(conn, "b01")["style_rated"] is True

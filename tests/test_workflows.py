@@ -45,6 +45,8 @@ SAMPLES["step-4-targets.json"] = [{
 SAMPLES["step-5-design-frame.json"] = [{
     "run_id": 0, "brief": STEP2_BRIEF, "profile": FX["profile"], "targets": FX["targets"],
 }]
+STEP69 = json.loads((ROOT / "tests" / "step69_sample.json").read_text())
+SAMPLES["steps-6-9-choose-ingredients.json"] = STEP69
 # The input contract each sample is checked against.
 CONTRACT_OF = {
     "recipe-pipeline.json": "step1.input",
@@ -55,6 +57,7 @@ CONTRACT_OF = {
     "step-0-load-profile.json": "step0.input",
     "step-4-targets.json": "step4.input",
     "step-5-design-frame.json": "step5.input",
+    "steps-6-9-choose-ingredients.json": "choose.input",
 }
 STEP1_INPUT = {
     "recipe-pipeline.json": lambda s: {
@@ -66,6 +69,7 @@ STEP1_INPUT = {
     "step-0-load-profile.json": lambda s: s[0],
     "step-4-targets.json": lambda s: s[0],
     "step-5-design-frame.json": lambda s: s[0],
+    "steps-6-9-choose-ingredients.json": lambda s: {**s[0], "temperature": 0, "seed": 42},
 }
 
 
@@ -115,6 +119,13 @@ def test_num_ctx_matches_benchmark():
 
     nodes = {n["name"]: n for n in _repo("step-1-read-request.json")["nodes"]}
     assert f"num_ctx: {benchmark.NUM_CTX}" in nodes["Build model request"]["parameters"]["jsonOutput"]
+
+
+def test_choose_num_ctx_matches_fit_test():
+    from evals import fit_test
+
+    nodes = {n["name"]: n for n in _repo("steps-6-9-choose-ingredients.json")["nodes"]}
+    assert f"num_ctx: {fit_test.CHOOSE_NUM_CTX}" in nodes["Build model request"]["parameters"]["jsonOutput"]
 
 
 def test_shape_drops_volatile_fields():
