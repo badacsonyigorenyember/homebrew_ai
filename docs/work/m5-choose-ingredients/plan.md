@@ -487,6 +487,7 @@ Why: G5; A1–A16.
   Re-graded without a new run after the widened map and the `substituted` verdict (user decision): needs 18/24 briefs, 7 gap words
   (b02 Galaxy, b04 crystal malt, b10 pilsner malt and Styrian Golding, b11 Styrian Golding, b14 German ale yeast, b19 roasted barley).
   A12 direction check, user's answer: "Approve all three" (b03, b10, b16 picks of run 2, as they are).
+  G5 needs, user's decision (2026-10-19): "Accept G5 needs at 18/24 and record it as decided; continue with Task 10."
 Done when: the results file is saved and the gates are answered.
 Result: G5's needs bar (all covered or absent) is not met, 18/24 briefs; steps 1-9, 0 invented and 0 excluded are met.
 Commit: `Measure G5 on 24 briefs`
