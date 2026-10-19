@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "choose.input",
+  "description": "Input of the steps 6-9 sub-workflow: the run, the brief and what steps 2, 0, 4 and 5 produced, and the model settings of the one LLM call.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "brief",
+    "style",
+    "profile",
+    "targets",
+    "frame",
+    "model",
+    "think",
+    "temperature",
+    "seed"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "brief": {
+      "type": "object"
+    },
+    "style": {
+      "type": "object"
+    },
+    "profile": {
+      "type": "object"
+    },
+    "targets": {
+      "type": "object"
+    },
+    "frame": {
+      "type": "object"
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "think": {
+      "type": "boolean"
+    },
+    "temperature": {
+      "type": "number"
+    },
+    "seed": {
+      "type": "integer"
+    }
+  }
+}

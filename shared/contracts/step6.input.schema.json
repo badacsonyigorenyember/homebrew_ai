@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step6.input",
+  "description": "Step 6, choose yeast: what the model could pick from, built by code: the yeast rows of the candidate table with their style level, the slots and inventory words, the excluded products, step 5's yeast band, the targets and the yeast rules (lager, required families, souring). Rows are the table's own.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "style_used",
+    "wanted_style",
+    "guidance",
+    "candidates",
+    "slots",
+    "inventory_words",
+    "excluded",
+    "band",
+    "targets",
+    "yeast_rules"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "style_used": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "wanted_style": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "guidance": {
+      "type": "boolean"
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "slots": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "inventory_words": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "excluded": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "band": {
+      "type": "object"
+    },
+    "targets": {
+      "type": "object"
+    },
+    "yeast_rules": {
+      "type": "object"
+    }
+  }
+}

@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step9.output",
+  "description": "Step 9, the extras: each pick with its usage, category, time and a dose in g/L that code set from the sourced range and the wanted role (dose_because says how). Absent: dose_g_per_l null when no sourced dose; absent lists words with no product (including words that match nothing in the catalogue). Every pick comes from the candidate table: its level at the chosen usage, the inventory word, the wanted item and the slot it fills, the LLM's purpose and one sentence (because) joining them. ",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "extras",
+    "unused_inventory",
+    "absent"
+  ],
+  "properties": {
+    "extras": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ingredient_id",
+          "name",
+          "producer",
+          "choice",
+          "level",
+          "level_because",
+          "inventory",
+          "wanted",
+          "slot",
+          "purpose",
+          "because",
+          "usage",
+          "category",
+          "time_min",
+          "dose_g_per_l",
+          "dose_because"
+        ],
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "producer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "choice": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "level": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "level_because": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "inventory": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "wanted": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "item",
+              "role"
+            ],
+            "properties": {
+              "item": {
+                "type": "string"
+              },
+              "role": {
+                "enum": [
+                  "feature",
+                  "background"
+                ]
+              }
+            }
+          },
+          "slot": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "because": {
+            "type": "string"
+          },
+          "usage": {
+            "type": "string"
+          },
+          "category": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "time_min": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "dose_g_per_l": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "dose_because": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "unused_inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "word",
+          "reason"
+        ],
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "absent": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "word",
+          "kind",
+          "reason"
+        ],
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

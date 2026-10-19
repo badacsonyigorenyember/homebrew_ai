@@ -349,7 +349,7 @@ Commit: `Add the steps 6-9 fit test and its result`
 
 ### Task 6: code finishes the picks and the step contracts
 Why: R7, R8, R9, R11; A7, A8, A9.
-- [ ] `db/044_choose_outputs.sql` (needs 043):
+- [x] `db/044_choose_outputs.sql` (needs 043):
       - `app.step6_output(tbl, yeast)`, `app.step7_output(tbl, fermentables)`,
         `app.step8_output(tbl, hops)`, `app.step9_output(tbl, extras)` each `returns jsonb`.
         Each pick is read **only** from its `tbl` row by id (an id not in `tbl` raises
@@ -364,7 +364,7 @@ Why: R7, R8, R9, R11; A7, A8, A9.
         with `dose_g_per_l` and `dose_because` from `app.misc_dose(id, wanted role)` and the row's
         `time_min`. `absent` per kind; absents with kind null go in step 9's (R8).
       - `app.choose_outputs(tbl, proposal) returns jsonb` → `{step6, step7, step8, step9}`.
-- [ ] Contracts: `step6.input` … `step9.input` = `{run_id, style_used, wanted_style, guidance,
+- [x] Contracts: `step6.input` … `step9.input` = `{run_id, style_used, wanted_style, guidance,
       candidates (that kind's rows), slots, inventory_words, excluded}`, step 6 adds `band`,
       `targets` and `yeast_rules`, step 8 adds `targets`; `step6.output` … `step9.output` as
       above. `choose.input` = `{run_id, brief, style, profile, targets, frame, model, think,
@@ -372,16 +372,16 @@ Why: R7, R8, R9, R11; A7, A8, A9.
       `choose.input`, `choose.proposal`; `ABSENT_SLOTS` gains `step6.output` (`souring` null,
       `absent` array), `step7.output` and `step8.output` (`absent` array), `step9.output`
       (`extras.dose_g_per_l` null, `absent` array).
-- [ ] Apply twice; owners `postgres`.
-- [ ] Write `tests/test_choose_outputs.py` (stack), each seen failing first:
+- [x] Apply twice; owners `postgres`.
+- [x] Write `tests/test_choose_outputs.py` (stack), each seen failing first:
       `test_outputs_use_table_rows_only` (A1/R1: an output built from a proposal with an id not
       in the table raises; for the good proposals of Task 4 every output id is a table id and
       every name, alpha, EBC equals its `ref` row); `test_outputs_meet_contracts` (all four
       outputs and inputs of the 7 good proposals); `test_every_pick_has_because_and_level` (A9);
       `test_dose_set_by_code` (A7, A16: b23 3.0 and 0.05, b24 2.64);
       `test_made_up_word_absent_rest_chosen` (A8); `test_yeast_without_figure_reported` (R5).
-- [ ] Run `.venv/bin/pytest tests/test_choose_outputs.py tests/test_choose_check.py tests/test_contracts.py`, expect all pass.
-- [ ] `docs/DATABASE.md` §5: the functions of `db/042`–`044`. PROJECT.md §8.
+- [x] Run `.venv/bin/pytest tests/test_choose_outputs.py tests/test_choose_check.py tests/test_contracts.py`, expect all pass.
+- [x] `docs/DATABASE.md` §5: the functions of `db/042`–`044`. PROJECT.md §8.
 Done when: outputs meet their contracts and carry only table rows.
 Commit: `Finish steps 6-9 picks and add their contracts`
 
@@ -527,3 +527,4 @@ None needed: imports go through the n8n CLI as OPERATIONS §5 says; no container
 - 2026-10-18 · Task 3: `app.choose_table` also returns `style_name` and `characteristic_ingredients` (the prompt shows them and every prompt number must come from the table), `kind` on each `slots` and `inventory_words` entry, and `db/042` holds helper functions beyond the four listed — implementation detail, no scope change.
 - 2026-10-18 · Task 4: R5's band rule skips a wanted or inventory yeast and applies only when a usable (non-lacto, lager/family-fitting) yeast reaches the band, so it cannot clash with R3; a hop's boil minutes map to the table's own boil choice (largest `minutes` not above); `db/043` also holds helpers `choose_row`, `choose_names`, `choose_pick_errors` — implementation detail, no scope change.
 - 2026-10-19 · Task 5: the one call runs at `num_ctx` 32768, not 8192 — the prompts are 16.6k-26.6k tokens and Ollama refuses (HTTP 400) a prompt longer than `num_ctx`, so 8192 and 16384 fit none of 24; `evals/fit_test.py` counts that refusal as a try that does not fit. `shared/prompts/choose.system.md` was revised once (zero pct/share, roasted-malt maximum) after 22 of 24 passed; revision 1 passes 24 of 24. The step-1 to step-6 model switch costs about 4 s of reload.
+- 2026-10-19 · Task 6: step 6-9 outputs also carry `unused_inventory` (steps 6-9) and step 8 a `solver` list and `ibu_target`; the `step6.input` to `step9.input` contracts are built by the workflow from the table (the test mirrors that in `step_inputs`) — implementation detail, no scope change.

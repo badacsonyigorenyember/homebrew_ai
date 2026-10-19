@@ -1,0 +1,256 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step8.output",
+  "description": "Step 8, the hops: each pick with its usage, minutes, share of hop mass and alpha acid (range and middle) from the table. solver holds the items exactly as app.solve_hops takes them. Absent: absent lists words with no hop product. Every pick comes from the candidate table: its level at the chosen usage, the inventory word, the wanted item and the slot it fills, the LLM's purpose and one sentence (because) joining them. ",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "hops",
+    "solver",
+    "ibu_target",
+    "unused_inventory",
+    "absent"
+  ],
+  "properties": {
+    "hops": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ingredient_id",
+          "name",
+          "producer",
+          "choice",
+          "level",
+          "level_because",
+          "inventory",
+          "wanted",
+          "slot",
+          "purpose",
+          "because",
+          "usage",
+          "minutes",
+          "share_pct",
+          "alpha",
+          "alpha_pct",
+          "origins",
+          "character"
+        ],
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "producer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "choice": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "level": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "level_because": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "inventory": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "wanted": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "item",
+              "role"
+            ],
+            "properties": {
+              "item": {
+                "type": "string"
+              },
+              "role": {
+                "enum": [
+                  "feature",
+                  "background"
+                ]
+              }
+            }
+          },
+          "slot": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "because": {
+            "type": "string"
+          },
+          "usage": {
+            "enum": [
+              "boil",
+              "whirlpool",
+              "dry_hop"
+            ]
+          },
+          "minutes": {
+            "type": "number"
+          },
+          "share_pct": {
+            "type": "number"
+          },
+          "alpha": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "low",
+              "high"
+            ],
+            "properties": {
+              "low": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "high": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          },
+          "alpha_pct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "origins": {
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "character": {
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "solver": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "share_pct",
+          "alpha_pct",
+          "minutes",
+          "usage"
+        ],
+        "properties": {
+          "share_pct": {
+            "type": "number"
+          },
+          "alpha_pct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "minutes": {
+            "type": "number"
+          },
+          "usage": {
+            "enum": [
+              "boil",
+              "whirlpool",
+              "dry_hop"
+            ]
+          }
+        }
+      }
+    },
+    "ibu_target": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "unused_inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "word",
+          "reason"
+        ],
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "absent": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "word",
+          "kind",
+          "reason"
+        ],
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

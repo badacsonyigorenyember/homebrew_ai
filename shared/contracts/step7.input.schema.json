@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step7.input",
+  "description": "Step 7, choose fermentables: the fermentable rows of the candidate table with their style level, the slots and inventory words, the excluded products.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "style_used",
+    "wanted_style",
+    "guidance",
+    "candidates",
+    "slots",
+    "inventory_words",
+    "excluded"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "style_used": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "wanted_style": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "guidance": {
+      "type": "boolean"
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "slots": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "inventory_words": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "excluded": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}
