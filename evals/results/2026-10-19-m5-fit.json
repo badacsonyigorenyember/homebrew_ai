@@ -2351,6 +2351,632 @@
         }
       ],
       "prompt_sha256": "98724fdb25f1ade60a9e79c7002fd553cccedeb024909b23c4c89e2729f2c8df"
+    },
+    "32768rev2": {
+      "num_ctx": 32768,
+      "num_predict": 4096,
+      "summary": {
+        "briefs": 24,
+        "passed": 24,
+        "fit_all": 24,
+        "max_prompt_tokens": 26802,
+        "median_llm_ms": 129189,
+        "processors": [
+          "40%/60% CPU/GPU"
+        ]
+      },
+      "results": [
+        {
+          "id": "b01",
+          "run_id": 3874,
+          "prompt_chars": 61254,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19403,
+              "output_tokens": 450,
+              "done_reason": "stop",
+              "load_ms": 4915,
+              "llm_ms": 125972,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b02",
+          "run_id": 3875,
+          "prompt_chars": 68772,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21885,
+              "output_tokens": 400,
+              "done_reason": "stop",
+              "load_ms": 5182,
+              "llm_ms": 126529,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b03",
+          "run_id": 3876,
+          "prompt_chars": 75040,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23441,
+              "output_tokens": 429,
+              "done_reason": "stop",
+              "load_ms": 4923,
+              "llm_ms": 136670,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: Roasted Barley is 5 % of the grist, above its maximum of 2 %"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 23925,
+              "output_tokens": 427,
+              "done_reason": "stop",
+              "load_ms": 5225,
+              "llm_ms": 138997,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b04",
+          "run_id": 3877,
+          "prompt_chars": 76603,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23879,
+              "output_tokens": 379,
+              "done_reason": "stop",
+              "load_ms": 4778,
+              "llm_ms": 129583,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: Lactose is 18 % of the grist, above its maximum of 10 %"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 24314,
+              "output_tokens": 377,
+              "done_reason": "stop",
+              "load_ms": 4962,
+              "llm_ms": 132029,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b05",
+          "run_id": 3878,
+          "prompt_chars": 76920,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23894,
+              "output_tokens": 370,
+              "done_reason": "stop",
+              "load_ms": 5205,
+              "llm_ms": 129371,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: Roasted Barley is 10 % of the grist, above its maximum of 2 %"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 24320,
+              "output_tokens": 368,
+              "done_reason": "stop",
+              "load_ms": 4465,
+              "llm_ms": 130161,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b06",
+          "run_id": 3879,
+          "prompt_chars": 63282,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19695,
+              "output_tokens": 269,
+              "done_reason": "stop",
+              "load_ms": 4735,
+              "llm_ms": 97782,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b07",
+          "run_id": 3880,
+          "prompt_chars": 62860,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19601,
+              "output_tokens": 264,
+              "done_reason": "stop",
+              "load_ms": 4996,
+              "llm_ms": 96626,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b08",
+          "run_id": 3881,
+          "prompt_chars": 62287,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19419,
+              "output_tokens": 327,
+              "done_reason": "stop",
+              "load_ms": 4713,
+              "llm_ms": 105818,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b09",
+          "run_id": 3882,
+          "prompt_chars": 53848,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 16936,
+              "output_tokens": 323,
+              "done_reason": "stop",
+              "load_ms": 4761,
+              "llm_ms": 97023,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b10",
+          "run_id": 3883,
+          "prompt_chars": 62209,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19400,
+              "output_tokens": 395,
+              "done_reason": "stop",
+              "load_ms": 4953,
+              "llm_ms": 117107,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b11",
+          "run_id": 3884,
+          "prompt_chars": 66723,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 20900,
+              "output_tokens": 375,
+              "done_reason": "stop",
+              "load_ms": 4966,
+              "llm_ms": 118820,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b12",
+          "run_id": 3885,
+          "prompt_chars": 69842,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 22014,
+              "output_tokens": 322,
+              "done_reason": "stop",
+              "load_ms": 4769,
+              "llm_ms": 114065,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b13",
+          "run_id": 3886,
+          "prompt_chars": 55685,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 17294,
+              "output_tokens": 270,
+              "done_reason": "stop",
+              "load_ms": 4771,
+              "llm_ms": 90026,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b14",
+          "run_id": 3887,
+          "prompt_chars": 75594,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23608,
+              "output_tokens": 306,
+              "done_reason": "stop",
+              "load_ms": 4701,
+              "llm_ms": 116220,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b15",
+          "run_id": 3888,
+          "prompt_chars": 73635,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23142,
+              "output_tokens": 390,
+              "done_reason": "stop",
+              "load_ms": 4730,
+              "llm_ms": 129838,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: Black Malt is 5 % of the grist, above its maximum of 2 %"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 23586,
+              "output_tokens": 389,
+              "done_reason": "stop",
+              "load_ms": 5001,
+              "llm_ms": 131081,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b16",
+          "run_id": 3889,
+          "prompt_chars": 69022,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21847,
+              "output_tokens": 458,
+              "done_reason": "stop",
+              "load_ms": 4982,
+              "llm_ms": 135730,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b17",
+          "run_id": 3890,
+          "prompt_chars": 61931,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19387,
+              "output_tokens": 319,
+              "done_reason": "stop",
+              "load_ms": 5004,
+              "llm_ms": 104542,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b18",
+          "run_id": 3891,
+          "prompt_chars": 85198,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 26423,
+              "output_tokens": 324,
+              "done_reason": "stop",
+              "load_ms": 4999,
+              "llm_ms": 129976,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: Roasted Barley is 5 % of the grist, above its maximum of 2 %"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 26802,
+              "output_tokens": 323,
+              "done_reason": "stop",
+              "load_ms": 4962,
+              "llm_ms": 131891,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b19",
+          "run_id": 3892,
+          "prompt_chars": 68998,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 21657,
+              "output_tokens": 378,
+              "done_reason": "stop",
+              "load_ms": 4976,
+              "llm_ms": 122173,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b20",
+          "run_id": 3893,
+          "prompt_chars": 76150,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23873,
+              "output_tokens": 377,
+              "done_reason": "stop",
+              "load_ms": 4942,
+              "llm_ms": 129393,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: the wanted \"lactose\" has no pick; pick one of: 3397 Lactose"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 24309,
+              "output_tokens": 432,
+              "done_reason": "stop",
+              "load_ms": 4750,
+              "llm_ms": 141015,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b21",
+          "run_id": 3894,
+          "prompt_chars": 74232,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 23213,
+              "output_tokens": 388,
+              "done_reason": "stop",
+              "load_ms": 4962,
+              "llm_ms": 129189,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b22",
+          "run_id": 3895,
+          "prompt_chars": 62144,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 19351,
+              "output_tokens": 370,
+              "done_reason": "stop",
+              "load_ms": 4940,
+              "llm_ms": 113091,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b23",
+          "run_id": 3896,
+          "prompt_chars": 79171,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 24816,
+              "output_tokens": 471,
+              "done_reason": "stop",
+              "load_ms": 5295,
+              "llm_ms": 149522,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": [
+                "step 7: Black Malt is 5 % of the grist, above its maximum of 2 %"
+              ]
+            },
+            {
+              "try": 2,
+              "prompt_tokens": 25341,
+              "output_tokens": 470,
+              "done_reason": "stop",
+              "load_ms": 4756,
+              "llm_ms": 151280,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        },
+        {
+          "id": "b24",
+          "run_id": 3897,
+          "prompt_chars": 69557,
+          "tries": [
+            {
+              "try": 1,
+              "prompt_tokens": 22062,
+              "output_tokens": 409,
+              "done_reason": "stop",
+              "load_ms": 5215,
+              "llm_ms": 128352,
+              "truncated": false,
+              "rejected": false,
+              "processor": "40%/60% CPU/GPU",
+              "fits": true,
+              "errors": []
+            }
+          ],
+          "passed": true
+        }
+      ]
     }
-  }
+  },
+  "prompt_sha256": "3621a61ea2db2e485a6808a14c2b9c14832d89a240864476730ed8bb96b6201f"
 }

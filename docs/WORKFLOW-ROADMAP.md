@@ -183,6 +183,9 @@ b16 Citra and Mosaic); inventory items used where they fit (b10, b15); each brie
 class covered or reported as absent. **Decide:** is "popularity in the corpus" giving recipes a
 brewer would choose? Look at 3 recipes by hand before going on.
 
+**Measured (2026-10-19, [`m5-choose-ingredients`](work/m5-choose-ingredients/plan.md)):** partly met. `python -m evals.run --save --label m5` on the real pipeline (D2 model, `choose.system.md` revision 2 of 2): steps 1 to 9 pass 24/24 each, 0 invented, 0 excluded (b08 no Saaz, b16 no Citra or Mosaic), 192 contract checks (`extensions.jsonschema_validation_errors`) 0 errors, 55 LLM calls in 24 runs (2 per run, 7 runs 3), 168 s per brief (67 min for 24). Needs, re-graded after the user widened the class map and added the `substituted` verdict: 18/24 briefs pass (b01, b03, b05 to b09, b12, b13, b15 to b18, b20 to b24); 6 fail with a gap (b02 Galaxy, b04 crystal malt, b10 pilsner malt and Styrian Golding, b11 Styrian Golding, b14 German ale yeast, b19 roasted barley). Before the re-grade: 4/24 (33 gaps), and 1/24 with the first prompt. b10 and b15 use their inventory (Munich malt, abbey yeast, dark candi sugar; Maris Otter, crystal malt, East Kent Goldings); b14 Philly Sour with YF-998; b23 coffee 3 g/L and vanilla 0.05 g/L; b24 orange peel 2.64 g/L; b08 has no late hop (Magnum 60 min, Tettnanger 15 min boil). Saved in `evals/results/2026-10-19-m5.json`.
+**Decided:** direction check on b03 (oatmeal stout), b10 (dubbel from inventory) and b16 (APA with rice, no Citra or Mosaic): "Approve all three" (user, 2026-10-19). Whether to accept 18/24 on needs is left for the user.
+
 ### G6 · MVP: numerically correct, style-checked recipes
 
 **Bar:** ≥ 16/20 validate (RECIPE-ROADMAP P5), stated numbers met within tolerance, ≤ 2 LLM calls

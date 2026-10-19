@@ -50,8 +50,9 @@ Branch: m5-choose-ingredients
    every yeast of that type (`app.yeast_type_word()`), used only when aliases and names find
    nothing. Not aliases on YF-998 and YF-999.
 3. A `needs` class with a product in the candidate table that no pick covers is a **gap** and
-   fails that brief's needs grade; a class with no product in the table counts as reported
-   absent, with the reason (A10, G5 bar).
+   fails that brief's needs grade, unless a pick of the same kind stands in for it (verdict
+   `substituted: <pick>`, user decision 2026-10-19; `evals/grade.py` `stands_in`); a class with no
+   product in the table counts as reported absent, with the reason (A10, G5 bar).
 
 **Measured while planning (2026-10-18, read-only):** `ref.yeast.type` ale 75, kveik 20, lager
 17, brett 2, null 5 (YF-998, YF-999, CBC-1, Philly Sour, Suava Ale); no check constraint on
@@ -456,7 +457,7 @@ Why: R10, A1–A11, A15, A16.
       (A5, A15); shares and `max_pct`, hop fields (A6); doses equal the role rule from the misc
       facts (A7, A16); every pick has `because` and `level` (A9); with guidance on no pipeline pick
       `out_of_style` or `changes_style` (A4). `grade_needs(brief, steps, facts, classes)` →
-      per word `covered` / `absent: <reason>` / `gap`.
+      per word `covered` / `substituted: <pick>` / `absent: <reason>` / `gap`.
 - [x] Tests in `tests/test_grade.py` (no stack), each seen failing when its grader check is
       broken: one passing output per step, and one failing case per check above; `grade_needs`
       on Special B covered by Special W, Lactobacillus by a lacto pick, a gap.
@@ -468,18 +469,26 @@ Commit: `Grade steps 6-9 and needs classes`
 
 ### Task 9: G5 on the real pipeline
 Why: G5; A1–A16.
-- [ ] `.venv/bin/python -m evals.run --save --label m5` (background; wait on the results file).
+- [x] `.venv/bin/python -m evals.run --save --label m5` (background; wait on the results file).
       Expect 24/24 for steps 1–9 and needs, 0 invented, 0 excluded, `calls` = 2 per run in the
       one-call shape (plus retries). A miss is fixed in its task's code or prompt and the run
       repeated; record each miss and its fix.
-- [ ] Measure for the §8 entry: A11 (all 24 step 6–9 rows ok and valid against their
+- [x] Measure for the §8 entry: A11 (all 24 step 6–9 rows ok and valid against their
       contracts, `extensions.jsonschema_validation_errors`), b08's late hop and its level in 5D
       (A6), b10 and b15 inventory picks (A3), b14 yeasts (A15), b23 and b24 doses (A16), the
       needs table (A10), LLM calls per run (A11, A14), run time per brief.
-- [ ] **Gate (A12):** hand back `needs-input` with the picks of 3 briefs (b03, b10, b16: stout,
+- [x] **Gate (A12):** hand back `needs-input` with the picks of 3 briefs (b03, b10, b16: stout,
       inventory, exclusions) for your direction check; record your answer.
-- [ ] `docs/WORKFLOW-ROADMAP.md` G5 `Measured:` line (Decided left for you).
+- [x] `docs/WORKFLOW-ROADMAP.md` G5 `Measured:` line (Decided left for you).
+- 2026-10-19 G5 run 1 (prompt revision 1, `evals/results/2026-10-19-m5-prompt-rev1.json`): steps 1-9 24/24, needs 1/24, 41 gaps.
+- 2026-10-19 G5 run 2 (prompt revision 2, `evals/results/2026-10-19-m5.json`): steps 1-9 24/24 each, 0 invented, 0 excluded,
+  192 contract checks 0 errors, 55 calls in 24 runs, 168 s per brief (115-261 s, 67 min). Needs 4/24 briefs (b03, b16, b18, b20), 33 gaps.
+  Fit test at 32768 with revision 2: 24/24 pass, max prompt 26,802 tokens (`evals/results/2026-10-19-m5-fit.json`, option `32768rev2`).
+  Re-graded without a new run after the widened map and the `substituted` verdict (user decision): needs 18/24 briefs, 7 gap words
+  (b02 Galaxy, b04 crystal malt, b10 pilsner malt and Styrian Golding, b11 Styrian Golding, b14 German ale yeast, b19 roasted barley).
+  A12 direction check, user's answer: "Approve all three" (b03, b10, b16 picks of run 2, as they are).
 Done when: the results file is saved and the gates are answered.
+Result: G5's needs bar (all covered or absent) is not met, 18/24 briefs; steps 1-9, 0 invented and 0 excluded are met.
 Commit: `Measure G5 on 24 briefs`
 
 ### Task 10: the docs describe stage C as built
@@ -529,3 +538,5 @@ None needed: imports go through the n8n CLI as OPERATIONS §5 says; no container
 - 2026-10-19 · Task 5: the one call runs at `num_ctx` 32768, not 8192 — the prompts are 16.6k-26.6k tokens and Ollama refuses (HTTP 400) a prompt longer than `num_ctx`, so 8192 and 16384 fit none of 24; `evals/fit_test.py` counts that refusal as a try that does not fit. `shared/prompts/choose.system.md` was revised once (zero pct/share, roasted-malt maximum) after 22 of 24 passed; revision 1 passes 24 of 24. The step-1 to step-6 model switch costs about 4 s of reload.
 - 2026-10-19 · Task 6: step 6-9 outputs also carry `unused_inventory` (steps 6-9) and step 8 a `solver` list and `ibu_target`; the `step6.input` to `step9.input` contracts are built by the workflow from the table (the test mirrors that in `step_inputs`) — implementation detail, no scope change.
 - 2026-10-19 · Task 7a: `app.choose_table` treats a style with no reviewed envelope (`app.style_level` says "not rated"; 259 of 285 styles, e.g. 24B or any Brewers Association style) as guidance off: it lists every product, `guidance` is false and `style_rated` false, and the prompt says the style has no reviewed ingredient guidance. Without this the table was empty for such styles and the pipeline failed at step 6 (found by `test_guide_setting_reaches_step_2` and `test_request_kept_verbatim`); the 24 briefs all use rated styles, so G5 picks are unchanged. Test `test_unrated_style_lists_every_product`. Also: the pipeline logs steps 7-9 with `ms` 0 and `tokens`/`llm` only on step 6; `Build outputs` passes `(table, proposal)` in that order (a swapped argument order failed the first live run).
+- 2026-10-19 · Task 9: `shared/prompts/choose.system.md` revised a second time (the last allowed): pick the classic products of the style's tradition (base malt, specialty malts, the hops of its country), and two or three hop varieties (a boil bittering hop plus late, whirlpool or dry-hop aroma hops where the style has aroma) — user decision after G5 run 1 had needs 1/24; fit test repeated, 24/24 pass.
+- 2026-10-19 · Tasks 8, 9: the needs grade gained a `substituted: <pick>` verdict (`stands_in` in `evals/grade.py`: fermentable of the same role; hop of the same origin with the same or a `dual` purpose; yeast of the same type sharing a family tag beyond `ale`; extra of the same category) that does not fail a brief, and `evals/needs_classes.toml` was widened for true equivalents (decision 3 above and brief R10, A10 updated) — user decision after G5 run 2 had needs 4/24. Tests in `tests/test_grade.py`; the saved run was re-graded, not re-run, and the model sees no needs information.
