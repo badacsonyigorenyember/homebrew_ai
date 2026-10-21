@@ -486,7 +486,7 @@
         },
         "hops": {
           "Magnum": "covered",
-          "Hallertau Mittelfr\u00fch": "covered",
+          "Hallertau Mittelfrüh": "covered",
           "Tettnang": "covered"
         },
         "yeast": {
@@ -551,7 +551,7 @@
           "Vienna malt": "substituted: Melanoidin Malt, Pilsner Malt, Munich Malt Type 2"
         },
         "hops": {
-          "Hallertau Mittelfr\u00fch": "substituted: Herkules"
+          "Hallertau Mittelfrüh": "substituted: Herkules"
         },
         "yeast": {
           "German lager yeast": "covered"
@@ -612,7 +612,7 @@
         "fermentables": {
           "pilsner malt": "gap",
           "Munich malt": "covered",
-          "Special B": "substituted: Caraamber",
+          "Special B": "gap",
           "candi sugar": "covered"
         },
         "hops": {
@@ -807,13 +807,13 @@
           "pilsner malt": "covered"
         },
         "hops": {
-          "Hallertau Mittelfr\u00fch": "substituted: Magnum"
+          "Hallertau Mittelfrüh": "gap"
         },
         "yeast": {
           "weizen yeast": "covered"
         }
       },
-      "needs_ok": true,
+      "needs_ok": false,
       "problems": {},
       "ran": {
         "1": true,
@@ -826,7 +826,7 @@
         "8": true,
         "9": true
       },
-      "passed": true,
+      "passed": false,
       "llm": {
         "seed": 42,
         "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
@@ -842,7 +842,7 @@
     },
     {
       "id": "b14",
-      "run_id": 4187,
+      "run_id": 4246,
       "run_ok": true,
       "error": null,
       "failed_step": null,
@@ -870,7 +870,7 @@
           "pilsner malt": "covered"
         },
         "hops": {
-          "Hallertau Mittelfr\u00fch": "substituted: Magnum"
+          "Hallertau Mittelfrüh": "gap"
         },
         "yeast": {
           "German ale yeast": "gap",
@@ -896,13 +896,13 @@
         "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
         "think": false,
         "tries": 1,
-        "llm_ms": 16413,
+        "llm_ms": 16110,
         "done_reason": "stop",
         "temperature": 0,
         "output_tokens": 100,
         "prompt_tokens": 1001
       },
-      "calls": 2
+      "calls": 3
     },
     {
       "id": "b15",
@@ -1064,13 +1064,13 @@
           "Carafa Special": "covered"
         },
         "hops": {
-          "Hallertau Mittelfr\u00fch": "substituted: Magnum"
+          "Hallertau Mittelfrüh": "gap"
         },
         "yeast": {
           "German lager yeast": "covered"
         }
       },
-      "needs_ok": true,
+      "needs_ok": false,
       "problems": {},
       "ran": {
         "1": true,
@@ -1083,7 +1083,7 @@
         "8": true,
         "9": true
       },
-      "passed": true,
+      "passed": false,
       "llm": {
         "seed": 42,
         "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
@@ -1387,13 +1387,13 @@
           "flaked corn": "substituted: Flaked Rice"
         },
         "hops": {
-          "Hallertau Mittelfr\u00fch": "substituted: Magnum"
+          "Hallertau Mittelfrüh": "gap"
         },
         "yeast": {
           "German lager yeast": "substituted: Diamond"
         }
       },
-      "needs_ok": true,
+      "needs_ok": false,
       "problems": {},
       "ran": {
         "1": true,
@@ -1406,7 +1406,7 @@
         "8": true,
         "9": true
       },
-      "passed": true,
+      "passed": false,
       "llm": {
         "seed": 42,
         "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
@@ -1603,18 +1603,18 @@
       "not_run": 0
     },
     "needs": {
-      "passed": 18,
+      "passed": 15,
       "total": 24,
-      "gaps": 7
+      "gaps": 12
     },
     "calls": {
-      "total": 55,
+      "total": 56,
       "runs": 24
     },
     "briefs": {
-      "passed": 18,
+      "passed": 15,
       "total": 24
     }
   },
-  "regraded": "2026-10-19: needs re-graded from the stored run with the widened evals/needs_classes.toml and the substituted verdict (no new LLM run)"
+  "regraded": "2026-10-21: re-graded from the stored 2026-10-19 runs with the fixed grader (hop purpose per class member, dark-crystal stand-in, main yeast a brewing yeast, lager rules for unrated styles); b14 re-run on the real pipeline 2026-10-21 (run 4246) because its Philly Sour main yeast no longer passes step 6"
 }
