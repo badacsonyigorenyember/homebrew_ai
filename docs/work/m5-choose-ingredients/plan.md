@@ -1,6 +1,6 @@
 # M5 · Steps 6–9: choose yeast, fermentables, hops and extras — implementation plan
 
-Stage: implementing
+Stage: review
 Brief: [brief.md](brief.md)
 Branch: m5-choose-ingredients
 
@@ -494,15 +494,15 @@ Commit: `Measure G5 on 24 briefs`
 
 ### Task 10: the docs describe stage C as built
 Why: R12, A13.
-- [ ] `docs/RECIPE-ROADMAP.md` §3: the stage C subgraph title "LLM picks from the table, code
+- [x] `docs/RECIPE-ROADMAP.md` §3: the stage C subgraph title "LLM picks from the table, code
       checks" and the 6–9 nodes as `llm` + check; rows 6–9 say what is built (table, one call or
       four, the check rules, the dose rule) with no "corpus popularity"; the `T` tie-break edge
       to S7 removed if no tie-break exists. `docs/WORKFLOW-ROADMAP.md`: M5 row ("LLM picks from a
       code-built table, checked by code"), G5 Decide line ("are the LLM's picks from the table
       what a brewer would choose?"), the M5 risk row (Special B, Lactobacillus) marked decided.
-- [ ] `grep -n "popularity\|scored by code" docs/RECIPE-ROADMAP.md docs/WORKFLOW-ROADMAP.md` finds
+- [x] `grep -n "popularity\|scored by code" docs/RECIPE-ROADMAP.md docs/WORKFLOW-ROADMAP.md` finds
       nothing about stage C.
-- [ ] PROJECT.md §3 stays as it is (it already says what is built); §4 rows (Database functions,
+- [x] PROJECT.md §3 stays as it is (it already says what is built); §4 rows (Database functions,
       Scripts: `evals/fit_test.py`, the test count from a full `pytest` run with the stack up) and
       §8.
 Done when: A13's grep is clean and the full suite passes.
