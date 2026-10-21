@@ -357,6 +357,8 @@ def step6_problems(output: dict | None, facts: dict | None) -> list[str]:
             return problems
         if ref["type"] == "lacto":
             problems.append("A5: the main yeast is a lacto culture")
+        elif ref["type"] not in ("ale", "lager", "kveik"):
+            problems.append(f"A5: {ref['name']} is not a brewing yeast (type {ref['type']})")
         if style["lager"] and ref["type"] != "lager":
             problems.append(f"A5: {ref['name']} is not a lager yeast for a lager style")
         missing = [f for f in style["families"] if f not in ref["family"]]
@@ -490,20 +492,29 @@ def class_matches(cls: dict, row: dict) -> bool:
     return True
 
 
+def _colour_fits(pick: dict, row: dict) -> bool:
+    """A crystal malt stands in for a crystal class member only at its colour: the EBC ranges overlap
+    (Caraamber is not a Special B; no range known, or another role: alike)."""
+    a, b = pick.get("ebc"), row.get("ebc")
+    if pick.get("role") != "crystal" or not a or not b or None in (a.get("low"), a.get("high"), b.get("low"), b.get("high")):
+        return True
+    return _overlaps((float(b["low"]), float(b["high"])), a)
+
+
 def stands_in(kind: str, class_rows: list[dict], pick: dict) -> bool:
     """A pick that is not in the class but plays its part (R10, user decision 2026-10-19), by kind:
-    a fermentable of the same role; a hop of the same origin whose purpose is the same or one of the two is
-    `dual`; a yeast of the same type that shares a family tag other than the bare `ale` (a lager yeast
+    a fermentable of the same role (a crystal malt also needs an overlapping EBC range, so only a dark crystal
+    stands in for a dark crystal class); a hop of the same origin that has the class member's purpose or is `dual`; a yeast of the same type that shares a family tag other than the bare `ale` (a lager yeast
     for a lager class needs no more); an extra of the same category. The pick already passed the
     step's checks, so it is in the style."""
     for row in class_rows:
         if kind == "fermentables":
-            if pick.get("role") and pick.get("role") == row.get("role"):
+            if pick.get("role") and pick.get("role") == row.get("role") and _colour_fits(pick, row):
                 return True
         elif kind == "hops":
-            purposes = {pick.get("purpose"), row.get("purpose")}
+            # per class member: the pick does the member's job (same purpose) or both (it is `dual`)
             if set(pick.get("origins") or ()) & set(row.get("origins") or ()) and \
-                    (len(purposes) == 1 or "dual" in purposes):
+                    pick.get("purpose") in (row.get("purpose"), "dual"):
                 return True
         elif kind == "yeast":
             shared = set(pick.get("family") or ()) & set(row.get("family") or ())

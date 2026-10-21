@@ -39,7 +39,7 @@ def usable(r, tbl):
         return False
     if r["kind"] == "yeast":
         rules = tbl["yeast_rules"]
-        if r["type"] == "lacto":
+        if r["type"] not in ("ale", "lager", "kveik"):
             return False
         if rules["lager"] and r["type"] != "lager":
             return False
@@ -65,7 +65,7 @@ def good_proposal(tbl):
     """First in-style rows, wanted and inventory ids, shares adding up to 100."""
     marked = lambda r: bool(r["inventory"]) or bool(r["wanted"])
     # yeast: an inventory yeast first, then a wanted one, else the first usable
-    yeasts = [r for r in tbl["yeasts"] if r["type"] != "lacto"]
+    yeasts = [r for r in tbl["yeasts"] if r["type"] in ("ale", "lager", "kveik")]
     fits = {i for w in tbl["inventory_words"] if w["kind"] == "yeast" and w["fits"] for i in w["ids"]}
     main = next((r for r in yeasts if r["ingredient_id"] in fits and usable(r, tbl)), None) \
         or next(r for r in yeasts if usable(r, tbl))
@@ -257,6 +257,25 @@ def test_yeast_rules(conn):
     p = good(conn, "b14")
     p["yeast"]["main"]["ingredient_id"] = lacto["ingredient_id"]
     assert any("is a lacto culture" in e for e in errors_of(conn, "b14", p, 6))
+
+
+def test_unrated_lager_style_still_needs_a_lager_yeast(conn):
+    """4A has no reviewed envelope (guidance off), but an ale yeast still fails the lager rule."""
+    from tests.test_choose_table import unrated_lager_table
+    tbl = unrated_lager_table(conn)
+    ale = next(r for r in tbl["yeasts"] if r["type"] == "ale")
+    errs = sql(conn, "step6_errors", tbl, {"main": {"ingredient_id": ale["ingredient_id"], "purpose": "x"}, "souring": None})
+    assert any("is not a lager yeast" in e for e in errs), errs
+
+
+def test_main_yeast_is_a_brewing_yeast(conn):
+    """b14's Philly Sour (type none, family sour) is a blend, not an ale yeast: it cannot be the main yeast."""
+    tbl = table_of(conn, "b14")
+    blend = next(r for r in tbl["yeasts"] if r["type"] is None)
+    p = good(conn, "b14")
+    p["yeast"]["main"]["ingredient_id"] = blend["ingredient_id"]
+    assert any("is not a brewing yeast" in e for e in errors_of(conn, "b14", p, 6))
+    assert errors_of(conn, "b14", good(conn, "b14"), 6) == []
 
 
 def test_attenuation_band(conn):

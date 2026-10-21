@@ -296,13 +296,14 @@ declare
     v_reason       text;
 begin
     -- a style with no reviewed envelope has no levels (app.style_level says "not rated"), so the
-    -- guidance cannot apply to it: it is treated as guidance off and the table lists every product
+    -- level filtering cannot apply to it: v_guidance is off and the table lists every product. The
+    -- yeast rules (lager, families) read style tags, not levels, so they follow the brief's guidance.
     v_rated := exists (select 1 from ref.beer_style b
                          left join ref.style_sensory s on s.style_id = b.id and s.reviewed
                          left join ref.style_ingredient si on si.style_id = b.id and si.reviewed
                         where b.code = v_style_used and (s.style_id is not null or si.style_id is not null));
     v_guidance := coalesce((brief ->> 'guidance')::boolean, true) and v_rated;
-    v_rules := app.choose_yeast_rules(v_style_used, v_guidance);
+    v_rules := app.choose_yeast_rules(v_style_used, coalesce((brief ->> 'guidance')::boolean, true));
     v_excluded_ids := array(select (e.value ->> 'ingredient_id')::bigint from jsonb_array_elements(v_excluded) e);
     select b.name, b.characteristic_ingredients into v_style_name, v_char_ingr
       from ref.beer_style b where b.code = v_style_used order by b.id limit 1;

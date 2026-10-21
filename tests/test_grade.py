@@ -480,6 +480,9 @@ def test_a5_yeast_rules():
     steps, facts = sample("b01")
     facts["refs"][steps[6]["yeast"]["ingredient_id"]]["type"] = "lacto"
     assert mentions(problems(6, steps, facts), "lacto culture")
+    steps, facts = sample("b14")  # a blend (type none) is not a main yeast
+    facts["refs"][steps[6]["yeast"]["ingredient_id"]]["type"] = None
+    assert mentions(problems(6, steps, facts), "not a brewing yeast")
 
 
 def test_a5_band_only_when_another_yeast_reaches_it():
@@ -714,6 +717,34 @@ def test_hop_stand_in_needs_same_origin_and_a_fitting_purpose():
     assert stand_in("hops", 8, "hops", cls, HOP_ROWS, [2]) == "gap"  # bittering for aroma
     assert stand_in("hops", 8, "hops", cls, HOP_ROWS, [4]) == "gap"  # another origin
     assert stand_in("hops", 8, "hops", cls, HOP_ROWS, [1]) == "covered"  # the class itself is covered
+
+
+def test_bittering_hop_does_not_stand_in_through_a_dual_class_member():
+    """The real Hallertau Mittelfrüh class lists Tettnanger (dual): Magnum (bittering) is still a gap."""
+    cls = next(c for c in CLASSES if c["kind"] == "hops" and c["word"] == "Hallertau Mittelfrüh")
+    rows = [
+        {"ingredient_id": 1, "name": "Hallertau Mittelfrüh", "origins": ["DE"], "purpose": "aroma"},
+        {"ingredient_id": 2, "name": "Magnum", "origins": ["DE"], "purpose": "bittering"},
+        {"ingredient_id": 3, "name": "Tettnanger", "origins": ["DE"], "purpose": "dual"},
+        {"ingredient_id": 5, "name": "Hallertau Hersbrücker", "origins": ["DE"], "purpose": "aroma"},
+        {"ingredient_id": 6, "name": "Perle", "origins": ["DE"], "purpose": "aroma"},
+    ]
+    verdict = lambda picked: stand_in("hops", 8, "hops", {"names": cls["names"]}, rows, picked, word=cls["word"])
+    assert verdict([2]) == "gap"
+    assert verdict([6]) == "substituted: Perle"  # an aroma hop of the same origin
+    assert verdict([3]) == "covered"
+
+
+def test_special_b_is_stood_in_for_only_by_a_dark_crystal():
+    rows = [
+        {"ingredient_id": 1, "name": "Special W", "role": "crystal", "ebc": {"low": 280, "high": 320}},
+        {"ingredient_id": 2, "name": "Caraamber", "role": "crystal", "ebc": {"low": 60, "high": 80}},
+        {"ingredient_id": 3, "name": "Carafa Special II", "role": "crystal", "ebc": {"low": 400, "high": 450}},
+        {"ingredient_id": 4, "name": "Caraaroma", "role": "crystal", "ebc": {"low": 350, "high": 450}},
+    ]
+    cls = {"names": ["Special W", "Caraaroma"]}
+    assert stand_in("fermentables", 7, "fermentables", cls, rows, [2]) == "gap"
+    assert stand_in("fermentables", 7, "fermentables", cls, rows, [3]) == "substituted: Carafa Special II"
 
 
 def test_fermentable_stand_in_needs_the_same_role():

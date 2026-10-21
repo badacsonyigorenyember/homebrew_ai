@@ -159,8 +159,10 @@ def read_choose_facts(conn, steps: dict, inputs: dict) -> dict:
     for i, kind, name in everything:
         if any(kind == e["kind"] and _stripped(name) == _stripped(e["name"]) for e in excluded.values()):
             excluded_ids.add(i)
-    # the style used: lager, required yeast families, sourness (guidance off switches the first two off)
-    code, guidance = steps[4]["style"]["code"], inputs[6]["guidance"]
+    # the style used: lager, required yeast families, sourness (the brief's guidance off switches the first two off)
+    # the yeast rules follow the brief's guidance, not the table's (an unrated style has no levels, so the
+    # table's guidance is off, but its lager and family rules still apply)
+    code, guidance = steps[4]["style"]["code"], (steps.get(1) or {}).get("guidance", inputs[6]["guidance"])
     row = conn.execute("select id, guide, category, raw ->> 'tags' from ref.beer_style where code = %s "
                        "order by id limit 1", (code,)).fetchone()
     lager, families, souring = False, [], False

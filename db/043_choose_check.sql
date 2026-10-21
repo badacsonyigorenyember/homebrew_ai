@@ -165,7 +165,7 @@ end
 $$;
 
 -- Step 6: the yeast. yeast = {main {ingredient_id, purpose}, souring {..} or null}.
---   the main yeast is not a lacto culture; a lager style gets a lager yeast; every family the style
+--   the main yeast is a brewing yeast (type ale, lager or kveik: not a lacto culture, a blend or a brett); a lager style gets a lager yeast; every family the style
 --   requires is on the main yeast; its attenuation reaches step 5's yeast band when a usable yeast
 --   does (a yeast the brewer wants or has is not refused for it: the step 6 output reports it);
 --   a sour style gets a souring culture (type lacto), any other style none unless wanted or in stock.
@@ -200,6 +200,9 @@ begin
     if m is not null and m ->> 'kind' = 'yeast' then
         if m ->> 'type' = 'lacto' then
             errs := errs || (pre || (m ->> 'name') || ' is a lacto culture; it goes in souring, and the main yeast is a brewing yeast');
+        elsif m ->> 'type' is null or m ->> 'type' not in ('ale', 'lager', 'kveik') then
+            errs := errs || (pre || (m ->> 'name') || ' is not a brewing yeast (type ' || coalesce(m ->> 'type', 'none')
+                             || '); the main yeast is an ale, lager or kveik yeast');
         end if;
         if (rules ->> 'lager')::boolean and m ->> 'type' is distinct from 'lager' then
             errs := errs || (pre || (m ->> 'name') || ' is not a lager yeast, and ' || (tbl ->> 'style_used') || ' is a lager style');

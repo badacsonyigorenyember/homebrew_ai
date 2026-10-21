@@ -192,6 +192,25 @@ def test_prompt_uses_table_numbers(conn):
             assert f"\n{e['ingredient_id']} | " not in prompt
 
 
+def unrated_lager_table(conn):
+    """b01's brief with 4A Munich Helles (a lager style with no reviewed envelope) as the style used."""
+    b = BRIEFS["b01"]
+    brief = brief_of(b)
+    style = sql(conn, "step2_best_style", brief, b["request"], None)
+    targets = copy.deepcopy(step4(conn, b))
+    targets["style"]["code"] = "4A"
+    frame = sql(conn, "step5_frame", brief, sql(conn, "step0_profile", None), targets)
+    return sql(conn, "choose_table", brief, style, targets, frame)
+
+
+def test_unrated_lager_style_keeps_the_yeast_rules(conn):
+    """The lager rule reads style tags, not levels: an unrated lager style still needs a lager yeast."""
+    tbl = unrated_lager_table(conn)
+    assert tbl["style_rated"] is False and tbl["guidance"] is False
+    assert tbl["yeast_rules"]["lager"] is True
+    assert tbl["yeasts"]
+
+
 def test_unrated_style_lists_every_product(conn):
     """A style with no reviewed envelope has no levels: the table is built as with guidance off."""
     b = BRIEFS["b01"]

@@ -184,3 +184,28 @@ def test_choose_facts_from_ref():
         assert facts["b08"]["excluded_ids"] and all(r["kind"] for r in facts["b08"]["refs"].values())
     finally:
         conn.close()
+
+
+@pytest.mark.stack
+def test_choose_facts_keep_lager_rule_for_an_unrated_style():
+    """4A has no reviewed envelope (the table's guidance is off) but the brief's guidance is on: it is a lager style."""
+    import copy
+    from tests.test_choose_check import good
+    from tests.test_choose_outputs import outputs, step_inputs
+    from tests.test_choose_table import BRIEFS as TBRIEFS, table_of
+    from tests.test_choose_table import brief_of
+    from tests.test_step4 import sql, step4
+    conn = connect()
+    try:
+        tbl, targets = table_of(conn, "b01"), copy.deepcopy(step4(conn, TBRIEFS["b01"]))
+        frame = sql(conn, "step5_frame", brief_of(TBRIEFS["b01"]), sql(conn, "step0_profile", None), targets)
+        targets["style"]["code"] = "4A"
+        out = outputs(conn, tbl, good(conn, "b01"))
+        inputs = step_inputs(tbl)
+        inputs[6] = {**inputs[6], "guidance": False}  # what an unrated style logs
+        steps = {1: {"guidance": True}, 4: targets, 5: frame, 6: out["step6"], 7: out["step7"], 8: out["step8"], 9: out["step9"]}
+        assert run.read_choose_facts(conn, steps, inputs)["style"]["lager"] is True
+        steps[1] = {"guidance": False}
+        assert run.read_choose_facts(conn, steps, inputs)["style"]["lager"] is False
+    finally:
+        conn.close()
