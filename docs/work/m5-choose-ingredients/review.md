@@ -52,10 +52,45 @@ New findings:
 | # | Severity | Where | Finding | Why it matters |
 |---|---|---|---|---|
 | 11 | must-fix | `db/043_choose_check.sql:203-205` against `:243-268` (inventory) and `:159` (wanted); `db/042_choose_table.sql:215-224` | The new main-yeast type rule refuses 5 catalogue yeasts as the main yeast: CBC-1, Suava Ale and Philly Sour (type null) and YF-801 and SafBrew BR-8 (type `brett`). The table still marks them as fitting (`app.choose_fit_reason` does not check type), and the souring slot takes only `lacto`, so a fitting inventory or wanted yeast of these 5 has no slot it can fill. Reproduced on b01 (21A): with "CBC-1" in the inventory, CBC-1 as the main yeast gets "is not a brewing yeast", and SafAle US-05 gets "the inventory has a yeast that fits ... must be one of them: 1848 CBC-1". With Philly Sour or CBC-1 wanted, the main yeast gets either "not a brewing yeast" or "the wanted ... has no pick". No proposal passes, so the run stops with `steps 6-9 answer failed twice`. The R5 band check (`:216-224`) still counts these yeasts as usable too. The prompt (`shared/prompts/choose.system.md`, `db/042_choose_table.sql:560-567`) does not name the type rule, so the LLM learns it only from a retry. | R3 and the wanted-slot rule (R4) break for these inputs. Before 555dcb7 they passed. None of the 24 briefs hits this, so G5 does not show it. "I have CBC-1" or "use Philly Sour" in a sour is a realistic request. |
-<!-- resolved 2026-10-23, user decision "Brewer's choice wins": `db/043_choose_check.sql` step6_errors and the R5 usable test, `evals/grade.py` step6_problems; brief.md Deviations. -->
 | 12 | should-fix | `PROJECT.md:246` | The review-fixes entry says the tests pass "(see the commit)". Commits are one line by convention, so there is no count to see. Measured now: 249 passed on the affected files. | PROJECT.md facts should be measured and written in the file. |
-<!-- resolved 2026-10-23: the 2026-10-21 review-fixes entry in `PROJECT.md` holds the test counts. -->
 | 13 | note | `docs/WORKFLOW-ROADMAP.md:186`, `PROJECT.md:250` | The roadmap says "b08 has no late hop (Magnum 60 min, Tettnanger 15 min boil)". The new PROJECT.md text says "its late hop is Tettnanger in 5D". The roadmap line is older than the fix commits. | The two records disagree on A6's b08 clause. |
-<!-- resolved 2026-10-23: roadmap and `PROJECT.md` both say Magnum boil 60 min, Tettnanger boil 15 min (run 4181). -->
 | 14 | note | `evals/grade.py:511-513`, `evals/results/2026-10-19-m5.json:551, 554` | Fermentables still stand in through each class row, by role. Melanoidin Malt (kilned) stands in for "Vienna malt" through Munich Light Malt (kilned), in b09 and one other brief. In b09, Herkules (dual, DE) stands in for Hallertau Mittelfrüh, which the per-member purpose rule allows. Neither verdict changes a count: Pilsner Malt (base) also stands in each time. | This leniency is the user's call (R10, earlier #10). |
-<!-- resolved 2026-10-23, user chose to tighten: `evals/grade.py` `_colour_fits` (kilned) and `_alpha_fits`; needs now 14/24. -->
+
+## Re-review 2026-10-23 (round 2)
+
+Diff: main...m5-choose-ingredients at c5069b9  ·  Verdict: ready for testing
+
+Checked: findings 11-14 against fix commits bf37033, 068030a and c5069b9, and those commits'
+whole diff (`db/043_choose_check.sql`, `evals/grade.py`, the saved results, the two test files,
+brief, plan, PROJECT.md, `docs/WORKFLOW-ROADMAP.md`). The live `app.step6_errors` body equals the
+file's (compared as text), is owned by `postgres`, and `app` still has 129 functions. Affected
+tests (`test_grade.py`, `test_choose_check.py`, `test_choose_table.py`, `test_run.py`,
+`test_choose_outputs.py`) give **155 passed** (2026-10-23, 59 s). The three commits are one line
+each, with no trailers.
+
+The fixer's "resolved" notes were HTML comments between table rows of the round above. A
+comment line ends a GitHub table, so rows 12-14 rendered as plain text. The comments are removed
+here, and their content is in the table below.
+
+Earlier findings:
+
+| # | Status | Evidence |
+|---|---|---|
+| 11 | resolved | User decision "Brewer's choice wins". `db/043_choose_check.sql:204-205` refuses a non-brewing main yeast only when it is neither in stock nor wanted (`wanted` is always a key on the table row, JSON null when not wanted, so `jsonb_typeof(...) <> 'object'` is never SQL null). The R5 usable-yeast test (`:224`) counts a type none or brett yeast only when it is in stock or wanted. `evals/grade.py:358-361` and `:378` follow. Brief R3 and R5 (`brief.md:77-78`, `:87-90`) and the Deviations are updated. Tests: `tests/test_choose_check.py:433` (b01 CBC-1, b14 CBC-1 and YF-801 in stock), `:442` (b01 CBC-1, b14 Philly Sour and CBC-1 wanted), `:449` (a self-picked Philly Sour is still refused, also with CBC-1 in stock), `tests/test_grade.py:826`. |
+| 12 | resolved | The 2026-10-21 review-fixes entry (`PROJECT.md:249`) now names its counts (128 on the four affected files, `-m "not stack"` 419). |
+| 13 | resolved | `docs/WORKFLOW-ROADMAP.md:186` and `PROJECT.md` both say Magnum boil 60 min and Tettnanger boil 15 min, with Tettnanger as b08's late hop (run 4181). |
+| 14 | resolved | User chose to tighten. `evals/grade.py:496` `_colour_fits` now covers kilned malts, and `:506-515` `_alpha_fits` needs alpha ranges within 3 points. Tests `tests/test_grade.py:797` and `:811` use the real Vienna class and real alpha ranges. Only b09's verdicts change in the saved file. |
+
+Re-grade reproducibility: `evals/run.py` has no re-grade command, but the 14/24 can be
+reproduced from the repo. Each saved result keeps its `run_id`, and `read_run`, `read_facts`
+and `grade_result` in `evals/run.py` grade a stored run again. A 25-line script over the 24
+saved `run_id`s (outside the repo) gives the same totals as `evals/results/2026-10-19-m5.json`
+(needs 14/24, 13 gaps, steps 1-9 24/24, 56 calls) and no difference in any result's `needs`,
+`needs_ok`, `passed`, `problems`, `calls` or step grades. `read_facts` reads today's `ref`, so a
+later change to `ref` would change a re-grade.
+
+New findings:
+
+| # | Severity | Where | Finding | Why it matters |
+|---|---|---|---|---|
+| 15 | note | `evals/run.py:290`, `evals/results/2026-10-19-m5.json:1619` | The three re-grades were done with scratch scripts. The `regraded` field says what changed, not how to repeat it. Reproduced above with `read_run`, `read_facts` and `grade_result`. | The recorded count is reproducible today, but only by someone who rebuilds the script. |
