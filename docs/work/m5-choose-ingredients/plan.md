@@ -1,6 +1,6 @@
 # M5 · Steps 6–9: choose yeast, fermentables, hops and extras — implementation plan
 
-Stage: verify
+Stage: shipped
 Brief: [brief.md](brief.md)
 Branch: m5-choose-ingredients
 
