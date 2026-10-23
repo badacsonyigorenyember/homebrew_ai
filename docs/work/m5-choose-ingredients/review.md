@@ -24,3 +24,34 @@ was not re-run (the 1033-pass full run of 2026-10-21 is recorded in PROJECT.md �
 | 8 | note | n8n's own Postgres (`aihomebrewassistant-postgres-1`) | The debug workflow `DBGtmp0000000001` was deleted directly from n8n's database. Checked read-only: 0 rows for `DBG%` in `workflow_entity`, `shared_workflow`, `execution_entity`, `webhook_entity` and `workflow_history`. This is not the app database, so the `.sql` rule does not apply, and the guard was not involved. It is not recorded in OPERATIONS.md. | No data left behind. "MCP cannot archive a workflow" is an operational trap that OPERATIONS.md does not yet name. |
 | 9 | note | `docs/DATABASE.md:212, 495` | A reload of the adjunct loader nulls `max_pct`, so `loaders.fermentable_facts` must run after it. The load order is documented in both places, and today 0 fermentables have a null `max_pct`. | No action. |
 | 10 | note | `evals/grade.py:493` | `stands_in` is deterministic (picks sorted by id), pure Python and tested by kind. Columbus for Simcoe in b01 (US, dual and dual) and Flaked Rice for Flaked Corn in b22 (both `adjunct`) follow the brief's revised R10 as written. The rule never consults the style, although the brief's 2026-10-19 Deviation speaks of "a gap the style explains". | Matches R10 and A10. The leniency is the user's call, apart from #2 and #3. |
+
+## Re-review 2026-10-23
+
+Diff: main...m5-choose-ingredients at e411c39  ·  Verdict: fixes needed
+
+Checked: the six earlier findings against fix commits 555dcb7, 5a5e12b and e411c39, plus the code
+paths those fixes touch. The live database has the fixed `app.choose_table` and `app.step6_errors`
+(read with `pg_get_functiondef`), `app` has 129 functions, all owned by `postgres`. The affected
+test files (grade, choose check, choose table, run, choose outputs, contracts, workflows, yeasts)
+give **249 passed** (2026-10-23, 50 s). The re-graded `evals/results/2026-10-19-m5.json` gives
+needs 15/24, 12 gaps, steps 6-9 24/24, 56 calls, as recorded.
+
+Earlier findings:
+
+| # | Status | Evidence |
+|---|---|---|
+| 1 | resolved | `db/042_choose_table.sql:306` passes the brief's guidance to `app.choose_yeast_rules`. Live: `app.choose_yeast_rules('4A', true)` gives `lager: true`. `evals/run.py:165` reads step 1's `guidance` (required in `step1.output`). The plan's Task 7a Deviation is corrected. Tests: `test_unrated_lager_style_keeps_the_yeast_rules`, `test_unrated_lager_style_still_needs_a_lager_yeast`, `test_choose_facts_keep_lager_rule_for_an_unrated_style`. |
+| 2 | resolved | `evals/grade.py:514-517`: the pick needs the class member's purpose or must be `dual`. b13, b14, b17 and b22 are now gaps. The test runs against the real class map. |
+| 3 | resolved | `evals/grade.py:495-501` `_colour_fits`, called at `:512`. b10's Special B is now `gap`. |
+| 4 | resolved, with a regression | `db/043_choose_check.sql:203-205` and `evals/grade.py:360-361` require an `ale`, `lager` or `kveik` main yeast. b14 was re-run (run 4246: Munich Classic and YF-998). The new rule conflicts with the inventory and wanted rules: see #11. |
+| 5 | resolved | The m4 Task 6 entry matches `main` again. The §4 Database row (`PROJECT.md:119`) now names `db/042`-`044` and the 129 functions. |
+| 6 | resolved | The Task 9 entry (`PROJECT.md:250`) now holds the b08, b10, b15, b14, b23 and b24 measures and the run time. |
+
+New findings:
+
+| # | Severity | Where | Finding | Why it matters |
+|---|---|---|---|---|
+| 11 | must-fix | `db/043_choose_check.sql:203-205` against `:243-268` (inventory) and `:159` (wanted); `db/042_choose_table.sql:215-224` | The new main-yeast type rule refuses 5 catalogue yeasts as the main yeast: CBC-1, Suava Ale and Philly Sour (type null) and YF-801 and SafBrew BR-8 (type `brett`). The table still marks them as fitting (`app.choose_fit_reason` does not check type), and the souring slot takes only `lacto`, so a fitting inventory or wanted yeast of these 5 has no slot it can fill. Reproduced on b01 (21A): with "CBC-1" in the inventory, CBC-1 as the main yeast gets "is not a brewing yeast", and SafAle US-05 gets "the inventory has a yeast that fits ... must be one of them: 1848 CBC-1". With Philly Sour or CBC-1 wanted, the main yeast gets either "not a brewing yeast" or "the wanted ... has no pick". No proposal passes, so the run stops with `steps 6-9 answer failed twice`. The R5 band check (`:216-224`) still counts these yeasts as usable too. The prompt (`shared/prompts/choose.system.md`, `db/042_choose_table.sql:560-567`) does not name the type rule, so the LLM learns it only from a retry. | R3 and the wanted-slot rule (R4) break for these inputs. Before 555dcb7 they passed. None of the 24 briefs hits this, so G5 does not show it. "I have CBC-1" or "use Philly Sour" in a sour is a realistic request. |
+| 12 | should-fix | `PROJECT.md:246` | The review-fixes entry says the tests pass "(see the commit)". Commits are one line by convention, so there is no count to see. Measured now: 249 passed on the affected files. | PROJECT.md facts should be measured and written in the file. |
+| 13 | note | `docs/WORKFLOW-ROADMAP.md:186`, `PROJECT.md:250` | The roadmap says "b08 has no late hop (Magnum 60 min, Tettnanger 15 min boil)". The new PROJECT.md text says "its late hop is Tettnanger in 5D". The roadmap line is older than the fix commits. | The two records disagree on A6's b08 clause. |
+| 14 | note | `evals/grade.py:511-513`, `evals/results/2026-10-19-m5.json:551, 554` | Fermentables still stand in through each class row, by role. Melanoidin Malt (kilned) stands in for "Vienna malt" through Munich Light Malt (kilned), in b09 and one other brief. In b09, Herkules (dual, DE) stands in for Hallertau Mittelfrüh, which the per-member purpose rule allows. Neither verdict changes a count: Pilsner Malt (base) also stands in each time. | This leniency is the user's call (R10, earlier #10). |
