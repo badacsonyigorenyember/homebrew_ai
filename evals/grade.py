@@ -493,18 +493,33 @@ def class_matches(cls: dict, row: dict) -> bool:
 
 
 def _colour_fits(pick: dict, row: dict) -> bool:
-    """A crystal malt stands in for a crystal class member only at its colour: the EBC ranges overlap
-    (Caraamber is not a Special B; no range known, or another role: alike)."""
+    """A crystal or kilned malt stands in for a class member only at its colour: the EBC ranges overlap
+    (Caraamber is not a Special B, Melanoidin Malt is not a Munich Light Malt; no range known, or
+    another role: alike)."""
     a, b = pick.get("ebc"), row.get("ebc")
-    if pick.get("role") != "crystal" or not a or not b or None in (a.get("low"), a.get("high"), b.get("low"), b.get("high")):
+    if pick.get("role") not in ("crystal", "kilned") or not a or not b or None in (a.get("low"), a.get("high"), b.get("low"), b.get("high")):
         return True
     return _overlaps((float(b["low"]), float(b["high"])), a)
 
 
+ALPHA_SLACK_PCT = 3
+
+
+def _alpha_fits(pick: dict, row: dict) -> bool:
+    """A hop stands in for a class member only at its strength: the alpha ranges come within
+    ALPHA_SLACK_PCT points of each other (Herkules at 12-17 % is not a Hallertau Mittelfrüh at 3.5 %,
+    but Challenger at 6.5-9 % is an East Kent Golding at 5-6 %; no range known: alike)."""
+    a, b = pick.get("alpha"), row.get("alpha")
+    if not a or not b or None in (a.get("low"), a.get("high"), b.get("low"), b.get("high")):
+        return True
+    return float(a["low"]) <= float(b["high"]) + ALPHA_SLACK_PCT and float(a["high"]) >= float(b["low"]) - ALPHA_SLACK_PCT
+
+
 def stands_in(kind: str, class_rows: list[dict], pick: dict) -> bool:
     """A pick that is not in the class but plays its part (R10, user decision 2026-10-19), by kind:
-    a fermentable of the same role (a crystal malt also needs an overlapping EBC range, so only a dark crystal
-    stands in for a dark crystal class); a hop of the same origin that has the class member's purpose or is `dual`; a yeast of the same type that shares a family tag other than the bare `ale` (a lager yeast
+    a fermentable of the same role (a crystal or kilned malt also needs an overlapping EBC range, so only a dark crystal
+    stands in for a dark crystal class); a hop of the same origin that has the class member's purpose or is `dual`
+    and an alpha range within ALPHA_SLACK_PCT points; a yeast of the same type that shares a family tag other than the bare `ale` (a lager yeast
     for a lager class needs no more); an extra of the same category. The pick already passed the
     step's checks, so it is in the style."""
     for row in class_rows:
@@ -514,7 +529,7 @@ def stands_in(kind: str, class_rows: list[dict], pick: dict) -> bool:
         elif kind == "hops":
             # per class member: the pick does the member's job (same purpose) or both (it is `dual`)
             if set(pick.get("origins") or ()) & set(row.get("origins") or ()) and \
-                    pick.get("purpose") in (row.get("purpose"), "dual"):
+                    pick.get("purpose") in (row.get("purpose"), "dual") and _alpha_fits(pick, row):
                 return True
         elif kind == "yeast":
             shared = set(pick.get("family") or ()) & set(row.get("family") or ())

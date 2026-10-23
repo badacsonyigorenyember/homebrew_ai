@@ -548,16 +548,16 @@
         "fermentables": {
           "pilsner malt": "covered",
           "Munich malt": "covered",
-          "Vienna malt": "substituted: Melanoidin Malt, Pilsner Malt, Munich Malt Type 2"
+          "Vienna malt": "substituted: Pilsner Malt"
         },
         "hops": {
-          "Hallertau Mittelfrüh": "substituted: Herkules"
+          "Hallertau Mittelfrüh": "gap"
         },
         "yeast": {
           "German lager yeast": "covered"
         }
       },
-      "needs_ok": true,
+      "needs_ok": false,
       "problems": {},
       "ran": {
         "1": true,
@@ -570,7 +570,7 @@
         "8": true,
         "9": true
       },
-      "passed": true,
+      "passed": false,
       "llm": {
         "seed": 42,
         "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
@@ -1382,7 +1382,7 @@
       "needs": {
         "fermentables": {
           "pilsner malt": "covered",
-          "Vienna malt": "substituted: Melanoidin Malt, Pilsner Malt",
+          "Vienna malt": "substituted: Pilsner Malt",
           "crystal malt": "covered",
           "flaked corn": "substituted: Flaked Rice"
         },
@@ -1603,18 +1603,18 @@
       "not_run": 0
     },
     "needs": {
-      "passed": 15,
+      "passed": 14,
       "total": 24,
-      "gaps": 12
+      "gaps": 13
     },
     "calls": {
       "total": 56,
       "runs": 24
     },
     "briefs": {
-      "passed": 15,
+      "passed": 14,
       "total": 24
     }
   },
-  "regraded": "2026-10-21: re-graded from the stored 2026-10-19 runs with the fixed grader (hop purpose per class member, dark-crystal stand-in, main yeast a brewing yeast, lager rules for unrated styles); b14 re-run on the real pipeline 2026-10-21 (run 4246) because its Philly Sour main yeast no longer passes step 6"
+  "regraded": "2026-10-21: re-graded from the stored 2026-10-19 runs with the fixed grader (hop purpose per class member, dark-crystal stand-in, main yeast a brewing yeast, lager rules for unrated styles); b14 re-run on the real pipeline 2026-10-21 (run 4246) because its Philly Sour main yeast no longer passes step 6; 2026-10-23: stand-ins tightened by the user (a kilned malt needs an overlapping EBC range, a hop an alpha range within 3 points), b09 Herkules and Melanoidin Malt no longer stand in"
 }

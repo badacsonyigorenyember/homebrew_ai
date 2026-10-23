@@ -792,3 +792,32 @@ def test_substituted_counts_in_the_needs_summary_and_totals():
     result = {"ran": {n: True for n in range(1, 10)}, "needs": {"hops": {"B": "substituted: Tettnanger"}}, "needs_ok": True}
     assert run.needs_summary(result["needs"]).startswith("0/1")
     assert "GAP" not in run.needs_summary(result["needs"])
+
+
+def test_melanoidin_malt_does_not_stand_in_for_a_munich_light_malt_class():
+    """The real Vienna malt class lists Munich Light Malt (kilned, EBC 14-18): Melanoidin Malt (kilned, 60-80) is a gap."""
+    cls = next(c for c in CLASSES if c["kind"] == "fermentables" and c["word"] == "Vienna malt")
+    rows = [
+        {"ingredient_id": 1, "name": "Vienna Malt", "role": "base", "ebc": {"low": 7, "high": 10}},
+        {"ingredient_id": 2, "name": "Munich Light Malt", "role": "kilned", "ebc": {"low": 14, "high": 18}},
+        {"ingredient_id": 3, "name": "Melanoidin Malt", "role": "kilned", "ebc": {"low": 60, "high": 80}},
+        {"ingredient_id": 4, "name": "Munich Malt Type 1", "role": "kilned", "ebc": {"low": 15, "high": 20}},
+    ]
+    verdict = lambda picked: stand_in("fermentables", 7, "fermentables", {"names": cls["names"]}, rows, picked, word=cls["word"])
+    assert verdict([3]) == "gap"
+    assert verdict([4]) == "substituted: Munich Malt Type 1"  # a kilned malt of the same colour
+
+
+def test_herkules_does_not_stand_in_for_hallertau_mittelfrueh():
+    """A high-alpha dual hop of the same origin is not a noble aroma hop; Challenger (6.5-9) is still an East Kent Golding (5-6)."""
+    rows = [
+        {"ingredient_id": 1, "name": "Hallertau Mittelfrüh", "origins": ["DE"], "purpose": "aroma", "alpha": {"low": 3.5, "high": 3.5}},
+        {"ingredient_id": 2, "name": "Herkules", "origins": ["DE"], "purpose": "dual", "alpha": {"low": 12, "high": 17}},
+        {"ingredient_id": 3, "name": "Perle", "origins": ["DE"], "purpose": "dual", "alpha": {"low": 4, "high": 9}},
+        {"ingredient_id": 4, "name": "East Kent Golding", "origins": ["GB"], "purpose": "aroma", "alpha": {"low": 5, "high": 6}},
+        {"ingredient_id": 5, "name": "Challenger", "origins": ["GB"], "purpose": "dual", "alpha": {"low": 6.5, "high": 9}},
+    ]
+    hm, ekg = {"names": ["Hallertau Mittelfrüh"]}, {"names": ["East Kent Golding"]}
+    assert stand_in("hops", 8, "hops", hm, rows, [2]) == "gap"
+    assert stand_in("hops", 8, "hops", hm, rows, [3]) == "substituted: Perle"
+    assert stand_in("hops", 8, "hops", ekg, rows, [5]) == "substituted: Challenger"
