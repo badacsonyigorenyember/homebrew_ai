@@ -20,7 +20,7 @@ from psycopg.types.range import Range
 
 from loaders.common import to_range
 from loaders.db import connect, source_id, upsert_ingredient
-from loaders.yeast_products import ATTENUATION, BREWLINE_COPIES, PACK_SIZES, SKIPPED, YEASTS
+from loaders.yeast_products import ATTENUATION, BREWLINE_COPIES, LACTO, PACK_SIZES, SKIPPED, YEASTS
 
 HOPLINE = "hopline-yeasts"
 
@@ -164,11 +164,18 @@ def make_yeast(
     if temp_c is None:
         temp_c = to_range(params.get("Minimum hőmérséklet"), params.get("Maximum hőmérséklet"))
 
+    if main["sku"] in LACTO:
+        if LACTO[main["sku"]].lower() not in (main["details"] or {}).get("text", "").lower():
+            raise ValueError(f"{main['sku']}: its text no longer says {LACTO[main['sku']]!r}")
+        yeast_type = "lacto"
+    else:
+        yeast_type = type_of(params.get("Stílus"))
+
     values = {
         "temp_c": temp_c,
         "flocculation": flocculation(params, details_table),
         "alcohol_tolerance_pct": tolerance(params, details_table),
-        "type": type_of(params.get("Stílus")),
+        "type": yeast_type,
         "form": form,
         "product_id": product_id,
     }
@@ -491,6 +498,10 @@ def report(hopline: dict) -> str:
     for sku, product in products.items():
         if LACTOBACILLUS in ((product["details"] or {}).get("text") or ""):
             lines.append(f"- {title(sku)}")
+
+    lines += ["", "## Loaded as type lacto (LACTO in yeast_products.py)", ""]
+    for sku, quote in LACTO.items():
+        lines.append(f"- {title(sku)}: \"{quote}\"")
 
     return "\n".join(lines) + "\n"
 

@@ -11,6 +11,15 @@
 - Exception: if you notice something that would lose data, expose a secret, or stop the requested
   change from working, say so in one sentence. Don't fix it unless asked.
 
+## Show the files you ask about
+
+- Before you ask the user a question, or ask for an approval, that is about a file, open that
+  file beside the chat (`mcp__ccd_view__show_pane`, pane `file`, at the relevant line).
+- The same goes for ids such as R1, A5, D7, G6, P5 or Task 3: open the file where each id is
+  defined, at its line (a brief's R/A, PROJECT.md's D, the roadmaps' G/P/M/S, a plan's tasks).
+- With several questions at once, open every file any of them mentions, so the user can look
+  each one up there.
+
 ## PROJECT.md is the single source of truth
 
 [`PROJECT.md`](PROJECT.md) holds the project's purpose, goals, recipe approach, tech stack,

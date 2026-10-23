@@ -139,3 +139,28 @@ def test_misc_kind_words_leave_brief_words_alone(conn):
     assert with_misc == without_misc
     rows = resolve(conn, "smoked malt cherry wood")
     assert rows and {r[1] for r in rows} == {"fermentable"}
+
+
+@pytest.mark.stack
+def test_lactobacillus_finds_lacto_cultures(conn):
+    for word in ("Lactobacillus", "lacto yeast"):
+        rows = resolve(conn, word)
+        assert sorted(r[2] for r in rows) == sorted(
+            r[0] for r in conn.execute(
+                "select i.name from ref.yeast y join ref.ingredient i on i.id = y.ingredient_id"
+                " where y.type = 'lacto'").fetchall()), word
+        assert len(rows) == 2 and {r[3] for r in rows} == {"yeast type"}, word
+    assert names(resolve(conn, "lactose")) == ["Lactose"]
+
+
+@pytest.mark.stack
+def test_type_words_change_no_brief_word(conn):
+    words = set()
+    for brief in BRIEFS:
+        for key in ("wanted", "excluded", "inventory"):
+            for item in brief.get(key, []):
+                words.add(item["item"] if isinstance(item, dict) else item)
+    assert words
+    for word in sorted(words):
+        rows = resolve(conn, word)
+        assert "yeast type" not in {r[3] for r in rows}, word

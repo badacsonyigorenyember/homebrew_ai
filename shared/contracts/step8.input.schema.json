@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step8.input",
+  "description": "Step 8, choose hops: the hop rows of the candidate table with their style level at each usage, the slots and inventory words, the excluded products, the targets (IBU).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "style_used",
+    "wanted_style",
+    "guidance",
+    "candidates",
+    "slots",
+    "inventory_words",
+    "excluded",
+    "targets"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "style_used": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "wanted_style": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "guidance": {
+      "type": "boolean"
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "slots": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "inventory_words": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "excluded": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "targets": {
+      "type": "object"
+    }
+  }
+}

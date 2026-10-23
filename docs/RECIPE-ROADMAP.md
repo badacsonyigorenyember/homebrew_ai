@@ -91,11 +91,11 @@ flowchart TD
       S4["4 · Targets<br/>range midpoints + hint knobs<br/>+ user's own numbers"]:::code
       S5["5 · Design frame<br/>rules · slots · limits · attenuation needed"]:::sql
     end
-    subgraph stC["C · CHOOSE: scored by code"]
-      S6["6 · Yeast"]:::code
-      S7["7 · Fermentables"]:::code
-      S8["8 · Hops"]:::code
-      S9["9 · Extras"]:::code
+    subgraph stC["C · CHOOSE: LLM picks from the table, code checks"]
+      S6["6 · Yeast"]:::llm
+      S7["7 · Fermentables"]:::llm
+      S8["8 · Hops"]:::llm
+      S9["9 · Extras"]:::llm
     end
     subgraph stD["D · COMPUTE"]
       S10["10 · Calculate<br/>amounts · OG · FG · ABV · IBU · SRM"]:::code
@@ -114,7 +114,6 @@ flowchart TD
     S11 -- pass --> S12 --> S13 --> S14 --> S15 --> S16
     S16["16 · Write + save<br/>sheet · reasons · deviations · citations"]:::llm --> R([Recipe])
     T["LLM tie-break<br/>only when scores tie"]:::llm -.-> S2
-    T -.-> S7
 
     classDef llm fill:#f4d9ff,stroke:#8a3fb5,color:#000
     classDef sql fill:#d6ecff,stroke:#2f6fb0,color:#000
@@ -135,10 +134,10 @@ flowchart TD
 | 3 | Deviations | cinnamon: ⚠️ not part of 21A → listed; closest category 30A (info only) | 🟩 |
 | 4 | Targets | "bitter" → IBU 66.25 (87.5 % of 21A 40–70) · OG 1.0613 · FG 1.011 · ABV from `app.abv`; built in `db/039_step4.sql`, measured G4 2026-10-17 | 🟩 |
 | 5 | Design frame | rules and limits · one slot per wanted item with its `ref` products (role, `max_pct`) · excluded and inventory words · hint intents · attenuation the targets need; no ratio numbers (D7); built in `db/041_step5.sql`, measured G4 2026-10-17 | 🟦 |
-| 6 | Yeast | top 21A yeast in the corpus that fits FG 1.011 and is in stock | 🟩 score |
-| 7 | Fermentables | fill each grist role: inventory first, then corpus popularity | 🟩 score |
-| 8 | Hops | bittering = high alpha · late/dry = tags match hints (citrus, pine) | 🟩 score |
-| 9 | Extras | coffee: usage (secondary) + dose (3.0 g/L, 2880 min) from the `ref.misc` row, sourced (Janish); step 5 already gives the slot these fields (`misc`: purpose, category, usages, time, dose range, `because`); the amount in grams is step 10's job (dose × batch L) and never enters OG/IBU/SRM. Built so far: the rows, the slot fields and step 3's rating ([`s9-misc-extras`](finished/s9-misc-extras/plan.md)); the choice itself is M5 | 🟩 |
+| 6 | Yeast | one main yeast (and a souring culture where the style is sour) picked from the code-built table; code checks it is in the table, not excluded, in style, of the right type (lager, required family, not lacto) and overlaps the yeast attenuation band; built in `db/042`-`044`, measured G5 2026-10-19 | 🟪 pick, 🟩 check |
+| 7 | Fermentables | grist picked from the table (usage, percent, purpose); code checks inventory used, one pick per slot, percents sum to 100 and stay under `max_pct` | 🟪 pick, 🟩 check |
+| 8 | Hops | hops picked from the table (usage, minutes, share, purpose); the prompt asks for a boil bittering hop plus one or two aroma hops where the style has aroma, code does not count varieties; code checks excluded hops and siblings (LUPOMAX), shares sum to 100, minutes per usage and a boil hop for the IBU target | 🟪 pick, 🟩 check |
+| 9 | Extras | coffee: usage (secondary) + dose (3.0 g/L, 2880 min) from the `ref.misc` row, sourced (Janish); step 5 already gives the slot these fields (`misc`: purpose, category, usages, time, dose range, `because`); the amount in grams is step 10's job (dose × batch L) and never enters OG/IBU/SRM. Built so far: the rows, the slot fields and step 3's rating ([`s9-misc-extras`](finished/s9-misc-extras/plan.md)); the choice is one of the four picks of the single LLM call for steps 6-9 (`num_ctx` 32768), checked by code; the LLM never writes a dose: code sets it by role (`background` the low end of the sourced range, `feature` the high end) | 🟪 pick, 🟩 check |
 | 10 | Calculate | kg / g → OG, FG, ABV, IBU, SRM | 🟩 |
 | 11 | Validate | in targets · rules · no invented items · loop max 3× | 🟩 |
 | 12 | Water | SO₄:Cl high → gypsum + CaCl₂ grams from the source-water ions | 🟩 |

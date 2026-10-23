@@ -112,7 +112,7 @@ service up).*
 - **The pipeline webhook** is `POST http://localhost:5678/webhook/recipe-pipeline` with body
   `{"request": "...", "brief_id": "b01", "model": "...", "think": false, "guide": "any", "temperature": 0, "seed": 42, "profile_id": null}` (`brief_id`, `model`, `think`, `guide`, `temperature`, `seed` and `profile_id` optional; `profile_id` goes to step 0, null means the `default` profile, an unknown id fails at step 0; `temperature` and `seed` go to step 1's Ollama call, defaults 0 and 42; `guide` is `any`, `bjcp` or `ba`: when it is not sent, a guide named in the request text restricts the pick, else `any`; a bad value fails at step 2; defaults `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` and `false`). It
   answers after the run ends with `{run_id, ok, failed_step?, error?}`; the record is in
-  `app.run` and `app.run_step`. No auth for now (revisit with the chat trigger, M8). The eight
+  `app.run` and `app.run_step`. No auth for now (revisit with the chat trigger, M8). The nine
   workflows must be **published**. Publish a sub-workflow after editing it too: an Execute Workflow
   node runs the **published** version of the workflow it calls, not the draft (measured 2026-10-12: the
   pipeline's draft was published first, and its call to the still-published old `Step 1` ran the old
@@ -125,7 +125,7 @@ service up).*
   (step 2's `guide_preference`).
 - **Running a workflow from the editor.** Each workflow has a `Test data` sticky note with
   ready-to-paste JSON: pin it on `POST recipe-pipeline` (`Recipe pipeline`) or on `When Executed
-  by Another Workflow` (`Step 1 · read request`, `Step 2 · best-fit style`, `Step 3 · deviations`, `Step 0 · load profile`, `Step 4 · targets`, `Step 5 · design frame`, `Check contract`), then click *Execute workflow*.
+  by Another Workflow` (`Step 1 · read request`, `Step 2 · best-fit style`, `Step 3 · deviations`, `Step 0 · load profile`, `Step 4 · targets`, `Step 5 · design frame`, `Steps 6–9 · choose ingredients`, `Check contract`), then click *Execute workflow*.
   A pipeline run writes a real run log tagged `editor-b01`; open the step 1 sub-execution from the
   `Step 1 · read request` node. Remove editor runs with
   `docker exec supabase-db psql -U postgres -d postgres -c "delete from app.run where eval_id like 'editor-%'"`
@@ -138,6 +138,12 @@ service up).*
   timeout 30 min. The system prompt is `shared/prompts/step1.system.md`, read by the workflow from
   `/data/shared`. The n8n `Ollama Chat Model` node is not used (no `seed`, no JSON schema, no token
   counts). `num_ctx` must equal `evals/benchmark.py` `NUM_CTX` (`test_num_ctx_matches_benchmark`).
+- **Steps 6-9 call Ollama once** (`Steps 6–9 · choose ingredients`, id `ST69chooseingr01`), same
+  HTTP Request pattern as step 1 but `num_ctx: 32768` (`evals/fit_test.py` `CHOOSE_NUM_CTX`,
+  `test_choose_num_ctx_matches_fit_test`): the prompts are 16.6k-26.6k tokens, and Ollama refuses a
+  prompt longer than `num_ctx`. Step 1 stays at 8192, so the switch from step 1 to step 6 reloads
+  the model (about 4 s, measured in the fit test). The call takes about 2 minutes. The pipeline
+  logs four rows from it; `llm` and `tokens` sit on step 6.
 - **The `Postgres account` credential** connects as `postgres` to database `postgres` on
   `supabase-db:5432` (measured 2026-10-12 with `select current_user, current_database()`), so
   the `app` tables and `extensions.jsonschema_validation_errors` are reachable. The password was

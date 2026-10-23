@@ -351,3 +351,18 @@ def test_report_glosses_hungarian_quotes():
         == "'22-26 °C (max tartomány: 16 - 32 °C)' (\"max tartomány\": max range)"
     )
     assert description_quote("17-22°C") == "'17-22°C'"
+
+
+def test_lacto_cultures():
+    """YF-998 / YF-999 are filed under Stílus "sour", which names no culture type; their text
+    names the Lactobacillus species, so they load as lacto."""
+    sour = {
+        **US05,
+        "sku": "301244",
+        "params": {**US05["params"], "Stílus": "sour"},
+        "details": {"table": None, "labels": {}, "text": "Lactobacillus Plantarius törzs."},
+    }
+    yeast = make_yeast("Yeastflow", "YF-998", "Sour", "liquid", sour, [])
+    assert yeast.type == "lacto"
+    assert yeast.field_source["type"] == "hopline-yeasts"
+    assert make_yeast("Fermentis", "US-05", "SafAle US-05", "dry", {**sour, "sku": "301030"}, []).type is None

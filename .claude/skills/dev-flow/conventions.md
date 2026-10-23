@@ -68,6 +68,9 @@ first) linking the work folder, and the status columns the work touches. Never c
 
 Each question has: the question, 2–4 options, your recommendation with a one-line reason.
 Ask only what you cannot settle from the code, the docs or a sensible default.
+Name the file each question is about, and for every id it uses (R1, D7, G6, Task 3) the
+`path:line` where that id is defined, so the orchestrator can open them for the user
+(CLAUDE.md "Show the files you ask about").
 
 ## Report block (subagent mode)
 

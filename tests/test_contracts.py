@@ -8,7 +8,8 @@ import pytest
 from loaders.db import connect
 
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
-NAMES = [f"step{n}.{side}" for n in range(6) for side in ("input", "output")]
+NAMES = [f"step{n}.{side}" for n in range(10) for side in ("input", "output")]
+NAMES += ["choose.input", "choose.proposal"]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
 
 # Each output's slot for absent / unknown / conflict: (property, how the schema must allow it).
@@ -20,6 +21,10 @@ ABSENT_SLOTS = {
     "step3.output": [("deviations.kind", "enum:conflict"), ("unrated", "array")],
     "step4.output": [("targets.og.value", "null"), ("conflicts", "array")],
     "step5.output": [("slots.refs", "array"), ("attenuation.needed_pct", "null")],
+    "step6.output": [("souring", "null"), ("absent", "array")],
+    "step7.output": [("absent", "array")],
+    "step8.output": [("absent", "array")],
+    "step9.output": [("extras.dose_g_per_l", "null"), ("absent", "array")],
     "formulation_check.output": [("results.status", "enum:unknown"), ("numbers.fg", "null")],
 }
 
@@ -178,7 +183,48 @@ STEP5_OUT = {
                     "from": "derived", "because": "100 x (OG - FG) / (OG - 1)"},
     "guidance": True,
 }
+PROPOSAL = {
+    "yeast": {"main": {"ingredient_id": 1, "purpose": "clean"}, "souring": None},
+    "fermentables": [{"ingredient_id": 2, "usage": "mash", "pct": 100, "purpose": "base"}],
+    "hops": [{"ingredient_id": 3, "usage": "boil", "minutes": 60, "share_pct": 100, "purpose": "bitter"}],
+    "extras": [{"ingredient_id": 4, "usage": "secondary", "purpose": "coffee"}],
+}
+_PICK = {"ingredient_id": 5, "name": "Pale Ale Malt", "producer": None, "choice": "mash", "level": "typical",
+         "level_because": "x", "inventory": None, "wanted": {"item": "oats", "role": "background"}, "slot": "oats",
+         "purpose": "base", "because": "Pale Ale Malt: base (typical at mash in 18A)"}
+_RANGE = {"low": 74, "high": 77}
+_YEAST = {**_PICK, "choice": "ferment at 18 °C", "type": "ale", "form": "dry", "attenuation": _RANGE,
+          "temp_c": {"low": 15, "high": 22}, "flocculation": None, "family": ["ale"]}
+_ABSENT = [{"word": "xyzzy", "kind": None, "reason": "no product in the catalogue matches \"xyzzy\""}]
+_UNUSED = [{"word": "old yeast", "reason": "one main yeast"}]
+_CANDIDATES = {"run_id": 1, "style_used": "18A", "wanted_style": "18A", "guidance": True, "candidates": [{"name": "x"}],
+               "slots": [], "inventory_words": [], "excluded": []}
+_CHOOSE_OUT = {
+    "step6.output": {"yeast": _YEAST, "souring": None,
+                     "attenuation": {"band": {"low_pct": 74, "high_pct": 77}, "yeast": _RANGE, "overlaps": True,
+                                     "because": "ok"},
+                     "unused_inventory": _UNUSED, "absent": []},
+    "step7.output": {"fermentables": [{**_PICK, "usage": "mash", "pct": 100, "role": "base", "max_pct": None,
+                                       "ebc": {"low": 3, "high": 5}, "fermentability": "normal"}],
+                     "unused_inventory": [], "absent": []},
+    "step8.output": {"hops": [{**_PICK, "usage": "boil", "minutes": 60, "share_pct": 100, "alpha": _RANGE,
+                               "alpha_pct": 75.5, "origins": ["US"], "character": ["citrus"]}],
+                     "solver": [{"share_pct": 100, "alpha_pct": 75.5, "minutes": 60, "usage": "boil"}],
+                     "ibu_target": 30, "unused_inventory": [], "absent": []},
+    "step9.output": {"extras": [{**_PICK, "usage": "secondary", "category": "coffee", "time_min": 2880,
+                                 "dose_g_per_l": 3.0, "dose_because": "one sourced dose"}],
+                     "unused_inventory": [], "absent": _ABSENT},
+}
 GOOD = {
+    **_CHOOSE_OUT,
+    "step6.input": {**_CANDIDATES, "band": {"yeast_low_pct": 74, "yeast_high_pct": 77},
+                    "targets": {"og": 1.05}, "yeast_rules": {"lager": False, "families": [], "souring": False}},
+    "step7.input": _CANDIDATES,
+    "step8.input": {**_CANDIDATES, "targets": {"ibu": 30}},
+    "step9.input": _CANDIDATES,
+    "choose.input": {"run_id": 1, "brief": BRIEF, "style": STEP2_OUT, "profile": GOOD_PROFILE, "targets": STEP4_OUT,
+                     "frame": STEP5_OUT, "model": "gemma4:12b", "think": False, "temperature": 0, "seed": 42},
+    "choose.proposal": PROPOSAL,
     "formulation_check.input": CHECK_IN,
     "formulation_check.output": CHECK_OUT,
     "step0.input": {"run_id": 1, "profile_id": None},
@@ -201,6 +247,20 @@ GOOD = {
     "step5.output": STEP5_OUT,
 }
 BAD = [
+    ("step6.output", {k: v for k, v in _CHOOSE_OUT["step6.output"].items() if k != "attenuation"}),
+    ("step6.output", {**_CHOOSE_OUT["step6.output"], "yeast": {**_YEAST, "ingredient_id": "5"}}),
+    ("step7.output", {**_CHOOSE_OUT["step7.output"], "fermentables": [{**_CHOOSE_OUT["step7.output"]["fermentables"][0], "usage": "whirlpool"}]}),
+    ("step8.output", {k: v for k, v in _CHOOSE_OUT["step8.output"].items() if k != "solver"}),
+    ("step9.output", {**_CHOOSE_OUT["step9.output"], "extras": [{k: v for k, v in _CHOOSE_OUT["step9.output"]["extras"][0].items() if k != "dose_because"}]}),
+    ("step6.input", {k: v for k, v in GOOD["step6.input"].items() if k != "yeast_rules"}),
+    ("step8.input", _CANDIDATES),
+    ("choose.input", {k: v for k, v in GOOD["choose.input"].items() if k != "seed"}),
+    ("choose.input", {**GOOD["choose.input"], "model": ""}),
+    ("choose.proposal", {**PROPOSAL, "extras": [{**PROPOSAL["extras"][0], "dose_g_per_l": 3.0}]}),
+    ("choose.proposal", {**PROPOSAL, "fermentables": [{**PROPOSAL["fermentables"][0], "pct": 0}]}),
+    ("choose.proposal", {**PROPOSAL, "fermentables": [{**PROPOSAL["fermentables"][0], "usage": "whirlpool"}]}),
+    ("choose.proposal", {**PROPOSAL, "hops": [{**PROPOSAL["hops"][0], "minutes": -1}]}),
+    ("choose.proposal", {**PROPOSAL, "yeast": {"main": PROPOSAL["yeast"]["main"]}}),
     ("formulation_check.input", {k: v for k, v in CHECK_IN.items() if k != "mash_c"}),
     ("formulation_check.input", {**CHECK_IN, "hops": [{**CHECK_IN["hops"][0], "usage": "mash"}]}),
     ("formulation_check.input", {**CHECK_IN, "stated": {"colour": 5}}),

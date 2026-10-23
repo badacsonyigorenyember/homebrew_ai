@@ -4,7 +4,7 @@ from decimal import Decimal as D
 import pytest
 from psycopg.types.range import Range
 
-from loaders.adjunct_products import PACK_SIZES, PALMER, PALMER_ONLY, PRODUCTS, SKIPPED
+from loaders.adjunct_products import ALIASES, PACK_SIZES, PALMER, PALMER_ONLY, PRODUCTS, SKIPPED
 from loaders.adjuncts import HOPLINE, PALMER_SLUG, build, extract_pct_from_ppg
 
 
@@ -162,3 +162,30 @@ def test_maps_do_not_overlap():
     assert set(PACK_SIZES.values()) <= set(PRODUCTS)
     rows = [row for _, row, _ in PRODUCTS.values()] + list(PALMER_ONLY.values())
     assert all(row in PALMER for row in rows)
+
+
+def test_aliases_name_mapped_products():
+    product_names = {name for name, _, _ in PRODUCTS.values()}
+    assert ALIASES and set(ALIASES) <= product_names
+
+
+@pytest.fixture(scope="module")
+def conn():
+    from loaders.db import connect
+
+    connection = connect()
+    yield connection
+    connection.close()
+
+
+@pytest.mark.stack
+def test_dark_candi_sugar_alias(conn):
+    brown = conn.execute(
+        "select id from ref.ingredient where kind = 'fermentable' and name = 'Brown Candi Sugar'"
+    ).fetchone()[0]
+    rows = conn.execute(
+        "select ingredient_id, rule from app.resolve_ingredient('dark candi sugar')"
+    ).fetchall()
+    assert rows == [(brown, "alias")]
+    by_name = conn.execute("select ingredient_id from app.resolve_ingredient('candi sugar')").fetchall()
+    assert (brown,) in by_name

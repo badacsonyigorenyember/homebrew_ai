@@ -1,0 +1,470 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step6.output",
+  "description": "Step 6, the yeast: the main yeast and the souring culture (null when none), each with its facts from the table. attenuation reports the yeast's figure against step 5's yeast band (overlaps null and \"not assumed\" when the yeast has no figure). unused_inventory lists inventory yeasts not used, with why. Absent: souring null; absent lists words with no product. Every pick comes from the candidate table: its level at the chosen usage, the inventory word, the wanted item and the slot it fills, the LLM's purpose and one sentence (because) joining them. ",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "yeast",
+    "souring",
+    "attenuation",
+    "unused_inventory",
+    "absent"
+  ],
+  "properties": {
+    "yeast": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ingredient_id",
+        "name",
+        "producer",
+        "choice",
+        "level",
+        "level_because",
+        "inventory",
+        "wanted",
+        "slot",
+        "purpose",
+        "because",
+        "type",
+        "form",
+        "attenuation",
+        "temp_c",
+        "flocculation",
+        "family"
+      ],
+      "properties": {
+        "ingredient_id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "producer": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "choice": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "level": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "level_because": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inventory": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "wanted": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "item",
+            "role"
+          ],
+          "properties": {
+            "item": {
+              "type": "string"
+            },
+            "role": {
+              "enum": [
+                "feature",
+                "background"
+              ]
+            }
+          }
+        },
+        "slot": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "because": {
+          "type": "string"
+        },
+        "type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "form": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "attenuation": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "low",
+            "high"
+          ],
+          "properties": {
+            "low": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "high": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          }
+        },
+        "temp_c": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "low",
+            "high"
+          ],
+          "properties": {
+            "low": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "high": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          }
+        },
+        "flocculation": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "family": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "souring": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "ingredient_id",
+        "name",
+        "producer",
+        "choice",
+        "level",
+        "level_because",
+        "inventory",
+        "wanted",
+        "slot",
+        "purpose",
+        "because",
+        "type",
+        "form",
+        "attenuation",
+        "temp_c",
+        "flocculation",
+        "family"
+      ],
+      "properties": {
+        "ingredient_id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "producer": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "choice": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "level": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "level_because": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inventory": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "wanted": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "item",
+            "role"
+          ],
+          "properties": {
+            "item": {
+              "type": "string"
+            },
+            "role": {
+              "enum": [
+                "feature",
+                "background"
+              ]
+            }
+          }
+        },
+        "slot": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "because": {
+          "type": "string"
+        },
+        "type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "form": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "attenuation": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "low",
+            "high"
+          ],
+          "properties": {
+            "low": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "high": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          }
+        },
+        "temp_c": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "low",
+            "high"
+          ],
+          "properties": {
+            "low": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "high": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          }
+        },
+        "flocculation": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "family": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "attenuation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "band",
+        "yeast",
+        "overlaps",
+        "because"
+      ],
+      "properties": {
+        "band": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "low_pct",
+            "high_pct"
+          ],
+          "properties": {
+            "low_pct": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "high_pct": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          }
+        },
+        "yeast": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "low",
+            "high"
+          ],
+          "properties": {
+            "low": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "high": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          }
+        },
+        "overlaps": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "because": {
+          "type": "string"
+        }
+      }
+    },
+    "unused_inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "word",
+          "reason"
+        ],
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "absent": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "word",
+          "kind",
+          "reason"
+        ],
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

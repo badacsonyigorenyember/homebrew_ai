@@ -1,0 +1,277 @@
+[
+ {
+  "run_id": 0,
+  "brief": {
+   "named": "West Coast IPA",
+   "stated": {
+    "batch_l": 20,
+    "abv": 6.5
+   },
+   "hints": [
+    "bitter"
+   ],
+   "wanted": [],
+   "excluded": [],
+   "inventory": [],
+   "unknown": [],
+   "guidance": true
+  },
+  "style": {
+   "style": {
+    "id": 8,
+    "code": "21A",
+    "name": "American IPA",
+    "guide": "BJCP"
+   },
+   "reason": "Picked 21A American IPA: the name matches (1.00).",
+   "scores": {
+    "name": 4.0,
+    "total": 6.33,
+    "words": 1.0,
+    "numbers": 1.33
+   },
+   "mismatch": null,
+   "alt_styles": [],
+   "candidates": [
+    {
+     "code": "21A",
+     "guide": "BJCP",
+     "score": 6.33
+    },
+    {
+     "code": "west-coast-style-india-pale-ale",
+     "guide": "BA",
+     "score": 5.62
+    },
+    {
+     "code": "21B",
+     "guide": "BJCP",
+     "score": 4.03
+    },
+    {
+     "code": "12C",
+     "guide": "BJCP",
+     "score": 3.99
+    },
+    {
+     "code": "21C",
+     "guide": "BJCP",
+     "score": 3.72
+    }
+   ],
+   "guide_reason": "no guide set or named in the request; both guides scored, best fit 21A",
+   "unknown_reason": null
+  },
+  "profile": {
+   "units": "metric",
+   "water": {
+    "ca": 0.0,
+    "cl": 0.0,
+    "mg": 0.0,
+    "na": 0.0,
+    "so4": 0.0,
+    "hco3": 0.0
+   },
+   "batch_l": 20.0,
+   "losses_l": 2.0,
+   "inventory": [],
+   "boil_off_l_h": 4.0,
+   "efficiency_pct": 72.0,
+   "grain_abs_l_kg": 1.0
+  },
+  "targets": {
+   "knobs": [
+    {
+     "knob": "ibu",
+     "hints": "bitter",
+     "intent": null,
+     "source": "unsourced",
+     "direction": 1
+    },
+    {
+     "knob": "bu_gu",
+     "hints": "bitter",
+     "intent": null,
+     "source": "bjcp-exam-study-guide-2017, p60",
+     "direction": 1
+    }
+   ],
+   "style": {
+    "code": "21A",
+    "from": "chosen",
+    "name": "American IPA",
+    "because": "step 2 chose 21A"
+   },
+   "mash_c": {
+    "from": "midpoint",
+    "value": 66.5,
+    "because": "middle of rule 10's mash range 64–69 °C"
+   },
+   "batch_l": {
+    "from": "stated",
+    "value": 20,
+    "because": "stated by the user"
+   },
+   "targets": {
+    "fg": {
+     "from": "midpoint",
+     "value": 1.011,
+     "because": "midpoint of 21A FG 1.008–1.014"
+    },
+    "og": {
+     "from": "derived",
+     "value": 1.0613,
+     "because": "solved so app.abv gives the stated ABV 6.5 at FG 1.011"
+    },
+    "abv": {
+     "from": "stated",
+     "value": 6.5,
+     "because": "stated by the user"
+    },
+    "ibu": {
+     "from": "hint",
+     "value": 66.25,
+     "because": "bitter: 87.5 % of 21A IBU 40–70"
+    },
+    "srm": {
+     "from": "midpoint",
+     "value": 10.0,
+     "because": "midpoint of 21A SRM 6–14"
+    }
+   },
+   "guidance": true,
+   "conflicts": []
+  },
+  "frame": {
+   "rules": {
+    "from": "app.formulation_rules() (db/031)",
+    "rows": [
+     {
+      "rule": "definitions",
+      "checked": true,
+      "sentence": "A share is a percentage of the total fermentable mass, sugars included. A fermentable's colour is the midpoint of its ebc range, or its one bound when the range is open. Role, max_pct, min_boil_min, fermentability, attenuation_pct, temp_c and alcohol_tolerance_pct are ingredient-table fields."
+     },
+     {
+      "rule": "1",
+      "checked": true,
+      "sentence": "A recipe has at most 5 fermentables, and at most 3 of them have the role kilned, crystal or roast; fermentables with the role adjunct or sugar do not count toward the 3."
+     },
+     {
+      "rule": "2",
+      "checked": true,
+      "sentence": "A recipe uses at most 3 hop varieties."
+     },
+     {
+      "rule": "3",
+      "checked": true,
+      "sentence": "Fermentables with the role crystal and a colour above 60 EBC, plus fermentables with the role roast, are at most 15 % of the grist together."
+     },
+     {
+      "rule": "4",
+      "checked": true,
+      "sentence": "Fermentables with the role crystal are at most 25 % of the grist together; those with a colour above 60 EBC at most 10 %; those with a colour above 160 EBC at most 5 %. Those at or below 60 EBC are limited only by rule 6."
+     },
+     {
+      "rule": "5",
+      "checked": true,
+      "sentence": "Fermentables with the role adjunct or sugar are at most 40 % of the grist together."
+     },
+     {
+      "rule": "6",
+      "checked": true,
+      "sentence": "Each fermentable is at most its max_pct share of the grist."
+     },
+     {
+      "rule": "7",
+      "checked": false,
+      "sentence": "The colour adjustment changes only the share of the fermentable with the darkest colour, and never one with the role crystal. Enforced by the colour solver in step 10, not by this check."
+     },
+     {
+      "rule": "8",
+      "checked": true,
+      "sentence": "A recipe has exactly one bittering addition: a boil addition whose time equals the boil time. Every other hop addition is a boil addition of at most 15 min, a whirlpool addition or a dry hop."
+     },
+     {
+      "rule": "9",
+      "checked": true,
+      "sentence": "When style guidance is on, a target OG, FG, IBU or SRM that the user did not state is the style's midpoint, moved by the request's hints to 87.5 % (up) or 12.5 % (down) of the style's range, with the OG moved inside its range as far as needed for the ABV from the OG and FG to reach the style's ABV range; within 0.001 for OG, 0.002 for FG, 1 IBU and 1 SRM. OG and FG count as stated when the user stated the ABV. The ABV target is app.abv of the OG and FG targets, within 0.1 %. A target is outside the style's range only when the user stated it or style guidance is off."
+     },
+     {
+      "rule": "10",
+      "checked": true,
+      "sentence": "The mash temperature is between 64 and 69 °C, and the FG predicted from the yeast's attenuation_pct, each fermentable's fermentability and the mash temperature is inside the target FG range: the style's FG range, or the target FG ± 0.002 when the user stated the FG or the ABV. Up to 68.3 °C the attenuation is the middle of the yeast's attenuation_pct range, which applies at 66.5 °C; above 68.3 °C it is 4.15 points lower per °C, never outside that range (Troester 2009, limit of attenuation against mash temperature)."
+     },
+     {
+      "rule": "11",
+      "checked": true,
+      "sentence": "The planned ABV is at most the yeast's alcohol_tolerance_pct, and the fermentation temperature is inside the yeast's temp_c range."
+     },
+     {
+      "rule": "12",
+      "checked": true,
+      "sentence": "Every fermentable, hop and yeast in the recipe has a purpose that is not empty."
+     },
+     {
+      "rule": "13",
+      "checked": true,
+      "sentence": "The boil time is at least the largest min_boil_min of the recipe's fermentables, and at least 60 min."
+     },
+     {
+      "rule": "pending",
+      "checked": false,
+      "sentence": "A recipe uses only processes the brewer profile allows. Pending: needs the brewer profile (step 0); not checked."
+     }
+    ]
+   },
+   "slots": [],
+   "limits": {
+    "from": "app.formulation_limits() (db/031)",
+    "values": {
+     "mash_max_c": 69,
+     "mash_min_c": 64,
+     "mash_ref_c": 66.5,
+     "mash_knee_c": 68.3,
+     "min_boil_min": 60,
+     "max_specialty": 3,
+     "dark_total_pct": 15,
+     "crystal_dark_ebc": 60,
+     "crystal_dark_pct": 10,
+     "late_hop_max_min": 15,
+     "max_fermentables": 5,
+     "adjunct_sugar_pct": 40,
+     "crystal_total_pct": 25,
+     "max_hop_varieties": 3,
+     "pct_sum_tolerance": 0.1,
+     "midpoint_tolerance": {
+      "fg": 0.002,
+      "og": 0.001,
+      "abv": 0.1,
+      "ibu": 1,
+      "srm": 1
+     },
+     "mash_slope_pct_per_c": 4.15,
+     "crystal_very_dark_ebc": 160,
+     "crystal_very_dark_pct": 5
+    }
+   },
+   "intents": [],
+   "excluded": [],
+   "guidance": true,
+   "inventory": [],
+   "style_code": "21A",
+   "attenuation": {
+    "from": "derived",
+    "mash_c": 66.5,
+    "because": "100 x (OG 1.0613 - FG 1.011) / (OG - 1); the yeast band adds 0 points for the 66.5 °C mash (Troester's curve, app.mash_attenuation)",
+    "low_pct": 78.79,
+    "high_pct": 85.32,
+    "needed_pct": 82.06,
+    "yeast_low_pct": 78.79,
+    "yeast_high_pct": 85.32,
+    "yeast_middle_pct": 82.06
+   }
+  },
+  "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+  "think": false
+ }
+]

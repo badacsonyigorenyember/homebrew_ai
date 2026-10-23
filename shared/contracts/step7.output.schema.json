@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step7.output",
+  "description": "Step 7, the fermentables: each pick with its usage, share of the grist (pct), role, maximum, EBC and fermentability from the table. Absent: absent lists wanted or inventory words with no fermentable product. Every pick comes from the candidate table: its level at the chosen usage, the inventory word, the wanted item and the slot it fills, the LLM's purpose and one sentence (because) joining them. ",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "fermentables",
+    "unused_inventory",
+    "absent"
+  ],
+  "properties": {
+    "fermentables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ingredient_id",
+          "name",
+          "producer",
+          "choice",
+          "level",
+          "level_because",
+          "inventory",
+          "wanted",
+          "slot",
+          "purpose",
+          "because",
+          "usage",
+          "pct",
+          "role",
+          "max_pct",
+          "ebc",
+          "fermentability"
+        ],
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "producer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "choice": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "level": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "level_because": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "inventory": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "wanted": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "item",
+              "role"
+            ],
+            "properties": {
+              "item": {
+                "type": "string"
+              },
+              "role": {
+                "enum": [
+                  "feature",
+                  "background"
+                ]
+              }
+            }
+          },
+          "slot": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "because": {
+            "type": "string"
+          },
+          "usage": {
+            "enum": [
+              "mash",
+              "boil"
+            ]
+          },
+          "pct": {
+            "type": "number"
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "max_pct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "ebc": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "low",
+              "high"
+            ],
+            "properties": {
+              "low": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "high": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          },
+          "fermentability": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "unused_inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "word",
+          "reason"
+        ],
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "absent": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "word",
+          "kind",
+          "reason"
+        ],
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
