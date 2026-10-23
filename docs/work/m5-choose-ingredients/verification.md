@@ -1,6 +1,6 @@
 # Verification: m5-choose-ingredients
 
-Overall: ❌ 20 of 21 checks and all 1049 tests pass; failed: C19 (b10's Special B need is a gap, Cause: decision)
+Overall: ✅ 20 of 21 checks and all 1049 tests pass; C19 fails (b10's Special B need is a gap, Cause: decision) and is accepted by the user (2026-10-23)
 
 ## Part 1: Summary
 
@@ -25,8 +25,8 @@ Overall: ❌ 20 of 21 checks and all 1049 tests pass; failed: C19 (b10's Special
   - ❌ Task 9: G5 needs started at 1/24, then 4/24 after prompt revision 2 (the last allowed), then 18/24 only after widening the class map and adding the `substituted` verdict (user decisions) 🔧 07006e0.
 - ❌ 🔍 **Review:** Three rounds. Round 0: 6 findings (2 must-fix: unrated lager styles lost the lager rule, a bittering hop stood in for an aroma hop) 🔧 fixed in 555dcb7, 5a5e12b, e411c39; G5 needs fell to 15/24. Round 1: must-fix #11 (non-brewing yeast the brewer asked for was refused) 🔧 bf37033, 068030a, c5069b9; needs 14/24. Round 2: ready for testing.
   - ⚠️ Note #15: `evals/run.py` has no re-grade command; the re-grades used scratch scripts.
-- ⚠️ 🧪 **Verify:** Docker stack ready (9 workflows incl. the new one active, 129 `app` functions all owned by postgres, Ollama on the RX 9070 XT, model loads); one live b10 run passed steps 1-9. 🧮 spot checks ❌ 20/21 · 🧪 tests ✅ 1049/1049
-  - ❌ C19: b10's Special B need is a gap (Caraamber chosen); Cause: decision, the user accepted G5 at 14/24.
+- ⚠️ 🧪 **Verify:** Docker stack ready (9 workflows incl. the new one active, 129 `app` functions all owned by postgres, Ollama on the RX 9070 XT, model loads); one live b10 run passed steps 1-9. 🧮 spot checks ⚠️ 20/21 (C19 accepted) · 🧪 tests ✅ 1049/1049
+  - ❌ C19: b10's Special B need is a gap (Caraamber chosen); Cause: decision. Accepted by the user ("Accept, then ship", 2026-10-23), A16's clause recorded as unmet in brief.md Deviations.
   - ⚠️ G5 needs is 14/24 against a first 18/24, accepted by the user ("Re-record at new count"), not an unconditional pass.
 
 👀 **Start here:** Part 2 below, then `evals/results/2026-10-19-m5.json` (per-brief step grades and needs verdicts); the b10 run shows a dubbel with Munich malt, abbey yeast and Brown Candi Sugar all from the inventory.
@@ -359,7 +359,7 @@ docker exec supabase-db psql -U postgres -d postgres -tAc "select count(*) || ' 
 |---|---|---|
 | covered | gap | ❌ fail |
 
-Cause: decision. The model picked Caraamber (60-80 EBC) for b10, and review fix 3 correctly stopped it standing in for the dark-crystal Special B class (Special W 280-320, Caraaroma 350-450). Brief A16 still says "covered by Special W or Caraaroma"; b10 fails needs anyway, and the user's G5 decision ("Re-record at new count", 2026-10-21 and 2026-10-23) accepted these gaps at 14/24 (`docs/WORKFLOW-ROADMAP.md:187`).
+Cause: decision. **Accepted by user decision ("Accept, then ship", 2026-10-23): A16's Special B clause is recorded as unmet; brief.md Deviations updated.** The model picked Caraamber (60-80 EBC) for b10, and review fix 3 correctly stopped it standing in for the dark-crystal Special B class (Special W 280-320, Caraaroma 350-450). Brief A16 still says "covered by Special W or Caraaroma"; b10 fails needs anyway, and the user's G5 decision ("Re-record at new count", 2026-10-21 and 2026-10-23) accepted these gaps at 14/24 (`docs/WORKFLOW-ROADMAP.md:187`).
 
 ### ✅ C20 · The roadmaps no longer say "corpus popularity" for stage C (A13, R12)
 
