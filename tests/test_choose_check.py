@@ -414,3 +414,43 @@ def test_guidance_off_allows_any_level(conn):
                and r["best_level"] not in GOOD and r["ingredient_id"] != p["fermentables"][-1]["ingredient_id"])
     p["fermentables"][-1]["ingredient_id"] = bad["ingredient_id"]
     assert errors_of(conn, "b18", p) == []
+
+
+def table_with(conn, bid, **changes):
+    """bid's table with its brief changed (for example inventory=["CBC-1"] or a wanted yeast)."""
+    b = dict(BRIEFS[bid], **changes)
+    return build(conn, b)[0]
+
+
+def with_main(tbl, name):
+    """A good proposal of tbl whose main yeast is the table row `name`."""
+    p = good_proposal(tbl)
+    p["yeast"]["main"]["ingredient_id"] = next(r["ingredient_id"] for r in tbl["yeasts"] if r["name"] == name)
+    return p
+
+
+@pytest.mark.parametrize("bid, name", [("b01", "CBC-1"), ("b14", "CBC-1"), ("b14", "YF-801 Brett Pid")])
+def test_inventory_yeast_that_is_not_a_brewing_yeast_may_be_the_main_yeast(conn, bid, name):
+    """Brewer's choice wins (re-review 11): a fitting inventory yeast of type none or brett is a valid main yeast."""
+    tbl = table_with(conn, bid, inventory=[name])
+    assert any(w["fits"] and w["kind"] == "yeast" for w in tbl["inventory_words"])
+    errs = sql(conn, "choose_check", tbl, with_main(tbl, name))
+    assert errs == [], errs
+
+
+@pytest.mark.parametrize("bid, name", [("b01", "CBC-1"), ("b14", "Philly Sour"), ("b14", "CBC-1")])
+def test_wanted_yeast_that_is_not_a_brewing_yeast_may_be_the_main_yeast(conn, bid, name):
+    tbl = table_with(conn, bid, wanted=[{"item": name, "role": "feature"}])
+    assert any(s["kind"] == "yeast" and s["ids"] for s in tbl["slots"]), tbl["slots"]
+    errs = sql(conn, "choose_check", tbl, with_main(tbl, name))
+    assert errs == [], errs
+
+
+def test_a_yeast_nobody_asked_for_must_still_be_a_brewing_yeast(conn):
+    """The exception is for the brewer's own yeast: Philly Sour picked on its own is still refused,
+    also when another non-brewing yeast (CBC-1) is in stock."""
+    tbl = table_with(conn, "b14", inventory=["CBC-1"])
+    errs = sql(conn, "step6_errors", tbl, with_main(tbl, "Philly Sour")["yeast"])
+    assert any("is not a brewing yeast" in e for e in errs), errs
+    tbl = table_of(conn, "b14")
+    assert any("is not a brewing yeast" in e for e in errors_of(conn, "b14", with_main(tbl, "Philly Sour"), 6))

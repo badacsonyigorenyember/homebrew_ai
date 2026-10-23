@@ -821,3 +821,15 @@ def test_herkules_does_not_stand_in_for_hallertau_mittelfrueh():
     assert stand_in("hops", 8, "hops", hm, rows, [2]) == "gap"
     assert stand_in("hops", 8, "hops", hm, rows, [3]) == "substituted: Perle"
     assert stand_in("hops", 8, "hops", ekg, rows, [5]) == "substituted: Challenger"
+
+
+def test_a5_a_blend_the_brewer_wants_or_has_may_be_the_main_yeast():
+    """Brewer's choice wins (re-review 11): type none or brett passes when the pick is wanted or in stock."""
+    for mark in ({"inventory": "CBC-1"}, {"wanted": {"item": "Philly Sour"}}):
+        steps, facts = sample("b14")
+        facts["refs"][steps[6]["yeast"]["ingredient_id"]]["type"] = None
+        steps[6]["yeast"].update(mark)
+        assert not mentions(problems(6, steps, facts), "not a brewing yeast")
+    steps, facts = sample("b14")
+    facts["refs"][steps[6]["yeast"]["ingredient_id"]]["type"] = "brett"
+    assert mentions(problems(6, steps, facts), "not a brewing yeast")

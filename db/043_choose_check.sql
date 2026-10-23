@@ -165,7 +165,8 @@ end
 $$;
 
 -- Step 6: the yeast. yeast = {main {ingredient_id, purpose}, souring {..} or null}.
---   the main yeast is a brewing yeast (type ale, lager or kveik: not a lacto culture, a blend or a brett); a lager style gets a lager yeast; every family the style
+--   the main yeast is a brewing yeast (type ale, lager or kveik: not a lacto culture, a blend or a brett)
+--   unless the brewer wants it or has it (brewer's choice wins, re-review 11); a lager style gets a lager yeast; every family the style
 --   requires is on the main yeast; its attenuation reaches step 5's yeast band when a usable yeast
 --   does (a yeast the brewer wants or has is not refused for it: the step 6 output reports it);
 --   a sour style gets a souring culture (type lacto), any other style none unless wanted or in stock.
@@ -200,7 +201,8 @@ begin
     if m is not null and m ->> 'kind' = 'yeast' then
         if m ->> 'type' = 'lacto' then
             errs := errs || (pre || (m ->> 'name') || ' is a lacto culture; it goes in souring, and the main yeast is a brewing yeast');
-        elsif m ->> 'type' is null or m ->> 'type' not in ('ale', 'lager', 'kveik') then
+        elsif (m ->> 'type' is null or m ->> 'type' not in ('ale', 'lager', 'kveik'))
+              and m ->> 'inventory' is null and jsonb_typeof(m -> 'wanted') <> 'object' then
             errs := errs || (pre || (m ->> 'name') || ' is not a brewing yeast (type ' || coalesce(m ->> 'type', 'none')
                              || '); the main yeast is an ale, lager or kveik yeast');
         end if;
@@ -218,7 +220,9 @@ begin
            and m ->> 'inventory' is null and jsonb_typeof(m -> 'wanted') <> 'object'
            and exists (
                 select 1 from jsonb_array_elements(tbl -> 'yeasts') y
-                 where y.value -> 'overlaps_band' = 'true'::jsonb and y.value ->> 'type' <> 'lacto'
+                 where y.value -> 'overlaps_band' = 'true'::jsonb and y.value ->> 'type' is distinct from 'lacto'
+                   and (y.value ->> 'type' in ('ale', 'lager', 'kveik')
+                        or y.value ->> 'inventory' is not null or jsonb_typeof(y.value -> 'wanted') = 'object')
                    and (not (rules ->> 'lager')::boolean or y.value ->> 'type' = 'lager')
                    and not exists (select 1 from jsonb_array_elements_text(coalesce(rules -> 'families', '[]'::jsonb)) f
                                     where not (y.value -> 'family') ? f.value)) then

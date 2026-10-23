@@ -355,9 +355,10 @@ def step6_problems(output: dict | None, facts: dict | None) -> list[str]:
         ref, style = facts["refs"].get(main["ingredient_id"]), facts["style"]
         if ref is None:
             return problems
+        marked = main.get("inventory") or main.get("wanted")
         if ref["type"] == "lacto":
             problems.append("A5: the main yeast is a lacto culture")
-        elif ref["type"] not in ("ale", "lager", "kveik"):
+        elif ref["type"] not in ("ale", "lager", "kveik") and not marked:  # the brewer's own yeast is allowed
             problems.append(f"A5: {ref['name']} is not a brewing yeast (type {ref['type']})")
         if style["lager"] and ref["type"] != "lager":
             problems.append(f"A5: {ref['name']} is not a lager yeast for a lager style")
@@ -374,9 +375,9 @@ def step6_problems(output: dict | None, facts: dict | None) -> list[str]:
         rows = {r["ingredient_id"]: r for r in facts["inputs"][6]["candidates"]}
         row = rows.get(main["ingredient_id"], {})
         usable = [r for r in rows.values() if r["type"] != "lacto"
+                  and (r["type"] in ("ale", "lager", "kveik") or r.get("inventory") or r.get("wanted"))
                   and (not style["lager"] or r["type"] == "lager")
                   and all(f in r["family"] for f in style["families"])]
-        marked = main.get("inventory") or main.get("wanted")
         if (row.get("overlaps_band") is False and not marked
                 and any(r["overlaps_band"] is True for r in usable)):
             problems.append("A5: the yeast misses the attenuation band while another usable one reaches it")

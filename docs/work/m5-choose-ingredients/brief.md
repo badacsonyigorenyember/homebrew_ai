@@ -74,7 +74,8 @@ R3. An inventory product that fits (its kind is in the recipe and it is not ⚠�
     the style used) is chosen; the check fails a proposal that leaves one out. b10: Munich, an
     abbey yeast and Brown Candi Sugar (through the alias "dark candi sugar", user decision
     2026-10-18); b15: Maris Otter, a crystal malt,
-    East Kent Golding. An inventory word that does not fit is reported with its reason.
+    East Kent Golding. An inventory word that does not fit is reported with its reason. A fitting
+    inventory or wanted yeast of any non-lacto type may be the main yeast (R5).
 R4. With guidance on, every pick the pipeline makes on its own is ✅, 👍 or ➖ at its usage in
     step 4's style used. A wanted item is picked as a product and usage that keep the best level
     step 3 gave it (m3-deviations R4). With guidance off (b18) any level is allowed. Every pick
@@ -83,7 +84,10 @@ R5. The yeast's attenuation range overlaps step 5's yeast band (`attenuation.yea
     `yeast_high_pct`: the beer band put in a yeast's own figures at this mash; user decision
     2026-10-18); a yeast with no attenuation figure is reported, not assumed. When the style's
     envelope has sourness, step 6 adds one souring culture (`type = 'lacto'`) next to the main
-    yeast: b14 gets YF-998 or YF-999 besides its ale yeast. Lager styles get a
+    yeast: b14 gets YF-998 or YF-999 besides its ale yeast. The main yeast the pipeline picks on
+    its own is a brewing yeast (type ale, lager or kveik); a yeast the brewer wants or has in
+    stock may be the main yeast whatever its type except lacto (CBC-1, Suava Ale, Philly Sour,
+    YF-801, SafBrew BR-8; user decision 2026-10-23, "Brewer's choice wins"). Lager styles get a
     lager yeast: BJCP styles tagged `bottom-fermented` and BA lager styles (b06, b08, b09, b17,
     b22); b13 gets a weizen-family yeast. (Measured 2026-10-18: `app.style_level` rates SafAle
     US-05 `allowed` in 5D, 1B and `mexican-style-amber-lager`, the same as W-34/70, so the level
@@ -237,3 +241,4 @@ None. The five questions of 2026-10-18 are answered (see Deviations).
   band is in a yeast's own figures at the mash temperature. Measured: they differ only for b03
   and b20 (mash 68.5 °C), by 0.83 points.
 - 2026-10-19 · R10, A10 (user decision after G5 needs 4/24): the class map was widened for true equivalents (other noble hops for Hallertau Mittelfrüh, Golding-type hops for each other, Golden Promise for Maris Otter, Munich Light for Vienna, Cascade and Centennial for each other, Fuggle for Willamette), and a gap the style explains is a `substituted: <pick>` verdict (`evals/grade.py` `stands_in`) that does not fail the brief; a plain gap still fails. The model is given no needs information.
+- 2026-10-23 · R3, R4, R5 (user decision on re-review finding 11, "Brewer's choice wins"): the main-yeast type rule (ale, lager or kveik, added by review fix 4) applies only to a yeast the pipeline picks on its own; a wanted or in-stock yeast of type none or brett may be the main yeast, the same exception the attenuation-band check already makes. Table, `app.step6_errors`, the R5 usable-yeast test and the grader agree; no prompt change.
