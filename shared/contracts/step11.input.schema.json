@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step11.input",
+  "description": "Step 11, validate: the step 10 recipe checked against the targets, the stated numbers, the formulation rules and the style. brief is a step1.output, targets a step4.output, frame a step5.output and step10 a step10.output, each already checked. picks lists every step 6-9 pick; self_picked is true when the pipeline chose it with no wanted and no inventory behind it. try is 1 to 3. No absent slot.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "try",
+    "brief",
+    "targets",
+    "frame",
+    "picks",
+    "step10"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "try": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
+    "brief": {
+      "type": "object"
+    },
+    "targets": {
+      "type": "object"
+    },
+    "frame": {
+      "type": "object"
+    },
+    "step10": {
+      "type": "object"
+    },
+    "picks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ingredient_id",
+          "name",
+          "self_picked"
+        ],
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "self_picked": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

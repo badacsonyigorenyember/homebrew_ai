@@ -293,7 +293,7 @@ Commit: `Compute amounts and numbers in step 10`
 
 ### Task 5: step 11 validates and says what to retry
 Why: R3, R4 (the failure kinds and the ban), A4 (SQL half).
-- [ ] `db/047_validate.sql` (needs 046, 042, 034, 032):
+- [x] `db/047_validate.sql` (needs 046, 042, 034, 032):
       - `app.recipe_tolerances() returns jsonb` immutable: `{"og": 0.002, "abv": 0.2, "ibu": 2,
         "srm": 1, "batch_l": 0}`, comment: user decision "Brewer bar" 2026-10-25, for targets and
         stated numbers alike; `evals/grade.py` `RECIPE_TOLERANCES` must equal it.
@@ -319,10 +319,10 @@ Why: R3, R4 (the failure kinds and the ban), A4 (SQL half).
         `model_deviations`: self-picked lines `out_of_style` or `changes_style` when guidance is
         off (R6; with guidance on such a line fails instead). `feedback`: one plain line per
         failure, ending with "(banned for the next try)" on a ban.
-- [ ] Contracts `step11.input` = `{run_id, try, brief, targets, frame, picks, step10}`,
+- [x] Contracts `step11.input` = `{run_id, try, brief, targets, frame, picks, step10}`,
       `step11.output` as above. `NAMES` gains both.
-- [ ] Apply twice; owners `postgres`.
-- [ ] Write `tests/test_validate.py` (stack, inputs as Task 4), each seen failing first:
+- [x] Apply twice; owners `postgres`.
+- [x] Write `tests/test_validate.py` (stack, inputs as Task 4), each seen failing first:
       `test_good_recipe_passes` (b16 from its good proposal, after step 10: passed, no failures);
       `test_target_miss_is_a_numbers_failure` (SRM target moved 3 away: one `numbers` failure,
       value and limit set, no ban); `test_stated_numbers` (b01 ABV 6.5 met; b08 IBU 50 met;
@@ -336,8 +336,8 @@ Why: R3, R4 (the failure kinds and the ban), A4 (SQL half).
       table: loop over every yeast row, none passes); `test_guidance_off_gives_model_deviations`
       (b18: self-picked out-of-style lines become `model_deviations`, not failures);
       `test_output_meets_contract`.
-- [ ] Run `.venv/bin/pytest tests/test_validate.py tests/test_compute.py tests/test_contracts.py`, expect all pass.
-- [ ] `docs/DATABASE.md` §5. PROJECT.md §8.
+- [x] Run `.venv/bin/pytest tests/test_validate.py tests/test_compute.py tests/test_contracts.py`, expect all pass.
+- [x] `docs/DATABASE.md` §5. PROJECT.md §8.
 Done when: each failure kind has a test and the impossible target never passes.
 Commit: `Validate recipes in step 11`
 
@@ -551,3 +551,6 @@ OPERATIONS §5 says; no container is recreated.
 - 2026-10-25 · Task 4: `app.step10_abv` added (ABV of a grist at an OG, used by the OG move), beside the two functions the plan names — it keeps the bisection readable.
 - 2026-10-25 · Task 4: a yeast with no attenuation figure (b10's Abbey Monk Ale) gives `numbers.fg`, `abv` and `attenuation_pct` null and no OG move, instead of raising — step 11's "a null number fails" then sends it back; the output contract allows those nulls.
 - 2026-10-25 · Task 4: `recipe.targets.og` is the OG used (moved), not step 4's target, so `app.check_recipe` recomputes step 10's numbers (the task's own test). Rule 9 then fails when the move is above 0.001 and OG is unstated with guidance on; Task 5 must decide how step 11 treats that (asked in the Task 4 report).
+- 2026-10-25 · Task 5: step 11 ignores rule 9's OG line (user answer "Skip rule 9's OG line (Rec.)": step 10 moves OG on purpose and step 11 checks the OG against the target at ± 0.002) — and also rule 9's ABV line ("the ABV target is not app.abv of the OG and FG targets"), because the same moved `recipe.targets.og` breaks it (seen on b23: 5.99 vs 5.72); ABV is checked against its target at ± 0.2 by the numbers check. The ABV skip is the implementer's extension of the user's answer.
+- 2026-10-25 · Task 5: a yeast with no attenuation figure gives a `numbers` failure "the ABV cannot be computed: the yeast has no attenuation figure" (as the user's note asked).
+- 2026-10-25 · Task 5: tests use b08 and b14 for the passing recipe (not b16: the first good proposal for b16 picks a yeast with no attenuation figure, and b01, b16, b23 and b24 miss SRM because the proposal's only base is a Pilsner malt, so the colour adjustment has no absorber). Hops are never `out_of_style` with the totals off, so the ban tests swap in an out-of-style fermentable instead of a hop; the impossible-target test rates the table's levels typical before building the proposal (the style it lands in, Session Beer, has no envelope).

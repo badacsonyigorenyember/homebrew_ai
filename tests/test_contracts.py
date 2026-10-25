@@ -8,7 +8,7 @@ import pytest
 from loaders.db import connect
 
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
-NAMES = [f"step{n}.{side}" for n in range(11) for side in ("input", "output")]
+NAMES = [f"step{n}.{side}" for n in range(12) for side in ("input", "output")]
 NAMES += ["choose.input", "choose.proposal"]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
 
@@ -27,6 +27,7 @@ ABSENT_SLOTS = {
     "step9.output": [("extras.dose_g_per_l", "null"), ("absent", "array")],
     "formulation_check.output": [("results.status", "enum:unknown"), ("numbers.fg", "null")],
     "step10.output": [("colour.darkest", "null"), ("numbers.abv", "null"), ("extras", "array")],
+    "step11.output": [("targets.value", "null"), ("failures", "array")],
 }
 
 
@@ -238,12 +239,27 @@ STEP10_OUT = {
     "values_used": [{"what": "boil", "because": "60 min"}],
     "recipe": CHECK_IN,
 }
+STEP11_OUT = {
+    "passed": False,
+    "failures": [{"kind": "pick", "subject": "Black Malt", "value": None, "limit": None,
+                  "text": "Step 11: Black Malt (mash) is out of style for the style: x", "ban": 5}],
+    "banned": [{"ingredient_id": 5, "name": "Black Malt", "why": "out of style: x"}],
+    "feedback": ["Step 11: Black Malt (mash) is out of style for the style: x (banned for the next try)"],
+    "check": {}, "style_fit": {},
+    "targets": [{"key": "abv", "target": 5.0, "value": None, "tolerance": 0.2, "met": False}],
+    "stated": [{"key": "ibu", "stated": 30, "value": 30.5, "tolerance": 2, "met": True}],
+    "model_deviations": [{"subject": "Black Malt", "level": "out_of_style", "note": "x"}],
+}
 GOOD = {
     **_CHOOSE_OUT,
     "step10.input": {"run_id": 1, "try": 1, "brief": BRIEF, "profile": GOOD_PROFILE, "targets": STEP4_OUT,
                      "step6": _CHOOSE_OUT["step6.output"], "step7": _CHOOSE_OUT["step7.output"],
                      "step8": _CHOOSE_OUT["step8.output"], "step9": _CHOOSE_OUT["step9.output"]},
     "step10.output": STEP10_OUT,
+    "step11.input": {"run_id": 1, "try": 1, "brief": BRIEF, "targets": STEP4_OUT, "frame": {},
+                     "picks": [{"ingredient_id": 5, "name": "Black Malt", "self_picked": True}],
+                     "step10": STEP10_OUT},
+    "step11.output": STEP11_OUT,
     "step6.input": {**_CANDIDATES, "band": {"yeast_low_pct": 74, "yeast_high_pct": 77},
                     "targets": {"og": 1.05}, "yeast_rules": {"lager": False, "families": [], "souring": False}},
     "step7.input": _CANDIDATES,
@@ -278,6 +294,8 @@ BAD = [
     ("step10.output", {**STEP10_OUT, "yeasts": []}),
     ("step10.output", {**STEP10_OUT, "extras": [{**STEP10_OUT["extras"][0], "usage": "packaging"}]}),
     ("step10.input", {k: v for k, v in GOOD["step10.input"].items() if k != "try"}),
+    ("step11.output", {**STEP11_OUT, "failures": [{**STEP11_OUT["failures"][0], "kind": "taste"}]}),
+    ("step11.input", {**GOOD["step11.input"], "picks": [{"ingredient_id": 5, "name": "x"}]}),
     ("step6.output", {k: v for k, v in _CHOOSE_OUT["step6.output"].items() if k != "attenuation"}),
     ("step6.output", {**_CHOOSE_OUT["step6.output"], "yeast": {**_YEAST, "ingredient_id": "5"}}),
     ("step7.output", {**_CHOOSE_OUT["step7.output"], "fermentables": [{**_CHOOSE_OUT["step7.output"]["fermentables"][0], "usage": "whirlpool"}]}),
