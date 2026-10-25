@@ -32,9 +32,9 @@ In:
   of the darkest fermentable that is not a crystal malt changes. s1 has no colour solver
   (`pg_proc`: `solve_grist` and `solve_hops` only), so this work builds it as tested code.
 - Step 11: validation with `app.check_recipe` (s2 rules 1–13) plus the checks in R3, and the retry
-  loop of at most 3 tries (numbers off → step 10 again; a rule or pick failure → back to the
-  steps 6–9 call with the rule, the value and the limit, PROJECT.md §3), with the reason for each
-  retry.
+  loop of at most 3 tries (step 10's own rescale runs in its one pass; any failure left, numbers
+  included, goes back to the steps 6–9 call with the rule or number, the value and the limit,
+  PROJECT.md §3), with the reason for each retry.
 - The formulation-check contract's extras (s9 Out): `formulation_check.input` takes the misc
   items, so b23 and b24 can be checked, and reference recipes for b23 and b24 join
   `tests/fixtures/reference_recipes.toml` (the RECIPE-ROADMAP §8 Later TODO).
@@ -72,9 +72,11 @@ R3. Step 11 passes a recipe only when all of these hold: `app.check_recipe` has 
     no item the pipeline picked on its own is rated `out_of_style` or `changes_style`; no
     excluded product (as `app.choose_excluded` reads them, LUPOMAX siblings included) is in the
     recipe.
-R4. A numbers failure runs step 10 again; a rule or pick failure re-runs the steps 6–9 call with
-    the failed rule, the value and the limit (and that pick banned). There are at most 3 tries in
-    all; each try logs its step rows in `app.run_step` with its `try` number and, on a failed
+R4. Step 10 makes one pass that includes its deterministic rescale (the colour adjustment, and OG
+    moved within its ± 0.002 tolerance towards the ABV target). Any failure step 11 then finds,
+    numbers included, re-runs the steps 6–9 call with the failed rule or number, the value and
+    the limit or target (and, for a pick failure, that pick banned); step 10 is not re-run on its
+    own. There are at most 3 tries in all; each try logs its step rows in `app.run_step` with its `try` number and, on a failed
     step 11, the reason in `error`.
 R5. After 3 failed tries the run ends with `app.run.ok = false` and the list of what failed; no
     recipe is saved as valid.
@@ -164,3 +166,4 @@ None open. Your answers, 2026-10-25:
    you approve them (Scope, R10, A10).
 
 ## Deviations
+- 2026-10-25 · Scope, R4: a numbers failure no longer re-runs step 10 on its own (its maths is closed form, so the same inputs give the same numbers); step 10 moves OG within ± 0.002 towards the ABV target in its one pass, and any number still off goes back to the steps 6–9 call with the value and target — user decision "OG nudge, then LLM" (planning question Q1).
