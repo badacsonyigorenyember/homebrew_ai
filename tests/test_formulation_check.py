@@ -536,3 +536,45 @@ def test_rule_13(conn):
     items = {"fermentables": [{"ingredient_id": 1, "name": "X", "min_boil_min": None}], "hops": []}
     r = conn.execute("select app.check_rule_13(%s::jsonb, %s::jsonb)", (json.dumps(items), json.dumps({"boil_min": 60}))).fetchone()[0]
     assert r["status"] == "unknown" and r["missing"] == ["ref.fermentable.min_boil_min"]
+
+
+# ---------------------------------------------------------------- extras (m6-compute-validate Task 2)
+
+
+def b23_input(conn):
+    from tests.test_reference_recipes import RECIPES, build_input
+    return build_input(conn, next(r for r in RECIPES if r["brief"] == "b23"))
+
+
+def items_of(conn, recipe_json):
+    return conn.execute("select app.check_recipe_items(%s::jsonb)", (json.dumps(recipe_json),)).fetchone()[0]
+
+
+@pytest.mark.stack
+def test_extras_do_not_enter_the_numbers(conn):
+    with_extras = b23_input(conn)
+    assert len(with_extras["extras"]) == 2
+    without = {k: v for k, v in with_extras.items() if k != "extras"}
+    assert check(conn, with_extras)["numbers"] == check(conn, without)["numbers"]
+    listed = items_of(conn, with_extras)["extras"]
+    assert [(e["name"], e["usage"], e["g"], e["category"]) for e in listed] == [
+        ("Coffee, whole beans", "secondary", 60, "coffee"), ("Vanilla bean", "secondary", 1, "vanilla")]
+    assert "extras" not in items_of(conn, without) or items_of(conn, without)["extras"] == []
+
+
+@pytest.mark.stack
+def test_extra_must_be_misc(conn):
+    rec = b23_input(conn)
+    rec["extras"][0]["ingredient_id"] = hop_id(conn, "Cascade")
+    with pytest.raises(Exception, match="is not a misc item"):
+        check(conn, rec)
+    conn.rollback()
+
+
+@pytest.mark.stack
+def test_extra_usage_must_be_its_rows(conn):
+    rec = b23_input(conn)
+    rec["extras"][0]["usage"] = "boil"
+    with pytest.raises(Exception, match="not a usage of"):
+        check(conn, rec)
+    conn.rollback()

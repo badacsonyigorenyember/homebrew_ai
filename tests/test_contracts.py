@@ -58,6 +58,8 @@ def test_contract_files_complete():
             assert schema.get(key), f"{name}: {key} missing"
         assert schema["type"] == "object"
         optional = {"temperature", "seed"} if name == "step1.input" else set()
+        if name == "formulation_check.input":
+            optional = {"extras"}
         assert set(schema["required"]) == set(schema["properties"]) - optional, name
         assert schema["additionalProperties"] is False, name
         if name.startswith("step") and name.endswith(".input"):

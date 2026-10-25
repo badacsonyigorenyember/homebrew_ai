@@ -112,8 +112,12 @@ as $$
 $$;
 
 -- Resolves the ids of a recipe against the ref tables and returns
--- {style_code, fermentables[], hops[], yeast}. Raises on an unknown style code, an id that is not
--- of the right kind, a duplicate fermentable, or percentages more than pct_sum_tolerance from 100.
+-- {style_code, fermentables[], hops[], yeast, extras[]}. Raises on an unknown style code, an id that
+-- is not of the right kind, a duplicate fermentable, or percentages more than pct_sum_tolerance
+-- from 100. extras (optional in the input, m6-compute-validate) are misc items
+-- {ingredient_id, name, usage, g, purpose, category}: each must be a ref.misc row used in one of
+-- its usages. They are listed only: app.check_recipe does not read them, so OG, FG, ABV, IBU and
+-- SRM are the same with or without them.
 -- A fermentable counts as mashed unless its role is sugar (brief assumption).
 create or replace function app.check_recipe_items(recipe jsonb)
 returns jsonb
@@ -126,12 +130,14 @@ declare
     ferm jsonb := '[]'::jsonb;
     hops jsonb := '[]'::jsonb;
     yeast jsonb;
+    extras jsonb := '[]'::jsonb;
     seen bigint[] := '{}';
     pct_sum numeric := 0;
     ing_id bigint;
     f record;
     h record;
     y record;
+    m record;
 begin
     if not exists (select 1 from ref.beer_style where code = recipe->>'style_code') then
         raise exception 'check_recipe: style code % is not in ref.beer_style', recipe->>'style_code';
@@ -195,8 +201,26 @@ begin
         'attenuation_pct', y.attenuation_pct::text, 'temp_c', y.temp_c::text,
         'alcohol_tolerance_pct', y.alcohol_tolerance_pct);
 
+    for r in select * from jsonb_array_elements(coalesce(recipe->'extras', '[]'::jsonb)) loop
+        ing_id := (r->>'ingredient_id')::bigint;
+        select i.name, mi.category, mi.usages
+          into m
+          from ref.ingredient i join ref.misc mi on mi.ingredient_id = i.id
+         where i.id = ing_id;
+        if not found then
+            raise exception 'check_recipe: ingredient % is not a misc item', ing_id;
+        end if;
+        if not (r->>'usage' = any (m.usages)) then
+            raise exception 'check_recipe: usage % is not a usage of % (ingredient %)',
+                r->>'usage', m.name, ing_id;
+        end if;
+        extras := extras || jsonb_build_object(
+            'ingredient_id', ing_id, 'name', m.name, 'usage', r->>'usage', 'g', (r->>'g')::numeric,
+            'purpose', r->>'purpose', 'category', m.category);
+    end loop;
+
     return jsonb_build_object('style_code', recipe->>'style_code', 'fermentables', ferm,
-                              'hops', hops, 'yeast', yeast);
+                              'hops', hops, 'yeast', yeast, 'extras', extras);
 end;
 $$;
 

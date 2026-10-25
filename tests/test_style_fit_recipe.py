@@ -1,5 +1,5 @@
 """app.style_fit_recipe on whole recipes (Task 9 of s3-style-fit): the required check, the
-recipe-total min check, and the 22 reference recipes. Needs the stack."""
+recipe-total min check, and the 24 reference recipes. Needs the stack."""
 
 import copy
 import json
@@ -27,7 +27,10 @@ ACCEPTED_LINES: dict[tuple[str, str], tuple[str, str]] = {
 ACCEPTED_TOTALS: dict[tuple[str, str], tuple[str, str]] = {}
 
 # The briefs' own deviations (b16 rice, b19 honey, b20 lactose): out of style by design.
-DEVIATIONS = {("b16", "Flaked Rice"), ("b19", "Honey"), ("b20", "Lactose")}
+# b23 and b24 add spice extras the style does not list; b23 is rated against its 20B base because
+# its brief style 30A has no envelope.
+DEVIATIONS = {("b16", "Flaked Rice"), ("b19", "Honey"), ("b20", "Lactose"),
+              ("b23", "Coffee, whole beans"), ("b23", "Vanilla bean"), ("b24", "Orange peel")}
 
 
 @pytest.fixture(scope="module")
@@ -122,3 +125,29 @@ def test_colour_lower_bound(conn):
         assert lines[name]["level"] == "out_of_style"
         assert "too much colour: at least" in lines[name]["because"]
         assert "no colour for Honey" in lines[name]["because"]
+
+
+def test_extras_read_from_recipe(conn):
+    """No second argument: the recipe's own extras are rated (m6-compute-validate Task 2)."""
+    rec = recipe("b23")
+    full = fit(conn, build_input(conn, rec))
+    misc = [l for l in full["lines"] if l["kind"] == "misc"]
+    assert [(l["name"], l["usage"]) for l in misc] == [
+        ("Coffee, whole beans", "secondary"), ("Vanilla bean", "secondary")]
+    bare = build_input(conn, rec)
+    del bare["extras"]
+    assert [l for l in fit(conn, bare)["lines"] if l["kind"] == "misc"] == []
+
+
+def test_totals_off_rates_picks_on_their_own(conn):
+    """b08 asks for 50 IBU, above 5D's range: Magnum is out of style on the recipe total, not on
+    its own use (step 11 checks the totals against the targets instead)."""
+    inp = build_input(conn, recipe("b08"))
+
+    def magnum(totals):
+        out = conn.execute("select app.style_fit_recipe(%s::jsonb, null, %s)",
+                           (json.dumps(inp), totals)).fetchone()[0]
+        return next(l for l in out["lines"] if l["name"] == "Magnum")
+
+    assert magnum(True)["level"] == "out_of_style"
+    assert magnum(False)["level"] not in ("out_of_style", "changes_style")

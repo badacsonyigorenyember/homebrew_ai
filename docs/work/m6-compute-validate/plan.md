@@ -168,36 +168,36 @@ Commit: `Let recipe deviations keep step 3 kinds`
 
 ### Task 2: the formulation check takes extras; b23 and b24 get reference recipes
 Why: R8, A9 (RECIPE-ROADMAP §8 Later TODO).
-- [ ] `shared/contracts/formulation_check.input.schema.json`: optional `extras` array, items
+- [x] `shared/contracts/formulation_check.input.schema.json`: optional `extras` array, items
       `{ingredient_id integer, usage enum mash|boil|whirlpool|ferment|secondary|packaging,
       g number ≥ 0, purpose string}`, all required, `additionalProperties: false`. Not in the
       top-level `required`, so every existing input stays valid.
-- [ ] `db/032_formulation_check.sql` `app.check_recipe_items`: each extra must be a `ref.misc`
+- [x] `db/032_formulation_check.sql` `app.check_recipe_items`: each extra must be a `ref.misc`
       row (else raise `check_recipe: ingredient % is not a misc item`) and its usage one of the
       row's `usages` (else raise); returned as `extras [{ingredient_id, name, usage, g,
       purpose, category}]`. `app.check_recipe` does not read them: OG, FG, ABV, IBU and SRM are
       unchanged (comment says so).
-- [ ] `db/034_style_level.sql` `app.style_fit_recipe(recipe jsonb, extras jsonb default null,
+- [x] `db/034_style_level.sql` `app.style_fit_recipe(recipe jsonb, extras jsonb default null,
       totals boolean default true)`: extras null → `recipe -> 'extras'` (or `[]`); `totals` false
       leaves `ibu`, `srm` and `srm_lower_bound` out of every line's dose (the comment says why:
       step 11 rates a pick on its own use, the totals are checked against the targets). Drop the
       two-argument version first (CREATE OR REPLACE cannot add a defaulted argument cleanly).
-- [ ] Apply 032 and 034 twice; owners `postgres`.
-- [ ] `tests/fixtures/reference_recipes.toml`: `[[recipe]]` b23 (20B base with Coffee, whole
+- [x] Apply 032 and 034 twice; owners `postgres`.
+- [x] `tests/fixtures/reference_recipes.toml`: `[[recipe]]` b23 (20B base with Coffee, whole
       beans and Vanilla bean, as `extra = [{name, usage, g, purpose}]`, g = the step 9 dose ×
       20 L: coffee 3.0 g/L → 60 g, vanilla 0.05 g/L → 1 g) and b24 (18B with Orange peel,
       whirlpool, 2.64 g/L × 20 L = 52.8 g). Targets from `app.step4_numbers` as the header says;
       only `ref` ingredients. Header gains the `extra` field.
-- [ ] `tests/test_reference_recipes.py`: `build_input` adds `extras` (misc ids by name);
+- [x] `tests/test_reference_recipes.py`: `build_input` adds `extras` (misc ids by name);
       `test_every_brief_has_exactly_one_recipe` expects all 24.
-- [ ] Write `tests/test_formulation_check.py::test_extras_do_not_enter_the_numbers` (a recipe
+- [x] Write `tests/test_formulation_check.py::test_extras_do_not_enter_the_numbers` (a recipe
       with and without b23's two extras: same `numbers`), `test_extra_must_be_misc` (a hop id
       as extra raises), `test_extra_usage_must_be_its_rows` (coffee at `boil` raises);
       `tests/test_style_fit_recipe.py::test_extras_read_from_recipe` (no second argument: misc
       lines present) and `test_totals_off_rates_picks_on_their_own` (b08's reference recipe at
       50 IBU: Magnum `out_of_style` with totals, not with `totals => false`). See each fail first.
-- [ ] Run `.venv/bin/pytest tests/test_formulation_check.py tests/test_reference_recipes.py tests/test_style_fit_recipe.py tests/test_misc.py tests/test_contracts.py`, expect all pass.
-- [ ] PROJECT.md §8 entry. b23 and b24 recipes are shown to you at the Task 9 gate.
+- [x] Run `.venv/bin/pytest tests/test_formulation_check.py tests/test_reference_recipes.py tests/test_style_fit_recipe.py tests/test_misc.py tests/test_contracts.py`, expect all pass.
+- [x] PROJECT.md §8 entry. b23 and b24 recipes are shown to you at the Task 9 gate.
 Done when: 24 reference recipes pass `app.check_recipe` (A9).
 Commit: `Check extras and add b23 and b24 references`
 
