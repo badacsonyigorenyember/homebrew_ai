@@ -374,11 +374,11 @@ Commit: `Save validated recipes`
 
 ### Task 7: steps 6–9 take the retry feedback
 Why: R4 (rule, value, limit, banned pick back to the one LLM call).
-- [ ] `shared/contracts/choose.input.schema.json`: `feedback` required, `null` or `{try integer
+- [x] `shared/contracts/choose.input.schema.json`: `feedback` required, `null` or `{try integer
       2–3, lines [string], banned [{ingredient_id, name, why}], last {fermentables, hops, yeast,
       extras} (the failed try's picks: names, pct, share, usage, minutes)}`.
       `tests/step69_sample.json` gains `"feedback": null`.
-- [ ] `db/042_choose_table.sql`: `app.choose_ban(tbl jsonb, feedback jsonb) returns jsonb`: null
+- [x] `db/042_choose_table.sql`: `app.choose_ban(tbl jsonb, feedback jsonb) returns jsonb`: null
       feedback returns `tbl`; else removes every banned id from `fermentables`, `hops`, `yeasts`,
       `misc` and from `slots[].ids` and `inventory_words[].ids`, and appends to `excluded`
       `{ingredient_id, name, word: name, why: "failed step 11 on try <n>: <why>"}`, so the
@@ -386,20 +386,20 @@ Why: R4 (rule, value, limit, banned pick back to the one LLM call).
       jsonb) returns text`: empty for null; else a block "Try <n>: the last recipe failed step
       11. Fix these and change as little else as you can:" with the lines, then the last picks,
       then the banned names.
-- [ ] Apply twice; owners `postgres`.
-- [ ] `n8n/workflows/steps-6-9-choose-ingredients.json`: `Build table` selects
+- [x] Apply twice; owners `postgres`.
+- [x] `n8n/workflows/steps-6-9-choose-ingredients.json`: `Build table` selects
       `app.choose_ban(app.choose_table(...), $5)` and appends `app.choose_feedback_prompt($5)` to
       the prompt; nothing else changes. Import, publish.
-- [ ] Write in `tests/test_choose_table.py`, each seen failing first: `test_ban_removes_and_excludes`
+- [x] Write in `tests/test_choose_table.py`, each seen failing first: `test_ban_removes_and_excludes`
       (b01 with Caramel 50 banned: no row, listed in `excluded` with the why; `app.choose_check`
       of a proposal using it gives the excluded message); `test_no_feedback_same_table` (null →
       identical table and prompt); `test_feedback_prompt_lines` (every line and banned name
       appears; every number in the block is a number in the feedback).
-- [ ] Measure (A2 prompt budget): b18's table with a three-line feedback through Ollama once,
+- [x] Measure (A2 prompt budget): b18's table with a three-line feedback through Ollama once,
       as `evals/fit_test.py` counts it (`prompt_eval_count + 4096 ≤ 32768`); write the tokens in
       the §8 entry. If it does not fit, stop and hand back `needs-input`.
-- [ ] Run `.venv/bin/pytest tests/test_choose_table.py tests/test_choose_check.py tests/test_choose_outputs.py tests/test_contracts.py tests/test_workflows.py`, expect all pass.
-- [ ] PROJECT.md §8.
+- [x] Run `.venv/bin/pytest tests/test_choose_table.py tests/test_choose_check.py tests/test_choose_outputs.py tests/test_contracts.py tests/test_workflows.py`, expect all pass.
+- [x] PROJECT.md §8.
 Done when: a retry's table refuses the banned picks and its prompt carries the failures.
 Commit: `Pass step 11 failures back to steps 6-9`
 
@@ -555,3 +555,4 @@ OPERATIONS §5 says; no container is recreated.
 - 2026-10-25 · Task 5: a yeast with no attenuation figure gives a `numbers` failure "the ABV cannot be computed: the yeast has no attenuation figure" (as the user's note asked).
 - 2026-10-25 · Task 5: tests use b08 and b14 for the passing recipe (not b16: the first good proposal for b16 picks a yeast with no attenuation figure, and b01, b16, b23 and b24 miss SRM because the proposal's only base is a Pilsner malt, so the colour adjustment has no absorber). Hops are never `out_of_style` with the totals off, so the ban tests swap in an out-of-style fermentable instead of a hop; the impossible-target test rates the table's levels typical before building the proposal (the style it lands in, Session Beer, has no envelope).
 - 2026-10-25 · Task 6: `test_rows_match_step10` checks coffee against step 10's own dose × 20 L (the good proposal gives 6.0 g/L, not 3.0) and gives b23 a passed step 11 (its first proposal does not pass); `test_refuses_a_run_without_a_brief` added.
+- 2026-10-25 · Task 7: `choose.input.feedback` is required in the contract but declared without a type in the sub-workflow trigger (n8n sends a null input as missing; the contract-check node maps it with `?? null`). The prompt block starts with a `TRY <n>` heading like the other blocks, then the plan's sentence. Added `test_ban_removes_from_slots_and_inventory` and a bad example (`feedback.try` 1) in `tests/test_contracts.py`.

@@ -11,6 +11,7 @@
     "profile",
     "targets",
     "frame",
+    "feedback",
     "model",
     "think",
     "temperature",
@@ -47,6 +48,96 @@
     },
     "seed": {
       "type": "integer"
+    },
+    "feedback": {
+      "description": "Null on try 1. On a retry: step 11's failures, the pick bans and the failed try's picks (R4).",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "try",
+            "lines",
+            "banned",
+            "last"
+          ],
+          "properties": {
+            "try": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 3
+            },
+            "lines": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "banned": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "ingredient_id",
+                  "name",
+                  "why"
+                ],
+                "properties": {
+                  "ingredient_id": {
+                    "type": "integer"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "why": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "last": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "fermentables",
+                "hops",
+                "yeast",
+                "extras"
+              ],
+              "properties": {
+                "fermentables": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "hops": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "yeast": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "extras": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

@@ -272,6 +272,7 @@
    }
   },
   "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
-  "think": false
+  "think": false,
+  "feedback": null
  }
 ]

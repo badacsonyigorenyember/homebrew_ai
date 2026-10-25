@@ -224,3 +224,77 @@ def test_unrated_style_lists_every_product(conn):
     assert all(len(tbl[k]) > 0 for k in ("fermentables", "hops", "yeasts"))
     assert "no reviewed ingredient guidance" in sql(conn, "choose_prompt", tbl, brief)
     assert table_of(conn, "b01")["style_rated"] is True
+
+
+# --- Task 7 of docs/work/m6-compute-validate: a retry's table and prompt (R4) ---
+
+def feedback_of(banned, lines=None):
+    """A try 2 feedback: three failure lines, the failed picks, the banned products."""
+    return {
+        "try": 2,
+        "lines": lines or ["Rule 3: roast malt is 20 % of the grist, the limit is 10 %.",
+                           "SRM 31.2 misses the target 14 by more than 1.",
+                           "Black Malt (mash) is out of style (banned for the next try)"],
+        "banned": banned,
+        "last": {
+            "fermentables": [{"name": "Pale Ale Malt", "pct": 80.5, "usage": "mash"}],
+            "hops": [{"name": "Magnum", "share_pct": 100.0, "usage": "boil", "minutes": 60}],
+            "yeast": [{"name": "Safale US-05"}],
+            "extras": [],
+        },
+    }
+
+
+def test_ban_removes_and_excludes(conn):
+    """R4: a banned pick leaves every list and is excluded with its why, so the check refuses it."""
+    from tests.test_choose_check import good_proposal
+    tbl = table_of(conn, "b01")
+    banned = next(r for r in tbl["fermentables"] if r["role"] != "base")
+    fb = feedback_of([{"ingredient_id": banned["ingredient_id"], "name": banned["name"], "why": "out of style"}])
+    after = sql(conn, "choose_ban", tbl, fb)
+    assert banned["ingredient_id"] not in ids_of(after)
+    assert all(banned["ingredient_id"] not in s["ids"] for s in after["slots"] + after["inventory_words"])
+    ex = next(e for e in after["excluded"] if e["ingredient_id"] == banned["ingredient_id"])
+    assert ex["why"] == "failed step 11 on try 2: out of style" and ex["name"] == banned["name"]
+    assert len(after["excluded"]) == len(tbl["excluded"]) + 1
+    p = copy.deepcopy(good_proposal(tbl))
+    p["fermentables"][-1]["ingredient_id"] = banned["ingredient_id"]
+    errs = sql(conn, "choose_check", after, p)
+    assert any("is excluded: failed step 11 on try 2: out of style" in e for e in errs)
+
+
+def test_ban_removes_from_slots_and_inventory(conn):
+    """A banned id is also taken out of the slots and inventory words that listed it."""
+    tbl = copy.deepcopy(table_of(conn, "b01"))
+    victim = tbl["fermentables"][0]["ingredient_id"]
+    tbl["slots"] = [{"item": "x", "role": None, "kind": "fermentable", "ids": [victim]}]
+    tbl["inventory_words"] = [{"word": "y", "kind": "fermentable", "ids": [victim], "fits": True}]
+    after = sql(conn, "choose_ban", tbl, feedback_of([{"ingredient_id": victim, "name": "n", "why": "w"}]))
+    assert after["slots"][0]["ids"] == [] and after["inventory_words"][0]["ids"] == []
+
+
+def test_no_feedback_same_table(conn):
+    """No feedback (try 1): the same table and the same prompt, the prompt block is empty."""
+    tbl, brief = built(conn, "b01")
+    assert sql(conn, "choose_ban", tbl, None) == tbl
+    assert (conn.execute("select app.choose_feedback_prompt(null)").fetchone()[0] or "") == ""
+
+
+def built(conn, bid):
+    table_of(conn, bid)
+    return BUILT[bid]
+
+
+def test_feedback_prompt_lines(conn):
+    """Every failure line, pick and banned name is in the block; every number in it is the feedback's."""
+    fb = feedback_of([{"ingredient_id": 1, "name": "Black Malt", "why": "out of style"}])
+    text = conn.execute("select app.choose_feedback_prompt(%s::jsonb)", (json.dumps(fb),)).fetchone()[0]
+    assert "Try 2: the last recipe failed step 11. Fix these and change as little else as you can:" in text
+    for line in fb["lines"]:
+        assert line in text
+    for name in ("Pale Ale Malt", "Magnum", "Safale US-05", "Black Malt"):
+        assert name in text
+    allowed = set(re.findall(r"\d+(?:\.\d+)?", json.dumps({k: v for k, v in fb.items() if k != "banned"})))
+    allowed |= {"2", "11"}
+    found = set(re.findall(r"\d+(?:\.\d+)?", text))
+    assert found <= allowed | {"80.5", "100", "60"} and found, found - allowed
