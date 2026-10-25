@@ -203,7 +203,7 @@ Commit: `Check extras and add b23 and b24 references`
 
 ### Task 3: the colour adjustment (rule 7) as tested code
 Why: R2, A6. s1 has no colour solver (`pg_proc`: `solve_grist`, `solve_hops` only).
-- [ ] `db/046_compute.sql` (needs 030, 032): `app.solve_colour(target_srm numeric, grist jsonb,
+- [x] `db/046_compute.sql` (needs 030, 032): `app.solve_colour(target_srm numeric, grist jsonb,
       target_og numeric, efficiency_pct numeric, volume_l numeric) returns jsonb`. Grist items
       `{ingredient_id, name, role, pct, extract_pct, mashed, ebc, max_pct}` (`ebc` null counts as
       0). Returns `{grist, adjusted, reached, srm, darkest, absorber, from_pct, to_pct,
@@ -216,8 +216,8 @@ Why: R2, A6. s1 has no colour solver (`pg_proc`: `solve_grist`, `solve_hops` onl
       (0, `max_pct`] and keep the absorber in (0, its `max_pct`], recompute SRM with
       `app.srm(app.grist_mcu(app.solve_grist(...)))`; `reached` = within 1. `because` names the two
       fermentables and the shares, or why nothing changed.
-- [ ] Apply twice; owner `postgres`.
-- [ ] Write `tests/test_compute.py` (stack), each seen failing first:
+- [x] Apply twice; owner `postgres`.
+- [x] Write `tests/test_compute.py` (stack), each seen failing first:
       `test_colour_moves_only_darkest_and_base` (A6: b15's G5 grist, Maris Otter 88, Crystal
       T50 10, Black Malt 2, target 12: only Black Malt and Maris Otter change, Crystal T50 stays
       10, shares sum 100, SRM within 0.01 of 12); `test_colour_never_moves_crystal` (a grist whose
@@ -227,7 +227,7 @@ Why: R2, A6. s1 has no colour solver (`pg_proc`: `solve_grist`, `solve_hops` onl
       with the reason); `test_colour_within_tolerance_is_left_alone`;
       `test_colour_matches_s1` (the returned SRM equals `app.srm(app.grist_mcu(...))` of the
       returned grist solved with `app.solve_grist`).
-- [ ] PROJECT.md §8 entry.
+- [x] PROJECT.md §8 entry.
 Done when: the colour tests pass.
 Commit: `Add the rule 7 colour solver`
 
