@@ -454,12 +454,12 @@ Commit: `Run steps 10-11 with retries in the pipeline`
 
 ### Task 9: the harness reports recipes; held-out briefs (gate)
 Why: R9, R10, A2, A3, A10, A11.
-- [ ] `evals/grade.py`: `RECIPE_TOLERANCES = {"og": 0.002, "abv": 0.2, "ibu": 2, "srm": 1,
+- [x] `evals/grade.py`: `RECIPE_TOLERANCES = {"og": 0.002, "abv": 0.2, "ibu": 2, "srm": 1,
       "batch_l": 0}` next to the maths tolerances, with the user decision as comment;
       `grade_recipe(brief, recipe)` (pure Python): `validated` (a recipe row exists), `invented`
       (items with `ingredient_id` null), `stated` per stated number `{stated, value, met}` with
       `batch_l` exact, `stated_ok`.
-- [ ] `evals/run.py`: `read_run` sums `llm.tries` over **every** row (all tries, failed rows
+- [x] `evals/run.py`: `read_run` sums `llm.tries` over **every** row (all tries, failed rows
       too) into `calls`, counts `first_try_calls` (try-1 rows with an `llm`, each once) and
       `retry_calls`, and reads `tries` (largest step 11 `try`); `read_recipe(conn, run_id)` reads
       `app.run.recipe_id`'s `app.recipe`, its items and deviations (R9: from the saved rows, not
@@ -467,26 +467,26 @@ Why: R9, R10, A2, A3, A10, A11.
       columns; totals gain `validated` (b01–b20 and all), `invented`, `stated_met`, `calls`,
       `first_try_calls` max, `retry_calls`. `--briefs PATH` (default `evals/recipe_briefs.toml`).
       `passed` stays as today and also needs `validated`.
-- [ ] `evals/show_recipe.py` (`python -m evals.show_recipe <run_id>`): prints a saved recipe as
+- [x] `evals/show_recipe.py` (`python -m evals.show_recipe <run_id>`): prints a saved recipe as
       plain text (style, batch, numbers vs targets, fermentables kg and %, hops g, minutes and
       usage, yeast, extras g, deviations, each pick's `because` from the step 6–9 rows), for
       A11. Reads only.
-- [ ] `evals/heldout_briefs.toml`: draft 6 briefs `h01`–`h06` in the `recipe_briefs.toml`
+- [x] `evals/heldout_briefs.toml`: draft 6 briefs `h01`–`h06` in the `recipe_briefs.toml`
       format, from styles that no b01–b24 `style` or `alt_styles` uses, spread over families
       (e.g. a Czech lager, a Scottish ale, a Belgian blond, a porter, a Kölsch-type, an English
       barleywine; final picks by the drafting), at least two with stated numbers and one with a
       stated batch size; header: "scored only at checkpoints, never while building; the needs
       words are not graded (the class map covers b01–b24)". These styles have no reviewed
       envelope, so their level checks are off (user decision 2026-10-25, "Accept").
-- [ ] `tests/test_recipe_briefs.py`: `test_heldout_briefs_have_every_field` (same field check),
+- [x] `tests/test_recipe_briefs.py`: `test_heldout_briefs_have_every_field` (same field check),
       `test_heldout_styles_unused` (A10), `test_heldout_style_codes_exist`; the runner's needs
       grade is skipped for a file other than `recipe_briefs.toml`.
-- [ ] Tests in `tests/test_grade.py` and `tests/test_run.py` (no stack), each seen failing when
+- [x] Tests in `tests/test_grade.py` and `tests/test_run.py` (no stack), each seen failing when
       broken: `grade_recipe` met / missed / batch exact / invented; `calls` over three tries;
       `first_try_calls` 2 with a step 6 contract retry on try 1; `test_harness_tolerances_match_sql`
       (stack: equals `app.recipe_tolerances()`).
-- [ ] Run `.venv/bin/pytest tests/test_grade.py tests/test_run.py tests/test_recipe_briefs.py`, expect all pass.
-- [ ] **Gate:** hand back `needs-input` with `evals/heldout_briefs.toml` and the b23 and b24
+- [x] Run `.venv/bin/pytest tests/test_grade.py tests/test_run.py tests/test_recipe_briefs.py`, expect all pass.
+- [x] **Gate:** hand back `needs-input` with `evals/heldout_briefs.toml` and the b23 and b24
       reference recipes (Task 2) for your approval (R10, A10). Record your answer in the §8 entry;
       apply changes you ask for before Task 10.
 Done when: the runner reports recipes from the saved rows and you approved the held-out briefs.
@@ -559,3 +559,4 @@ OPERATIONS §5 says; no container is recreated.
 - 2026-10-25 · Task 8: `Steps 10–11 · compute and validate` returns `{step10, step11, step11_input}` (the plan says `{step10, step11}`) — `Steps 6–11 · one try` logs row 11 with the input the sub-workflow built, and rebuilding it there would copy the expression. `try.output.next_feedback` is also null after try 3 (no try 4 exists), and its `banned` list is every ban so far (the feedback's own plus the new ones), so try 3's table also refuses try 1's bans.
 - 2026-10-25 · Task 8: the pipeline's failure branch for the tries is one `Finish run (failed, steps 6–11)` / `Respond failed (steps 6–11)` pair for the three `Try n` nodes and for `Save recipe`'s error output (the finish query returns the error text, so the respond node needs no node name); `failed_step` reads `step N:` or `stepN.` in the message (lowest, 6 when none, 11 for a `save_recipe` error), so a step 10 or 11 failure reports 10 or 11.
 - 2026-10-25 · Task 8: the pipeline run found two bugs in earlier tasks, fixed here with a test each: `db/046_compute.sql` raised "the choice "<NULL>" of German Lager is not a fermentation temperature" when step 6 picks a yeast with no `choice` — step 10 now takes the middle of the yeast's `temp_c` range and says so in `values_used` (`test_ferm_c_without_a_choice_is_the_range_middle`); `db/047_validate.sql` treated an unrated style line (`level` null, a style with no reviewed envelope) as a pick failure with a ban, and the output then broke its contract (`test_unrated_style_bans_nothing`).
+- 2026-10-25 · Task 9: `grade_result` gains `recipe`, `stats` and `grade_needs`, and `read_run` reads all `run_step` rows in one query (the plan says it sums over every row; the old two queries are folded into it); `totals["calls"]` keeps its shape and the new counts are separate keys (`first_try_calls_max`, `retry_calls`, `validated`, `invented`, `stated_met`); `tests/test_run.py` and `test_grade.py` gain `test_show_recipe_prints_the_saved_recipe` and `test_read_recipe_reads_the_saved_rows` (not in the plan) — they cover the new reader and printer; two older run tests now pass a recipe because `passed` needs one.

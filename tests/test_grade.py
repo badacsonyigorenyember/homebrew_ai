@@ -833,3 +833,48 @@ def test_a5_a_blend_the_brewer_wants_or_has_may_be_the_main_yeast():
     steps, facts = sample("b14")
     facts["refs"][steps[6]["yeast"]["ingredient_id"]]["type"] = "brett"
     assert mentions(problems(6, steps, facts), "not a brewing yeast")
+
+
+# --- grade_recipe (docs/work/m6-compute-validate, Task 9) ------------------------------------
+def saved(**numbers):
+    """A recipe as evals.run.read_recipe reads it from the saved rows."""
+    base = {"batch_l": 20.0, "og": 1.065, "fg": 1.012, "abv": 6.5, "ibu": 60.0, "srm": 6.0,
+            "items": [{"ingredient_id": 1, "raw_name": "Pale"}, {"ingredient_id": 2, "raw_name": "Hop"}],
+            "deviations": []}
+    return {**base, **numbers}
+
+
+def test_recipe_met_within_tolerances():
+    b = BRIEFS["b01"]  # stated batch_l 20, abv 6.5
+    result = grade.grade_recipe(b, saved(abv=6.69))
+    assert result["validated"] is True and result["invented"] == 0
+    assert result["stated"] == {"batch_l": {"stated": 20, "value": 20.0, "met": True},
+                                "abv": {"stated": 6.5, "value": 6.69, "met": True}}
+    assert result["stated_ok"] is True
+
+
+def test_recipe_missed_stated_number():
+    result = grade.grade_recipe(BRIEFS["b01"], saved(abv=6.8))  # 0.3 off, tolerance 0.2
+    assert result["stated"]["abv"]["met"] is False and result["stated_ok"] is False
+    result = grade.grade_recipe(BRIEFS["b08"], saved(batch_l=10.0, ibu=47.9))  # IBU 50 +- 2
+    assert result["stated"]["ibu"]["met"] is False
+    assert grade.grade_recipe(BRIEFS["b08"], saved(batch_l=10.0, ibu=48.0))["stated"]["ibu"]["met"] is True
+
+
+def test_recipe_batch_is_exact():
+    result = grade.grade_recipe(BRIEFS["b01"], saved(batch_l=20.1, abv=6.5))
+    assert result["stated"]["batch_l"]["met"] is False and result["stated_ok"] is False
+
+
+def test_recipe_invented_items_and_not_validated():
+    items = [{"ingredient_id": None, "raw_name": "x"}, {"ingredient_id": 3, "raw_name": "y"},
+             {"ingredient_id": None, "raw_name": "z"}]
+    assert grade.grade_recipe(BRIEFS["b02"], saved(items=items))["invented"] == 2
+    none = grade.grade_recipe(BRIEFS["b01"], None)
+    assert none["validated"] is False and none["invented"] == 0 and none["stated_ok"] is False
+    assert none["stated"]["abv"] == {"stated": 6.5, "value": None, "met": False}
+    assert grade.grade_recipe(BRIEFS["b02"], None)["stated_ok"] is True  # nothing stated
+
+
+def test_recipe_tolerances_are_the_user_decision():
+    assert grade.RECIPE_TOLERANCES == {"og": 0.002, "abv": 0.2, "ibu": 2, "srm": 1, "batch_l": 0}

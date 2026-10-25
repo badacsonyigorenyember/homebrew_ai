@@ -248,3 +248,49 @@ def test_words_are_the_users():
 def test_print_coverage():
     for key, value in coverage(BRIEFS).items():
         print(f"{key}: {value}")
+
+
+# --- the held-out briefs (docs/work/m6-compute-validate, Task 9, A10) -------------------------
+HELDOUT_FILE = BRIEFS_FILE.parent / "heldout_briefs.toml"
+with HELDOUT_FILE.open("rb") as f:
+    HELDOUT = tomllib.load(f)["brief"]
+
+
+def test_heldout_briefs_have_every_field():
+    assert len(HELDOUT) == 6, f"held-out briefs: {len(HELDOUT)} (need exactly 6)"
+    ids = [b.get("id") for b in HELDOUT]
+    assert ids == [f"h0{n}" for n in range(1, 7)], f"ids: {ids}"
+    for b in HELDOUT:
+        bid = b["id"]
+        assert set(b) == FIELDS, f"{bid}: missing {FIELDS - set(b)}, extra {set(b) - FIELDS}"
+        for key in ("request", "named", "why", "style"):
+            assert isinstance(b[key], str) and b[key].strip(), f"{bid}: {key} empty"
+        assert 1 <= sentence_count(b["request"]) <= 3, f"{bid}: request sentences"
+        assert isinstance(b["guidance"], bool)
+        for key in ("alt_styles", "hints", "wanted", "excluded", "inventory", "deviations"):
+            assert isinstance(b[key], list), f"{bid}: {key} is not a list"
+        assert set(b["stated"]) <= STATED_KEYS, f"{bid}: stated keys"
+        assert all(isinstance(v, (int, float)) for v in b["stated"].values())
+        assert set(b["needs"]) <= NEEDS_KEYS, f"{bid}: needs keys"
+        assert b["named"].lower() in b["request"].lower(), f"{bid}: named is not in the request"
+    stated = [b for b in HELDOUT if len(b["stated"]) > 0]
+    assert len(stated) >= 2, f"briefs with stated numbers: {len(stated)} (need >= 2)"
+    assert any("batch_l" in b["stated"] for b in HELDOUT), "no held-out brief states a batch size"
+
+
+def test_heldout_styles_unused():
+    """A10: no held-out style is a b01-b24 style or alt style."""
+    used = {b["style"] for b in BRIEFS} | {c for b in BRIEFS for c in b["alt_styles"]}
+    mine = {b["style"] for b in HELDOUT} | {c for b in HELDOUT for c in b["alt_styles"]}
+    assert not used & mine, f"styles used by both sets: {sorted(used & mine)}"
+    assert len({b["style"] for b in HELDOUT}) == 6, "two held-out briefs share a style"
+
+
+@pytest.mark.stack
+def test_heldout_style_codes_exist():
+    with connect() as conn:
+        known = {c for (c,) in conn.execute(
+            "select b.code from ref.beer_style b join ref.source s on s.id = b.source_id"
+            " where s.slug in ('bjcp-2021', 'ba-2026')").fetchall()}
+    used = {b["style"] for b in HELDOUT} | {c for b in HELDOUT for c in b["alt_styles"]}
+    assert used - known == set(), f"codes not in ref.beer_style: {sorted(used - known)}"

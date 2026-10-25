@@ -40,6 +40,9 @@ MASH_C = {-1: 64.5, 1: 68.5}
 MASH_DEFAULT_C = 66.5
 TARGETS = ("og", "fg", "abv", "ibu", "srm")
 ABV_TOLERANCE = 0.1
+# How far a saved recipe may be from a number the user stated: user decision "Brewer bar",
+# 2026-10-25; batch size is exact. Must equal app.recipe_tolerances() (tests/test_run.py).
+RECIPE_TOLERANCES = {"og": 0.002, "abv": 0.2, "ibu": 2, "srm": 1, "batch_l": 0}
 EPS = 1e-6
 
 
@@ -610,3 +613,19 @@ def grade_run(brief: dict, steps: dict[int, dict | None], facts: dict | None = N
             "problems": {n: p for n, p in problems.items() if p},
             "passed": step1["ok"] and step2 and step3 and step4 and step5 and all(chosen.values())
             and needs_ok(needs)}
+
+
+
+def grade_recipe(brief: dict, recipe: dict | None) -> dict:
+    """Grade a saved recipe (evals/run.py read_recipe: batch_l, og, fg, abv, ibu, srm, items,
+    deviations) against the brief. `validated`: a recipe row exists. `invented`: items without an
+    ingredient id (A2). `stated`: per number the brief states, {stated, value, met} within
+    RECIPE_TOLERANCES (A3); `stated_ok`: every stated number is met."""
+    stated = {}
+    for key, want in brief["stated"].items():
+        value = None if recipe is None or recipe.get(key) is None else float(recipe[key])
+        met = value is not None and abs(value - float(want)) <= RECIPE_TOLERANCES[key] + EPS
+        stated[key] = {"stated": want, "value": value, "met": met}
+    invented = 0 if recipe is None else sum(i.get("ingredient_id") is None for i in recipe["items"])
+    return {"validated": recipe is not None, "invented": invented, "stated": stated,
+            "stated_ok": all(s["met"] for s in stated.values())}

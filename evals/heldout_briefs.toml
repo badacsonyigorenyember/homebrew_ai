@@ -1,0 +1,128 @@
+# Held-out recipe briefs: six requests for styles that no brief b01-b24 uses (neither as `style`
+# nor in `alt_styles`). Scored only at checkpoints (python -m evals.run --briefs
+# evals/heldout_briefs.toml), never while building: nothing is tuned on them.
+# The `needs` words are not graded (evals/needs_classes.toml covers the b01-b24 words only), so the
+# runner skips the needs grade for this file. These styles have no reviewed envelope, so their
+# style-level checks are off (user decision 2026-10-25, "Accept").
+# Same fields as evals/recipe_briefs.toml; checked by tests/test_recipe_briefs.py.
+# Work: docs/work/m6-compute-validate/plan.md Task 9.
+
+[[brief]]
+id = "h01"
+request = "A Czech pale lager, nicely bitter at about 38 IBU, 20 litres."
+named = "Czech pale lager"
+why = "A lager with a stated IBU inside the style, in a family the b-set covers only by 5D and 8B."
+style = "3B"
+alt_styles = []
+deviations = []
+stated = { ibu = 38, batch_l = 20 }
+hints = ["bitter"]
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pilsner malt"]
+hops = ["Saaz"]
+yeast = ["German lager yeast"]
+water_salts = []
+
+[[brief]]
+id = "h02"
+request = "A malty Scottish heavy ale, smooth, with not too many hops."
+named = "Scottish heavy ale"
+why = "A malt-forward British ale with the malty hint and no stated numbers."
+style = "14B"
+alt_styles = []
+deviations = []
+stated = {}
+hints = ["malty"]
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pale ale malt", "crystal malt"]
+hops = ["East Kent Goldings"]
+yeast = ["British ale yeast"]
+water_salts = []
+
+[[brief]]
+id = "h03"
+request = "A Belgian blond ale at about 6.5 % ABV, dry and crisp."
+named = "Belgian blond ale"
+why = "A Belgian ale with a stated ABV inside the style and the dry and crisp hints."
+style = "25A"
+alt_styles = []
+deviations = []
+stated = { abv = 6.5 }
+hints = ["dry", "crisp"]
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pilsner malt", "candi sugar"]
+hops = ["Saaz"]
+yeast = ["Belgian ale yeast"]
+water_salts = []
+
+[[brief]]
+id = "h04"
+request = "An English porter with a full, chewy body. I only brew 15 litres at a time."
+named = "English porter"
+why = "A dark ale with the full and chewy hints and a stated batch size other than 20."
+style = "13C"
+alt_styles = []
+deviations = []
+stated = { batch_l = 15 }
+hints = ["full", "chewy"]
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pale ale malt", "chocolate malt", "crystal malt"]
+hops = ["Fuggles"]
+yeast = ["British ale yeast"]
+water_salts = []
+
+[[brief]]
+id = "h05"
+request = "A Kolsch, clean and crisp, please."
+named = "Kolsch"
+why = "A clean hybrid ale-lager style with the crisp hint and no stated numbers."
+style = "5B"
+alt_styles = []
+deviations = []
+stated = {}
+hints = ["crisp"]
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pilsner malt"]
+hops = ["Hallertau"]
+yeast = ["Kolsch yeast"]
+water_salts = []
+
+[[brief]]
+id = "h06"
+request = "An English barleywine at 9.5 % ABV, 10 litres, something to age for a year."
+named = "English barleywine"
+why = "A very strong ale with a stated ABV and a small stated batch."
+style = "17D"
+alt_styles = []
+deviations = []
+stated = { abv = 9.5, batch_l = 10 }
+hints = []
+wanted = []
+excluded = []
+inventory = []
+guidance = true
+[brief.needs]
+fermentables = ["pale ale malt", "crystal malt"]
+hops = ["East Kent Goldings"]
+yeast = ["British ale yeast"]
+water_salts = []
