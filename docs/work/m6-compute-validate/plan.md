@@ -233,7 +233,7 @@ Commit: `Add the rule 7 colour solver`
 
 ### Task 4: step 10 computes amounts and numbers
 Why: R1, R2, A5 (SQL half), A7; brief assumptions on boil time and yeast amount.
-- [ ] `db/046_compute.sql`:
+- [x] `db/046_compute.sql`:
       - `app.step10_boil(grist_ids bigint[], hops jsonb) returns jsonb` → `{boil_min, because}`:
         the largest of 60 (rule 13's floor), the grist's largest `min_boil_min` and the longest
         boil addition's minutes.
@@ -266,11 +266,11 @@ Why: R1, R2, A5 (SQL half), A7; brief assumptions on boil time and yeast amount.
         g, yeast with `ferm_c`, extras with g) that step 11 checks. Stated numbers and hints come
         from step 1's brief, which `step10.input` carries; the function takes it as a seventh
         argument `brief jsonb`.
-- [ ] Contracts `step10.input` = `{run_id, try, brief, profile, targets, step6, step7, step8,
+- [x] Contracts `step10.input` = `{run_id, try, brief, profile, targets, step6, step7, step8,
       step9}`, `step10.output` as above (all required, `additionalProperties: false`, nulls where
       the text above allows them). `tests/test_contracts.py` `NAMES` gains both.
-- [ ] Apply twice; owners `postgres`.
-- [ ] Write in `tests/test_compute.py` (stack; inputs: step 4 via `tests.test_step4.step4`,
+- [x] Apply twice; owners `postgres`.
+- [x] Write in `tests/test_compute.py` (stack; inputs: step 4 via `tests.test_step4.step4`,
       profile `app.step0_profile(null)`, steps 6–9 from `good_proposal` through
       `app.choose_outputs` as `tests/test_choose_outputs.py` does), each seen failing first:
       `test_amounts_hit_the_targets` (b01, b08, b10, b14, b16, b23, b24: OG within 0.002 of the
@@ -286,8 +286,8 @@ Why: R1, R2, A5 (SQL half), A7; brief assumptions on boil time and yeast amount.
       (b04-style grist with Lactose: `srm_lower_bound` = ["Lactose"]); `test_ferm_c_from_choice`
       (b01 US-05 at "ferment at 18 °C" → 18); `test_output_meets_contract`;
       `test_same_input_same_output`.
-- [ ] Run `.venv/bin/pytest tests/test_compute.py tests/test_contracts.py tests/test_maths.py`, expect all pass.
-- [ ] `docs/DATABASE.md` §5: the functions of `db/046`. PROJECT.md §8.
+- [x] Run `.venv/bin/pytest tests/test_compute.py tests/test_contracts.py tests/test_maths.py`, expect all pass.
+- [x] `docs/DATABASE.md` §5: the functions of `db/046`. PROJECT.md §8.
 Done when: step 10 outputs meet their contract and `app.check_recipe` recomputes their numbers.
 Commit: `Compute amounts and numbers in step 10`
 
@@ -548,3 +548,6 @@ OPERATIONS §5 says; no container is recreated.
 
 ## Deviations
 - 2026-10-25 · Approach, Tasks 3, 4, 9: the four planning questions answered by the user with the recommended option each: (Q1) step 10 does one pass that may move OG within ± 0.002 towards the ABV target, and any number still off goes back to the steps 6–9 call with the value and target, no step-10-only retry (brief R4 updated); (Q2) boil = the largest of 60, the grist's `min_boil_min` and the longest boil addition, which is set to the boil time; (Q3) the base malt with the largest share takes up the colour change; (Q4) held-out styles without reviewed envelopes are accepted.
+- 2026-10-25 · Task 4: `app.step10_abv` added (ABV of a grist at an OG, used by the OG move), beside the two functions the plan names — it keeps the bisection readable.
+- 2026-10-25 · Task 4: a yeast with no attenuation figure (b10's Abbey Monk Ale) gives `numbers.fg`, `abv` and `attenuation_pct` null and no OG move, instead of raising — step 11's "a null number fails" then sends it back; the output contract allows those nulls.
+- 2026-10-25 · Task 4: `recipe.targets.og` is the OG used (moved), not step 4's target, so `app.check_recipe` recomputes step 10's numbers (the task's own test). Rule 9 then fails when the move is above 0.001 and OG is unstated with guidance on; Task 5 must decide how step 11 treats that (asked in the Task 4 report).

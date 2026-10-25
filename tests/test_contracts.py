@@ -8,7 +8,7 @@ import pytest
 from loaders.db import connect
 
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
-NAMES = [f"step{n}.{side}" for n in range(10) for side in ("input", "output")]
+NAMES = [f"step{n}.{side}" for n in range(11) for side in ("input", "output")]
 NAMES += ["choose.input", "choose.proposal"]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
 
@@ -26,6 +26,7 @@ ABSENT_SLOTS = {
     "step8.output": [("absent", "array")],
     "step9.output": [("extras.dose_g_per_l", "null"), ("absent", "array")],
     "formulation_check.output": [("results.status", "enum:unknown"), ("numbers.fg", "null")],
+    "step10.output": [("colour.darkest", "null"), ("numbers.abv", "null"), ("extras", "array")],
 }
 
 
@@ -217,8 +218,32 @@ _CHOOSE_OUT = {
                                  "dose_g_per_l": 3.0, "dose_because": "one sourced dose"}],
                      "unused_inventory": [], "absent": _ABSENT},
 }
+_NAMED = {"ingredient_id": 5, "name": "Pale Ale Malt"}
+STEP10_OUT = {
+    "batch": {"volume_l": 20, "efficiency_pct": 72, "boil_off_l_h": 4, "losses_l": 2},
+    "boil": {"boil_min": 60, "because": "60 min: the minimum boil time (rule 13)"},
+    "mash_c": 66.5, "ferm_c": 18,
+    "og_used": {"value": 1.05, "moved": False, "because": "ABV is within 0.2 of the target, so the OG stays"},
+    "colour": {"grist": [{"ingredient_id": 5, "pct": 100, "kg": 4.2}], "adjusted": False, "reached": True,
+               "srm": 4.5, "darkest": None, "absorber": None, "from_pct": None, "to_pct": None,
+               "because": "SRM 4.5 is within 1 of the target 4.5, so the shares stay as proposed"},
+    "fermentables": [{**_NAMED, "usage": "mash", "pct": 100, "kg": 4.2, "purpose": "base"}],
+    "hops": [{"ingredient_id": 3, "name": "Cascade", "usage": "boil", "minutes": 60, "share_pct": 100,
+              "alpha_pct": 5.5, "g": 40, "purpose": "bitter"}],
+    "yeasts": [{"ingredient_id": 1, "name": "US-05", "role": "main", "amount": 1, "unit": "pack", "purpose": "clean"}],
+    "extras": [{"ingredient_id": 4, "name": "Coffee", "usage": "package", "time_min": None, "dose_g_per_l": 3,
+                "g": 60, "purpose": "coffee"}],
+    "numbers": {"og": 1.05, "fg": 1.011, "abv": 5.1, "ibu": 30, "srm": 4.5, "attenuation_pct": 77,
+                "srm_lower_bound": []},
+    "values_used": [{"what": "boil", "because": "60 min"}],
+    "recipe": CHECK_IN,
+}
 GOOD = {
     **_CHOOSE_OUT,
+    "step10.input": {"run_id": 1, "try": 1, "brief": BRIEF, "profile": GOOD_PROFILE, "targets": STEP4_OUT,
+                     "step6": _CHOOSE_OUT["step6.output"], "step7": _CHOOSE_OUT["step7.output"],
+                     "step8": _CHOOSE_OUT["step8.output"], "step9": _CHOOSE_OUT["step9.output"]},
+    "step10.output": STEP10_OUT,
     "step6.input": {**_CANDIDATES, "band": {"yeast_low_pct": 74, "yeast_high_pct": 77},
                     "targets": {"og": 1.05}, "yeast_rules": {"lager": False, "families": [], "souring": False}},
     "step7.input": _CANDIDATES,
@@ -249,6 +274,10 @@ GOOD = {
     "step5.output": STEP5_OUT,
 }
 BAD = [
+    ("step10.output", {k: v for k, v in STEP10_OUT.items() if k != "recipe"}),
+    ("step10.output", {**STEP10_OUT, "yeasts": []}),
+    ("step10.output", {**STEP10_OUT, "extras": [{**STEP10_OUT["extras"][0], "usage": "packaging"}]}),
+    ("step10.input", {k: v for k, v in GOOD["step10.input"].items() if k != "try"}),
     ("step6.output", {k: v for k, v in _CHOOSE_OUT["step6.output"].items() if k != "attenuation"}),
     ("step6.output", {**_CHOOSE_OUT["step6.output"], "yeast": {**_YEAST, "ingredient_id": "5"}}),
     ("step7.output", {**_CHOOSE_OUT["step7.output"], "fermentables": [{**_CHOOSE_OUT["step7.output"]["fermentables"][0], "usage": "whirlpool"}]}),

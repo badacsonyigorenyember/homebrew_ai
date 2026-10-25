@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step10.input",
+  "description": "Step 10, compute: amounts and numbers of the recipe. brief is a step1.output, profile a step0.output, targets a step4.output and step6 to step9 the outputs of steps 6-9, each already checked. try is 1 to 3. No absent slot.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "try",
+    "brief",
+    "profile",
+    "targets",
+    "step6",
+    "step7",
+    "step8",
+    "step9"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "try": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "brief": {
+      "type": "object"
+    },
+    "profile": {
+      "type": "object"
+    },
+    "targets": {
+      "type": "object"
+    },
+    "step6": {
+      "type": "object"
+    },
+    "step7": {
+      "type": "object"
+    },
+    "step8": {
+      "type": "object"
+    },
+    "step9": {
+      "type": "object"
+    }
+  }
+}
