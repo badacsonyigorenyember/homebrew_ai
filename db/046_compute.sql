@@ -254,6 +254,7 @@ declare
     yeast_range numrange;
     attenuation numeric;
     ferm_c numeric;
+    ferm_from_range boolean := false;
     items jsonb;
     hops jsonb;
     hop_ord bigint;
@@ -298,7 +299,15 @@ begin
     attenuation := app.mash_attenuation(yeast_range, mash_c);  -- null when the yeast has no figure
     select (c.dose->>'ferm_c')::numeric into ferm_c
       from app.ingredient_choices(yeast_id, null) c where c.label = step6->'yeast'->>'choice';
-    if ferm_c is null then
+    if ferm_c is null and step6->'yeast'->>'choice' is null then
+        -- step 6 may pick a yeast with no choice: the middle of its temperature range stands in
+        ferm_c := (coalesce((step6->'yeast'->'temp_c'->>'low')::numeric, (step6->'yeast'->'temp_c'->>'high')::numeric)
+                   + coalesce((step6->'yeast'->'temp_c'->>'high')::numeric, (step6->'yeast'->'temp_c'->>'low')::numeric)) / 2;
+        if ferm_c is null then
+            raise exception 'step 10: the yeast % has no fermentation temperature', yeast_name;
+        end if;
+        ferm_from_range := true;
+    elsif ferm_c is null then
         raise exception 'step 10: the choice "%" of % is not a fermentation temperature',
             step6->'yeast'->>'choice', yeast_name;
     end if;
@@ -456,7 +465,9 @@ begin
                 else format('%s attenuates %s %%: the middle of its range %s at a mash of %s C (app.mash_attenuation)',
                             yeast_name, trim_scale(round(attenuation, 1)), yeast_range, trim_scale(mash_c)) end),
         jsonb_build_object('what', 'ferm_c', 'because',
-            format('%s C, the temperature of the chosen "%s"', trim_scale(ferm_c), step6->'yeast'->>'choice')),
+            case when ferm_from_range
+                then format('%s C, the middle of the temperature range of %s: step 6 gave no choice', trim_scale(ferm_c), yeast_name)
+                else format('%s C, the temperature of the chosen "%s"', trim_scale(ferm_c), step6->'yeast'->>'choice') end),
         jsonb_build_object('what', 'boil', 'because', boil_j->>'because'),
         jsonb_build_object('what', 'yeast amount', 'because',
             '1 pack of each yeast: a placeholder until the pitch rate is set (M7)'));

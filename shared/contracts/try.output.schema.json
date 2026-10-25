@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "try.output",
+  "description": "Output of the Steps 6-11 sub-workflow: whether step 11 passed, the step 10 and step 11 outputs of the try, and the feedback for the next try.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "passed",
+    "try",
+    "step10",
+    "step11",
+    "next_feedback"
+  ],
+  "properties": {
+    "passed": {
+      "type": "boolean"
+    },
+    "try": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
+    "step10": {
+      "type": "object"
+    },
+    "step11": {
+      "type": "object"
+    },
+    "next_feedback": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "try",
+        "lines",
+        "banned",
+        "last"
+      ],
+      "properties": {
+        "try": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 3
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "banned": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ingredient_id",
+              "name",
+              "why"
+            ],
+            "properties": {
+              "ingredient_id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "why": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "last": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fermentables",
+            "hops",
+            "yeast",
+            "extras"
+          ],
+          "properties": {
+            "fermentables": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "hops": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "yeast": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "extras": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "description": "The feedback for the next try (the choose.input feedback object, try = this try + 1, the bans of every try so far), or null when the recipe passed or this was the last try."
+    }
+  }
+}

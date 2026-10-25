@@ -405,14 +405,14 @@ Commit: `Pass step 11 failures back to steps 6-9`
 
 ### Task 8: the pipeline runs up to three tries and saves the recipe
 Why: R4, R5, R6, A4, A5.
-- [ ] Sub-workflow `Steps 10–11 · compute and validate` (id `ST1011compval01`), JSON from
+- [x] Sub-workflow `Steps 10–11 · compute and validate` (id `ST1011compval01`), JSON from
       `n8n/workflows/step-4-targets.json`'s pattern: trigger with the `step10.input` fields →
       `Check contract` (`step10.input`) → Postgres `select app.step10_compute($1, $2, $3, $4, $5,
       $6, $7)` → `Check contract` (`step10.output`) → build `step11.input` → check → Postgres
       `app.step11_validate` → check (`step11.output`) → return `{step10, step11}`. A raise stops
       the sub-workflow with its message (`step 10: …`). Sticky note and `Test data`
       (`tests/step1011_sample.json`: b01's inputs from Task 4's helpers, `run_id` 0, try 1).
-- [ ] Sub-workflow `Steps 6–11 · one try` (id `ST611onetry0001`), input `try.input` = `{run_id,
+- [x] Sub-workflow `Steps 6–11 · one try` (id `ST611onetry0001`), input `try.input` = `{run_id,
       try, choose (the choose.input object, feedback included), brief, step3, targets, frame,
       profile, started_at}`: `Steps 6–9 · choose ingredients` (continueErrorOutput) → four log rows
       as the pipeline's today, with `try` = the input's (moved from the pipeline) → build
@@ -423,7 +423,7 @@ Why: R4, R5, R6, A4, A5.
       when passed). Error branches: the steps 6–9 failure row as today (lowest `step N:`), or a
       step 10 failure row, each with this `try`, then `Stop and Error` with the message.
       `Test data` note `tests/step611_sample.json`.
-- [ ] `Recipe pipeline`: `Step 5 · log ok` → `Try 1 · input` (builds `try.input`, feedback null)
+- [x] `Recipe pipeline`: `Step 5 · log ok` → `Try 1 · input` (builds `try.input`, feedback null)
       → `Try 1 · steps 6–11` (continueErrorOutput) → `Try 1 passed?` → yes: `Save recipe`
       (Postgres `select app.save_recipe($1, $2, $3, $4, $5)`) → `Finish run` → `Respond ok`
       (`{run_id, ok, recipe_id, tries}`); no: `Try 2 · input` (feedback = try 1's
@@ -433,10 +433,10 @@ Why: R4, R5, R6, A4, A5.
       branch → the existing steps 6–9 failure finish and respond (failed_step from the message).
       Remove the old step 6–9 log nodes from the pipeline. Update the per-step sticky note (steps
       0–11 built).
-- [ ] Contracts `try.input`, `try.output`; `NAMES` gains both. Import the three new or changed
+- [x] Contracts `try.input`, `try.output`; `NAMES` gains both. Import the three new or changed
       sub-workflows, publish them, then the pipeline; delete the copies in `shared/`;
       `.venv/bin/python -m evals.workflows`.
-- [ ] `tests/test_workflows.py`: `SAMPLES` and `CONTRACT_OF` for the two new files.
+- [x] `tests/test_workflows.py`: `SAMPLES` and `CONTRACT_OF` for the two new files.
       `tests/test_pipeline.py`: the `post` fixture deletes the runs' recipes before runs and
       briefs (select `recipe_id`, delete runs, delete recipes, delete briefs) and its timeout is
       2400 s; `test_b01_validates_and_saves` (one run: `ok`, a `recipe_id`, step 10 and 11 rows
@@ -445,8 +445,8 @@ Why: R4, R5, R6, A4, A5.
       "A blonde ale at OG 1.080 and only 2 % ABV, 20 litres.": `app.run.ok` false, step 11 rows
       for tries 1–3 each ok false with `error`, no `app.recipe` row for the brief, `recipe_id`
       null); `test_steps_6_to_9_logged` keeps passing (try 1 rows). Time the file.
-- [ ] Run `.venv/bin/pytest tests/test_workflows.py tests/test_pipeline.py`, expect all pass.
-- [ ] `docs/OPERATIONS.md` §5: eleven workflows, the two new ones, the response fields
+- [x] Run `.venv/bin/pytest tests/test_workflows.py tests/test_pipeline.py`, expect all pass.
+- [x] `docs/OPERATIONS.md` §5: eleven workflows, the two new ones, the response fields
       (`recipe_id`, `tries`), the three tries. PROJECT.md §4 Orchestration row and §8.
 Done when: a webhook run of b01 saves a recipe, and the impossible brief ends failed after three
 tries with each reason logged.
@@ -556,3 +556,6 @@ OPERATIONS §5 says; no container is recreated.
 - 2026-10-25 · Task 5: tests use b08 and b14 for the passing recipe (not b16: the first good proposal for b16 picks a yeast with no attenuation figure, and b01, b16, b23 and b24 miss SRM because the proposal's only base is a Pilsner malt, so the colour adjustment has no absorber). Hops are never `out_of_style` with the totals off, so the ban tests swap in an out-of-style fermentable instead of a hop; the impossible-target test rates the table's levels typical before building the proposal (the style it lands in, Session Beer, has no envelope).
 - 2026-10-25 · Task 6: `test_rows_match_step10` checks coffee against step 10's own dose × 20 L (the good proposal gives 6.0 g/L, not 3.0) and gives b23 a passed step 11 (its first proposal does not pass); `test_refuses_a_run_without_a_brief` added.
 - 2026-10-25 · Task 7: `choose.input.feedback` is required in the contract but declared without a type in the sub-workflow trigger (n8n sends a null input as missing; the contract-check node maps it with `?? null`). The prompt block starts with a `TRY <n>` heading like the other blocks, then the plan's sentence. Added `test_ban_removes_from_slots_and_inventory` and a bad example (`feedback.try` 1) in `tests/test_contracts.py`.
+- 2026-10-25 · Task 8: `Steps 10–11 · compute and validate` returns `{step10, step11, step11_input}` (the plan says `{step10, step11}`) — `Steps 6–11 · one try` logs row 11 with the input the sub-workflow built, and rebuilding it there would copy the expression. `try.output.next_feedback` is also null after try 3 (no try 4 exists), and its `banned` list is every ban so far (the feedback's own plus the new ones), so try 3's table also refuses try 1's bans.
+- 2026-10-25 · Task 8: the pipeline's failure branch for the tries is one `Finish run (failed, steps 6–11)` / `Respond failed (steps 6–11)` pair for the three `Try n` nodes and for `Save recipe`'s error output (the finish query returns the error text, so the respond node needs no node name); `failed_step` reads `step N:` or `stepN.` in the message (lowest, 6 when none, 11 for a `save_recipe` error), so a step 10 or 11 failure reports 10 or 11.
+- 2026-10-25 · Task 8: the pipeline run found two bugs in earlier tasks, fixed here with a test each: `db/046_compute.sql` raised "the choice "<NULL>" of German Lager is not a fermentation temperature" when step 6 picks a yeast with no `choice` — step 10 now takes the middle of the yeast's `temp_c` range and says so in `values_used` (`test_ferm_c_without_a_choice_is_the_range_middle`); `db/047_validate.sql` treated an unrated style line (`level` null, a style with no reviewed envelope) as a pick failure with a ban, and the output then broke its contract (`test_unrated_style_bans_nothing`).

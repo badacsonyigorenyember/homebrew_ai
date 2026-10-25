@@ -1,0 +1,460 @@
+{
+  "id": "ST1011compval01",
+  "name": "Steps 10–11 · compute and validate",
+  "nodes": [
+    {
+      "id": "72b66b2c-5f0a-5e77-b9fc-2e9ee2213e63",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "run_id",
+              "type": "number"
+            },
+            {
+              "name": "try",
+              "type": "number"
+            },
+            {
+              "name": "brief",
+              "type": "object"
+            },
+            {
+              "name": "profile",
+              "type": "object"
+            },
+            {
+              "name": "targets",
+              "type": "object"
+            },
+            {
+              "name": "frame",
+              "type": "object"
+            },
+            {
+              "name": "step6",
+              "type": "object"
+            },
+            {
+              "name": "step7",
+              "type": "object"
+            },
+            {
+              "name": "step8",
+              "type": "object"
+            },
+            {
+              "name": "step9",
+              "type": "object"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "3ead88b3-74f9-52c8-855a-5595b5a49e76",
+      "name": "Check step 10 input",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "step10.input",
+            "value": "={{ { run_id: $(\"When Executed by Another Workflow\").item.json.run_id, try: $(\"When Executed by Another Workflow\").item.json.try, brief: $(\"When Executed by Another Workflow\").item.json.brief, profile: $(\"When Executed by Another Workflow\").item.json.profile, targets: $(\"When Executed by Another Workflow\").item.json.targets, step6: $(\"When Executed by Another Workflow\").item.json.step6, step7: $(\"When Executed by Another Workflow\").item.json.step7, step8: $(\"When Executed by Another Workflow\").item.json.step8, step9: $(\"When Executed by Another Workflow\").item.json.step9 } }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "332a6a16-730e-5529-b9b8-c8c19e4682e7",
+      "name": "Compute amounts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        448,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select app.step10_compute($1::jsonb, $2::jsonb, $3::jsonb, $4::jsonb, $5::jsonb, $6::jsonb, $7::jsonb) as result",
+        "options": {
+          "queryReplacement": "={{ [JSON.stringify($(\"When Executed by Another Workflow\").item.json.profile), JSON.stringify($(\"When Executed by Another Workflow\").item.json.targets), JSON.stringify($(\"When Executed by Another Workflow\").item.json.step6), JSON.stringify($(\"When Executed by Another Workflow\").item.json.step7), JSON.stringify($(\"When Executed by Another Workflow\").item.json.step8), JSON.stringify($(\"When Executed by Another Workflow\").item.json.step9), JSON.stringify($(\"When Executed by Another Workflow\").item.json.brief)] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "9cfecdb6-87b1-583f-a6fa-5a388d7a9410",
+      "name": "Check step 10 output",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "step10.output",
+            "value": "={{ $(\"Compute amounts\").item.json.result }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "66f372e8-5e42-5460-a422-c8911a1e254d",
+      "name": "Build step 11 input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        0
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { run_id: $(\"When Executed by Another Workflow\").item.json.run_id, try: $(\"When Executed by Another Workflow\").item.json.try, brief: $(\"When Executed by Another Workflow\").item.json.brief, targets: $(\"When Executed by Another Workflow\").item.json.targets, frame: $(\"When Executed by Another Workflow\").item.json.frame, picks: [$(\"When Executed by Another Workflow\").item.json.step6.yeast, $(\"When Executed by Another Workflow\").item.json.step6.souring, ...$(\"When Executed by Another Workflow\").item.json.step7.fermentables, ...$(\"When Executed by Another Workflow\").item.json.step8.hops, ...$(\"When Executed by Another Workflow\").item.json.step9.extras].filter(x => x).map(x => ({ ingredient_id: x.ingredient_id, name: x.name, self_picked: !x.wanted && !x.inventory })), step10: $(\"Compute amounts\").item.json.result } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "584cdabb-6f88-5a68-b4a9-375b0824aef4",
+      "name": "Check step 11 input",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "step11.input",
+            "value": "={{ $json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "3206c797-a892-5dd4-8ac5-f77b01bac66e",
+      "name": "Validate recipe",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1344,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select app.step11_validate($1::jsonb, $2::jsonb, $3::jsonb, $4::jsonb, $5::jsonb) as result",
+        "options": {
+          "queryReplacement": "={{ [JSON.stringify($(\"Build step 11 input\").item.json.step10), JSON.stringify($(\"Build step 11 input\").item.json.brief), JSON.stringify($(\"Build step 11 input\").item.json.targets), JSON.stringify($(\"Build step 11 input\").item.json.frame), JSON.stringify($(\"Build step 11 input\").item.json.picks)] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "b2514ace-2794-5dcb-8fd4-45dce79b6114",
+      "name": "Check step 11 output",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1568,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "step11.output",
+            "value": "={{ $(\"Validate recipe\").item.json.result }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "21d12280-c830-52f6-83df-f236b60bfb2b",
+      "name": "Return result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        0
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { step10: $(\"Compute amounts\").item.json.result, step11: $(\"Validate recipe\").item.json.result, step11_input: $(\"Build step 11 input\").item.json } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "0d7630b5-1243-52a8-ac23-56891edcf3e3",
+      "name": "Sticky Note 1011",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -304
+      ],
+      "parameters": {
+        "content": "### Steps 10–11 · compute and validate\nChecks its input, then asks `app.step10_compute` (SQL) for the amounts and numbers of the recipe (boil time, grist kg, colour adjustment, OG move, hop and misc grams, OG, FG, ABV, IBU, SRM), then `app.step11_validate` (SQL) to check them against the targets, the stated numbers, the formulation rules and the style, and to say what to retry. Both outputs are checked against their contracts. Writes nothing and calls no LLM: `Steps 6–11 · one try` logs the rows. Returns `{step10, step11, step11_input}`. A SQL error (`step 10: …`) stops the workflow with its message.",
+        "height": 232,
+        "width": 480,
+        "color": 4
+      }
+    },
+    {
+      "id": "10d876ab-7b73-5855-9c04-7bd6f0b0047a",
+      "name": "Test data",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {
+        "content": "### Test data · editor run\nPin this on `When Executed by Another Workflow` (open the node, use the output panel's edit / mock-data control, paste the JSON, save), then click *Execute workflow*.\nWrites nothing (`run_id: 0` belongs to no run). b01's inputs: step 4, the profile, the frame and steps 6–9 from the first good proposal.\n\n```json\n[{\"run_id\": 0, \"try\": 1, \"brief\": {\"named\": \"West Coast IPA\", \"stated\": {\"batch_l\": 20, \"abv\": 6.5}, \"hints\": [\"bitter\"], \"wanted\": [], \"excluded\": [], \"inventory\": [], \"unknown\": [], \"guidance\": true}, \"profile\": {\"units\": \"metric\", \"water\": {\"ca\": 0.0, \"cl\": 0.0, \"mg\": 0.0, \"na\": 0.0, \"so4\": 0.0, \"hco3\": 0.0}, \"batch_l\": 20.0, \"losses_l\": 2.0, \"inventory\": [], \"boil_off_l_h\": 4.0, \"efficiency_pct\": 72.0, \"grain_abs_l_kg\": 1.0}, \"targets\": {\"knobs\": [{\"knob\": \"ibu\", \"hints\": \"bitter\", \"intent\": null, \"source\": \"unsourced\", \"direction\": 1}, {\"knob\": \"bu_gu\", \"hints\": \"bitter\", \"intent\": null, \"source\": \"bjcp-exam-study-guide-2017, p60\", \"direction\": 1}], \"style\": {\"code\": \"21A\", \"from\": \"chosen\", \"name\": \"American IPA\", \"because\": \"step 2 chose 21A\"}, \"mash_c\": {\"from\": \"midpoint\", \"value\": 66.5, \"because\": \"middle of rule 10's mash range 64–69 °C\"}, \"batch_l\": {\"from\": \"stated\", \"value\": 20, \"because\": \"stated by the user\"}, \"targets\": {\"fg\": {\"from\": \"midpoint\", \"value\": 1.011, \"because\": \"midpoint of 21A FG 1.008–1.014\"}, \"og\": {\"from\": \"derived\", \"value\": 1.0613, \"because\": \"solved so app.abv gives the stated ABV 6.5 at FG 1.011\"}, \"abv\": {\"from\": \"stated\", \"value\": 6.5, \"because\": \"stated by the user\"}, \"ibu\": {\"from\": \"hint\", \"value\": 66.25, \"because\": \"bitter: 87.5 % of 21A IBU 40–70\"}, \"srm\": {\"from\": \"midpoint\", \"value\": 10.0, \"because\": \"midpoint of 21A SRM 6–14\"}}, \"guidance\": true, \"conflicts\": []}, \"frame\": {\"rules\": {\"from\": \"app.formulation_rules() (db/031)\", \"rows\": [{\"rule\": \"definitions\", \"checked\": true, \"sentence\": \"A share is a percentage of the total fermentable mass, sugars included. A fermentable's colour is the midpoint of its ebc range, or its one bound when the range is open. Role, max_pct, min_boil_min, fermentability, attenuation_pct, temp_c and alcohol_tolerance_pct are ingredient-table fields.\"}, {\"rule\": \"1\", \"checked\": true, \"sentence\": \"A recipe has at most 5 fermentables, and at most 3 of them have the role kilned, crystal or roast; fermentables with the role adjunct or sugar do not count toward the 3.\"}, {\"rule\": \"2\", \"checked\": true, \"sentence\": \"A recipe uses at most 3 hop varieties.\"}, {\"rule\": \"3\", \"checked\": true, \"sentence\": \"Fermentables with the role crystal and a colour above 60 EBC, plus fermentables with the role roast, are at most 15 % of the grist together.\"}, {\"rule\": \"4\", \"checked\": true, \"sentence\": \"Fermentables with the role crystal are at most 25 % of the grist together; those with a colour above 60 EBC at most 10 %; those with a colour above 160 EBC at most 5 %. Those at or below 60 EBC are limited only by rule 6.\"}, {\"rule\": \"5\", \"checked\": true, \"sentence\": \"Fermentables with the role adjunct or sugar are at most 40 % of the grist together.\"}, {\"rule\": \"6\", \"checked\": true, \"sentence\": \"Each fermentable is at most its max_pct share of the grist.\"}, {\"rule\": \"7\", \"checked\": false, \"sentence\": \"The colour adjustment changes only the share of the fermentable with the darkest colour, and never one with the role crystal. Enforced by the colour solver in step 10, not by this check.\"}, {\"rule\": \"8\", \"checked\": true, \"sentence\": \"A recipe has exactly one bittering addition: a boil addition whose time equals the boil time. Every other hop addition is a boil addition of at most 15 min, a whirlpool addition or a dry hop.\"}, {\"rule\": \"9\", \"checked\": true, \"sentence\": \"When style guidance is on, a target OG, FG, IBU or SRM that the user did not state is the style's midpoint, moved by the request's hints to 87.5 % (up) or 12.5 % (down) of the style's range, with the OG moved inside its range as far as needed for the ABV from the OG and FG to reach the style's ABV range; within 0.001 for OG, 0.002 for FG, 1 IBU and 1 SRM. OG and FG count as stated when the user stated the ABV. The ABV target is app.abv of the OG and FG targets, within 0.1 %. A target is outside the style's range only when the user stated it or style guidance is off.\"}, {\"rule\": \"10\", \"checked\": true, \"sentence\": \"The mash temperature is between 64 and 69 °C, and the FG predicted from the yeast's attenuation_pct, each fermentable's fermentability and the mash temperature is inside the target FG range: the style's FG range, or the target FG ± 0.002 when the user stated the FG or the ABV. Up to 68.3 °C the attenuation is the middle of the yeast's attenuation_pct range, which applies at 66.5 °C; above 68.3 °C it is 4.15 points lower per °C, never outside that range (Troester 2009, limit of attenuation against mash temperature).\"}, {\"rule\": \"11\", \"checked\": true, \"sentence\": \"The planned ABV is at most the yeast's alcohol_tolerance_pct, and the fermentation temperature is inside the yeast's temp_c range.\"}, {\"rule\": \"12\", \"checked\": true, \"sentence\": \"Every fermentable, hop and yeast in the recipe has a purpose that is not empty.\"}, {\"rule\": \"13\", \"checked\": true, \"sentence\": \"The boil time is at least the largest min_boil_min of the recipe's fermentables, and at least 60 min.\"}, {\"rule\": \"pending\", \"checked\": false, \"sentence\": \"A recipe uses only processes the brewer profile allows. Pending: needs the brewer profile (step 0); not checked.\"}]}, \"slots\": [], \"limits\": {\"from\": \"app.formulation_limits() (db/031)\", \"values\": {\"mash_max_c\": 69, \"mash_min_c\": 64, \"mash_ref_c\": 66.5, \"mash_knee_c\": 68.3, \"min_boil_min\": 60, \"max_specialty\": 3, \"dark_total_pct\": 15, \"crystal_dark_ebc\": 60, \"crystal_dark_pct\": 10, \"late_hop_max_min\": 15, \"max_fermentables\": 5, \"adjunct_sugar_pct\": 40, \"crystal_total_pct\": 25, \"max_hop_varieties\": 3, \"pct_sum_tolerance\": 0.1, \"midpoint_tolerance\": {\"fg\": 0.002, \"og\": 0.001, \"abv\": 0.1, \"ibu\": 1, \"srm\": 1}, \"mash_slope_pct_per_c\": 4.15, \"crystal_very_dark_ebc\": 160, \"crystal_very_dark_pct\": 5}}, \"intents\": [], \"excluded\": [], \"guidance\": true, \"inventory\": [], \"style_code\": \"21A\", \"attenuation\": {\"from\": \"derived\", \"mash_c\": 66.5, \"because\": \"100 x (OG 1.0613 - FG 1.011) / (OG - 1); the yeast band adds 0 points for the 66.5 °C mash (Troester's curve, app.mash_attenuation)\", \"low_pct\": 78.79, \"high_pct\": 85.32, \"needed_pct\": 82.06, \"yeast_low_pct\": 78.79, \"yeast_high_pct\": 85.32, \"yeast_middle_pct\": 82.06}}, \"step6\": {\"yeast\": {\"form\": \"dry\", \"name\": \"BRY-97\", \"slot\": null, \"type\": \"ale\", \"level\": \"allowed\", \"choice\": \"ferment at 15 °C\", \"family\": [\"ale\", \"american-ale\"], \"temp_c\": {\"low\": 15, \"high\": 22}, \"wanted\": null, \"because\": \"BRY-97: test (allowed at ferment at 15 °C in 21A)\", \"purpose\": \"test\", \"producer\": \"Lallemand\", \"inventory\": null, \"attenuation\": {\"low\": 78, \"high\": 84}, \"flocculation\": \"high\", \"ingredient_id\": 1847, \"level_because\": \"no sensation of American IPA (21A) conflicts with this use.\"}, \"absent\": [], \"souring\": null, \"attenuation\": {\"band\": {\"low_pct\": 78.79, \"high_pct\": 85.32}, \"yeast\": {\"low\": 78, \"high\": 84}, \"because\": \"BRY-97 attenuates 78-84 %, which reaches the band 78.79-85.32 %\", \"overlaps\": true}, \"unused_inventory\": []}, \"step7\": {\"absent\": [], \"fermentables\": [{\"ebc\": {\"low\": 3, \"high\": 5}, \"pct\": 100, \"name\": \"Bohemian Pilsner Malt\", \"role\": \"base\", \"slot\": null, \"level\": \"allowed\", \"usage\": \"mash\", \"choice\": \"mash\", \"wanted\": null, \"because\": \"Bohemian Pilsner Malt: test (allowed at mash in 21A)\", \"max_pct\": 100.0, \"purpose\": \"test\", \"producer\": \"Weyermann\", \"inventory\": null, \"ingredient_id\": 75, \"level_because\": \"no sensation of American IPA (21A) conflicts with this use.\", \"fermentability\": \"normal\"}], \"unused_inventory\": []}, \"step8\": {\"hops\": [{\"name\": \"African Queen\", \"slot\": null, \"alpha\": {\"low\": 13.5, \"high\": 13.5}, \"level\": \"allowed\", \"usage\": \"boil\", \"choice\": \"boil 30 min\", \"wanted\": null, \"because\": \"African Queen: test (allowed at boil 30 min in 21A)\", \"minutes\": 60, \"origins\": [\"ZA\"], \"purpose\": \"test\", \"producer\": null, \"alpha_pct\": 13.5, \"character\": [\"berry\", \"citrus\", \"stone-fruit\"], \"inventory\": null, \"share_pct\": 100, \"ingredient_id\": 453, \"level_because\": \"bitterness: the recipe IBU is not given, bitterness check skipped.\"}], \"absent\": [], \"solver\": [{\"usage\": \"boil\", \"minutes\": 60, \"alpha_pct\": 13.5, \"share_pct\": 100}], \"ibu_target\": 66.25, \"unused_inventory\": []}, \"step9\": {\"absent\": [], \"extras\": [], \"unused_inventory\": []}}]\n```",
+        "height": 420,
+        "width": 520,
+        "color": 5
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Check step 10 input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check step 10 input": {
+      "main": [
+        [
+          {
+            "node": "Compute amounts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compute amounts": {
+      "main": [
+        [
+          {
+            "node": "Check step 10 output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check step 10 output": {
+      "main": [
+        [
+          {
+            "node": "Build step 11 input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build step 11 input": {
+      "main": [
+        [
+          {
+            "node": "Check step 11 input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check step 11 input": {
+      "main": [
+        [
+          {
+            "node": "Validate recipe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate recipe": {
+      "main": [
+        [
+          {
+            "node": "Check step 11 output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check step 11 output": {
+      "main": [
+        [
+          {
+            "node": "Return result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  }
+}

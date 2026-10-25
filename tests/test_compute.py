@@ -291,6 +291,21 @@ def test_ferm_c_from_choice(conn, computed):
         assert out["recipe"]["yeast"]["ferm_c"] == out["ferm_c"]
 
 
+def test_ferm_c_without_a_choice_is_the_range_middle(conn):
+    """Step 6 may pick a yeast with no choice: the middle of its temperature range stands in (found in the pipeline run)."""
+    inp = step10_input(conn, "b01")
+    inp["step6"]["yeast"]["choice"] = None
+    inp["step6"]["yeast"]["temp_c"] = {"low": 12, "high": 15}
+    out = compute(conn, inp)
+    assert float(out["ferm_c"]) == 13.5
+    line = next(v for v in out["values_used"] if v["what"] == "ferm_c")
+    assert "13.5" in line["because"] and "no choice" in line["because"]
+    inp["step6"]["yeast"]["temp_c"] = None
+    with pytest.raises(Exception, match="step 10: the yeast .* has no fermentation temperature"):
+        compute(conn, inp)
+    conn.execute("rollback")
+
+
 def test_a_missing_dose_raises(conn):
     inp = step10_input(conn, "b23")
     inp["step9"]["extras"][0]["dose_g_per_l"] = None

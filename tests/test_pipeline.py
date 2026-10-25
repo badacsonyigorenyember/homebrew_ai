@@ -8,6 +8,7 @@ import pytest
 
 from evals import benchmark
 from loaders.db import connect
+from tests.test_save_recipe import RECOMPUTE_TOLERANCES, recompute
 
 pytestmark = pytest.mark.stack
 
@@ -40,7 +41,7 @@ def post(conn):
             data=json.dumps(body).encode(),
             headers={"Content-Type": "application/json"},
         )
-        with urllib.request.urlopen(req, timeout=600) as response:
+        with urllib.request.urlopen(req, timeout=2400) as response:
             answer = json.load(response)
         run_ids.append(answer["run_id"])
         return answer
@@ -49,7 +50,12 @@ def post(conn):
     brief_ids = [r[0] for r in conn.execute(
         "select brief_id from app.run where id = any(%s) and brief_id is not null", (run_ids,)
     ).fetchall()]
+    recipe_ids = [r[0] for r in conn.execute(
+        "select recipe_id from app.run where id = any(%s) and recipe_id is not null", (run_ids,)
+    ).fetchall()]
     conn.execute("delete from app.run where id = any(%s)", (run_ids,))  # steps cascade
+    conn.execute("delete from app.recipe where id = any(%s)", (recipe_ids,))  # items and deviations cascade
+    conn.execute("delete from app.recipe where brief_id = any(%s)", (brief_ids,))
     conn.execute("delete from app.brief where id = any(%s)", (brief_ids,))
     conn.commit()
 
@@ -57,7 +63,7 @@ def post(conn):
 def _step_rows(conn, run_id):
     return conn.execute(
         "select step, try, ok, error, ms, input, output, tokens, llm from app.run_step "
-        "where run_id = %s order by step",
+        "where run_id = %s order by step, try",
         (run_id,),
     ).fetchall()
 
@@ -76,7 +82,7 @@ def test_b01_logs_step_1(conn, post):
     assert model and finished_at is not None
 
     steps = _step_rows(conn, run_id)
-    assert [s[0] for s in steps] == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    assert [s[0] for s in steps][:10] == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     step, attempt, step_ok, error, ms, step_input, output, tokens, llm = steps[1]
     assert (step, attempt, step_ok, error) == (1, 1, True, None)
     assert ms >= 0
@@ -128,7 +134,8 @@ def _valid(conn, contract, value):
 
 
 def _by_step(conn, run_id):
-    return {s[0]: s for s in _step_rows(conn, run_id)}
+    """Try 1's row of each step."""
+    return {s[0]: s for s in _step_rows(conn, run_id) if s[1] == 1}
 
 
 IPA = "I want a classic West Coast IPA that is properly bitter."
@@ -233,7 +240,7 @@ def test_steps_6_to_9_logged(conn, post):
 def test_guide_setting_reaches_step_2(conn, post):
     """The webhook's `guide` field restricts step 2 to that guide (A4)."""
     answer = post({"request": "I want a classic West Coast IPA that is properly bitter.", "guide": "ba"})
-    assert answer["ok"] is True
+    assert answer["run_id"]  # steps 1-2 are logged whether or not step 11 passes
     step_2 = _by_step(conn, answer["run_id"])[2]
     assert step_2[5]["guide_preference"] == "ba"
     assert step_2[6]["style"]["guide"] == "BA"
@@ -270,7 +277,7 @@ def test_bad_input_logs_failure(conn, post):
 def test_request_kept_verbatim(conn, post):
     request = 'a "pale", ale; some % off $one\nsecond line'
     answer = post({"request": request})
-    assert answer["ok"] is True
+    assert answer["run_id"]  # the request is saved at step 1 whether or not step 11 passes
     steps = _step_rows(conn, answer["run_id"])
     assert steps[1][5]["request"] == request
     saved = conn.execute(
@@ -299,3 +306,42 @@ def test_unknown_word_goes_to_unknown(conn, post):
     output = _step_rows(conn, answer["run_id"])[1][6]
     assert "funky" not in output["hints"]
     assert any("funky" in item.lower() for item in output["unknown"])
+
+
+def test_b01_validates_and_saves(conn, post):
+    """A5: a run of b01 saves a recipe that recomputes from its rows; steps 10 and 11 are logged."""
+    answer = post({"request": IPA, "brief_id": "b01"})
+    assert answer["ok"] is True, answer
+    assert answer["recipe_id"] and answer["tries"] in (1, 2, 3)
+    run_id = answer["run_id"]
+    assert conn.execute("select recipe_id, ok from app.run where id = %s", (run_id,)).fetchone() == (
+        answer["recipe_id"], True)
+    rows = conn.execute(
+        "select step, try, ok, input, output from app.run_step where run_id = %s and step in (10, 11) "
+        "and try = %s order by step", (run_id, answer["tries"])).fetchall()
+    assert [r[0] for r in rows] == [10, 11] and all(r[2] for r in rows)
+    for step, _, _, step_input, output in rows:
+        assert _valid(conn, f"step{step}.input", step_input) == []
+        assert _valid(conn, f"step{step}.output", output) == []
+    assert rows[1][4]["passed"] is True
+    rid = answer["recipe_id"]
+    og, ibu, srm = conn.execute("select og, ibu, srm from app.recipe where id = %s", (rid,)).fetchone()
+    mine = recompute(conn, rid)
+    assert abs(mine["og"] - float(og)) <= RECOMPUTE_TOLERANCES["og"]
+    assert abs(mine["ibu"] - float(ibu)) <= RECOMPUTE_TOLERANCES["ibu"]
+    assert abs(mine["srm"] - float(srm)) <= RECOMPUTE_TOLERANCES["srm"]
+
+
+def test_impossible_target_fails_after_three_tries(conn, post):
+    """A4: no recipe has OG 1.080 at 2 % ABV; the run ends failed after three tries, saving nothing."""
+    answer = post({"request": "A blonde ale at OG 1.080 and only 2 % ABV, 20 litres.", "brief_id": "b-impossible"})
+    assert answer["ok"] is False and answer["failed_step"] == 11 and answer["tries"] == 3
+    for n in (1, 2, 3):
+        assert f"try {n}:" in answer["error"]
+    run_id = answer["run_id"]
+    run = conn.execute("select ok, recipe_id, brief_id from app.run where id = %s", (run_id,)).fetchone()
+    assert run[0] is False and run[1] is None
+    rows = conn.execute(
+        "select try, ok, error from app.run_step where run_id = %s and step = 11 order by try", (run_id,)).fetchall()
+    assert [r[0] for r in rows] == [1, 2, 3] and not any(r[1] for r in rows) and all(r[2] for r in rows)
+    assert conn.execute("select count(*) from app.recipe where brief_id = %s", (run[2],)).fetchone() == (0,)

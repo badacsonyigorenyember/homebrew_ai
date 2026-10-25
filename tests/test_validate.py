@@ -178,6 +178,16 @@ def test_self_pick_out_of_style_is_banned(conn):
     assert v["feedback"][v["failures"].index(fails[0])].endswith("(banned for the next try)")
 
 
+def test_unrated_style_bans_nothing(conn):
+    """A style with no reviewed envelope rates no line (level null): no pick failure, no ban (found in the pipeline run)."""
+    inp, out, picks, frame = case(conn, "b08")
+    out["recipe"]["style_code"] = "session-beer"
+    v = validate(conn, out, inp, picks, frame)
+    assert all(ln["level"] is None for ln in v["style_fit"]["lines"])
+    assert [f for f in v["failures"] if f["kind"] == "pick"] == [] and v["banned"] == []
+    assert contract_errors(conn, "step11.output", v) == []
+
+
 def test_wanted_pick_is_never_banned(conn):
     inp, out, picks, frame = case(conn, "b08")
     hop, recipe, line = out_of_style_pick(conn, out, inp)

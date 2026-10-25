@@ -150,7 +150,7 @@ begin
 
     -- style fit: model deviations with guidance off, picks to ban with guidance on
     for ln in select * from jsonb_array_elements(fit -> 'lines') loop
-        continue when ln ->> 'level' not in ('out_of_style', 'changes_style');
+        continue when coalesce(ln ->> 'level', '') not in ('out_of_style', 'changes_style');
         select coalesce(bool_or((p ->> 'self_picked')::boolean), false) into own
           from jsonb_array_elements(picks) p
          where (p ->> 'ingredient_id')::bigint = (ln ->> 'ingredient_id')::bigint;

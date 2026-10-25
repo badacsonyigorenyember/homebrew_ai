@@ -1,0 +1,898 @@
+{
+  "id": "ST611onetry0001",
+  "name": "Steps 6–11 · one try",
+  "nodes": [
+    {
+      "id": "bca8e01b-e23e-545d-9a1f-ee99b1fdbb8b",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "run_id",
+              "type": "number"
+            },
+            {
+              "name": "try",
+              "type": "number"
+            },
+            {
+              "name": "choose",
+              "type": "object"
+            },
+            {
+              "name": "brief",
+              "type": "object"
+            },
+            {
+              "name": "step3",
+              "type": "object"
+            },
+            {
+              "name": "targets",
+              "type": "object"
+            },
+            {
+              "name": "frame",
+              "type": "object"
+            },
+            {
+              "name": "profile",
+              "type": "object"
+            },
+            {
+              "name": "started_at",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "99f94016-6555-589d-a976-be159db74227",
+      "name": "Check try input",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "try.input",
+            "value": "={{ { run_id: $(\"When Executed by Another Workflow\").item.json.run_id, try: $(\"When Executed by Another Workflow\").item.json.try, choose: $(\"When Executed by Another Workflow\").item.json.choose, brief: $(\"When Executed by Another Workflow\").item.json.brief, step3: $(\"When Executed by Another Workflow\").item.json.step3, targets: $(\"When Executed by Another Workflow\").item.json.targets, frame: $(\"When Executed by Another Workflow\").item.json.frame, profile: $(\"When Executed by Another Workflow\").item.json.profile, started_at: $(\"When Executed by Another Workflow\").item.json.started_at } }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "51118553-4bdf-58a2-9a84-976fdb0e5892",
+      "name": "Steps 6–9 · choose ingredients",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ST69chooseingr01",
+          "cachedResultName": "Steps 6–9 · choose ingredients"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $(\"When Executed by Another Workflow\").item.json.choose.run_id }}",
+            "brief": "={{ $(\"When Executed by Another Workflow\").item.json.choose.brief }}",
+            "style": "={{ $(\"When Executed by Another Workflow\").item.json.choose.style }}",
+            "profile": "={{ $(\"When Executed by Another Workflow\").item.json.choose.profile }}",
+            "targets": "={{ $(\"When Executed by Another Workflow\").item.json.choose.targets }}",
+            "frame": "={{ $(\"When Executed by Another Workflow\").item.json.choose.frame }}",
+            "model": "={{ $(\"When Executed by Another Workflow\").item.json.choose.model }}",
+            "think": "={{ $(\"When Executed by Another Workflow\").item.json.choose.think }}",
+            "temperature": "={{ $(\"When Executed by Another Workflow\").item.json.choose.temperature }}",
+            "seed": "={{ $(\"When Executed by Another Workflow\").item.json.choose.seed }}",
+            "feedback": "={{ $(\"When Executed by Another Workflow\").item.json.choose.feedback ?? null }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "brief",
+              "displayName": "brief",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "style",
+              "displayName": "style",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "profile",
+              "displayName": "profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "targets",
+              "displayName": "targets",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "frame",
+              "displayName": "frame",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "model",
+              "displayName": "model",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "think",
+              "displayName": "think",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            },
+            {
+              "id": "temperature",
+              "displayName": "temperature",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "seed",
+              "displayName": "seed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "feedback",
+              "displayName": "feedback",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "9d1beca0-a2eb-5ca3-8467-44996e774616",
+      "name": "Step 6 · log ok",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        672,
+        -96
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, tokens, llm) values ($1, 6, $7::int, $2::jsonb, $3::jsonb, true, round(extract(epoch from clock_timestamp() - $4::timestamptz) * 1000)::int, $5, $6::jsonb)",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.run_id, JSON.stringify({ run_id: $(\"When Executed by Another Workflow\").item.json.run_id, style_used: $(\"Steps 6–9 · choose ingredients\").item.json.table.style_used, wanted_style: $(\"Steps 6–9 · choose ingredients\").item.json.table.wanted_style, guidance: $(\"Steps 6–9 · choose ingredients\").item.json.table.guidance, slots: $(\"Steps 6–9 · choose ingredients\").item.json.table.slots, inventory_words: $(\"Steps 6–9 · choose ingredients\").item.json.table.inventory_words, excluded: $(\"Steps 6–9 · choose ingredients\").item.json.table.excluded, candidates: $(\"Steps 6–9 · choose ingredients\").item.json.table.yeasts, band: $(\"Steps 6–9 · choose ingredients\").item.json.table.band, targets: $(\"Steps 6–9 · choose ingredients\").item.json.table.targets, yeast_rules: $(\"Steps 6–9 · choose ingredients\").item.json.table.yeast_rules }), JSON.stringify($(\"Steps 6–9 · choose ingredients\").item.json.step6), $(\"When Executed by Another Workflow\").item.json.started_at, $(\"Steps 6–9 · choose ingredients\").item.json.llm.prompt_tokens + $(\"Steps 6–9 · choose ingredients\").item.json.llm.output_tokens, JSON.stringify($(\"Steps 6–9 · choose ingredients\").item.json.llm), $(\"When Executed by Another Workflow\").item.json.try] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "7c028d5d-08ed-5914-9256-e87d3b60cfa7",
+      "name": "Step 7 · log ok",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        896,
+        -96
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms) values ($1, 7, $4::int, $2::jsonb, $3::jsonb, true, 0)",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.run_id, JSON.stringify({ run_id: $(\"When Executed by Another Workflow\").item.json.run_id, style_used: $(\"Steps 6–9 · choose ingredients\").item.json.table.style_used, wanted_style: $(\"Steps 6–9 · choose ingredients\").item.json.table.wanted_style, guidance: $(\"Steps 6–9 · choose ingredients\").item.json.table.guidance, slots: $(\"Steps 6–9 · choose ingredients\").item.json.table.slots, inventory_words: $(\"Steps 6–9 · choose ingredients\").item.json.table.inventory_words, excluded: $(\"Steps 6–9 · choose ingredients\").item.json.table.excluded, candidates: $(\"Steps 6–9 · choose ingredients\").item.json.table.fermentables }), JSON.stringify($(\"Steps 6–9 · choose ingredients\").item.json.step7), $(\"When Executed by Another Workflow\").item.json.try] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "f232a63d-90cd-50fb-b120-15456d5fe674",
+      "name": "Step 8 · log ok",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1120,
+        -96
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms) values ($1, 8, $4::int, $2::jsonb, $3::jsonb, true, 0)",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.run_id, JSON.stringify({ run_id: $(\"When Executed by Another Workflow\").item.json.run_id, style_used: $(\"Steps 6–9 · choose ingredients\").item.json.table.style_used, wanted_style: $(\"Steps 6–9 · choose ingredients\").item.json.table.wanted_style, guidance: $(\"Steps 6–9 · choose ingredients\").item.json.table.guidance, slots: $(\"Steps 6–9 · choose ingredients\").item.json.table.slots, inventory_words: $(\"Steps 6–9 · choose ingredients\").item.json.table.inventory_words, excluded: $(\"Steps 6–9 · choose ingredients\").item.json.table.excluded, candidates: $(\"Steps 6–9 · choose ingredients\").item.json.table.hops, targets: $(\"Steps 6–9 · choose ingredients\").item.json.table.targets }), JSON.stringify($(\"Steps 6–9 · choose ingredients\").item.json.step8), $(\"When Executed by Another Workflow\").item.json.try] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "78ba9c2d-21bf-51ba-9f02-9148facf736a",
+      "name": "Step 9 · log ok",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1344,
+        -96
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms) values ($1, 9, $4::int, $2::jsonb, $3::jsonb, true, 0)",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.run_id, JSON.stringify({ run_id: $(\"When Executed by Another Workflow\").item.json.run_id, style_used: $(\"Steps 6–9 · choose ingredients\").item.json.table.style_used, wanted_style: $(\"Steps 6–9 · choose ingredients\").item.json.table.wanted_style, guidance: $(\"Steps 6–9 · choose ingredients\").item.json.table.guidance, slots: $(\"Steps 6–9 · choose ingredients\").item.json.table.slots, inventory_words: $(\"Steps 6–9 · choose ingredients\").item.json.table.inventory_words, excluded: $(\"Steps 6–9 · choose ingredients\").item.json.table.excluded, candidates: $(\"Steps 6–9 · choose ingredients\").item.json.table.misc }), JSON.stringify($(\"Steps 6–9 · choose ingredients\").item.json.step9), $(\"When Executed by Another Workflow\").item.json.try] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "7fa05a80-d9e5-50d2-aec4-7abd3762b433",
+      "name": "Steps 10–11 · input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        -96
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { run_id: $(\"When Executed by Another Workflow\").item.json.run_id, try: $(\"When Executed by Another Workflow\").item.json.try, brief: $(\"When Executed by Another Workflow\").item.json.brief, profile: $(\"When Executed by Another Workflow\").item.json.profile, targets: $(\"When Executed by Another Workflow\").item.json.targets, frame: $(\"When Executed by Another Workflow\").item.json.frame, step6: $(\"Steps 6–9 · choose ingredients\").item.json.step6, step7: $(\"Steps 6–9 · choose ingredients\").item.json.step7, step8: $(\"Steps 6–9 · choose ingredients\").item.json.step8, step9: $(\"Steps 6–9 · choose ingredients\").item.json.step9, started_at: $now.toISO() } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "fb7168fa-f5fb-59af-9617-292f57544160",
+      "name": "Steps 10–11 · compute and validate",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1792,
+        -96
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ST1011compval01",
+          "cachedResultName": "Steps 10–11 · compute and validate"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "try": "={{ $json.try }}",
+            "brief": "={{ $json.brief }}",
+            "profile": "={{ $json.profile }}",
+            "targets": "={{ $json.targets }}",
+            "frame": "={{ $json.frame }}",
+            "step6": "={{ $json.step6 }}",
+            "step7": "={{ $json.step7 }}",
+            "step8": "={{ $json.step8 }}",
+            "step9": "={{ $json.step9 }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "try",
+              "displayName": "try",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "brief",
+              "displayName": "brief",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "profile",
+              "displayName": "profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "targets",
+              "displayName": "targets",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "frame",
+              "displayName": "frame",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "step6",
+              "displayName": "step6",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "step7",
+              "displayName": "step7",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "step8",
+              "displayName": "step8",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "step9",
+              "displayName": "step9",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "8cdddb12-3c04-56ea-8301-f8a4c3d4ce05",
+      "name": "Step 10 · log ok",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2016,
+        -192
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms) values ($1, 10, $4::int, $2::jsonb, $3::jsonb, true, round(extract(epoch from clock_timestamp() - $5::timestamptz) * 1000)::int)",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.run_id, JSON.stringify({ run_id: $(\"Steps 10–11 · input\").item.json.run_id, try: $(\"Steps 10–11 · input\").item.json.try, brief: $(\"Steps 10–11 · input\").item.json.brief, profile: $(\"Steps 10–11 · input\").item.json.profile, targets: $(\"Steps 10–11 · input\").item.json.targets, step6: $(\"Steps 10–11 · input\").item.json.step6, step7: $(\"Steps 10–11 · input\").item.json.step7, step8: $(\"Steps 10–11 · input\").item.json.step8, step9: $(\"Steps 10–11 · input\").item.json.step9 }), JSON.stringify($(\"Steps 10–11 · compute and validate\").item.json.step10), $(\"When Executed by Another Workflow\").item.json.try, $(\"Steps 10–11 · input\").item.json.started_at] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "907a8189-d15d-5e9c-99cf-39fb01cb49da",
+      "name": "Step 11 · log",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2240,
+        -192
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, error) values ($1, 11, $2::int, $3::jsonb, $4::jsonb, $5::boolean, 0, case when $5::boolean then null else $6::text end)",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.run_id, $(\"When Executed by Another Workflow\").item.json.try, JSON.stringify($(\"Steps 10–11 · compute and validate\").item.json.step11_input), JSON.stringify($(\"Steps 10–11 · compute and validate\").item.json.step11), $(\"Steps 10–11 · compute and validate\").item.json.step11.passed, \"step 11 (try \" + $(\"When Executed by Another Workflow\").item.json.try + \"): \" + $(\"Steps 10–11 · compute and validate\").item.json.step11.feedback.join(\"; \")] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "b803390f-6e72-5c00-9c7c-64dbc5e83808",
+      "name": "Build result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2464,
+        -192
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { passed: $(\"Steps 10–11 · compute and validate\").item.json.step11.passed, try: $(\"When Executed by Another Workflow\").item.json.try, step10: $(\"Steps 10–11 · compute and validate\").item.json.step10, step11: $(\"Steps 10–11 · compute and validate\").item.json.step11, next_feedback: ($(\"Steps 10–11 · compute and validate\").item.json.step11.passed || $(\"When Executed by Another Workflow\").item.json.try >= 3) ? null : { try: $(\"When Executed by Another Workflow\").item.json.try + 1, lines: $(\"Steps 10–11 · compute and validate\").item.json.step11.feedback, banned: [...($(\"When Executed by Another Workflow\").item.json.choose.feedback?.banned ?? []), ...$(\"Steps 10–11 · compute and validate\").item.json.step11.banned], last: { fermentables: $(\"Steps 10–11 · compute and validate\").item.json.step10.fermentables.map(f => ({ name: f.name, pct: f.pct, usage: f.usage })), hops: $(\"Steps 10–11 · compute and validate\").item.json.step10.hops.map(h => ({ name: h.name, share_pct: h.share_pct, usage: h.usage, minutes: h.minutes })), yeast: $(\"Steps 10–11 · compute and validate\").item.json.step10.yeasts.map(y => ({ name: y.name })), extras: $(\"Steps 10–11 · compute and validate\").item.json.step10.extras.map(x => ({ name: x.name, usage: x.usage, g: x.g })) } } } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "afecf54b-c49a-5b25-8ea9-eacd1a024527",
+      "name": "Check try output",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2688,
+        -192
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "try.output",
+            "value": "={{ $json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "f9a43d78-4085-50b9-94ab-26379495718c",
+      "name": "Return result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2912,
+        -192
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $(\"Build result\").item.json }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "722e468b-7c4b-5624-a8b8-588f2602f2d4",
+      "name": "Steps 6–9 · log failure",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        672,
+        288
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, error) values ($1, $5::int, $6::int, $2::jsonb, null, false, round(extract(epoch from clock_timestamp() - $3::timestamptz) * 1000)::int, $4)",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.run_id, JSON.stringify({ run_id: $(\"When Executed by Another Workflow\").item.json.run_id, brief: $(\"When Executed by Another Workflow\").item.json.choose.brief, style: $(\"When Executed by Another Workflow\").item.json.choose.style, targets: $(\"When Executed by Another Workflow\").item.json.choose.targets, frame: $(\"When Executed by Another Workflow\").item.json.choose.frame }), $(\"When Executed by Another Workflow\").item.json.started_at, $json.error, ((($(\"Steps 6–9 · choose ingredients\").item.json.error ?? \"\").match(/step ?(\\d+)[:.]/g) ?? [\"step 6:\"]).map(s => Number(s.replace(/\\D/g, \"\"))).sort((a, b) => a - b)[0]), $(\"When Executed by Another Workflow\").item.json.try] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "938d85dc-5c24-568c-b5ac-753e11b6fca1",
+      "name": "Fail steps 6–9",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        896,
+        288
+      ],
+      "parameters": {
+        "errorMessage": "={{ $(\"Steps 6–9 · choose ingredients\").item.json.error }}"
+      }
+    },
+    {
+      "id": "2451f296-e2e5-555d-be1c-17eec8fe579a",
+      "name": "Step 10 · log failure",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2016,
+        288
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, error) values ($1, $5::int, $6::int, $2::jsonb, null, false, round(extract(epoch from clock_timestamp() - $3::timestamptz) * 1000)::int, $4)",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.run_id, JSON.stringify({ run_id: $(\"When Executed by Another Workflow\").item.json.run_id, try: $(\"When Executed by Another Workflow\").item.json.try, brief: $(\"Steps 10–11 · input\").item.json.brief, profile: $(\"Steps 10–11 · input\").item.json.profile, targets: $(\"Steps 10–11 · input\").item.json.targets, step6: $(\"Steps 10–11 · input\").item.json.step6, step7: $(\"Steps 10–11 · input\").item.json.step7, step8: $(\"Steps 10–11 · input\").item.json.step8, step9: $(\"Steps 10–11 · input\").item.json.step9 }), $(\"Steps 10–11 · input\").item.json.started_at, $json.error, /step ?11[:.]/.test($(\"Steps 10–11 · compute and validate\").item.json.error ?? \"\") ? 11 : 10, $(\"When Executed by Another Workflow\").item.json.try] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "c3b64b17-4a21-5786-9397-8a7a01675776",
+      "name": "Fail steps 10–11",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        288
+      ],
+      "parameters": {
+        "errorMessage": "={{ $(\"Steps 10–11 · compute and validate\").item.json.error }}"
+      }
+    },
+    {
+      "id": "872a616f-ba5f-56ab-a326-ebf930ede612",
+      "name": "Sticky Note 611",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -352
+      ],
+      "parameters": {
+        "content": "### Steps 6–11 · one try\nOne try of the recipe: calls `Steps 6–9 · choose ingredients` (the one model call; `choose.feedback` carries the failures of the last try), logs rows 6 to 9, calls `Steps 10–11 · compute and validate`, and logs rows 10 and 11 with this try's number. Row 11 is ok when step 11 passed, else it holds the failure lines as its error. Returns `{passed, try, step10, step11, next_feedback}`; `next_feedback` is the next try's `choose.feedback` (the lines, every pick banned so far and the failed recipe's picks), null when the recipe passed or this was try 3. A failure in steps 6–9 or in step 10 logs its row and stops with its message.",
+        "height": 264,
+        "width": 560,
+        "color": 4
+      }
+    },
+    {
+      "id": "9fc5ed1d-1563-5783-a49e-2db1382ec390",
+      "name": "Test data",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        400
+      ],
+      "parameters": {
+        "content": "### Test data · editor run\nPin this on `When Executed by Another Workflow` (open the node, use the output panel's edit / mock-data control, paste the JSON, save), then click *Execute workflow*.\nCalls the model and writes the log rows of try 1 for the run in `run_id`: set it to the id of an existing `app.run` (the rows cascade-delete with the run); `0` belongs to no run, so the first log row fails on its foreign key.\n\n```json\n[{\"run_id\": 0, \"try\": 1, \"choose\": {\"run_id\": 0, \"brief\": {\"named\": \"West Coast IPA\", \"stated\": {\"batch_l\": 20, \"abv\": 6.5}, \"hints\": [\"bitter\"], \"wanted\": [], \"excluded\": [], \"inventory\": [], \"unknown\": [], \"guidance\": true}, \"style\": {\"style\": {\"id\": 8, \"code\": \"21A\", \"name\": \"American IPA\", \"guide\": \"BJCP\"}, \"reason\": \"Picked 21A American IPA: the name matches (1.00).\", \"scores\": {\"name\": 4.0, \"total\": 6.33, \"words\": 1.0, \"numbers\": 1.33}, \"mismatch\": null, \"alt_styles\": [], \"candidates\": [{\"code\": \"21A\", \"guide\": \"BJCP\", \"score\": 6.33}, {\"code\": \"west-coast-style-india-pale-ale\", \"guide\": \"BA\", \"score\": 5.62}, {\"code\": \"21B\", \"guide\": \"BJCP\", \"score\": 4.03}, {\"code\": \"12C\", \"guide\": \"BJCP\", \"score\": 3.99}, {\"code\": \"21C\", \"guide\": \"BJCP\", \"score\": 3.72}], \"guide_reason\": \"no guide set or named in the request; both guides scored, best fit 21A\", \"unknown_reason\": null}, \"profile\": {\"units\": \"metric\", \"water\": {\"ca\": 0.0, \"cl\": 0.0, \"mg\": 0.0, \"na\": 0.0, \"so4\": 0.0, \"hco3\": 0.0}, \"batch_l\": 20.0, \"losses_l\": 2.0, \"inventory\": [], \"boil_off_l_h\": 4.0, \"efficiency_pct\": 72.0, \"grain_abs_l_kg\": 1.0}, \"targets\": {\"knobs\": [{\"knob\": \"ibu\", \"hints\": \"bitter\", \"intent\": null, \"source\": \"unsourced\", \"direction\": 1}, {\"knob\": \"bu_gu\", \"hints\": \"bitter\", \"intent\": null, \"source\": \"bjcp-exam-study-guide-2017, p60\", \"direction\": 1}], \"style\": {\"code\": \"21A\", \"from\": \"chosen\", \"name\": \"American IPA\", \"because\": \"step 2 chose 21A\"}, \"mash_c\": {\"from\": \"midpoint\", \"value\": 66.5, \"because\": \"middle of rule 10's mash range 64–69 °C\"}, \"batch_l\": {\"from\": \"stated\", \"value\": 20, \"because\": \"stated by the user\"}, \"targets\": {\"fg\": {\"from\": \"midpoint\", \"value\": 1.011, \"because\": \"midpoint of 21A FG 1.008–1.014\"}, \"og\": {\"from\": \"derived\", \"value\": 1.0613, \"because\": \"solved so app.abv gives the stated ABV 6.5 at FG 1.011\"}, \"abv\": {\"from\": \"stated\", \"value\": 6.5, \"because\": \"stated by the user\"}, \"ibu\": {\"from\": \"hint\", \"value\": 66.25, \"because\": \"bitter: 87.5 % of 21A IBU 40–70\"}, \"srm\": {\"from\": \"midpoint\", \"value\": 10.0, \"because\": \"midpoint of 21A SRM 6–14\"}}, \"guidance\": true, \"conflicts\": []}, \"frame\": {\"rules\": {\"from\": \"app.formulation_rules() (db/031)\", \"rows\": [{\"rule\": \"definitions\", \"checked\": true, \"sentence\": \"A share is a percentage of the total fermentable mass, sugars included. A fermentable's colour is the midpoint of its ebc range, or its one bound when the range is open. Role, max_pct, min_boil_min, fermentability, attenuation_pct, temp_c and alcohol_tolerance_pct are ingredient-table fields.\"}, {\"rule\": \"1\", \"checked\": true, \"sentence\": \"A recipe has at most 5 fermentables, and at most 3 of them have the role kilned, crystal or roast; fermentables with the role adjunct or sugar do not count toward the 3.\"}, {\"rule\": \"2\", \"checked\": true, \"sentence\": \"A recipe uses at most 3 hop varieties.\"}, {\"rule\": \"3\", \"checked\": true, \"sentence\": \"Fermentables with the role crystal and a colour above 60 EBC, plus fermentables with the role roast, are at most 15 % of the grist together.\"}, {\"rule\": \"4\", \"checked\": true, \"sentence\": \"Fermentables with the role crystal are at most 25 % of the grist together; those with a colour above 60 EBC at most 10 %; those with a colour above 160 EBC at most 5 %. Those at or below 60 EBC are limited only by rule 6.\"}, {\"rule\": \"5\", \"checked\": true, \"sentence\": \"Fermentables with the role adjunct or sugar are at most 40 % of the grist together.\"}, {\"rule\": \"6\", \"checked\": true, \"sentence\": \"Each fermentable is at most its max_pct share of the grist.\"}, {\"rule\": \"7\", \"checked\": false, \"sentence\": \"The colour adjustment changes only the share of the fermentable with the darkest colour, and never one with the role crystal. Enforced by the colour solver in step 10, not by this check.\"}, {\"rule\": \"8\", \"checked\": true, \"sentence\": \"A recipe has exactly one bittering addition: a boil addition whose time equals the boil time. Every other hop addition is a boil addition of at most 15 min, a whirlpool addition or a dry hop.\"}, {\"rule\": \"9\", \"checked\": true, \"sentence\": \"When style guidance is on, a target OG, FG, IBU or SRM that the user did not state is the style's midpoint, moved by the request's hints to 87.5 % (up) or 12.5 % (down) of the style's range, with the OG moved inside its range as far as needed for the ABV from the OG and FG to reach the style's ABV range; within 0.001 for OG, 0.002 for FG, 1 IBU and 1 SRM. OG and FG count as stated when the user stated the ABV. The ABV target is app.abv of the OG and FG targets, within 0.1 %. A target is outside the style's range only when the user stated it or style guidance is off.\"}, {\"rule\": \"10\", \"checked\": true, \"sentence\": \"The mash temperature is between 64 and 69 °C, and the FG predicted from the yeast's attenuation_pct, each fermentable's fermentability and the mash temperature is inside the target FG range: the style's FG range, or the target FG ± 0.002 when the user stated the FG or the ABV. Up to 68.3 °C the attenuation is the middle of the yeast's attenuation_pct range, which applies at 66.5 °C; above 68.3 °C it is 4.15 points lower per °C, never outside that range (Troester 2009, limit of attenuation against mash temperature).\"}, {\"rule\": \"11\", \"checked\": true, \"sentence\": \"The planned ABV is at most the yeast's alcohol_tolerance_pct, and the fermentation temperature is inside the yeast's temp_c range.\"}, {\"rule\": \"12\", \"checked\": true, \"sentence\": \"Every fermentable, hop and yeast in the recipe has a purpose that is not empty.\"}, {\"rule\": \"13\", \"checked\": true, \"sentence\": \"The boil time is at least the largest min_boil_min of the recipe's fermentables, and at least 60 min.\"}, {\"rule\": \"pending\", \"checked\": false, \"sentence\": \"A recipe uses only processes the brewer profile allows. Pending: needs the brewer profile (step 0); not checked.\"}]}, \"slots\": [], \"limits\": {\"from\": \"app.formulation_limits() (db/031)\", \"values\": {\"mash_max_c\": 69, \"mash_min_c\": 64, \"mash_ref_c\": 66.5, \"mash_knee_c\": 68.3, \"min_boil_min\": 60, \"max_specialty\": 3, \"dark_total_pct\": 15, \"crystal_dark_ebc\": 60, \"crystal_dark_pct\": 10, \"late_hop_max_min\": 15, \"max_fermentables\": 5, \"adjunct_sugar_pct\": 40, \"crystal_total_pct\": 25, \"max_hop_varieties\": 3, \"pct_sum_tolerance\": 0.1, \"midpoint_tolerance\": {\"fg\": 0.002, \"og\": 0.001, \"abv\": 0.1, \"ibu\": 1, \"srm\": 1}, \"mash_slope_pct_per_c\": 4.15, \"crystal_very_dark_ebc\": 160, \"crystal_very_dark_pct\": 5}}, \"intents\": [], \"excluded\": [], \"guidance\": true, \"inventory\": [], \"style_code\": \"21A\", \"attenuation\": {\"from\": \"derived\", \"mash_c\": 66.5, \"because\": \"100 x (OG 1.0613 - FG 1.011) / (OG - 1); the yeast band adds 0 points for the 66.5 °C mash (Troester's curve, app.mash_attenuation)\", \"low_pct\": 78.79, \"high_pct\": 85.32, \"needed_pct\": 82.06, \"yeast_low_pct\": 78.79, \"yeast_high_pct\": 85.32, \"yeast_middle_pct\": 82.06}}, \"model\": \"hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K\", \"think\": false, \"feedback\": null, \"temperature\": 0, \"seed\": 42}, \"brief\": {\"named\": \"West Coast IPA\", \"stated\": {\"batch_l\": 20, \"abv\": 6.5}, \"hints\": [\"bitter\"], \"wanted\": [], \"excluded\": [], \"inventory\": [], \"unknown\": [], \"guidance\": true}, \"step3\": {\"unrated\": [], \"guidance\": true, \"deviations\": []}, \"targets\": {\"knobs\": [{\"knob\": \"ibu\", \"hints\": \"bitter\", \"intent\": null, \"source\": \"unsourced\", \"direction\": 1}, {\"knob\": \"bu_gu\", \"hints\": \"bitter\", \"intent\": null, \"source\": \"bjcp-exam-study-guide-2017, p60\", \"direction\": 1}], \"style\": {\"code\": \"21A\", \"from\": \"chosen\", \"name\": \"American IPA\", \"because\": \"step 2 chose 21A\"}, \"mash_c\": {\"from\": \"midpoint\", \"value\": 66.5, \"because\": \"middle of rule 10's mash range 64–69 °C\"}, \"batch_l\": {\"from\": \"stated\", \"value\": 20, \"because\": \"stated by the user\"}, \"targets\": {\"fg\": {\"from\": \"midpoint\", \"value\": 1.011, \"because\": \"midpoint of 21A FG 1.008–1.014\"}, \"og\": {\"from\": \"derived\", \"value\": 1.0613, \"because\": \"solved so app.abv gives the stated ABV 6.5 at FG 1.011\"}, \"abv\": {\"from\": \"stated\", \"value\": 6.5, \"because\": \"stated by the user\"}, \"ibu\": {\"from\": \"hint\", \"value\": 66.25, \"because\": \"bitter: 87.5 % of 21A IBU 40–70\"}, \"srm\": {\"from\": \"midpoint\", \"value\": 10.0, \"because\": \"midpoint of 21A SRM 6–14\"}}, \"guidance\": true, \"conflicts\": []}, \"frame\": {\"rules\": {\"from\": \"app.formulation_rules() (db/031)\", \"rows\": [{\"rule\": \"definitions\", \"checked\": true, \"sentence\": \"A share is a percentage of the total fermentable mass, sugars included. A fermentable's colour is the midpoint of its ebc range, or its one bound when the range is open. Role, max_pct, min_boil_min, fermentability, attenuation_pct, temp_c and alcohol_tolerance_pct are ingredient-table fields.\"}, {\"rule\": \"1\", \"checked\": true, \"sentence\": \"A recipe has at most 5 fermentables, and at most 3 of them have the role kilned, crystal or roast; fermentables with the role adjunct or sugar do not count toward the 3.\"}, {\"rule\": \"2\", \"checked\": true, \"sentence\": \"A recipe uses at most 3 hop varieties.\"}, {\"rule\": \"3\", \"checked\": true, \"sentence\": \"Fermentables with the role crystal and a colour above 60 EBC, plus fermentables with the role roast, are at most 15 % of the grist together.\"}, {\"rule\": \"4\", \"checked\": true, \"sentence\": \"Fermentables with the role crystal are at most 25 % of the grist together; those with a colour above 60 EBC at most 10 %; those with a colour above 160 EBC at most 5 %. Those at or below 60 EBC are limited only by rule 6.\"}, {\"rule\": \"5\", \"checked\": true, \"sentence\": \"Fermentables with the role adjunct or sugar are at most 40 % of the grist together.\"}, {\"rule\": \"6\", \"checked\": true, \"sentence\": \"Each fermentable is at most its max_pct share of the grist.\"}, {\"rule\": \"7\", \"checked\": false, \"sentence\": \"The colour adjustment changes only the share of the fermentable with the darkest colour, and never one with the role crystal. Enforced by the colour solver in step 10, not by this check.\"}, {\"rule\": \"8\", \"checked\": true, \"sentence\": \"A recipe has exactly one bittering addition: a boil addition whose time equals the boil time. Every other hop addition is a boil addition of at most 15 min, a whirlpool addition or a dry hop.\"}, {\"rule\": \"9\", \"checked\": true, \"sentence\": \"When style guidance is on, a target OG, FG, IBU or SRM that the user did not state is the style's midpoint, moved by the request's hints to 87.5 % (up) or 12.5 % (down) of the style's range, with the OG moved inside its range as far as needed for the ABV from the OG and FG to reach the style's ABV range; within 0.001 for OG, 0.002 for FG, 1 IBU and 1 SRM. OG and FG count as stated when the user stated the ABV. The ABV target is app.abv of the OG and FG targets, within 0.1 %. A target is outside the style's range only when the user stated it or style guidance is off.\"}, {\"rule\": \"10\", \"checked\": true, \"sentence\": \"The mash temperature is between 64 and 69 °C, and the FG predicted from the yeast's attenuation_pct, each fermentable's fermentability and the mash temperature is inside the target FG range: the style's FG range, or the target FG ± 0.002 when the user stated the FG or the ABV. Up to 68.3 °C the attenuation is the middle of the yeast's attenuation_pct range, which applies at 66.5 °C; above 68.3 °C it is 4.15 points lower per °C, never outside that range (Troester 2009, limit of attenuation against mash temperature).\"}, {\"rule\": \"11\", \"checked\": true, \"sentence\": \"The planned ABV is at most the yeast's alcohol_tolerance_pct, and the fermentation temperature is inside the yeast's temp_c range.\"}, {\"rule\": \"12\", \"checked\": true, \"sentence\": \"Every fermentable, hop and yeast in the recipe has a purpose that is not empty.\"}, {\"rule\": \"13\", \"checked\": true, \"sentence\": \"The boil time is at least the largest min_boil_min of the recipe's fermentables, and at least 60 min.\"}, {\"rule\": \"pending\", \"checked\": false, \"sentence\": \"A recipe uses only processes the brewer profile allows. Pending: needs the brewer profile (step 0); not checked.\"}]}, \"slots\": [], \"limits\": {\"from\": \"app.formulation_limits() (db/031)\", \"values\": {\"mash_max_c\": 69, \"mash_min_c\": 64, \"mash_ref_c\": 66.5, \"mash_knee_c\": 68.3, \"min_boil_min\": 60, \"max_specialty\": 3, \"dark_total_pct\": 15, \"crystal_dark_ebc\": 60, \"crystal_dark_pct\": 10, \"late_hop_max_min\": 15, \"max_fermentables\": 5, \"adjunct_sugar_pct\": 40, \"crystal_total_pct\": 25, \"max_hop_varieties\": 3, \"pct_sum_tolerance\": 0.1, \"midpoint_tolerance\": {\"fg\": 0.002, \"og\": 0.001, \"abv\": 0.1, \"ibu\": 1, \"srm\": 1}, \"mash_slope_pct_per_c\": 4.15, \"crystal_very_dark_ebc\": 160, \"crystal_very_dark_pct\": 5}}, \"intents\": [], \"excluded\": [], \"guidance\": true, \"inventory\": [], \"style_code\": \"21A\", \"attenuation\": {\"from\": \"derived\", \"mash_c\": 66.5, \"because\": \"100 x (OG 1.0613 - FG 1.011) / (OG - 1); the yeast band adds 0 points for the 66.5 °C mash (Troester's curve, app.mash_attenuation)\", \"low_pct\": 78.79, \"high_pct\": 85.32, \"needed_pct\": 82.06, \"yeast_low_pct\": 78.79, \"yeast_high_pct\": 85.32, \"yeast_middle_pct\": 82.06}}, \"profile\": {\"units\": \"metric\", \"water\": {\"ca\": 0.0, \"cl\": 0.0, \"mg\": 0.0, \"na\": 0.0, \"so4\": 0.0, \"hco3\": 0.0}, \"batch_l\": 20.0, \"losses_l\": 2.0, \"inventory\": [], \"boil_off_l_h\": 4.0, \"efficiency_pct\": 72.0, \"grain_abs_l_kg\": 1.0}, \"started_at\": \"2026-10-25T10:00:00.000Z\"}]\n```",
+        "height": 420,
+        "width": 560,
+        "color": 5
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Check try input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check try input": {
+      "main": [
+        [
+          {
+            "node": "Steps 6–9 · choose ingredients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Steps 6–9 · choose ingredients": {
+      "main": [
+        [
+          {
+            "node": "Step 6 · log ok",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Steps 6–9 · log failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 6 · log ok": {
+      "main": [
+        [
+          {
+            "node": "Step 7 · log ok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 7 · log ok": {
+      "main": [
+        [
+          {
+            "node": "Step 8 · log ok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 8 · log ok": {
+      "main": [
+        [
+          {
+            "node": "Step 9 · log ok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 9 · log ok": {
+      "main": [
+        [
+          {
+            "node": "Steps 10–11 · input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Steps 10–11 · input": {
+      "main": [
+        [
+          {
+            "node": "Steps 10–11 · compute and validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Steps 10–11 · compute and validate": {
+      "main": [
+        [
+          {
+            "node": "Step 10 · log ok",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Step 10 · log failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 10 · log ok": {
+      "main": [
+        [
+          {
+            "node": "Step 11 · log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 11 · log": {
+      "main": [
+        [
+          {
+            "node": "Build result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build result": {
+      "main": [
+        [
+          {
+            "node": "Check try output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check try output": {
+      "main": [
+        [
+          {
+            "node": "Return result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Steps 6–9 · log failure": {
+      "main": [
+        [
+          {
+            "node": "Fail steps 6–9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 10 · log failure": {
+      "main": [
+        [
+          {
+            "node": "Fail steps 10–11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  }
+}

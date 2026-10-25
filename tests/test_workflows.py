@@ -47,6 +47,9 @@ SAMPLES["step-5-design-frame.json"] = [{
 }]
 STEP69 = json.loads((ROOT / "tests" / "step69_sample.json").read_text())
 SAMPLES["steps-6-9-choose-ingredients.json"] = STEP69
+SAMPLES["steps-10-11-compute-and-validate.json"] = json.loads(
+    (ROOT / "tests" / "step1011_sample.json").read_text())
+SAMPLES["steps-6-11-one-try.json"] = json.loads((ROOT / "tests" / "step611_sample.json").read_text())
 # The input contract each sample is checked against.
 CONTRACT_OF = {
     "recipe-pipeline.json": "step1.input",
@@ -58,6 +61,8 @@ CONTRACT_OF = {
     "step-4-targets.json": "step4.input",
     "step-5-design-frame.json": "step5.input",
     "steps-6-9-choose-ingredients.json": "choose.input",
+    "steps-10-11-compute-and-validate.json": "step10.input",
+    "steps-6-11-one-try.json": "try.input",
 }
 STEP1_INPUT = {
     "recipe-pipeline.json": lambda s: {
@@ -70,6 +75,8 @@ STEP1_INPUT = {
     "step-4-targets.json": lambda s: s[0],
     "step-5-design-frame.json": lambda s: s[0],
     "steps-6-9-choose-ingredients.json": lambda s: {**s[0], "temperature": 0, "seed": 42},
+    "steps-10-11-compute-and-validate.json": lambda s: {k: v for k, v in s[0].items() if k != "frame"},
+    "steps-6-11-one-try.json": lambda s: s[0],
 }
 
 
