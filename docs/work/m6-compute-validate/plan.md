@@ -343,7 +343,7 @@ Commit: `Validate recipes in step 11`
 
 ### Task 6: a validated recipe is saved as rows
 Why: R6, R7, A5, A8 (SQL halves).
-- [ ] `db/048_save_recipe.sql` (needs 045, 047): `app.save_recipe(run_id bigint, step3 jsonb,
+- [x] `db/048_save_recipe.sql` (needs 045, 047): `app.save_recipe(run_id bigint, step3 jsonb,
       targets jsonb, step10 jsonb, step11 jsonb) returns bigint`. Raises unless `step11.passed`
       is true (R5) and unless the run has a `brief_id`. Inserts `app.recipe` (`brief_id` from
       `app.run`, `style_id` from `ref.beer_style` by `targets.style.code`, `status` draft,
@@ -355,8 +355,8 @@ Why: R6, R7, A5, A8 (SQL halves).
       3 deviation (`kind`, `subject`, `level`, `requested_by` user, `note` = `because`) and per
       `step11.model_deviations` row (`kind` ingredient, `requested_by` model); then `update app.run
       set recipe_id`. Returns the recipe id. One function, so a failure saves nothing.
-- [ ] Apply twice; owner `postgres`.
-- [ ] Write `tests/test_save_recipe.py` (stack; a throwaway `app.run` and `app.brief`, rolled
+- [x] Apply twice; owner `postgres`.
+- [x] Write `tests/test_save_recipe.py` (stack; a throwaway `app.run` and `app.brief`, rolled
       back), each seen failing first: `test_rows_match_step10` (b23: item count = fermentables +
       hops + yeasts + extras, amounts equal step 10's at the column scale, units kg/g/pack, coffee
       60 g, A7); `test_recompute_from_saved_rows` (A5: OG, IBU, SRM recomputed from the saved
@@ -367,8 +367,8 @@ Why: R6, R7, A5, A8 (SQL halves).
       null, b16 ingredient with its level, all `requested_by` user); `test_model_deviation_saved`;
       `test_refuses_a_failed_validation`; `test_run_points_to_recipe`; `test_snapshot_fields`
       (`calc_version` `maths-1`, batch, efficiency, `targets` = step 4's output).
-- [ ] Run `.venv/bin/pytest tests/test_save_recipe.py tests/test_recipe_tables.py`, expect all pass.
-- [ ] `docs/DATABASE.md` §5. PROJECT.md §8.
+- [x] Run `.venv/bin/pytest tests/test_save_recipe.py tests/test_recipe_tables.py`, expect all pass.
+- [x] `docs/DATABASE.md` §5. PROJECT.md §8.
 Done when: a passed recipe saves completely, and a failed one saves nothing.
 Commit: `Save validated recipes`
 
@@ -554,3 +554,4 @@ OPERATIONS §5 says; no container is recreated.
 - 2026-10-25 · Task 5: step 11 ignores rule 9's OG line (user answer "Skip rule 9's OG line (Rec.)": step 10 moves OG on purpose and step 11 checks the OG against the target at ± 0.002) — and also rule 9's ABV line ("the ABV target is not app.abv of the OG and FG targets"), because the same moved `recipe.targets.og` breaks it (seen on b23: 5.99 vs 5.72); ABV is checked against its target at ± 0.2 by the numbers check. The ABV skip is the implementer's extension of the user's answer.
 - 2026-10-25 · Task 5: a yeast with no attenuation figure gives a `numbers` failure "the ABV cannot be computed: the yeast has no attenuation figure" (as the user's note asked).
 - 2026-10-25 · Task 5: tests use b08 and b14 for the passing recipe (not b16: the first good proposal for b16 picks a yeast with no attenuation figure, and b01, b16, b23 and b24 miss SRM because the proposal's only base is a Pilsner malt, so the colour adjustment has no absorber). Hops are never `out_of_style` with the totals off, so the ban tests swap in an out-of-style fermentable instead of a hop; the impossible-target test rates the table's levels typical before building the proposal (the style it lands in, Session Beer, has no envelope).
+- 2026-10-25 · Task 6: `test_rows_match_step10` checks coffee against step 10's own dose × 20 L (the good proposal gives 6.0 g/L, not 3.0) and gives b23 a passed step 11 (its first proposal does not pass); `test_refuses_a_run_without_a_brief` added.
