@@ -401,8 +401,9 @@ erDiagram
     }
     recipe_deviation {
         bigint recipe_id FK
+        text kind "ingredient|number|mismatch|conflict"
         text subject
-        text level "out_of_style|changes_style"
+        text level "out_of_style|changes_style, null unless kind is ingredient"
         text requested_by "user|model"
         text note
     }
@@ -435,7 +436,7 @@ erDiagram
 | `inventory` | "use what I have" scoring in steps 6–9 |
 | `brief` | the parsed request, so a recipe can be regenerated; `profile_id` is null until step 0 builds profiles (M4) |
 | `recipe` + `recipe_item` | the recipe **as rows**, with ratio (`pct`) **and** amount; typed results `og…srm`; `batch_l` and `efficiency_pct` snapshot the profile used, so editing the profile never changes an old recipe; `calc_version` names the maths that produced the numbers |
-| `recipe_deviation` | the Deviations box: what is out of style, and whether you or the model asked for it |
+| `recipe_deviation` | the Deviations box: every step 3 deviation and what the model chose itself; `kind` is ingredient, number, mismatch or conflict, and only an ingredient row has a `level` (`db/045`); `requested_by` says whether you or the model asked for it |
 | `run` + `run_step` | one log row per pipeline step and try: input, output, time, tokens. Debugging and evals. A run exists before its brief (step 1 writes it), so `run.brief_id` can be null; `finished_at` / `ok` stay null until the run ends; a failed step always says why (`error` is set exactly when `ok` is false); `llm` holds an LLM step's model, thinking, tries, tokens, time and first-try errors |
 
 Function `app.step1_read_answer(request, content, contract)` (db/020_step1.sql) checks a model's step 1 answer: parses it, drops repeated words, validates it against the contract, and requires every `stated` number to be written in the request.

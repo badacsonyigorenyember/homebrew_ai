@@ -1,6 +1,6 @@
 # M6 · Steps 10–11: calculate, validate and save (the MVP) — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: m6-compute-validate
 
@@ -149,20 +149,20 @@ before the pipeline, then `.venv/bin/python -m evals.workflows`.
 
 ### Task 1: every step 3 deviation fits `app.recipe_deviation`
 Why: R7 (null levels for number, mismatch and conflict rows), A8.
-- [ ] `db/045_recipe_deviation_kind.sql` (needs 015): `add column if not exists kind text`;
+- [x] `db/045_recipe_deviation_kind.sql` (needs 015): `add column if not exists kind text`;
       backfill none needed (0 rows, measured); `alter column kind set not null`; check
       `recipe_deviation_kind_check` `kind in ('ingredient', 'number', 'mismatch', 'conflict')`;
       `alter column level drop not null`; check `recipe_deviation_level_kind_check`
       `(kind = 'ingredient') = (level is not null)` (an ingredient deviation has a level, the
       others have none, as step 3 gives them). Drop-and-add each constraint so a re-run works.
-- [ ] Apply twice; `\d app.recipe_deviation` shows `kind` not null and `level` nullable.
-- [ ] Write `tests/test_recipe_tables.py` (stack, every insert rolled back):
+- [x] Apply twice; `\d app.recipe_deviation` shows `kind` not null and `level` nullable.
+- [x] Write `tests/test_recipe_tables.py` (stack, every insert rolled back):
       `test_deviation_takes_every_step3_kind` (one row per kind as step 3 gives it, from
       `app.step3_deviations` of b05, b08, b11, b16 via `tests.test_step4` helpers: inserts pass),
       `test_ingredient_deviation_needs_a_level` (kind ingredient, level null: refused),
       `test_number_deviation_has_no_level` (kind number with a level: refused). See them fail
       before the file is applied.
-- [ ] `docs/DATABASE.md` `app.recipe_deviation` row. PROJECT.md §8 entry.
+- [x] `docs/DATABASE.md` `app.recipe_deviation` row. PROJECT.md §8 entry.
 Done when: the three tests pass and the file applies twice.
 Commit: `Let recipe deviations keep step 3 kinds`
 
