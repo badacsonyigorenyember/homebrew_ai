@@ -637,11 +637,11 @@ Why: G6's misses repeated over 3 tries because the feedback said what failed but
 LLM could change once the solvers stop at a limit; user decision 2026-10-26, "Add LLM feedback
 too" (R4; Approach "Retry input"; the measured replay above). Steps 6–9 still choose; SQL derives
 the instruction and every number in it (CLAUDE.md: no LLM maths).
-- [ ] `db/047_validate.sql`: `app.attenuation_for_fg(grist jsonb, og numeric, efficiency_pct
+- [x] `db/047_validate.sql`: `app.attenuation_for_fg(grist jsonb, og numeric, efficiency_pct
       numeric, volume_l numeric, fg numeric) returns numeric` (immutable): the attenuation at
       which `app.fg(app.solve_grist(og, grist, ...), ..., attenuation)` equals `fg`, by bisection
       over [0, 100] (FG falls as attenuation rises; 40 halvings), clamped to that interval.
-- [ ] `db/047_validate.sql`: `app.step11_fix(failure jsonb, step10 jsonb, targets jsonb, stated
+- [x] `db/047_validate.sql`: `app.step11_fix(failure jsonb, step10 jsonb, targets jsonb, stated
       jsonb) returns text` (stable), null when no case applies; the grist's roles and colours from
       `ref.fermentable`, the yeast's range and alcohol tolerance from `ref.yeast`. Cases, each one
       plain sentence:
@@ -669,14 +669,14 @@ the instruction and every number in it (CLAUDE.md: no LLM maths).
         (the failure's own value, limit and items).
       Every other failure (rules 1, 2, 8, 13, picks, stated numbers) has none: its line already
       says it, and a pick is banned. Numbers are rounded as the failure texts round them.
-- [ ] `app.step11_validate`: each feedback line becomes `<text> To fix: <fix>` when
+- [x] `app.step11_validate`: each feedback line becomes `<text> To fix: <fix>` when
       `app.step11_fix` gives one (the ban suffix stays last). Failure objects, the output
       contract, `try.output` and the n8n workflows are unchanged: `next_feedback.lines` already
       copies `step11.feedback`, so the fixes reach `choose.input.feedback` and the logged error.
-- [ ] `db/042_choose_table.sql` `app.choose_feedback_prompt`: the header gains one sentence, "Where
+- [x] `db/042_choose_table.sql` `app.choose_feedback_prompt`: the header gains one sentence, "Where
       a line says To fix, do that." Nothing else changes.
-- [ ] Apply 047 and 042 twice; owners `postgres`; `app` function count for the §8 entry.
-- [ ] Write, each seen failing first. In `tests/test_validate.py`, each from the G6 picks named
+- [x] Apply 047 and 042 twice; owners `postgres`; `app` function count for the §8 entry.
+- [x] Write, each seen failing first. In `tests/test_validate.py`, each from the G6 picks named
       in the measured paragraph, through step 10 (Task 9b's) and step 11:
       `test_fix_lighter_base` (b07: Pale Ale Malt 80, Flaked Corn 20; the SRM line ends "To fix: use
       a lighter base malt than Pale Ale Malt (6.5 EBC)"); `test_fix_add_base` (b10's try-1 grist);
@@ -691,14 +691,14 @@ the instruction and every number in it (CLAUDE.md: no LLM maths).
       also `test_attenuation_for_fg_inverts_fg` (`app.fg` at the result is within 1e-6 of the
       asked FG, for three grists). `tests/test_choose_table.py::test_feedback_prompt_lines`: the
       header sentence; it keeps passing on lines with fixes (their numbers are the feedback's).
-- [ ] Measure the prompt budget as Task 7 did (`evals/fit_test.py`'s count, Ollama once each,
+- [x] Measure the prompt budget as Task 7 did (`evals/fit_test.py`'s count, Ollama once each,
       `prompt_eval_count + 4096 ≤ 32768`): b18's table with (a) Task 7's three-line, one-ban
       feedback with a fix on each line, and (b) the longest block G6 gave, b19's five try-1 lines
       (SRM, rule 3, rule 4 twice, rule 11; 652 characters before fixes) with their fixes. Task 7 measured 26,514 + 4,096 = 30,610 with three lines and one ban,
       so about 2,150 tokens are left. Write the counts in the §8 entry. If either does not fit,
       stop and hand back `needs-input` (shorter fix sentences or fewer last-pick lines).
-- [ ] Run `.venv/bin/pytest tests/test_validate.py tests/test_choose_table.py tests/test_compute.py tests/test_contracts.py tests/test_workflows.py`, expect all pass.
-- [ ] `docs/DATABASE.md` §5: the two functions. PROJECT.md §8 with the token counts.
+- [x] Run `.venv/bin/pytest tests/test_validate.py tests/test_choose_table.py tests/test_compute.py tests/test_contracts.py tests/test_workflows.py`, expect all pass.
+- [x] `docs/DATABASE.md` §5: the two functions. PROJECT.md §8 with the token counts.
 Done when: each case has a test, the numbers in a fix come from SQL, and both prompts fit.
 Commit: `Tell the retry what to change after step 11`
 
@@ -799,3 +799,4 @@ OPERATIONS §5 says; no container is recreated.
 - 2026-10-26 · Task 9b: the mash move is decided after the OG move, on the FG at the OG used, and the OG move is made again with the new attenuation (the plan said FG at the target OG, with the OG move after). Found on b09's G6 picks: FG at the target OG 1.0103 was inside rule 10's range while the OG the move then chose gave 1.0099, below it, so the plan's order never moved the mash. The OG-move block became `app.step10_og_move` (same maths) so it can run twice.
 - 2026-10-26 · Task 9b: tests use b09's real G6 yeast SafLager S-189 (the plan named SafAle US-05; run 4471's step 10 input shows S-189), whose mash goes to 69 °C (FG 1.0114, as in the replay) rather than a value inside (68.3, 69). `test_colour_keeps_rule_3` runs two targets (31: reached below the room left; 34: Chocolate Dark Malt stops at 15 − 8.92 = 6.08 %), because b03's target 31 is reached before the cap binds. `test_colour_second_dark_grain` expects Chocolate Dark Malt 7.48 ± 0.3 (the test solver runs at 70 % efficiency; the replay at the real one gave 7.48, this gives 7.23).
 - 2026-10-26 · Task 9b: the rule 3 and 5 caps never force a share down: the limit is `greatest(room left, the share it starts at)`. Without that, b23's G6 grist (roast and dark crystal already at 17 % of the grist) could not even lower Black Malt, because the room left was below 0. The step 10 contract `values_used.what` enum gains `mash`.
+- 2026-10-26 · Task 9c: the feedback header reads "Fix these and change as little else as you can. Where a line says To fix, do that:" (one sentence added inside the header line, not a new line); `tests/test_choose_table.py::test_feedback_prompt_lines` checks the new wording. A fix is joined to its line with a full stop added when the failure text has none. Too light with the darkest non-crystal being a base malt gives no fix (no limit was reached); the rule 3 variant needs a crystal above 60 EBC to name, else none. Measured prompt budget: 26,594 and 26,842 prompt tokens + 4,096, both within 32,768 (PROJECT.md §8).

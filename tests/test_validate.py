@@ -4,6 +4,7 @@ Inputs are the ones Task 4 builds: step 4, steps 6-9 from the first good proposa
 """
 
 import copy
+import re
 import json
 
 import pytest
@@ -301,3 +302,215 @@ def test_mash_move_lets_rule_10_pass(conn):
     stays = compute(conn, inp)
     v = validate(conn, stays, inp, picks, frame_of(conn, inp))
     assert v["passed"] is False and any("Rule 10" in f["text"] for f in v["failures"])
+
+
+# --- Task 9c: a failed try tells the retry what to change (app.step11_fix, app.attenuation_for_fg) ---
+
+from tests import test_compute as tc  # noqa: E402
+
+MUNICH1 = ("Weyermann", "Munich Malt Type 1")
+CARAAMBER = ("Weyermann", "Caraamber")
+GOLDEN = ("Simpsons Malt", "Finest Pale Ale Golden Promise")
+RICE = ("", "Flaked Rice")
+CARAMEL100 = ("Viking Malt", "Caramel 100 Malt")
+CARAMEL300 = ("Viking Malt", "Caramel 300 Malt")
+
+
+def fix_case(conn, bid, fermentables, yeast):
+    """Step 10 and step 11 of a brief on G6's picks: (inp, out, validation)."""
+    inp = tc.with_picks(conn, bid, fermentables, yeast)
+    out = compute(conn, inp)
+    picks = [{"ingredient_id": f["ingredient_id"], "name": f["name"], "self_picked": False}
+             for f in out["fermentables"]]
+    return inp, out, validate(conn, out, inp, picks, frame_of(conn, inp))
+
+
+def fix_of(v, subject):
+    """(failure, its To fix text or None) for the failure with this subject."""
+    for f, line in zip(v["failures"], v["feedback"]):
+        if f["subject"] == subject:
+            assert line.startswith(f["text"])
+            return f, (line.split(" To fix: ", 1)[1] if " To fix: " in line else None)
+    pytest.fail(f"no failure {subject}: {[f['subject'] for f in v['failures']]}")
+
+
+def test_fix_lighter_base(conn):
+    """b07: Pale Ale Malt 80 and Flaked Corn 20 are too dark and the base malt is the only mover."""
+    _, _, v = fix_case(conn, "b07", [(tc.PALE_ALE_W, 80), (tc.CORN, 20)], tc.US05_YEAST)
+    f, fix = fix_of(v, "srm")
+    assert fix == "use a lighter base malt than Pale Ale Malt (6.5 EBC)."
+    assert v["feedback"][v["failures"].index(f)].endswith(" To fix: " + fix)
+
+
+def test_fix_add_base(conn):
+    """b10's try-1 grist has no base malt."""
+    _, _, v = fix_case(conn, "b10", [(MUNICH1, 50), (tc.ABBEY, 20), (CARAAMBER, 10), (tc.CANDI, 20)],
+                       ("Lallemand", "Abbaye"))
+    assert fix_of(v, "srm")[1] == "add a base malt: no other fermentable can take up the colour change."
+
+
+def test_fix_lower_crystal(conn):
+    """b19's try-3 grist: too dark with one base malt and 15 % Caramel 150 Malt."""
+    _, _, v = fix_case(conn, "b19", [(GOLDEN, 75), (tc.CARAMEL150, 15), (tc.HONEY, 10)], ("Lallemand", "Nottingham"))
+    assert fix_of(v, "srm")[1] == ("lower the crystal share (Caramel 150 Malt 15 %): "
+                                   "the colour adjustment never moves a crystal.")
+
+
+def test_fix_darker_malt_at_limit(conn):
+    """b18: Roasted Barley sits at its 2 % limit and the beer is still too light."""
+    _, out, v = fix_case(conn, "b18", [(tc.PALE_ALE_W, 88), (tc.CARAMEL50, 10), (tc.ROASTED_BARLEY, 2)],
+                         ("Brewline", "British Ale"))
+    assert float(out["colour"]["srm"]) < 20 - 1
+    assert fix_of(v, "srm")[1] == "Roasted Barley is at its 2 % limit: add a second dark malt (role roast or kilned)."
+
+
+def test_fix_less_attenuative_yeast(conn):
+    """b12: US-05 gives 78 % at 69 C and the grist needs about 77 % for FG 1.0080; Honey ferments out."""
+    _, out, v = fix_case(conn, "b12", [(tc.PALE_ALE_W, 85), (tc.HONEY, 15)], tc.US05_YEAST)
+    fix = fix_of(v, "rule 10")[1]
+    m = re.fullmatch(r"pick a less attenuative yeast: SafAle US-05 gives 78 % here \(mash 69 °C\) and this grist "
+                     r"needs about ([\d.]+) % for FG 1\.0080, or lower Honey 15 %, which ferment out\.", fix)
+    assert m and 75 < float(m.group(1)) < 78, fix
+
+
+def test_fix_more_attenuative_yeast(conn):
+    inp = tc.step10_input(conn, "b01")
+    inp["brief"]["stated"]["fg"] = 1.003
+    inp["targets"]["targets"]["fg"]["value"] = 1.003
+    out = compute(conn, inp)
+    picks = picks_of(table_of(conn, "b01"))
+    v = validate(conn, out, inp, picks, frame_of(conn, inp))
+    fix = fix_of(v, "rule 10")[1]
+    assert re.fullmatch(r"pick a more attenuative yeast: about [\d.]+ %\.", fix), fix
+
+
+def test_fix_abv_yeast(conn):
+    """b23: ABV 6.25 against 5.99 with US-05 at 80 %; about 77 % is needed (replay figure, unverified)."""
+    _, out, v = fix_case(conn, "b23", [(tc.PALE_ALE_W, 83), (tc.CHOCOLATE, 10), (tc.CARAMEL150, 5), (tc.BLACK, 2)],
+                         tc.US05_YEAST)
+    fix = fix_of(v, "abv")[1]
+    m = re.fullmatch(r"pick a yeast attenuating about ([\d.]+) % \(SafAle US-05 gives 80 %\)\.", fix)
+    assert m and 75 < float(m.group(1)) < 79, fix
+
+
+def test_fix_abv_without_attenuation_figure(conn):
+    inp, out, picks, frame = case(conn, "b08")
+    out["numbers"].update(abv=None, fg=None, attenuation_pct=None)
+    v = validate(conn, out, inp, picks, frame)
+    assert fix_of(v, "abv")[1] == "pick a yeast with an attenuation figure."
+
+
+def test_fix_rule_4_points(conn):
+    """b22's try-1 grist: 15 % Caraamber against a limit of 10 %."""
+    _, _, v = fix_case(conn, "b22", [(tc.PILSNER, 60), (RICE, 20), (CARAAMBER, 15), (tc.MELANOIDIN, 5)],
+                       ("Lallemand", "Diamond"))
+    f, fix = fix_of(v, "rule 4")
+    assert fix == "take at least 5 points off Caraamber 15 %."
+
+
+def test_fix_rule_3_points(conn):
+    _, _, v = fix_case(conn, "b19", [(GOLDEN, 70), (CARAMEL100, 15), (CARAMEL300, 10), (tc.HONEY, 5)],
+                       ("Gozdawa", "Real Scotland"))
+    f, fix = fix_of(v, "rule 3")
+    assert fix == "take at least 10 points off Caramel 100 Malt 15 %, Caramel 300 Malt 10 %."
+
+
+def test_fix_rule_11_tolerance(conn):
+    _, _, v = fix_case(conn, "b19", [(GOLDEN, 70), (CARAMEL100, 15), (CARAMEL300, 10), (tc.HONEY, 5)],
+                       ("Gozdawa", "Real Scotland"))
+    f, fix = fix_of(v, "rule 11")
+    assert fix == f"pick a yeast with an alcohol tolerance of at least {round(float(f['value']), 2):g} %."
+
+
+def test_no_fix_for_a_pick(conn):
+    inp, out, picks, frame = case(conn, "b08")
+    hop, recipe, line = out_of_style_pick(conn, out, inp)
+    out["recipe"] = recipe
+    picks.append({"ingredient_id": hop, "name": line["name"], "self_picked": True})
+    v = validate(conn, out, inp, picks, frame)
+    assert v["feedback"] and all("To fix" not in l for l in v["feedback"])
+    # nor does a target miss no rule explains
+    inp, out, picks, frame = case(conn, "b08")
+    out["numbers"]["ibu"] = float(out["numbers"]["ibu"]) + 10
+    assert all("To fix" not in l for l in validate(conn, out, inp, picks, frame)["feedback"])
+
+
+def numeric_leaves(x):
+    if isinstance(x, bool) or x is None:
+        return
+    if isinstance(x, (int, float)):
+        yield float(x)
+    elif isinstance(x, str):
+        yield from (float(n) for n in re.findall(r"\d+(?:\.\d+)?", x))
+    elif isinstance(x, dict):
+        for v in x.values():
+            yield from numeric_leaves(v)
+    elif isinstance(x, list):
+        for v in x:
+            yield from numeric_leaves(v)
+
+
+@pytest.mark.parametrize("bid,ferms,yeast", [
+    ("b07", [(tc.PALE_ALE_W, 80), (tc.CORN, 20)], tc.US05_YEAST),
+    ("b12", [(tc.PALE_ALE_W, 85), (tc.HONEY, 15)], tc.US05_YEAST),
+    ("b18", [(tc.PALE_ALE_W, 88), (tc.CARAMEL50, 10), (tc.ROASTED_BARLEY, 2)], ("Brewline", "British Ale")),
+    ("b19", [(GOLDEN, 70), (CARAMEL100, 15), (CARAMEL300, 10), (tc.HONEY, 5)], ("Gozdawa", "Real Scotland")),
+    ("b22", [(tc.PILSNER, 60), (RICE, 20), (CARAAMBER, 15), (tc.MELANOIDIN, 5)], ("Lallemand", "Diamond")),
+    ("b23", [(tc.PALE_ALE_W, 83), (tc.CHOCOLATE, 10), (tc.CARAMEL150, 5), (tc.BLACK, 2)], tc.US05_YEAST),
+])
+def test_fix_numbers_come_from_sql(conn, bid, ferms, yeast):
+    """Every number in a fix is in the failure, in step 10's output, or is app.attenuation_for_fg's result as rounded."""
+    inp, out, v = fix_case(conn, bid, ferms, yeast)
+    colour = out["colour"]["grist"]
+    og = float(out["og_used"]["value"])
+    eff, vol = float(out["batch"]["efficiency_pct"]), float(out["batch"]["volume_l"])
+    allowed = list(numeric_leaves(out)) + list(numeric_leaves(inp["targets"]))
+    for f in v["failures"]:
+        allowed += list(numeric_leaves(f))
+    fixes = 0
+    for f, line in zip(v["failures"], v["feedback"]):
+        if " To fix: " not in line:
+            continue
+        fixes += 1
+        fix = line.split(" To fix: ", 1)[1]
+        extra = []
+        for fg in re.findall(r"FG (1\.\d+)", fix) + [str(x) for x in (
+                [conn.execute("select app.fg_for_abv(%s::numeric, %s::numeric)", [og, float(inp["targets"]["targets"]["abv"]["value"])]).fetchone()[0]] if f["subject"] == "abv" else [])]:
+            extra.append(float(conn.execute(
+                "select app.attenuation_for_fg(%s::jsonb, %s::numeric, %s::numeric, %s::numeric, %s::numeric)",
+                [json.dumps(colour), og, eff, vol, fg]).fetchone()[0]))
+        if f["subject"] == "rule 10":
+            r = conn.execute("select app.rule10_fg_range(%s, %s::numeric, %s::jsonb)", [
+                out["recipe"]["style_code"], out["recipe"]["targets"]["fg"], json.dumps(out["recipe"]["stated"])]).fetchone()[0]
+            for bound in (r.lower, r.upper):
+                extra.append(float(conn.execute(
+                    "select app.attenuation_for_fg(%s::jsonb, %s::numeric, %s::numeric, %s::numeric, %s::numeric)",
+                    [json.dumps(colour), og, eff, vol, bound]).fetchone()[0]))
+                allowed.append(float(bound))
+        if f["subject"] in ("rule 3", "rule 4"):
+            allowed.append(float(f["value"]) - float(f["limit"]))
+        for token in re.findall(r"\d+(?:\.\d+)?", fix):
+            d = len(token.split(".")[1]) if "." in token else 0
+            assert any(abs(round(a, d) - float(token)) < 1e-9 for a in allowed + extra), (fix, token)
+    assert fixes >= 1, v["feedback"]
+
+
+@pytest.mark.parametrize("bid", ["b01", "b08", "b14"])
+def test_attenuation_for_fg_inverts_fg(conn, bid):
+    inp, out, picks, frame = case(conn, bid)
+    grist = json.dumps(out["colour"]["grist"])
+    og = float(out["og_used"]["value"])
+    eff, vol = float(out["batch"]["efficiency_pct"]), float(out["batch"]["volume_l"])
+    for att in (65, 72, 80):
+        fg = conn.execute("select app.fg(app.solve_grist(%s::numeric, %s::jsonb, %s::numeric, %s::numeric), %s::numeric, "
+                          "%s::numeric, %s::numeric)", [og, grist, eff, vol, eff, vol, att]).fetchone()[0]
+        got, back = conn.execute(
+            "select a, app.fg(app.solve_grist(%s::numeric, %s::jsonb, %s::numeric, %s::numeric), %s::numeric, %s::numeric, a) "
+            "from (select app.attenuation_for_fg(%s::jsonb, %s::numeric, %s::numeric, %s::numeric, %s::numeric) a) q",
+            [og, grist, eff, vol, eff, vol, grist, og, eff, vol, fg]).fetchone()
+        assert abs(float(back) - float(fg)) < 1e-6 and abs(float(got) - att) < 1e-4
+    # clamped to [0, 100]
+    assert float(conn.execute("select app.attenuation_for_fg(%s::jsonb, %s::numeric, %s::numeric, %s::numeric, 2.0)",
+                              [grist, og, eff, vol]).fetchone()[0]) == 0
+    assert float(conn.execute("select app.attenuation_for_fg(%s::jsonb, %s::numeric, %s::numeric, %s::numeric, 1.0)",
+                              [grist, og, eff, vol]).fetchone()[0]) == 100

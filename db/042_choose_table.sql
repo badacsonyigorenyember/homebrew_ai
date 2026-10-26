@@ -674,7 +674,7 @@ begin
     end if;
     v_last := coalesce(feedback -> 'last', '{}'::jsonb);
     v_text := E'\n\nTRY ' || (feedback ->> 'try') || E'\nTry ' || (feedback ->> 'try')
-              || ': the last recipe failed step 11. Fix these and change as little else as you can:';
+              || ': the last recipe failed step 11. Fix these and change as little else as you can. Where a line says To fix, do that:';
     select string_agg(E'\n- ' || l.value, '' order by l.ord) into v_part
       from jsonb_array_elements_text(coalesce(feedback -> 'lines', '[]'::jsonb)) with ordinality l(value, ord);
     v_text := v_text || coalesce(v_part, E'\n- none');

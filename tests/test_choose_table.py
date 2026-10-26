@@ -289,9 +289,10 @@ def test_feedback_prompt_lines(conn):
     """Every failure line, pick and banned name is in the block; every number in it is the feedback's."""
     fb = feedback_of([{"ingredient_id": 1, "name": "Black Malt", "why": "out of style"}])
     text = conn.execute("select app.choose_feedback_prompt(%s::jsonb)", (json.dumps(fb),)).fetchone()[0]
-    assert "Try 2: the last recipe failed step 11. Fix these and change as little else as you can:" in text
+    assert "Try 2: the last recipe failed step 11. Fix these and change as little else as you can. Where a line says To fix, do that:" in text
     for line in fb["lines"]:
         assert line in text
+    assert "Where a line says To fix, do that" in text
     for name in ("Pale Ale Malt", "Magnum", "Safale US-05", "Black Malt"):
         assert name in text
     allowed = set(re.findall(r"\d+(?:\.\d+)?", json.dumps({k: v for k, v in fb.items() if k != "banned"})))

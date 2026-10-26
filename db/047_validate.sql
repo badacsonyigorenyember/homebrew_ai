@@ -18,6 +18,204 @@ as $$
     select '{"og": 0.002, "abv": 0.2, "ibu": 2, "srm": 1, "batch_l": 0}'::jsonb
 $$;
 
+-- The attenuation (percent) at which a grist, solved for an OG, ends at an FG: app.fg falls as
+-- attenuation rises, so it is bisected over [0, 100] (40 halvings) and clamped to that interval.
+-- step11_fix uses it to say what attenuation a failed FG or ABV needs (Task 9c).
+create or replace function app.attenuation_for_fg(grist jsonb, og numeric, efficiency_pct numeric,
+                                                  volume_l numeric, fg numeric)
+returns numeric
+language plpgsql
+immutable
+as $$
+declare
+    solved jsonb := app.solve_grist(og, grist, efficiency_pct, volume_l);
+    lo numeric := 0;
+    hi numeric := 100;
+    mid numeric;
+begin
+    if app.fg(solved, efficiency_pct, volume_l, 0) <= fg then
+        return 0;
+    elsif app.fg(solved, efficiency_pct, volume_l, 100) >= fg then
+        return 100;
+    end if;
+    for i in 1..40 loop
+        mid := (lo + hi) / 2;
+        if app.fg(solved, efficiency_pct, volume_l, mid) > fg then
+            lo := mid;
+        else
+            hi := mid;
+        end if;
+    end loop;
+    return (lo + hi) / 2;
+end;
+$$;
+
+comment on function app.attenuation_for_fg(jsonb, numeric, numeric, numeric, numeric) is
+    'The attenuation at which app.fg of the grist, solved for the OG, equals the FG (bisection, clamped to 0..100).';
+
+-- What the LLM can change after a step 11 failure (Task 9c): one plain sentence, or null when the
+-- failure line already says it or no case applies. failure is one step11_validate failure, step10
+-- its input, targets step 4's output and stated the brief's stated numbers. Every number in the
+-- sentence comes from the failure, step 10's output, ref.fermentable or app.attenuation_for_fg.
+create or replace function app.step11_fix(failure jsonb, step10 jsonb, targets jsonb, stated jsonb)
+returns text
+language plpgsql
+stable
+as $$
+declare
+    l jsonb := app.formulation_limits();
+    subj text := failure ->> 'subject';
+    txt text := failure ->> 'text';
+    grist jsonb := step10 -> 'colour' -> 'grist';
+    og numeric := (step10 -> 'og_used' ->> 'value')::numeric;
+    eff numeric := (step10 -> 'batch' ->> 'efficiency_pct')::numeric;
+    vol numeric := (step10 -> 'batch' ->> 'volume_l')::numeric;
+    att numeric := (step10 -> 'numbers' ->> 'attenuation_pct')::numeric;
+    yeast_name text := step10 -> 'yeasts' -> 0 ->> 'name';
+    mash numeric := (step10 ->> 'mash_c')::numeric;
+    got numeric := (failure ->> 'value')::numeric;
+    want numeric;
+    n numeric;
+    fg numeric;
+    rng numrange;
+    names text;
+    sugars text;
+    d jsonb;
+    d_pct numeric;
+    d_max numeric;
+    d_role text;
+    cap numeric;
+    n_base int;
+    base jsonb;
+begin
+    -- colour
+    if subj in ('srm', 'stated srm') and got is not null then
+        want := case when subj = 'srm' then (targets -> 'targets' -> 'srm' ->> 'value')::numeric
+                     else (stated ->> 'srm')::numeric end;
+        select count(*) into n_base from jsonb_array_elements(grist) g where g ->> 'role' = 'base';
+        if got > want then
+            select string_agg(g ->> 'name' || ' ' || trim_scale(round((g ->> 'pct')::numeric, 2)) || ' %', ', '
+                              order by ord) into names
+              from jsonb_array_elements(grist) with ordinality t(g, ord)
+             where g ->> 'role' = 'crystal' and (g ->> 'pct')::numeric > 0;
+            if n_base = 0 then
+                return 'add a base malt: no other fermentable can take up the colour change.';
+            elsif names is not null then
+                return format('lower the crystal share (%s): the colour adjustment never moves a crystal.', names);
+            end if;
+            -- the darkest non-crystal (highest ebc, then larger share) is the only base malt
+            select g into d from jsonb_array_elements(grist) g where g ->> 'role' <> 'crystal'
+             order by coalesce((g ->> 'ebc')::numeric, 0) desc, (g ->> 'pct')::numeric desc limit 1;
+            if n_base = 1 and d ->> 'role' = 'base' then
+                return format('use a lighter base malt than %s (%s EBC).', d ->> 'name',
+                              trim_scale(round(coalesce((d ->> 'ebc')::numeric, 0), 1)));
+            end if;
+            select string_agg(g ->> 'name' || ' ' || trim_scale(round((g ->> 'pct')::numeric, 2)) || ' %', ', '
+                              order by ord) into names
+              from jsonb_array_elements(grist) with ordinality t(g, ord)
+             where g ->> 'role' = 'roast' and (g ->> 'pct')::numeric > 0;
+            if names is not null then
+                return format('lower the roast share (%s): the colour adjustment could not lower it enough.', names);
+            end if;
+            return null;
+        end if;
+        -- too light: the mover (the second pass's when there was one) stopped at a limit
+        d := coalesce(step10 -> 'colour' -> 'second' -> 'darkest', step10 -> 'colour' -> 'darkest');
+        if d is null or d = 'null'::jsonb then
+            return null;
+        end if;
+        d_pct := coalesce((step10 -> 'colour' -> 'second' ->> 'to_pct')::numeric, (step10 -> 'colour' ->> 'to_pct')::numeric);
+        select ft.max_pct, ft.role into d_max, d_role from ref.fermentable ft
+         where ft.ingredient_id = (d ->> 'ingredient_id')::bigint;
+        if d_role = 'base' then
+            return null;  -- nothing darker than the base malt moved: no limit was reached
+        elsif d_max is not null and d_pct >= d_max - 0.005 then
+            return format('%s is at its %s %% limit: add a second dark malt (role roast or kilned).',
+                          d ->> 'name', trim_scale(d_max));
+        elsif d_role = 'roast' then
+            select (l ->> 'dark_total_pct')::numeric - coalesce(sum((g ->> 'pct')::numeric), 0) into cap
+              from jsonb_array_elements(grist) g
+             where (g ->> 'ingredient_id')::bigint <> (d ->> 'ingredient_id')::bigint
+               and (g ->> 'role' = 'roast'
+                    or (g ->> 'role' = 'crystal' and (g ->> 'ebc')::numeric > (l ->> 'crystal_dark_ebc')::numeric));
+            if d_pct >= cap - 0.005 then
+                select string_agg(g ->> 'name' || ' ' || trim_scale(round((g ->> 'pct')::numeric, 2)) || ' %', ', '
+                                  order by ord) into names
+                  from jsonb_array_elements(grist) with ordinality t(g, ord)
+                 where g ->> 'role' = 'crystal' and (g ->> 'ebc')::numeric > (l ->> 'crystal_dark_ebc')::numeric
+                   and (g ->> 'pct')::numeric > 0;
+                if names is not null then
+                    return format('rule 3 leaves no room for more roast: lower %s to make room.', names);
+                end if;
+            end if;
+        end if;
+        return null;
+    end if;
+
+    -- rule 10: the predicted FG outside the range
+    if subj = 'rule 10' and starts_with(txt, 'Rule 10: the predicted FG') and att is not null
+       and step10 -> 'numbers' ->> 'fg' is not null then
+        rng := app.rule10_fg_range(step10 -> 'recipe' ->> 'style_code',
+                                   (step10 -> 'recipe' -> 'targets' ->> 'fg')::numeric,
+                                   step10 -> 'recipe' -> 'stated');
+        if rng is null then
+            return null;
+        end if;
+        got := (step10 -> 'numbers' ->> 'fg')::numeric;
+        if got < lower(rng) then
+            n := app.attenuation_for_fg(grist, og, eff, vol, lower(rng));
+            select string_agg(g ->> 'name' || ' ' || trim_scale(round((g ->> 'pct')::numeric, 2)) || ' %', ', '
+                              order by ord) into sugars
+              from jsonb_array_elements(grist) with ordinality t(g, ord)
+             where g ->> 'role' = 'sugar' and (g ->> 'pct')::numeric > 0;
+            return format('pick a less attenuative yeast: %s gives %s %% here (mash %s °C) and this grist needs about %s %% for FG %s%s.',
+                          yeast_name, trim_scale(round(att, 1)), trim_scale(round(mash, 2)),
+                          trim_scale(round(n, 1)), to_char(lower(rng), 'FM0.0000'),
+                          case when sugars is null then '' else ', or lower ' || sugars || ', which ferment out' end);
+        elsif got > upper(rng) then
+            n := app.attenuation_for_fg(grist, og, eff, vol, upper(rng));
+            return format('pick a more attenuative yeast: about %s %%.', trim_scale(round(n, 1)));
+        end if;
+        return null;
+    end if;
+
+    -- the ABV after the OG move
+    if subj in ('abv', 'stated abv') then
+        if att is null then
+            return 'pick a yeast with an attenuation figure.';
+        end if;
+        want := case when subj = 'abv' then (targets -> 'targets' -> 'abv' ->> 'value')::numeric
+                     else (stated ->> 'abv')::numeric end;
+        begin
+            fg := app.fg_for_abv(og, want);
+        exception when others then
+            return null;
+        end;
+        n := app.attenuation_for_fg(grist, og, eff, vol, fg);
+        return format('pick a yeast attenuating about %s %% (%s gives %s %%).',
+                      trim_scale(round(n, 1)), yeast_name, trim_scale(round(att, 1)));
+    end if;
+
+    -- rule 11: the ABV above the alcohol tolerance
+    if subj = 'rule 11' and starts_with(txt, 'Rule 11: the planned ABV') and got is not null then
+        return format('pick a yeast with an alcohol tolerance of at least %s %%.', trim_scale(round(got, 2)));
+    end if;
+
+    -- rules 3 and 4: points to take off the items the failure names
+    if subj in ('rule 3', 'rule 4') and got is not null and failure ->> 'limit' is not null then
+        names := substring(txt from '\((.*)\); the limit');
+        if names is not null then
+            return format('take at least %s points off %s.',
+                          trim_scale(round(got - (failure ->> 'limit')::numeric, 2)), names);
+        end if;
+    end if;
+    return null;
+end;
+$$;
+
+comment on function app.step11_fix(jsonb, jsonb, jsonb, jsonb) is
+    'What the next try can change after a step 11 failure, one sentence with every number computed here; null when none applies.';
+
 -- Step 11. step10 is app.step10_compute's output, brief step 1's output, targets step 4's output,
 -- frame step 5's output and picks every step 6-9 pick [{ingredient_id, name, self_picked}]
 -- (self_picked: the pipeline chose it, no `wanted` and no `inventory` behind it).
@@ -35,6 +233,8 @@ $$;
 --            recipe totals, so the user's own IBU or the colour before the adjustment ban
 --            nothing); an excluded product; an item without an ingredient id. Only self-picks get
 --            a ban: the brewer's wanted and inventory picks stay.
+-- Each feedback line is the failure's text, then ' To fix: <app.step11_fix>' when that gives a
+-- sentence (Task 9c), then the ban suffix.
 -- With guidance off a self-picked out_of_style or changes_style line is a model deviation
 -- (saved with the recipe) instead of a failure.
 create or replace function app.step11_validate(step10 jsonb, brief jsonb, targets jsonb, frame jsonb, picks jsonb)
@@ -199,7 +399,10 @@ begin
 
     -- one ban per ingredient; one feedback line per failure
     select coalesce(jsonb_agg(distinct b), '[]'::jsonb) into bans from jsonb_array_elements(bans) b;
-    select coalesce(jsonb_agg(fl ->> 'text' || case when fl ->> 'ban' is not null then ' (banned for the next try)' else '' end
+    select coalesce(jsonb_agg(fl ->> 'text'
+                              || coalesce(case when fl ->> 'text' ~ '[.]$' then '' else '.' end
+                                          || ' To fix: ' || app.step11_fix(fl, step10, targets, stated), '')
+                              || case when fl ->> 'ban' is not null then ' (banned for the next try)' else '' end
                               order by ord), '[]'::jsonb)
       into feedback from jsonb_array_elements(failures) with ordinality t(fl, ord);
 
