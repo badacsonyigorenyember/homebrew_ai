@@ -1,0 +1,3221 @@
+{
+  "date": "2026-10-26",
+  "label": "m6-9b",
+  "model": "pipeline default",
+  "results": [
+    {
+      "id": "b01",
+      "run_id": 4503,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pale ale malt": "covered",
+          "crystal malt": "covered"
+        },
+        "hops": {
+          "Columbus": "covered",
+          "Centennial": "substituted: Citra, Columbus, Mosaic",
+          "Simcoe": "substituted: Citra, Columbus, Mosaic"
+        },
+        "yeast": {
+          "American ale yeast": "covered"
+        }
+      },
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 16714,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 92,
+        "prompt_tokens": 1007
+      },
+      "passed": true,
+      "calls": 3,
+      "first_try_calls": 2,
+      "retry_calls": 1,
+      "tries": 2,
+      "validated": true,
+      "invented": 0,
+      "stated": {
+        "batch_l": {
+          "stated": 20,
+          "value": 20.0,
+          "met": true
+        },
+        "abv": {
+          "stated": 6.5,
+          "value": 6.3,
+          "met": true
+        }
+      },
+      "stated_ok": true,
+      "recipe": {
+        "id": 139,
+        "batch_l": 20.0,
+        "og": 1.0613,
+        "fg": 1.0123,
+        "abv": 6.3,
+        "ibu": 66.3,
+        "srm": 9.4,
+        "items": [
+          {
+            "ingredient_id": 63,
+            "raw_name": "Pale Ale Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 85.0,
+            "amount": 4.808,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 23,
+            "raw_name": "Caramel 50 Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 10.0,
+            "amount": 0.566,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 20,
+            "raw_name": "Caramel 30 Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 5.0,
+            "amount": 0.283,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 472,
+            "raw_name": "Columbus",
+            "usage": "boil",
+            "time_min": 60.0,
+            "pct": 40.0,
+            "amount": 36.51,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 470,
+            "raw_name": "Citra",
+            "usage": "whirlpool",
+            "time_min": 0.0,
+            "pct": 30.0,
+            "amount": 27.382,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 488,
+            "raw_name": "Mosaic",
+            "usage": "dry_hop",
+            "time_min": 0.0,
+            "pct": 30.0,
+            "amount": 27.382,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1830,
+            "raw_name": "SafAle US-05",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "b02",
+      "run_id": 4504,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pilsner malt": "substituted: Pale Ale Malt",
+          "wheat malt": "substituted: Pale Ale Malt",
+          "flaked oats": "covered"
+        },
+        "hops": {
+          "Citra": "covered",
+          "Mosaic": "covered",
+          "Galaxy": "gap"
+        },
+        "yeast": {
+          "New England ale yeast": "covered"
+        }
+      },
+      "needs_ok": false,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 18622,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 111,
+        "prompt_tokens": 1002
+      },
+      "passed": false,
+      "calls": 2,
+      "first_try_calls": 2,
+      "retry_calls": 0,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": {
+        "id": 140,
+        "batch_l": 20.0,
+        "og": 1.0745,
+        "fg": 1.0145,
+        "abv": 7.8,
+        "ibu": 42.5,
+        "srm": 6.0,
+        "items": [
+          {
+            "ingredient_id": 63,
+            "raw_name": "Pale Ale Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 70.0,
+            "amount": 4.944,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 3393,
+            "raw_name": "Flaked Oats",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 30.0,
+            "amount": 2.119,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 470,
+            "raw_name": "Citra",
+            "usage": "boil",
+            "time_min": 60.0,
+            "pct": 20.0,
+            "amount": 33.145,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 470,
+            "raw_name": "Citra",
+            "usage": "dry_hop",
+            "time_min": 0.0,
+            "pct": 40.0,
+            "amount": 66.29,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 488,
+            "raw_name": "Mosaic",
+            "usage": "dry_hop",
+            "time_min": 0.0,
+            "pct": 40.0,
+            "amount": 66.29,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1853,
+            "raw_name": "New England",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "b03",
+      "run_id": 4505,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "Maris Otter": "covered",
+          "flaked oats": "covered",
+          "crystal malt": "covered",
+          "chocolate malt": "covered",
+          "roasted barley": "covered"
+        },
+        "hops": {
+          "East Kent Goldings": "covered"
+        },
+        "yeast": {
+          "English ale yeast": "covered"
+        }
+      },
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 13991,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 76,
+        "prompt_tokens": 999
+      },
+      "passed": true,
+      "calls": 5,
+      "first_try_calls": 2,
+      "retry_calls": 3,
+      "tries": 3,
+      "validated": true,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": {
+        "id": 141,
+        "batch_l": 20.0,
+        "og": 1.055,
+        "fg": 1.0126,
+        "abv": 5.5,
+        "ibu": 32.5,
+        "srm": 31.0,
+        "items": [
+          {
+            "ingredient_id": 13,
+            "raw_name": "Finest Pale Ale Maris Otter",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 70.65,
+            "amount": 3.675,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 3393,
+            "raw_name": "Flaked Oats",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 15.0,
+            "amount": 0.78,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 19,
+            "raw_name": "Caramel 150 Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 8.0,
+            "amount": 0.416,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 26,
+            "raw_name": "Chocolate Dark Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 6.0,
+            "amount": 0.312,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 38,
+            "raw_name": "Roasted Barley",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 0.35,
+            "amount": 0.018,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 474,
+            "raw_name": "East Kent Golding",
+            "usage": "boil",
+            "time_min": 60.0,
+            "pct": 100.0,
+            "amount": 49.666,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1827,
+            "raw_name": "SafAle S-04",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "b04",
+      "run_id": 4506,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pale ale malt": "covered",
+          "crystal malt": "gap",
+          "chocolate malt": "covered",
+          "roasted barley": "covered",
+          "lactose": "covered"
+        },
+        "hops": {
+          "East Kent Goldings": "covered"
+        },
+        "yeast": {
+          "English ale yeast": "covered"
+        }
+      },
+      "needs_ok": false,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 14653,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 81,
+        "prompt_tokens": 996
+      },
+      "passed": false,
+      "calls": 3,
+      "first_try_calls": 2,
+      "retry_calls": 1,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": {
+        "id": 142,
+        "batch_l": 20.0,
+        "og": 1.052,
+        "fg": 1.0183,
+        "abv": 4.3,
+        "ibu": 30.0,
+        "srm": 35.0,
+        "items": [
+          {
+            "ingredient_id": 13,
+            "raw_name": "Finest Pale Ale Maris Otter",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 81.43,
+            "amount": 3.713,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 26,
+            "raw_name": "Chocolate Dark Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 10.0,
+            "amount": 0.456,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 38,
+            "raw_name": "Roasted Barley",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 0.57,
+            "amount": 0.026,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 3397,
+            "raw_name": "Lactose",
+            "usage": "boil",
+            "time_min": null,
+            "pct": 8.0,
+            "amount": 0.365,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 474,
+            "raw_name": "East Kent Golding",
+            "usage": "boil",
+            "time_min": 60.0,
+            "pct": 100.0,
+            "amount": 44.812,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1821,
+            "raw_name": "British Ale",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "b05",
+      "run_id": 4507,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pale ale malt": "covered",
+          "flaked barley": "covered",
+          "roasted barley": "covered"
+        },
+        "hops": {
+          "East Kent Goldings": "substituted: Challenger"
+        },
+        "yeast": {
+          "Irish ale yeast": "covered"
+        }
+      },
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 13344,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 71,
+        "prompt_tokens": 999
+      },
+      "passed": true,
+      "calls": 3,
+      "first_try_calls": 2,
+      "retry_calls": 1,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {
+        "abv": {
+          "stated": 4,
+          "value": 4.0,
+          "met": true
+        }
+      },
+      "stated_ok": true,
+      "recipe": {
+        "id": 143,
+        "batch_l": 20.0,
+        "og": 1.0401,
+        "fg": 1.0088,
+        "abv": 4.0,
+        "ibu": 35.0,
+        "srm": 32.5,
+        "items": [
+          {
+            "ingredient_id": 36,
+            "raw_name": "Pale Ale Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 83.57,
+            "amount": 3.111,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 38,
+            "raw_name": "Roasted Barley",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 2.0,
+            "amount": 0.074,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 26,
+            "raw_name": "Chocolate Dark Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 9.43,
+            "amount": 0.351,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 3394,
+            "raw_name": "Flaked Barley",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 5.0,
+            "amount": 0.186,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 468,
+            "raw_name": "Challenger",
+            "usage": "boil",
+            "time_min": 60.0,
+            "pct": 100.0,
+            "amount": 33.892,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1827,
+            "raw_name": "SafAle S-04",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": [
+          {
+            "kind": "mismatch",
+            "subject": "20C Imperial Stout with ABV 4",
+            "level": null,
+            "requested_by": "user",
+            "note": "you named 20C Imperial Stout, but ABV 4 is outside its ABV 8.0–12.0; 15B Irish Stout fits better and was chosen"
+          }
+        ]
+      }
+    },
+    {
+      "id": "b06",
+      "run_id": 4508,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pilsner malt": "covered",
+          "flaked rice": "covered"
+        },
+        "hops": {
+          "Magnum": "covered"
+        },
+        "yeast": {
+          "American lager yeast": "substituted: SafLager S-189"
+        }
+      },
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 21936,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 132,
+        "prompt_tokens": 1012
+      },
+      "passed": true,
+      "calls": 2,
+      "first_try_calls": 2,
+      "retry_calls": 0,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": {
+        "id": 144,
+        "batch_l": 20.0,
+        "og": 1.045,
+        "fg": 1.0081,
+        "abv": 4.8,
+        "ibu": 13.0,
+        "srm": 2.8,
+        "items": [
+          {
+            "ingredient_id": 64,
+            "raw_name": "Pilsner Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 60.0,
+            "amount": 2.408,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 3395,
+            "raw_name": "Flaked Rice",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 40.0,
+            "amount": 1.606,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 486,
+            "raw_name": "Magnum",
+            "usage": "boil",
+            "time_min": 90.0,
+            "pct": 100.0,
+            "amount": 7.698,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1833,
+            "raw_name": "SafLager S-189",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "b07",
+      "run_id": 4509,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pilsner malt": "covered",
+          "flaked corn": "covered"
+        },
+        "hops": {
+          "Willamette": "substituted: Cascade"
+        },
+        "yeast": {
+          "American ale yeast": "covered"
+        }
+      },
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 17113,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 100,
+        "prompt_tokens": 996
+      },
+      "passed": true,
+      "calls": 3,
+      "first_try_calls": 2,
+      "retry_calls": 1,
+      "tries": 2,
+      "validated": true,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": {
+        "id": 145,
+        "batch_l": 20.0,
+        "og": 1.0485,
+        "fg": 1.0097,
+        "abv": 5.0,
+        "ibu": 14.0,
+        "srm": 2.6,
+        "items": [
+          {
+            "ingredient_id": 60,
+            "raw_name": "Extra Pale Premium Pilsner Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 80.0,
+            "amount": 3.457,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 3392,
+            "raw_name": "Flaked Corn",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 20.0,
+            "amount": 0.864,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 464,
+            "raw_name": "Cascade",
+            "usage": "boil",
+            "time_min": 90.0,
+            "pct": 100.0,
+            "amount": 15.22,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1830,
+            "raw_name": "SafAle US-05",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "b08",
+      "run_id": 4510,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pilsner malt": "covered"
+        },
+        "hops": {
+          "Magnum": "covered",
+          "Hallertau Mittelfrüh": "covered",
+          "Tettnang": "covered"
+        },
+        "yeast": {
+          "German lager yeast": "covered"
+        }
+      },
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 19179,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 111,
+        "prompt_tokens": 1016
+      },
+      "passed": true,
+      "calls": 2,
+      "first_try_calls": 2,
+      "retry_calls": 0,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {
+        "batch_l": {
+          "stated": 10,
+          "value": 10.0,
+          "met": true
+        },
+        "ibu": {
+          "stated": 50,
+          "value": 50.0,
+          "met": true
+        }
+      },
+      "stated_ok": true,
+      "recipe": {
+        "id": 146,
+        "batch_l": 10.0,
+        "og": 1.045,
+        "fg": 1.0086,
+        "abv": 4.7,
+        "ibu": 50.0,
+        "srm": 3.2,
+        "items": [
+          {
+            "ingredient_id": 64,
+            "raw_name": "Pilsner Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 95.0,
+            "amount": 1.928,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 78,
+            "raw_name": "Carapils",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 5.0,
+            "amount": 0.101,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 486,
+            "raw_name": "Magnum",
+            "usage": "boil",
+            "time_min": 90.0,
+            "pct": 60.0,
+            "amount": 12.673,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 506,
+            "raw_name": "Tettnanger",
+            "usage": "boil",
+            "time_min": 15.0,
+            "pct": 40.0,
+            "amount": 8.448,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1813,
+            "raw_name": "German Lager",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": [
+          {
+            "kind": "number",
+            "subject": "IBU 50",
+            "level": null,
+            "requested_by": "user",
+            "note": "IBU 50 is above German Pils (5D)'s IBU range 22–40"
+          }
+        ]
+      }
+    },
+    {
+      "id": "b09",
+      "run_id": 4511,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pilsner malt": "covered",
+          "Munich malt": "covered",
+          "Vienna malt": "substituted: Pilsner Malt"
+        },
+        "hops": {
+          "Hallertau Mittelfrüh": "gap"
+        },
+        "yeast": {
+          "German lager yeast": "covered"
+        }
+      },
+      "needs_ok": false,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 14996,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 84,
+        "prompt_tokens": 997
+      },
+      "passed": false,
+      "calls": 2,
+      "first_try_calls": 2,
+      "retry_calls": 0,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": {
+        "id": 147,
+        "batch_l": 20.0,
+        "og": 1.057,
+        "fg": 1.0114,
+        "abv": 5.9,
+        "ibu": 18.8,
+        "srm": 12.7,
+        "items": [
+          {
+            "ingredient_id": 81,
+            "raw_name": "Munich Malt Type 2",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 70.0,
+            "amount": 3.678,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 64,
+            "raw_name": "Pilsner Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 25.0,
+            "amount": 1.314,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 61,
+            "raw_name": "Melanoidin Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 5.0,
+            "amount": 0.263,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 482,
+            "raw_name": "Herkules",
+            "usage": "boil",
+            "time_min": 90.0,
+            "pct": 100.0,
+            "amount": 10.001,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1833,
+            "raw_name": "SafLager S-189",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "b10",
+      "run_id": 4512,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pilsner malt": "covered",
+          "Munich malt": "covered",
+          "Special B": "gap",
+          "candi sugar": "covered"
+        },
+        "hops": {
+          "Styrian Golding": "gap"
+        },
+        "yeast": {
+          "abbey ale yeast": "covered"
+        }
+      },
+      "needs_ok": false,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 16017,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 87,
+        "prompt_tokens": 1010
+      },
+      "passed": false,
+      "calls": 3,
+      "first_try_calls": 2,
+      "retry_calls": 1,
+      "tries": 2,
+      "validated": true,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": {
+        "id": 148,
+        "batch_l": 20.0,
+        "og": 1.0685,
+        "fg": 1.0134,
+        "abv": 7.1,
+        "ibu": 20.0,
+        "srm": 13.5,
+        "items": [
+          {
+            "ingredient_id": 64,
+            "raw_name": "Pilsner Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 58.57,
+            "amount": 3.639,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 62,
+            "raw_name": "Munich Malt Type 1",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 20.0,
+            "amount": 1.243,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 42,
+            "raw_name": "Abbey Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 15.0,
+            "amount": 0.932,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 45,
+            "raw_name": "Caraamber",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 5.0,
+            "amount": 0.311,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 3396,
+            "raw_name": "Brown Candi Sugar",
+            "usage": "boil",
+            "time_min": null,
+            "pct": 1.43,
+            "amount": 0.089,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 497,
+            "raw_name": "Saaz",
+            "usage": "boil",
+            "time_min": 90.0,
+            "pct": 100.0,
+            "amount": 47.936,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1845,
+            "raw_name": "Abbaye",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "b11",
+      "run_id": 4513,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pilsner malt": "substituted: Pale Ale Malt, Wheat Malt Pale",
+          "wheat malt": "covered"
+        },
+        "hops": {
+          "Styrian Golding": "gap",
+          "Saaz": "covered"
+        },
+        "yeast": {
+          "saison yeast": "covered"
+        }
+      },
+      "needs_ok": false,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 14270,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 79,
+        "prompt_tokens": 997
+      },
+      "passed": false,
+      "calls": 2,
+      "first_try_calls": 2,
+      "retry_calls": 0,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": {
+        "id": 149,
+        "batch_l": 20.0,
+        "og": 1.0565,
+        "fg": 1.0057,
+        "abv": 6.6,
+        "ibu": 27.5,
+        "srm": 13.5,
+        "items": [
+          {
+            "ingredient_id": 63,
+            "raw_name": "Pale Ale Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 38.55,
+            "amount": 2.022,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 76,
+            "raw_name": "Wheat Malt Pale",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 20.0,
+            "amount": 1.049,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 42,
+            "raw_name": "Abbey Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 41.45,
+            "amount": 2.173,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 486,
+            "raw_name": "Magnum",
+            "usage": "boil",
+            "time_min": 90.0,
+            "pct": 60.0,
+            "amount": 17.662,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 497,
+            "raw_name": "Saaz",
+            "usage": "dry_hop",
+            "time_min": 0.0,
+            "pct": 40.0,
+            "amount": 11.775,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1846,
+            "raw_name": "Belle Saison",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": [
+          {
+            "kind": "conflict",
+            "subject": "dry vs full, chewy",
+            "level": null,
+            "requested_by": "user",
+            "note": "dry lowers mash temperature and raises attenuation; full, chewy raise mash temperature and lower attenuation"
+          }
+        ]
+      }
+    },
+    {
+      "id": "b12",
+      "run_id": 4514,
+      "run_ok": false,
+      "error": "try 1: Rule 10: the predicted FG 1.0077 (mash 69 °C) is outside the target FG range 1.0080 to 1.0130. To fix: pick a less attenuative yeast: SafAle US-05 gives 78 % here (mash 69 °C) and this grist needs about 77.2 % for FG 1.0080, or lower Honey 15 %, which ferment out.; try 2: Rule 10: the predicted FG 1.0077 (mash 69 °C) is outside the target FG range 1.0080 to 1.0130. To fix: pick a less attenuative yeast: SafAle US-05 gives 78 % here (mash 69 °C) and this grist needs about 77.2 % for FG 1.0080, or lower Honey 15 %, which ferment out.; try 3: Rule 10: the predicted FG 1.0077 (mash 69 °C) is outside the target FG range 1.0080 to 1.0130. To fix: pick a less attenuative yeast: SafAle US-05 gives 78 % here (mash 69 °C) and this grist needs about 77.2 % for FG 1.0080, or lower Honey 15 %, which ferment out.",
+      "failed_step": 11,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pale ale malt": "covered",
+          "Vienna malt": "substituted: Pale Ale Malt",
+          "honey": "covered"
+        },
+        "hops": {
+          "Cascade": "covered"
+        },
+        "yeast": {
+          "American ale yeast": "covered"
+        }
+      },
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 17104,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 95,
+        "prompt_tokens": 1010
+      },
+      "passed": false,
+      "calls": 4,
+      "first_try_calls": 2,
+      "retry_calls": 2,
+      "tries": 3,
+      "validated": false,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": null
+    },
+    {
+      "id": "b13",
+      "run_id": 4515,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "wheat malt": "covered",
+          "pilsner malt": "covered"
+        },
+        "hops": {
+          "Hallertau Mittelfrüh": "gap"
+        },
+        "yeast": {
+          "weizen yeast": "covered"
+        }
+      },
+      "needs_ok": false,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 13912,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 76,
+        "prompt_tokens": 994
+      },
+      "passed": false,
+      "calls": 2,
+      "first_try_calls": 2,
+      "retry_calls": 0,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {
+        "batch_l": {
+          "stated": 15,
+          "value": 15.0,
+          "met": true
+        }
+      },
+      "stated_ok": true,
+      "recipe": {
+        "id": 150,
+        "batch_l": 15.0,
+        "og": 1.0485,
+        "fg": 1.0114,
+        "abv": 4.8,
+        "ibu": 11.5,
+        "srm": 3.5,
+        "items": [
+          {
+            "ingredient_id": 76,
+            "raw_name": "Wheat Malt Pale",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 50.0,
+            "amount": 1.619,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 64,
+            "raw_name": "Pilsner Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 50.0,
+            "amount": 1.619,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 486,
+            "raw_name": "Magnum",
+            "usage": "boil",
+            "time_min": 90.0,
+            "pct": 100.0,
+            "amount": 5.13,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1922,
+            "raw_name": "YF-401 Mr. Weizen",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "b14",
+      "run_id": 4516,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "wheat malt": "covered",
+          "pilsner malt": "covered"
+        },
+        "hops": {
+          "Hallertau Mittelfrüh": "gap"
+        },
+        "yeast": {
+          "German ale yeast": "gap",
+          "Lactobacillus": "covered"
+        }
+      },
+      "needs_ok": false,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 17270,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 100,
+        "prompt_tokens": 1001
+      },
+      "passed": false,
+      "calls": 3,
+      "first_try_calls": 2,
+      "retry_calls": 1,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {
+        "abv": {
+          "stated": 3,
+          "value": 2.8,
+          "met": true
+        }
+      },
+      "stated_ok": true,
+      "recipe": {
+        "id": 151,
+        "batch_l": 20.0,
+        "og": 1.0278,
+        "fg": 1.0057,
+        "abv": 2.8,
+        "ibu": 5.5,
+        "srm": 2.4,
+        "items": [
+          {
+            "ingredient_id": 76,
+            "raw_name": "Wheat Malt Pale",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 50.0,
+            "amount": 1.238,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 64,
+            "raw_name": "Pilsner Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 50.0,
+            "amount": 1.238,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 486,
+            "raw_name": "Magnum",
+            "usage": "boil",
+            "time_min": 90.0,
+            "pct": 100.0,
+            "amount": 2.884,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1852,
+            "raw_name": "Munich Classic",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          },
+          {
+            "ingredient_id": 1930,
+            "raw_name": "YF-998 Sour, yes sour!",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "b15",
+      "run_id": 4517,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "Maris Otter": "covered",
+          "crystal malt": "covered"
+        },
+        "hops": {
+          "East Kent Goldings": "covered",
+          "Fuggle": "covered"
+        },
+        "yeast": {
+          "English ale yeast": "covered"
+        }
+      },
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 17502,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 98,
+        "prompt_tokens": 1014
+      },
+      "passed": true,
+      "calls": 3,
+      "first_try_calls": 2,
+      "retry_calls": 1,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {
+        "batch_l": {
+          "stated": 23,
+          "value": 23.0,
+          "met": true
+        }
+      },
+      "stated_ok": true,
+      "recipe": {
+        "id": 152,
+        "batch_l": 23.0,
+        "og": 1.044,
+        "fg": 1.0097,
+        "abv": 4.4,
+        "ibu": 32.5,
+        "srm": 12.0,
+        "items": [
+          {
+            "ingredient_id": 13,
+            "raw_name": "Finest Pale Ale Maris Otter",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 89.69,
+            "amount": 4.206,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 10,
+            "raw_name": "Crystal T50",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 10.0,
+            "amount": 0.469,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 15,
+            "raw_name": "Black Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 0.31,
+            "amount": 0.015,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 474,
+            "raw_name": "East Kent Golding",
+            "usage": "boil",
+            "time_min": 60.0,
+            "pct": 50.0,
+            "amount": 52.864,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 474,
+            "raw_name": "East Kent Golding",
+            "usage": "dry_hop",
+            "time_min": 0.0,
+            "pct": 50.0,
+            "amount": 52.864,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1827,
+            "raw_name": "SafAle S-04",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "b16",
+      "run_id": 4518,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pale ale malt": "covered",
+          "crystal malt": "covered",
+          "flaked rice": "covered"
+        },
+        "hops": {
+          "Cascade": "covered",
+          "Centennial": "covered"
+        },
+        "yeast": {
+          "American ale yeast": "covered"
+        }
+      },
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 18718,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 109,
+        "prompt_tokens": 1010
+      },
+      "passed": true,
+      "calls": 4,
+      "first_try_calls": 2,
+      "retry_calls": 2,
+      "tries": 3,
+      "validated": true,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": {
+        "id": 153,
+        "batch_l": 20.0,
+        "og": 1.0505,
+        "fg": 1.0101,
+        "abv": 5.2,
+        "ibu": 40.0,
+        "srm": 7.2,
+        "items": [
+          {
+            "ingredient_id": 63,
+            "raw_name": "Pale Ale Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 70.0,
+            "amount": 3.229,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 3395,
+            "raw_name": "Flaked Rice",
+            "usage": "boil",
+            "time_min": null,
+            "pct": 20.0,
+            "amount": 0.922,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 23,
+            "raw_name": "Caramel 50 Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 10.0,
+            "amount": 0.461,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 466,
+            "raw_name": "Centennial",
+            "usage": "boil",
+            "time_min": 60.0,
+            "pct": 50.0,
+            "amount": 30.942,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 464,
+            "raw_name": "Cascade",
+            "usage": "boil",
+            "time_min": 0.0,
+            "pct": 25.0,
+            "amount": 15.471,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 464,
+            "raw_name": "Cascade",
+            "usage": "dry_hop",
+            "time_min": 0.0,
+            "pct": 25.0,
+            "amount": 15.471,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1830,
+            "raw_name": "SafAle US-05",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": [
+          {
+            "kind": "ingredient",
+            "subject": "rice",
+            "level": "out_of_style",
+            "requested_by": "user",
+            "note": "Flaked Rice (mash) is the closest choice: not a usual ingredient of American Pale Ale (18B)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "b17",
+      "run_id": 4519,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pilsner malt": "covered",
+          "Munich malt": "covered",
+          "Carafa Special": "covered"
+        },
+        "hops": {
+          "Hallertau Mittelfrüh": "gap"
+        },
+        "yeast": {
+          "German lager yeast": "covered"
+        }
+      },
+      "needs_ok": false,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 14793,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 82,
+        "prompt_tokens": 995
+      },
+      "passed": false,
+      "calls": 2,
+      "first_try_calls": 2,
+      "retry_calls": 0,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {
+        "abv": {
+          "stated": 7,
+          "value": 7.0,
+          "met": true
+        }
+      },
+      "stated_ok": true,
+      "recipe": {
+        "id": 154,
+        "batch_l": 20.0,
+        "og": 1.0671,
+        "fg": 1.0127,
+        "abv": 7.0,
+        "ibu": 27.5,
+        "srm": 24.5,
+        "items": [
+          {
+            "ingredient_id": 64,
+            "raw_name": "Pilsner Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 70.95,
+            "amount": 4.345,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 81,
+            "raw_name": "Munich Malt Type 2",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 25.0,
+            "amount": 1.531,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 52,
+            "raw_name": "Carafa Special Type 1",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 4.05,
+            "amount": 0.248,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 486,
+            "raw_name": "Magnum",
+            "usage": "boil",
+            "time_min": 90.0,
+            "pct": 100.0,
+            "amount": 19.035,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1813,
+            "raw_name": "German Lager",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": [
+          {
+            "kind": "number",
+            "subject": "ABV 7",
+            "level": null,
+            "requested_by": "user",
+            "note": "ABV 7 is above Schwarzbier (8B)'s ABV range 4.4–5.4"
+          }
+        ]
+      }
+    },
+    {
+      "id": "b18",
+      "run_id": 4520,
+      "run_ok": false,
+      "error": "try 1: Step 11: the SRM is 13.6 and the target is 20 (limit +- 1). The colour adjustment could not reach it: Roasted Barley 2.00 % to 2.00 %, Pale Ale Malt 88.00 % to 88.00 %: SRM 14.1 to 14.1 (target 20), still more than 1 away because of the share limits. To fix: Roasted Barley is at its 2 % limit: add a second dark malt (role roast or kilned).; Rule 10: the predicted FG 1.0099 (mash 69 °C) is outside the target FG range 1.0100 to 1.0140. To fix: pick a less attenuative yeast: British Ale gives 75 % here (mash 69 °C) and this grist needs about 74.8 % for FG 1.0100.; try 2: Step 11: the SRM is 17.87 and the target is 20 (limit +- 1). The colour adjustment could not reach it: Roasted Barley 2.00 % to 2.00 %, Pale Ale Malt 86.00 % to 86.00 %: SRM 14.5 to 14.5 (target 20); then Red Ale Malt 2.00 % to 20.00 %, Pale Ale Malt 86.00 % to 68.00 %: SRM 14.5 to 17.9 (target 20), still more than 1 away because of the share limits. To fix: Red Ale Malt is at its 20 % limit: add a second dark malt (role roast or kilned).; try 3: Step 11: the SRM is 17.87 and the target is 20 (limit +- 1). The colour adjustment could not reach it: Roasted Barley 2.00 % to 2.00 %, Pale Ale Malt 68.00 % to 68.00 %: SRM 17.9 to 17.9 (target 20), still more than 1 away because of the share limits. To fix: Roasted Barley is at its 2 % limit: add a second dark malt (role roast or kilned).",
+      "failed_step": 11,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pale ale malt": "covered",
+          "crystal malt": "covered",
+          "roasted barley": "covered"
+        },
+        "hops": {
+          "East Kent Goldings": "covered"
+        },
+        "yeast": {
+          "Irish ale yeast": "covered"
+        }
+      },
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 15397,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 82,
+        "prompt_tokens": 1012
+      },
+      "passed": false,
+      "calls": 5,
+      "first_try_calls": 2,
+      "retry_calls": 3,
+      "tries": 3,
+      "validated": false,
+      "invented": 0,
+      "stated": {
+        "srm": {
+          "stated": 20,
+          "value": null,
+          "met": false
+        }
+      },
+      "stated_ok": false,
+      "recipe": null
+    },
+    {
+      "id": "b19",
+      "run_id": 4521,
+      "run_ok": false,
+      "error": "try 1: Step 11: the SRM is 35.68 and the target is 19.5 (limit +- 1). The colour adjustment could not reach it: Finest Pale Ale Golden Promise is the darkest fermentable and no other base malt can take up the change. To fix: lower the crystal share (Caramel 100 Malt 15 %, Caramel 300 Malt 10 %): the colour adjustment never moves a crystal.; Rule 3: crystal above 60 EBC plus roast is 25 % of the grist (Caramel 100 Malt 15 %, Caramel 300 Malt 10 %); the limit is 15 %. To fix: take at least 10 points off Caramel 100 Malt 15 %, Caramel 300 Malt 10 %.; Rule 4: crystal above 60 EBC is 25 % of the grist (Caramel 100 Malt 15 %, Caramel 300 Malt 10 %); the limit is 10 %. To fix: take at least 15 points off Caramel 100 Malt 15 %, Caramel 300 Malt 10 %.; Rule 4: crystal above 160 EBC is 10 % of the grist (Caramel 300 Malt 10 %); the limit is 5 %. To fix: take at least 5 points off Caramel 300 Malt 10 %.; Rule 11: the planned ABV 10.04 % is above the alcohol tolerance of Real Scotland, 5.5 %. To fix: pick a yeast with an alcohol tolerance of at least 10.04 %.; try 2: Step 11: the ABV is 11.02 and the target is 9.99 (limit +- 0.2). To fix: pick a yeast attenuating about 69.9 % (Nottingham gives 78.1 %).; Step 11: the SRM is 21.3 and the target is 19.5 (limit +- 1). The colour adjustment could not reach it: Finest Pale Ale Golden Promise is the darkest fermentable and no other base malt can take up the change. To fix: lower the crystal share (Caramel 100 Malt 5 %, Caramel 300 Malt 5 %): the colour adjustment never moves a crystal.; try 3: Step 11: the SRM is 21.3 and the target is 19.5 (limit +- 1). The colour adjustment could not reach it: Finest Pale Ale Golden Promise is the darkest fermentable and no other base malt can take up the change. To fix: lower the crystal share (Caramel 100 Malt 5 %, Caramel 300 Malt 5 %): the colour adjustment never moves a crystal.",
+      "failed_step": 11,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "Maris Otter": "covered",
+          "crystal malt": "covered",
+          "roasted barley": "gap",
+          "honey": "covered"
+        },
+        "hops": {
+          "East Kent Goldings": "covered"
+        },
+        "yeast": {
+          "Scottish ale yeast": "covered"
+        }
+      },
+      "needs_ok": false,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 20505,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 121,
+        "prompt_tokens": 1006
+      },
+      "passed": false,
+      "calls": 4,
+      "first_try_calls": 2,
+      "retry_calls": 2,
+      "tries": 3,
+      "validated": false,
+      "invented": 0,
+      "stated": {
+        "batch_l": {
+          "stated": 10,
+          "value": null,
+          "met": false
+        }
+      },
+      "stated_ok": false,
+      "recipe": null
+    },
+    {
+      "id": "b20",
+      "run_id": 4522,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pale ale malt": "covered",
+          "crystal malt": "covered",
+          "chocolate malt": "covered",
+          "lactose": "covered"
+        },
+        "hops": {
+          "Cascade": "covered"
+        },
+        "yeast": {
+          "American ale yeast": "covered"
+        }
+      },
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 17821,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 105,
+        "prompt_tokens": 997
+      },
+      "passed": true,
+      "calls": 3,
+      "first_try_calls": 2,
+      "retry_calls": 1,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": {
+        "id": 155,
+        "batch_l": 20.0,
+        "og": 1.0525,
+        "fg": 1.0145,
+        "abv": 4.9,
+        "ibu": 25.0,
+        "srm": 26.5,
+        "items": [
+          {
+            "ingredient_id": 36,
+            "raw_name": "Pale Ale Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 78.73,
+            "amount": 3.663,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 23,
+            "raw_name": "Caramel 50 Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 10.0,
+            "amount": 0.465,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 26,
+            "raw_name": "Chocolate Dark Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 6.27,
+            "amount": 0.292,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 3397,
+            "raw_name": "Lactose",
+            "usage": "boil",
+            "time_min": null,
+            "pct": 5.0,
+            "amount": 0.233,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 464,
+            "raw_name": "Cascade",
+            "usage": "boil",
+            "time_min": 60.0,
+            "pct": 50.0,
+            "amount": 30.771,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 464,
+            "raw_name": "Cascade",
+            "usage": "dry_hop",
+            "time_min": 0.0,
+            "pct": 50.0,
+            "amount": 30.771,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1830,
+            "raw_name": "SafAle US-05",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": [
+          {
+            "kind": "ingredient",
+            "subject": "lactose",
+            "level": "out_of_style",
+            "requested_by": "user",
+            "note": "Lactose (mash) is the closest choice: not a usual ingredient of American Brown Ale (19C)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "b21",
+      "run_id": 4523,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pale ale malt": "covered",
+          "crystal malt": "covered"
+        },
+        "hops": {
+          "Cascade": "covered",
+          "Centennial": "covered"
+        },
+        "yeast": {
+          "American ale yeast": "covered"
+        }
+      },
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 16795,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 97,
+        "prompt_tokens": 996
+      },
+      "passed": true,
+      "calls": 3,
+      "first_try_calls": 2,
+      "retry_calls": 1,
+      "tries": 2,
+      "validated": true,
+      "invented": 0,
+      "stated": {
+        "abv": {
+          "stated": 4,
+          "value": 4.2,
+          "met": true
+        }
+      },
+      "stated_ok": true,
+      "recipe": {
+        "id": 156,
+        "batch_l": 20.0,
+        "og": 1.0406,
+        "fg": 1.0081,
+        "abv": 4.2,
+        "ibu": 37.5,
+        "srm": 7.1,
+        "items": [
+          {
+            "ingredient_id": 63,
+            "raw_name": "Pale Ale Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 85.0,
+            "amount": 3.184,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 20,
+            "raw_name": "Caramel 30 Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 10.0,
+            "amount": 0.375,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 45,
+            "raw_name": "Caraamber",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 5.0,
+            "amount": 0.187,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 472,
+            "raw_name": "Columbus",
+            "usage": "boil",
+            "time_min": 60.0,
+            "pct": 40.0,
+            "amount": 17.656,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 470,
+            "raw_name": "Citra",
+            "usage": "whirlpool",
+            "time_min": 0.0,
+            "pct": 30.0,
+            "amount": 13.242,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 464,
+            "raw_name": "Cascade",
+            "usage": "dry_hop",
+            "time_min": 0.0,
+            "pct": 30.0,
+            "amount": 13.242,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1830,
+            "raw_name": "SafAle US-05",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "b22",
+      "run_id": 4524,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pilsner malt": "covered",
+          "Vienna malt": "substituted: Pilsner Malt",
+          "crystal malt": "covered",
+          "flaked corn": "substituted: Flaked Rice"
+        },
+        "hops": {
+          "Hallertau Mittelfrüh": "gap"
+        },
+        "yeast": {
+          "German lager yeast": "substituted: Diamond"
+        }
+      },
+      "needs_ok": false,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 15146,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 85,
+        "prompt_tokens": 998
+      },
+      "passed": false,
+      "calls": 3,
+      "first_try_calls": 2,
+      "retry_calls": 1,
+      "tries": 2,
+      "validated": true,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": {
+        "id": 157,
+        "batch_l": 20.0,
+        "og": 1.0485,
+        "fg": 1.011,
+        "abv": 4.8,
+        "ibu": 13.6,
+        "srm": 11.0,
+        "items": [
+          {
+            "ingredient_id": 64,
+            "raw_name": "Pilsner Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 55.66,
+            "amount": 2.457,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 3395,
+            "raw_name": "Flaked Rice",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 20.0,
+            "amount": 0.883,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 45,
+            "raw_name": "Caraamber",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 10.0,
+            "amount": 0.442,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 61,
+            "raw_name": "Melanoidin Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 14.34,
+            "amount": 0.633,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 486,
+            "raw_name": "Magnum",
+            "usage": "boil",
+            "time_min": 90.0,
+            "pct": 100.0,
+            "amount": 8.27,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1849,
+            "raw_name": "Diamond",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "b23",
+      "run_id": 4525,
+      "run_ok": false,
+      "error": "try 1: Step 11: the ABV is 6.25 and the target is 5.99 (limit +- 0.2). To fix: pick a yeast attenuating about 76.8 % (SafAle US-05 gives 80 %).; try 2: Step 11: the ABV is 6.25 and the target is 5.99 (limit +- 0.2). To fix: pick a yeast attenuating about 76.8 % (SafAle US-05 gives 80 %).; try 3: Step 11: the ABV is 6.25 and the target is 5.99 (limit +- 0.2). To fix: pick a yeast attenuating about 76.8 % (SafAle US-05 gives 80 %).",
+      "failed_step": 11,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pale ale malt": "covered",
+          "roasted barley": "covered",
+          "chocolate malt": "covered"
+        },
+        "hops": {
+          "Cascade": "covered"
+        },
+        "yeast": {
+          "American ale yeast": "covered"
+        },
+        "misc": {
+          "coffee": "covered",
+          "vanilla beans": "covered"
+        }
+      },
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 18016,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 107,
+        "prompt_tokens": 995
+      },
+      "passed": false,
+      "calls": 5,
+      "first_try_calls": 2,
+      "retry_calls": 3,
+      "tries": 3,
+      "validated": false,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": null
+    },
+    {
+      "id": "b24",
+      "run_id": 4526,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pale ale malt": "covered",
+          "crystal malt": "covered"
+        },
+        "hops": {
+          "Cascade": "covered",
+          "Centennial": "covered"
+        },
+        "yeast": {
+          "American ale yeast": "covered"
+        },
+        "misc": {
+          "orange peel": "covered"
+        }
+      },
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 15213,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 86,
+        "prompt_tokens": 994
+      },
+      "passed": true,
+      "calls": 2,
+      "first_try_calls": 2,
+      "retry_calls": 0,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": {
+        "id": 158,
+        "batch_l": 20.0,
+        "og": 1.0505,
+        "fg": 1.0101,
+        "abv": 5.2,
+        "ibu": 40.0,
+        "srm": 7.1,
+        "items": [
+          {
+            "ingredient_id": 63,
+            "raw_name": "Pale Ale Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 90.0,
+            "amount": 4.183,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 20,
+            "raw_name": "Caramel 30 Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 5.0,
+            "amount": 0.232,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 23,
+            "raw_name": "Caramel 50 Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 5.0,
+            "amount": 0.232,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 464,
+            "raw_name": "Cascade",
+            "usage": "boil",
+            "time_min": 60.0,
+            "pct": 50.0,
+            "amount": 48.491,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 464,
+            "raw_name": "Cascade",
+            "usage": "dry_hop",
+            "time_min": 0.0,
+            "pct": 50.0,
+            "amount": 48.491,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1830,
+            "raw_name": "SafAle US-05",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          },
+          {
+            "ingredient_id": 26307,
+            "raw_name": "Orange peel",
+            "usage": "whirlpool",
+            "time_min": 15.0,
+            "pct": null,
+            "amount": 52.8,
+            "unit": "g"
+          }
+        ],
+        "deviations": [
+          {
+            "kind": "ingredient",
+            "subject": "orange peel",
+            "level": "out_of_style",
+            "requested_by": "user",
+            "note": "Orange peel (whirlpool) is the closest choice: specialty spice on American Pale Ale (18B)."
+          }
+        ]
+      }
+    }
+  ],
+  "totals": {
+    "step1": {
+      "passed": 24,
+      "total": 24,
+      "not_run": 0
+    },
+    "step2": {
+      "passed": 24,
+      "total": 24,
+      "not_run": 0
+    },
+    "step3": {
+      "passed": 24,
+      "total": 24,
+      "not_run": 0
+    },
+    "step4": {
+      "passed": 24,
+      "total": 24,
+      "not_run": 0
+    },
+    "step5": {
+      "passed": 24,
+      "total": 24,
+      "not_run": 0
+    },
+    "step6": {
+      "passed": 24,
+      "total": 24,
+      "not_run": 0
+    },
+    "step7": {
+      "passed": 24,
+      "total": 24,
+      "not_run": 0
+    },
+    "step8": {
+      "passed": 24,
+      "total": 24,
+      "not_run": 0
+    },
+    "step9": {
+      "passed": 24,
+      "total": 24,
+      "not_run": 0
+    },
+    "needs": {
+      "passed": 14,
+      "total": 24,
+      "gaps": 12
+    },
+    "calls": {
+      "total": 73,
+      "runs": 24
+    },
+    "first_try_calls_max": 2,
+    "retry_calls": 25,
+    "validated": {
+      "b01_b20": 17,
+      "all": 20
+    },
+    "invented": 0,
+    "stated_met": {
+      "met": 10,
+      "total": 12
+    },
+    "briefs": {
+      "passed": 11,
+      "total": 24
+    }
+  }
+}

@@ -193,6 +193,8 @@ per recipe plus tie-breaks. **Direction check, the big one:** you read 5 full re
 brewer. If they pass the numbers but you wouldn't brew them, the scoring (G5) is what to fix,
 not the validator.
 
+**Measured (2026-10-26, [`m6-compute-validate`](work/m6-compute-validate/plan.md)):** met. `python -m evals.run --save --label m6-9b` on the real pipeline: b01-b20 validated 17/20 (bar 16; first run 13/20), 20/24 overall (first run 15/24); first-try calls 2 on every brief, 73 calls in 24 runs, invented 0, stated numbers 10/12. Known failures, accepted: b12 and b23 (the LLM repeats the same picks despite the `To fix` line), b18 and b19 (no dark malt left to reach the colour). Held-out set (`--label m6-heldout`): 5/6 validated, 17 calls (h06 fails rule 10 like b12). Direction check (A11, [`g6-recipes.md`](work/m6-compute-validate/g6-recipes.md), b01, b03, b08, b10, b24): would brew after the listed changes; the direction is right. Saved in `evals/results/2026-10-26-m6-9b.json` and `2026-10-26-m6-heldout.json`.
+
 ### G7 · You can brew from the sheet
 
 **Bar:** every recipe has water, mash, ferment and package (P6); citations resolve to `kb`

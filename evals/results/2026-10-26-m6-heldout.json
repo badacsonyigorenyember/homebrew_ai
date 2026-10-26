@@ -1,0 +1,770 @@
+{
+  "date": "2026-10-26",
+  "label": "m6-heldout",
+  "model": "pipeline default",
+  "results": [
+    {
+      "id": "h01",
+      "run_id": 4527,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {},
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 15879,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 91,
+        "prompt_tokens": 999
+      },
+      "passed": true,
+      "calls": 2,
+      "first_try_calls": 2,
+      "retry_calls": 0,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {
+        "ibu": {
+          "stated": 38,
+          "value": 38.0,
+          "met": true
+        },
+        "batch_l": {
+          "stated": 20,
+          "value": 20.0,
+          "met": true
+        }
+      },
+      "stated_ok": true,
+      "recipe": {
+        "id": 159,
+        "batch_l": 20.0,
+        "og": 1.052,
+        "fg": 1.0135,
+        "abv": 4.9,
+        "ibu": 38.0,
+        "srm": 3.9,
+        "items": [
+          {
+            "ingredient_id": 75,
+            "raw_name": "Bohemian Pilsner Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 95.0,
+            "amount": 4.481,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 78,
+            "raw_name": "Carapils",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 5.0,
+            "amount": 0.236,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 497,
+            "raw_name": "Saaz",
+            "usage": "boil",
+            "time_min": 90.0,
+            "pct": 100.0,
+            "amount": 81.061,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1875,
+            "raw_name": "M84 Bohemian Lager",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "h02",
+      "run_id": 4528,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {},
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 15278,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 86,
+        "prompt_tokens": 994
+      },
+      "passed": true,
+      "calls": 3,
+      "first_try_calls": 2,
+      "retry_calls": 1,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": {
+        "id": 160,
+        "batch_l": 20.0,
+        "og": 1.0383,
+        "fg": 1.0111,
+        "abv": 3.5,
+        "ibu": 11.3,
+        "srm": 16.0,
+        "items": [
+          {
+            "ingredient_id": 12,
+            "raw_name": "Finest Pale Ale Golden Promise",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 88.34,
+            "amount": 3.108,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 10,
+            "raw_name": "Crystal T50",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 10.0,
+            "amount": 0.352,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 15,
+            "raw_name": "Black Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 1.66,
+            "amount": 0.058,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 474,
+            "raw_name": "East Kent Golding",
+            "usage": "boil",
+            "time_min": 60.0,
+            "pct": 100.0,
+            "amount": 15.142,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1844,
+            "raw_name": "Real Scotland",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "h03",
+      "run_id": 4529,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {},
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 15522,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 88,
+        "prompt_tokens": 997
+      },
+      "passed": true,
+      "calls": 4,
+      "first_try_calls": 2,
+      "retry_calls": 2,
+      "tries": 3,
+      "validated": true,
+      "invented": 0,
+      "stated": {
+        "abv": {
+          "stated": 6.5,
+          "value": 6.5,
+          "met": true
+        }
+      },
+      "stated_ok": true,
+      "recipe": {
+        "id": 161,
+        "batch_l": 20.0,
+        "og": 1.0633,
+        "fg": 1.0127,
+        "abv": 6.5,
+        "ibu": 22.5,
+        "srm": 5.1,
+        "items": [
+          {
+            "ingredient_id": 64,
+            "raw_name": "Pilsner Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 94.99,
+            "amount": 5.425,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 47,
+            "raw_name": "Carabelge",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 5.0,
+            "amount": 0.286,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 3396,
+            "raw_name": "Brown Candi Sugar",
+            "usage": "boil",
+            "time_min": null,
+            "pct": 0.01,
+            "amount": 0.001,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 486,
+            "raw_name": "Magnum",
+            "usage": "boil",
+            "time_min": 90.0,
+            "pct": 60.0,
+            "amount": 13.19,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 481,
+            "raw_name": "Hallertau Tradition",
+            "usage": "boil",
+            "time_min": 15.0,
+            "pct": 40.0,
+            "amount": 8.794,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1845,
+            "raw_name": "Abbaye",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "h04",
+      "run_id": 4530,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {},
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 15368,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 86,
+        "prompt_tokens": 1001
+      },
+      "passed": true,
+      "calls": 2,
+      "first_try_calls": 2,
+      "retry_calls": 0,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {
+        "batch_l": {
+          "stated": 15,
+          "value": 15.0,
+          "met": true
+        }
+      },
+      "stated_ok": true,
+      "recipe": {
+        "id": 162,
+        "batch_l": 15.0,
+        "og": 1.046,
+        "fg": 1.0096,
+        "abv": 4.7,
+        "ibu": 26.5,
+        "srm": 25.0,
+        "items": [
+          {
+            "ingredient_id": 13,
+            "raw_name": "Finest Pale Ale Maris Otter",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 76.74,
+            "amount": 2.288,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 10,
+            "raw_name": "Crystal T50",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 10.0,
+            "amount": 0.298,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 26,
+            "raw_name": "Chocolate Dark Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 3.26,
+            "amount": 0.097,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 3396,
+            "raw_name": "Brown Candi Sugar",
+            "usage": "boil",
+            "time_min": null,
+            "pct": 10.0,
+            "amount": 0.298,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 474,
+            "raw_name": "East Kent Golding",
+            "usage": "boil",
+            "time_min": 60.0,
+            "pct": 60.0,
+            "amount": 22.25,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 477,
+            "raw_name": "Fuggle",
+            "usage": "boil",
+            "time_min": 15.0,
+            "pct": 40.0,
+            "amount": 14.833,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1821,
+            "raw_name": "British Ale",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "h05",
+      "run_id": 4531,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {},
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 12815,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 69,
+        "prompt_tokens": 990
+      },
+      "passed": true,
+      "calls": 2,
+      "first_try_calls": 2,
+      "retry_calls": 0,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": {
+        "id": 163,
+        "batch_l": 20.0,
+        "og": 1.047,
+        "fg": 1.0103,
+        "abv": 4.7,
+        "ibu": 24.0,
+        "srm": 3.3,
+        "items": [
+          {
+            "ingredient_id": 64,
+            "raw_name": "Pilsner Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 90.0,
+            "amount": 3.794,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 76,
+            "raw_name": "Wheat Malt Pale",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 10.0,
+            "amount": 0.422,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 486,
+            "raw_name": "Magnum",
+            "usage": "boil",
+            "time_min": 90.0,
+            "pct": 60.0,
+            "amount": 12.54,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 481,
+            "raw_name": "Hallertau Tradition",
+            "usage": "boil",
+            "time_min": 15.0,
+            "pct": 40.0,
+            "amount": 8.36,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1816,
+            "raw_name": "Köln",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          }
+        ],
+        "deviations": []
+      }
+    },
+    {
+      "id": "h06",
+      "run_id": 4532,
+      "run_ok": false,
+      "error": "try 1: Rule 10: the predicted FG 1.0208 (mash 69 °C) is outside the target FG range 1.0210 to 1.0250. To fix: pick a less attenuative yeast: SafAle US-05 gives 78 % here (mash 69 °C) and this grist needs about 77.8 % for FG 1.0210.; try 2: Rule 10: the predicted FG 1.0208 (mash 69 °C) is outside the target FG range 1.0210 to 1.0250. To fix: pick a less attenuative yeast: SafAle US-05 gives 78 % here (mash 69 °C) and this grist needs about 77.8 % for FG 1.0210.; try 3: Rule 10: the predicted FG 1.0208 (mash 69 °C) is outside the target FG range 1.0210 to 1.0250. To fix: pick a less attenuative yeast: SafAle US-05 gives 78 % here (mash 69 °C) and this grist needs about 77.8 % for FG 1.0210.",
+      "failed_step": 11,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": false,
+      "step3": true,
+      "step4": false,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {},
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 17006,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 94,
+        "prompt_tokens": 1004
+      },
+      "passed": false,
+      "calls": 4,
+      "first_try_calls": 2,
+      "retry_calls": 2,
+      "tries": 3,
+      "validated": false,
+      "invented": 0,
+      "stated": {
+        "abv": {
+          "stated": 9.5,
+          "value": null,
+          "met": false
+        },
+        "batch_l": {
+          "stated": 10,
+          "value": null,
+          "met": false
+        }
+      },
+      "stated_ok": false,
+      "recipe": null
+    }
+  ],
+  "totals": {
+    "step1": {
+      "passed": 6,
+      "total": 6,
+      "not_run": 0
+    },
+    "step2": {
+      "passed": 5,
+      "total": 6,
+      "not_run": 0
+    },
+    "step3": {
+      "passed": 6,
+      "total": 6,
+      "not_run": 0
+    },
+    "step4": {
+      "passed": 5,
+      "total": 6,
+      "not_run": 0
+    },
+    "step5": {
+      "passed": 6,
+      "total": 6,
+      "not_run": 0
+    },
+    "step6": {
+      "passed": 6,
+      "total": 6,
+      "not_run": 0
+    },
+    "step7": {
+      "passed": 6,
+      "total": 6,
+      "not_run": 0
+    },
+    "step8": {
+      "passed": 6,
+      "total": 6,
+      "not_run": 0
+    },
+    "step9": {
+      "passed": 6,
+      "total": 6,
+      "not_run": 0
+    },
+    "needs": {
+      "passed": 6,
+      "total": 6,
+      "gaps": 0
+    },
+    "calls": {
+      "total": 17,
+      "runs": 6
+    },
+    "first_try_calls_max": 2,
+    "retry_calls": 5,
+    "validated": {
+      "b01_b20": 0,
+      "all": 5
+    },
+    "invented": 0,
+    "stated_met": {
+      "met": 4,
+      "total": 6
+    },
+    "briefs": {
+      "passed": 5,
+      "total": 6
+    }
+  }
+}

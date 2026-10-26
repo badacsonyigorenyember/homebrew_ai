@@ -709,14 +709,14 @@ Why: G6; A1–A3, A7, A8, A10, A11.
       b01–b20 validated 13/20, 15/24 overall; first-try calls 2 on every brief; invented 0;
       stated numbers 10/12. Misses and causes: the measured paragraph under Approach. Fix:
       Tasks 9b and 9c. The four results files are kept as the before measurement.
-- [ ] After Tasks 9b and 9c, re-measure once (user decision 2026-10-26): `.venv/bin/python -m evals.run
+- [x] After Tasks 9b and 9c, re-measure once (user decision 2026-10-26): `.venv/bin/python -m evals.run
       --save --label m6-9b` (b01–b24; background, wait on the results file, not the process). A
       brief that ends with an HTTP or JSON error (not a step failure) is rerun alone with `--brief
       <id> --save --label m6-9b-<id>`, and the rerun counts. A step 10 raise from Task 9b's code is
       a bug: fix it with a test, rerun that brief, record it. No other change and no second
       re-measure: whatever b01–b20 gives goes to the gate. The prompt is not tuned on these briefs
       beyond Tasks 7 and 9c.
-- [ ] Measure for the §8 entry: validated b01–b20 (bar ≥ 16) and b21–b24, each next to the first
+- [x] Measure for the §8 entry: validated b01–b20 (bar ≥ 16) and b21–b24, each next to the first
       run's result; tries per brief; calls, first-try calls (≤ 2 each) and retry calls per brief
       and in total; invented 0 (A2); each A3 stated number with its value; A7 grams of b23 and b24
       from the saved rows; A8 deviations of b05, b11, b08, b16 from `app.recipe_deviation`; A5
@@ -724,16 +724,16 @@ Why: G6; A1–A3, A7, A8, A10, A11.
       OG moves made, from the step 10 rows; the `To fix` lines sent per try and whether the next
       try followed them; run time per brief. Compare with the estimate (about 15–17 of b01–b20
       after Tasks 9b and 9c) and name each brief still failing with its cause.
-- [ ] Then once: `.venv/bin/python -m evals.run --briefs evals/heldout_briefs.toml --save --label m6-heldout`;
+- [x] Then once: `.venv/bin/python -m evals.run --briefs evals/heldout_briefs.toml --save --label m6-heldout`;
       record its validated count and calls (A10). Nothing is changed because of it.
-- [ ] **Gate (A11, on the re-measure's recipes; user decision 2026-10-26 "After re-measure"):**
+- [x] **Gate (A11, on the re-measure's recipes; user decision 2026-10-26 "After re-measure"):**
       rewrite `docs/work/m6-compute-validate/g6-recipes.md` with 5 validated recipes from the
       re-measure printed by `evals.show_recipe` (proposal: b01, b03, b08, b10, b23 — IPA, stout,
       lager with a stated IBU, inventory dubbel, coffee extras; a proposed brief that did not
       validate is replaced by another family and named as such), and hand back `needs-input`
       asking: would you brew them? Report the b01–b20 count against A1's bar of 16 in the same
       hand-back. Record your verdict.
-- [ ] `docs/WORKFLOW-ROADMAP.md` G6 `Measured:` line (Decided left for you).
+- [x] `docs/WORKFLOW-ROADMAP.md` G6 `Measured:` line (Decided left for you).
 Done when: the re-measure and held-out results files are saved and the gate is answered.
 Commit: `Measure G6 on 24 briefs and the held-out set`
 
@@ -800,3 +800,4 @@ OPERATIONS §5 says; no container is recreated.
 - 2026-10-26 · Task 9b: tests use b09's real G6 yeast SafLager S-189 (the plan named SafAle US-05; run 4471's step 10 input shows S-189), whose mash goes to 69 °C (FG 1.0114, as in the replay) rather than a value inside (68.3, 69). `test_colour_keeps_rule_3` runs two targets (31: reached below the room left; 34: Chocolate Dark Malt stops at 15 − 8.92 = 6.08 %), because b03's target 31 is reached before the cap binds. `test_colour_second_dark_grain` expects Chocolate Dark Malt 7.48 ± 0.3 (the test solver runs at 70 % efficiency; the replay at the real one gave 7.48, this gives 7.23).
 - 2026-10-26 · Task 9b: the rule 3 and 5 caps never force a share down: the limit is `greatest(room left, the share it starts at)`. Without that, b23's G6 grist (roast and dark crystal already at 17 % of the grist) could not even lower Black Malt, because the room left was below 0. The step 10 contract `values_used.what` enum gains `mash`.
 - 2026-10-26 · Task 9c: the feedback header reads "Fix these and change as little else as you can. Where a line says To fix, do that:" (one sentence added inside the header line, not a new line); `tests/test_choose_table.py::test_feedback_prompt_lines` checks the new wording. A fix is joined to its line with a full stop added when the failure text has none. Too light with the darkest non-crystal being a base malt gives no fix (no limit was reached); the rule 3 variant needs a crystal above 60 EBC to name, else none. Measured prompt budget: 26,594 and 26,842 prompt tokens + 4,096, both within 32,768 (PROJECT.md §8).
+- 2026-10-26 · Task 10: gate answered. A11: "would brew after the listed changes; the direction is right" (review in `g6-recipes.md`). b12, b18, b19, b23 accepted as known failures (user: "Accept as known (Rec.)"): b12 and b23 repeat the same picks despite `To fix`; b18 and b19 have no dark malt left to reach the colour. b24 stands in for the non-validating b23 in the five recipes. Rounding is left to a separate plan task.
