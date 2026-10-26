@@ -2,6 +2,7 @@
 -- the boil time and the amounts and numbers of a recipe. Task 3 adds app.solve_colour; Task 4
 -- adds app.step10_boil, app.step10_abv and app.step10_compute. s1's functions do all the maths,
 -- no LLM.
+-- Task 9b (second colour pass, rule 3 and 5 caps, mash move) changes solve_colour and step10_compute.
 -- Needs db/030_maths.sql (grist_mcu, srm, solve_grist), db/032_formulation_check.sql,
 -- db/037_step3.sql (ingredient_choices).
 -- Apply as postgres (docs/OPERATIONS.md §4):
@@ -9,24 +10,35 @@
 -- Idempotent: safe to re-run.
 
 -- Colour adjustment (rule 7). When the SRM of the proposed grist is more than 1 from the target,
--- the darkest fermentable that is not a crystal malt changes its share, and the base malt with
--- the largest share (the absorber) takes up the difference, so every other share stays as
--- proposed. Grist items {ingredient_id, name, role, pct, extract_pct, mashed, ebc, max_pct};
--- a null ebc counts as 0. Returns {grist (pct changed, kg from app.solve_grist), adjusted,
--- reached (SRM within 1 of the target), srm, darkest, absorber, from_pct, to_pct, because}.
+-- the darkest fermentable that is not a crystal malt changes its share (the mover), and the base
+-- malt with the largest share (the absorber) takes up the difference, so every other share stays
+-- as proposed. The mover's upper limit is its max_pct and, for a roast, the room left under
+-- rule 3's dark total, for an adjunct or sugar the room left under rule 5's total. When that
+-- first pass stops at a limit and SRM is still more than 1 away, one second pass runs on the
+-- result with the fermentable that stopped it held fixed (`fixed`): the next-darkest non-crystal
+-- moves (the mover hit its limit), or the next-largest base malt takes up the change (the
+-- absorber hit its limit). Never more than two passes; a crystal never moves (Task 9b of
+-- m6-compute-validate, user decision 2026-10-26 "Mash + colour reach").
+-- Grist items {ingredient_id, name, role, pct, extract_pct, mashed, ebc, max_pct}; a null ebc
+-- counts as 0. fixed: ingredient ids that neither move nor take up the change. Returns {grist
+-- (pct changed, kg from app.solve_grist), adjusted, reached (SRM within 1 of the target), srm,
+-- darkest, absorber, from_pct, to_pct (the first pass), second (null, or the second pass's
+-- {darkest, absorber, from_pct, to_pct, because}), because}.
 --
 -- Closed form. With the shares p_i (percent), e_i = extract_i/100 x 384 x eff_i/100 (eff is the
 -- efficiency for mashed items, 100 otherwise) and ebc_i, app.solve_grist gives
 -- kg_i = p_i x K / sum(p e) with K = (OG - 1) x 1000 x volume, so
 -- MCU = c x N / D, c = (OG - 1) x 1000 x 3.785411784 / (1.97 x 0.45359237),
--- N = sum(p ebc), D = sum(p e): the volume cancels, and both N and D are linear in the darkest's
+-- N = sum(p ebc), D = sum(p e): the volume cancels, and both N and D are linear in the mover's
 -- share x, because the absorber's share is S - x (S = their shares together) and nothing else
 -- moves. Setting c N(x) = m D(x), with m the MCU of the target SRM (app.srm inverted), gives
 -- x = x0 + (m D0 - c N0) / (c dN - m dD), dN and dD the change of N and D per point moved from
--- the absorber to the darkest. x is then clamped so that the darkest stays in (0, its max_pct]
+-- the absorber to the mover. x is then clamped so that the mover stays in (0, its upper limit]
 -- and the absorber in (0, its max_pct]; if SRM is still more than 1 away, reached is false.
+drop function if exists app.solve_colour(numeric, jsonb, numeric, numeric, numeric);
 create or replace function app.solve_colour(target_srm numeric, grist jsonb, target_og numeric,
-                                            efficiency_pct numeric, volume_l numeric)
+                                            efficiency_pct numeric, volume_l numeric,
+                                            fixed bigint[] default '{}')
 returns jsonb
 language plpgsql
 immutable
@@ -34,6 +46,7 @@ as $$
 declare
     tolerance constant numeric := 1;  -- SRM, the brief's tolerance (user decision 2026-10-25)
     least constant numeric := 0.01;   -- the smallest share a fermentable may be left with, in percent
+    l jsonb := app.formulation_limits();
     items jsonb;
     solved jsonb;
     srm_before numeric;
@@ -45,8 +58,13 @@ declare
     x0 numeric;
     s numeric;
     x numeric;
+    x_raw numeric;
     lo numeric;
     hi numeric;
+    cap numeric;
+    d_hi numeric;
+    a_lo numeric;
+    stopped text;       -- null, 'mover' or 'absorber': who the clamp stopped
     c numeric;
     m numeric;
     n0 numeric := 0;
@@ -57,7 +75,10 @@ declare
     e_d numeric;
     e_a numeric;
     why text;
+    base_because text;
+    reached boolean;
     result jsonb;
+    second jsonb;
 begin
     if jsonb_typeof(grist) is distinct from 'array' or jsonb_array_length(grist) = 0 then
         raise exception 'solve_colour: grist must be a non-empty JSON array, got %', grist;
@@ -72,18 +93,19 @@ begin
     solved := app.solve_grist(target_og, items, efficiency_pct, volume_l);
     srm_before := app.srm(app.grist_mcu(solved, volume_l));
 
-    -- the darkest non-crystal: highest ebc, then larger share, then lower id
+    -- the darkest non-crystal that is not fixed: highest ebc, then larger share, then lower id
     select (ord - 1)::int into d_idx
       from jsonb_array_elements(items) with ordinality t(g, ord)
-     where g->>'role' <> 'crystal'
+     where g->>'role' <> 'crystal' and not (g->>'ingredient_id')::bigint = any(fixed)
      order by (g->>'ebc')::numeric desc, (g->>'pct')::numeric desc, (g->>'ingredient_id')::bigint
      limit 1;
     if d_idx is not null then
         d := items -> d_idx;
-        -- the absorber: the base malt with the largest share other than the darkest
+        -- the absorber: the base malt with the largest share other than the mover, not fixed
         select (ord - 1)::int into a_idx
           from jsonb_array_elements(items) with ordinality t(g, ord)
          where g->>'role' = 'base' and (ord - 1)::int <> d_idx
+           and not (g->>'ingredient_id')::bigint = any(fixed)
          order by (g->>'pct')::numeric desc, (g->>'ingredient_id')::bigint
          limit 1;
         if a_idx is not null then
@@ -94,6 +116,8 @@ begin
     if abs(srm_before - target_srm) <= tolerance then
         why := format('SRM %s is within %s of the target %s, so the shares stay as proposed',
                       round(srm_before, 1), tolerance, target_srm);
+    elsif d is null and cardinality(fixed) > 0 then
+        why := 'no other fermentable that is not a crystal malt can take the colour change';
     elsif d is null then
         why := 'every fermentable is a crystal malt, so no share can take the colour change';
     elsif a is null then
@@ -112,7 +136,7 @@ begin
                        else jsonb_build_object('ingredient_id', d->'ingredient_id', 'name', d->'name') end,
             'absorber', case when a is null then null
                         else jsonb_build_object('ingredient_id', a->'ingredient_id', 'name', a->'name') end,
-            'from_pct', d->'pct', 'to_pct', d->'pct', 'because', why);
+            'from_pct', d->'pct', 'to_pct', d->'pct', 'second', null, 'because', why);
     end if;
 
     x0 := (d->>'pct')::numeric;
@@ -131,41 +155,79 @@ begin
     dd := e_d - e_a;
     denom := c * dn - m * dd;
     if denom = 0 then
-        x := x0;
+        x_raw := x0;
     else
-        x := x0 + (m * d0 - c * n0) / denom;
+        x_raw := x0 + (m * d0 - c * n0) / denom;
     end if;
 
-    lo := greatest(least, s - coalesce((a->>'max_pct')::numeric, 100));
-    hi := least(s - least, coalesce((d->>'max_pct')::numeric, 100));
+    -- the mover's upper limit: its max_pct, and the room left under rule 3 (a roast) or rule 5
+    -- (an adjunct or sugar) next to the other shares counted there
+    d_hi := coalesce((d->>'max_pct')::numeric, 100);
+    if d->>'role' = 'roast' then
+        select (l->>'dark_total_pct')::numeric - coalesce(sum((g->>'pct')::numeric), 0) into cap
+          from jsonb_array_elements(items) with ordinality t(g, ord)
+         where (ord - 1)::int <> d_idx
+           and (g->>'role' = 'roast'
+                or (g->>'role' = 'crystal' and (g->>'ebc')::numeric > (l->>'crystal_dark_ebc')::numeric));
+        d_hi := least(d_hi, greatest(cap, x0));  -- a grist already over the total is not made to shrink
+    elsif d->>'role' in ('adjunct', 'sugar') then
+        select (l->>'adjunct_sugar_pct')::numeric - coalesce(sum((g->>'pct')::numeric), 0) into cap
+          from jsonb_array_elements(items) with ordinality t(g, ord)
+         where (ord - 1)::int <> d_idx and g->>'role' in ('adjunct', 'sugar');
+        d_hi := least(d_hi, greatest(cap, x0));
+    end if;
+    a_lo := s - coalesce((a->>'max_pct')::numeric, 100);
+    lo := greatest(least, a_lo);
+    hi := least(s - least, d_hi);
     if lo > hi then
         x := x0;  -- no room to move inside both limits
     else
-        x := least(greatest(x, lo), hi);
+        x := least(greatest(x_raw, lo), hi);
+        if x_raw < lo then
+            stopped := case when least >= a_lo then 'mover' else 'absorber' end;
+        elsif x_raw > hi then
+            stopped := case when d_hi <= s - least then 'mover' else 'absorber' end;
+        end if;
     end if;
 
     items := jsonb_set(items, array[d_idx::text, 'pct'], to_jsonb(x));
     items := jsonb_set(items, array[a_idx::text, 'pct'], to_jsonb(s - x));
     solved := app.solve_grist(target_og, items, efficiency_pct, volume_l);
     srm_after := app.srm(app.grist_mcu(solved, volume_l));
-
-    return jsonb_build_object(
-        'grist', solved, 'adjusted', x <> x0,
-        'reached', abs(srm_after - target_srm) <= tolerance, 'srm', srm_after,
-        'darkest', jsonb_build_object('ingredient_id', d->'ingredient_id', 'name', d->'name'),
-        'absorber', jsonb_build_object('ingredient_id', a->'ingredient_id', 'name', a->'name'),
-        'from_pct', x0, 'to_pct', x,
-        'because', format('%s %s %% to %s %%, %s %s %% to %s %%: SRM %s to %s (target %s)%s',
+    reached := abs(srm_after - target_srm) <= tolerance;
+    base_because := format('%s %s %% to %s %%, %s %s %% to %s %%: SRM %s to %s (target %s)',
             d->>'name', round(x0, 2), round(x, 2), a->>'name',
             round((a->>'pct')::numeric, 2), round(s - x, 2),
-            round(srm_before, 1), round(srm_after, 1), target_srm,
-            case when abs(srm_after - target_srm) <= tolerance then ''
-                 else ', still more than ' || tolerance || ' away because of the share limits' end));
+            round(srm_before, 1), round(srm_after, 1), target_srm);
+
+    result := jsonb_build_object(
+        'grist', solved, 'adjusted', x <> x0, 'reached', reached, 'srm', srm_after,
+        'darkest', jsonb_build_object('ingredient_id', d->'ingredient_id', 'name', d->'name'),
+        'absorber', jsonb_build_object('ingredient_id', a->'ingredient_id', 'name', a->'name'),
+        'from_pct', x0, 'to_pct', x, 'second', null,
+        'because', base_because || case when reached then ''
+                 else ', still more than ' || tolerance || ' away because of the share limits' end);
+
+    -- the second pass: the fermentable that stopped the move is held fixed
+    if not reached and stopped is not null and cardinality(fixed) = 0 then
+        second := app.solve_colour(target_srm, items, target_og, efficiency_pct, volume_l,
+            array[case stopped when 'mover' then (d->>'ingredient_id')::bigint
+                               else (a->>'ingredient_id')::bigint end]);
+        if (second->>'adjusted')::boolean then
+            result := result || jsonb_build_object(
+                'grist', second->'grist', 'adjusted', true, 'reached', second->'reached', 'srm', second->'srm',
+                'second', jsonb_build_object('darkest', second->'darkest', 'absorber', second->'absorber',
+                                             'from_pct', second->'from_pct', 'to_pct', second->'to_pct',
+                                             'because', second->>'because'),
+                'because', base_because || '; then ' || (second->>'because'));
+        end if;
+    end if;
+    return result;
 end;
 $$;
 
-comment on function app.solve_colour(numeric, jsonb, numeric, numeric, numeric) is
-    'Rule 7 colour adjustment: the darkest non-crystal fermentable changes its share and the largest base malt takes up the difference (closed form, see the file header).';
+comment on function app.solve_colour(numeric, jsonb, numeric, numeric, numeric, bigint[]) is
+    'Rule 7 colour adjustment: the darkest non-crystal fermentable changes its share and the largest base malt takes up the difference (closed form, see the file header); at most one second pass when a limit stops the first.';
 
 -- The boil time: the largest of the floor (rule 13's min_boil_min, 60), the largest min_boil_min
 -- of the grist and the longest boil addition of the hops. hops is step 8's hops array (usage,
@@ -217,6 +279,59 @@ as $$
       from (select app.solve_grist(og, grist, efficiency_pct, volume_l) as s) q
 $$;
 
+-- The OG move of step 10: when the ABV at the target OG misses the ABV target by more than 0.2,
+-- the OG moves inside target +- 0.002 to the ABV target (bisection; ABV rises with OG at fixed
+-- shares). Returns {value, because}. A yeast with no attenuation figure (attenuation null) gives
+-- no ABV and no move. Step 10 calls it again when the mash move has changed the attenuation.
+create or replace function app.step10_og_move(target_og numeric, target_abv numeric, grist jsonb,
+                                              efficiency_pct numeric, volume_l numeric,
+                                              attenuation_pct numeric, yeast_name text)
+returns jsonb
+language plpgsql
+immutable
+as $$
+declare
+    og_move constant numeric := 0.002;   -- OG tolerance (user decision 2026-10-25, "Brewer bar")
+    abv_tol constant numeric := 0.2;     -- ABV tolerance, the same decision
+    og_final numeric;
+    og_lo numeric; og_hi numeric; og_mid numeric;
+    abv_at_target numeric;
+begin
+    if attenuation_pct is null then
+        return jsonb_build_object('value', target_og, 'because',
+            format('%s has no attenuation figure, so no ABV can be computed and the OG stays', yeast_name));
+    end if;
+    abv_at_target := app.step10_abv(target_og, grist, efficiency_pct, volume_l, attenuation_pct);
+    if abs(abv_at_target - target_abv) <= abv_tol then
+        return jsonb_build_object('value', target_og, 'because',
+            format('ABV %s at OG %s is within %s of the target %s, so the OG stays',
+                   round(abv_at_target, 2), trim_scale(target_og), abv_tol, trim_scale(target_abv)));
+    end if;
+    og_lo := target_og - og_move;
+    og_hi := target_og + og_move;
+    if target_abv <= app.step10_abv(og_lo, grist, efficiency_pct, volume_l, attenuation_pct) then
+        og_final := og_lo;
+    elsif target_abv >= app.step10_abv(og_hi, grist, efficiency_pct, volume_l, attenuation_pct) then
+        og_final := og_hi;
+    else
+        for i in 1..40 loop
+            og_mid := (og_lo + og_hi) / 2;
+            if app.step10_abv(og_mid, grist, efficiency_pct, volume_l, attenuation_pct) < target_abv then
+                og_lo := og_mid;
+            else
+                og_hi := og_mid;
+            end if;
+        end loop;
+        og_final := (og_lo + og_hi) / 2;
+    end if;
+    return jsonb_build_object('value', og_final, 'because',
+        format('ABV %s at OG %s misses the target %s by more than %s; OG moved to %s (at most %s) to give ABV %s',
+               round(abv_at_target, 2), trim_scale(target_og), trim_scale(target_abv), abv_tol,
+               round(og_final, 4), og_move,
+               round(app.step10_abv(og_final, grist, efficiency_pct, volume_l, attenuation_pct), 2)));
+end;
+$$;
+
 -- Step 10: amounts and numbers of the recipe from steps 6-9, step 4's targets and step 0's
 -- profile. No LLM; s1's functions only (docs/work/m6-compute-validate/plan.md Task 4). In order:
 --   1. batch, efficiency, boil-off and losses; every target must be present
@@ -225,6 +340,10 @@ $$;
 --   3. colour adjustment (app.solve_colour) at the target OG
 --   4. OG move: when the ABV at the target OG misses the ABV target by more than 0.2, the OG moves
 --      inside target +- 0.002 to the ABV target (bisection; ABV rises with OG at fixed shares)
+--   4b. mash move: when the FG predicted at the OG used is below rule 10's range (app.rule10_fg_range)
+--      and the mash is not a brewer's hint, the mash is raised inside (68.3, 69] C towards step 4's FG
+--      target (bisection; 69 C when even that leaves FG below it); a moved mash gives a new
+--      attenuation, so the OG move (app.step10_og_move) is made again
 --   5. grist kg (app.solve_grist), hop grams (app.solve_hops at the boil gravity), misc grams
 --      (dose g/L x batch), one pack for each yeast
 --   6. OG, FG at the mash-adjusted attenuation, ABV, IBU, SRM. A yeast with no attenuation figure
@@ -239,8 +358,6 @@ language plpgsql
 stable
 as $$
 declare
-    og_move constant numeric := 0.002;   -- OG tolerance (user decision 2026-10-25, "Brewer bar")
-    abv_tol constant numeric := 0.2;     -- ABV tolerance, the same decision
     volume numeric := (targets->'batch_l'->>'value')::numeric;
     eff numeric := (profile->>'efficiency_pct')::numeric;
     boil_off numeric := (profile->>'boil_off_l_h')::numeric;
@@ -262,9 +379,15 @@ declare
     boil numeric;
     col jsonb;
     og_final numeric;
-    og_lo numeric; og_hi numeric; og_mid numeric;
-    abv_at_target numeric;
+    og_j jsonb;
     og_note text;
+    mash_note text;
+    mash_from numeric;
+    fg_range numrange;
+    fg_pred numeric;
+    knee numeric := (app.formulation_limits()->>'mash_knee_c')::numeric;
+    mash_max numeric := (app.formulation_limits()->>'mash_max_c')::numeric;
+    mash_lo numeric; mash_hi numeric; mash_mid numeric;
     solved jsonb;
     solved_hops jsonb;
     solver jsonb;
@@ -352,39 +475,69 @@ begin
     col := app.solve_colour(t_srm, items, t_og, eff, volume);
     items := col->'grist';
 
-    -- 4. OG move
+    -- 4. OG move (for the mash used)
+    og_j := app.step10_og_move(t_og, t_abv, items, eff, volume, attenuation, yeast_name);
+    og_final := (og_j->>'value')::numeric;
+    og_note := og_j->>'because';
+
+    -- 4b. mash move: Troester's curve lowers the attenuation only above the knee, so a predicted
+    -- FG (at the OG used) below rule 10's range is raised by a hotter mash, never by a cooler one;
+    -- a moved mash changes the attenuation, so the OG move is made again
+    mash_from := mash_c;
     if attenuation is null then
-        og_final := t_og;
-        og_note := format('%s has no attenuation figure, so no ABV can be computed and the OG stays', yeast_name);
+        mash_note := format('%s C stays: %s has no attenuation figure, so no FG is predicted', trim_scale(mash_c), yeast_name);
     else
-    abv_at_target := app.step10_abv(t_og, items, eff, volume, attenuation);
-    if abs(abv_at_target - t_abv) <= abv_tol then
-        og_final := t_og;
-        og_note := format('ABV %s at OG %s is within %s of the target %s, so the OG stays',
-                          round(abv_at_target, 2), trim_scale(t_og), abv_tol, trim_scale(t_abv));
-    else
-        og_lo := t_og - og_move;
-        og_hi := t_og + og_move;
-        if t_abv <= app.step10_abv(og_lo, items, eff, volume, attenuation) then
-            og_final := og_lo;
-        elsif t_abv >= app.step10_abv(og_hi, items, eff, volume, attenuation) then
-            og_final := og_hi;
+        fg_range := app.rule10_fg_range(style_code, t_fg, stated);
+        fg_pred := app.fg(app.solve_grist(og_final, items, eff, volume), eff, volume, attenuation);
+        if fg_range is null then
+            mash_note := format('%s C stays: the style has no FG range to check the predicted FG against', trim_scale(mash_c));
+        elsif targets->'mash_c'->>'from' = 'hint' then
+            mash_note := format('%s C stays: the brief hints at this mash temperature (predicted FG %s, range %s to %s)',
+                                trim_scale(mash_c), to_char(fg_pred, 'FM0.0000'),
+                                to_char(lower(fg_range), 'FM0.0000'), to_char(upper(fg_range), 'FM0.0000'));
+        elsif fg_pred >= lower(fg_range) and fg_pred <= upper(fg_range) then
+            mash_note := format('%s C stays: the predicted FG %s is inside the range %s to %s',
+                                trim_scale(mash_c), to_char(fg_pred, 'FM0.0000'),
+                                to_char(lower(fg_range), 'FM0.0000'), to_char(upper(fg_range), 'FM0.0000'));
+        elsif fg_pred > upper(fg_range) then
+            mash_note := format('%s C stays: the predicted FG %s is above the range %s to %s, and a lower mash does not help (the attenuation curve is flat below %s C)',
+                                trim_scale(mash_c), to_char(fg_pred, 'FM0.0000'),
+                                to_char(lower(fg_range), 'FM0.0000'), to_char(upper(fg_range), 'FM0.0000'), trim_scale(knee));
         else
-            for i in 1..40 loop
-                og_mid := (og_lo + og_hi) / 2;
-                if app.step10_abv(og_mid, items, eff, volume, attenuation) < t_abv then
-                    og_lo := og_mid;
-                else
-                    og_hi := og_mid;
-                end if;
-            end loop;
-            og_final := (og_lo + og_hi) / 2;
+            -- below the range: FG rises with the mash, so bisect [knee, max] for the FG target
+            if app.fg(app.solve_grist(og_final, items, eff, volume), eff, volume,
+                      app.mash_attenuation(yeast_range, mash_max)) < t_fg then
+                mash_c := mash_max;
+            else
+                mash_lo := knee;
+                mash_hi := mash_max;
+                for i in 1..40 loop
+                    mash_mid := (mash_lo + mash_hi) / 2;
+                    if app.fg(app.solve_grist(og_final, items, eff, volume), eff, volume,
+                              app.mash_attenuation(yeast_range, mash_mid)) < t_fg then
+                        mash_lo := mash_mid;
+                    else
+                        mash_hi := mash_mid;
+                    end if;
+                end loop;
+                mash_c := (mash_lo + mash_hi) / 2;
+            end if;
+            attenuation := app.mash_attenuation(yeast_range, mash_c);
+            mash_note := format('mash raised from %s C to %s C%s: the predicted FG %s at %s C was below the range %s to %s',
+                trim_scale(mash_from), trim_scale(round(mash_c, 2)),
+                case when mash_c = mash_max then format(' (the mash limit; the FG target %s is still not reached)',
+                                                        to_char(t_fg, 'FM0.0000'))
+                     else '' end,
+                to_char(fg_pred, 'FM0.0000'), trim_scale(mash_from),
+                to_char(lower(fg_range), 'FM0.0000'), to_char(upper(fg_range), 'FM0.0000'));
         end if;
-        og_note := format('ABV %s at OG %s misses the target %s by more than %s; OG moved to %s (at most %s) to give ABV %s',
-                          round(abv_at_target, 2), trim_scale(t_og), trim_scale(t_abv), abv_tol,
-                          round(og_final, 4), og_move,
-                          round(app.step10_abv(og_final, items, eff, volume, attenuation), 2));
     end if;
+    if mash_c <> mash_from then
+        og_j := app.step10_og_move(t_og, t_abv, items, eff, volume, attenuation, yeast_name);
+        og_final := (og_j->>'value')::numeric;
+        og_note := og_j->>'because';
+        mash_note := mash_note || format(', and is %s now',
+            to_char(app.fg(app.solve_grist(og_final, items, eff, volume), eff, volume, attenuation), 'FM0.0000'));
     end if;
 
     -- 5. amounts
@@ -463,12 +616,13 @@ begin
             case when attenuation is null
                 then yeast_name || ' has no attenuation figure, so FG and ABV are not computed'
                 else format('%s attenuates %s %%: the middle of its range %s at a mash of %s C (app.mash_attenuation)',
-                            yeast_name, trim_scale(round(attenuation, 1)), yeast_range, trim_scale(mash_c)) end),
+                            yeast_name, trim_scale(round(attenuation, 1)), yeast_range, trim_scale(round(mash_c, 2))) end),
         jsonb_build_object('what', 'ferm_c', 'because',
             case when ferm_from_range
                 then format('%s C, the middle of the temperature range of %s: step 6 gave no choice', trim_scale(ferm_c), yeast_name)
                 else format('%s C, the temperature of the chosen "%s"', trim_scale(ferm_c), step6->'yeast'->>'choice') end),
         jsonb_build_object('what', 'boil', 'because', boil_j->>'because'),
+        jsonb_build_object('what', 'mash', 'because', mash_note),
         jsonb_build_object('what', 'yeast amount', 'because',
             '1 pack of each yeast: a placeholder until the pitch rate is set (M7)'));
 

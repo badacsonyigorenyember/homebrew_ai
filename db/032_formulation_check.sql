@@ -524,6 +524,27 @@ begin
 end;
 $$;
 
+-- The FG range rule 10 checks the predicted FG against: the target FG +- midpoint_tolerance.fg
+-- when the user stated the FG or the ABV, else the style's FG range; null when the style has none.
+-- Step 10 (db/046) reads it too, to know when the mash must move (Task 9b of m6-compute-validate).
+create or replace function app.rule10_fg_range(style_code text, target_fg numeric, stated jsonb)
+returns numrange
+language plpgsql
+stable
+as $$
+declare
+    l jsonb := app.formulation_limits();
+    tol numeric := (l->'midpoint_tolerance'->>'fg')::numeric;
+    style_fg numrange;
+begin
+    if stated ? 'fg' or stated ? 'abv' then
+        return numrange(target_fg - tol, target_fg + tol, '[]');
+    end if;
+    select fg into style_fg from ref.beer_style where code = style_code;
+    return style_fg;
+end;
+$$;
+
 -- Rule 10: mash temperature inside mash_min_c..mash_max_c, and the predicted FG (numbers.fg, from
 -- the mash-adjusted attenuation) inside the target FG range: the style's FG range, or the target
 -- FG +- midpoint_tolerance.fg when the user stated the FG or the ABV.
@@ -551,17 +572,12 @@ begin
             case when mash < (l->>'mash_min_c')::numeric then (l->>'mash_min_c')::numeric
                  else (l->>'mash_max_c')::numeric end);
     end if;
-    if stated ? 'fg' or stated ? 'abv' then
-        lo := (recipe->'targets'->>'fg')::numeric - (l->'midpoint_tolerance'->>'fg')::numeric;
-        hi := (recipe->'targets'->>'fg')::numeric + (l->'midpoint_tolerance'->>'fg')::numeric;
+    style_fg := app.rule10_fg_range(items->>'style_code', (recipe->'targets'->>'fg')::numeric, stated);
+    if style_fg is null then
+        missing := missing || '"ref.beer_style.fg"'::jsonb;
     else
-        select fg into style_fg from ref.beer_style where code = items->>'style_code';
-        if style_fg is null then
-            missing := missing || '"ref.beer_style.fg"'::jsonb;
-        else
-            lo := lower(style_fg);
-            hi := upper(style_fg);
-        end if;
+        lo := lower(style_fg);
+        hi := upper(style_fg);
     end if;
     if pred is null then
         missing := missing || '"ref.yeast.attenuation_pct"'::jsonb;

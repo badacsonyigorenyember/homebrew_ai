@@ -284,3 +284,20 @@ def test_output_meets_contract(conn, bid):
     # a failing one meets it too
     out["numbers"]["abv"] = None
     assert contract_errors(conn, "step11.output", validate(conn, out, inp, picks, frame)) == []
+
+
+def test_mash_move_lets_rule_10_pass(conn):
+    """Task 9b: b09's G6 picks fail rule 10 at the 66.5 C mash; with the mash move step 11 passes."""
+    from tests.test_compute import b09_picks
+    inp = b09_picks(conn)
+    out = compute(conn, inp)
+    assert out["mash_c"] > 68.3
+    picks = [{"ingredient_id": f["ingredient_id"], "name": f["name"], "self_picked": False}
+             for f in out["fermentables"]]
+    v = validate(conn, out, inp, picks, frame_of(conn, inp))
+    assert v["passed"] is True, v["failures"]
+    # the same grist at the unmoved mash is the failure G6 saw
+    inp["targets"]["mash_c"]["from"] = "hint"
+    stays = compute(conn, inp)
+    v = validate(conn, stays, inp, picks, frame_of(conn, inp))
+    assert v["passed"] is False and any("Rule 10" in f["text"] for f in v["failures"])

@@ -70,9 +70,10 @@ as $$
         ('5', true, format('Fermentables with the role adjunct or sugar are at most %s %% of the grist '
             || 'together.', j->>'adjunct_sugar_pct')),
         ('6', true, 'Each fermentable is at most its max_pct share of the grist.'),
-        ('7', false, 'The colour adjustment changes only the share of the fermentable with the darkest '
-            || 'colour, and never one with the role crystal. Enforced by the colour solver in step 10, '
-            || 'not by this check.'),
+        ('7', false, 'The colour adjustment changes the share of the darkest fermentable that is not a '
+            || 'crystal and, when that share reaches a limit, of the next-darkest one; base malts take up '
+            || 'the difference; the share of a crystal never changes. Enforced by the colour solver in '
+            || 'step 10, not by this check.'),
         ('8', true, format('A recipe has exactly one bittering addition: a boil addition whose time '
             || 'equals the boil time. Every other hop addition is a boil addition of at most %s min, '
             || 'a whirlpool addition or a dry hop.', j->>'late_hop_max_min')),

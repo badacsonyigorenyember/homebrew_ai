@@ -1,6 +1,6 @@
 # M6 · Steps 10–11: calculate, validate and save (the MVP) — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: m6-compute-validate
 
@@ -52,9 +52,9 @@ Branch: m6-compute-validate
 - **Mash move (Task 9b).** Rule 10 checks the FG predicted at the mash temperature, and
   `app.mash_attenuation` (Troester's curve) lowers the attenuation only above the 68.3 °C knee, by
   4.15 points per °C, never below the yeast's range. So when step 4's mash is the midpoint (not a
-  brewer's hint) and the FG predicted at the target OG is below rule 10's range, step 10 raises the
-  mash inside (68.3, 69] °C towards step 4's FG target (bisection; 69 °C when even that leaves FG
-  below the target). An FG above the range cannot be helped by a lower mash (the curve is flat
+  brewer's hint) and the FG predicted at the OG used (after the OG move) is below rule 10's range, step 10 raises
+  the mash inside (68.3, 69] °C towards step 4's FG target (bisection; 69 °C when even that leaves FG
+  below the target) and makes the OG move again with the new attenuation. An FG above the range cannot be helped by a lower mash (the curve is flat
   below the knee), so the mash stays and the line says why. Rule 10's range comes from one helper,
   `app.rule10_fg_range`, which `app.check_rule_10` also calls, so step 10 and the check read the
   same range. The mash used is `step10.mash_c` and `recipe.mash_c`; saving it with the recipe is
@@ -564,11 +564,11 @@ Commit: `Report recipes in the harness and add held-out briefs`
 ### Task 9b: step 10 moves the mash for a low FG and reaches colour with a second share
 Why: G6's first run validated 13 of b01–b20 (A1's bar 16); user decision 2026-10-26, "Mash + colour
 reach (Rec.)" (R2, R4, A6; Approach "Colour adjustment" and "Mash move"; the measured replay above).
-- [ ] `db/032_formulation_check.sql`: `app.rule10_fg_range(style_code text, target_fg numeric,
+- [x] `db/032_formulation_check.sql`: `app.rule10_fg_range(style_code text, target_fg numeric,
       stated jsonb) returns numrange` (stable): the target FG ± `midpoint_tolerance.fg` when
       `stated` has `fg` or `abv`, else `ref.beer_style.fg` of the style, null when the style has
       none. `app.check_rule_10` reads its `lo`/`hi` from it; nothing else in the rule changes.
-- [ ] `db/046_compute.sql` `app.solve_colour`: add `fixed bigint[] default '{}'` (ids that neither
+- [x] `db/046_compute.sql` `app.solve_colour`: add `fixed bigint[] default '{}'` (ids that neither
       move nor take up the change; drop the five-argument version first, as Task 2 did for
       `style_fit_recipe`). The mover's upper limit is the least of its `max_pct`, and for role
       `roast` `dark_total_pct` minus the other rule 3 shares (roast, and crystal above
@@ -579,28 +579,28 @@ reach (Rec.)" (R2, R4, A6; Approach "Colour adjustment" and "Mash move"; the mea
       absorber. Output gains `second`: null, or the second pass's `{darkest, absorber, from_pct,
       to_pct, because}`; `grist`, `srm`, `reached`, `adjusted` are the final ones and `because`
       joins both passes. Never more than two passes; update the header comment's derivation note.
-- [ ] `db/046_compute.sql` `app.step10_compute`, new adjustment 3b between the colour and the OG
+- [x] `db/046_compute.sql` `app.step10_compute`, new adjustment 4b after the OG
       move: when `targets.mash_c.from` is not `hint`, the yeast has an attenuation figure, and
-      `app.fg` at the target OG (shares after the colour move, `app.mash_attenuation` at step 4's
+      `app.fg` at the OG used (shares after the colour move and the OG move, `app.mash_attenuation` at step 4's
       mash) is below `app.rule10_fg_range(style, t_fg, stated)`'s lower bound, bisect the mash in
       [`mash_knee_c`, `mash_max_c`] (40 halvings; FG does not fall as the mash rises) for FG = step
       4's FG target, or take `mash_max_c` when FG there is still below the target. FG above the
       range, a hint's mash or no figure: the mash stays. The OG move and every later number use
       the attenuation at the mash used; `mash_c` in the output and `recipe.mash_c` are the mash
       used; `values_used` gains `{what: "mash", because}` (moved from/to and why, or why it stays).
-- [ ] `db/031_formulation_rules.sql` rule 7's sentence: the colour adjustment changes the share of
+- [x] `db/031_formulation_rules.sql` rule 7's sentence: the colour adjustment changes the share of
       the darkest fermentable that is not a crystal and, when that share reaches a limit, of the
       next-darkest one; base malts take up the difference; a crystal's share never changes;
       enforced by the colour solver in step 10. (The steps 6–9 prompt does not carry rule
       sentences, measured in `app.choose_prompt`; the `Test data` samples keep the old sentence:
       they are sample inputs, compared only with their notes.)
-- [ ] `shared/contracts/step10.output.schema.json`: `colour.second` (null or the object above);
+- [x] `shared/contracts/step10.output.schema.json`: `colour.second` (null or the object above);
       `tests/test_contracts.py`'s step 10 example gains `"second": None`.
-- [ ] `evals/show_recipe.py` prints `Mash: <c> °C (<because>)` from the last try's step 10 row
+- [x] `evals/show_recipe.py` prints `Mash: <c> °C (<because>)` from the last try's step 10 row
       (the saved rows have no mash until M7); `tests/test_run.py::test_show_recipe_prints_the_saved_recipe`
       asserts the line.
-- [ ] Apply 031, 032, 046 twice; owners `postgres`; `app` function count for the §8 entry.
-- [ ] Write, each seen failing first. In `tests/test_compute.py`:
+- [x] Apply 031, 032, 046 twice; owners `postgres`; `app` function count for the §8 entry.
+- [x] Write, each seen failing first. In `tests/test_compute.py`:
       `test_colour_second_dark_grain` (b23's G6 grist Pale Ale Malt 83, Chocolate Dark Malt 10,
       Caramel 150 Malt 5, Black Malt 2, target 35 at OG 1.0625: Black Malt at 0.01 %, `second`
       moves Chocolate Dark Malt, reached, Caramel 150 Malt stays 5; replay gave 7.48 % and SRM
@@ -613,7 +613,7 @@ reach (Rec.)" (R2, R4, A6; Approach "Colour adjustment" and "Mash move"; the mea
       `test_colour_never_more_than_two_passes` (b18's grist Pale Ale Malt 88, Caramel 50 Malt 10,
       Roasted Barley 2, target 20: reached false, crystal unchanged, `because` names the limits);
       `test_mash_moves_for_low_fg` (b09's step 10 input with its G6 picks, Munich Malt Type 2 70,
-      Pilsner Malt 25, Melanoidin Malt 5 and SafAle US-05: mash in (68.3, 69], FG inside
+      Pilsner Malt 25, Melanoidin Malt 5 and SafLager S-189: mash in (68.3, 69], FG inside
       `app.rule10_fg_range`, rule 10 of `app.check_recipe(output.recipe)` passes; replay gave FG
       1.0114 at 69 °C); `test_mash_stays_in_range` (b01: 66.5, the line says why);
       `test_mash_hint_stays` (the b09 case with `mash_c.from` = `hint`: 66.5);
@@ -625,8 +625,8 @@ reach (Rec.)" (R2, R4, A6; Approach "Colour adjustment" and "Mash move"; the mea
       `tests/test_formulation_check.py`: `test_rule10_fg_range` (stated ABV: target ± 0.002; none
       stated: the style's range; no style range: null). In `tests/test_validate.py`:
       `test_mash_move_lets_rule_10_pass` (the b09 case through step 10 and step 11: passed).
-- [ ] Run `.venv/bin/pytest tests/test_compute.py tests/test_validate.py tests/test_formulation_check.py tests/test_formulation_rules.py tests/test_step5.py tests/test_contracts.py tests/test_reference_recipes.py tests/test_save_recipe.py tests/test_run.py`, expect all pass; then `.venv/bin/pytest tests/test_pipeline.py::test_b01_validates_and_saves`, expect pass.
-- [ ] `docs/DATABASE.md` §5: `app.rule10_fg_range`, `app.solve_colour`'s `fixed` and `second`, the mash
+- [x] Run `.venv/bin/pytest tests/test_compute.py tests/test_validate.py tests/test_formulation_check.py tests/test_formulation_rules.py tests/test_step5.py tests/test_contracts.py tests/test_reference_recipes.py tests/test_save_recipe.py tests/test_run.py`, expect all pass; then `.venv/bin/pytest tests/test_pipeline.py::test_b01_validates_and_saves`, expect pass.
+- [x] `docs/DATABASE.md` §5: `app.rule10_fg_range`, `app.solve_colour`'s `fixed` and `second`, the mash
       move. PROJECT.md §8.
 Done when: the new tests pass, b09's G6 picks validate in step 11 after step 10, and the
 reference recipes still pass `app.check_recipe`.
@@ -796,4 +796,6 @@ OPERATIONS §5 says; no container is recreated.
 - 2026-10-26 · Task 9b: `app.check_rule_10` reads its FG range from the new `app.rule10_fg_range` (same results), so step 10's mash move and the check cannot drift apart.
 - 2026-10-26 · Approach, Task 9c (new), Tasks 10, Files, Critical behaviour: after the Task 9b estimate (14–15 of b01–b20), the user chose "Add LLM feedback too": where step 10's solvers stop at a limit, step 11's feedback line ends with a `To fix:` instruction (a lighter base malt, add a base malt, lower the crystal, add a dark malt, a yeast near a computed attenuation, a yeast with enough alcohol tolerance, points to take off for rules 3 and 4), derived in SQL with every number computed there. This is prompt and retry tuning on the G6 briefs, approved by the user; Task 10's "not tuned beyond Task 7's block" now reads beyond Tasks 7 and 9c. Brief R4 and Scope changed with it (brief Deviations). The prompt budget is measured as in Task 7. A1 stays 16; still one re-measure.
 - 2026-10-26 · Task 9c: the instruction is derived in `app.step11_validate` (new `app.step11_fix`), not in `app.choose_feedback_prompt` as the request suggested: step 11 has step 10's output, the grist's roles and the yeast's figures, while the prompt function only sees the feedback text. The fix travels in the existing `feedback` lines, so no contract or workflow changes; `app.choose_feedback_prompt` gains one header sentence. The direction for a low FG is a less attenuative yeast (G6's b12 and b18 are too dry), the opposite of the request's example "pick a more attenuative yeast", which applies to an FG above the range.
-
+- 2026-10-26 · Task 9b: the mash move is decided after the OG move, on the FG at the OG used, and the OG move is made again with the new attenuation (the plan said FG at the target OG, with the OG move after). Found on b09's G6 picks: FG at the target OG 1.0103 was inside rule 10's range while the OG the move then chose gave 1.0099, below it, so the plan's order never moved the mash. The OG-move block became `app.step10_og_move` (same maths) so it can run twice.
+- 2026-10-26 · Task 9b: tests use b09's real G6 yeast SafLager S-189 (the plan named SafAle US-05; run 4471's step 10 input shows S-189), whose mash goes to 69 °C (FG 1.0114, as in the replay) rather than a value inside (68.3, 69). `test_colour_keeps_rule_3` runs two targets (31: reached below the room left; 34: Chocolate Dark Malt stops at 15 − 8.92 = 6.08 %), because b03's target 31 is reached before the cap binds. `test_colour_second_dark_grain` expects Chocolate Dark Malt 7.48 ± 0.3 (the test solver runs at 70 % efficiency; the replay at the real one gave 7.48, this gives 7.23).
+- 2026-10-26 · Task 9b: the rule 3 and 5 caps never force a share down: the limit is `greatest(room left, the share it starts at)`. Without that, b23's G6 grist (roast and dark crystal already at 17 % of the grist) could not even lower Black Malt, because the room left was below 0. The step 10 contract `values_used.what` enum gains `mash`.

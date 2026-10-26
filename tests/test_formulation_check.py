@@ -461,6 +461,22 @@ def test_rule_10(conn):
 
 
 @pytest.mark.stack
+def test_rule10_fg_range(conn):
+    """Task 9b: the range rule 10 checks the FG against, from one helper."""
+    def rng(style, fg, stated):
+        return conn.execute("select app.rule10_fg_range(%s, %s::numeric, %s::jsonb)",
+                            (style, fg, json.dumps(stated))).fetchone()[0]
+    stated = rng("21A", 1.011, {"abv": 6.5})
+    assert (float(stated.lower), float(stated.upper)) == (1.009, 1.013)
+    stated = rng("21A", 1.020, {"fg": 1.020})
+    assert (float(stated.lower), float(stated.upper)) == (1.018, 1.022)
+    style = rng("21A", 1.011, {})
+    lo, hi = conn.execute("select lower(fg), upper(fg) from ref.beer_style where code = '21A'").fetchone()
+    assert (style.lower, style.upper) == (lo, hi)
+    assert rng("no-such-style", 1.011, {}) is None
+
+
+@pytest.mark.stack
 def test_rule_10_unknown_without_attenuation(conn):
     rec = recipe(conn, BASE)
     rec["yeast"]["ingredient_id"] = ing(conn, "yeast", ("Gozdawa", "W-34/70"))

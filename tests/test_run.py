@@ -362,7 +362,9 @@ def test_show_recipe_prints_the_saved_recipe():
                              "ibu": {"value": 60}, "srm": {"value": 6}}},
              6: {"yeast": {"ingredient_id": 3, "because": "clean ale yeast"}},
              7: {"fermentables": [{"ingredient_id": 1, "because": "base malt"}]},
-             8: {"hops": [{"ingredient_id": 2, "because": "bittering"}]}, 9: {"extras": []}}
+             8: {"hops": [{"ingredient_id": 2, "because": "bittering"}]}, 9: {"extras": []},
+             10: {"mash_c": 69, "values_used": [{"what": "boil", "because": "60 min"},
+                                                {"what": "mash", "because": "mash raised from 66.5 C to 69 C"}]}}
     recipe = _recipe(items=[
         {"ingredient_id": 1, "raw_name": "Pale Ale Malt", "usage": "mash", "time_min": None, "pct": 100.0, "amount": 5.2, "unit": "kg"},
         {"ingredient_id": 2, "raw_name": "Columbus", "usage": "boil", "time_min": 60.0, "pct": 100.0, "amount": 40.0, "unit": "g"},
@@ -373,4 +375,5 @@ def test_show_recipe_prints_the_saved_recipe():
     assert "West Coast IPA (21A)" in text and "5.2 kg  100 %  Pale Ale Malt" in text
     assert "40 g  Columbus  boil 60 min" in text and "because: bittering" in text
     assert "1 pack  US-05" in text and "10 g  Orange peel  boil 5 min" in text
+    assert "Mash: 69 °C (mash raised from 66.5 C to 69 C)" in text
     assert "ABV  6.5 %   (target 6.5)" in text and "orange peel: out_of_style (asked by user) asked" in text

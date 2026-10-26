@@ -35,7 +35,12 @@ def format_recipe(request: str, steps: dict, recipe: dict) -> str:
     why = _because(steps)
     lines = [f"Request: {request}", "",
              f"Style: {style.get('name', '?')} ({style.get('code', '?')})",
-             f"Batch: {recipe['batch_l']:g} l", "", "Numbers against targets:"]
+             f"Batch: {recipe['batch_l']:g} l"]
+    mash = (steps.get(10) or {}).get("mash_c")
+    if mash is not None:  # the saved rows have no mash until M7's process, so it comes from the step 10 row
+        mash_why = next((v["because"] for v in steps[10].get("values_used", []) if v["what"] == "mash"), "")
+        lines.append(f"Mash: {round(mash, 1):g} °C ({mash_why})")
+    lines.extend(["", "Numbers against targets:"])
     for key, label in (("og", "OG"), ("fg", "FG"), ("abv", "ABV"), ("ibu", "IBU"), ("srm", "SRM")):
         target = targets.get(key)
         lines.append(_number(label, recipe[key], None if target is None else float(target),

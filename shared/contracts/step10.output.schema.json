@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "step10.output",
-  "description": "Step 10, compute: batch, boil time, mash and fermentation temperature, the OG used (moved inside its tolerance towards the ABV target, or not), the colour adjustment (darkest and absorber null when nothing could change), fermentables in kg, hops and extras in g, yeasts in packs, the numbers (srm_lower_bound names fermentables with no colour, counted as 0 EBC), one values_used line for each value picked from a range, and recipe: the formulation_check.input object step 11 checks (its targets.og is the OG used). Absent: numbers.fg, numbers.abv and numbers.attenuation_pct null when the yeast has no attenuation figure; colour.darkest and colour.absorber null; extras empty.",
+  "description": "Step 10, compute: batch, boil time, mash and fermentation temperature, the OG used (moved inside its tolerance towards the ABV target, or not), the colour adjustment (darkest and absorber null when nothing could change; second is the second pass, null when there was none), the mash used, fermentables in kg, hops and extras in g, yeasts in packs, the numbers (srm_lower_bound names fermentables with no colour, counted as 0 EBC), one values_used line for each value picked from a range, and recipe: the formulation_check.input object step 11 checks (its targets.og is the OG used). Absent: numbers.fg, numbers.abv and numbers.attenuation_pct null when the yeast has no attenuation figure; colour.darkest and colour.absorber null; extras empty.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -99,6 +99,7 @@
         "absorber",
         "from_pct",
         "to_pct",
+        "second",
         "because"
       ],
       "properties": {
@@ -169,6 +170,63 @@
         },
         "because": {
           "type": "string"
+        },
+        "second": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "darkest",
+            "absorber",
+            "from_pct",
+            "to_pct",
+            "because"
+          ],
+          "properties": {
+            "darkest": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "ingredient_id",
+                "name"
+              ],
+              "properties": {
+                "ingredient_id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            },
+            "absorber": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "ingredient_id",
+                "name"
+              ],
+              "properties": {
+                "ingredient_id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            },
+            "from_pct": {
+              "type": "number"
+            },
+            "to_pct": {
+              "type": "number"
+            },
+            "because": {
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -413,6 +471,7 @@
               "attenuation",
               "ferm_c",
               "boil",
+              "mash",
               "yeast amount"
             ]
           },

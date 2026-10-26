@@ -228,7 +228,7 @@ STEP10_OUT = {
     "mash_c": 66.5, "ferm_c": 18,
     "og_used": {"value": 1.05, "moved": False, "because": "ABV is within 0.2 of the target, so the OG stays"},
     "colour": {"grist": [{"ingredient_id": 5, "pct": 100, "kg": 4.2}], "adjusted": False, "reached": True,
-               "srm": 4.5, "darkest": None, "absorber": None, "from_pct": None, "to_pct": None,
+               "srm": 4.5, "darkest": None, "absorber": None, "from_pct": None, "to_pct": None, "second": None,
                "because": "SRM 4.5 is within 1 of the target 4.5, so the shares stay as proposed"},
     "fermentables": [{**_NAMED, "usage": "mash", "pct": 100, "kg": 4.2, "purpose": "base"}],
     "hops": [{"ingredient_id": 3, "name": "Cascade", "usage": "boil", "minutes": 60, "share_pct": 100,

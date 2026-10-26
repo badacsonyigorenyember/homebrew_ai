@@ -21,6 +21,17 @@ ROASTED_BARLEY = ("Viking Malt", "Roasted Barley")
 PALE_ALE = ("Viking Malt", "Pale Ale Malt")
 MUNICH2 = ("Weyermann", "Munich Malt Type 2")
 LACTOSE = ("", "Lactose")
+CHOCOLATE = ("Viking Malt", "Chocolate Dark Malt")
+CARAMEL150 = ("Viking Malt", "Caramel 150 Malt")
+CARAMEL50 = ("Viking Malt", "Caramel 50 Malt")
+OATS = ("", "Flaked Oats")
+CORN = ("", "Flaked Corn")
+CANDI = ("", "Brown Candi Sugar")
+ABBEY = ("Weyermann", "Abbey Malt")
+PILSNER = ("Weyermann", "Pilsner Malt")
+PALE_ALE_W = ("Weyermann", "Pale Ale Malt")
+HONEY = ("", "Honey")
+MELANOIDIN = ("Weyermann", "Melanoidin Malt")
 
 OG, EFFICIENCY, VOLUME = 1.050, 70, 20
 
@@ -137,6 +148,84 @@ def test_colour_no_colour_counts_as_zero(conn):
     assert r["reached"] is True
 
 
+# ---- Task 9b: the second colour pass ----
+
+def dark_total(conn, result):
+    """Rule 3's total of a solved grist (roast, and crystal above 60 EBC), read by app.check_rule_3."""
+    ferm = [{"role": role, "ebc_mid": None if ebc is None else float(ebc), "pct": g["pct"]}
+            for g in result["grist"]
+            for role, ebc in [conn.execute(
+                "select f.role, app.ebc_mid(f.ebc) from ref.fermentable f where f.ingredient_id = %s",
+                (g["ingredient_id"],)).fetchone()]]
+    check = conn.execute("select app.check_rule_3(%s::jsonb)", [json.dumps({"fermentables": ferm})]).fetchone()[0]
+    return check, sum(f["pct"] for f in ferm if f["role"] == "roast" or (f["role"] == "crystal" and f["ebc_mid"] > 60))
+
+
+def test_colour_second_dark_grain(conn):
+    """b23's G6 grist: Black Malt goes to its 0.01 % floor and is still too dark, so Chocolate Dark
+    Malt moves in a second pass; the crystal stays (replay at the real efficiency: Chocolate 7.48 %, SRM 35.0)."""
+    grist = [item(conn, PALE_ALE, 83), item(conn, CHOCOLATE, 10), item(conn, CARAMEL150, 5), item(conn, BLACK, 2)]
+    r = colour(conn, 35, grist, og=1.0625)
+    assert r["reached"] and r["adjusted"]
+    s = shares(r)
+    assert s["Black Malt"] == pytest.approx(0.01) and r["darkest"]["name"] == "Black Malt"
+    assert r["second"]["darkest"]["name"] == "Chocolate Dark Malt"
+    assert r["second"]["absorber"]["name"] == "Pale Ale Malt"
+    assert float(r["second"]["from_pct"]) == 10 and float(r["second"]["to_pct"]) == pytest.approx(s["Chocolate Dark Malt"])
+    assert s["Chocolate Dark Malt"] == pytest.approx(7.48, abs=0.3)  # step 10 runs it at 72 % efficiency: 7.48
+    assert s["Caramel 150 Malt"] == 5
+    assert abs(float(r["srm"]) - 35) <= 1
+    assert "Black Malt" in r["because"] and "Chocolate Dark Malt" in r["because"]
+
+
+def test_colour_one_pass_has_no_second(conn):
+    grist = [item(conn, MARIS, 88), item(conn, CRYSTAL_T50, 10), item(conn, BLACK, 2)]
+    assert colour(conn, 12, grist)["second"] is None
+
+
+def test_colour_keeps_rule_3(conn):
+    """b03's G6 try-3 grist: Chocolate Dark Malt stops at the room left under the 15 % dark total
+    (replay: SRM 30.5)."""
+    grist = [item(conn, MARIS, 73.92), item(conn, OATS, 15), item(conn, CARAMEL150, 8.92), item(conn, CHOCOLATE, 2.16)]
+    r = colour(conn, 31, grist, og=1.055)  # the colour is reached below the limit
+    assert r["reached"] and shares(r)["Chocolate Dark Malt"] < 15 - 8.92
+    r = colour(conn, 34, grist, og=1.055)  # a darker target would need more than the room left
+    assert shares(r)["Chocolate Dark Malt"] == pytest.approx(15 - 8.92, abs=1e-9)
+    check, total = dark_total(conn, r)
+    assert check["status"] == "pass" and total <= 15 + 1e-9
+    assert r["reached"] is False and "away" in r["because"]
+
+
+def test_colour_keeps_rule_5(conn):
+    """A sugar mover next to adjuncts: it stops at the room left under the 40 % adjunct and sugar total."""
+    grist = [item(conn, PALE_ALE, 64), item(conn, CORN, 18), item(conn, OATS, 15), item(conn, CANDI, 3)]
+    r = colour(conn, 30, grist)  # a dark target needs more sugar than the 7 points left
+    s = shares(r)
+    assert s["Brown Candi Sugar"] == pytest.approx(40 - 18 - 15, abs=1e-9)
+    assert s["Flaked Corn"] == 18 and s["Flaked Oats"] == 15
+
+
+def test_colour_next_base_takes_up(conn):
+    """The largest base malt reaches 0.01 % first: the next-largest base malt takes up the rest."""
+    grist = [item(conn, ABBEY, 30), item(conn, CORN, 20), item(conn, OATS, 30), item(conn, MARIS, 12), item(conn, PALE_ALE, 8)]
+    r = colour(conn, 20, grist)
+    assert r["absorber"]["name"] == "Finest Pale Ale Maris Otter"
+    assert r["second"] is not None and r["second"]["absorber"]["name"] == "Pale Ale Malt"
+    assert r["second"]["darkest"]["name"] == "Abbey Malt"
+    s = shares(r)
+    assert s["Finest Pale Ale Maris Otter"] == pytest.approx(0.01)
+    assert abs(sum(s.values()) - 100) < 1e-9
+
+
+def test_colour_never_more_than_two_passes(conn):
+    """b18's grist: Roasted Barley sits at its limit, no other fermentable can move, the crystal stays."""
+    grist = [item(conn, PALE_ALE, 88), item(conn, CARAMEL50, 10), item(conn, ROASTED_BARLEY, 2)]
+    r = colour(conn, 20, grist)
+    assert r["reached"] is False and r["second"] is None
+    assert shares(r)["Caramel 50 Malt"] == 10
+    assert "limit" in r["because"] or "away" in r["because"]
+
+
 # ---- Task 4: step 10 computes amounts and numbers ----
 
 STEP10_IDS = ["b01", "b08", "b10", "b14", "b16", "b23", "b24"]
@@ -180,6 +269,8 @@ def test_amounts_hit_the_targets(conn, computed, bid):
     assert sum(float(h["g"]) for h in out["hops"]) > 0
     moved = {out["colour"]["darkest"]["ingredient_id"], out["colour"]["absorber"]["ingredient_id"]} \
         if out["colour"]["adjusted"] else set()
+    if out["colour"]["second"]:
+        moved |= {out["colour"]["second"]["darkest"]["ingredient_id"], out["colour"]["second"]["absorber"]["ingredient_id"]}
     proposed = {f["ingredient_id"]: float(f["pct"]) for f in inp["step7"]["fermentables"]}
     for f in out["fermentables"]:
         if f["ingredient_id"] not in moved:
@@ -228,7 +319,7 @@ def test_values_used_named(computed):
     """R1: each value picked from a range has its line."""
     for out in computed.values():
         assert {v["what"] for v in out["values_used"]} == {
-            "colour", "alpha", "attenuation", "ferm_c", "boil", "yeast amount"}
+            "colour", "alpha", "attenuation", "ferm_c", "boil", "mash", "yeast amount"}
         assert all(v["because"] for v in out["values_used"])
 
 
@@ -322,3 +413,96 @@ def test_output_meets_contract(conn, computed, bid):
 
 def test_same_input_same_output(conn, computed):
     assert compute(conn, step10_input(conn, "b16")) == computed["b16"]
+
+
+# ---- Task 9b: the mash moves for a low FG ----
+
+US05_YEAST = ("Fermentis", "SafAle US-05")
+
+
+def with_picks(conn, bid, fermentables, yeast):
+    """The step 10 input of a brief with other steps 6-7 picks (a G6 grist and yeast), the rest as
+    the first good proposal gave it."""
+    inp = step10_input(conn, bid)
+    ferms = []
+    for who, pct in fermentables:
+        fid, name = conn.execute("select id, name from ref.ingredient where producer = %s and name = %s", who).fetchone()
+        ferms.append({"ingredient_id": fid, "name": name, "pct": pct, "usage": "mash", "purpose": "test"})
+    inp["step7"]["fermentables"] = ferms
+    yid, name, temp = conn.execute(
+        "select i.id, i.name, y.temp_c from ref.yeast y join ref.ingredient i on i.id = y.ingredient_id "
+        "where i.producer = %s and i.name = %s", yeast).fetchone()
+    inp["step6"]["yeast"].update(ingredient_id=yid, name=name, choice=None,
+                                 temp_c={"low": float(temp.lower), "high": float(temp.upper)})
+    return inp
+
+
+def b09_picks(conn):
+    return with_picks(conn, "b09", [(MUNICH2, 70), (PILSNER, 25), (MELANOIDIN, 5)], ("Fermentis", "SafLager S-189"))
+
+
+def fg_range(conn, out, inp):
+    r = conn.execute("select app.rule10_fg_range(%s, %s::numeric, %s::jsonb)",
+                     (out["recipe"]["style_code"], target(inp, "fg"), json.dumps(out["recipe"]["stated"]))).fetchone()[0]
+    return float(r.lower), float(r.upper)
+
+
+def mash_line(out):
+    return next(v for v in out["values_used"] if v["what"] == "mash")["because"]
+
+
+def test_mash_moves_for_low_fg(conn):
+    """b09's G6 picks end below rule 10's FG range at 66.5 C: the mash goes up inside (68.3, 69]
+    (replay: FG 1.0114 at 69 C)."""
+    inp = b09_picks(conn)
+    out = compute(conn, inp)
+    lo, hi = fg_range(conn, out, inp)
+    assert 68.3 < out["mash_c"] <= 69 and out["recipe"]["mash_c"] == out["mash_c"]
+    assert lo <= float(out["numbers"]["fg"]) <= hi
+    check = sql(conn, "check_recipe", out["recipe"])
+    assert next(r for r in check["results"] if r["rule"] == 10)["status"] == "pass"
+    assert "66.5" in mash_line(out) and "raised" in mash_line(out)
+    # the attenuation line and every later number use the mash used
+    assert str(round(out["mash_c"])) in next(v for v in out["values_used"] if v["what"] == "attenuation")["because"]
+    inp["targets"]["mash_c"]["from"] = "hint"
+    stays = compute(conn, inp)
+    assert stays["mash_c"] == 66.5 and float(stays["numbers"]["fg"]) < lo
+
+
+def test_mash_stays_in_range(conn):
+    inp = step10_input(conn, "b01")
+    out = compute(conn, inp)
+    lo, hi = fg_range(conn, out, inp)
+    assert out["mash_c"] == 66.5 and lo <= float(out["numbers"]["fg"]) <= hi
+    assert "inside" in mash_line(out) and "stays" in mash_line(out)
+
+
+def test_mash_hint_stays(conn):
+    inp = b09_picks(conn)
+    inp["targets"]["mash_c"].update({"from": "hint", "value": 66.5})
+    out = compute(conn, inp)
+    assert out["mash_c"] == 66.5
+    assert "hint" in mash_line(out) and "stays" in mash_line(out)
+
+
+def test_mash_cannot_raise_fg_above_range(conn):
+    """An FG above the range cannot be helped by a lower mash: the curve is flat below 68.3 C."""
+    inp = step10_input(conn, "b01")
+    inp["brief"]["stated"]["fg"] = 1.003
+    inp["targets"]["targets"]["fg"]["value"] = 1.003
+    out = compute(conn, inp)
+    lo, hi = fg_range(conn, out, inp)
+    assert float(out["numbers"]["fg"]) > hi
+    assert out["mash_c"] == 66.5
+    assert "flat below 68.3" in mash_line(out)
+
+
+def test_mash_stops_at_69(conn):
+    """b12's G6 picks: even at 69 C the FG stays below its range (replay: 1.0077 vs 1.0080)."""
+    inp = with_picks(conn, "b12", [(PALE_ALE_W, 85), (HONEY, 15)], US05_YEAST)
+    out = compute(conn, inp)
+    lo, hi = fg_range(conn, out, inp)
+    assert out["mash_c"] == 69 and float(out["numbers"]["fg"]) < lo
+    check = sql(conn, "check_recipe", out["recipe"])
+    assert next(r for r in check["results"] if r["rule"] == 10)["status"] == "fail"
+    assert "69" in mash_line(out)
