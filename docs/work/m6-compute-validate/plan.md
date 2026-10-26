@@ -1,6 +1,6 @@
 # M6 · Steps 10–11: calculate, validate and save (the MVP) — implementation plan
 
-Stage: implementing
+Stage: approved
 Brief: [brief.md](brief.md)
 Branch: m6-compute-validate
 
@@ -28,7 +28,9 @@ Branch: m6-compute-validate
   `because`): (1) boil time = the largest of 60, the grist's largest `min_boil_min` and the
   longest boil addition; the longest boil addition (the bittering one, rule 8) is set to the boil
   time (user decision 2026-10-25, "Set boil, fix hop"); (2) grist kg from `app.solve_grist`; (3) the colour adjustment (R2) when
-  SRM misses its target by more than 1, `app.solve_colour` (below); (4) OG moved inside its
+  SRM misses its target by more than 1, `app.solve_colour` (below); (3b) the mash moved up inside
+  rule 10's limits when the predicted FG is below rule 10's range (Task 9b; user decision
+  2026-10-26, "Mash + colour reach"); (4) OG moved inside its
   ± 0.002 tolerance towards the ABV target when the ABV misses by more than 0.2 (user decision 2026-10-25, "OG nudge, then LLM");
   (5) hop grams from `app.solve_hops` at the final boil gravity; (6) misc grams = step 9's
   `dose_g_per_l` × batch L; (7) OG, FG, ABV, IBU, SRM with `app.og`, `app.fg`, `app.abv`,
@@ -39,12 +41,30 @@ Branch: m6-compute-validate
   (A6; user decision 2026-10-25, "Largest base malt"). MCU is a ratio of two linear functions of that share, so the share solves
   one linear equation. The share must stay above 0 and at most its `max_pct`, and the base malt
   above 0 and at most its `max_pct`; when the darkest non-crystal is the base malt itself or no
-  other base malt exists, nothing changes. If SRM is still more than 1 from the target, step 11
-  reports a numbers failure (R2).
+  other base malt exists, nothing changes. **Task 9b (user decision 2026-10-26, "Mash + colour
+  reach")**: the moving share's upper limit also keeps rules 3 and 5 (a roast stops at the room
+  left under the 15 % dark total, an adjunct or sugar under the 40 % adjunct and sugar total), and
+  when the move stops at a limit with SRM still more than 1 away, the solver makes one second
+  pass with the fermentable that stopped it held fixed: the next-darkest non-crystal moves (the
+  mover hit its limit) or the next-largest base malt takes up the change (the base malt hit its
+  limit). At most two passes; a crystal never moves. If SRM is still more than 1 from the target,
+  step 11 reports a numbers failure (R2).
+- **Mash move (Task 9b).** Rule 10 checks the FG predicted at the mash temperature, and
+  `app.mash_attenuation` (Troester's curve) lowers the attenuation only above the 68.3 °C knee, by
+  4.15 points per °C, never below the yeast's range. So when step 4's mash is the midpoint (not a
+  brewer's hint) and the FG predicted at the target OG is below rule 10's range, step 10 raises the
+  mash inside (68.3, 69] °C towards step 4's FG target (bisection; 69 °C when even that leaves FG
+  below the target). An FG above the range cannot be helped by a lower mash (the curve is flat
+  below the knee), so the mash stays and the line says why. Rule 10's range comes from one helper,
+  `app.rule10_fg_range`, which `app.check_rule_10` also calls, so step 10 and the check read the
+  same range. The mash used is `step10.mash_c` and `recipe.mash_c`; saving it with the recipe is
+  M7's process work, as the boil time already is, and `evals/show_recipe.py` prints it from the
+  step 10 row.
 - **Retries (R4, R5; user decision 2026-10-25, "OG nudge, then LLM"):** every step 11 failure (numbers, rule or pick) goes back to the
   steps 6–9 call with its text (rule or number, value, limit), and a pick failure also bans that
   pick. Step 10 is not re-run on its own: its maths is closed form, so the same inputs give the
-  same numbers, and its one rescale (the OG move) already ran inside it. At most 3 tries in all.
+  same numbers, and its rescales (colour, mash and OG move) already ran inside it. At most 3 tries
+  in all.
 - **What counts as a pick failure.** With guidance on, a pick the pipeline made on its own (no
   `wanted`, no `inventory` on its step 6–9 pick) whose line in `app.style_fit_recipe` is
   `out_of_style` or `changes_style`; and any excluded product (`app.choose_excluded(frame)`,
@@ -63,7 +83,9 @@ Branch: m6-compute-validate
 - **Retry input to steps 6–9:** `choose.input` gains `feedback` (null on try 1). The sub-workflow
   moves banned ids out of the table into its `excluded` list (`app.choose_ban`), so the existing
   prompt and check refuse them, and appends the failure lines and the failed recipe's picks to the
-  prompt (`app.choose_feedback_prompt`). No other prompt change.
+  prompt (`app.choose_feedback_prompt`). No other prompt change, except Task 9c's: where step
+  10's solvers stopped at a limit, step 11's line ends with a concrete `To fix:` instruction
+  derived in SQL (user decision 2026-10-26, "Add LLM feedback too").
 - **LLM calls (A2, user decision 2026-10-25 "First try ≤ 2"):** `calls` = the sum of
   `run_step.llm.tries` over every row of the run (all tries); `first_try_calls` = the LLM steps
   on try 1, each counted once (step 1 and the steps 6–9 call: 2); `retry_calls` = `calls −
@@ -103,6 +125,50 @@ reaches step 11; "OG 1.080 at 2 % ABV" passes step 4 (FG 1.0638) and no recipe c
 lowest yeast attenuation middle is 67.5 %), so A4's test uses that one. In
 `tests/test_pipeline.py` the `post` fixture deletes runs and briefs; `app.recipe` references
 `app.brief` without cascade, so the fixture must delete recipes first.
+**Measured after the first G6 run (2026-10-26, read-only; scratch SQL calling the existing
+functions on the logged step 10 and 11 inputs of runs 4463–4487, nothing written):** b01–b20
+validated 13/20, bar 16 (failed b03, b07, b09, b10, b12, b18, b19); 15/24 overall after the
+b22–b24 reruns (runs 4485–4487). Every failed brief failed the same way on all 3 tries, because the
+steps 6–9 call returned the same or similar picks and step 10 is closed form. Causes:
+- FG below rule 10's range at the 66.5 °C midpoint mash: b09 (1.0099 vs 1.0100–1.0140), b12
+  (1.0070 vs 1.0080–1.0130), b18 (1.0099), b22 (1.0097 vs 1.0100–1.0120). No G6 brief has an FG
+  above its range.
+- colour not reachable: b03 (Roasted Barley at the 0.01 % floor, SRM 35.9 vs 31; on tries 2–3 the
+  solver reached 31 by raising Chocolate Dark Malt and so broke rule 3, 16.1 % and 15.2 %), b07
+  (Pale Ale Malt is the only base and the darkest), b10 (Brown Candi Sugar, no base malt), b18
+  (Roasted Barley at its max 2 %), b19 (the colour is in two crystals), b23 (Black Malt at 0.01 %).
+- ABV high after the OG move hit ± 0.002: b10, b12, b23.
+Replaying Task 9b's two changes on those inputs (the mash by calling `app.step10_compute` with
+another `mash_c`, the second pass by calling `app.solve_colour` again with the first mover marked
+as crystal, rule 3's cap by lowering the roast's `max_pct`; then `app.step11_validate`):
+- b09 passes on try 1: FG 1.0110 at 68.6 °C, 1.0114 at 69 °C, step 11 passed.
+- b22's try-2 and try-3 picks pass (FG 1.0103–1.0111 at 68.6–69 °C); its try 1 still fails rule 4.
+- b03 try 1 still fails: the second pass reaches SRM 31.0 with Chocolate Dark Malt 6.07 % but
+  breaks rule 3 (16.1 %); with rule 3's cap Chocolate stops at 5 % and SRM is 28.1. G6's try-3
+  picks would pass with the cap (Chocolate 6.08 %, rule 3 at 15 %, SRM 30.5).
+- b05 (passed on try 2) reaches its colour on try 1: Chocolate Dark Malt 5 → 9.43 %, SRM 32.5,
+  rule 3 at 11.4 %.
+- b23 reaches its colour on try 1 (Chocolate Dark Malt 10 → 7.48 %, SRM 35.0) but its ABV 6.25 vs
+  5.99 stays: FG 1.0121 is inside its range, so the mash does not move (a mash of 68.6 °C would
+  give 6.15; not part of the user's decision).
+- not helped: b07 (Flaked Corn, the only lighter fermentable, is at its max 20 %); b10 (even with
+  Munich Malt Type 1 taking up the change, which a non-base malt may not, Brown Candi Sugar and
+  Abbey Malt at 0.01 % give SRM 14.7 vs 13.5); b12 (SafAle US-05's range is 78–82 %, so at 68.8 °C
+  and above it sits at 78 % and FG is 1.0077 vs 1.0080; its ABV comes inside at 4.68); b18 (British
+  Ale's range is 75–75 %, so the mash changes nothing); b19 (crystal shares never move; rules 3, 4
+  and 11 also fail).
+Expected after Task 9b *(estimate, unverified: retries depend on the LLM)*: b01–b20 14 (b09) to 15
+(b03 if its retries land as in G6) of 20, still below A1's 16; b22 likely passes. Seeing this, the
+user added Task 9c (2026-10-26, "Add LLM feedback too"): the retry is told what to change where
+the solvers stop. The attenuation each remaining brief would need, by scanning `app.fg` over
+attenuation on its try-1 grist at the OG used: b12 at most 77 % for FG 1.0080 (SafAle US-05 sits at
+78 %) and about 76 % for its ABV; b18 at most 74.5 % for FG 1.0100 (British Ale is 75 %); b23 about
+77 % for ABV 5.99 (US-05 gives 80 %); b10 about 76 % for ABV 7.18.
+Expected after Tasks 9b and 9c *(estimate, unverified)*: b01–b20 about 15–17 of 20 — b07 (one
+change: a lighter base malt) likely, b12 (one change: a yeast near 76 %, or less honey) plausible,
+b10 and b18 (two or three changes each) possible, b19 unlikely; b23 plausible. The bar of 16 is
+within reach, not assured. The user chose to re-measure once with the bar unchanged (2026-10-26).
+
 **Context7 not used:** no library question in this plan; n8n behaviour comes from the repo's
 existing workflows and OPERATIONS §5.
 
@@ -111,12 +177,13 @@ existing workflows and OPERATIONS §5.
 | Path | New / changed | Purpose |
 |---|---|---|
 | `db/045_recipe_deviation_kind.sql` | new | `app.recipe_deviation.kind`, `level` nullable (R7) |
-| `db/032_formulation_check.sql` | changed | `check_recipe_items` resolves `extras` (ref.misc); numbers unchanged (R8) |
+| `db/031_formulation_rules.sql` | changed | rule 7's sentence names the second pass (Task 9b) |
+| `db/032_formulation_check.sql` | changed | `check_recipe_items` resolves `extras` (ref.misc); numbers unchanged (R8); `app.rule10_fg_range` (Task 9b) |
 | `db/034_style_level.sql` | changed | `app.style_fit_recipe(recipe, extras, totals)`; extras default to `recipe.extras` |
-| `db/046_compute.sql` | new | `app.solve_colour`, `app.step10_boil`, `app.step10_compute` |
-| `db/047_validate.sql` | new | `app.recipe_tolerances`, `app.step11_validate` |
+| `db/046_compute.sql` | new | `app.solve_colour`, `app.step10_boil`, `app.step10_compute`; Task 9b: second colour pass, rule 3 and 5 caps, mash move |
+| `db/047_validate.sql` | new | `app.recipe_tolerances`, `app.step11_validate`; Task 9c: `app.attenuation_for_fg`, `app.step11_fix` |
 | `db/048_save_recipe.sql` | new | `app.save_recipe` |
-| `db/042_choose_table.sql` | changed | `app.choose_ban`, `app.choose_feedback_prompt` |
+| `db/042_choose_table.sql` | changed | `app.choose_ban`, `app.choose_feedback_prompt` (Task 9c: one header sentence) |
 | `shared/contracts/formulation_check.input.schema.json` | changed | optional `extras` |
 | `shared/contracts/choose.input.schema.json` | changed | `feedback` (null or object) |
 | `shared/contracts/step10.{input,output}.schema.json`, `step11.{input,output}.schema.json` | new | logged step rows |
@@ -129,7 +196,9 @@ existing workflows and OPERATIONS §5.
 | `evals/heldout_briefs.toml` | new | 5–10 held-out briefs (R10) |
 | `evals/run.py`, `evals/grade.py` | changed | recipe columns, tolerances, calls, `--briefs` (R9) |
 | `evals/show_recipe.py` | new | prints a saved recipe for your review (A11) |
-| `evals/results/<date>-m6.json`, `<date>-m6-heldout.json` | new | G6 results |
+| `evals/results/2026-10-25-m6.json`, `2026-10-26-m6-b22.json`, `-b23.json`, `-b24.json` | new | G6 first attempt (before Task 9b), kept as the before measurement |
+| `evals/results/<date>-m6-9b.json`, `<date>-m6-heldout.json` | new | G6 re-measure after Task 9b, held-out run |
+| `docs/work/m6-compute-validate/g6-recipes.md` | new | the 5 recipes for the A11 gate, printed by `evals.show_recipe` |
 | `tests/test_recipe_tables.py`, `test_compute.py`, `test_validate.py`, `test_save_recipe.py` | new | Tasks 1, 3–6 |
 | `tests/step1011_sample.json`, `tests/step611_sample.json` | new | Test data notes of the new sub-workflows |
 | `tests/test_formulation_check.py`, `test_reference_recipes.py`, `test_style_fit_recipe.py`, `test_choose_table.py`, `test_contracts.py`, `test_workflows.py`, `test_pipeline.py`, `test_grade.py`, `test_run.py`, `test_recipe_briefs.py`, `tests/step69_sample.json` | changed | as each task says |
@@ -492,29 +561,187 @@ Why: R9, R10, A2, A3, A10, A11.
 Done when: the runner reports recipes from the saved rows and you approved the held-out briefs.
 Commit: `Report recipes in the harness and add held-out briefs`
 
+### Task 9b: step 10 moves the mash for a low FG and reaches colour with a second share
+Why: G6's first run validated 13 of b01–b20 (A1's bar 16); user decision 2026-10-26, "Mash + colour
+reach (Rec.)" (R2, R4, A6; Approach "Colour adjustment" and "Mash move"; the measured replay above).
+- [ ] `db/032_formulation_check.sql`: `app.rule10_fg_range(style_code text, target_fg numeric,
+      stated jsonb) returns numrange` (stable): the target FG ± `midpoint_tolerance.fg` when
+      `stated` has `fg` or `abv`, else `ref.beer_style.fg` of the style, null when the style has
+      none. `app.check_rule_10` reads its `lo`/`hi` from it; nothing else in the rule changes.
+- [ ] `db/046_compute.sql` `app.solve_colour`: add `fixed bigint[] default '{}'` (ids that neither
+      move nor take up the change; drop the five-argument version first, as Task 2 did for
+      `style_fit_recipe`). The mover's upper limit is the least of its `max_pct`, and for role
+      `roast` `dark_total_pct` minus the other rule 3 shares (roast, and crystal above
+      `crystal_dark_ebc`), for role `adjunct` or `sugar` `adjunct_sugar_pct` minus the other
+      adjunct and sugar shares (limits from `app.formulation_limits()`). When the first pass is
+      clamped and SRM is still more than 1 away, call itself once with the clamping fermentable
+      added to `fixed`: the mover when its own limit (0.01 % or its upper limit) clamped, else the
+      absorber. Output gains `second`: null, or the second pass's `{darkest, absorber, from_pct,
+      to_pct, because}`; `grist`, `srm`, `reached`, `adjusted` are the final ones and `because`
+      joins both passes. Never more than two passes; update the header comment's derivation note.
+- [ ] `db/046_compute.sql` `app.step10_compute`, new adjustment 3b between the colour and the OG
+      move: when `targets.mash_c.from` is not `hint`, the yeast has an attenuation figure, and
+      `app.fg` at the target OG (shares after the colour move, `app.mash_attenuation` at step 4's
+      mash) is below `app.rule10_fg_range(style, t_fg, stated)`'s lower bound, bisect the mash in
+      [`mash_knee_c`, `mash_max_c`] (40 halvings; FG does not fall as the mash rises) for FG = step
+      4's FG target, or take `mash_max_c` when FG there is still below the target. FG above the
+      range, a hint's mash or no figure: the mash stays. The OG move and every later number use
+      the attenuation at the mash used; `mash_c` in the output and `recipe.mash_c` are the mash
+      used; `values_used` gains `{what: "mash", because}` (moved from/to and why, or why it stays).
+- [ ] `db/031_formulation_rules.sql` rule 7's sentence: the colour adjustment changes the share of
+      the darkest fermentable that is not a crystal and, when that share reaches a limit, of the
+      next-darkest one; base malts take up the difference; a crystal's share never changes;
+      enforced by the colour solver in step 10. (The steps 6–9 prompt does not carry rule
+      sentences, measured in `app.choose_prompt`; the `Test data` samples keep the old sentence:
+      they are sample inputs, compared only with their notes.)
+- [ ] `shared/contracts/step10.output.schema.json`: `colour.second` (null or the object above);
+      `tests/test_contracts.py`'s step 10 example gains `"second": None`.
+- [ ] `evals/show_recipe.py` prints `Mash: <c> °C (<because>)` from the last try's step 10 row
+      (the saved rows have no mash until M7); `tests/test_run.py::test_show_recipe_prints_the_saved_recipe`
+      asserts the line.
+- [ ] Apply 031, 032, 046 twice; owners `postgres`; `app` function count for the §8 entry.
+- [ ] Write, each seen failing first. In `tests/test_compute.py`:
+      `test_colour_second_dark_grain` (b23's G6 grist Pale Ale Malt 83, Chocolate Dark Malt 10,
+      Caramel 150 Malt 5, Black Malt 2, target 35 at OG 1.0625: Black Malt at 0.01 %, `second`
+      moves Chocolate Dark Malt, reached, Caramel 150 Malt stays 5; replay gave 7.48 % and SRM
+      35.0); `test_colour_keeps_rule_3` (b03's G6 try-3 grist Maris Otter 73.92, Flaked Oats 15,
+      Caramel 150 Malt 8.92, Chocolate Dark Malt 2.16, target 31 at OG 1.055: Chocolate stops at
+      15 − 8.92 %, `app.check_recipe` rule 3 passes on the result; replay gave SRM 30.5);
+      `test_colour_keeps_rule_5` (a sugar mover next to adjuncts near 40 %: the sugar stops at the
+      room left); `test_colour_next_base_takes_up` (a grist whose largest base reaches 0.01 %
+      first: the next-largest base malt takes up the rest, `second.absorber` names it);
+      `test_colour_never_more_than_two_passes` (b18's grist Pale Ale Malt 88, Caramel 50 Malt 10,
+      Roasted Barley 2, target 20: reached false, crystal unchanged, `because` names the limits);
+      `test_mash_moves_for_low_fg` (b09's step 10 input with its G6 picks, Munich Malt Type 2 70,
+      Pilsner Malt 25, Melanoidin Malt 5 and SafAle US-05: mash in (68.3, 69], FG inside
+      `app.rule10_fg_range`, rule 10 of `app.check_recipe(output.recipe)` passes; replay gave FG
+      1.0114 at 69 °C); `test_mash_stays_in_range` (b01: 66.5, the line says why);
+      `test_mash_hint_stays` (the b09 case with `mash_c.from` = `hint`: 66.5);
+      `test_mash_cannot_raise_fg_above_range` (FG target moved so FG is above the range: mash
+      stays, the line says the curve is flat below 68.3 °C); `test_mash_stops_at_69` (b12's G6
+      picks Pale Ale Malt 85, Honey 15, SafAle US-05: mash at most 69, FG still below 1.0080, rule 10
+      still fails; replay gave 1.0077). Update `test_values_used_named` (adds `mash`) and
+      `test_amounts_hit_the_targets` (`second`'s two ids also count as moved). In
+      `tests/test_formulation_check.py`: `test_rule10_fg_range` (stated ABV: target ± 0.002; none
+      stated: the style's range; no style range: null). In `tests/test_validate.py`:
+      `test_mash_move_lets_rule_10_pass` (the b09 case through step 10 and step 11: passed).
+- [ ] Run `.venv/bin/pytest tests/test_compute.py tests/test_validate.py tests/test_formulation_check.py tests/test_formulation_rules.py tests/test_step5.py tests/test_contracts.py tests/test_reference_recipes.py tests/test_save_recipe.py tests/test_run.py`, expect all pass; then `.venv/bin/pytest tests/test_pipeline.py::test_b01_validates_and_saves`, expect pass.
+- [ ] `docs/DATABASE.md` §5: `app.rule10_fg_range`, `app.solve_colour`'s `fixed` and `second`, the mash
+      move. PROJECT.md §8.
+Done when: the new tests pass, b09's G6 picks validate in step 11 after step 10, and the
+reference recipes still pass `app.check_recipe`.
+Commit: `Move the mash for a low FG and reach colour twice`
+
+### Task 9c: a failed try tells the retry what to change
+Why: G6's misses repeated over 3 tries because the feedback said what failed but not what the
+LLM could change once the solvers stop at a limit; user decision 2026-10-26, "Add LLM feedback
+too" (R4; Approach "Retry input"; the measured replay above). Steps 6–9 still choose; SQL derives
+the instruction and every number in it (CLAUDE.md: no LLM maths).
+- [ ] `db/047_validate.sql`: `app.attenuation_for_fg(grist jsonb, og numeric, efficiency_pct
+      numeric, volume_l numeric, fg numeric) returns numeric` (immutable): the attenuation at
+      which `app.fg(app.solve_grist(og, grist, ...), ..., attenuation)` equals `fg`, by bisection
+      over [0, 100] (FG falls as attenuation rises; 40 halvings), clamped to that interval.
+- [ ] `db/047_validate.sql`: `app.step11_fix(failure jsonb, step10 jsonb, targets jsonb, stated
+      jsonb) returns text` (stable), null when no case applies; the grist's roles and colours from
+      `ref.fermentable`, the yeast's range and alcohol tolerance from `ref.yeast`. Cases, each one
+      plain sentence:
+      - SRM failure, colour not reached, too dark, the darkest non-crystal is the only base malt
+        (b07): "use a lighter base malt than <base> (<EBC> EBC)".
+      - SRM failure, the grist has no base malt (b10): "add a base malt: no other fermentable can
+        take up the colour change".
+      - SRM failure, too dark, the movers at their limits (b19, b03 try 1): "lower the crystal
+        share (<crystal names and %>): the colour adjustment never moves a crystal"; with no crystal,
+        the roast names instead.
+      - SRM failure, too light, the movers at their limits (b18): "<mover> is at its <limit> %
+        limit: add a second dark malt (role roast or kilned)"; when rule 3's cap was the limit:
+        "rule 3 leaves no room for more roast: lower <crystal above 60 EBC> to make room".
+      - Rule 10, FG below the range (b12, b18): "pick a less attenuative yeast: <yeast> gives <att>
+        % here (mash <c> °C) and this grist needs about <N> % for FG <target>", N from
+        `app.attenuation_for_fg` at the OG used; when the grist has a `sugar` (honey, candi
+        sugar): "…, or lower <names>, which ferment out". FG above the range: "pick a more
+        attenuative yeast: about <N> %".
+      - ABV failure after the OG move (b10, b12, b23): "pick a yeast attenuating about <N> % (<yeast>
+        gives <att> %)", N for `app.fg_for_abv(OG used, ABV target)`; no attenuation figure: "pick
+        a yeast with an attenuation figure".
+      - Rule 11, ABV above the yeast's tolerance (b19): "pick a yeast with an alcohol tolerance of
+        at least <ABV> %".
+      - Rules 3 and 4 (b19, b22 try 1): "take at least <value − limit> points off <names>"
+        (the failure's own value, limit and items).
+      Every other failure (rules 1, 2, 8, 13, picks, stated numbers) has none: its line already
+      says it, and a pick is banned. Numbers are rounded as the failure texts round them.
+- [ ] `app.step11_validate`: each feedback line becomes `<text> To fix: <fix>` when
+      `app.step11_fix` gives one (the ban suffix stays last). Failure objects, the output
+      contract, `try.output` and the n8n workflows are unchanged: `next_feedback.lines` already
+      copies `step11.feedback`, so the fixes reach `choose.input.feedback` and the logged error.
+- [ ] `db/042_choose_table.sql` `app.choose_feedback_prompt`: the header gains one sentence, "Where
+      a line says To fix, do that." Nothing else changes.
+- [ ] Apply 047 and 042 twice; owners `postgres`; `app` function count for the §8 entry.
+- [ ] Write, each seen failing first. In `tests/test_validate.py`, each from the G6 picks named
+      in the measured paragraph, through step 10 (Task 9b's) and step 11:
+      `test_fix_lighter_base` (b07: Pale Ale Malt 80, Flaked Corn 20; the SRM line ends "To fix: use
+      a lighter base malt than Pale Ale Malt (6.5 EBC)"); `test_fix_add_base` (b10's try-1 grist);
+      `test_fix_lower_crystal` (b19's try-3 grist: names Caramel 150 Malt 15 %);
+      `test_fix_darker_malt_at_limit` (b18: Roasted Barley at its 2 % limit);
+      `test_fix_less_attenuative_yeast` (b12: US-05 at 78 %, N below 78, Honey named);
+      `test_fix_abv_yeast` (b23: N about 77, unverified figure from the replay);
+      `test_fix_rule_4_points` (b22's try-1 grist: Caraamber 15 %, "at least 5 points");
+      `test_fix_rule_11_tolerance`; `test_no_fix_for_a_pick` (the ban test's line has no "To fix");
+      `test_fix_numbers_come_from_sql` (every number in each fix is in the failure, step 10's
+      output, `ref` or `app.attenuation_for_fg`'s result as rounded). In `tests/test_validate.py`
+      also `test_attenuation_for_fg_inverts_fg` (`app.fg` at the result is within 1e-6 of the
+      asked FG, for three grists). `tests/test_choose_table.py::test_feedback_prompt_lines`: the
+      header sentence; it keeps passing on lines with fixes (their numbers are the feedback's).
+- [ ] Measure the prompt budget as Task 7 did (`evals/fit_test.py`'s count, Ollama once each,
+      `prompt_eval_count + 4096 ≤ 32768`): b18's table with (a) Task 7's three-line, one-ban
+      feedback with a fix on each line, and (b) the longest block G6 gave, b19's five try-1 lines
+      (SRM, rule 3, rule 4 twice, rule 11; 652 characters before fixes) with their fixes. Task 7 measured 26,514 + 4,096 = 30,610 with three lines and one ban,
+      so about 2,150 tokens are left. Write the counts in the §8 entry. If either does not fit,
+      stop and hand back `needs-input` (shorter fix sentences or fewer last-pick lines).
+- [ ] Run `.venv/bin/pytest tests/test_validate.py tests/test_choose_table.py tests/test_compute.py tests/test_contracts.py tests/test_workflows.py`, expect all pass.
+- [ ] `docs/DATABASE.md` §5: the two functions. PROJECT.md §8 with the token counts.
+Done when: each case has a test, the numbers in a fix come from SQL, and both prompts fit.
+Commit: `Tell the retry what to change after step 11`
+
 ### Task 10: G6 on the real pipeline (gate)
 Why: G6; A1–A3, A7, A8, A10, A11.
-- [ ] `.venv/bin/python -m evals.run --save --label m6` (b01–b24; background, wait on the results
-      file, not the process). A miss is fixed in its task's code and the run repeated; record
-      each miss and its fix. The prompt is not tuned on these briefs beyond Task 7's block.
-- [ ] Measure for the §8 entry: validated b01–b20 (bar ≥ 16) and b21–b24; tries per brief;
-      calls, first-try calls (≤ 2 each) and retry calls per brief and in total; invented 0 (A2);
-      each A3 stated number with its value; A7 grams of b23 and b24 from the saved rows; A8
-      deviations of b05, b11, b08, b16 from `app.recipe_deviation`; A5 recompute on one validated
-      brief; colour adjustments and OG moves made; run time per brief.
+- [x] First run, before Task 9b: `--label m6` (2026-10-25, runs 4463–4484; b22–b24 ended with HTTP
+      500 or a JSON error and were rerun alone as `m6-b22`, `m6-b23`, `m6-b24`, runs 4485–4487).
+      b01–b20 validated 13/20, 15/24 overall; first-try calls 2 on every brief; invented 0;
+      stated numbers 10/12. Misses and causes: the measured paragraph under Approach. Fix:
+      Tasks 9b and 9c. The four results files are kept as the before measurement.
+- [ ] After Tasks 9b and 9c, re-measure once (user decision 2026-10-26): `.venv/bin/python -m evals.run
+      --save --label m6-9b` (b01–b24; background, wait on the results file, not the process). A
+      brief that ends with an HTTP or JSON error (not a step failure) is rerun alone with `--brief
+      <id> --save --label m6-9b-<id>`, and the rerun counts. A step 10 raise from Task 9b's code is
+      a bug: fix it with a test, rerun that brief, record it. No other change and no second
+      re-measure: whatever b01–b20 gives goes to the gate. The prompt is not tuned on these briefs
+      beyond Tasks 7 and 9c.
+- [ ] Measure for the §8 entry: validated b01–b20 (bar ≥ 16) and b21–b24, each next to the first
+      run's result; tries per brief; calls, first-try calls (≤ 2 each) and retry calls per brief
+      and in total; invented 0 (A2); each A3 stated number with its value; A7 grams of b23 and b24
+      from the saved rows; A8 deviations of b05, b11, b08, b16 from `app.recipe_deviation`; A5
+      recompute on one validated brief; colour adjustments (with second passes), mash moves and
+      OG moves made, from the step 10 rows; the `To fix` lines sent per try and whether the next
+      try followed them; run time per brief. Compare with the estimate (about 15–17 of b01–b20
+      after Tasks 9b and 9c) and name each brief still failing with its cause.
 - [ ] Then once: `.venv/bin/python -m evals.run --briefs evals/heldout_briefs.toml --save --label m6-heldout`;
       record its validated count and calls (A10). Nothing is changed because of it.
-- [ ] **Gate (A11):** hand back `needs-input` with 5 validated recipes printed by
-      `evals.show_recipe` (proposal: b01, b03, b08, b10, b23 — IPA, stout, lager with a stated
-      IBU, inventory dubbel, coffee extras), asking: would you brew them? Record your verdict.
+- [ ] **Gate (A11, on the re-measure's recipes; user decision 2026-10-26 "After re-measure"):**
+      rewrite `docs/work/m6-compute-validate/g6-recipes.md` with 5 validated recipes from the
+      re-measure printed by `evals.show_recipe` (proposal: b01, b03, b08, b10, b23 — IPA, stout,
+      lager with a stated IBU, inventory dubbel, coffee extras; a proposed brief that did not
+      validate is replaced by another family and named as such), and hand back `needs-input`
+      asking: would you brew them? Report the b01–b20 count against A1's bar of 16 in the same
+      hand-back. Record your verdict.
 - [ ] `docs/WORKFLOW-ROADMAP.md` G6 `Measured:` line (Decided left for you).
-Done when: both results files are saved and the gate is answered.
+Done when: the re-measure and held-out results files are saved and the gate is answered.
 Commit: `Measure G6 on 24 briefs and the held-out set`
 
 ### Task 11: the docs describe stage D as built
 Why: scope (PROJECT.md is the entry point).
 - [ ] `docs/RECIPE-ROADMAP.md` §3: rows 10 and 11 say what is built (value picks, the boil and
-      bittering rule, colour solver, OG move, misc grams, the failure kinds, ban, three tries);
+      bittering rule, colour solver with its second pass and rule 3/5 caps, mash move, OG move,
+      misc grams, the failure kinds, ban, three tries);
       the diagram's S11 edges match it (one "fail: back to the steps 6–9 call, max 3 tries"
       edge); §8 P5 status line; the Later TODO "reference recipes for b23 and b24"
       removed; the fruit TODO stays (brief Out). `docs/WORKFLOW-ROADMAP.md`: M6 row, §3 risk
@@ -534,6 +761,10 @@ Commit: `Describe stage D as built`
 | Colour adjustment moves only the darkest non-crystal and the base | `test_compute.py::test_colour_moves_only_darkest_and_base`, `test_colour_never_moves_crystal` | 3 |
 | Step 10's numbers are what the check recomputes | `test_compute.py::test_numbers_are_what_check_recipe_computes` | 4 |
 | OG moves only inside its tolerance | `test_compute.py::test_og_moves_only_inside_tolerance` | 4 |
+| The second colour pass never moves a crystal and never breaks rules 3 or 5 | `test_compute.py::test_colour_second_dark_grain`, `test_colour_keeps_rule_3`, `test_colour_keeps_rule_5`, `test_colour_never_more_than_two_passes` | 9b |
+| The mash moves only up, inside 68.3–69 °C, only for an FG below rule 10's range, never a hint's | `test_compute.py::test_mash_moves_for_low_fg`, `test_mash_stays_in_range`, `test_mash_hint_stays`, `test_mash_cannot_raise_fg_above_range`, `test_mash_stops_at_69` | 9b |
+| Step 10 and rule 10 read the same FG range and mash | `test_formulation_check.py::test_rule10_fg_range`, `test_validate.py::test_mash_move_lets_rule_10_pass` | 9b |
+| Every number in a retry's `To fix` comes from SQL, and the needed attenuation inverts `app.fg` | `test_validate.py::test_fix_numbers_come_from_sql`, `test_attenuation_for_fg_inverts_fg`, `test_choose_table.py::test_feedback_prompt_lines` | 9c |
 | Each failure kind is caught; only self-picks are banned | `test_validate.py` (one test per kind, `test_wanted_pick_is_never_banned`, `test_user_ibu_does_not_ban_hops`) | 5 |
 | An impossible target never passes | `test_validate.py::test_impossible_target_cannot_pass`, `test_pipeline.py::test_impossible_target_fails_after_three_tries` | 5, 8 |
 | A saved recipe recomputes to its saved numbers | `test_save_recipe.py::test_recompute_from_saved_rows`, `test_pipeline.py::test_b01_validates_and_saves` | 6, 8 |
@@ -560,3 +791,9 @@ OPERATIONS §5 says; no container is recreated.
 - 2026-10-25 · Task 8: the pipeline's failure branch for the tries is one `Finish run (failed, steps 6–11)` / `Respond failed (steps 6–11)` pair for the three `Try n` nodes and for `Save recipe`'s error output (the finish query returns the error text, so the respond node needs no node name); `failed_step` reads `step N:` or `stepN.` in the message (lowest, 6 when none, 11 for a `save_recipe` error), so a step 10 or 11 failure reports 10 or 11.
 - 2026-10-25 · Task 8: the pipeline run found two bugs in earlier tasks, fixed here with a test each: `db/046_compute.sql` raised "the choice "<NULL>" of German Lager is not a fermentation temperature" when step 6 picks a yeast with no `choice` — step 10 now takes the middle of the yeast's `temp_c` range and says so in `values_used` (`test_ferm_c_without_a_choice_is_the_range_middle`); `db/047_validate.sql` treated an unrated style line (`level` null, a style with no reviewed envelope) as a pick failure with a ban, and the output then broke its contract (`test_unrated_style_bans_nothing`).
 - 2026-10-25 · Task 9: `grade_result` gains `recipe`, `stats` and `grade_needs`, and `read_run` reads all `run_step` rows in one query (the plan says it sums over every row; the old two queries are folded into it); `totals["calls"]` keeps its shape and the new counts are separate keys (`first_try_calls_max`, `retry_calls`, `validated`, `invented`, `stated_met`); `tests/test_run.py` and `test_grade.py` gain `test_show_recipe_prints_the_saved_recipe` and `test_read_recipe_reads_the_saved_rows` (not in the plan) — they cover the new reader and printer; two older run tests now pass a recipe because `passed` needs one.
+- 2026-10-26 · Approach, Task 9b (new), Tasks 10, 11, Files, Critical behaviour: G6's first run validated 13 of b01–b20 (bar 16), each miss repeating over 3 tries; the user chose "Mash + colour reach (Rec.)", which changes the planning answers Q1 and Q3: step 10's one pass now also raises the mash inside 68.3–69 °C towards the FG target when the predicted FG is below rule 10's range (Q1 had only the OG move), and the colour solver may make a second pass, with the next-darkest non-crystal or the next-largest base malt (Q3 had only the darkest and the largest base). Brief R2, R4, A6 and Scope changed with it (brief Deviations). Task 9b builds it; Task 10's first run is recorded, and it now re-measures b01–b24 once, then the held-out set, then asks A11 on the re-measure's recipes (user decision "After re-measure (Rec.)"); A1's bar stays 16. Plan back to `draft` for approval.
+- 2026-10-26 · Task 9b: three details the user's choice did not name, chosen here: (1) the colour mover's limit also keeps rules 3 and 5 — G6's b03 retries reached the colour by raising Chocolate Dark Malt and so failed rule 3 (16.1 %, 15.2 %), and a second pass without the cap repeats that on b03's try 1; (2) a brewer's mash hint is never moved, as wanted picks are never banned; (3) the mash moved is not saved with the recipe (no column until M7's process, as for the boil time) — it is in the step 10 row and printed by `evals.show_recipe`. Measured in the replay (Approach): the mash does not move for an ABV that is still high after the OG move with FG inside its range (b23 would reach 6.15 at 68.6 °C); that would go beyond the user's decision and is left out.
+- 2026-10-26 · Task 9b: `app.check_rule_10` reads its FG range from the new `app.rule10_fg_range` (same results), so step 10's mash move and the check cannot drift apart.
+- 2026-10-26 · Approach, Task 9c (new), Tasks 10, Files, Critical behaviour: after the Task 9b estimate (14–15 of b01–b20), the user chose "Add LLM feedback too": where step 10's solvers stop at a limit, step 11's feedback line ends with a `To fix:` instruction (a lighter base malt, add a base malt, lower the crystal, add a dark malt, a yeast near a computed attenuation, a yeast with enough alcohol tolerance, points to take off for rules 3 and 4), derived in SQL with every number computed there. This is prompt and retry tuning on the G6 briefs, approved by the user; Task 10's "not tuned beyond Task 7's block" now reads beyond Tasks 7 and 9c. Brief R4 and Scope changed with it (brief Deviations). The prompt budget is measured as in Task 7. A1 stays 16; still one re-measure.
+- 2026-10-26 · Task 9c: the instruction is derived in `app.step11_validate` (new `app.step11_fix`), not in `app.choose_feedback_prompt` as the request suggested: step 11 has step 10's output, the grist's roles and the yeast's figures, while the prompt function only sees the feedback text. The fix travels in the existing `feedback` lines, so no contract or workflow changes; `app.choose_feedback_prompt` gains one header sentence. The direction for a low FG is a less attenuative yeast (G6's b12 and b18 are too dry), the opposite of the request's example "pick a more attenuative yeast", which applies to an FG above the range.
+

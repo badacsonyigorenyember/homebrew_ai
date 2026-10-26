@@ -28,9 +28,11 @@ In:
   `app.preboil_volume`), misc grams as step 9's `dose_g_per_l` × batch L (never in OG/IBU/SRM).
   Then OG, FG, ABV, IBU and SRM with `app.og`, `app.fg`, `app.abv`, `app.ibu`, `app.srm`
   (via `app.grist_mcu`).
-- The colour adjustment s2 left to this work (rule 7): when SRM misses its target, only the share
-  of the darkest fermentable that is not a crystal malt changes. s1 has no colour solver
-  (`pg_proc`: `solve_grist` and `solve_hops` only), so this work builds it as tested code.
+- The colour adjustment s2 left to this work (rule 7): when SRM misses its target, the share of
+  the darkest fermentable that is not a crystal malt changes, and when that share reaches a limit,
+  one second share (the next-darkest non-crystal, or the next-largest base malt taking up the
+  change); a crystal's share never changes. s1 has no colour solver (`pg_proc`: `solve_grist` and
+  `solve_hops` only), so this work builds it as tested code.
 - Step 11: validation with `app.check_recipe` (s2 rules 1–13) plus the checks in R3, and the retry
   loop of at most 3 tries (step 10's own rescale runs in its one pass; any failure left, numbers
   included, goes back to the steps 6–9 call with the rule or number, the value and the limit,
@@ -55,16 +57,18 @@ Out:
   nothing to test. The TODO stays on the Later list.
 - Whirlpool and dry-hop IBU above 0 (s1, Later list).
 - A new LLM call, prompt or tie-break. The steps 6–9 prompt changes only if a retry needs the
-  failed rule passed in.
+  failed rule passed in, and (approved 2026-10-26) to carry step 11's `To fix:` instruction.
 
 ## Requirements
 R1. Step 10 computes every `recipe_item` amount (kg for fermentables, g for hops and misc) and
     keeps its `pct`, and computes OG, FG, ABV, IBU and SRM, only through s1's functions and
     tested SQL; no LLM. Where a `ref` value is a range (EBC, alpha, attenuation), the plan names
     which number step 10 takes (s1 leaves that choice to step 10).
-R2. When the SRM result misses its target, step 10 changes only the share of the darkest
-    non-crystal fermentable (rule 7), then recomputes; if that cannot reach the target within
-    tolerance, step 11 reports it as a numbers failure.
+R2. When the SRM result misses its target, step 10 changes the share of the darkest
+    non-crystal fermentable (rule 7) and, if that share reaches a limit, makes one second move
+    (the next-darkest non-crystal, or the next-largest base malt taking up the change); a crystal's
+    share never changes, and no move breaks rules 3 or 5. Then it recomputes; if the target cannot
+    be reached within tolerance, step 11 reports it as a numbers failure.
 R3. Step 11 passes a recipe only when all of these hold: `app.check_recipe` has no `fail`
     result; OG, ABV, IBU and SRM are within tolerance of step 4's targets (OG ± 0.002,
     ABV ± 0.2, IBU ± 2, SRM ± 1; FG is checked by rule 10); every stated number is met within the
@@ -72,10 +76,14 @@ R3. Step 11 passes a recipe only when all of these hold: `app.check_recipe` has 
     no item the pipeline picked on its own is rated `out_of_style` or `changes_style`; no
     excluded product (as `app.choose_excluded` reads them, LUPOMAX siblings included) is in the
     recipe.
-R4. Step 10 makes one pass that includes its deterministic rescale (the colour adjustment, and OG
-    moved within its ± 0.002 tolerance towards the ABV target). Any failure step 11 then finds,
+R4. Step 10 makes one pass that includes its deterministic rescale (the colour adjustment; the
+    mash temperature raised inside rule 10's limits towards the FG target when the predicted FG is
+    below rule 10's range and the mash is not the brewer's hint; and OG moved within its ± 0.002
+    tolerance towards the ABV target). Any failure step 11 then finds,
     numbers included, re-runs the steps 6–9 call with the failed rule or number, the value and
-    the limit or target (and, for a pick failure, that pick banned); step 10 is not re-run on its
+    the limit or target (and, for a pick failure, that pick banned; where step 10's solvers stopped at a limit, a
+    concrete instruction derived in SQL, such as a lighter base malt or a yeast near a computed
+    attenuation); step 10 is not re-run on its
     own. There are at most 3 tries in all; each try logs its step rows in `app.run_step` with its `try` number and, on a failed
     step 11, the reason in `error`.
 R5. After 3 failed tries the run ends with `app.run.ok = false` and the list of what failed; no
@@ -147,8 +155,9 @@ A4. A test with an impossible target (e.g. 1.040 OG at 10 % ABV) ends with `app.
 A5. For one validated brief, recomputing OG, IBU and SRM from its saved `recipe_item` rows with
     s1's functions and the `ref` values step 10 used matches the saved results within s1's
     tolerances (R1, R6).
-A6. A test recipe whose SRM misses its target changes only the darkest non-crystal fermentable's
-    share, and a crystal malt's share stays unchanged (R2).
+A6. A test recipe whose SRM misses its target changes only non-crystal shares (the darkest, a
+    second one only when the first reaches a limit) and base malts, and a crystal malt's share stays
+    unchanged (R2).
 A7. b23's saved coffee and vanilla rows and b24's orange peel row have grams equal to the step 9
     dose × batch L (R1, R6).
 A8. b05 (mismatch), b11 (conflict), b08 (number) and b16 (ingredient) have their step 3
@@ -167,3 +176,5 @@ None open. Your answers, 2026-10-25:
 
 ## Deviations
 - 2026-10-25 · Scope, R4: a numbers failure no longer re-runs step 10 on its own (its maths is closed form, so the same inputs give the same numbers); step 10 moves OG within ± 0.002 towards the ABV target in its one pass, and any number still off goes back to the steps 6–9 call with the value and target — user decision "OG nudge, then LLM" (planning question Q1).
+- 2026-10-26 · Scope, R2, R4, A6: after G6's first run validated 13 of b01–b20 (bar 16; misses from unreachable colour and an FG below rule 10's range at the 66.5 °C midpoint mash, repeated over 3 tries), the user chose "Mash + colour reach (Rec.)": step 10's one pass also raises the mash temperature (inside 68.3–69 °C, towards the FG target) when the predicted FG is below its range, and the colour adjustment may move a second share (the next-darkest non-crystal or the next-largest base malt) when the first reaches a limit; crystal shares still never change. This replaces planning answers Q1 (OG nudge only) and Q3 (largest base malt only). b01–b24 are then re-measured once and A11 is asked on those recipes; A1's bar of 16 stays.
+- 2026-10-26 · Scope (Out), R4: seeing the estimate of 14–15 of b01–b20 after the mash and colour change, the user chose "Add LLM feedback too": a failed try's feedback line also carries a concrete `To fix:` instruction where step 10's solvers stop at a limit (which kind of fermentable or yeast to change, with the figure computed in SQL; the LLM still only chooses). This is prompt and retry tuning on the G6 briefs, approved by the user. A1's bar of 16 stays; b01–b24 are still re-measured once.

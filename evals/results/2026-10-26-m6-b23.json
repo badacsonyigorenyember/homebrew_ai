@@ -1,0 +1,154 @@
+{
+  "date": "2026-10-26",
+  "label": "m6-b23",
+  "model": "pipeline default",
+  "results": [
+    {
+      "id": "b23",
+      "run_id": 4486,
+      "run_ok": false,
+      "error": "try 1: Step 11: the ABV is 6.25 and the target is 5.99 (limit +- 0.2).; Step 11: the SRM is 40.76 and the target is 35 (limit +- 1). The colour adjustment could not reach it: Black Malt 2.00 % to 0.01 %, Pale Ale Malt 83.00 % to 84.99 %: SRM 49.1 to 41.7 (target 35), still more than 1 away because of the share limits; Rule 3: crystal above 60 EBC plus roast is 15 % of the grist (Chocolate Dark Malt 10 %, Caramel 150 Malt 5 %, Black Malt 0 %); the limit is 15 %.; try 2: Step 11: the ABV is 6.25 and the target is 5.99 (limit +- 0.2).; try 3: Step 11: the ABV is 6.25 and the target is 5.99 (limit +- 0.2).",
+      "failed_step": 11,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pale ale malt": "covered",
+          "roasted barley": "substituted: Chocolate Dark Malt",
+          "chocolate malt": "covered"
+        },
+        "hops": {
+          "Cascade": "covered"
+        },
+        "yeast": {
+          "American ale yeast": "covered"
+        },
+        "misc": {
+          "coffee": "covered",
+          "vanilla beans": "covered"
+        }
+      },
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 18080,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 107,
+        "prompt_tokens": 995
+      },
+      "passed": false,
+      "calls": 5,
+      "first_try_calls": 2,
+      "retry_calls": 3,
+      "tries": 3,
+      "validated": false,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": null
+    }
+  ],
+  "totals": {
+    "step1": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "step2": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "step3": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "step4": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "step5": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "step6": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "step7": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "step8": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "step9": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "needs": {
+      "passed": 1,
+      "total": 1,
+      "gaps": 0
+    },
+    "calls": {
+      "total": 5,
+      "runs": 1
+    },
+    "first_try_calls_max": 2,
+    "retry_calls": 3,
+    "validated": {
+      "b01_b20": 0,
+      "all": 0
+    },
+    "invented": 0,
+    "stated_met": {
+      "met": 0,
+      "total": 0
+    },
+    "briefs": {
+      "passed": 0,
+      "total": 1
+    }
+  }
+}

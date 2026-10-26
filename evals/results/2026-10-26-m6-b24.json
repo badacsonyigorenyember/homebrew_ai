@@ -1,0 +1,235 @@
+{
+  "date": "2026-10-26",
+  "label": "m6-b24",
+  "model": "pipeline default",
+  "results": [
+    {
+      "id": "b24",
+      "run_id": 4487,
+      "run_ok": true,
+      "error": null,
+      "failed_step": null,
+      "step1": {
+        "named": true,
+        "stated": true,
+        "hints": true,
+        "wanted": true,
+        "excluded": true,
+        "inventory": true,
+        "guidance": true,
+        "ok": true
+      },
+      "step2": true,
+      "step3": true,
+      "step4": true,
+      "step5": true,
+      "step6": true,
+      "step7": true,
+      "step8": true,
+      "step9": true,
+      "needs": {
+        "fermentables": {
+          "pale ale malt": "covered",
+          "crystal malt": "covered"
+        },
+        "hops": {
+          "Cascade": "covered",
+          "Centennial": "covered"
+        },
+        "yeast": {
+          "American ale yeast": "covered"
+        },
+        "misc": {
+          "orange peel": "covered"
+        }
+      },
+      "needs_ok": true,
+      "problems": {},
+      "ran": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true,
+        "9": true
+      },
+      "llm": {
+        "seed": 42,
+        "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+        "think": false,
+        "tries": 1,
+        "llm_ms": 15140,
+        "done_reason": "stop",
+        "temperature": 0,
+        "output_tokens": 86,
+        "prompt_tokens": 994
+      },
+      "passed": true,
+      "calls": 2,
+      "first_try_calls": 2,
+      "retry_calls": 0,
+      "tries": 1,
+      "validated": true,
+      "invented": 0,
+      "stated": {},
+      "stated_ok": true,
+      "recipe": {
+        "id": 126,
+        "batch_l": 20.0,
+        "og": 1.0505,
+        "fg": 1.0101,
+        "abv": 5.2,
+        "ibu": 40.0,
+        "srm": 7.1,
+        "items": [
+          {
+            "ingredient_id": 63,
+            "raw_name": "Pale Ale Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 90.0,
+            "amount": 4.183,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 20,
+            "raw_name": "Caramel 30 Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 5.0,
+            "amount": 0.232,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 23,
+            "raw_name": "Caramel 50 Malt",
+            "usage": "mash",
+            "time_min": null,
+            "pct": 5.0,
+            "amount": 0.232,
+            "unit": "kg"
+          },
+          {
+            "ingredient_id": 464,
+            "raw_name": "Cascade",
+            "usage": "boil",
+            "time_min": 60.0,
+            "pct": 50.0,
+            "amount": 48.491,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 464,
+            "raw_name": "Cascade",
+            "usage": "dry_hop",
+            "time_min": 0.0,
+            "pct": 50.0,
+            "amount": 48.491,
+            "unit": "g"
+          },
+          {
+            "ingredient_id": 1830,
+            "raw_name": "SafAle US-05",
+            "usage": "ferment",
+            "time_min": null,
+            "pct": null,
+            "amount": 1.0,
+            "unit": "pack"
+          },
+          {
+            "ingredient_id": 26307,
+            "raw_name": "Orange peel",
+            "usage": "whirlpool",
+            "time_min": 15.0,
+            "pct": null,
+            "amount": 52.8,
+            "unit": "g"
+          }
+        ],
+        "deviations": [
+          {
+            "kind": "ingredient",
+            "subject": "orange peel",
+            "level": "out_of_style",
+            "requested_by": "user",
+            "note": "Orange peel (whirlpool) is the closest choice: specialty spice on American Pale Ale (18B)."
+          }
+        ]
+      }
+    }
+  ],
+  "totals": {
+    "step1": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "step2": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "step3": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "step4": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "step5": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "step6": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "step7": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "step8": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "step9": {
+      "passed": 1,
+      "total": 1,
+      "not_run": 0
+    },
+    "needs": {
+      "passed": 1,
+      "total": 1,
+      "gaps": 0
+    },
+    "calls": {
+      "total": 2,
+      "runs": 1
+    },
+    "first_try_calls_max": 2,
+    "retry_calls": 0,
+    "validated": {
+      "b01_b20": 0,
+      "all": 1
+    },
+    "invented": 0,
+    "stated_met": {
+      "met": 0,
+      "total": 0
+    },
+    "briefs": {
+      "passed": 1,
+      "total": 1
+    }
+  }
+}
