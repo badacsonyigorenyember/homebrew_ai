@@ -202,3 +202,19 @@ def test_snapshot_fields(conn):
     assert float(row[3]) == out["batch"]["volume_l"] and float(row[4]) == out["batch"]["efficiency_pct"]
     assert row[5] == inp["targets"] and row[11] == "maths-1"
     assert abs(float(row[6]) - out["numbers"]["og"]) < 0.00006 and abs(float(row[9]) - out["numbers"]["ibu"]) < 0.06
+
+
+def test_saved_amounts_on_steps(conn):
+    """Task 10b, b23: every saved amount is on its weighing step; coffee is its dose 6 g/L x 20 L = 120 g."""
+    rid, _, out, _ = saved(conn, "b23", step11={"passed": True, "model_deviations": []})
+    rows = items_of(conn, rid)
+    roles = dict(conn.execute("select ingredient_id, role from ref.fermentable").fetchall())
+    for ing, name, usage, _t, _pct, amount, unit in rows:
+        if unit == "kg":
+            step = 0.001 if roles[ing] == "sugar" else 0.05
+        elif unit == "g":
+            step = 1
+        else:
+            continue
+        assert amount > 0 and abs(float(amount) / step - round(float(amount) / step)) < 1e-6, (name, amount)
+    assert [float(r[5]) for r in rows if r[1] == "Coffee, cold brew"] == [120.0]

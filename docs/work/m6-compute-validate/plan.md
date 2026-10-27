@@ -1,6 +1,6 @@
 # M6 · Steps 10–11: calculate, validate and save (the MVP) — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: m6-compute-validate
 
@@ -810,7 +810,7 @@ Why: user request 2026-10-26 (scope addition; brief R1, R11, A5, A7, A12): "malt
 rounding", hops to 1 g, candi sugar to 1 g; answers "Malts + flaked grains (Rec.)", "1 g (Rec.)",
 "Now, in M6 (Rec.)", and Q1 "50 g + SRM ± 2" (brief R3, R11). Approach "Rounding to weighing
 steps" and "Tolerances"; the Task 10b measurement above.
-- [ ] `db/047_validate.sql` `app.recipe_tolerances()`: `"srm": 2` (was 1); comment: user decision
+- [x] `db/047_validate.sql` `app.recipe_tolerances()`: `"srm": 2` (was 1); comment: user decision
       2026-10-26 "50 g + SRM ± 2", replacing the SRM part of "Brewer bar" (2026-10-25), for targets
       and stated numbers alike, because one 50 g step of a roast malt moves SRM by more than ± 1 at
       20 L; the other tolerances unchanged. `evals/grade.py` `RECIPE_TOLERANCES` `"srm": 2` with the
@@ -819,17 +819,17 @@ steps" and "Tolerances"; the Task 10b measurement above.
       SRM 20 are now judged at ± 2 (b18's exact amounts give 17.87, so it still misses). Step 10's
       colour solver keeps its own 1 SRM aim (`app.solve_colour`'s `tolerance` constant; only its
       comment changes to say why it is tighter than step 11), so logged step 10 outputs reproduce.
-- [ ] `db/046_compute.sql`: `app.weighing_steps() returns jsonb` immutable: `{"malt_kg": 0.05,
+- [x] `db/046_compute.sql`: `app.weighing_steps() returns jsonb` immutable: `{"malt_kg": 0.05,
       "sugar_kg": 0.001, "hop_g": 1, "extra_g": 1}`, comment: the user's words and decisions of
       2026-10-26 (every malt and flaked grain, roast malts included, 50 g; role `sugar` 1 g; hops and
       extras 1 g), the floor is one step, never 0. A fermentable's step: role `sugar` → `sugar_kg`,
       any other role → `malt_kg`.
-- [ ] `db/046_compute.sql`: `app.recipe_rule_failures(check jsonb) returns jsonb` immutable: the
+- [x] `db/046_compute.sql`: `app.recipe_rule_failures(check jsonb) returns jsonb` immutable: the
       `fail` results' failures of an `app.check_recipe` output as `[{rule, text, value, limit}]`,
       without rule 9's OG and ABV target lines (the skip `app.step11_validate` has today, moved here
       with its comment). `app.step11_validate` (db/047) reads its rule failures from it; its output
       does not change (the existing `tests/test_validate.py` proves it).
-- [ ] `db/046_compute.sql`: `app.step10_round_grist(grist jsonb, recipe jsonb, targets jsonb,
+- [x] `db/046_compute.sql`: `app.step10_round_grist(grist jsonb, recipe jsonb, targets jsonb,
       stated jsonb, efficiency_pct numeric, volume_l numeric, attenuation_pct numeric) returns
       jsonb` (stable). `grist` is step 10's solved grist (`kg`, role, extract, mashed,
       fermentability, ebc); `recipe` the `formulation_check.input` object built from the exact
@@ -845,13 +845,13 @@ steps" and "Tolerances"; the Task 10b measurement above.
       item. Returns `{grist (kg rounded, pct recomputed), reached, added [keys the chosen grist adds,
       empty when reached], off_nearest [names not at their nearest step], because}`; `because`
       names the step sizes and, when not reached, the added keys with their values.
-- [ ] `db/046_compute.sql`: `app.step10_round_hops(hops jsonb, target_ibu numeric, stated jsonb,
+- [x] `db/046_compute.sql`: `app.step10_round_hops(hops jsonb, target_ibu numeric, stated jsonb,
       boil_sg numeric, volume_l numeric) returns jsonb` (immutable): every hop's `g` to the nearest
       gram, at least 1 g; when `app.ibu` then misses the target or a stated IBU by more than the
       tolerance and the exact grams did not, the bittering addition (the longest boil addition)
       takes the other of its floor and ceiling. `share_pct` recomputed from the rounded grams.
       Returns `{hops, ibu, because}`.
-- [ ] `db/046_compute.sql` `app.step10_compute`: after step 5's `app.solve_grist`, build the
+- [x] `db/046_compute.sql` `app.step10_compute`: after step 5's `app.solve_grist`, build the
       `recipe` object once (as today), call `app.step10_round_grist` at the attenuation used; the
       boil gravity, `app.solve_hops` and then `app.step10_round_hops` use the rounded OG; misc
       `g` = round(dose × batch), at least 1 g (`dose_g_per_l` kept as is). The output's
@@ -860,17 +860,17 @@ steps" and "Tolerances"; the Task 10b measurement above.
       `colour` and the mash line stay as computed before rounding. New output field `rounding`:
       `{steps (app.weighing_steps()), reached, added, off_nearest, because}` (the grist's, with the
       hops' `because` appended).
-- [ ] `db/047_validate.sql` `app.step11_validate`: a failure whose key is in `step10.rounding.added`
+- [x] `db/047_validate.sql` `app.step11_validate`: a failure whose key is in `step10.rounding.added`
       gets its text followed by " It comes from rounding to weighing steps: <rounding.because>" (so
       the retry knows); nothing else changes. `app.step11_fix` is unchanged.
-- [ ] `shared/contracts/step10.output.schema.json`: required `rounding` `{steps {malt_kg,
+- [x] `shared/contracts/step10.output.schema.json`: required `rounding` `{steps {malt_kg,
       sugar_kg, hop_g, extra_g}, reached boolean, added [string], off_nearest [string], because
       string}`; `tests/test_contracts.py`'s step 10 example gains it.
-- [ ] Apply 046 then 047 twice; owners `postgres`; `app` function count for the §8 entry. No workflow
+- [x] Apply 046 then 047 twice; owners `postgres`; `app` function count for the §8 entry. No workflow
       changes: `Check contract` reads `shared/contracts/<name>.schema.json` at run time
       (`n8n/workflows/check-contract.json`), and the try passes `step10` through as an object;
       `app.save_recipe` already saves step 10's `kg`, `pct`, `g` and `share_pct`.
-- [ ] Write, each seen failing first. In `tests/test_compute.py`:
+- [x] Write, each seen failing first. In `tests/test_compute.py`:
       `test_weighing_steps_as_decided` (the four values); `test_amounts_on_weighing_steps` (b01,
       b10, b23, b24 from their good proposals: every fermentable kg a whole multiple of its step and
       at least one step, hops and extras whole grams ≥ 1, `pct` = kg / total × 100 within 1e-9,
@@ -899,7 +899,7 @@ steps" and "Tolerances"; the Task 10b measurement above.
       before, on the rule 3 and rule 4 cases). In `tests/test_save_recipe.py`:
       `test_saved_amounts_on_steps` (b23: every saved `amount` on its step; coffee 60 g) and
       `test_recompute_from_saved_rows` keeps passing (A5, now exact to the column scale).
-- [ ] `evals/revalidate.py` (`python -m evals.revalidate <results.json> [--save --label L]`):
+- [x] `evals/revalidate.py` (`python -m evals.revalidate <results.json> [--save --label L]`):
       for each brief in the file, the last try of its run (largest `try` with a step 11 row): call
       `app.step10_compute` on the logged step 10 `input` fields and `app.step11_validate` on the
       logged step 11 `input` with that new step 10; print per brief `before` (the logged step 11
@@ -908,10 +908,10 @@ steps" and "Tolerances"; the Task 10b measurement above.
       `evals/results/<date>-<label>.json`. SELECTs and function calls only: no LLM, no `app.run`,
       `run_step` or `recipe` writes. `tests/test_run.py::test_revalidate_totals` (no stack: the
       totals of a hand-made list).
-- [ ] Before applying the SQL: `.venv/bin/python -m evals.revalidate evals/results/2026-10-26-m6-9b.json`,
+- [x] Before applying the SQL: `.venv/bin/python -m evals.revalidate evals/results/2026-10-26-m6-9b.json`,
       expect `before` = `after` on all 24 (17 of b01–b20): the code that ran is the code
       re-run. A difference stops the task (`blocked`, with the brief and the field).
-- [ ] **Bar re-check (no G6 re-run):** after applying, `.venv/bin/python -m evals.revalidate
+- [x] **Bar re-check (no G6 re-run):** after applying, `.venv/bin/python -m evals.revalidate
       evals/results/2026-10-26-m6-9b.json --save --label m6-10b-revalidate`. Expect b01–b20 after
       ≥ 16 (A1's bar, unchanged). Measured estimate *(unverified)*: exactly 16 — b15 (Black Malt's
       50 g floor, SRM + 3.15) and b19 (10 L, rule 4 at 50 g steps) fail with the known b12 and b18;
@@ -920,13 +920,13 @@ steps" and "Tolerances"; the Task 10b measurement above.
       further tolerance change without you. A brief that passes `before` and fails `after`
       is a rounding miss; on the real pipeline it would go to a retry *(unverified what the retry
       does)*.
-- [ ] Run `.venv/bin/pytest tests/test_compute.py tests/test_validate.py tests/test_save_recipe.py tests/test_contracts.py tests/test_reference_recipes.py tests/test_choose_table.py tests/test_run.py tests/test_grade.py`, expect all pass; then `.venv/bin/pytest tests/test_pipeline.py::test_b01_validates_and_saves`
+- [x] Run `.venv/bin/pytest tests/test_compute.py tests/test_validate.py tests/test_save_recipe.py tests/test_contracts.py tests/test_reference_recipes.py tests/test_choose_table.py tests/test_run.py tests/test_grade.py`, expect all pass; then `.venv/bin/pytest tests/test_pipeline.py::test_b01_validates_and_saves`
       (one real run: saved rows on their steps, A5 recompute passes), expect pass.
-- [ ] `docs/work/m6-compute-validate/g6-recipes.md`: a section "Rounded (Task 10b)" with the five
+- [x] `docs/work/m6-compute-validate/g6-recipes.md`: a section "Rounded (Task 10b)" with the five
       A11 recipes' rounded fermentables, hops, extras and numbers from the revalidate file; the
       review and verdict above it stay as given. The 20 recipes saved by m6-9b stay as saved
       (unrounded): they are the G6 record.
-- [ ] `docs/DATABASE.md` §5: the four functions, the rounding in step 10 and `app.recipe_tolerances()`
+- [x] `docs/DATABASE.md` §5: the four functions, the rounding in step 10 and `app.recipe_tolerances()`
       SRM 2 (its line names SRM 1 today). PROJECT.md §8 with the before/after counts per brief
       group, the A11 five and the SRM tolerance change.
 Done when: the new tests pass, SQL and harness SRM tolerances are both 2, every amount step 10
@@ -1003,3 +1003,7 @@ OPERATIONS §5 says; no container is recreated.
 - 2026-10-26 · Task 10: gate answered. A11: "would brew after the listed changes; the direction is right" (review in `g6-recipes.md`). b12, b18, b19, b23 accepted as known failures (user: "Accept as known (Rec.)"): b12 and b23 repeat the same picks despite `To fix`; b18 and b19 have no dark malt left to reach the colour. b24 stands in for the non-validating b23 in the five recipes. Rounding is left to a separate plan task.
 - 2026-10-26 · Approach, Task 10b (new), Tasks 10, 11, Files, Critical behaviour: user-requested scope addition: step 10 rounds every amount to what a brewer can weigh and order (malts and flaked grains 50 g, sugars, syrups, honey and lactose 1 g, hops and extras 1 g, each with a one-step floor, never 0), computes OG, FG, ABV, IBU and SRM from the rounded amounts, and step 11 validates the rounded recipe, a miss going to a retry; saved rows hold the rounded amounts and `pct` follows them (user answers "Malts + flaked grains (Rec.)", "1 g (Rec.)", "Now, in M6 (Rec.)"). Chosen here: each amount is rounded down or up, whichever grist adds no failure the exact amounts did not have (measured: nearest alone keeps 11 of the 17 validated b01–b20). The bar is re-checked by re-validating the saved m6-9b picks through the new steps 10–11 (`evals/revalidate.py`, SQL only), not by a G6 re-run. Measured with 50 g for every malt: at best 14 of b01–b20, below A1's 16 (b04, b05, b15: one 50 g step of a roast malt moves SRM more than ± 1); with roast malts at 10 g: 17. Open as Q1; Task 10b is written for the recommended answer. Brief Scope, R1, R11 (new), A5, A7, A12 (new) changed with it (brief Deviations). Plan back to `draft` for approval.
 - 2026-10-26 · Approach, Task 10b, Files: user answer to Q1, "50 g + SRM ± 2" (option c): every malt and flaked grain, roast malts included, rounds to 50 g steps with a 50 g floor (no 10 g roast step); sugars, honey and lactose, hops and extras 1 g; and the SRM tolerance widens from ± 1 to ± 2 for targets and stated numbers. This changes the user's "Brewer bar" decision (2026-10-25) for SRM only; OG, ABV, IBU and batch are unchanged. Task 10b now sets `app.recipe_tolerances()` and `evals/grade.py` `RECIPE_TOLERANCES` SRM to 2 (tests kept equal), drops `roast_kg`, and keeps step 10's colour solver aiming within 1. Re-measured read-only with ± 2: b01–b20 16 of 20, exactly the bar (fail b12, b15, b18, b19), 19/24 *(unverified: retries not replayed)*; the stop-and-ask rule at < 16 stays. Brief R3, R11 and the Assumptions changed with it (brief Deviations).
+- 2026-10-27 · Task 10b: two helper functions beyond the four the task names, `app.step10_grist_failures` (the failures of one grist as `{key: text}`, so the exact and every rounded grist are judged by one function) and `app.step10_set_amounts` (a recipe object with new `targets.og`, fermentable `pct` and hop `g`); `app.step10_round_grist`'s `targets` argument is the plain object `{og, abv, srm}` of step 4's values. Function count in `app`: 142 to 148.
+- 2026-10-27 · Task 10b: b23's coffee is 120 g, not the 60 g the task text names (the good proposal's dose is 6 g/L x 20 L; 60 g was the logged run's 3 g/L), so `test_misc_grams_are_dose_times_batch` and `test_saved_amounts_on_steps` assert 120; orange peel 52.8 g becomes 53 g, vanilla stays 1 g.
+- 2026-10-27 · Task 10b: existing tests whose figure moved with the rounding or the SRM tolerance: `test_amounts_hit_the_targets` (IBU within 2, a share within one 50 g step of the total), `test_og_moves_only_inside_tolerance` (`recipe.targets.og` is now the rounded OG, `numbers.og`; `og_used` stays the OG before rounding), `test_fix_rule_4_points` ("4.77 points off Caraamber 14.8 %", was "5 points off Caraamber 15 %"), `test_fix_rule_3_points` ("9.26 points off Caramel 100 Malt 14.8 %, Caramel 300 Malt 9.5 %"), `test_target_miss_is_a_numbers_failure` (limit 2), and b07's SRM case (1.09 off, now inside 2) moves its target to 2.0 in `test_fix_lighter_base` and `test_fix_numbers_come_from_sql[b07]`. The b19 try-3 case of `test_fix_lower_crystal` still fails SRM, so it kept its target.
+- 2026-10-27 · Task 10b: bar re-check measured: b01-b20 **16 of 20** after (17 before), 19/24 overall (20 before): the plan's estimate held. b15 passes before and fails after (Black Malt's 50 g floor, SRM 15.15 against 12); b12, b18, b19, b23 fail as before. No margin: one more miss would be below A1's bar. `evals/results/2026-10-27-m6-10b-revalidate.json`.

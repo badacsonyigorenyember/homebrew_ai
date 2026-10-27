@@ -1,0 +1,1422 @@
+{
+  "date": "2026-10-27",
+  "label": "m6-10b-revalidate",
+  "source": "2026-10-26-m6-9b.json",
+  "results": [
+    {
+      "id": "b01",
+      "run_id": 4503,
+      "try": 2,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Pale Ale Malt",
+          "kg": 4.8,
+          "pct": 84.95575221238938
+        },
+        {
+          "name": "Caramel 50 Malt",
+          "kg": 0.55,
+          "pct": 9.734513274336283
+        },
+        {
+          "name": "Caramel 30 Malt",
+          "kg": 0.3,
+          "pct": 5.3097345132743365
+        }
+      ],
+      "hops": [
+        {
+          "name": "Columbus",
+          "g": 36
+        },
+        {
+          "name": "Citra",
+          "g": 27
+        },
+        {
+          "name": "Mosaic",
+          "g": 27
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.0122466816,
+        "og": 1.061233408,
+        "abv": 6.326506827479103,
+        "ibu": 65.35767643727871,
+        "srm": 9.358338614258043,
+        "attenuation_pct": 80.0,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": []
+      }
+    },
+    {
+      "id": "b02",
+      "run_id": 4504,
+      "try": 1,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Pale Ale Malt",
+          "kg": 4.95,
+          "pct": 70.2127659574468
+        },
+        {
+          "name": "Flaked Oats",
+          "kg": 2.1,
+          "pct": 29.78723404255319
+        }
+      ],
+      "hops": [
+        {
+          "name": "Citra",
+          "g": 33
+        },
+        {
+          "name": "Citra",
+          "g": 66
+        },
+        {
+          "name": "Mosaic",
+          "g": 66
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.01450410624,
+        "og": 1.074380032,
+        "abv": 7.750638917098617,
+        "ibu": 42.35257703098757,
+        "srm": 5.998538278194613,
+        "attenuation_pct": 80.5,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": []
+      }
+    },
+    {
+      "id": "b03",
+      "run_id": 4505,
+      "try": 3,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Finest Pale Ale Maris Otter",
+          "kg": 3.65,
+          "pct": 70.1923076923077
+        },
+        {
+          "name": "Flaked Oats",
+          "kg": 0.8,
+          "pct": 15.384615384615385
+        },
+        {
+          "name": "Caramel 150 Malt",
+          "kg": 0.4,
+          "pct": 7.6923076923076925
+        },
+        {
+          "name": "Chocolate Dark Malt",
+          "kg": 0.3,
+          "pct": 5.769230769230769
+        },
+        {
+          "name": "Roasted Barley",
+          "kg": 0.05,
+          "pct": 0.9615384615384616
+        }
+      ],
+      "hops": [
+        {
+          "name": "East Kent Golding",
+          "g": 50
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.0125357082624,
+        "og": 1.054908928,
+        "abv": 5.458959418144843,
+        "ibu": 32.74116544743631,
+        "srm": 32.09136160176377,
+        "attenuation_pct": 77.17,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps; Finest Pale Ale Maris Otter is rounded away from the nearest step to keep the numbers and rules the exact amounts met. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": [
+          "Finest Pale Ale Maris Otter"
+        ]
+      }
+    },
+    {
+      "id": "b04",
+      "run_id": 4506,
+      "try": 1,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Finest Pale Ale Maris Otter",
+          "kg": 3.7,
+          "pct": 81.05147864184009
+        },
+        {
+          "name": "Chocolate Dark Malt",
+          "kg": 0.45,
+          "pct": 9.857612267250822
+        },
+        {
+          "name": "Roasted Barley",
+          "kg": 0.05,
+          "pct": 1.095290251916758
+        },
+        {
+          "name": "Lactose",
+          "kg": 0.365,
+          "pct": 7.995618838992333
+        }
+      ],
+      "hops": [
+        {
+          "name": "East Kent Golding",
+          "g": 45
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.018260736,
+        "og": 1.052018944,
+        "abv": 4.320348995753908,
+        "ibu": 30.121815716589445,
+        "srm": 36.04157583356273,
+        "attenuation_pct": 75,
+        "srm_lower_bound": [
+          "Lactose"
+        ]
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": []
+      }
+    },
+    {
+      "id": "b05",
+      "run_id": 4507,
+      "try": 1,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Pale Ale Malt",
+          "kg": 3.1,
+          "pct": 83.78378378378379
+        },
+        {
+          "name": "Roasted Barley",
+          "kg": 0.05,
+          "pct": 1.3513513513513513
+        },
+        {
+          "name": "Chocolate Dark Malt",
+          "kg": 0.35,
+          "pct": 9.45945945945946
+        },
+        {
+          "name": "Flaked Barley",
+          "kg": 0.2,
+          "pct": 5.405405405405405
+        }
+      ],
+      "hops": [
+        {
+          "name": "Challenger",
+          "g": 34
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.00877713408,
+        "og": 1.039896064,
+        "abv": 4.003385929633006,
+        "ibu": 35.16606415120353,
+        "srm": 31.042684799870884,
+        "attenuation_pct": 78.0,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": []
+      }
+    },
+    {
+      "id": "b06",
+      "run_id": 4508,
+      "try": 1,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Pilsner Malt",
+          "kg": 2.4,
+          "pct": 60.0
+        },
+        {
+          "name": "Flaked Rice",
+          "kg": 1.6,
+          "pct": 40.0
+        }
+      ],
+      "hops": [
+        {
+          "name": "Magnum",
+          "g": 8
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.00807211008,
+        "og": 1.044845056,
+        "abv": 4.742080774046072,
+        "ibu": 13.52441434053644,
+        "srm": 2.7626510215895816,
+        "attenuation_pct": 82.0,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": []
+      }
+    },
+    {
+      "id": "b07",
+      "run_id": 4509,
+      "try": 2,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Extra Pale Premium Pilsner Malt",
+          "kg": 3.45,
+          "pct": 80.23255813953489
+        },
+        {
+          "name": "Flaked Corn",
+          "kg": 0.85,
+          "pct": 19.767441860465116
+        }
+      ],
+      "hops": [
+        {
+          "name": "Cascade",
+          "g": 15
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.009652608,
+        "og": 1.04826304,
+        "abv": 4.9770560577149165,
+        "ibu": 13.820740681610443,
+        "srm": 2.641836620676145,
+        "attenuation_pct": 80.0,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": []
+      }
+    },
+    {
+      "id": "b08",
+      "run_id": 4510,
+      "try": 1,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Pilsner Malt",
+          "kg": 1.95,
+          "pct": 95.1219512195122
+        },
+        {
+          "name": "Carapils",
+          "kg": 0.1,
+          "pct": 4.878048780487805
+        }
+      ],
+      "hops": [
+        {
+          "name": "Magnum",
+          "g": 13
+        },
+        {
+          "name": "Tettnanger",
+          "g": 8
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.00864006912,
+        "og": 1.045474048,
+        "abv": 4.748297589334455,
+        "ibu": 50.74973118431247,
+        "srm": 3.239425818899693,
+        "attenuation_pct": 81,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": []
+      }
+    },
+    {
+      "id": "b09",
+      "run_id": 4511,
+      "try": 1,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Munich Malt Type 2",
+          "kg": 3.7,
+          "pct": 70.47619047619048
+        },
+        {
+          "name": "Pilsner Malt",
+          "kg": 1.3,
+          "pct": 24.761904761904763
+        },
+        {
+          "name": "Melanoidin Malt",
+          "kg": 0.25,
+          "pct": 4.761904761904762
+        }
+      ],
+      "hops": [
+        {
+          "name": "Herkules",
+          "g": 10
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.011390976,
+        "og": 1.05695488,
+        "abv": 5.880787588963256,
+        "ibu": 18.75330751775338,
+        "srm": 12.693113106748166,
+        "attenuation_pct": 80,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": []
+      }
+    },
+    {
+      "id": "b10",
+      "run_id": 4512,
+      "try": 2,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Pilsner Malt",
+          "kg": 3.65,
+          "pct": 58.502965218785064
+        },
+        {
+          "name": "Munich Malt Type 1",
+          "kg": 1.25,
+          "pct": 20.035262061227762
+        },
+        {
+          "name": "Abbey Malt",
+          "kg": 0.95,
+          "pct": 15.226799166533098
+        },
+        {
+          "name": "Caraamber",
+          "kg": 0.3,
+          "pct": 4.808462894694663
+        },
+        {
+          "name": "Brown Candi Sugar",
+          "kg": 0.089,
+          "pct": 1.4265106587594165
+        }
+      ],
+      "hops": [
+        {
+          "name": "Saaz",
+          "g": 48
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.0134113536,
+        "og": 1.068765568,
+        "abv": 7.159172190795861,
+        "ibu": 19.989372343555257,
+        "srm": 13.513093941058122,
+        "attenuation_pct": 80.0,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": []
+      }
+    },
+    {
+      "id": "b11",
+      "run_id": 4513,
+      "try": 1,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Pale Ale Malt",
+          "kg": 2.0,
+          "pct": 38.46153846153846
+        },
+        {
+          "name": "Wheat Malt Pale",
+          "kg": 1.05,
+          "pct": 20.192307692307693
+        },
+        {
+          "name": "Abbey Malt",
+          "kg": 2.15,
+          "pct": 41.34615384615385
+        }
+      ],
+      "hops": [
+        {
+          "name": "Magnum",
+          "g": 18
+        },
+        {
+          "name": "Saaz",
+          "g": 12
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.0056035584,
+        "og": 1.056035584,
+        "abv": 6.544496330755706,
+        "ibu": 28.117897387051865,
+        "srm": 13.403723527479805,
+        "attenuation_pct": 90.0,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": []
+      }
+    },
+    {
+      "id": "b12",
+      "run_id": 4514,
+      "try": 3,
+      "before": false,
+      "after": false,
+      "failures": [
+        "Rule 10: the predicted FG 1.0078 (mash 69 °C) is outside the target FG range 1.0080 to 1.0130."
+      ],
+      "fermentables": [
+        {
+          "name": "Pale Ale Malt",
+          "kg": 3.25,
+          "pct": 85.16771488469601
+        },
+        {
+          "name": "Honey",
+          "kg": 0.566,
+          "pct": 14.832285115303984
+        }
+      ],
+      "hops": [
+        {
+          "name": "Cascade",
+          "g": 25
+        },
+        {
+          "name": "Cascade",
+          "g": 17
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.0078084864,
+        "og": 1.0444694272,
+        "abv": 4.7282666141770235,
+        "ibu": 21.590062509789753,
+        "srm": 4.189886987663726,
+        "attenuation_pct": 78,
+        "srm_lower_bound": [
+          "Honey"
+        ]
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps; Pale Ale Malt is rounded away from the nearest step to keep the numbers and rules the exact amounts met. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": [
+          "Pale Ale Malt"
+        ]
+      }
+    },
+    {
+      "id": "b13",
+      "run_id": 4515,
+      "try": 1,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Wheat Malt Pale",
+          "kg": 1.6,
+          "pct": 50.0
+        },
+        {
+          "name": "Pilsner Malt",
+          "kg": 1.6,
+          "pct": 50.0
+        }
+      ],
+      "hops": [
+        {
+          "name": "Magnum",
+          "g": 5
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.011261952,
+        "og": 1.0479232,
+        "abv": 4.717728158309952,
+        "ibu": 11.251511745776485,
+        "srm": 3.4588789388650567,
+        "attenuation_pct": 76.5,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": []
+      }
+    },
+    {
+      "id": "b14",
+      "run_id": 4516,
+      "try": 1,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Wheat Malt Pale",
+          "kg": 1.25,
+          "pct": 50.0
+        },
+        {
+          "name": "Pilsner Malt",
+          "kg": 1.25,
+          "pct": 50.0
+        }
+      ],
+      "hops": [
+        {
+          "name": "Magnum",
+          "g": 3
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.0057564,
+        "og": 1.02808,
+        "abv": 2.86894201525805,
+        "ibu": 5.70904360187963,
+        "srm": 2.391953621021769,
+        "attenuation_pct": 79.5,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": []
+      }
+    },
+    {
+      "id": "b15",
+      "run_id": 4517,
+      "try": 1,
+      "before": true,
+      "after": false,
+      "failures": [
+        "Step 11: the SRM is 15.15 and the target is 12 (limit +- 2). It comes from rounding to weighing steps: Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps, and no grist on those steps avoids what the exact amounts did not have: numbers srm (SRM 15.15 against 12 (limit +- 2)). Hops are weighed to the gram, at least 1 g."
+      ],
+      "fermentables": [
+        {
+          "name": "Finest Pale Ale Maris Otter",
+          "kg": 4.2,
+          "pct": 89.36170212765957
+        },
+        {
+          "name": "Crystal T50",
+          "kg": 0.45,
+          "pct": 9.574468085106384
+        },
+        {
+          "name": "Black Malt",
+          "kg": 0.05,
+          "pct": 1.0638297872340425
+        }
+      ],
+      "hops": [
+        {
+          "name": "East Kent Golding",
+          "g": 53
+        },
+        {
+          "name": "East Kent Golding",
+          "g": 53
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.009693749426087,
+        "og": 1.0440624973913044,
+        "abv": 4.423744204593283,
+        "ibu": 32.567667760507405,
+        "srm": 15.152134810331138,
+        "attenuation_pct": 78.0,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [
+          "numbers srm"
+        ],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps, and no grist on those steps avoids what the exact amounts did not have: numbers srm (SRM 15.15 against 12 (limit +- 2)). Hops are weighed to the gram, at least 1 g.",
+        "reached": false,
+        "off_nearest": []
+      }
+    },
+    {
+      "id": "b16",
+      "run_id": 4518,
+      "try": 3,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Pale Ale Malt",
+          "kg": 3.25,
+          "pct": 69.89247311827957
+        },
+        {
+          "name": "Flaked Rice",
+          "kg": 0.95,
+          "pct": 20.43010752688172
+        },
+        {
+          "name": "Caramel 50 Malt",
+          "kg": 0.45,
+          "pct": 9.67741935483871
+        }
+      ],
+      "hops": [
+        {
+          "name": "Centennial",
+          "g": 31
+        },
+        {
+          "name": "Cascade",
+          "g": 16
+        },
+        {
+          "name": "Cascade",
+          "g": 16
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.0101855232,
+        "og": 1.050927616,
+        "abv": 5.253857069750148,
+        "ibu": 39.944884766025034,
+        "srm": 7.113730132212962,
+        "attenuation_pct": 80.0,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps; Flaked Rice is rounded away from the nearest step to keep the numbers and rules the exact amounts met. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": [
+          "Flaked Rice"
+        ]
+      }
+    },
+    {
+      "id": "b17",
+      "run_id": 4519,
+      "try": 1,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Pilsner Malt",
+          "kg": 4.35,
+          "pct": 70.73170731707317
+        },
+        {
+          "name": "Munich Malt Type 2",
+          "kg": 1.55,
+          "pct": 25.203252032520325
+        },
+        {
+          "name": "Carafa Special Type 1",
+          "kg": 0.25,
+          "pct": 4.065040650406504
+        }
+      ],
+      "hops": [
+        {
+          "name": "Magnum",
+          "g": 19
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.01279988352,
+        "og": 1.067367808,
+        "abv": 7.058338913872913,
+        "ibu": 27.397519992783938,
+        "srm": 24.62300658667567,
+        "attenuation_pct": 81,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": []
+      }
+    },
+    {
+      "id": "b18",
+      "run_id": 4520,
+      "try": 3,
+      "before": false,
+      "after": false,
+      "failures": [
+        "Step 11: the SRM is 15.62 and the target is 20 (limit +- 2). The colour adjustment could not reach it: Roasted Barley 2.00 % to 2.00 %, Pale Ale Malt 68.00 % to 68.00 %: SRM 17.9 to 17.9 (target 20), still more than 1 away because of the share limits"
+      ],
+      "fermentables": [
+        {
+          "name": "Pale Ale Malt",
+          "kg": 2.65,
+          "pct": 68.83116883116882
+        },
+        {
+          "name": "Caramel 50 Malt",
+          "kg": 0.4,
+          "pct": 10.38961038961039
+        },
+        {
+          "name": "Roasted Barley",
+          "kg": 0.05,
+          "pct": 1.2987012987012987
+        },
+        {
+          "name": "Red Ale Malt",
+          "kg": 0.75,
+          "pct": 19.48051948051948
+        }
+      ],
+      "hops": [
+        {
+          "name": "East Kent Golding",
+          "g": 32
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.012802752,
+        "og": 1.0412992,
+        "abv": 3.6531869151123524,
+        "ibu": 23.239233244693988,
+        "srm": 15.618739236384378,
+        "attenuation_pct": 69.0,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps; Roasted Barley, Red Ale Malt is rounded away from the nearest step to keep the numbers and rules the exact amounts met. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": [
+          "Roasted Barley",
+          "Red Ale Malt"
+        ]
+      }
+    },
+    {
+      "id": "b19",
+      "run_id": 4521,
+      "try": 3,
+      "before": false,
+      "after": false,
+      "failures": [
+        "Step 11: the ABV is 10.2 and the target is 9.99 (limit +- 0.2). It comes from rounding to weighing steps: Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps, and no grist on those steps avoids what the exact amounts did not have: numbers abv (ABV 10.2 against 9.99 (limit +- 0.2)); numbers srm (SRM 22.42 against 19.5 (limit +- 2)); rule 4. Hops are weighed to the gram, at least 1 g.",
+        "Step 11: the SRM is 22.42 and the target is 19.5 (limit +- 2). The colour adjustment could not reach it: Finest Pale Ale Golden Promise is the darkest fermentable and no other base malt can take up the change. It comes from rounding to weighing steps: Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps, and no grist on those steps avoids what the exact amounts did not have: numbers abv (ABV 10.2 against 9.99 (limit +- 0.2)); numbers srm (SRM 22.42 against 19.5 (limit +- 2)); rule 4. Hops are weighed to the gram, at least 1 g.",
+        "Rule 4: crystal above 60 EBC is 10.9 % of the grist (Caramel 100 Malt 5.4 %, Caramel 300 Malt 5.4 %); the limit is 10 %. It comes from rounding to weighing steps: Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps, and no grist on those steps avoids what the exact amounts did not have: numbers abv (ABV 10.2 against 9.99 (limit +- 0.2)); numbers srm (SRM 22.42 against 19.5 (limit +- 2)); rule 4. Hops are weighed to the gram, at least 1 g.",
+        "Rule 4: crystal above 160 EBC is 5.4 % of the grist (Caramel 300 Malt 5.4 %); the limit is 5 %. It comes from rounding to weighing steps: Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps, and no grist on those steps avoids what the exact amounts did not have: numbers abv (ABV 10.2 against 9.99 (limit +- 0.2)); numbers srm (SRM 22.42 against 19.5 (limit +- 2)); rule 4. Hops are weighed to the gram, at least 1 g."
+      ],
+      "fermentables": [
+        {
+          "name": "Finest Pale Ale Golden Promise",
+          "kg": 3.65,
+          "pct": 79.2272628608639
+        },
+        {
+          "name": "Caramel 100 Malt",
+          "kg": 0.25,
+          "pct": 5.426524853483829
+        },
+        {
+          "name": "Caramel 300 Malt",
+          "kg": 0.25,
+          "pct": 5.426524853483829
+        },
+        {
+          "name": "Honey",
+          "kg": 0.457,
+          "pct": 9.91968743216844
+        }
+      ],
+      "hops": [
+        {
+          "name": "East Kent Golding",
+          "g": 20
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.0262987776,
+        "og": 1.1051807488,
+        "abv": 10.202038662272669,
+        "ibu": 19.57175196767784,
+        "srm": 22.419481361156134,
+        "attenuation_pct": 71.0,
+        "srm_lower_bound": [
+          "Honey"
+        ]
+      },
+      "rounding": {
+        "added": [
+          "numbers abv",
+          "numbers srm",
+          "rule 4"
+        ],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps, and no grist on those steps avoids what the exact amounts did not have: numbers abv (ABV 10.2 against 9.99 (limit +- 0.2)); numbers srm (SRM 22.42 against 19.5 (limit +- 2)); rule 4. Hops are weighed to the gram, at least 1 g.",
+        "reached": false,
+        "off_nearest": []
+      }
+    },
+    {
+      "id": "b20",
+      "run_id": 4522,
+      "try": 1,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Pale Ale Malt",
+          "kg": 3.65,
+          "pct": 77.94149049754431
+        },
+        {
+          "name": "Caramel 50 Malt",
+          "kg": 0.5,
+          "pct": 10.676916506512919
+        },
+        {
+          "name": "Chocolate Dark Malt",
+          "kg": 0.3,
+          "pct": 6.406149903907751
+        },
+        {
+          "name": "Lactose",
+          "kg": 0.233,
+          "pct": 4.97544309203502
+        }
+      ],
+      "hops": [
+        {
+          "name": "Cascade",
+          "g": 31
+        },
+        {
+          "name": "Cascade",
+          "g": 31
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.0145404690432,
+        "og": 1.052802304,
+        "abv": 4.915995296052984,
+        "ibu": 25.12784846136681,
+        "srm": 27.03947131608671,
+        "attenuation_pct": 79.17,
+        "srm_lower_bound": [
+          "Lactose"
+        ]
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps; Caramel 50 Malt is rounded away from the nearest step to keep the numbers and rules the exact amounts met. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": [
+          "Caramel 50 Malt"
+        ]
+      }
+    },
+    {
+      "id": "b21",
+      "run_id": 4523,
+      "try": 2,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Pale Ale Malt",
+          "kg": 3.2,
+          "pct": 85.33333333333333
+        },
+        {
+          "name": "Caramel 30 Malt",
+          "kg": 0.35,
+          "pct": 9.333333333333334
+        },
+        {
+          "name": "Caraamber",
+          "kg": 0.2,
+          "pct": 5.333333333333333
+        }
+      ],
+      "hops": [
+        {
+          "name": "Columbus",
+          "g": 18
+        },
+        {
+          "name": "Citra",
+          "g": 13
+        },
+        {
+          "name": "Cascade",
+          "g": 13
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.0081298944,
+        "og": 1.040649472,
+        "abv": 4.187338883529474,
+        "ibu": 38.21619250784008,
+        "srm": 7.092516148442473,
+        "attenuation_pct": 80.0,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": []
+      }
+    },
+    {
+      "id": "b22",
+      "run_id": 4524,
+      "try": 2,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Pilsner Malt",
+          "kg": 2.45,
+          "pct": 55.68181818181818
+        },
+        {
+          "name": "Flaked Rice",
+          "kg": 0.9,
+          "pct": 20.454545454545453
+        },
+        {
+          "name": "Caraamber",
+          "kg": 0.4,
+          "pct": 9.090909090909092
+        },
+        {
+          "name": "Melanoidin Malt",
+          "kg": 0.65,
+          "pct": 14.772727272727273
+        }
+      ],
+      "hops": [
+        {
+          "name": "Magnum",
+          "g": 8
+        }
+      ],
+      "extras": [],
+      "numbers": {
+        "fg": 1.0109666362061849,
+        "og": 1.048352896,
+        "abv": 4.813138897030565,
+        "ibu": 13.193527512999902,
+        "srm": 10.846822726815187,
+        "attenuation_pct": 77.31958762886718,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps; Caraamber is rounded away from the nearest step to keep the numbers and rules the exact amounts met. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": [
+          "Caraamber"
+        ]
+      }
+    },
+    {
+      "id": "b23",
+      "run_id": 4525,
+      "try": 3,
+      "before": false,
+      "after": false,
+      "failures": [
+        "Step 11: the ABV is 6.29 and the target is 5.99 (limit +- 0.2)."
+      ],
+      "fermentables": [
+        {
+          "name": "Pale Ale Malt",
+          "kg": 4.9,
+          "pct": 87.5
+        },
+        {
+          "name": "Chocolate Dark Malt",
+          "kg": 0.4,
+          "pct": 7.142857142857143
+        },
+        {
+          "name": "Caramel 150 Malt",
+          "kg": 0.25,
+          "pct": 4.464285714285714
+        },
+        {
+          "name": "Black Malt",
+          "kg": 0.05,
+          "pct": 0.8928571428571429
+        }
+      ],
+      "hops": [
+        {
+          "name": "Centennial",
+          "g": 46
+        }
+      ],
+      "extras": [
+        {
+          "name": "Coffee, whole beans",
+          "g": 60
+        },
+        {
+          "name": "Vanilla bean",
+          "g": 1
+        }
+      ],
+      "numbers": {
+        "fg": 1.0121803264,
+        "og": 1.060901632,
+        "abv": 6.291923325172259,
+        "ibu": 54.943583278840904,
+        "srm": 36.772066740435804,
+        "attenuation_pct": 80.0,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps; Pale Ale Malt, Caramel 150 Malt is rounded away from the nearest step to keep the numbers and rules the exact amounts met. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": [
+          "Pale Ale Malt",
+          "Caramel 150 Malt"
+        ]
+      }
+    },
+    {
+      "id": "b24",
+      "run_id": 4526,
+      "try": 1,
+      "before": true,
+      "after": true,
+      "failures": [],
+      "fermentables": [
+        {
+          "name": "Pale Ale Malt",
+          "kg": 4.2,
+          "pct": 89.36170212765957
+        },
+        {
+          "name": "Caramel 30 Malt",
+          "kg": 0.25,
+          "pct": 5.319148936170213
+        },
+        {
+          "name": "Caramel 50 Malt",
+          "kg": 0.25,
+          "pct": 5.319148936170213
+        }
+      ],
+      "hops": [
+        {
+          "name": "Cascade",
+          "g": 49
+        },
+        {
+          "name": "Cascade",
+          "g": 49
+        }
+      ],
+      "extras": [
+        {
+          "name": "Orange peel",
+          "g": 53
+        }
+      ],
+      "numbers": {
+        "fg": 1.0102104064,
+        "og": 1.051052032,
+        "abv": 5.266786959135615,
+        "ibu": 40.2503966363854,
+        "srm": 7.307128773849502,
+        "attenuation_pct": 80.0,
+        "srm_lower_bound": []
+      },
+      "rounding": {
+        "added": [],
+        "steps": {
+          "hop_g": 1,
+          "extra_g": 1,
+          "malt_kg": 0.05,
+          "sugar_kg": 0.001
+        },
+        "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.",
+        "reached": true,
+        "off_nearest": []
+      }
+    }
+  ],
+  "totals": {
+    "b01_b20": {
+      "before": 17,
+      "after": 16
+    },
+    "all": {
+      "before": 20,
+      "after": 19
+    }
+  }
+}

@@ -877,4 +877,4 @@ def test_recipe_invented_items_and_not_validated():
 
 
 def test_recipe_tolerances_are_the_user_decision():
-    assert grade.RECIPE_TOLERANCES == {"og": 0.002, "abv": 0.2, "ibu": 2, "srm": 1, "batch_l": 0}
+    assert grade.RECIPE_TOLERANCES == {"og": 0.002, "abv": 0.2, "ibu": 2, "srm": 2, "batch_l": 0}

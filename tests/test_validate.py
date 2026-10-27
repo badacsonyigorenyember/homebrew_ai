@@ -71,7 +71,7 @@ def test_target_miss_is_a_numbers_failure(conn):
     v = validate(conn, out, inp, picks, frame, targets=targets)
     assert v["passed"] is False and kinds(v) == ["numbers"]
     f = v["failures"][0]
-    assert f["subject"] == "srm" and f["limit"] == 1 and f["value"] is not None and f["ban"] is None
+    assert f["subject"] == "srm" and f["limit"] == 2 and f["value"] is not None and f["ban"] is None
     assert "SRM" in f["text"] and v["feedback"] == [f["text"]] and v["banned"] == []
     assert [t["met"] for t in v["targets"] if t["key"] == "srm"] == [False]
 
@@ -316,9 +316,15 @@ CARAMEL100 = ("Viking Malt", "Caramel 100 Malt")
 CARAMEL300 = ("Viking Malt", "Caramel 300 Malt")
 
 
+# b07's grist is 1.09 SRM too dark, which SRM +- 2 now accepts (Task 10b): its target moves to 2.0 so the case still fails
+SRM_TARGET = {"b07": 2.0}
+
+
 def fix_case(conn, bid, fermentables, yeast):
     """Step 10 and step 11 of a brief on G6's picks: (inp, out, validation)."""
     inp = tc.with_picks(conn, bid, fermentables, yeast)
+    if bid in SRM_TARGET:
+        inp["targets"]["targets"]["srm"]["value"] = SRM_TARGET[bid]
     out = compute(conn, inp)
     picks = [{"ingredient_id": f["ingredient_id"], "name": f["name"], "self_picked": False}
              for f in out["fermentables"]]
@@ -405,14 +411,14 @@ def test_fix_rule_4_points(conn):
     _, _, v = fix_case(conn, "b22", [(tc.PILSNER, 60), (RICE, 20), (CARAAMBER, 15), (tc.MELANOIDIN, 5)],
                        ("Lallemand", "Diamond"))
     f, fix = fix_of(v, "rule 4")
-    assert fix == "take at least 5 points off Caraamber 15 %."
+    assert fix == "take at least 4.77 points off Caraamber 14.8 %."
 
 
 def test_fix_rule_3_points(conn):
     _, _, v = fix_case(conn, "b19", [(GOLDEN, 70), (CARAMEL100, 15), (CARAMEL300, 10), (tc.HONEY, 5)],
                        ("Gozdawa", "Real Scotland"))
     f, fix = fix_of(v, "rule 3")
-    assert fix == "take at least 10 points off Caramel 100 Malt 15 %, Caramel 300 Malt 10 %."
+    assert fix == "take at least 9.26 points off Caramel 100 Malt 14.8 %, Caramel 300 Malt 9.5 %."
 
 
 def test_fix_rule_11_tolerance(conn):
@@ -514,3 +520,64 @@ def test_attenuation_for_fg_inverts_fg(conn, bid):
                               [grist, og, eff, vol]).fetchone()[0]) == 0
     assert float(conn.execute("select app.attenuation_for_fg(%s::jsonb, %s::numeric, %s::numeric, %s::numeric, 1.0)",
                               [grist, og, eff, vol]).fetchone()[0]) == 100
+
+
+# ---- Task 10b: rounding to weighing steps ----
+
+def rerun(conn, run_id):
+    from evals import revalidate
+    r = revalidate.revalidate_run(conn, run_id)
+    conn.rollback()
+    if r is None:
+        pytest.skip(f"run {run_id} is not in this database")
+    return r
+
+
+def test_rounding_failure_says_rounding(conn):
+    """b15's Black Malt floor of 50 g puts SRM out; step 11's SRM line ends with the rounding sentence."""
+    r = rerun(conn, 4517)
+    srm = next(t for t in r["failures"] if "SRM" in t)
+    assert "It comes from rounding to weighing steps: " in srm
+    assert srm.endswith(r["rounding"]["because"])
+
+
+def test_srm_tolerance_is_two(conn):
+    """b04's m6-9b grist rounded gives SRM 36.04 against 35: passes at 2; 2.5 away fails, stated or not."""
+    from evals.revalidate import call
+    row = conn.execute("select input from app.run_step where run_id = 4506 and step = 11 and ok "
+                       "order by try desc limit 1").fetchone()
+    in10 = conn.execute("select input from app.run_step where run_id = 4506 and step = 10 and ok "
+                        "order by try desc limit 1").fetchone()[0]
+    conn.rollback()
+    in11 = row[0]
+    out = compute(conn, in10)
+    srm = float(out["numbers"]["srm"])
+    ok = call(conn, "step11_validate", out, in11["brief"], in11["targets"], in11["frame"], in11["picks"])
+    assert not any("SRM" in f["text"] for f in ok["failures"])
+    targets = copy.deepcopy(in11["targets"])
+    targets["targets"]["srm"]["value"] = srm - 2.5
+    bad = call(conn, "step11_validate", out, in11["brief"], targets, in11["frame"], in11["picks"])
+    text = next(f["text"] for f in bad["failures"] if f["subject"] == "srm")
+    assert "limit +- 2)" in text
+    brief = copy.deepcopy(in11["brief"])
+    brief["stated"] = {**brief.get("stated", {}), "srm": srm + 2.5}
+    stated = call(conn, "step11_validate", out, brief, in11["targets"], in11["frame"], in11["picks"])
+    assert any(f["subject"] == "stated srm" and "limit +- 2)" in f["text"] for f in stated["failures"])
+
+
+def test_rule_failures_unchanged(conn):
+    """app.recipe_rule_failures gives step 11 the rule failures it always had, on every logged m6-9b
+    step 11 (the rule 3, 4, 8 and 10 cases among them)."""
+    rows = conn.execute("select run_id, output from app.run_step where step = 11 and run_id between 4503 and 4526 "
+                        "and output is not null").fetchall()
+    conn.rollback()
+    if not rows:
+        pytest.skip("the m6-9b runs are not in this database")
+    rules = set()
+    for run_id, output in rows:
+        got = sql(conn, "recipe_rule_failures", output["check"])
+        logged = [{"rule": int(f["subject"].split()[1]), "text": f["text"], "value": f["value"], "limit": f["limit"]}
+                  for f in output["failures"] if f["kind"] == "rule"]
+        assert got == logged, run_id
+        rules |= {g["rule"] for g in got}
+    assert {3, 4} <= rules

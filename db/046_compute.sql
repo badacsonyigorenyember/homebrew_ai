@@ -3,6 +3,9 @@
 -- adds app.step10_boil, app.step10_abv and app.step10_compute. s1's functions do all the maths,
 -- no LLM.
 -- Task 9b (second colour pass, rule 3 and 5 caps, mash move) changes solve_colour and step10_compute.
+-- Task 10b (rounding to weighing steps) adds app.weighing_steps, app.recipe_rule_failures,
+-- app.step10_grist_failures, app.step10_round_grist, app.step10_round_hops, app.step10_set_amounts
+-- and rounds the amounts in step10_compute.
 -- Needs db/030_maths.sql (grist_mcu, srm, solve_grist), db/032_formulation_check.sql,
 -- db/037_step3.sql (ingredient_choices).
 -- Apply as postgres (docs/OPERATIONS.md §4):
@@ -44,7 +47,9 @@ language plpgsql
 immutable
 as $$
 declare
-    tolerance constant numeric := 1;  -- SRM, the brief's tolerance (user decision 2026-10-25)
+    -- the colour solver aims within 1 SRM, tighter than step 11's +- 2 (app.recipe_tolerances, widened
+    -- 2026-10-26 for the rounding), so the rounding to 50 g steps has the rest of the 2 to use
+    tolerance constant numeric := 1;
     least constant numeric := 0.01;   -- the smallest share a fermentable may be left with, in percent
     l jsonb := app.formulation_limits();
     items jsonb;
@@ -332,6 +337,274 @@ begin
 end;
 $$;
 
+-- The weighing steps (Task 10b of m6-compute-validate; user decisions 2026-10-26: "malts, I want 50g
+-- rounding", "Malts + flaked grains (Rec.)", "1 g (Rec.)", and "50 g + SRM +- 2"): every malt and
+-- flaked grain, roast malts included, 50 g; a fermentable with role sugar (sugars, syrups, honey,
+-- lactose) 1 g; hops and extras 1 g. The floor is one step, never 0.
+create or replace function app.weighing_steps()
+returns jsonb
+language sql
+immutable
+as $$
+    select '{"malt_kg": 0.05, "sugar_kg": 0.001, "hop_g": 1, "extra_g": 1}'::jsonb
+$$;
+
+comment on function app.weighing_steps() is
+    'The step each amount is rounded to by step 10: malts and flaked grains 50 g, sugars 1 g, hops and extras 1 g; the floor is one step.';
+
+-- The failures of an app.check_recipe output as [{rule, text, value, limit}], without rule 9's OG
+-- and ABV target lines: step 10 moves the OG on purpose and step 11 checks the OG and ABV against
+-- their targets at +- 0.002 and +- 0.2 by the numbers check (Task 5).
+create or replace function app.recipe_rule_failures(check_out jsonb)
+returns jsonb
+language plpgsql
+immutable
+as $$
+declare
+    r jsonb;
+    f jsonb;
+    found jsonb := '[]'::jsonb;
+begin
+    for r in select * from jsonb_array_elements(check_out -> 'results') loop
+        continue when r ->> 'status' <> 'fail';
+        for f in select * from jsonb_array_elements(r -> 'failures') loop
+            continue when (r ->> 'rule')::int = 9
+                      and (starts_with(f ->> 'text', 'Rule 9: the OG target ')
+                           or starts_with(f ->> 'text', 'Rule 9: the ABV target '));
+            found := found || jsonb_build_object('rule', (r ->> 'rule')::int, 'text', f ->> 'text',
+                                                'value', f -> 'value', 'limit', f -> 'limit');
+        end loop;
+    end loop;
+    return found;
+end;
+$$;
+
+comment on function app.recipe_rule_failures(jsonb) is
+    'The rule failures of an app.check_recipe output as [{rule, text, value, limit}], without rule 9''s OG and ABV target lines.';
+
+-- A recipe object (the formulation_check.input step 11 checks) with new amounts: targets.og, the
+-- fermentables'' pct (in the order of the grist) and the hops'' g (in the order of the hops).
+create or replace function app.step10_set_amounts(recipe jsonb, og numeric, grist jsonb, hops jsonb)
+returns jsonb
+language sql
+immutable
+as $$
+    select jsonb_set(jsonb_set(jsonb_set(recipe, '{targets,og}', to_jsonb(og)),
+        '{fermentables}', (select jsonb_agg(f || jsonb_build_object('pct', g -> 'pct') order by ord)
+                             from jsonb_array_elements(recipe -> 'fermentables') with ordinality t(f, ord)
+                             join jsonb_array_elements(grist) with ordinality u(g, ord2) on ord = ord2)),
+        '{hops}', coalesce((select jsonb_agg(h || jsonb_build_object('g', x -> 'g') order by ord)
+                              from jsonb_array_elements(recipe -> 'hops') with ordinality t(h, ord)
+                              join jsonb_array_elements(hops) with ordinality u(x, ord2) on ord = ord2), '[]'::jsonb))
+$$;
+
+-- The failures of one grist, as {key: text}: OG, ABV and SRM outside app.recipe_tolerances() of
+-- step 4's targets or of the stated numbers (key "numbers og" ...), and the failed rules of
+-- app.check_recipe on the recipe with this grist (key "rule 4" ...). grist items {kg, ...} as
+-- step10_round_grist takes them; pct and targets.og follow the kg. Used for the exact grist and for
+-- every rounded one, so the two are judged the same way.
+create or replace function app.step10_grist_failures(grist jsonb, recipe jsonb, targets jsonb, stated jsonb,
+                                                     efficiency_pct numeric, volume_l numeric,
+                                                     attenuation_pct numeric)
+returns jsonb
+language plpgsql
+stable
+as $$
+declare
+    tol jsonb := app.recipe_tolerances();
+    total numeric;
+    shaped jsonb;
+    og numeric; fg numeric; abv numeric; srm numeric;
+    found jsonb := '{}'::jsonb;
+    k text;
+    got numeric; want numeric; wanted_stated numeric;
+    f jsonb;
+begin
+    select sum((g ->> 'kg')::numeric) into total from jsonb_array_elements(grist) g;
+    select jsonb_agg(g || jsonb_build_object('pct', (g ->> 'kg')::numeric / total * 100) order by ord)
+      into shaped from jsonb_array_elements(grist) with ordinality t(g, ord);
+    og := app.og(shaped, efficiency_pct, volume_l);
+    if attenuation_pct is not null then
+        fg := app.fg(shaped, efficiency_pct, volume_l, attenuation_pct);
+        abv := app.abv(og, fg);
+    end if;
+    srm := app.srm(app.grist_mcu(shaped, volume_l));
+    foreach k in array array['og', 'abv', 'srm'] loop
+        got := case k when 'og' then og when 'abv' then abv else srm end;
+        want := (targets ->> k)::numeric;
+        wanted_stated := (stated ->> k)::numeric;
+        if got is null
+           or (want is not null and abs(got - want) > (tol ->> k)::numeric + 1e-9)
+           or (wanted_stated is not null and abs(got - wanted_stated) > (tol ->> k)::numeric + 1e-9) then
+            found := found || jsonb_build_object('numbers ' || k,
+                case when got is null then upper(k) || ' cannot be computed'
+                     else format('%s %s against %s (limit +- %s)', upper(k),
+                                 trim_scale(round(got, case when k = 'og' then 4 else 2 end)),
+                                 trim_scale(round(coalesce(wanted_stated, want), case when k = 'og' then 4 else 2 end)),
+                                 trim_scale((tol ->> k)::numeric)) end);
+        end if;
+    end loop;
+    for f in select * from jsonb_array_elements(
+                 app.recipe_rule_failures(app.check_recipe(app.step10_set_amounts(recipe, og, shaped, recipe -> 'hops')))) loop
+        if not found ? ('rule ' || (f ->> 'rule')) then
+            found := found || jsonb_build_object('rule ' || (f ->> 'rule'), f ->> 'text');
+        end if;
+    end loop;
+    return found;
+end;
+$$;
+
+-- Round a solved grist to the weighing steps (Task 10b). grist: step 10's solved grist (kg, role,
+-- extract_pct, mashed, fermentability, ebc, ...); recipe: the formulation_check.input object built
+-- from the exact amounts; targets: {og, abv, srm} of step 4 as numbers; stated: the numbers the user
+-- stated. Each fermentable goes down or up to its step (at least one step; one candidate when kg is
+-- on a step): at most 2^n grists, ordered by the sum of |rounded - exact| kg (ties: the order the
+-- combinations are listed in, the first fermentable changing fastest). The first whose failures
+-- (app.step10_grist_failures) are all among the exact grist's wins. None: the nearest step for every
+-- fermentable. Returns {grist (kg rounded, pct recomputed), reached, added (keys the chosen grist
+-- adds, empty when reached), off_nearest (names not at their nearest step), because}.
+create or replace function app.step10_round_grist(grist jsonb, recipe jsonb, targets jsonb, stated jsonb,
+                                                  efficiency_pct numeric, volume_l numeric,
+                                                  attenuation_pct numeric)
+returns jsonb
+language plpgsql
+stable
+as $$
+declare
+    steps jsonb := app.weighing_steps();
+    n int := jsonb_array_length(grist);
+    exact jsonb;
+    nearest jsonb;
+    chosen jsonb := null;
+    combo record;
+    cand jsonb;
+    fails jsonb;
+    nearest_fails jsonb;
+    added text[];
+    off text[];
+    reached boolean;
+    why text;
+    total numeric;
+begin
+    exact := app.step10_grist_failures(grist, recipe, targets, stated, efficiency_pct, volume_l, attenuation_pct);
+    -- the nearest step for every fermentable, at least one step
+    select jsonb_agg(g || jsonb_build_object('kg', greatest(round((g ->> 'kg')::numeric / st) * st, st)) order by ord)
+      into nearest
+      from jsonb_array_elements(grist) with ordinality t(g, ord),
+           lateral (select (case when g ->> 'role' = 'sugar' then steps ->> 'sugar_kg'
+                                 else steps ->> 'malt_kg' end)::numeric st) s;
+    -- every combination of down and up: digit 0 = down, 1 = up; the first fermentable is the fastest digit
+    for combo in
+        with recursive items as (
+            select ord, (g ->> 'kg')::numeric kg,
+                   (case when g ->> 'role' = 'sugar' then steps ->> 'sugar_kg' else steps ->> 'malt_kg' end)::numeric st
+              from jsonb_array_elements(grist) with ordinality t(g, ord)),
+        cands as (
+            select ord, 0 digit, greatest(floor(kg / st) * st, st) kg_r, kg from items
+            union all
+            select ord, 1, greatest(ceil(kg / st) * st, st), kg from items
+             where greatest(ceil(kg / st) * st, st) <> greatest(floor(kg / st) * st, st)),
+        walk(ord, kgs, idx, dist) as (
+            select c.ord, array[c.kg_r], c.digit::bigint, abs(c.kg_r - c.kg) from cands c where c.ord = 1
+            union all
+            select c.ord, w.kgs || c.kg_r, w.idx + c.digit::bigint * (1::bigint << (c.ord - 1)::int),
+                   w.dist + abs(c.kg_r - c.kg)
+              from walk w join cands c on c.ord = w.ord + 1)
+        select kgs, dist, idx from walk where ord = n order by dist, idx
+    loop
+        select jsonb_agg(g || jsonb_build_object('kg', combo.kgs[ord::int]) order by ord)
+          into cand from jsonb_array_elements(grist) with ordinality t(g, ord);
+        fails := app.step10_grist_failures(cand, recipe, targets, stated, efficiency_pct, volume_l, attenuation_pct);
+        if not exists (select 1 from jsonb_object_keys(fails) k where not exact ? k) then
+            chosen := cand;
+            exit;
+        end if;
+    end loop;
+    reached := chosen is not null;
+    if not reached then
+        chosen := nearest;
+        nearest_fails := app.step10_grist_failures(nearest, recipe, targets, stated, efficiency_pct, volume_l, attenuation_pct);
+        select array_agg(k order by k) into added from jsonb_each_text(nearest_fails) e(k, v) where not exact ? k;
+        select string_agg(case when starts_with(k, 'rule') then k else k || ' (' || v || ')' end, '; ' order by k) into why
+          from jsonb_each_text(nearest_fails) e(k, v) where not exact ? k;
+    end if;
+    select array_agg(g ->> 'name' order by ord) into off
+      from jsonb_array_elements(chosen) with ordinality a(g, ord)
+      join jsonb_array_elements(nearest) with ordinality b(h, ord2) on ord = ord2
+     where (g ->> 'kg')::numeric <> (h ->> 'kg')::numeric;
+    select sum((g ->> 'kg')::numeric) into total from jsonb_array_elements(chosen) g;
+    select jsonb_agg(g || jsonb_build_object('pct', (g ->> 'kg')::numeric / total * 100) order by ord)
+      into chosen from jsonb_array_elements(chosen) with ordinality t(g, ord);
+    return jsonb_build_object(
+        'grist', chosen, 'reached', reached,
+        'added', to_jsonb(coalesce(added, '{}'::text[])),
+        'off_nearest', to_jsonb(coalesce(off, '{}'::text[])),
+        'because', format('Malts and flaked grains are weighed in %s g steps, sugars in %s g steps', 
+                          trim_scale((steps ->> 'malt_kg')::numeric * 1000), trim_scale((steps ->> 'sugar_kg')::numeric * 1000))
+            || case when reached and cardinality(coalesce(off, '{}'::text[])) > 0
+                    then '; ' || array_to_string(off, ', ') || ' is rounded away from the nearest step to keep the numbers and rules the exact amounts met'
+                    when reached then ''
+                    else ', and no grist on those steps avoids what the exact amounts did not have: ' || why end
+            || '.');
+end;
+$$;
+
+comment on function app.step10_round_grist(jsonb, jsonb, jsonb, jsonb, numeric, numeric, numeric) is
+    'Rounds a solved grist to the weighing steps, down or up per fermentable, taking the closest grist that adds no failure the exact amounts did not have.';
+
+-- Round solved hops to the nearest gram, at least 1 g (Task 10b). When that alone moves IBU outside
+-- the tolerance of the target or a stated IBU and the exact grams did not, the bittering addition (the
+-- longest boil addition) takes the other of its floor and ceiling. share_pct is recomputed from the
+-- rounded grams. Returns {hops, ibu, because}.
+create or replace function app.step10_round_hops(hops jsonb, target_ibu numeric, stated jsonb,
+                                                 boil_sg numeric, volume_l numeric)
+returns jsonb
+language plpgsql
+immutable
+as $$
+declare
+    tol numeric := (app.recipe_tolerances() ->> 'ibu')::numeric;
+    stated_ibu numeric := (stated ->> 'ibu')::numeric;
+    exact_ibu numeric := app.ibu(hops, boil_sg, volume_l);
+    rounded jsonb;
+    ibu numeric;
+    bitter bigint;
+    g numeric;
+    other numeric;
+    because text := 'Hops are weighed to the gram, at least 1 g';
+    miss boolean;
+begin
+    select coalesce(jsonb_agg(h || jsonb_build_object('g', greatest(round((h ->> 'g')::numeric), 1)) order by ord), '[]'::jsonb)
+      into rounded from jsonb_array_elements(hops) with ordinality t(h, ord);
+    ibu := app.ibu(rounded, boil_sg, volume_l);
+    miss := abs(ibu - target_ibu) > tol + 1e-9 or (stated_ibu is not null and abs(ibu - stated_ibu) > tol + 1e-9);
+    if miss
+       and abs(exact_ibu - target_ibu) <= tol + 1e-9
+       and (stated_ibu is null or abs(exact_ibu - stated_ibu) <= tol + 1e-9) then
+        select ord into bitter from jsonb_array_elements(rounded) with ordinality t(h, ord)
+         where h ->> 'usage' = 'boil'
+         order by (h ->> 'minutes')::numeric desc, (h ->> 'share_pct')::numeric desc, (h ->> 'ingredient_id')::bigint
+         limit 1;
+        if bitter is not null then
+            select (h ->> 'g')::numeric into g from jsonb_array_elements(hops) with ordinality t(h, ord) where ord = bitter;
+            other := case when round(g) >= g then greatest(floor(g), 1) else ceil(g) end;
+            select jsonb_agg(case when ord = bitter then h || jsonb_build_object('g', other) else h end order by ord)
+              into rounded from jsonb_array_elements(rounded) with ordinality t(h, ord);
+            ibu := app.ibu(rounded, boil_sg, volume_l);
+            because := because || format('; the bittering hop went to %s g, the other side of its gram, because the nearest gram moved IBU out of the limit', other);
+        end if;
+    end if;
+    select jsonb_agg(h || jsonb_build_object('share_pct', (h ->> 'g')::numeric / nullif(total, 0) * 100) order by ord)
+      into rounded
+      from jsonb_array_elements(rounded) with ordinality t(h, ord),
+           lateral (select sum((x ->> 'g')::numeric) total from jsonb_array_elements(rounded) x) s;
+    return jsonb_build_object('hops', coalesce(rounded, '[]'::jsonb), 'ibu', ibu, 'because', because || '.');
+end;
+$$;
+
+comment on function app.step10_round_hops(jsonb, numeric, jsonb, numeric, numeric) is
+    'Rounds solved hops to the gram (at least 1 g); the bittering addition takes the other side of its gram when the rounding alone pushes IBU out of tolerance.';
+
 -- Step 10: amounts and numbers of the recipe from steps 6-9, step 4's targets and step 0's
 -- profile. No LLM; s1's functions only (docs/work/m6-compute-validate/plan.md Task 4). In order:
 --   1. batch, efficiency, boil-off and losses; every target must be present
@@ -345,8 +618,10 @@ $$;
 --      target (bisection; 69 C when even that leaves FG below it); a moved mash gives a new
 --      attenuation, so the OG move (app.step10_og_move) is made again
 --   5. grist kg (app.solve_grist), hop grams (app.solve_hops at the boil gravity), misc grams
---      (dose g/L x batch), one pack for each yeast
---   6. OG, FG at the mash-adjusted attenuation, ABV, IBU, SRM. A yeast with no attenuation figure
+--      (dose g/L x batch, to the gram), one pack for each yeast
+--   6. rounding to the weighing steps (Task 10b): the grist by app.step10_round_grist, then the hops
+--      solved again at the rounded OG's boil gravity and rounded by app.step10_round_hops
+--   7. OG, FG at the mash-adjusted attenuation, ABV, IBU, SRM, from the rounded amounts. A yeast with no attenuation figure
 --      gives null FG and ABV (and no OG move); step 11 fails that. A fermentable with no colour counts
 --      as 0 EBC and is named in numbers.srm_lower_bound (as app.style_fit_recipe does).
 -- recipe is the formulation_check.input object step 11 checks; its targets.og is the OG used, so
@@ -400,6 +675,9 @@ declare
     no_colour jsonb;
     yeasts jsonb;
     recipe jsonb;
+    rounded jsonb;
+    rounded_hops jsonb;
+    og_r numeric;
     values_used jsonb;
     stated jsonb := coalesce(brief->'stated', '{}'::jsonb) - 'batch_l';
 begin
@@ -558,7 +836,8 @@ begin
         end if;
         extras := extras || jsonb_build_object(
             'ingredient_id', (e->>'ingredient_id')::bigint, 'name', e->>'name', 'usage', e->>'usage',
-            'time_min', e->'time_min', 'dose_g_per_l', dose, 'g', dose * volume, 'purpose', e->>'purpose');
+            'time_min', e->'time_min', 'dose_g_per_l', dose, 'purpose', e->>'purpose',
+            'g', greatest(round(dose * volume), (app.weighing_steps()->>'extra_g')::numeric));
     end loop;
 
     yeasts := jsonb_build_array(jsonb_build_object(
@@ -569,14 +848,6 @@ begin
             'ingredient_id', (step6->'souring'->>'ingredient_id')::bigint, 'name', step6->'souring'->>'name',
             'role', 'souring', 'amount', 1, 'unit', 'pack', 'purpose', step6->'souring'->>'purpose');
     end if;
-
-    -- 6. numbers
-    if attenuation is not null then
-        n_fg := app.fg(solved, eff, volume, attenuation);
-        n_abv := app.abv(og_final, n_fg);
-    end if;
-    n_ibu := app.ibu(solved_hops, boil_sg, volume);
-    n_srm := app.srm(app.grist_mcu(solved, volume));
 
     recipe := jsonb_build_object(
         'style_code', style_code, 'guidance', (targets->>'guidance')::boolean, 'stated', stated,
@@ -600,6 +871,26 @@ begin
                              'g', x->'g', 'purpose', x->'purpose') order by ord)
               from jsonb_array_elements(extras) with ordinality t(x, ord)));
     end if;
+
+    -- 6. rounding to the weighing steps (Task 10b): the grist first, then the hops at the rounded
+    -- OG's boil gravity; the recipe object and the numbers follow the rounded amounts
+    rounded := app.step10_round_grist(solved, recipe, jsonb_build_object('og', t_og, 'abv', t_abv, 'srm', t_srm),
+                                      stated, eff, volume, attenuation);
+    solved := rounded->'grist';
+    og_r := app.og(solved, eff, volume);
+    boil_sg := app.boil_gravity(og_r, volume + losses, preboil);
+    solved_hops := app.solve_hops(t_ibu, solver, boil_sg, volume);
+    rounded_hops := app.step10_round_hops(solved_hops, t_ibu, stated, boil_sg, volume);
+    solved_hops := rounded_hops->'hops';
+    recipe := app.step10_set_amounts(recipe, og_r, solved, solved_hops);
+
+    -- 7. numbers, from the rounded amounts
+    if attenuation is not null then
+        n_fg := app.fg(solved, eff, volume, attenuation);
+        n_abv := app.abv(og_r, n_fg);
+    end if;
+    n_ibu := (rounded_hops->>'ibu')::numeric;
+    n_srm := app.srm(app.grist_mcu(solved, volume));
 
     values_used := jsonb_build_array(
         jsonb_build_object('what', 'colour', 'because',
@@ -646,10 +937,13 @@ begin
                              'usage', case when x->>'usage' = 'packaging' then 'package' else x->>'usage' end)
                              order by ord), '[]'::jsonb)
                      from jsonb_array_elements(extras) with ordinality t(x, ord)),
-        'numbers', jsonb_build_object('og', app.og(solved, eff, volume), 'fg', n_fg, 'abv', n_abv,
+        'numbers', jsonb_build_object('og', og_r, 'fg', n_fg, 'abv', n_abv,
                                       'ibu', n_ibu, 'srm', n_srm, 'attenuation_pct', attenuation,
                                       'srm_lower_bound', no_colour),
         'values_used', values_used,
+        'rounding', jsonb_build_object('steps', app.weighing_steps(), 'reached', rounded->'reached',
+                                       'added', rounded->'added', 'off_nearest', rounded->'off_nearest',
+                                       'because', (rounded->>'because') || ' ' || (rounded_hops->>'because')),
         'recipe', recipe);
 end;
 $$;

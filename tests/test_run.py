@@ -377,3 +377,12 @@ def test_show_recipe_prints_the_saved_recipe():
     assert "1 pack  US-05" in text and "10 g  Orange peel  boil 5 min" in text
     assert "Mash: 69 °C (mash raised from 66.5 C to 69 C)" in text
     assert "ABV  6.5 %   (target 6.5)" in text and "orange peel: out_of_style (asked by user) asked" in text
+
+
+def test_revalidate_totals():
+    """Task 10b: the totals of a hand-made list; b01-b20 are counted apart from b21-b24."""
+    from evals import revalidate
+    rows = [{"id": "b01", "before": True, "after": True}, {"id": "b02", "before": True, "after": False},
+            {"id": "b20", "before": False, "after": True}, {"id": "b21", "before": True, "after": True},
+            {"id": "b24", "before": False, "after": False}]
+    assert revalidate.totals(rows) == {"b01_b20": {"before": 2, "after": 2}, "all": {"before": 3, "after": 3}}

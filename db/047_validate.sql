@@ -8,14 +8,16 @@
 -- Idempotent: safe to re-run.
 
 -- How far a recipe may be from a target or a stated number: user decision "Brewer bar",
--- 2026-10-25, the same for targets and stated numbers; batch size is exact. evals/grade.py
+-- 2026-10-25, the same for targets and stated numbers; batch size is exact. SRM was 1; user
+-- decision 2026-10-26 "50 g + SRM +- 2" widened it to 2, for targets and stated numbers alike,
+-- because one 50 g step of a roast malt moves SRM by more than 1 at 20 L. evals/grade.py
 -- RECIPE_TOLERANCES must equal this (tests/test_run.py checks it).
 create or replace function app.recipe_tolerances()
 returns jsonb
 language sql
 immutable
 as $$
-    select '{"og": 0.002, "abv": 0.2, "ibu": 2, "srm": 1, "batch_l": 0}'::jsonb
+    select '{"og": 0.002, "abv": 0.2, "ibu": 2, "srm": 2, "batch_l": 0}'::jsonb
 $$;
 
 -- The attenuation (percent) at which a grist, solved for an OG, ends at an FG: app.fg falls as
@@ -337,15 +339,9 @@ begin
     end loop;
 
     -- formulation rules
-    for r in select * from jsonb_array_elements(check_out -> 'results') loop
-        continue when r ->> 'status' <> 'fail';
-        for f in select * from jsonb_array_elements(r -> 'failures') loop
-            continue when (r ->> 'rule')::int = 9
-                      and (starts_with(f ->> 'text', 'Rule 9: the OG target ')
-                           or starts_with(f ->> 'text', 'Rule 9: the ABV target '));
-            failures := failures || jsonb_build_object('kind', 'rule', 'subject', 'rule ' || (r ->> 'rule'),
-                'value', f -> 'value', 'limit', f -> 'limit', 'text', f ->> 'text', 'ban', null);
-        end loop;
+    for f in select * from jsonb_array_elements(app.recipe_rule_failures(check_out)) loop
+        failures := failures || jsonb_build_object('kind', 'rule', 'subject', 'rule ' || (f ->> 'rule'),
+            'value', f -> 'value', 'limit', f -> 'limit', 'text', f ->> 'text', 'ban', null);
     end loop;
 
     -- style fit: model deviations with guidance off, picks to ban with guidance on
@@ -396,6 +392,17 @@ begin
             bans := bans || jsonb_build_object('ingredient_id', x -> 'ingredient_id', 'name', reason, 'why', ban_why);
         end if;
     end loop;
+
+    -- a failure that rounding to the weighing steps added says so, so the retry knows (Task 10b)
+    if jsonb_array_length(coalesce(step10 -> 'rounding' -> 'added', '[]'::jsonb)) > 0 then
+        select jsonb_agg(case when (step10 -> 'rounding' -> 'added') ? (case when fl ->> 'kind' = 'numbers'
+                                       then 'numbers ' || replace(fl ->> 'subject', 'stated ', '') else fl ->> 'subject' end)
+                         then fl || jsonb_build_object('text', (fl ->> 'text')
+                                 || case when fl ->> 'text' ~ '[.]$' then '' else '.' end
+                                 || ' It comes from rounding to weighing steps: ' || (step10 -> 'rounding' ->> 'because'))
+                         else fl end order by ord)
+          into failures from jsonb_array_elements(failures) with ordinality t(fl, ord);
+    end if;
 
     -- one ban per ingredient; one feedback line per failure
     select coalesce(jsonb_agg(distinct b), '[]'::jsonb) into bans from jsonb_array_elements(bans) b;

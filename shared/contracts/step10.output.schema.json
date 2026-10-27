@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "step10.output",
-  "description": "Step 10, compute: batch, boil time, mash and fermentation temperature, the OG used (moved inside its tolerance towards the ABV target, or not), the colour adjustment (darkest and absorber null when nothing could change; second is the second pass, null when there was none), the mash used, fermentables in kg, hops and extras in g, yeasts in packs, the numbers (srm_lower_bound names fermentables with no colour, counted as 0 EBC), one values_used line for each value picked from a range, and recipe: the formulation_check.input object step 11 checks (its targets.og is the OG used). Absent: numbers.fg, numbers.abv and numbers.attenuation_pct null when the yeast has no attenuation figure; colour.darkest and colour.absorber null; extras empty.",
+  "description": "Step 10, compute: batch, boil time, mash and fermentation temperature, the OG used (before rounding; moved inside its tolerance towards the ABV target, or not), the colour adjustment (darkest and absorber null when nothing could change; second is the second pass, null when there was none), the mash used, fermentables in kg, hops and extras in g, yeasts in packs, the numbers (srm_lower_bound names fermentables with no colour, counted as 0 EBC), one values_used line for each value picked from a range, rounding (the weighing steps; whether a grist on them avoided every failure the exact amounts did not have, the failures it added, the fermentables not at their nearest step, why), and recipe: the formulation_check.input object step 11 checks (its targets.og is the OG used). Absent: numbers.fg, numbers.abv and numbers.attenuation_pct null when the yeast has no attenuation figure; colour.darkest and colour.absorber null; extras empty.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -17,6 +17,7 @@
     "extras",
     "numbers",
     "values_used",
+    "rounding",
     "recipe"
   ],
   "properties": {
@@ -483,6 +484,61 @@
     },
     "recipe": {
       "type": "object"
+    },
+    "rounding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "steps",
+        "reached",
+        "added",
+        "off_nearest",
+        "because"
+      ],
+      "properties": {
+        "steps": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "malt_kg",
+            "sugar_kg",
+            "hop_g",
+            "extra_g"
+          ],
+          "properties": {
+            "malt_kg": {
+              "type": "number"
+            },
+            "sugar_kg": {
+              "type": "number"
+            },
+            "hop_g": {
+              "type": "number"
+            },
+            "extra_g": {
+              "type": "number"
+            }
+          }
+        },
+        "reached": {
+          "type": "boolean"
+        },
+        "added": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "off_nearest": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "because": {
+          "type": "string"
+        }
+      }
     }
   }
 }

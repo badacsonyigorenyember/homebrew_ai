@@ -263,7 +263,7 @@ def test_amounts_hit_the_targets(conn, computed, bid):
     inp, out = step10_input(conn, bid), computed[bid]
     n = out["numbers"]
     assert abs(float(n["og"]) - target(inp, "og")) <= 0.002 + 1e-12
-    assert abs(float(n["ibu"]) - target(inp, "ibu")) < 0.01
+    assert abs(float(n["ibu"]) - target(inp, "ibu")) <= 2 + 1e-9
     assert all(float(f["kg"]) > 0 for f in out["fermentables"])
     assert all(float(h["g"]) >= 0 for h in out["hops"])
     assert sum(float(h["g"]) for h in out["hops"]) > 0
@@ -272,9 +272,10 @@ def test_amounts_hit_the_targets(conn, computed, bid):
     if out["colour"]["second"]:
         moved |= {out["colour"]["second"]["darkest"]["ingredient_id"], out["colour"]["second"]["absorber"]["ingredient_id"]}
     proposed = {f["ingredient_id"]: float(f["pct"]) for f in inp["step7"]["fermentables"]}
+    total_kg = sum(float(f["kg"]) for f in out["fermentables"])
     for f in out["fermentables"]:
-        if f["ingredient_id"] not in moved:
-            assert float(f["pct"]) == proposed[f["ingredient_id"]], f["name"]
+        if f["ingredient_id"] not in moved:  # rounding moves a share by at most one step of the total
+            assert abs(float(f["pct"]) - proposed[f["ingredient_id"]]) <= 0.05 / total_kg * 100 + 1e-9, f["name"]
     assert abs(sum(float(f["pct"]) for f in out["fermentables"]) - 100) < 1e-9
     assert out["batch"]["volume_l"] == inp["targets"]["batch_l"]["value"]
 
@@ -296,19 +297,19 @@ def test_numbers_are_what_check_recipe_computes(conn, computed, bid):
 
 
 def test_misc_grams_are_dose_times_batch(conn, computed):
-    """A7: every extra is its dose g/L x 20 L (b23 vanilla 1 g, b24 orange peel 52.8 g); no number moves."""
+    """A7: every extra is its dose g/L x 20 L to the gram (b23 coffee 120 g, vanilla 1 g, b24 orange peel 52.8 -> 53 g); no number moves."""
     for bid in ("b23", "b24"):
         out = computed[bid]
         doses = {e["ingredient_id"]: float(e["dose_g_per_l"]) for e in step10_input(conn, bid)["step9"]["extras"]}
         assert doses and {e["ingredient_id"] for e in out["extras"]} == set(doses)
         for e in out["extras"]:
-            assert abs(float(e["g"]) - doses[e["ingredient_id"]] * 20) < 1e-9, e["name"]
+            assert float(e["g"]) == max(round(doses[e["ingredient_id"]] * 20 + 1e-9), 1), e["name"]
         assert [e["ingredient_id"] for e in out["recipe"]["extras"]] == [e["ingredient_id"] for e in out["extras"]]
         without = copy.deepcopy(out["recipe"])
         without["extras"] = []
         assert sql(conn, "check_recipe", without)["numbers"] == sql(conn, "check_recipe", out["recipe"])["numbers"]
     grams = {e["name"]: float(e["g"]) for bid in ("b23", "b24") for e in computed[bid]["extras"]}
-    assert grams["Vanilla bean"] == 1 and abs(grams["Orange peel"] - 52.8) < 1e-9
+    assert grams["Vanilla bean"] == 1 and grams["Orange peel"] == 53 and grams["Coffee, cold brew"] == 120  # dose 6 g/L x 20 L
     # packaging is saved as package, the recipe object keeps the check's word
     cold = next(e for e in computed["b23"]["extras"] if e["name"] == "Coffee, cold brew")
     assert cold["usage"] == "package"
@@ -362,7 +363,8 @@ def test_og_moves_only_inside_tolerance(conn):
     assert abs(float(moved["og_used"]["value"]) - target(inp, "og")) <= 0.002 + 1e-12
     assert float(moved["og_used"]["value"]) < target(inp, "og")
     assert abs(float(moved["numbers"]["abv"]) - wanted) < abs(abv_at_target - wanted)
-    assert moved["recipe"]["targets"]["og"] == moved["og_used"]["value"]
+    assert moved["recipe"]["targets"]["og"] == moved["numbers"]["og"]  # the rounded OG; og_used is before rounding
+    assert abs(float(moved["numbers"]["og"]) - float(moved["og_used"]["value"])) < 0.001
 
 
 def test_lower_bound_named(conn):
@@ -506,3 +508,73 @@ def test_mash_stops_at_69(conn):
     check = sql(conn, "check_recipe", out["recipe"])
     assert next(r for r in check["results"] if r["rule"] == 10)["status"] == "fail"
     assert "69" in mash_line(out)
+
+
+# ---- Task 10b: step 10 rounds amounts to what a brewer can weigh and order ----
+
+def logged_input(conn, run_id):
+    """The last try's step 10 input of a logged m6-9b run (its saved picks)."""
+    row = conn.execute("select input from app.run_step where run_id = %s and step = 10 and ok "
+                       "order by try desc limit 1", (run_id,)).fetchone()
+    conn.rollback()
+    if row is None:
+        pytest.skip(f"run {run_id} is not in this database")
+    return row[0]
+
+
+def compute_logged(conn, run_id):
+    inp = logged_input(conn, run_id)
+    return compute(conn, inp)
+
+
+def on_step(value, step):
+    steps = round(float(value) / step)
+    return steps >= 1 and abs(float(value) - steps * step) < 1e-9
+
+
+def test_weighing_steps_as_decided(conn):
+    assert sql(conn, "weighing_steps") == {"malt_kg": 0.05, "sugar_kg": 0.001, "hop_g": 1, "extra_g": 1}
+
+
+@pytest.mark.parametrize("bid", ["b01", "b10", "b23", "b24"])
+def test_amounts_on_weighing_steps(conn, computed_10b, bid):
+    out = computed_10b[bid]
+    roles = {r[0]: r[1] for r in conn.execute(
+        "select ingredient_id, role from ref.fermentable where ingredient_id = any(%s)",
+        ([f["ingredient_id"] for f in out["fermentables"]],))}
+    total = sum(float(f["kg"]) for f in out["fermentables"])
+    for f in out["fermentables"]:
+        step = 0.001 if roles[f["ingredient_id"]] == "sugar" else 0.05
+        assert on_step(f["kg"], step), (f["name"], f["kg"])
+        assert abs(float(f["pct"]) - float(f["kg"]) / total * 100) < 1e-9, f["name"]
+    hop_total = sum(float(h["g"]) for h in out["hops"])
+    for h in out["hops"]:
+        assert on_step(h["g"], 1), (h["name"], h["g"])
+        assert abs(float(h["share_pct"]) - float(h["g"]) / hop_total * 100) < 1e-9
+    for e in out["extras"]:
+        assert on_step(e["g"], 1), (e["name"], e["g"])
+    assert out["rounding"]["steps"] == {"malt_kg": 0.05, "sugar_kg": 0.001, "hop_g": 1, "extra_g": 1}
+    assert out["recipe"]["fermentables"][0]["pct"] == out["fermentables"][0]["pct"]
+    assert [h["g"] for h in out["recipe"]["hops"]] == [h["g"] for h in out["hops"]]
+
+
+@pytest.fixture(scope="module")
+def computed_10b(conn):
+    return {bid: compute(conn, step10_input(conn, bid)) for bid in ("b01", "b10", "b23", "b24")}
+
+
+def grist_of(conn, out, scale=1.0):
+    """Step 10's solved grist for step10_round_grist, from an output's fermentables and the ref facts."""
+    grist = grist_of(conn, out, 1.013)
+    targets = {k: target(inp, k) for k in ("og", "abv", "srm")}
+    r = sql(conn, "step10_round_grist", grist, recipe, targets, {}, 70, 20, out["numbers"]["attenuation_pct"])
+    assert r["reached"] is True and "rule 8" not in r["added"]
+
+
+def test_hops_rounded_inside_ibu(conn):
+    """b08 at 10 L: IBU within 2 of 50; Magnum 13 g."""
+    inp = step10_input(conn, "b08")
+    inp["targets"]["batch_l"]["value"] = 10
+    out = compute(conn, inp)
+    assert abs(float(out["numbers"]["ibu"]) - target(inp, "ibu")) <= 2 + 1e-9
+    assert all(on_step(h["g"], 1) for h in out["hops"])

@@ -41,8 +41,10 @@ MASH_DEFAULT_C = 66.5
 TARGETS = ("og", "fg", "abv", "ibu", "srm")
 ABV_TOLERANCE = 0.1
 # How far a saved recipe may be from a number the user stated: user decision "Brewer bar",
-# 2026-10-25; batch size is exact. Must equal app.recipe_tolerances() (tests/test_run.py).
-RECIPE_TOLERANCES = {"og": 0.002, "abv": 0.2, "ibu": 2, "srm": 1, "batch_l": 0}
+# 2026-10-25; batch size is exact. SRM 2 (was 1): user decision 2026-10-26 "50 g + SRM +- 2", for
+# targets and stated numbers alike, because one 50 g step of a roast malt moves SRM by more than 1
+# at 20 L. Must equal app.recipe_tolerances() (tests/test_run.py).
+RECIPE_TOLERANCES = {"og": 0.002, "abv": 0.2, "ibu": 2, "srm": 2, "batch_l": 0}
 EPS = 1e-6
 
 

@@ -247,3 +247,18 @@ b24:
 - Rounding is not part of Task 10; a separate plan task will be added for it.
 
 Follow-ups are in `docs/RECIPE-ROADMAP.md` section 8 (Later).
+
+## Rounded (Task 10b, 2026-10-27)
+
+The five A11 recipes' logged picks put through the new steps 10 and 11 (`evals/revalidate.py`, SQL only;
+`evals/results/2026-10-27-m6-10b-revalidate.json`). Malts and flaked grains in 50 g steps, the candi sugar
+in 1 g steps, hops and extras in 1 g steps. All five still pass step 11. The recipes saved by m6-9b
+above stay as saved (unrounded): they are the G6 record.
+
+| Brief | Fermentables (kg) | Hops and extras (g) | OG | FG | ABV | IBU | SRM |
+|---|---|---|---|---|---|---|---|
+| b01 (try 2) | Pale Ale Malt 4.80, Caramel 50 Malt 0.55, Caramel 30 Malt 0.30 | Columbus 36, Citra 27, Mosaic 27 | 1.0612 | 1.0122 | 6.33 | 65.4 | 9.4 |
+| b03 (try 3) | Maris Otter 3.65, Flaked Oats 0.80, Caramel 150 Malt 0.40, Chocolate Dark Malt 0.30, Roasted Barley 0.05 | East Kent Golding 50 | 1.0549 | 1.0125 | 5.46 | 32.7 | 32.1 |
+| b08 (try 1) | Pilsner Malt 1.95, Carapils 0.10 | Magnum 13, Tettnanger 8 | 1.0455 | 1.0086 | 4.75 | 50.7 | 3.2 |
+| b10 (try 2) | Pilsner Malt 3.65, Munich Malt Type 1 1.25, Abbey Malt 0.95, Caraamber 0.30, Brown Candi Sugar 0.089 | Saaz 48 | 1.0688 | 1.0134 | 7.16 | 20.0 | 13.5 |
+| b24 (try 1) | Pale Ale Malt 4.20, Caramel 30 Malt 0.25, Caramel 50 Malt 0.25 | Cascade 49 and 49, Orange peel 53 | 1.0511 | 1.0102 | 5.27 | 40.3 | 7.3 |

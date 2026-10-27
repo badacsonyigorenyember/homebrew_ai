@@ -239,6 +239,8 @@ STEP10_OUT = {
     "numbers": {"og": 1.05, "fg": 1.011, "abv": 5.1, "ibu": 30, "srm": 4.5, "attenuation_pct": 77,
                 "srm_lower_bound": []},
     "values_used": [{"what": "boil", "because": "60 min"}],
+    "rounding": {"steps": {"malt_kg": 0.05, "sugar_kg": 0.001, "hop_g": 1, "extra_g": 1}, "reached": True, "added": [],
+                 "off_nearest": [], "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g."},
     "recipe": CHECK_IN,
 }
 STEP11_OUT = {
