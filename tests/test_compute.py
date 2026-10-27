@@ -563,12 +563,131 @@ def computed_10b(conn):
     return {bid: compute(conn, step10_input(conn, bid)) for bid in ("b01", "b10", "b23", "b24")}
 
 
-def grist_of(conn, out, scale=1.0):
-    """Step 10's solved grist for step10_round_grist, from an output's fermentables and the ref facts."""
-    grist = grist_of(conn, out, 1.013)
+RICE = ("", "Flaked Rice")
+WEYERMANN_PILSNER = ("Weyermann", "Pilsner Malt")
+CARAAMBER = ("Weyermann", "Caraamber")
+
+
+def grist_of(conn, picks, og, efficiency=72, volume=20):
+    """Step 10's exact solved grist (kg, role, extract, mashed, fermentability, ebc) for a list of
+    (ref fermentable, pct) at an OG, as step10_compute hands it to step10_round_grist."""
+    items = []
+    for who, pct in picks:
+        it = item(conn, who, pct)
+        it["fermentability"] = conn.execute(
+            "select fermentability from ref.fermentable where ingredient_id = %s", (it["ingredient_id"],)).fetchone()[0]
+        items.append(it)
+    return conn.execute("select app.solve_grist(%s::numeric, %s::jsonb, %s::numeric, %s::numeric)",
+                        [og, json.dumps(items), efficiency, volume]).fetchone()[0]
+
+
+def round_grist(conn, grist, recipe, targets, stated=None, attenuation=80, efficiency=72, volume=20):
+    return conn.execute(
+        "select app.step10_round_grist(%s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb, %s::numeric, %s::numeric, %s::numeric)",
+        [json.dumps(grist), json.dumps(recipe), json.dumps(targets), json.dumps(stated or {}),
+         efficiency, volume, attenuation]).fetchone()[0]
+
+
+def grist_failures(conn, grist, recipe, targets, attenuation=80, efficiency=72, volume=20):
+    return conn.execute(
+        "select app.step10_grist_failures(%s::jsonb, %s::jsonb, %s::jsonb, '{}'::jsonb, %s::numeric, %s::numeric, %s::numeric)",
+        [json.dumps(grist), json.dumps(recipe), json.dumps(targets), efficiency, volume, attenuation]).fetchone()[0]
+
+
+def kgs(r):
+    return {g["name"]: g["kg"] for g in r["grist"]}
+
+
+def at_steps(grist, kg_by_name):
+    return [dict(g, kg=kg_by_name[g["name"]]) for g in grist]
+
+
+def test_floor_is_one_step(conn):
+    """Never 0: a roast malt needing 4 g is weighed at 50 g, vanilla at 0.02 g/L x 20 L (0.4 g) at 1 g, a 0.3 g hop at 1 g."""
+    inp = logged_input(conn, 4517)  # b15: Maris Otter, Crystal T50, Black Malt
+    recipe = compute(conn, inp)["recipe"]
+    grist = grist_of(conn, [(MARIS, 91.91), (CRYSTAL_T50, 8), (BLACK, 0.09)], 1.050)
+    assert 0.003 < grist[2]["kg"] < 0.005  # Black Malt: about 4 g
+    r = round_grist(conn, grist, recipe, {"og": 1.050})
+    assert kgs(r)["Black Malt"] == 0.05 and all(g["kg"] >= 0.05 for g in r["grist"])
+    # misc: a dose that comes to under 0.5 g is weighed at 1 g
+    inp = step10_input(conn, "b23")
+    vanilla = next(e for e in inp["step9"]["extras"] if e["name"] == "Vanilla bean")
+    vanilla["dose_g_per_l"] = 0.02
+    out = compute(conn, inp)
+    assert next(e for e in out["extras"] if e["name"] == "Vanilla bean")["g"] == 1
+    # hops
+    hops = compute(conn, step10_input(conn, "b01"))["hops"]
+    tiny = [dict(h, g=0.3) if i == 0 else h for i, h in enumerate(hops)]
+    rounded = conn.execute("select app.step10_round_hops(%s::jsonb, 30::numeric, '{}'::jsonb, 1.040::numeric, 20::numeric)",
+                           [json.dumps(tiny)]).fetchone()[0]
+    assert rounded["hops"][0]["g"] == 1 and all(h["g"] >= 1 for h in rounded["hops"])
+
+
+def test_rounding_keeps_og(conn):
+    """b16's m6-9b grist (Pale Ale Malt 70, Flaked Rice 20, Caramel 50 Malt 10, OG used 1.0505, target
+    1.0525): the nearest steps 3.25 / 0.90 / 0.45 kg give an OG out of tolerance; the chosen grist
+    takes Flaked Rice up to 0.95 kg and keeps it."""
+    inp = logged_input(conn, 4518)
+    recipe = compute(conn, inp)["recipe"]
     targets = {k: target(inp, k) for k in ("og", "abv", "srm")}
-    r = sql(conn, "step10_round_grist", grist, recipe, targets, {}, 70, 20, out["numbers"]["attenuation_pct"])
-    assert r["reached"] is True and "rule 8" not in r["added"]
+    grist = grist_of(conn, [(PALE_ALE_W, 70), (RICE, 20), (CARAMEL50, 10)], 1.0505)
+    assert grist_failures(conn, grist, recipe, targets) == {}
+    nearest = at_steps(grist, {"Pale Ale Malt": 3.25, "Flaked Rice": 0.9, "Caramel 50 Malt": 0.45})
+    assert "numbers og" in grist_failures(conn, nearest, recipe, targets)
+    r = round_grist(conn, grist, recipe, targets)
+    assert r["reached"] is True and r["added"] == []
+    assert kgs(r) == {"Pale Ale Malt": 3.25, "Flaked Rice": 0.95, "Caramel 50 Malt": 0.45}
+    assert r["off_nearest"] == ["Flaked Rice"] and "Flaked Rice is rounded away from the nearest step" in r["because"]
+    assert abs(sum(g["pct"] for g in r["grist"]) - 100) < 1e-9
+
+
+def test_rounding_keeps_rule_4(conn):
+    """b22's m6-9b grist (Pilsner, Flaked Rice, Caraamber 10 %, Melanoidin): the nearest steps put
+    Caraamber at 450 g and break rule 4; the chosen grist keeps it at 400 g."""
+    inp = logged_input(conn, 4524)
+    recipe = compute(conn, inp)["recipe"]
+    targets = {k: target(inp, k) for k in ("og", "abv", "srm")}
+    picks = [(WEYERMANN_PILSNER, 60.65930007922055), (RICE, 20), (CARAAMBER, 10), (MELANOIDIN, 9.340699920779452)]
+    grist = grist_of(conn, picks, 1.0485)
+    assert grist_failures(conn, grist, recipe, targets) == {}
+    nearest = at_steps(grist, {"Pilsner Malt": 2.65, "Flaked Rice": 0.9, "Caraamber": 0.45, "Melanoidin Malt": 0.4})
+    assert "rule 4" in grist_failures(conn, nearest, recipe, targets)
+    r = round_grist(conn, grist, recipe, targets)
+    assert r["reached"] is True and kgs(r)["Caraamber"] == 0.4
+    shaped = conn.execute("select app.step10_set_amounts(%s::jsonb, 1.0485::numeric, %s::jsonb, %s::jsonb)",
+                          [json.dumps(recipe), json.dumps(r["grist"]), json.dumps(recipe["hops"])]).fetchone()[0]
+    check = sql(conn, "check_recipe", shaped)
+    assert next(x for x in check["results"] if x["rule"] == 4)["status"] == "pass"
+
+
+def test_rounding_reports_unreached(conn):
+    """A 10 L grist whose Black Malt needs 3 g: 50 g puts SRM more than 2 off and no grist on the
+    steps avoids it. Nearest amounts, reached false, `added` and `because` name the SRM."""
+    inp = logged_input(conn, 4517)
+    recipe = compute(conn, inp)["recipe"]
+    grist = grist_of(conn, [(MARIS, 93.87), (CRYSTAL_T50, 6), (BLACK, 0.13)], 1.050, volume=10)
+    assert 0.002 < grist[2]["kg"] < 0.004
+    srm = float(conn.execute("select app.srm(app.grist_mcu(%s::jsonb, 10::numeric))", [json.dumps(grist)]).fetchone()[0])
+    targets = {"og": 1.050, "srm": srm}
+    assert grist_failures(conn, grist, recipe, targets, volume=10) == {}
+    r = round_grist(conn, grist, recipe, targets, volume=10)
+    assert r["reached"] is False and "numbers srm" in r["added"]  # Black Malt at 50 g also goes over its max_pct (rule 6)
+    assert kgs(r)["Black Malt"] == 0.05 and r["off_nearest"] == []
+    assert "no grist on those steps avoids" in r["because"] and "SRM" in r["because"]
+
+
+def test_rounding_adds_no_failure_it_did_not_cause(conn):
+    """A recipe that fails rule 8 before rounding (no bittering addition): rounding is judged by the
+    failures it adds, so the grist is still reached and rule 8 is not blamed on rounding."""
+    inp = logged_input(conn, 4518)
+    recipe = compute(conn, inp)["recipe"]
+    recipe["boil_min"] = 77
+    targets = {k: target(inp, k) for k in ("og", "abv", "srm")}
+    grist = grist_of(conn, [(PALE_ALE_W, 70), (RICE, 20), (CARAMEL50, 10)], 1.0505)
+    assert "rule 8" in grist_failures(conn, grist, recipe, targets)
+    r = round_grist(conn, grist, recipe, targets)
+    assert r["reached"] is True and "rule 8" not in r["added"] and r["added"] == []
 
 
 def test_hops_rounded_inside_ibu(conn):
