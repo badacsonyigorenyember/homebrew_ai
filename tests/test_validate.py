@@ -358,8 +358,40 @@ def test_fix_add_base(conn):
 def test_fix_lower_crystal(conn):
     """b19's try-3 grist: too dark with one base malt and 15 % Caramel 150 Malt."""
     _, _, v = fix_case(conn, "b19", [(GOLDEN, 75), (tc.CARAMEL150, 15), (tc.HONEY, 10)], ("Lallemand", "Nottingham"))
-    assert fix_of(v, "srm")[1] == ("lower the crystal share (Caramel 150 Malt 15 %): "
-                                   "the colour adjustment never moves a crystal.")
+    assert fix_of(v, "srm")[1] == ("lower the crystal share (Caramel 150 Malt 15.19 %): "
+                                   "the colour adjustment never moves a crystal.")  # the rounded share
+
+
+def test_fix_crystal_only_when_the_movers_stopped(conn):
+    """Task 9c: 'lower the crystal share' is for a colour the movers could not lower. With the colour
+    reached the fix is none: the line is not blaming a crystal for another cause."""
+    inp, out, v = fix_case(conn, "b19", [(GOLDEN, 75), (tc.CARAMEL150, 15), (tc.HONEY, 10)], ("Lallemand", "Nottingham"))
+    assert out["colour"]["reached"] is False
+    f, fix = fix_of(v, "srm")
+    assert fix.startswith("lower the crystal share")
+    out["colour"]["reached"] = True
+    assert sql(conn, "step11_fix", f, out, inp["targets"], inp["brief"]["stated"]) is None
+    out["colour"]["reached"] = False
+    out["rounding"]["added"] = ["numbers srm"]  # rounding added the miss: the failure line says so, no crystal advice
+    assert sql(conn, "step11_fix", f, out, inp["targets"], inp["brief"]["stated"]) is None
+
+
+def test_fix_names_rounding_not_crystal(conn):
+    """b15's logged try 1 (run 4517): Black Malt's 50 g floor in 23 L puts SRM out. The colour was reached
+    before rounding, so the line says it comes from rounding and does not tell the retry to lower the crystal."""
+    from evals.revalidate import call
+    in11 = conn.execute("select input from app.run_step where run_id = 4517 and step = 11 and try = 1").fetchone()
+    in10 = conn.execute("select input from app.run_step where run_id = 4517 and step = 10 and try = 1").fetchone()
+    conn.rollback()
+    if in11 is None or in10 is None:
+        pytest.skip("run 4517 is not in this database")
+    in11, in10 = in11[0], in10[0]
+    out = compute(conn, in10)
+    assert out["colour"]["reached"] is True and "numbers srm" in out["rounding"]["added"]
+    v = call(conn, "step11_validate", out, in11["brief"], in11["targets"], in11["frame"], in11["picks"])
+    line = next(l for f, l in zip(v["failures"], v["feedback"]) if f["subject"] == "srm")
+    assert "It comes from rounding to weighing steps: " in line
+    assert "crystal" not in line and "To fix" not in line
 
 
 def test_fix_darker_malt_at_limit(conn):
@@ -375,7 +407,7 @@ def test_fix_less_attenuative_yeast(conn):
     _, out, v = fix_case(conn, "b12", [(tc.PALE_ALE_W, 85), (tc.HONEY, 15)], tc.US05_YEAST)
     fix = fix_of(v, "rule 10")[1]
     m = re.fullmatch(r"pick a less attenuative yeast: SafAle US-05 gives 78 % here \(mash 69 °C\) and this grist "
-                     r"needs about ([\d.]+) % for FG 1\.0080, or lower Honey 15 %, which ferment out\.", fix)
+                     r"needs about ([\d.]+) % for FG 1\.0080, or lower Honey 14\.83 %, which ferment out\.", fix)
     assert m and 75 < float(m.group(1)) < 78, fix
 
 
@@ -467,8 +499,9 @@ def numeric_leaves(x):
 def test_fix_numbers_come_from_sql(conn, bid, ferms, yeast):
     """Every number in a fix is in the failure, in step 10's output, or is app.attenuation_for_fg's result as rounded."""
     inp, out, v = fix_case(conn, bid, ferms, yeast)
-    colour = out["colour"]["grist"]
-    og = float(out["og_used"]["value"])
+    shares = {f["ingredient_id"]: f for f in out["fermentables"]}
+    colour = [dict(g, pct=shares[g["ingredient_id"]]["pct"]) for g in out["colour"]["grist"]]  # the rounded grist
+    og = float(out["numbers"]["og"])  # and the rounded OG
     eff, vol = float(out["batch"]["efficiency_pct"]), float(out["batch"]["volume_l"])
     allowed = list(numeric_leaves(out)) + list(numeric_leaves(inp["targets"]))
     for f in v["failures"]:

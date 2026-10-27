@@ -59,6 +59,9 @@ comment on function app.attenuation_for_fg(jsonb, numeric, numeric, numeric, num
 -- failure line already says it or no case applies. failure is one step11_validate failure, step10
 -- its input, targets step 4's output and stated the brief's stated numbers. Every number in the
 -- sentence comes from the failure, step 10's output, ref.fermentable or app.attenuation_for_fg.
+-- The shares and the OG are the rounded recipe's (step10.fermentables, step10.numbers.og); where the
+-- colour solver's movers stopped is read from step10.colour. A miss that rounding added
+-- (step10.rounding.added) has no fix here: its failure line already says it comes from rounding.
 create or replace function app.step11_fix(failure jsonb, step10 jsonb, targets jsonb, stated jsonb)
 returns text
 language plpgsql
@@ -68,8 +71,9 @@ declare
     l jsonb := app.formulation_limits();
     subj text := failure ->> 'subject';
     txt text := failure ->> 'text';
-    grist jsonb := step10 -> 'colour' -> 'grist';
-    og numeric := (step10 -> 'og_used' ->> 'value')::numeric;
+    cgrist jsonb := step10 -> 'colour' -> 'grist';  -- the solver's grist, before rounding: where its movers stopped
+    grist jsonb;                                    -- the rounded grist the recipe has, with the solver's facts
+    og numeric := coalesce((step10 -> 'numbers' ->> 'og')::numeric, (step10 -> 'og_used' ->> 'value')::numeric);
     eff numeric := (step10 -> 'batch' ->> 'efficiency_pct')::numeric;
     vol numeric := (step10 -> 'batch' ->> 'volume_l')::numeric;
     att numeric := (step10 -> 'numbers' ->> 'attenuation_pct')::numeric;
@@ -90,12 +94,26 @@ declare
     n_base int;
     base jsonb;
 begin
+    -- the figures below are the rounded recipe's: its shares and its OG (Task 10b)
+    select coalesce(jsonb_agg(c || jsonb_build_object('kg', f -> 'kg', 'pct', f -> 'pct') order by fo), cgrist)
+      into grist
+      from jsonb_array_elements(step10 -> 'fermentables') with ordinality t(f, fo)
+      join jsonb_array_elements(cgrist) c on c ->> 'ingredient_id' = f ->> 'ingredient_id';
+
     -- colour
     if subj in ('srm', 'stated srm') and got is not null then
         want := case when subj = 'srm' then (targets -> 'targets' -> 'srm' ->> 'value')::numeric
                      else (stated ->> 'srm')::numeric end;
+        -- rounding caused the miss (the failure's text already says so): changing the picks is not the fix
+        if (step10 -> 'rounding' -> 'added') ? 'numbers srm' then
+            return null;
+        end if;
         select count(*) into n_base from jsonb_array_elements(grist) g where g ->> 'role' = 'base';
         if got > want then
+            -- too dark: the instructions below are for a colour the movers could not lower
+            if (step10 -> 'colour' ->> 'reached')::boolean is not false then
+                return null;
+            end if;
             select string_agg(g ->> 'name' || ' ' || trim_scale(round((g ->> 'pct')::numeric, 2)) || ' %', ', '
                               order by ord) into names
               from jsonb_array_elements(grist) with ordinality t(g, ord)
@@ -136,14 +154,14 @@ begin
                           d ->> 'name', trim_scale(d_max));
         elsif d_role = 'roast' then
             select (l ->> 'dark_total_pct')::numeric - coalesce(sum((g ->> 'pct')::numeric), 0) into cap
-              from jsonb_array_elements(grist) g
+              from jsonb_array_elements(cgrist) g
              where (g ->> 'ingredient_id')::bigint <> (d ->> 'ingredient_id')::bigint
                and (g ->> 'role' = 'roast'
                     or (g ->> 'role' = 'crystal' and (g ->> 'ebc')::numeric > (l ->> 'crystal_dark_ebc')::numeric));
             if d_pct >= cap - 0.005 then
                 select string_agg(g ->> 'name' || ' ' || trim_scale(round((g ->> 'pct')::numeric, 2)) || ' %', ', '
                                   order by ord) into names
-                  from jsonb_array_elements(grist) with ordinality t(g, ord)
+                  from jsonb_array_elements(cgrist) with ordinality t(g, ord)
                  where g ->> 'role' = 'crystal' and (g ->> 'ebc')::numeric > (l ->> 'crystal_dark_ebc')::numeric
                    and (g ->> 'pct')::numeric > 0;
                 if names is not null then
