@@ -28,6 +28,9 @@ In:
   `app.preboil_volume`), misc grams as step 9's `dose_g_per_l` × batch L (never in OG/IBU/SRM).
   Then OG, FG, ABV, IBU and SRM with `app.og`, `app.fg`, `app.abv`, `app.ibu`, `app.srm`
   (via `app.grist_mcu`).
+- Rounding (added 2026-10-26 at your request): step 10 rounds every amount to what you can weigh
+  and order, and computes the numbers from the rounded amounts; step 11 validates the rounded
+  recipe (R11).
 - The colour adjustment s2 left to this work (rule 7): when SRM misses its target, the share of
   the darkest fermentable that is not a crystal malt changes, and when that share reaches a limit,
   one second share (the next-darkest non-crystal, or the next-largest base malt taking up the
@@ -60,8 +63,8 @@ Out:
   failed rule passed in, and (approved 2026-10-26) to carry step 11's `To fix:` instruction.
 
 ## Requirements
-R1. Step 10 computes every `recipe_item` amount (kg for fermentables, g for hops and misc) and
-    keeps its `pct`, and computes OG, FG, ABV, IBU and SRM, only through s1's functions and
+R1. Step 10 computes every `recipe_item` amount (kg for fermentables, g for hops and misc),
+    rounded as R11 says, with its `pct` following the rounded amounts, and computes OG, FG, ABV, IBU and SRM, only through s1's functions and
     tested SQL; no LLM. Where a `ref` value is a range (EBC, alpha, attenuation), the plan names
     which number step 10 takes (s1 leaves that choice to step 10).
 R2. When the SRM result misses its target, step 10 changes the share of the darkest
@@ -71,7 +74,7 @@ R2. When the SRM result misses its target, step 10 changes the share of the dark
     be reached within tolerance, step 11 reports it as a numbers failure.
 R3. Step 11 passes a recipe only when all of these hold: `app.check_recipe` has no `fail`
     result; OG, ABV, IBU and SRM are within tolerance of step 4's targets (OG ± 0.002,
-    ABV ± 0.2, IBU ± 2, SRM ± 1; FG is checked by rule 10); every stated number is met within the
+    ABV ± 0.2, IBU ± 2, SRM ± 2 (± 1 until 2026-10-26, see Deviations); FG is checked by rule 10); every stated number is met within the
     same tolerance and a stated batch size exactly; every item has a `ref` id; with guidance on,
     no item the pipeline picked on its own is rated `out_of_style` or `changes_style`; no
     excluded product (as `app.choose_excluded` reads them, LUPOMAX siblings included) is in the
@@ -105,6 +108,13 @@ R9. The runner reports per brief: validated or not, tries used, LLM calls, state
 R10. The held-out briefs (5–10) are drafted in this work from styles b01–b24 do not use, follow
     the `evals/recipe_briefs.toml` format in a separate file, are approved by you, and are run
     only at checkpoints, never while building.
+R11. Step 10 rounds every amount to a weighing step, never to 0 (the floor is one step): malts and
+    flaked grains (oats, rice, wheat, barley, corn) to 50 g; sugars, syrups, honey and lactose
+    to 1 g; hops and extras to 1 g (vanilla stays 1 g); roast malts are malts too (50 g). OG,
+    FG, ABV, IBU and SRM are computed from the rounded amounts, and step 11 validates that
+    rounded recipe at R3's tolerances (SRM ± 2, widened for the 50 g steps); a recipe the rounding pushes off a target or a rule goes back to
+    the steps 6–9 call like any other failure. The saved rows hold the rounded amounts. Rounding
+    to the step below or above is code's choice, made so that rounding adds no failure where it can.
 
 ## Constraints
 - CLAUDE.md: brewing maths is deterministic, tested code; never the LLM, never a skill.
@@ -124,8 +134,8 @@ R10. The held-out briefs (5–10) are drafted in this work from styles b01–b24
   does the same.
 
 ## Assumptions
-- The tolerances above (your answer, 2026-10-25: "Brewer bar") apply to stated numbers and to
-  targets alike. They are looser than s1's maths tolerances on purpose: a brewer would not notice
+- The tolerances above (your answer, 2026-10-25: "Brewer bar"; SRM widened from ± 1 to ± 2 by
+  your answer of 2026-10-26, "50 g + SRM ± 2") apply to stated numbers and to targets alike. They are looser than s1's maths tolerances on purpose: a brewer would not notice
   the difference.
 - LLM calls are counted as `evals/run.py` does: the sum of `run_step.llm.tries` over the run. A
   clean run has 2 (step 1, and the one steps 6–9 call). The "≤ 2 per recipe plus tie-breaks" bar
@@ -154,23 +164,27 @@ A4. A test with an impossible target (e.g. 1.040 OG at 10 % ABV) ends with `app.
     after at most 3 tries, each try's reason in `run_step.error`, and saves no recipe (R4, R5).
 A5. For one validated brief, recomputing OG, IBU and SRM from its saved `recipe_item` rows with
     s1's functions and the `ref` values step 10 used matches the saved results within s1's
-    tolerances (R1, R6).
+    tolerances; the saved amounts are the rounded ones (R1, R6, R11).
 A6. A test recipe whose SRM misses its target changes only non-crystal shares (the darkest, a
     second one only when the first reaches a limit) and base malts, and a crystal malt's share stays
     unchanged (R2).
 A7. b23's saved coffee and vanilla rows and b24's orange peel row have grams equal to the step 9
-    dose × batch L (R1, R6).
+    dose × batch L, rounded to the gram and at least 1 g (R1, R6, R11).
 A8. b05 (mismatch), b11 (conflict), b08 (number) and b16 (ingredient) have their step 3
     deviations as `app.recipe_deviation` rows with `requested_by = user` (R6, R7).
 A9. `tests/test_reference_recipes.py` passes with reference recipes for b01–b24 (R8).
 A10. The held-out file exists, its styles appear in no b01–b24 `style` or `alt_styles`, you
     approved it, and its score at G6 is recorded in PROJECT.md §8 (R10).
 A11. You read 5 full recipes and your verdict is recorded in PROJECT.md §8 (G6 direction check).
+A12. Every amount step 10 gives is on its R11 step and at least one step, and the m6-9b picks
+    re-validated through the rounding steps 10–11 (SQL only, no LLM, no G6 re-run) still validate
+    ≥ 16 of b01–b20; the before and after counts are recorded in PROJECT.md §8 (R11, A1).
 
 ## Open questions
 None open. Your answers, 2026-10-25:
 1. Tolerance for stated numbers: "Brewer bar" — ABV ± 0.2, IBU ± 2, SRM ± 1, OG ± 0.002, batch
-   exact; the same tolerances apply to targets (R3, Assumptions).
+   exact; the same tolerances apply to targets (R3, Assumptions). SRM became ± 2 on 2026-10-26
+   (Deviations).
 2. Held-out briefs: "Drafted here" — drafted in this work from styles the test briefs do not use;
    you approve them (Scope, R10, A10).
 
@@ -178,3 +192,5 @@ None open. Your answers, 2026-10-25:
 - 2026-10-25 · Scope, R4: a numbers failure no longer re-runs step 10 on its own (its maths is closed form, so the same inputs give the same numbers); step 10 moves OG within ± 0.002 towards the ABV target in its one pass, and any number still off goes back to the steps 6–9 call with the value and target — user decision "OG nudge, then LLM" (planning question Q1).
 - 2026-10-26 · Scope, R2, R4, A6: after G6's first run validated 13 of b01–b20 (bar 16; misses from unreachable colour and an FG below rule 10's range at the 66.5 °C midpoint mash, repeated over 3 tries), the user chose "Mash + colour reach (Rec.)": step 10's one pass also raises the mash temperature (inside 68.3–69 °C, towards the FG target) when the predicted FG is below its range, and the colour adjustment may move a second share (the next-darkest non-crystal or the next-largest base malt) when the first reaches a limit; crystal shares still never change. This replaces planning answers Q1 (OG nudge only) and Q3 (largest base malt only). b01–b24 are then re-measured once and A11 is asked on those recipes; A1's bar of 16 stays.
 - 2026-10-26 · Scope (Out), R4: seeing the estimate of 14–15 of b01–b20 after the mash and colour change, the user chose "Add LLM feedback too": a failed try's feedback line also carries a concrete `To fix:` instruction where step 10's solvers stop at a limit (which kind of fermentable or yeast to change, with the figure computed in SQL; the LLM still only chooses). This is prompt and retry tuning on the G6 briefs, approved by the user. A1's bar of 16 stays; b01–b24 are still re-measured once.
+- 2026-10-26 · Scope, R1, R11 (new), A5, A7, A12 (new): user-requested scope addition after the A11 review: amounts are rounded to what you can weigh and order (your words: "malts, I want 50g rounding", hops to 1 g, candi sugar to 1 g; answers "Malts + flaked grains (Rec.)", "1 g (Rec.)", "Now, in M6 (Rec.)"): step 10 rounds and computes from the rounded amounts, step 11 validates the rounded recipe, saved rows hold the rounded amounts. A1's bar of 16 is re-checked on the saved m6-9b picks (A12), not by a G6 re-run. The roast malt step (10 g or 50 g) is open as plan Q1: with 50 g for every malt the saved picks reach at most 14 of b01–b20 (measured, plan Task 10b).
+- 2026-10-26 · R3, R11, Assumptions, Open questions: your answer to plan Q1, "50 g + SRM ± 2": every malt and flaked grain, roast malts included, rounds to 50 g with a 50 g floor (no 10 g roast step), and the SRM tolerance widens from ± 1 to ± 2 for targets and stated numbers. This changes your "Brewer bar" decision of 2026-10-25 for SRM only (OG ± 0.002, ABV ± 0.2, IBU ± 2, batch exact stay). A3's stated numbers are judged at these tolerances, so b18's stated SRM 20 is now judged at ± 2. A1's bar of 16 stays; measured read-only on the m6-9b picks: 16 of b01–b20 (b12, b15, b18, b19 fail), no margin *(unverified: retries not replayed)*.
