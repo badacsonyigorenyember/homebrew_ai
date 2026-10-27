@@ -31,3 +31,25 @@ lines, harness calls (all tries, first-try, retry) and tolerances read from save
 (`abv numeric(4,1)`, `pct numeric(5,2)`, `amount numeric(10,3)`) cannot flip a stated-number verdict for a recipe step
 11 passed. No secrets in the diff. All DB changes are `.sql` files. Commits are one line each. PROJECT.md §2, §3 and §6
 are unchanged.
+
+## Re-review 2026-10-27
+
+Diff: 516dce8..m6-compute-validate at e7888d6 (c12c97b, 90536eb, e7888d6)  ·  Verdict: ready for testing
+
+Checked: `git diff 516dce8..HEAD` (5 files), the three commits (one line each, no body), `app.step11_fix` in
+full against `app.solve_colour`'s `reached`, `app.step10_round_grist`'s `added` keys and step 10's output
+fields, and the restored tests against the helpers they call. Ran `tests/test_compute.py tests/test_validate.py`
+with the stack up: 104 passed in 33 s, nothing skipped (so run 4517 is present and
+`test_fix_names_rounding_not_crystal` ran). The `evals.revalidate` figures in PROJECT.md (16 of b01-b20, 19
+overall) were not re-measured here. The full-suite run is left to dev-verify, as decided.
+
+| # | Severity | Where | Finding | Why it matters |
+|---|---|---|---|---|
+| 1 | fixed | tests/test_compute.py:566-690 | `grist_of` is a real helper again (`app.solve_grist` on ref items with fermentability), and the five tests the plan names are back: `test_floor_is_one_step` (Black Malt 4 g to 50 g, vanilla 0.4 g to 1 g, a 0.3 g hop to 1 g), `test_rounding_keeps_og` (b16, exact kg per item and `off_nearest`), `test_rounding_keeps_rule_4` (b22, Caraamber 400 g, rule 4 passes on the shaped recipe), `test_rounding_reports_unreached` (`reached` false, nearest steps, `because` names SRM) and `test_rounding_adds_no_failure_it_did_not_cause` (rule 8 not blamed). Each first proves the exact grist passes or fails as claimed, so the asserts would fail if the down-or-up search or `added` broke. `compute_logged`/`logged_input` have callers again. | Closes round 1's must-fix. |
+| 2 | fixed | db/047_validate.sql:97-116 | Too dark now gives a fix only when `step10.colour.reached` is false (the first or second pass's final `reached`, db/046:209, 223); a miss in `step10.rounding.added` ("numbers srm", the one key `step10_grist_failures` uses for target and stated SRM) gives none, matching the implementer's choice. Shares and OG come from the rounded `step10.fermentables` (joined to the solver's facts by `ingredient_id`) and `numbers.og`; the too-light branch keeps the solver's grist for the rule 3 room, which is where the mover stopped. `test_fix_crystal_only_when_the_movers_stopped` flips `reached` and `added` and expects null for each; `test_fix_names_rounding_not_crystal` replays run 4517 try 1 and finds the rounding sentence with no "crystal" and no "To fix". Both would fail on the old function. | Closes round 1's should-fix 2. |
+| 3 | fixed | plan.md:1011, PROJECT.md:246 | Task 8's two relaxed `ok` assertions have their Deviations line; PROJECT.md §8 has a dated entry for the fixes and says the full suite has not run in one go. | Closes round 1's should-fix 3 (the full run is dev-verify's). |
+| 4 | note | db/047_validate.sql:162-165 | In the too-light rule 3 sentence ("lower <crystal> to make room") the crystal shares printed come from the solver's grist (`cgrist`), so they are the exact shares, not the rounded ones. plan.md:1012 says the shares in every fix are the rounded recipe's. The cap check itself rightly uses the solver's grist. | The retry may see e.g. 9.5 % where the recipe has 9.47 %; harmless, and `test_fix_numbers_come_from_sql` allows both. |
+| 5 | note | plan.md:712-736, 865 | The Task 9c and 10b task text was not edited with the fix: 10b still says "`app.step11_fix` is unchanged", and the 9c cases do not say that a reached colour or a rounding-added miss gives no fix, or that N uses the rounded OG ("at the OG used"). The Deviations line at plan.md:1012 records all of it. | Records only: conventions ask for the task text to describe the current plan as well. |
+
+No new findings in correctness, scope, safety or tests beyond notes 4 and 5. Commits are one line each, the DB change
+is in the `.sql` file, no secrets in the diff.
