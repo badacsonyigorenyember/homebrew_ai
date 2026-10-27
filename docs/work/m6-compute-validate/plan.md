@@ -1,6 +1,6 @@
 # M6 · Steps 10–11: calculate, validate and save (the MVP) — implementation plan
 
-Stage: review
+Stage: verify
 Brief: [brief.md](brief.md)
 Branch: m6-compute-validate
 
