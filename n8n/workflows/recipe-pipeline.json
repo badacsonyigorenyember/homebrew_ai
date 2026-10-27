@@ -188,44 +188,6 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "update app.run set finished_at = now(), ok = true where id = $1 returning id::int as id",
-        "options": {
-          "queryReplacement": "={{ [$(\"Start run\").item.json.id] }}"
-        }
-      },
-      "id": "e87fe719-bc42-498c-8bbe-ffcd4b543cd7",
-      "name": "Finish run",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        6028,
-        -96
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "fDjeFLjBj3r9berH",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ { run_id: $json.id, ok: true } }}",
-        "options": {}
-      },
-      "id": "1456908b-7e8e-46fa-8909-52233847e5a5",
-      "name": "Respond ok",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        6252,
-        -96
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
         "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, error) values ($1, 1, 1, $2::jsonb, null, false, round(extract(epoch from clock_timestamp() - $3::timestamptz) * 1000)::int, $4)",
         "options": {
           "queryReplacement": "={{ [$(\"Step 1 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 1 · input\").item.json.run_id, request: $(\"Step 1 · input\").item.json.request, model: $(\"Step 1 · input\").item.json.model, think: $(\"Step 1 · input\").item.json.think, temperature: $(\"Step 1 · input\").item.json.temperature, seed: $(\"Step 1 · input\").item.json.seed }), $(\"Step 1 · input\").item.json.started_at, $json.error] }}"
@@ -286,8 +248,8 @@
     },
     {
       "parameters": {
-        "content": "### Per-step block\nEach step is: set its input and start time, call its sub-workflow, then log ok or log the failure, and on to the next step. A failure logs its error, finishes the run with ok = false and responds. Steps 0 to 9 are built (step 0 runs before step 1); steps 10 to 16 copy this block. Steps 6 to 9 are one sub-workflow with one model call: it logs four rows, the call's `llm` and tokens on step 6 (steps 7 to 9 log ms 0), and a failure logs the row of the lowest `step N:` in its error text (6 when none). The webhook body's optional `temperature` and `seed` (defaults 0 and 42) go to step 1. Its optional `profile_id` (null means the default profile) goes to step 0. Its optional `guide` (`any`, `bjcp`, `ba`; null when not sent) goes to step 2. Step 1 also logs tokens and the `llm` details (model, tries, ms), then saves the brief in `app.brief` and sets `app.run.brief_id`.",
-        "height": 200,
+        "content": "### Per-step block\nEach step is: set its input and start time, call its sub-workflow, then log ok or log the failure, and on to the next step. A failure logs its error, finishes the run with ok = false and responds. Steps 0 to 11 are built (step 0 runs before step 1); steps 12 to 16 copy this block. Steps 6 to 11 run as up to three tries, each the sub-workflow `Steps 6–11 · one try` (`Try 1`, `Try 2`, `Try 3`, no loop-back edge): it makes the one model call of steps 6 to 9 and logs rows 6 to 11 with the try's number (the call's `llm` and tokens on step 6; steps 7 to 9 and 11 log ms 0). A try whose step 11 fails passes its failures and bans to the next one. A passed try goes to `Save recipe` (`app.save_recipe`), then `Finish run` and `Respond ok` (`recipe_id`, `tries`). Three failed tries finish the run with ok = false and respond with `failed_step` 11 and each try's failure lines. A failure in steps 6 to 10 logs the row of the lowest `step N:` in its error text (6 when none) and finishes the run. The webhook body's optional `temperature` and `seed` (defaults 0 and 42) go to step 1. Its optional `profile_id` (null means the default profile) goes to step 0. Its optional `guide` (`any`, `bjcp`, `ba`; null when not sent) goes to step 2. Step 1 also logs tokens and the `llm` details (model, tries, ms), then saves the brief in `app.brief` and sets `app.run.brief_id`.",
+        "height": 300,
         "width": 300,
         "color": 4
       },
@@ -1165,41 +1127,48 @@
       ]
     },
     {
-      "parameters": {
-        "mode": "raw",
-        "options": {},
-        "jsonOutput": "={{ { run_id: $(\"Step 3 · input\").item.json.run_id, brief: $(\"Step 3 · input\").item.json.brief, style: $(\"Step 3 · input\").item.json.style, profile: $(\"Step 0 · load profile\").item.json, targets: $(\"Step 4 · targets\").item.json, frame: $(\"Step 5 · design frame\").item.json, model: $(\"Step 1 · input\").item.json.model, think: $(\"Step 1 · input\").item.json.think, temperature: $(\"Step 1 · input\").item.json.temperature, seed: $(\"Step 1 · input\").item.json.seed, started_at: $now.toISO() } }}"
-      },
-      "id": "4adbdbfe-8ab3-548b-bf7a-deb553cf9946",
-      "name": "Steps 6–9 · input",
+      "id": "1654b44b-5d43-5e32-a69a-dbf7fec99de2",
+      "name": "Try 1 · input",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
         4684,
         0
-      ]
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { run_id: $(\"Step 3 · input\").item.json.run_id, brief: $(\"Step 3 · input\").item.json.brief, step3: $(\"Step 3 · deviations\").item.json, targets: $(\"Step 4 · targets\").item.json, frame: $(\"Step 5 · design frame\").item.json, profile: $(\"Step 0 · load profile\").item.json, try: 1, choose: { run_id: $(\"Step 3 · input\").item.json.run_id, brief: $(\"Step 3 · input\").item.json.brief, style: $(\"Step 3 · input\").item.json.style, profile: $(\"Step 0 · load profile\").item.json, targets: $(\"Step 4 · targets\").item.json, frame: $(\"Step 5 · design frame\").item.json, model: $(\"Step 1 · input\").item.json.model, think: $(\"Step 1 · input\").item.json.think, temperature: $(\"Step 1 · input\").item.json.temperature, seed: $(\"Step 1 · input\").item.json.seed, feedback: null }, started_at: $now.toISO() } }}",
+        "options": {}
+      }
     },
     {
+      "id": "fbcf6ff6-19ff-5775-9bb2-fc6274ddf11e",
+      "name": "Try 1 · steps 6–11",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        4908,
+        0
+      ],
       "parameters": {
         "workflowId": {
           "__rl": true,
           "mode": "id",
-          "value": "ST69chooseingr01",
-          "cachedResultName": "Steps 6–9 · choose ingredients"
+          "value": "ST611onetry0001",
+          "cachedResultName": "Steps 6–11 · one try"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
             "run_id": "={{ $json.run_id }}",
+            "try": "={{ $json.try }}",
+            "choose": "={{ $json.choose }}",
             "brief": "={{ $json.brief }}",
-            "style": "={{ $json.style }}",
-            "profile": "={{ $json.profile }}",
+            "step3": "={{ $json.step3 }}",
             "targets": "={{ $json.targets }}",
             "frame": "={{ $json.frame }}",
-            "model": "={{ $json.model }}",
-            "think": "={{ $json.think }}",
-            "temperature": "={{ $json.temperature }}",
-            "seed": "={{ $json.seed }}"
+            "profile": "={{ $json.profile }}",
+            "started_at": "={{ $json.started_at }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -1213,6 +1182,24 @@
               "type": "number"
             },
             {
+              "id": "try",
+              "displayName": "try",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "choose",
+              "displayName": "choose",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
               "id": "brief",
               "displayName": "brief",
               "required": false,
@@ -1222,17 +1209,8 @@
               "type": "object"
             },
             {
-              "id": "style",
-              "displayName": "style",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "object"
-            },
-            {
-              "id": "profile",
-              "displayName": "profile",
+              "id": "step3",
+              "displayName": "step3",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -1258,40 +1236,22 @@
               "type": "object"
             },
             {
-              "id": "model",
-              "displayName": "model",
+              "id": "profile",
+              "displayName": "profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "started_at",
+              "displayName": "started_at",
               "required": false,
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
               "type": "string"
-            },
-            {
-              "id": "think",
-              "displayName": "think",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "boolean"
-            },
-            {
-              "id": "temperature",
-              "displayName": "temperature",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "number"
-            },
-            {
-              "id": "seed",
-              "displayName": "seed",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "number"
             }
           ],
           "attemptToConvertTypes": false,
@@ -1299,99 +1259,415 @@
         },
         "options": {}
       },
-      "id": "2423f21a-6ee6-5c6e-b399-44b6b17add5a",
-      "name": "Steps 6–9 · choose ingredients",
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.3,
-      "position": [
-        4908,
-        0
-      ],
       "onError": "continueErrorOutput"
     },
     {
-      "id": "097b9e18-f45d-559e-ab45-0cd9ff1e02b5",
-      "name": "Step 6 · log ok",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
+      "id": "4326da4e-727a-5cb0-8e4d-22983d4698c8",
+      "name": "Try 1 passed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
       "position": [
         5132,
-        -96
+        0
       ],
       "parameters": {
-        "operation": "executeQuery",
-        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, tokens, llm) values ($1, 6, 1, $2::jsonb, $3::jsonb, true, round(extract(epoch from clock_timestamp() - $4::timestamptz) * 1000)::int, $5, $6::jsonb)",
-        "options": {
-          "queryReplacement": "={{ [$(\"Steps 6–9 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Steps 6–9 · input\").item.json.run_id, style_used: $(\"Steps 6–9 · choose ingredients\").item.json.table.style_used, wanted_style: $(\"Steps 6–9 · choose ingredients\").item.json.table.wanted_style, guidance: $(\"Steps 6–9 · choose ingredients\").item.json.table.guidance, slots: $(\"Steps 6–9 · choose ingredients\").item.json.table.slots, inventory_words: $(\"Steps 6–9 · choose ingredients\").item.json.table.inventory_words, excluded: $(\"Steps 6–9 · choose ingredients\").item.json.table.excluded, candidates: $(\"Steps 6–9 · choose ingredients\").item.json.table.yeasts, band: $(\"Steps 6–9 · choose ingredients\").item.json.table.band, targets: $(\"Steps 6–9 · choose ingredients\").item.json.table.targets, yeast_rules: $(\"Steps 6–9 · choose ingredients\").item.json.table.yeast_rules }), JSON.stringify($(\"Steps 6–9 · choose ingredients\").item.json.step6), $(\"Steps 6–9 · input\").item.json.started_at, $(\"Steps 6–9 · choose ingredients\").item.json.llm.prompt_tokens + $(\"Steps 6–9 · choose ingredients\").item.json.llm.output_tokens, JSON.stringify($(\"Steps 6–9 · choose ingredients\").item.json.llm)] }}"
-        }
-      },
-      "credentials": {
-        "postgres": {
-          "id": "fDjeFLjBj3r9berH",
-          "name": "Postgres account"
-        }
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.passed }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
       }
     },
     {
-      "id": "211bf6fe-4ca8-5f5e-a62c-39327a1726d1",
-      "name": "Step 7 · log ok",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
+      "id": "d109cedb-d1ce-5802-b898-f3a7e702903e",
+      "name": "Try 2 · input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
       "position": [
         5356,
-        -96
+        0
       ],
       "parameters": {
-        "operation": "executeQuery",
-        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms) values ($1, 7, 1, $2::jsonb, $3::jsonb, true, 0)",
-        "options": {
-          "queryReplacement": "={{ [$(\"Steps 6–9 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Steps 6–9 · input\").item.json.run_id, style_used: $(\"Steps 6–9 · choose ingredients\").item.json.table.style_used, wanted_style: $(\"Steps 6–9 · choose ingredients\").item.json.table.wanted_style, guidance: $(\"Steps 6–9 · choose ingredients\").item.json.table.guidance, slots: $(\"Steps 6–9 · choose ingredients\").item.json.table.slots, inventory_words: $(\"Steps 6–9 · choose ingredients\").item.json.table.inventory_words, excluded: $(\"Steps 6–9 · choose ingredients\").item.json.table.excluded, candidates: $(\"Steps 6–9 · choose ingredients\").item.json.table.fermentables }), JSON.stringify($(\"Steps 6–9 · choose ingredients\").item.json.step7)] }}"
-        }
-      },
-      "credentials": {
-        "postgres": {
-          "id": "fDjeFLjBj3r9berH",
-          "name": "Postgres account"
-        }
+        "mode": "raw",
+        "jsonOutput": "={{ { run_id: $(\"Step 3 · input\").item.json.run_id, brief: $(\"Step 3 · input\").item.json.brief, step3: $(\"Step 3 · deviations\").item.json, targets: $(\"Step 4 · targets\").item.json, frame: $(\"Step 5 · design frame\").item.json, profile: $(\"Step 0 · load profile\").item.json, try: 2, choose: { run_id: $(\"Step 3 · input\").item.json.run_id, brief: $(\"Step 3 · input\").item.json.brief, style: $(\"Step 3 · input\").item.json.style, profile: $(\"Step 0 · load profile\").item.json, targets: $(\"Step 4 · targets\").item.json, frame: $(\"Step 5 · design frame\").item.json, model: $(\"Step 1 · input\").item.json.model, think: $(\"Step 1 · input\").item.json.think, temperature: $(\"Step 1 · input\").item.json.temperature, seed: $(\"Step 1 · input\").item.json.seed, feedback: $(\"Try 1 · steps 6–11\").item.json.next_feedback }, started_at: $now.toISO() } }}",
+        "options": {}
       }
     },
     {
-      "id": "dc25dae8-993c-5218-8db8-5bd9d75c6a10",
-      "name": "Step 8 · log ok",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
+      "id": "aa9b03d9-53a5-5af9-a09f-5aa7d9e6e72d",
+      "name": "Try 2 · steps 6–11",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
       "position": [
         5580,
-        -96
+        0
       ],
       "parameters": {
-        "operation": "executeQuery",
-        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms) values ($1, 8, 1, $2::jsonb, $3::jsonb, true, 0)",
-        "options": {
-          "queryReplacement": "={{ [$(\"Steps 6–9 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Steps 6–9 · input\").item.json.run_id, style_used: $(\"Steps 6–9 · choose ingredients\").item.json.table.style_used, wanted_style: $(\"Steps 6–9 · choose ingredients\").item.json.table.wanted_style, guidance: $(\"Steps 6–9 · choose ingredients\").item.json.table.guidance, slots: $(\"Steps 6–9 · choose ingredients\").item.json.table.slots, inventory_words: $(\"Steps 6–9 · choose ingredients\").item.json.table.inventory_words, excluded: $(\"Steps 6–9 · choose ingredients\").item.json.table.excluded, candidates: $(\"Steps 6–9 · choose ingredients\").item.json.table.hops, targets: $(\"Steps 6–9 · choose ingredients\").item.json.table.targets }), JSON.stringify($(\"Steps 6–9 · choose ingredients\").item.json.step8)] }}"
-        }
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ST611onetry0001",
+          "cachedResultName": "Steps 6–11 · one try"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "try": "={{ $json.try }}",
+            "choose": "={{ $json.choose }}",
+            "brief": "={{ $json.brief }}",
+            "step3": "={{ $json.step3 }}",
+            "targets": "={{ $json.targets }}",
+            "frame": "={{ $json.frame }}",
+            "profile": "={{ $json.profile }}",
+            "started_at": "={{ $json.started_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "try",
+              "displayName": "try",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "choose",
+              "displayName": "choose",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "brief",
+              "displayName": "brief",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "step3",
+              "displayName": "step3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "targets",
+              "displayName": "targets",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "frame",
+              "displayName": "frame",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "profile",
+              "displayName": "profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "started_at",
+              "displayName": "started_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
       },
-      "credentials": {
-        "postgres": {
-          "id": "fDjeFLjBj3r9berH",
-          "name": "Postgres account"
-        }
-      }
+      "onError": "continueErrorOutput"
     },
     {
-      "id": "4efd59bd-815d-5c96-98e7-6cc164fa3eaa",
-      "name": "Step 9 · log ok",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
+      "id": "b553a790-f03e-5778-a9aa-0175b319068b",
+      "name": "Try 2 passed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
       "position": [
         5804,
-        -96
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.passed }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "45b4b335-1f76-50da-9faf-88bae87b06c1",
+      "name": "Try 3 · input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6028,
+        0
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { run_id: $(\"Step 3 · input\").item.json.run_id, brief: $(\"Step 3 · input\").item.json.brief, step3: $(\"Step 3 · deviations\").item.json, targets: $(\"Step 4 · targets\").item.json, frame: $(\"Step 5 · design frame\").item.json, profile: $(\"Step 0 · load profile\").item.json, try: 3, choose: { run_id: $(\"Step 3 · input\").item.json.run_id, brief: $(\"Step 3 · input\").item.json.brief, style: $(\"Step 3 · input\").item.json.style, profile: $(\"Step 0 · load profile\").item.json, targets: $(\"Step 4 · targets\").item.json, frame: $(\"Step 5 · design frame\").item.json, model: $(\"Step 1 · input\").item.json.model, think: $(\"Step 1 · input\").item.json.think, temperature: $(\"Step 1 · input\").item.json.temperature, seed: $(\"Step 1 · input\").item.json.seed, feedback: $(\"Try 2 · steps 6–11\").item.json.next_feedback }, started_at: $now.toISO() } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "97d8ad1b-2059-5a60-9a75-ccf66829ad37",
+      "name": "Try 3 · steps 6–11",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        6252,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ST611onetry0001",
+          "cachedResultName": "Steps 6–11 · one try"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "try": "={{ $json.try }}",
+            "choose": "={{ $json.choose }}",
+            "brief": "={{ $json.brief }}",
+            "step3": "={{ $json.step3 }}",
+            "targets": "={{ $json.targets }}",
+            "frame": "={{ $json.frame }}",
+            "profile": "={{ $json.profile }}",
+            "started_at": "={{ $json.started_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "try",
+              "displayName": "try",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "choose",
+              "displayName": "choose",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "brief",
+              "displayName": "brief",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "step3",
+              "displayName": "step3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "targets",
+              "displayName": "targets",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "frame",
+              "displayName": "frame",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "profile",
+              "displayName": "profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "started_at",
+              "displayName": "started_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "71cd6ce6-f837-5f49-a19d-6b27825fa7c8",
+      "name": "Try 3 passed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        6476,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.passed }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "1ee12613-6d3f-5dcc-87a4-4f01f2885d02",
+      "name": "Save recipe",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        6700,
+        -288
       ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms) values ($1, 9, 1, $2::jsonb, $3::jsonb, true, 0)",
+        "query": "select app.save_recipe($1::bigint, $2::jsonb, $3::jsonb, $4::jsonb, $5::jsonb)::int as recipe_id, $6::int as tries",
         "options": {
-          "queryReplacement": "={{ [$(\"Steps 6–9 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Steps 6–9 · input\").item.json.run_id, style_used: $(\"Steps 6–9 · choose ingredients\").item.json.table.style_used, wanted_style: $(\"Steps 6–9 · choose ingredients\").item.json.table.wanted_style, guidance: $(\"Steps 6–9 · choose ingredients\").item.json.table.guidance, slots: $(\"Steps 6–9 · choose ingredients\").item.json.table.slots, inventory_words: $(\"Steps 6–9 · choose ingredients\").item.json.table.inventory_words, excluded: $(\"Steps 6–9 · choose ingredients\").item.json.table.excluded, candidates: $(\"Steps 6–9 · choose ingredients\").item.json.table.misc }), JSON.stringify($(\"Steps 6–9 · choose ingredients\").item.json.step9)] }}"
+          "queryReplacement": "={{ [$(\"Start run\").item.json.id, JSON.stringify($(\"Step 3 · deviations\").item.json), JSON.stringify($(\"Step 4 · targets\").item.json), JSON.stringify($json.step10), JSON.stringify($json.step11), $json.try] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "95193eaa-0e43-5d97-be39-7865817634ae",
+      "name": "Finish run",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        6924,
+        -288
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "update app.run set finished_at = now(), ok = true where id = $1 returning id::int as id",
+        "options": {
+          "queryReplacement": "={{ [$(\"Start run\").item.json.id] }}"
         }
       },
       "credentials": {
@@ -1402,19 +1678,34 @@
       }
     },
     {
-      "id": "8b7af7d0-2748-50cc-8144-bfeb953b5aa3",
-      "name": "Steps 6–9 · log failure",
+      "id": "9a8fd846-7f61-5ebf-b3ea-33ca4d4591b2",
+      "name": "Respond ok",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        7148,
+        -288
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { run_id: $json.id, ok: true, recipe_id: $(\"Save recipe\").item.json.recipe_id, tries: $(\"Save recipe\").item.json.tries } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "ef7995e7-389b-5f88-9a17-db333ce00245",
+      "name": "Finish run (failed, steps 6–11)",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        5132,
-        288
+        6700,
+        480
       ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, error) values ($1, $5::int, 1, $2::jsonb, null, false, round(extract(epoch from clock_timestamp() - $3::timestamptz) * 1000)::int, $4)",
+        "query": "update app.run set finished_at = now(), ok = false where id = $1 returning id::int as id, $2::text as error",
         "options": {
-          "queryReplacement": "={{ [$(\"Steps 6–9 · input\").item.json.run_id, JSON.stringify({ run_id: $(\"Steps 6–9 · input\").item.json.run_id, brief: $(\"Steps 6–9 · input\").item.json.brief, style: $(\"Steps 6–9 · input\").item.json.style, targets: $(\"Steps 6–9 · input\").item.json.targets, frame: $(\"Steps 6–9 · input\").item.json.frame }), $(\"Steps 6–9 · input\").item.json.started_at, $json.error, (($(\"Steps 6–9 · choose ingredients\").item.json.error ?? \"\").match(/step ([6-9]):/g) ?? [\"step 6:\"]).map(s => Number(s.slice(5, 6))).sort()[0]] }}"
+          "queryReplacement": "={{ [$(\"Start run\").item.json.id, $json.error] }}"
         }
       },
       "credentials": {
@@ -1425,13 +1716,28 @@
       }
     },
     {
-      "id": "c872a4f8-2201-5cdf-905d-971767a71bb9",
-      "name": "Finish run (failed, steps 6–9)",
+      "id": "ed18456f-2977-55d9-bc38-753d5c2dd669",
+      "name": "Respond failed (steps 6–11)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        6924,
+        480
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { run_id: $json.id, ok: false, failed_step: ((($json.error ?? \"\").match(/step ?(\\d+)[:.]/g) ?? [(($json.error ?? \"\").includes(\"save_recipe\") ? \"step 11:\" : \"step 6:\")]).map(s => Number(s.replace(/\\D/g, \"\"))).sort((a, b) => a - b)[0]), error: $json.error } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "5b565124-7de5-5f84-b8ad-66053db398e5",
+      "name": "Finish run (failed, 3 tries)",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        5356,
-        288
+        6700,
+        192
       ],
       "parameters": {
         "operation": "executeQuery",
@@ -1448,19 +1754,19 @@
       }
     },
     {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ { run_id: $json.id, ok: false, failed_step: (($(\"Steps 6–9 · choose ingredients\").item.json.error ?? \"\").match(/step ([6-9]):/g) ?? [\"step 6:\"]).map(s => Number(s.slice(5, 6))).sort()[0], error: $(\"Steps 6–9 · choose ingredients\").item.json.error } }}",
-        "options": {}
-      },
-      "id": "22bb0ea3-2c0f-52cb-bb90-103df0c05ed7",
-      "name": "Respond failed (steps 6–9)",
+      "id": "df3493f9-0cdb-554a-b951-ce0867cbaa21",
+      "name": "Respond failed (3 tries)",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        5580,
-        288
-      ]
+        6924,
+        192
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { run_id: $json.id, ok: false, failed_step: 11, tries: 3, error: \"try 1: \" + $(\"Try 1 · steps 6–11\").item.json.step11.feedback.join(\"; \") + \"; \" + \"try 2: \" + $(\"Try 2 · steps 6–11\").item.json.step11.feedback.join(\"; \") + \"; \" + \"try 3: \" + $(\"Try 3 · steps 6–11\").item.json.step11.feedback.join(\"; \") } }}",
+        "options": {}
+      }
     }
   ],
   "connections": {
@@ -1520,17 +1826,6 @@
         [
           {
             "node": "Step 1 · log failure",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Finish run": {
-      "main": [
-        [
-          {
-            "node": "Respond ok",
             "type": "main",
             "index": 0
           }
@@ -1884,76 +2179,155 @@
       "main": [
         [
           {
-            "node": "Steps 6–9 · input",
+            "node": "Try 1 · input",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Steps 6–9 · input": {
+    "Try 1 · input": {
       "main": [
         [
           {
-            "node": "Steps 6–9 · choose ingredients",
+            "node": "Try 1 · steps 6–11",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Steps 6–9 · choose ingredients": {
+    "Try 1 · steps 6–11": {
       "main": [
         [
           {
-            "node": "Step 6 · log ok",
+            "node": "Try 1 passed?",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Steps 6–9 · log failure",
+            "node": "Finish run (failed, steps 6–11)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Step 6 · log ok": {
+    "Try 1 passed?": {
       "main": [
         [
           {
-            "node": "Step 7 · log ok",
+            "node": "Save recipe",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Try 2 · input",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Step 7 · log ok": {
+    "Try 2 · input": {
       "main": [
         [
           {
-            "node": "Step 8 · log ok",
+            "node": "Try 2 · steps 6–11",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Step 8 · log ok": {
+    "Try 2 · steps 6–11": {
       "main": [
         [
           {
-            "node": "Step 9 · log ok",
+            "node": "Try 2 passed?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Finish run (failed, steps 6–11)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Step 9 · log ok": {
+    "Try 2 passed?": {
+      "main": [
+        [
+          {
+            "node": "Save recipe",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Try 3 · input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Try 3 · input": {
+      "main": [
+        [
+          {
+            "node": "Try 3 · steps 6–11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Try 3 · steps 6–11": {
+      "main": [
+        [
+          {
+            "node": "Try 3 passed?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Finish run (failed, steps 6–11)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Try 3 passed?": {
+      "main": [
+        [
+          {
+            "node": "Save recipe",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Finish run (failed, 3 tries)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save recipe": {
       "main": [
         [
           {
@@ -1961,25 +2335,43 @@
             "type": "main",
             "index": 0
           }
-        ]
-      ]
-    },
-    "Steps 6–9 · log failure": {
-      "main": [
+        ],
         [
           {
-            "node": "Finish run (failed, steps 6–9)",
+            "node": "Finish run (failed, steps 6–11)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Finish run (failed, steps 6–9)": {
+    "Finish run": {
       "main": [
         [
           {
-            "node": "Respond failed (steps 6–9)",
+            "node": "Respond ok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish run (failed, steps 6–11)": {
+      "main": [
+        [
+          {
+            "node": "Respond failed (steps 6–11)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish run (failed, 3 tries)": {
+      "main": [
+        [
+          {
+            "node": "Respond failed (3 tries)",
             "type": "main",
             "index": 0
           }
@@ -1989,7 +2381,6 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "availableInMCP": true,
-    "binaryMode": "separate"
+    "availableInMCP": true
   }
 }

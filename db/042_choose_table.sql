@@ -609,3 +609,100 @@ begin
     return v_text;
 end
 $$;
+
+-- A retry's table (docs/work/m6-compute-validate, Task 7): the table with the products step 11
+-- banned taken out. A banned id leaves fermentables, hops, yeasts, misc and the ids of every slot
+-- and inventory word, and is added to `excluded` so the existing check refuses it with its why.
+-- feedback = null (try 1) returns the table unchanged. feedback.banned = [{ingredient_id, name, why}].
+create or replace function app.choose_ban(tbl jsonb, feedback jsonb)
+returns jsonb
+language plpgsql
+immutable
+as $$
+declare
+    v_ids bigint[];
+    v_try text;
+    v_out jsonb := tbl;
+    k     text;
+begin
+    if feedback is null or jsonb_typeof(feedback) <> 'object' then
+        return tbl;
+    end if;
+    v_ids := array(select (b.value ->> 'ingredient_id')::bigint
+                     from jsonb_array_elements(coalesce(feedback -> 'banned', '[]'::jsonb)) b);
+    v_try := feedback ->> 'try';
+    foreach k in array array['fermentables', 'hops', 'yeasts', 'misc'] loop
+        v_out := jsonb_set(v_out, array[k], (
+            select coalesce(jsonb_agg(r.value order by r.ord), '[]'::jsonb)
+              from jsonb_array_elements(v_out -> k) with ordinality r(value, ord)
+             where (r.value ->> 'ingredient_id')::bigint <> all (v_ids)));
+    end loop;
+    foreach k in array array['slots', 'inventory_words'] loop
+        v_out := jsonb_set(v_out, array[k], (
+            select coalesce(jsonb_agg(jsonb_set(s.value, '{ids}', (
+                       select coalesce(jsonb_agg(i.value order by i.ord), '[]'::jsonb)
+                         from jsonb_array_elements(s.value -> 'ids') with ordinality i(value, ord)
+                        where (i.value #>> '{}')::bigint <> all (v_ids))) order by s.ord), '[]'::jsonb)
+              from jsonb_array_elements(v_out -> k) with ordinality s(value, ord)));
+    end loop;
+    return jsonb_set(v_out, '{excluded}', coalesce(v_out -> 'excluded', '[]'::jsonb) || (
+        select coalesce(jsonb_agg(jsonb_build_object(
+                   'ingredient_id', (b.value ->> 'ingredient_id')::bigint, 'name', b.value ->> 'name',
+                   'word', b.value ->> 'name',
+                   'why', 'failed step 11 on try ' || v_try || ': ' || (b.value ->> 'why')) order by b.ord), '[]'::jsonb)
+          from jsonb_array_elements(coalesce(feedback -> 'banned', '[]'::jsonb)) with ordinality b(value, ord)));
+end
+$$;
+
+-- The block of the prompt that carries step 11's failures to the retry: the lines (rule or number,
+-- value, limit), the failed recipe's picks, the banned names. Empty text for no feedback. Every
+-- number in it is copied from the feedback.
+-- last = {fermentables [{name, pct, usage}], hops [{name, share_pct, usage, minutes}],
+--         yeast [{name}], extras [{name, usage, g?}]}.
+create or replace function app.choose_feedback_prompt(feedback jsonb)
+returns text
+language plpgsql
+immutable
+as $$
+declare
+    v_text text;
+    v_part text;
+    v_last jsonb;
+begin
+    if feedback is null or jsonb_typeof(feedback) <> 'object' then
+        return '';
+    end if;
+    v_last := coalesce(feedback -> 'last', '{}'::jsonb);
+    v_text := E'\n\nTRY ' || (feedback ->> 'try') || E'\nTry ' || (feedback ->> 'try')
+              || ': the last recipe failed step 11. Fix these and change as little else as you can. Where a line says To fix, do that:';
+    select string_agg(E'\n- ' || l.value, '' order by l.ord) into v_part
+      from jsonb_array_elements_text(coalesce(feedback -> 'lines', '[]'::jsonb)) with ordinality l(value, ord);
+    v_text := v_text || coalesce(v_part, E'\n- none');
+
+    v_text := v_text || E'\nThe last recipe\'s picks:';
+    select string_agg(E'\n- fermentable ' || (f.value ->> 'name') || ' ' || coalesce(app.choose_num(f.value -> 'pct'), '?')
+                      || ' % (' || coalesce(f.value ->> 'usage', '?') || ')', '' order by f.ord) into v_part
+      from jsonb_array_elements(coalesce(v_last -> 'fermentables', '[]'::jsonb)) with ordinality f(value, ord);
+    v_text := v_text || coalesce(v_part, '');
+    select string_agg(E'\n- hop ' || (h.value ->> 'name') || ' ' || coalesce(app.choose_num(h.value -> 'share_pct'), '?')
+                      || ' % (' || coalesce(h.value ->> 'usage', '?')
+                      || case when h.value ->> 'minutes' is null then '' else ', ' || (h.value ->> 'minutes') || ' min' end
+                      || ')', '' order by h.ord) into v_part
+      from jsonb_array_elements(coalesce(v_last -> 'hops', '[]'::jsonb)) with ordinality h(value, ord);
+    v_text := v_text || coalesce(v_part, '');
+    select string_agg(E'\n- yeast ' || (y.value ->> 'name'), '' order by y.ord) into v_part
+      from jsonb_array_elements(coalesce(v_last -> 'yeast', '[]'::jsonb)) with ordinality y(value, ord);
+    v_text := v_text || coalesce(v_part, '');
+    select string_agg(E'\n- extra ' || (x.value ->> 'name') || ' (' || coalesce(x.value ->> 'usage', '?') || ')',
+                      '' order by x.ord) into v_part
+      from jsonb_array_elements(coalesce(v_last -> 'extras', '[]'::jsonb)) with ordinality x(value, ord);
+    v_text := v_text || coalesce(v_part, '');
+
+    select string_agg(b.value ->> 'name', ', ' order by b.ord) into v_part
+      from jsonb_array_elements(coalesce(feedback -> 'banned', '[]'::jsonb)) with ordinality b(value, ord);
+    if v_part is not null then
+        v_text := v_text || E'\nBanned for this try (not in the lists above any more): ' || v_part || '.';
+    end if;
+    return v_text;
+end
+$$;

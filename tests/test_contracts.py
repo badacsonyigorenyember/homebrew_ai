@@ -8,9 +8,10 @@ import pytest
 from loaders.db import connect
 
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
-NAMES = [f"step{n}.{side}" for n in range(10) for side in ("input", "output")]
+NAMES = [f"step{n}.{side}" for n in range(12) for side in ("input", "output")]
 NAMES += ["choose.input", "choose.proposal"]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
+NAMES += [f"try.{side}" for side in ("input", "output")]
 
 # Each output's slot for absent / unknown / conflict: (property, how the schema must allow it).
 # "null" = the property's type allows null; "array" = it is an array; "enum:<v>" = enum holds <v>.
@@ -26,6 +27,9 @@ ABSENT_SLOTS = {
     "step8.output": [("absent", "array")],
     "step9.output": [("extras.dose_g_per_l", "null"), ("absent", "array")],
     "formulation_check.output": [("results.status", "enum:unknown"), ("numbers.fg", "null")],
+    "step10.output": [("colour.darkest", "null"), ("numbers.abv", "null"), ("extras", "array")],
+    "step11.output": [("targets.value", "null"), ("failures", "array")],
+    "try.output": [("next_feedback", "null")],
 }
 
 
@@ -58,6 +62,8 @@ def test_contract_files_complete():
             assert schema.get(key), f"{name}: {key} missing"
         assert schema["type"] == "object"
         optional = {"temperature", "seed"} if name == "step1.input" else set()
+        if name == "formulation_check.input":
+            optional = {"extras"}
         assert set(schema["required"]) == set(schema["properties"]) - optional, name
         assert schema["additionalProperties"] is False, name
         if name.startswith("step") and name.endswith(".input"):
@@ -215,15 +221,70 @@ _CHOOSE_OUT = {
                                  "dose_g_per_l": 3.0, "dose_because": "one sourced dose"}],
                      "unused_inventory": [], "absent": _ABSENT},
 }
+_NAMED = {"ingredient_id": 5, "name": "Pale Ale Malt"}
+STEP10_OUT = {
+    "batch": {"volume_l": 20, "efficiency_pct": 72, "boil_off_l_h": 4, "losses_l": 2},
+    "boil": {"boil_min": 60, "because": "60 min: the minimum boil time (rule 13)"},
+    "mash_c": 66.5, "ferm_c": 18,
+    "og_used": {"value": 1.05, "moved": False, "because": "ABV is within 0.2 of the target, so the OG stays"},
+    "colour": {"grist": [{"ingredient_id": 5, "pct": 100, "kg": 4.2}], "adjusted": False, "reached": True,
+               "srm": 4.5, "darkest": None, "absorber": None, "from_pct": None, "to_pct": None, "second": None,
+               "because": "SRM 4.5 is within 1 of the target 4.5, so the shares stay as proposed"},
+    "fermentables": [{**_NAMED, "usage": "mash", "pct": 100, "kg": 4.2, "purpose": "base"}],
+    "hops": [{"ingredient_id": 3, "name": "Cascade", "usage": "boil", "minutes": 60, "share_pct": 100,
+              "alpha_pct": 5.5, "g": 40, "purpose": "bitter"}],
+    "yeasts": [{"ingredient_id": 1, "name": "US-05", "role": "main", "amount": 1, "unit": "pack", "purpose": "clean"}],
+    "extras": [{"ingredient_id": 4, "name": "Coffee", "usage": "package", "time_min": None, "dose_g_per_l": 3,
+                "g": 60, "purpose": "coffee"}],
+    "numbers": {"og": 1.05, "fg": 1.011, "abv": 5.1, "ibu": 30, "srm": 4.5, "attenuation_pct": 77,
+                "srm_lower_bound": []},
+    "values_used": [{"what": "boil", "because": "60 min"}],
+    "rounding": {"steps": {"malt_kg": 0.05, "sugar_kg": 0.001, "hop_g": 1, "extra_g": 1}, "reached": True, "added": [],
+                 "off_nearest": [], "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g."},
+    "recipe": CHECK_IN,
+}
+STEP11_OUT = {
+    "passed": False,
+    "failures": [{"kind": "pick", "subject": "Black Malt", "value": None, "limit": None,
+                  "text": "Step 11: Black Malt (mash) is out of style for the style: x", "ban": 5}],
+    "banned": [{"ingredient_id": 5, "name": "Black Malt", "why": "out of style: x"}],
+    "feedback": ["Step 11: Black Malt (mash) is out of style for the style: x (banned for the next try)"],
+    "check": {}, "style_fit": {},
+    "targets": [{"key": "abv", "target": 5.0, "value": None, "tolerance": 0.2, "met": False}],
+    "stated": [{"key": "ibu", "stated": 30, "value": 30.5, "tolerance": 2, "met": True}],
+    "model_deviations": [{"subject": "Black Malt", "level": "out_of_style", "note": "x"}],
+}
+TRY_FEEDBACK = {
+    "try": 3, "lines": STEP11_OUT["feedback"], "banned": STEP11_OUT["banned"],
+    "last": {"fermentables": [{"name": "Pale Ale Malt", "pct": 100, "usage": "mash"}],
+             "hops": [{"name": "Cascade", "share_pct": 100, "usage": "boil", "minutes": 60}],
+             "yeast": [{"name": "US-05"}], "extras": [{"name": "Coffee", "usage": "package", "g": 60}]},
+}
+TRY_CHOOSE = {"run_id": 1, "brief": BRIEF, "style": STEP2_OUT, "profile": GOOD_PROFILE, "targets": STEP4_OUT,
+              "frame": STEP5_OUT, "model": "gemma4:12b", "think": False, "temperature": 0, "seed": 42,
+              "feedback": {**TRY_FEEDBACK, "try": 2}}
 GOOD = {
     **_CHOOSE_OUT,
+    "step10.input": {"run_id": 1, "try": 1, "brief": BRIEF, "profile": GOOD_PROFILE, "targets": STEP4_OUT,
+                     "step6": _CHOOSE_OUT["step6.output"], "step7": _CHOOSE_OUT["step7.output"],
+                     "step8": _CHOOSE_OUT["step8.output"], "step9": _CHOOSE_OUT["step9.output"]},
+    "step10.output": STEP10_OUT,
+    "step11.input": {"run_id": 1, "try": 1, "brief": BRIEF, "targets": STEP4_OUT, "frame": {},
+                     "picks": [{"ingredient_id": 5, "name": "Black Malt", "self_picked": True}],
+                     "step10": STEP10_OUT},
+    "step11.output": STEP11_OUT,
+    "try.input": {"run_id": 1, "try": 2, "choose": TRY_CHOOSE, "brief": BRIEF, "step3": {"deviations": []},
+                  "targets": STEP4_OUT, "frame": STEP5_OUT, "profile": GOOD_PROFILE,
+                  "started_at": "2026-10-25T10:00:00.000Z"},
+    "try.output": {"passed": False, "try": 2, "step10": STEP10_OUT, "step11": STEP11_OUT,
+                   "next_feedback": TRY_FEEDBACK},
     "step6.input": {**_CANDIDATES, "band": {"yeast_low_pct": 74, "yeast_high_pct": 77},
                     "targets": {"og": 1.05}, "yeast_rules": {"lager": False, "families": [], "souring": False}},
     "step7.input": _CANDIDATES,
     "step8.input": {**_CANDIDATES, "targets": {"ibu": 30}},
     "step9.input": _CANDIDATES,
     "choose.input": {"run_id": 1, "brief": BRIEF, "style": STEP2_OUT, "profile": GOOD_PROFILE, "targets": STEP4_OUT,
-                     "frame": STEP5_OUT, "model": "gemma4:12b", "think": False, "temperature": 0, "seed": 42},
+                     "frame": STEP5_OUT, "model": "gemma4:12b", "think": False, "temperature": 0, "seed": 42, "feedback": None},
     "choose.proposal": PROPOSAL,
     "formulation_check.input": CHECK_IN,
     "formulation_check.output": CHECK_OUT,
@@ -247,6 +308,16 @@ GOOD = {
     "step5.output": STEP5_OUT,
 }
 BAD = [
+    ("step10.output", {k: v for k, v in STEP10_OUT.items() if k != "recipe"}),
+    ("step10.output", {**STEP10_OUT, "yeasts": []}),
+    ("step10.output", {**STEP10_OUT, "extras": [{**STEP10_OUT["extras"][0], "usage": "packaging"}]}),
+    ("step10.input", {k: v for k, v in GOOD["step10.input"].items() if k != "try"}),
+    ("step11.output", {**STEP11_OUT, "failures": [{**STEP11_OUT["failures"][0], "kind": "taste"}]}),
+    ("step11.input", {**GOOD["step11.input"], "picks": [{"ingredient_id": 5, "name": "x"}]}),
+    ("try.input", {k: v for k, v in GOOD["try.input"].items() if k != "choose"}),
+    ("try.input", {**GOOD["try.input"], "try": 4}),
+    ("try.output", {**GOOD["try.output"], "next_feedback": {**TRY_FEEDBACK, "try": 1}}),
+    ("try.output", {k: v for k, v in GOOD["try.output"].items() if k != "step11"}),
     ("step6.output", {k: v for k, v in _CHOOSE_OUT["step6.output"].items() if k != "attenuation"}),
     ("step6.output", {**_CHOOSE_OUT["step6.output"], "yeast": {**_YEAST, "ingredient_id": "5"}}),
     ("step7.output", {**_CHOOSE_OUT["step7.output"], "fermentables": [{**_CHOOSE_OUT["step7.output"]["fermentables"][0], "usage": "whirlpool"}]}),
@@ -256,6 +327,7 @@ BAD = [
     ("step8.input", _CANDIDATES),
     ("choose.input", {k: v for k, v in GOOD["choose.input"].items() if k != "seed"}),
     ("choose.input", {**GOOD["choose.input"], "model": ""}),
+    ("choose.input", {**GOOD["choose.input"], "feedback": {"try": 1, "lines": [], "banned": [], "last": {}}}),
     ("choose.proposal", {**PROPOSAL, "extras": [{**PROPOSAL["extras"][0], "dose_g_per_l": 3.0}]}),
     ("choose.proposal", {**PROPOSAL, "fermentables": [{**PROPOSAL["fermentables"][0], "pct": 0}]}),
     ("choose.proposal", {**PROPOSAL, "fermentables": [{**PROPOSAL["fermentables"][0], "usage": "whirlpool"}]}),

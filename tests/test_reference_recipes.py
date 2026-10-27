@@ -1,4 +1,4 @@
-"""The 22 reference recipes (tests/fixtures/reference_recipes.toml) against app.check_recipe.
+"""The 24 reference recipes (tests/fixtures/reference_recipes.toml) against app.check_recipe.
 
 R16 and A12 of docs/work/s2-formulation-rules. Test data only: nothing under shared/prompts/ or
 n8n/workflows/ may mention the fixture file.
@@ -50,7 +50,7 @@ def build_input(conn, rec):
             "usage": h["usage"], "minutes": h["minutes"], "g": h["g"], "purpose": h["purpose"],
         })
     y = rec["yeast"]
-    return {
+    out = {
         "style_code": rec["style_code"],
         "guidance": rec["guidance"],
         "stated": rec["stated"],
@@ -68,6 +68,13 @@ def build_input(conn, rec):
         "yeast": {"ingredient_id": ingredient_id(conn, "yeast", y["producer"], y["name"]),
                   "ferm_c": y["ferm_c"], "purpose": y["purpose"]},
     }
+    if rec.get("extra"):
+        out["extras"] = [
+            {"ingredient_id": ingredient_id(conn, "misc", "", e["name"]), "usage": e["usage"],
+             "g": e["g"], "purpose": e["purpose"]}
+            for e in rec["extra"]
+        ]
+    return out
 
 
 def check(conn, recipe_input):
@@ -76,10 +83,9 @@ def check(conn, recipe_input):
 
 
 def test_every_brief_has_exactly_one_recipe():
-    """b01-b22 have one recipe each. b23 and b24 (extras) get theirs with M6, when
-    app.check_recipe takes extras (RECIPE-ROADMAP Later TODO; decided 2026-10-18)."""
-    brief_ids = [b["id"] for b in BRIEFS if b["id"] not in ("b23", "b24")]
-    assert len(brief_ids) == 22
+    """b01-b24 have one recipe each (b23 and b24 carry extras, m6-compute-validate Task 2)."""
+    brief_ids = [b["id"] for b in BRIEFS]
+    assert len(brief_ids) == 24
     assert sorted(r["brief"] for r in RECIPES) == sorted(brief_ids)
 
 
@@ -95,7 +101,8 @@ def test_recipe_follows_its_brief():
         for key, value in stated.items():
             assert rec["targets"][key] == value, f"{rec['brief']}: target {key} is not the stated one"
         if rec["style_code"] != brief["style"]:
-            assert rec["brief"] == "b12" and rec["style_code"] == "18A"  # 31B has no vitals
+            # 31B and 30A have no vitals; b12 uses 18A, b23 its 20B base
+            assert (rec["brief"], rec["style_code"]) in (("b12", "18A"), ("b23", "20B"))
 
 
 def test_no_prompt_or_workflow_mentions_the_fixture():

@@ -1,0 +1,544 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step10.output",
+  "description": "Step 10, compute: batch, boil time, mash and fermentation temperature, the OG used (before rounding; moved inside its tolerance towards the ABV target, or not), the colour adjustment (darkest and absorber null when nothing could change; second is the second pass, null when there was none), the mash used, fermentables in kg, hops and extras in g, yeasts in packs, the numbers (srm_lower_bound names fermentables with no colour, counted as 0 EBC), one values_used line for each value picked from a range, rounding (the weighing steps; whether a grist on them avoided every failure the exact amounts did not have, the failures it added, the fermentables not at their nearest step, why), and recipe: the formulation_check.input object step 11 checks (its targets.og is the OG used). Absent: numbers.fg, numbers.abv and numbers.attenuation_pct null when the yeast has no attenuation figure; colour.darkest and colour.absorber null; extras empty.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "batch",
+    "boil",
+    "mash_c",
+    "ferm_c",
+    "og_used",
+    "colour",
+    "fermentables",
+    "hops",
+    "yeasts",
+    "extras",
+    "numbers",
+    "values_used",
+    "rounding",
+    "recipe"
+  ],
+  "properties": {
+    "batch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "volume_l",
+        "efficiency_pct",
+        "boil_off_l_h",
+        "losses_l"
+      ],
+      "properties": {
+        "volume_l": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "efficiency_pct": {
+          "type": "number"
+        },
+        "boil_off_l_h": {
+          "type": "number"
+        },
+        "losses_l": {
+          "type": "number"
+        }
+      }
+    },
+    "boil": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "boil_min",
+        "because"
+      ],
+      "properties": {
+        "boil_min": {
+          "type": "number"
+        },
+        "because": {
+          "type": "string"
+        }
+      }
+    },
+    "mash_c": {
+      "type": "number"
+    },
+    "ferm_c": {
+      "type": "number"
+    },
+    "og_used": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "moved",
+        "because"
+      ],
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "moved": {
+          "type": "boolean"
+        },
+        "because": {
+          "type": "string"
+        }
+      }
+    },
+    "colour": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grist",
+        "adjusted",
+        "reached",
+        "srm",
+        "darkest",
+        "absorber",
+        "from_pct",
+        "to_pct",
+        "second",
+        "because"
+      ],
+      "properties": {
+        "grist": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "adjusted": {
+          "type": "boolean"
+        },
+        "reached": {
+          "type": "boolean"
+        },
+        "srm": {
+          "type": "number"
+        },
+        "darkest": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "ingredient_id",
+            "name"
+          ],
+          "properties": {
+            "ingredient_id": {
+              "type": "integer"
+            },
+            "name": {
+              "type": "string"
+            }
+          }
+        },
+        "absorber": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "ingredient_id",
+            "name"
+          ],
+          "properties": {
+            "ingredient_id": {
+              "type": "integer"
+            },
+            "name": {
+              "type": "string"
+            }
+          }
+        },
+        "from_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "to_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "because": {
+          "type": "string"
+        },
+        "second": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "darkest",
+            "absorber",
+            "from_pct",
+            "to_pct",
+            "because"
+          ],
+          "properties": {
+            "darkest": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "ingredient_id",
+                "name"
+              ],
+              "properties": {
+                "ingredient_id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            },
+            "absorber": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "ingredient_id",
+                "name"
+              ],
+              "properties": {
+                "ingredient_id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            },
+            "from_pct": {
+              "type": "number"
+            },
+            "to_pct": {
+              "type": "number"
+            },
+            "because": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "fermentables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ingredient_id",
+          "name",
+          "usage",
+          "pct",
+          "kg",
+          "purpose"
+        ],
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "usage": {
+            "enum": [
+              "mash",
+              "boil"
+            ]
+          },
+          "pct": {
+            "type": "number"
+          },
+          "kg": {
+            "type": "number"
+          },
+          "purpose": {
+            "type": "string"
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "hops": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ingredient_id",
+          "name",
+          "usage",
+          "minutes",
+          "share_pct",
+          "alpha_pct",
+          "g",
+          "purpose"
+        ],
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "usage": {
+            "enum": [
+              "boil",
+              "whirlpool",
+              "dry_hop"
+            ]
+          },
+          "minutes": {
+            "type": "number"
+          },
+          "share_pct": {
+            "type": "number"
+          },
+          "alpha_pct": {
+            "type": "number"
+          },
+          "g": {
+            "type": "number"
+          },
+          "purpose": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "yeasts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ingredient_id",
+          "name",
+          "role",
+          "amount",
+          "unit",
+          "purpose"
+        ],
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "main",
+              "souring"
+            ]
+          },
+          "amount": {
+            "type": "number"
+          },
+          "unit": {
+            "enum": [
+              "pack"
+            ]
+          },
+          "purpose": {
+            "type": "string"
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "extras": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ingredient_id",
+          "name",
+          "usage",
+          "time_min",
+          "dose_g_per_l",
+          "g",
+          "purpose"
+        ],
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "usage": {
+            "enum": [
+              "mash",
+              "boil",
+              "whirlpool",
+              "ferment",
+              "secondary",
+              "package"
+            ]
+          },
+          "time_min": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "dose_g_per_l": {
+            "type": "number"
+          },
+          "g": {
+            "type": "number"
+          },
+          "purpose": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "numbers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "og",
+        "fg",
+        "abv",
+        "ibu",
+        "srm",
+        "attenuation_pct",
+        "srm_lower_bound"
+      ],
+      "properties": {
+        "og": {
+          "type": "number"
+        },
+        "fg": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "abv": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "ibu": {
+          "type": "number"
+        },
+        "srm": {
+          "type": "number"
+        },
+        "attenuation_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "srm_lower_bound": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "values_used": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "what",
+          "because"
+        ],
+        "properties": {
+          "what": {
+            "enum": [
+              "colour",
+              "alpha",
+              "attenuation",
+              "ferm_c",
+              "boil",
+              "mash",
+              "yeast amount"
+            ]
+          },
+          "because": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "recipe": {
+      "type": "object"
+    },
+    "rounding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "steps",
+        "reached",
+        "added",
+        "off_nearest",
+        "because"
+      ],
+      "properties": {
+        "steps": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "malt_kg",
+            "sugar_kg",
+            "hop_g",
+            "extra_g"
+          ],
+          "properties": {
+            "malt_kg": {
+              "type": "number"
+            },
+            "sugar_kg": {
+              "type": "number"
+            },
+            "hop_g": {
+              "type": "number"
+            },
+            "extra_g": {
+              "type": "number"
+            }
+          }
+        },
+        "reached": {
+          "type": "boolean"
+        },
+        "added": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "off_nearest": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "because": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

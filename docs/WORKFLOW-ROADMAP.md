@@ -80,7 +80,7 @@ names and dev-ship's move to `docs/finished/` assume `<slug>` is one folder name
 | S8 | [`s8-ingredient-intake`](finished/s8-ingredient-intake/brief.md) | `shared/ingredients/` with templates; `loaders/extra_ingredients.py` checks and loads fermentable, hop and yeast files and sources; `ref.ingredient_alias` read first by the resolver; the tagger reads the files. ✅ shipped | m4 | — (brief A1-A12, merged) |
 | S9 | [`s9-misc-extras`](finished/s9-misc-extras/brief.md) | Misc through the pipeline: `ref.misc` columns, `misc/` intake files and templates, the first four entries (coffee beans and cold brew, vanilla bean, orange peel), misc in style fit, step 2 (specialty style by category), step 3 and step 5; 30A envelope; test briefs b23, b24; steps 1–5 measured on 24 briefs (24/24 each, 2026-10-18) | s8, m4 | **shipped 2026-10-18** (brief A1-A15; 14 checks and 900 tests pass) |
 | M5 | [`m5-choose-ingredients`](finished/m5-choose-ingredients/brief.md) | Steps 6–9: yeast, fermentables, hops, extras, LLM picks from a code-built table, checked by code; the resolver | m4, s3, s8, s9 | **G5** |
-| M6 | [`m6-compute-validate`](work/m6-compute-validate/brief.md) | Steps 10–11: amounts, OG/FG/ABV/IBU/SRM, validate + retry ≤ 3×, save; held-out briefs | m5, s1 | **G6** = MVP |
+| M6 | [`m6-compute-validate`](work/m6-compute-validate/brief.md) | Steps 10–11: amounts, OG/FG/ABV/IBU/SRM, validate + retry ≤ 3×, save; held-out briefs. Built 2026-10-27 (rounded to weighing steps; 16/20 of b01-b20 re-validated, 19/24, held-out 5/6; shipped 2026-10-27; A3 partly met: b18 SRM and b19 batch known failures) | m5, s1 | **G6** = MVP |
 | M7 | [`m7-process`](work/m7-process/brief.md) | Steps 12–15: water, mash + boil, ferment, package | m6, s5; sources in [SOURCES.md](SOURCES.md) (all present) | — (brief check only) |
 | S4 | [`s4-books-kb`](finished/s4-books-kb/brief.md) | Books → `kb`, hybrid retrieval, retrieval eval (P7) | m0 | **G7** (retrieval) |
 | S5 | [`s5-mash-attenuation`](finished/s5-mash-attenuation/brief.md) | A cited model of mash temperature's effect on attenuation (Troester, Terrill), replacing rule 10's uncited mapping | s2 | — (brief A1–A6) |
@@ -193,6 +193,8 @@ per recipe plus tie-breaks. **Direction check, the big one:** you read 5 full re
 brewer. If they pass the numbers but you wouldn't brew them, the scoring (G5) is what to fix,
 not the validator.
 
+**Measured (2026-10-26, [`m6-compute-validate`](work/m6-compute-validate/plan.md)):** met. `python -m evals.run --save --label m6-9b` on the real pipeline: b01-b20 validated 17/20 (bar 16; first run 13/20), 20/24 overall (first run 15/24); first-try calls 2 on every brief, 73 calls in 24 runs, invented 0, stated numbers 10/12. Known failures, accepted: b12 and b23 (the LLM repeats the same picks despite the `To fix` line), b18 and b19 (no dark malt left to reach the colour). Held-out set (`--label m6-heldout`): 5/6 validated, 17 calls (h06 fails rule 10 like b12). Direction check (A11, [`g6-recipes.md`](work/m6-compute-validate/g6-recipes.md), b01, b03, b08, b10, b24): would brew after the listed changes; the direction is right. Saved in `evals/results/2026-10-26-m6-9b.json` and `2026-10-26-m6-heldout.json`.
+
 ### G7 · You can brew from the sheet
 
 **Bar:** every recipe has water, mash, ferment and package (P6); citations resolve to `kb`
@@ -216,8 +218,8 @@ the milestone that first needs it, as its own small work item with your review.
 | M3 | `deviations[].what` is free text | The grader needs a rule for "same deviation" | Grade on `kind` + the ingredient or number named; write that rule into the harness, not the briefs |
 | M4, M6 | Only 5 briefs state a batch size (b01, b08, b13, b15, b19); none states efficiency or water | Steps 0, 4, 10 and 12 need a brewer profile | One test brewer profile as a fixture (e.g. 20 L, 72 %, a stated tap water), used where a brief states nothing |
 | M5 | `needs` names 2 items not in `ref`: Special B (b10) and Lactobacillus (b14) | b14 can't be a Berliner Weisse without a souring agent | Decided (m5): YF-998 and YF-999 are `lacto` cultures and "Lactobacillus" resolves to them; Special B is the dark-crystal class (Special W, Caraaroma); `needs` are classes to cover, not exact items |
-| M6 | No tolerance for stated numbers (b01 6.5 % ABV, b08 50 IBU, b14 3 %, b17 7 %, b18 20 SRM) | "Met" is undefined | Put tolerances in the harness, next to the maths tolerances of G-M |
-| M6 | All 20 briefs are used while building | The pipeline can be tuned to these 20 without getting better in general | Write 5–10 held-out briefs before G6, scored only at checkpoints |
+| M6 | No tolerance for stated numbers (b01 6.5 % ABV, b08 50 IBU, b14 3 %, b17 7 %, b18 20 SRM) | "Met" is undefined | Put tolerances in the harness, next to the maths tolerances of G-M. **Decided** 2026-10-25 (SRM 2026-10-26): ABV ± 0.2, IBU ± 2, OG ± 0.002, SRM ± 2, batch exact, in `app.recipe_tolerances()` and `evals/grade.py` (a test keeps them equal) |
+| M6 | All 20 briefs are used while building | The pipeline can be tuned to these 20 without getting better in general | Write 5–10 held-out briefs before G6, scored only at checkpoints. **Decided** 2026-10-25: `evals/heldout_briefs.toml` h01-h06, run with `evals.run --briefs`; 5/6 validated at G6 |
 | M7 | No process expectations (e.g. b13 weizen ferment temperature, b14 souring, lager schedules) | Steps 12–15 have nothing to be graded against | Add a small `process` expectation to the briefs that need one, once P6's contracts exist |
 | any | The file header still points to `docs/work/test-briefs/brief.md`; it is in `docs/finished/` now | Dead link | Fix with the first brief change |
 

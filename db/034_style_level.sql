@@ -452,11 +452,16 @@ $$;
 -- required characteristic ingredients, and the min check on the recipe's late-hop oil dose and
 -- roast index (one-level tolerance, user 2026-10-15). recipe is the app.check_recipe input.
 -- extras (optional) is [{ingredient_id, usage, g}] (g optional): misc lines, each rated with
--- g / batch volume as its dose and added to lines as kind 'misc'.
+-- g / batch volume as its dose and added to lines as kind 'misc'. Null (the default) takes
+-- recipe -> 'extras', or no extras when the recipe has none (m6-compute-validate).
+-- totals (default true): false leaves the recipe's IBU, SRM and colour lower bound out of every
+-- line's dose, so a pick is rated on its own use. Step 11 passes false: the totals are checked
+-- against the targets there, and a user's own 50 IBU must not ban a hop (the brewer's number).
 -- Output: {style_code, lines[{kind, ingredient_id, name, usage, level, because}],
 --          required[{requirement, met, because}], too_little[{dimension, level, min, because}]}
 drop function if exists app.style_fit_recipe(jsonb);
-create or replace function app.style_fit_recipe(recipe jsonb, extras jsonb default '[]')
+drop function if exists app.style_fit_recipe(jsonb, jsonb);
+create or replace function app.style_fit_recipe(recipe jsonb, extras jsonb default null, totals boolean default true)
 returns jsonb
 language plpgsql
 stable
@@ -493,14 +498,19 @@ declare
     v_total     numeric;
     v_no_colour jsonb := '[]'::jsonb;
     v_grist     jsonb;
+    v_extras    jsonb := coalesce(extras, recipe -> 'extras', '[]'::jsonb);
 begin
     select * into st from ref.beer_style b where b.code = v_style;
     v_label := coalesce(st.name, st.code) || ' (' || st.code || ')';
+    if not totals then
+        v_ibu := null;
+        v_srm := null;
+    end if;
 
     -- colour lower bound: app.check_recipe leaves srm null when a fermentable has no colour. Here
     -- those fermentables count as 0 EBC (they can only add colour), so the SRM is a lower bound,
     -- and the lines say which fermentables had no colour. check_recipe itself is unchanged.
-    if v_srm is null and numbers -> 'missing' ? 'ref.fermentable.ebc' then
+    if totals and v_srm is null and numbers -> 'missing' ? 'ref.fermentable.ebc' then
         select coalesce(jsonb_agg(f ->> 'name'), '[]'::jsonb) into v_no_colour
             from jsonb_array_elements(items -> 'fermentables') f where f ->> 'ebc_mid' is null;
         select jsonb_agg(jsonb_build_object(
@@ -567,7 +577,7 @@ begin
         'name', x -> 'name', 'usage', 'ferment', 'level', v_res -> 'level', 'because', v_res -> 'because');
 
     -- extras: misc lines, rated at their own dose
-    for x in select * from jsonb_array_elements(coalesce(extras, '[]'::jsonb)) loop
+    for x in select * from jsonb_array_elements(v_extras) loop
         v_dose := '{}'::jsonb;
         if x ->> 'g' is not null then
             v_dose := jsonb_build_object('g_per_l', (x ->> 'g')::numeric / v_volume);

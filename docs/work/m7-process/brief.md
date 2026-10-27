@@ -35,7 +35,7 @@ In:
 - Step 13 mash and boil: mash temperature from the M4 target (whose effect on FG is
   `s5-mash-attenuation`'s model), rests where the style calls for them (with a source), boil length
   (e.g. longer for pilsner malt), hop schedule from M5/M6.
-- Step 14 fermentation: temperature from the yeast's range and the style, rests (diacetyl for
+- Step 14 fermentation: temperature from the yeast's range and the style (a ramp, not one flat temperature: the G6 review found 15 C too cool for b03 and wanted b10 to start at 17-18 C and rise to 21-23 C, [`g6-recipes.md`](../m6-compute-validate/g6-recipes.md)), rests (diacetyl for
   lagers), dry-hop day, temperature and contact time (Janish), cold crash, lagering; pitch rate from
   *Yeast*; a souring schedule for b14 (Berliner Weisse) per M5's answer, from the Milk The Funk
   pages.

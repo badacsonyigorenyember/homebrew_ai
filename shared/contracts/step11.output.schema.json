@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step11.output",
+  "description": "Step 11, validate: passed is true when there is no failure. Each failure has a kind (numbers, rule or pick), a subject, the value and limit where there are numbers, its text, and ban (an ingredient id, only for a pick the pipeline chose itself). banned and feedback go back to the steps 6-9 call on a retry. check and style_fit are the full outputs of app.check_recipe and app.style_fit_recipe (too_little and required are for the record only). targets and stated list every comparison made. model_deviations are the pipeline's own out_of_style or changes_style picks when style guidance is off. Absent: a target whose number cannot be computed has value null and met false.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "passed",
+    "failures",
+    "banned",
+    "feedback",
+    "check",
+    "style_fit",
+    "targets",
+    "stated",
+    "model_deviations"
+  ],
+  "properties": {
+    "passed": {
+      "type": "boolean"
+    },
+    "failures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "subject",
+          "value",
+          "limit",
+          "text",
+          "ban"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "numbers",
+              "rule",
+              "pick"
+            ]
+          },
+          "subject": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "limit": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "ban": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "banned": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ingredient_id",
+          "name",
+          "why"
+        ],
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "feedback": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "check": {
+      "type": "object"
+    },
+    "style_fit": {
+      "type": "object"
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "target",
+          "value",
+          "tolerance",
+          "met"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "target": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "tolerance": {
+            "type": "number"
+          },
+          "met": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "stated": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "stated",
+          "value",
+          "tolerance",
+          "met"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "stated": {
+            "type": "number"
+          },
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "tolerance": {
+            "type": "number"
+          },
+          "met": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "model_deviations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "subject",
+          "level",
+          "note"
+        ],
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "level": {
+            "enum": [
+              "out_of_style",
+              "changes_style"
+            ]
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "try.input",
+  "description": "Input of the Steps 6-11 sub-workflow (one try of the recipe): the run and try number, the choose.input object for the steps 6-9 call (feedback included, null on try 1), and what steps 1, 3, 4, 5 and 0 produced, for steps 10 and 11. started_at is the ISO time the try began (for the logged times). try is 1 to 3.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "try",
+    "choose",
+    "brief",
+    "step3",
+    "targets",
+    "frame",
+    "profile",
+    "started_at"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "try": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
+    "choose": {
+      "type": "object"
+    },
+    "brief": {
+      "type": "object"
+    },
+    "step3": {
+      "type": "object"
+    },
+    "targets": {
+      "type": "object"
+    },
+    "frame": {
+      "type": "object"
+    },
+    "profile": {
+      "type": "object"
+    },
+    "started_at": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

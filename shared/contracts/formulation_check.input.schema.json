@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "formulation_check.input",
-  "description": "Formulation check input: the proposed recipe in percentages and ingredient ids, the style, the user's stated numbers and the targets. Amounts are computed by code, so fermentables carry a share, not grams; a hop carries grams only when IBU should be computed.",
+  "description": "Formulation check input: the proposed recipe in percentages and ingredient ids, the style, the user's stated numbers and the targets. Amounts are computed by code, so fermentables carry a share, not grams; a hop carries grams only when IBU should be computed. Optional extras (misc items) are listed by the check and never enter OG, IBU or SRM.",
   "type": "object",
   "required": [
     "style_code",
@@ -210,6 +210,41 @@
         },
         "purpose": {
           "type": "string"
+        }
+      }
+    },
+    "extras": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "ingredient_id",
+          "usage",
+          "g",
+          "purpose"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "usage": {
+            "enum": [
+              "mash",
+              "boil",
+              "whirlpool",
+              "ferment",
+              "secondary",
+              "packaging"
+            ]
+          },
+          "g": {
+            "type": "number",
+            "minimum": 0
+          },
+          "purpose": {
+            "type": "string"
+          }
         }
       }
     }
