@@ -1,0 +1,504 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step12.output",
+  "description": "Step 12, water: the target row (from style, or none when the style has no Water Table 18/19 row: then row, ranges and aim are null, salts empty and the waters equal the source water), the source water, the strike and sparge volumes (the ones step 13 outputs), salts in grams per water (alkalinity salts in the strike water only), none_needed, both waters' ions with alkalinity and residual alkalinity, the mash pH estimate against HTB's colour target, the acid line (a text and a flag, never an amount) and one values_used line per value. Absent: salts empty, target.row null.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "target",
+    "source_water",
+    "volumes",
+    "salts",
+    "none_needed",
+    "strike_water",
+    "sparge_water",
+    "mash_ph",
+    "acid",
+    "values_used"
+  ],
+  "properties": {
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "style_code",
+        "row",
+        "table_no",
+        "beer_type",
+        "strength",
+        "colour",
+        "bitterness",
+        "ranges",
+        "acidify",
+        "page",
+        "aim",
+        "basis",
+        "fallback",
+        "outside_row",
+        "moved_by"
+      ],
+      "properties": {
+        "from": {
+          "enum": [
+            "style",
+            "none"
+          ]
+        },
+        "style_code": {
+          "type": "string"
+        },
+        "row": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "table_no": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "beer_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "strength": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "colour": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "bitterness": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ranges": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "ca",
+                "alkalinity",
+                "so4",
+                "cl",
+                "ra"
+              ],
+              "properties": {
+                "ca": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "low",
+                    "high"
+                  ],
+                  "properties": {
+                    "low": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "high": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  }
+                },
+                "alkalinity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "low",
+                    "high"
+                  ],
+                  "properties": {
+                    "low": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "high": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  }
+                },
+                "so4": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "low",
+                    "high"
+                  ],
+                  "properties": {
+                    "low": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "high": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  }
+                },
+                "cl": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "low",
+                    "high"
+                  ],
+                  "properties": {
+                    "low": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "high": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  }
+                },
+                "ra": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "low",
+                    "high"
+                  ],
+                  "properties": {
+                    "low": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "high": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "acidify": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "page": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "aim": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "ca",
+                "so4",
+                "cl"
+              ],
+              "properties": {
+                "ca": {
+                  "type": "number"
+                },
+                "so4": {
+                  "type": "number"
+                },
+                "cl": {
+                  "type": "number"
+                }
+              }
+            }
+          ]
+        },
+        "basis": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fallback": {
+          "type": "boolean"
+        },
+        "outside_row": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "moved_by": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "source_water": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ions",
+        "alkalinity_ppm",
+        "ra_ppm",
+        "ra_meq_l"
+      ],
+      "properties": {
+        "ions": {
+          "type": "object"
+        },
+        "alkalinity_ppm": {
+          "type": "number"
+        },
+        "ra_ppm": {
+          "type": "number"
+        },
+        "ra_meq_l": {
+          "type": "number"
+        }
+      }
+    },
+    "volumes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grist_kg",
+        "ratio_l_kg",
+        "preboil_l",
+        "absorbed_l",
+        "total_l",
+        "strike_l",
+        "sparge_l",
+        "because"
+      ],
+      "properties": {
+        "grist_kg": {
+          "type": "number"
+        },
+        "ratio_l_kg": {
+          "type": "number"
+        },
+        "preboil_l": {
+          "type": "number"
+        },
+        "absorbed_l": {
+          "type": "number"
+        },
+        "total_l": {
+          "type": "number"
+        },
+        "strike_l": {
+          "type": "number"
+        },
+        "sparge_l": {
+          "type": "number"
+        },
+        "because": {
+          "type": "string"
+        }
+      }
+    },
+    "salts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ingredient_id",
+          "name",
+          "aims_at",
+          "strike_g",
+          "sparge_g",
+          "total_g"
+        ],
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "aims_at": {
+            "enum": [
+              "sulfate",
+              "chloride",
+              "alkalinity"
+            ]
+          },
+          "strike_g": {
+            "type": "number"
+          },
+          "sparge_g": {
+            "type": "number"
+          },
+          "total_g": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "none_needed": {
+      "type": "boolean"
+    },
+    "strike_water": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ions",
+        "alkalinity_ppm",
+        "ra_ppm",
+        "ra_meq_l"
+      ],
+      "properties": {
+        "ions": {
+          "type": "object"
+        },
+        "alkalinity_ppm": {
+          "type": "number"
+        },
+        "ra_ppm": {
+          "type": "number"
+        },
+        "ra_meq_l": {
+          "type": "number"
+        }
+      }
+    },
+    "sparge_water": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ions",
+        "alkalinity_ppm",
+        "ra_ppm",
+        "ra_meq_l"
+      ],
+      "properties": {
+        "ions": {
+          "type": "object"
+        },
+        "alkalinity_ppm": {
+          "type": "number"
+        },
+        "ra_ppm": {
+          "type": "number"
+        },
+        "ra_meq_l": {
+          "type": "number"
+        }
+      }
+    },
+    "mash_ph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ph",
+        "target_low",
+        "target_high",
+        "because"
+      ],
+      "properties": {
+        "ph": {
+          "type": "number"
+        },
+        "target_low": {
+          "type": "number"
+        },
+        "target_high": {
+          "type": "number"
+        },
+        "because": {
+          "type": "string"
+        }
+      }
+    },
+    "acid": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "needed",
+        "text",
+        "acidify"
+      ],
+      "properties": {
+        "needed": {
+          "type": "boolean"
+        },
+        "text": {
+          "type": "string"
+        },
+        "acidify": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "values_used": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "what",
+          "because",
+          "source"
+        ],
+        "properties": {
+          "what": {
+            "type": "string"
+          },
+          "because": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

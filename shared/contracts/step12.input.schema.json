@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step12.input",
+  "description": "Step 12, water: the salts for the recipe's water. brief is a step1.output, profile a step0.output, targets a step4.output and step10 a step10.output, each already checked. No absent slot.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "brief",
+    "profile",
+    "targets",
+    "step10"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "brief": {
+      "type": "object"
+    },
+    "profile": {
+      "type": "object"
+    },
+    "targets": {
+      "type": "object"
+    },
+    "step10": {
+      "type": "object"
+    }
+  }
+}

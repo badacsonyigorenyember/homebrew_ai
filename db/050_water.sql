@@ -1,7 +1,7 @@
 -- Water maths for step 12 (docs/work/m7-process, Task 3): ions of a salt addition, residual
 -- alkalinity, the strike and sparge volumes, the sulfate and chloride aim, gypsum and calcium
 -- chloride, the alkalinity dose, the malt acidity and the mash pH estimate. Pure maths, no LLM.
--- Task 4 adds app.step12_water to this file. Every function comment names its doc-calc.md
+-- app.step12_water (Task 4) puts them together. Every function comment names its doc-calc.md
 -- section and the book page.
 -- Needs db/030_maths.sql (app.preboil_volume, app.ebc_mid), db/049_process_ref.sql
 -- (ref.water_profile) and ref.water_salt (db/010).
@@ -556,5 +556,161 @@ begin
                       case when capped then 'baking soda to the 100 mg/L sodium cap, slaked lime for the rest'
                            else 'baking soda (sodium stays at or below 100 mg/L)' end);
     return jsonb_build_object('ra_needed_meq_l', need, 'salts', salts, 'because', because);
+end
+$$;
+
+
+-- A numrange as {low, high} (null for an open end).
+create or replace function app.range_json(r numrange)
+returns jsonb
+language sql
+immutable
+as $$
+    select jsonb_build_object('low', lower(r), 'high', upper(r))
+$$;
+
+-- Step 12, water. The salts for the recipe's water: the style's Water Table 18/19 row
+-- (ref.beer_style.water_profile of targets.style.code), the aim inside it (sulfate and chloride by the
+-- brief's hints), gypsum and calcium chloride in the strike and the sparge water, then alkalinity
+-- (baking soda, slaked lime) in the strike water until the mash pH estimate reaches the bottom of the
+-- colour target, and the acid line (no acid amount, ever). The volumes are app.water_volumes', the
+-- same step 13 outputs. A style with no row gets no salts: the waters are the source water and the pH
+-- is still estimated (plan decision Q1). profile is step 0's, targets step 4's, brief step 1's and
+-- step10 step 10's output. doc-calc.md §3-§8; How to Brew p. 133-135, 341-342, 349-351, 365.
+create or replace function app.step12_water(profile jsonb, targets jsonb, brief jsonb, step10 jsonb)
+returns jsonb
+language plpgsql
+stable
+as $$
+declare
+    style_code text := targets -> 'style' ->> 'code';
+    row_code text;
+    basis text;
+    r ref.water_profile;
+    source jsonb := profile -> 'water';
+    vol jsonb;
+    grist jsonb;
+    strike_l numeric;
+    sparge_l numeric;
+    hints text[];
+    aim jsonb := null;
+    sa jsonb;
+    strike_ions jsonb;
+    sparge_ions jsonb;
+    est jsonb;
+    dose jsonb;
+    dose_ions jsonb;
+    salts jsonb := '[]'::jsonb;
+    notes text[] := '{}';
+    note text;
+    colour text;
+    acid jsonb;
+    acid_text text;
+    values_used jsonb := '[]'::jsonb;
+    final_ra jsonb;
+    s jsonb;
+begin
+    if style_code is null then
+        raise exception 'step12_water: targets has no style code';
+    end if;
+    if source is null then
+        raise exception 'step12_water: the profile has no water';
+    end if;
+    select water_profile, water_basis into row_code, basis from ref.beer_style where code = style_code;
+    if not found then
+        raise exception 'step12_water: no style %', style_code;
+    end if;
+    vol := app.water_volumes(profile, step10);
+    grist := app.mashed_grist(step10);
+    strike_l := (vol ->> 'strike_l')::numeric;
+    sparge_l := (vol ->> 'sparge_l')::numeric;
+    hints := coalesce(array(select jsonb_array_elements_text(coalesce(brief -> 'hints', '[]'::jsonb))), '{}');
+
+    values_used := values_used || jsonb_build_object('what', 'water volumes', 'because', vol ->> 'because',
+        'source', 'How to Brew ch. 17 p. 262, 267-269 (3 L/kg); profile grain absorption (doc-calc.md §8)');
+
+    select * into r from ref.water_profile where code = row_code;   -- no row (r all null) when the style has none
+    if row_code is null then
+        strike_ions := app.add_ions(source, '{}'::jsonb);
+        sparge_ions := strike_ions;
+        est := app.mash_ph_estimate(grist, strike_ions, strike_l, null);
+        values_used := values_used || jsonb_build_object('what', 'salts',
+            'because', format('style %s has no water row, so no salts are added and the waters are the source water', style_code),
+            'source', 'plan decision Q1');
+    else
+        colour := r.colour;
+        aim := app.water_aim(row_code, hints);
+        sa := app.salt_additions(source, aim, row_code, strike_l, sparge_l);
+        salts := sa -> 'salts';
+        strike_ions := sa -> 'strike_water' -> 'ions';
+        sparge_ions := sa -> 'sparge_water' -> 'ions';
+        for note in select jsonb_array_elements_text(sa -> 'notes') loop
+            if note not like 'outside_row:%' then
+                notes := notes || note;
+            end if;
+        end loop;
+        est := app.mash_ph_estimate(grist, strike_ions, strike_l, colour);
+        dose := app.alkalinity_dose(grist, strike_ions, strike_l, (est ->> 'target_low')::numeric);
+        if jsonb_array_length(dose -> 'salts') > 0 then
+            dose_ions := app.salt_ions(
+                (select jsonb_agg(jsonb_build_object('ingredient_id', d -> 'ingredient_id', 'g', d -> 'strike_g'))
+                 from jsonb_array_elements(dose -> 'salts') d), strike_l);
+            strike_ions := app.add_ions(strike_ions, dose_ions);
+            for s in select * from jsonb_array_elements(dose -> 'salts') loop
+                salts := salts || jsonb_build_object('ingredient_id', s -> 'ingredient_id', 'name', s ->> 'name',
+                    'aims_at', 'alkalinity', 'strike_g', s -> 'strike_g', 'sparge_g', 0, 'total_g', s -> 'strike_g');
+            end loop;
+            est := app.mash_ph_estimate(grist, strike_ions, strike_l, colour);
+        end if;
+        notes := notes || app.outside_row(strike_ions, row_code);
+        values_used := values_used
+            || jsonb_build_object('what', 'water row', 'because',
+                   format('style %s uses %s (%s)', style_code, row_code, basis), 'source', 'Water ' || r.page || ' (doc-calc.md §4)')
+            || jsonb_build_object('what', 'sulfate and chloride aim', 'because',
+                   format('sulfate %s and chloride %s mg/L inside the row; %s', round((aim ->> 'so4')::numeric, 1),
+                          round((aim ->> 'cl')::numeric, 1),
+                          case when jsonb_array_length(aim -> 'moved_by') = 0 then 'no hint moves them from the middle'
+                               else (select string_agg(m, '; ') from jsonb_array_elements_text(aim -> 'moved_by') m) end),
+                   'source', 'How to Brew p. 133-135 (doc-calc.md §5)')
+            || jsonb_build_object('what', 'alkalinity', 'because', dose ->> 'because',
+                   'source', 'How to Brew p. 342, 349-351, 363 (doc-calc.md §6, §7)');
+    end if;
+
+    final_ra := app.residual_alkalinity(strike_ions);
+    acid_text := case
+        when (est ->> 'ph')::numeric > (est ->> 'target_high')::numeric then
+            format('acid would be needed to bring the mash from %s into %s-%s', round((est ->> 'ph')::numeric, 2),
+                   est ->> 'target_low', est ->> 'target_high')
+        else
+            format('no acid needed: the mash pH estimate %s is not above %s (target %s-%s)', round((est ->> 'ph')::numeric, 2),
+                   est ->> 'target_high', est ->> 'target_low', est ->> 'target_high')
+    end;
+    acid := jsonb_build_object('needed', (est ->> 'ph')::numeric > (est ->> 'target_high')::numeric,
+                               'text', acid_text, 'acidify', r.acidify);
+    values_used := values_used || jsonb_build_object('what', 'mash pH', 'because', est ->> 'because',
+        'source', 'How to Brew p. 341-342, 349-351, 365 (doc-calc.md §7); unverified against Bru''n Water');
+
+    return jsonb_build_object(
+        'target', jsonb_build_object(
+            'from', case when row_code is null then 'none' else 'style' end,
+            'style_code', style_code, 'row', row_code, 'table_no', r.table_no, 'beer_type', r.beer_type,
+            'strength', r.strength, 'colour', r.colour, 'bitterness', r.bitterness,
+            'ranges', case when row_code is null then null else jsonb_build_object(
+                'ca', app.range_json(r.ca), 'alkalinity', app.range_json(r.alkalinity), 'so4', app.range_json(r.so4),
+                'cl', app.range_json(r.cl), 'ra', app.range_json(r.ra)) end,
+            'acidify', r.acidify, 'page', r.page,
+            'aim', case when aim is null then null else aim - 'moved_by' - 'alkalinity' - 'ra' end,
+            'basis', basis, 'fallback', coalesce(basis, '') <> 'listed',
+            'outside_row', to_jsonb(notes),
+            'moved_by', coalesce(aim -> 'moved_by', '[]'::jsonb)),
+        'source_water', jsonb_build_object('ions', source) || app.residual_alkalinity(source),
+        'volumes', vol,
+        'salts', salts,
+        'none_needed', jsonb_array_length(salts) = 0,
+        'strike_water', jsonb_build_object('ions', strike_ions) || final_ra,
+        'sparge_water', jsonb_build_object('ions', sparge_ions) || app.residual_alkalinity(sparge_ions),
+        'mash_ph', est - 'terms',
+        'acid', acid,
+        'values_used', values_used);
 end
 $$;

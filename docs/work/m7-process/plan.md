@@ -339,7 +339,7 @@ Commit: `Add water maths from the Water book`
 
 ### Task 4: step 12 doses salts for the recipe's water
 Why: R2, A3, A9, A10, A12.
-- [ ] `db/050_water.sql`: `app.step12_water(profile jsonb, targets jsonb, brief jsonb, step10
+- [x] `db/050_water.sql`: `app.step12_water(profile jsonb, targets jsonb, brief jsonb, step10
       jsonb) returns jsonb` → `{target {from style|none, style_code, row, table_no, beer_type,
       strength, colour, bitterness, ranges {ca, alkalinity, so4, cl, ra} (references), acidify, page, aim,
       basis (listed|inferred|judgement|web), fallback (basis is not listed), outside_row [text],
@@ -348,12 +348,12 @@ Why: R2, A3, A9, A10, A12.
       values_used [{what, because, source}]}`. With no row: `target.from = "none"`, `salts []`,
       `none_needed` true with "style X has no water row", the waters equal the source water, the pH
       estimate still made (decision Q1). `acid` never holds an amount.
-- [ ] Contracts `step12.input` = `{run_id, brief, profile, targets, step10}` and
+- [x] Contracts `step12.input` = `{run_id, brief, profile, targets, step10}` and
       `step12.output` as above (all required, `additionalProperties: false`, nulls where the text
       allows). `tests/test_contracts.py`: `NAMES` covers `range(16)`, `ABSENT_SLOTS["step12.output"]
       = [("salts", "array"), ("target.row", "null")]`.
-- [ ] Apply twice; owners `postgres`.
-- [ ] Write in `tests/test_water.py` (inputs: `tests.test_compute.step10_input` / `compute`), each
+- [x] Apply twice; owners `postgres`.
+- [x] Write in `tests/test_water.py` (inputs: `tests.test_compute.step10_input` / `compute`), each
       seen failing first: `test_step12_names_its_row` (A9: b01, b05, b08, b13, b16: `target.row`
       is the style's `water_profile`, `page` set); `test_step12_volumes_are_step13s` (A12: equals
       `app.water_volumes` of the same inputs); `test_step12_b08_needs_acid` (A10 through the step:
@@ -363,8 +363,8 @@ Why: R2, A3, A9, A10, A12.
       table is read from `water/bjcp_study_guide_water.md` and never stored);
       `test_unmapped_style_has_no_salts` (decision Q1: a style with `water_profile` null);
       `test_step12_meets_contract`; `test_step12_same_input_same_output`.
-- [ ] Run `.venv/bin/pytest tests/test_water.py tests/test_contracts.py`, expect all pass.
-- [ ] `docs/DATABASE.md` §5. PROJECT.md §8.
+- [x] Run `.venv/bin/pytest tests/test_water.py tests/test_contracts.py`, expect all pass.
+- [x] `docs/DATABASE.md` §5. PROJECT.md §8.
 Done when: step 12 outputs meet the contract and name their row, and the pale case says acid.
 Commit: `Compute water salts in step 12`
 
@@ -672,3 +672,4 @@ None.
   one web row (`web-berliner-weisse`) in `ref.water_profile`; `specialty-honey-beer` gets the no-row defaults and the 2.5
   volumes default.
 - 2026-10-28 · Task 3: three small helpers were added to `db/050_water.sql` besides the listed functions, and two parameters renamed — `app.add_ions` (adds two waters' ions), `app.mashed_grist(step10)` (the non-sugar fermentables with role and middle EBC, used by `app.water_volumes` and later by step 12) and `app.outside_row(ions, row_code)` (the `outside_row:` notes, reused by step 12 for the final waters); `row` became `row_code` (a reserved word). `app.water_aim` also returns `ca` (the row's floor) and the row's alkalinity and RA as `{low, high}` references; `app.alkalinity_dose` returns `ra_needed_meq_l` as the RA still to add. The grist for `app.mash_ph_estimate` and `app.alkalinity_dose` is `[{name, kg, role, ebc}]`, not ingredient ids, so tests can give a grist directly. Implementation details, no scope change. `test_brunwater_oracle` not added (no figure).
+- 2026-10-28 · Task 4: `NAMES` in `tests/test_contracts.py` covers `range(13)`, not `range(16)` — the step 13-15 contracts do not exist yet; each of Tasks 5-7 widens it. `test_no_acid_amount_anywhere` checks step 12's output only, for the same reason (Tasks 5-7 add theirs). `app.range_json(numrange)` was added to `db/050_water.sql` to output the row's ranges.

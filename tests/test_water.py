@@ -6,11 +6,14 @@ How to Brew ch. 21), computed there from the book's own numbers.
 
 import copy
 import json
+import re
+from pathlib import Path
 
 import pytest
 
 from loaders.db import connect
 from tests.test_compute import compute, step10_input
+from tests.test_contracts import errors
 
 pytestmark = pytest.mark.stack
 
@@ -318,3 +321,145 @@ def test_malt_acidity_classes(conn):
                                                          "page": "How to Brew Table 21.4, p. 351"}
     with pytest.raises(Exception, match="unknown role"):
         sql(conn, "malt_acidity", "hop", 3)
+
+
+# ---- step 12 (Task 4) ----
+
+STEP12_BRIEFS = ["b01", "b05", "b08", "b13", "b16"]
+
+
+def step12_input(conn, bid):
+    """The step12.input object for one brief: its step 10 output computed from the first good proposal."""
+    inp = step10_input(conn, bid)
+    return {"run_id": 0, "brief": inp["brief"], "profile": inp["profile"], "targets": inp["targets"],
+            "step10": compute(conn, inp)}
+
+
+@pytest.fixture(scope="module")
+def step12(conn):
+    cache = {}
+
+    def run(bid):
+        if bid not in cache:
+            i = step12_input(conn, bid)
+            cache[bid] = (i, sql(conn, "step12_water", i["profile"], i["targets"], i["brief"], i["step10"]))
+        return copy.deepcopy(cache[bid])
+    return run
+
+
+@pytest.mark.parametrize("bid", STEP12_BRIEFS)
+def test_step12_names_its_row(conn, step12, bid):
+    """A9: the target row is the style's water_profile, with its page, basis and the references."""
+    i, out = step12(bid)
+    code = i["targets"]["style"]["code"]
+    row, basis = conn.execute("select water_profile, water_basis from ref.beer_style where code = %s", (code,)).fetchone()
+    assert row is not None, code
+    t = out["target"]
+    assert t["from"] == "style" and t["style_code"] == code and t["row"] == row and t["page"]
+    assert t["basis"] == basis and t["fallback"] == (basis != "listed")
+    assert set(t["ranges"]) == {"ca", "alkalinity", "so4", "cl", "ra"}
+    assert t["ranges"]["so4"]["low"] is not None
+
+
+@pytest.mark.parametrize("bid", ["b01", "b08", "b14"])
+def test_step12_volumes_are_step13s(conn, step12, bid):
+    """A12: step 12 doses for the volumes app.water_volumes gives (step 13 outputs the same function's)."""
+    i, out = step12(bid)
+    assert out["volumes"] == sql(conn, "water_volumes", i["profile"], i["step10"])
+    for s in out["salts"]:
+        assert s["total_g"] == pytest.approx(s["strike_g"] + s["sparge_g"])
+
+
+def test_step12_b08_needs_acid(conn, step12):
+    """A10 through the step: b08's pale grist on distilled water is above the pale target; the line says acid, no amount."""
+    _, out = step12("b08")
+    assert out["mash_ph"]["ph"] > out["mash_ph"]["target_high"]
+    assert out["acid"]["needed"] is True
+    assert "acid would be needed" in out["acid"]["text"] and str(round(out["mash_ph"]["ph"], 2)) in out["acid"]["text"]
+    assert set(out["acid"]) == {"needed", "text", "acidify"}
+
+
+def keys_of(value):
+    """Every dict key in a JSON value, at any depth, with the string values beside it."""
+    if isinstance(value, dict):
+        for k, v in value.items():
+            yield k, v
+            yield from keys_of(v)
+    elif isinstance(value, list):
+        for v in value:
+            yield from keys_of(v)
+
+
+@pytest.mark.parametrize("bid", STEP12_BRIEFS)
+def test_no_acid_amount_anywhere(conn, step12, bid):
+    """A10: no key named *acid*_g or *_ml, and no acid among the salts. (Steps 13-15 add their outputs in Tasks 5-7.)"""
+    _, out = step12(bid)
+    for k, v in keys_of(out):
+        assert not re.search(r"acid.*_g$|_ml$", k), k
+        if k == "name" and isinstance(v, str):
+            assert "acid" not in v.lower(), v
+    assert {s["name"] for s in out["salts"]} <= {"gypsum", "calcium chloride", "baking soda", "slaked lime"}
+
+
+def bjcp_cities():
+    """The 8-city table of the BJCP study guide (ppm), read from the file at test time and never stored."""
+    text = (Path(__file__).resolve().parent.parent / "shared" / "rag-files" / "water" / "bjcp_study_guide_water.md").read_text()
+    cities = {}
+    for m in re.finditer(r"^\| (Plzen|Dortmund|Munich|Vienna|Burton|Dublin|Edinburgh|London) \|([^\n]*)$", text, re.M):
+        ca, mg, na, so4, hco3, cl = (float(x) for x in m.group(2).strip().strip("|").split("|"))
+        cities[m.group(1)] = {"ca": ca, "mg": mg, "so4": so4, "cl": cl,
+                              "ra": hco3 * 50 / 61.017 - ca / 1.4 - mg / 1.7, "alk": hco3 * 50 / 61.017}
+    assert len(cities) == 8
+    return cities
+
+
+def test_targets_agree_with_bjcp_cities(conn):
+    """A9, doc-calc §15: comparisons between the mapped styles' rows and the famous brewing waters."""
+    city = bjcp_cities()
+
+    def row_of(code):
+        return conn.execute("select water_profile from ref.beer_style where code = %s", (code,)).fetchone()[0]
+
+    def aim(code):
+        return sql(conn, "water_aim", row_of(code), [])
+
+    def ra_mid(code):
+        lo, hi = conn.execute("select lower(ra), upper(ra) from ref.water_profile where code = %s", (row_of(code),)).fetchone()
+        return (lo + hi) / 2
+
+    assert aim("3B")["so4"] < aim("21A")["so4"] and city["Plzen"]["so4"] < city["Burton"]["so4"]
+    assert aim("5D")["so4"] > aim("5D")["cl"] and city["Dortmund"]["so4"] > city["Dortmund"]["cl"]
+    assert aim("21A")["so4"] >= 4 * aim("21A")["cl"] and city["Burton"]["so4"] > 10 * city["Burton"]["cl"]
+    assert city["Plzen"]["ra"] < city["Vienna"]["ra"] < city["Munich"]["ra"]
+    assert ra_mid("3B") < ra_mid("6A") < ra_mid("8B")
+    lo, hi = conn.execute("select lower(ra), upper(ra) from ref.water_profile where code = %s", (row_of("14B"),)).fetchone()
+    assert lo <= city["Edinburgh"]["ra"] <= hi
+    assert aim("13C")["so4"] < aim("21A")["so4"] and city["London"]["so4"] < city["Burton"]["so4"]
+
+
+def test_unmapped_style_has_no_salts(conn):
+    """Decision Q1: a style with no water row gets no salts; the waters are the source water and the pH is still estimated."""
+    i = step12_input(conn, "b01")
+    code = conn.execute("select code from ref.beer_style where water_profile is null and code = '1A'").fetchone()[0]
+    i["targets"]["style"] = dict(i["targets"]["style"], code=code)
+    out = sql(conn, "step12_water", i["profile"], i["targets"], i["brief"], i["step10"])
+    assert out["target"]["from"] == "none" and out["target"]["row"] is None and out["target"]["style_code"] == code
+    assert out["salts"] == [] and out["none_needed"] is True
+    assert any("has no water row" in v["because"] for v in out["values_used"])
+    assert out["strike_water"]["ions"] == out["sparge_water"]["ions"]
+    assert {k: out["strike_water"]["ions"][k] for k in out["source_water"]["ions"]} == out["source_water"]["ions"]
+    assert out["mash_ph"]["ph"] > 0 and out["acid"]["needed"] in (True, False)
+
+
+@pytest.mark.parametrize("bid", STEP12_BRIEFS)
+def test_step12_meets_contract(conn, step12, bid):
+    i, out = step12(bid)
+    assert errors(conn, "step12.input", i) == []
+    assert errors(conn, "step12.output", out) == []
+
+
+def test_step12_same_input_same_output(conn):
+    i = step12_input(conn, "b05")
+    a = sql(conn, "step12_water", i["profile"], i["targets"], i["brief"], i["step10"])
+    b = sql(conn, "step12_water", i["profile"], i["targets"], i["brief"], i["step10"])
+    assert a == b

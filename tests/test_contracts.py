@@ -8,7 +8,7 @@ import pytest
 from loaders.db import connect
 
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
-NAMES = [f"step{n}.{side}" for n in range(12) for side in ("input", "output")]
+NAMES = [f"step{n}.{side}" for n in range(13) for side in ("input", "output")]
 NAMES += ["choose.input", "choose.proposal"]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
 NAMES += [f"try.{side}" for side in ("input", "output")]
@@ -29,6 +29,7 @@ ABSENT_SLOTS = {
     "formulation_check.output": [("results.status", "enum:unknown"), ("numbers.fg", "null")],
     "step10.output": [("colour.darkest", "null"), ("numbers.abv", "null"), ("extras", "array")],
     "step11.output": [("targets.value", "null"), ("failures", "array")],
+    "step12.output": [("salts", "array"), ("target.row", "null")],
     "try.output": [("next_feedback", "null")],
 }
 
@@ -263,8 +264,27 @@ TRY_FEEDBACK = {
 TRY_CHOOSE = {"run_id": 1, "brief": BRIEF, "style": STEP2_OUT, "profile": GOOD_PROFILE, "targets": STEP4_OUT,
               "frame": STEP5_OUT, "model": "gemma4:12b", "think": False, "temperature": 0, "seed": 42,
               "feedback": {**TRY_FEEDBACK, "try": 2}}
+_ION = {"ca": 0, "mg": 0, "na": 0, "so4": 0, "cl": 0, "hco3": 0}
+_WATER = {"ions": _ION, "alkalinity_ppm": 0, "ra_ppm": 0, "ra_meq_l": 0}
+STEP12_OUT = {
+    "target": {"from": "style", "style_code": "21A", "row": "ale-medium-pale-assertive", "table_no": "19", "beer_type": "ale",
+               "strength": "medium", "colour": "pale", "bitterness": "assertive",
+               "ranges": {k: {"low": 50, "high": None} for k in ("ca", "alkalinity", "so4", "cl", "ra")},
+               "acidify": "yes", "page": "p. 122", "aim": {"ca": 50, "so4": 250, "cl": 50}, "basis": "listed",
+               "fallback": False, "outside_row": [], "moved_by": []},
+    "source_water": _WATER,
+    "volumes": {"grist_kg": 4.5, "ratio_l_kg": 3, "preboil_l": 24, "absorbed_l": 4.5, "total_l": 28.5, "strike_l": 13.5,
+                "sparge_l": 15, "because": "x"},
+    "salts": [{"ingredient_id": 1, "name": "gypsum", "aims_at": "sulfate", "strike_g": 3, "sparge_g": 3, "total_g": 6}],
+    "none_needed": False, "strike_water": _WATER, "sparge_water": _WATER,
+    "mash_ph": {"ph": 5.3, "target_low": 5.2, "target_high": 5.4, "because": "x"},
+    "acid": {"needed": False, "text": "no acid needed", "acidify": "yes"},
+    "values_used": [{"what": "water row", "because": "x", "source": "Water p. 122"}],
+}
 GOOD = {
     **_CHOOSE_OUT,
+    "step12.input": {"run_id": 1, "brief": BRIEF, "profile": GOOD_PROFILE, "targets": STEP4_OUT, "step10": STEP10_OUT},
+    "step12.output": STEP12_OUT,
     "step10.input": {"run_id": 1, "try": 1, "brief": BRIEF, "profile": GOOD_PROFILE, "targets": STEP4_OUT,
                      "step6": _CHOOSE_OUT["step6.output"], "step7": _CHOOSE_OUT["step7.output"],
                      "step8": _CHOOSE_OUT["step8.output"], "step9": _CHOOSE_OUT["step9.output"]},
@@ -308,6 +328,10 @@ GOOD = {
     "step5.output": STEP5_OUT,
 }
 BAD = [
+    ("step12.output", {**STEP12_OUT, "target": {**STEP12_OUT["target"], "from": "web"}}),
+    ("step12.output", {k: v for k, v in STEP12_OUT.items() if k != "acid"}),
+    ("step12.output", {**STEP12_OUT, "salts": [{**STEP12_OUT["salts"][0], "aims_at": "acid"}]}),
+    ("step12.input", {k: v for k, v in GOOD["step12.input"].items() if k != "targets"}),
     ("step10.output", {k: v for k, v in STEP10_OUT.items() if k != "recipe"}),
     ("step10.output", {**STEP10_OUT, "yeasts": []}),
     ("step10.output", {**STEP10_OUT, "extras": [{**STEP10_OUT["extras"][0], "usage": "packaging"}]}),
