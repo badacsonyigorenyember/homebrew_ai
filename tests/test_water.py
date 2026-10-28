@@ -392,12 +392,13 @@ def keys_of(value):
 
 @pytest.mark.parametrize("bid", STEP12_BRIEFS)
 def test_no_acid_amount_anywhere(conn, step12, bid):
-    """A10: no key named *acid*_g or *_ml, and no acid among the salts. (Steps 13-15 add their outputs in Tasks 5-7.)"""
-    _, out = step12(bid)
-    for k, v in keys_of(out):
+    """A10: no key named *acid*_g or *_ml, and no acid among the salts, in steps 12 and 13. (Steps 14-15 add theirs in Tasks 6-7.)"""
+    i, out = step12(bid)
+    out13 = sql(conn, "step13_mash_boil", i["profile"], i["targets"], i["step10"])
+    for k, v in list(keys_of(out)) + list(keys_of(out13)):
         assert not re.search(r"acid.*_g$|_ml$", k), k
         if k == "name" and isinstance(v, str):
-            assert "acid" not in v.lower(), v
+            assert "acid" not in v.lower() or v == "ferulic acid rest", v
     assert {s["name"] for s in out["salts"]} <= {"gypsum", "calcium chloride", "baking soda", "slaked lime"}
 
 

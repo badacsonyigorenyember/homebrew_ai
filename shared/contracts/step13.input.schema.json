@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step13.input",
+  "description": "Step 13, mash and boil. profile is a step0.output, targets a step4.output and step10 a step10.output, each already checked. No absent slot.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "profile",
+    "targets",
+    "step10"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "profile": {
+      "type": "object"
+    },
+    "targets": {
+      "type": "object"
+    },
+    "step10": {
+      "type": "object"
+    }
+  }
+}

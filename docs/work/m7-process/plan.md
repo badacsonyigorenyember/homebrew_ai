@@ -370,7 +370,7 @@ Commit: `Compute water salts in step 12`
 
 ### Task 5: step 13 gives the mash steps, volumes and boil schedule
 Why: R3, A7, A11, A12.
-- [ ] `db/051_mash_boil.sql` (needs 050): `app.mash_rests(style_code text, grist jsonb, mash_c
+- [x] `db/051_mash_boil.sql` (needs 050): `app.mash_rests(style_code text, grist jsonb, mash_c
       numeric) returns jsonb` → the ordered steps `[{name, temp_c, minutes, why, source}]`: the
       neutral rests whose trigger holds (`doc-calc.md` §9), the saccharification rest at `mash_c`,
       the mash-out. `app.step13_mash_boil(profile jsonb, targets jsonb, step10 jsonb) returns
@@ -380,15 +380,15 @@ Why: R3, A7, A11, A12.
       values_used}`: `mash_c` = `step10.mash_c`, `boil` = `step10.boil` as is, additions sorted by
       minute descending (whirlpool after the boil, by its minutes); mash, boil and whirlpool
       extras placed by `time_min`.
-- [ ] `app.strike_temp(ratio_l_kg numeric, grain_c numeric, target_c numeric) returns numeric`
+- [x] `app.strike_temp(ratio_l_kg numeric, grain_c numeric, target_c numeric) returns numeric`
       (HTB ch. 17 single infusion equation, metric form from `doc-calc.md` §8; raises on a ratio
       ≤ 0); `mash.strike_c` = the strike temperature for the first mash step (a rest when there is
       one, else the saccharification rest) at `volumes.ratio_l_kg`, `mash.grain_c` = §8's grain
       temperature. Decision Q2.
-- [ ] Contracts `step13.input` = `{run_id, profile, targets, step10}`, `step13.output`;
+- [x] Contracts `step13.input` = `{run_id, profile, targets, step10}`, `step13.output`;
       `ABSENT_SLOTS["step13.output"] = [("boil.whirlpool", "array")]`.
-- [ ] Apply twice; owners `postgres`.
-- [ ] Write `tests/test_mash_boil.py` (stack), each seen failing first:
+- [x] Apply twice; owners `postgres`.
+- [x] Write `tests/test_mash_boil.py` (stack), each seen failing first:
       `test_mash_and_boil_are_step10s` (A7: b01, b08, b14: saccharification `temp_c` =
       `step10.mash_c`, `boil_min` = `step10.boil.boil_min`); `test_rests_are_neutral_and_sourced`
       (A11: every step other than the saccharification rest is below the starch range of
@@ -401,8 +401,8 @@ Why: R3, A7, A11, A12.
       (b01: `strike_c` = `app.strike_temp` of its ratio, grain temperature and `mash_c`; b13: of its
       ferulic rest); `test_volumes_equal_step12s`
       (A12); `test_step13_meets_contract`.
-- [ ] Run `.venv/bin/pytest tests/test_mash_boil.py tests/test_contracts.py`, expect all pass.
-- [ ] `docs/DATABASE.md` §5. PROJECT.md §8.
+- [x] Run `.venv/bin/pytest tests/test_mash_boil.py tests/test_contracts.py`, expect all pass.
+- [x] `docs/DATABASE.md` §5. PROJECT.md §8.
 Done when: step 13 copies step 10's mash and boil, every extra rest is neutral and sourced, and
 the strike temperature reproduces the book's example.
 Commit: `Add mash steps and boil schedule in step 13`
@@ -633,6 +633,7 @@ Answered by you in chat, 2026-10-28:
 None.
 
 ## Deviations
+- 2026-10-28 · Task 5: `step13.mash` also carries `additions` (the extras step 10 puts in the mash, empty today), and the whirlpool entries use `minutes` where boil entries use `at_min`; a boil extra with no `time_min` goes in at the start of the boil. `app.strike_temp` rounds to 0.1 °C. `test_no_acid_amount_anywhere` now covers step 13 inside `tests/test_water.py` (no separate step 13 test). Implementation details, no scope change.
 - 2026-10-28 · Task 1 (Approach step 12 items 3 and 6, step 13 strike): the doc → calc pass changed three
   details, none of scope — (a) calcium above the row maximum is reported, not corrected (doc-calc
   §6); (b) flaked and unmalted adjuncts count as base for mash pH (Bru'n Water §2.4; HTB silent);

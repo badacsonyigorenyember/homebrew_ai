@@ -8,7 +8,7 @@ import pytest
 from loaders.db import connect
 
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
-NAMES = [f"step{n}.{side}" for n in range(13) for side in ("input", "output")]
+NAMES = [f"step{n}.{side}" for n in range(14) for side in ("input", "output")]
 NAMES += ["choose.input", "choose.proposal"]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
 NAMES += [f"try.{side}" for side in ("input", "output")]
@@ -30,6 +30,7 @@ ABSENT_SLOTS = {
     "step10.output": [("colour.darkest", "null"), ("numbers.abv", "null"), ("extras", "array")],
     "step11.output": [("targets.value", "null"), ("failures", "array")],
     "step12.output": [("salts", "array"), ("target.row", "null")],
+    "step13.output": [("boil.whirlpool", "array")],
     "try.output": [("next_feedback", "null")],
 }
 
@@ -281,8 +282,20 @@ STEP12_OUT = {
     "acid": {"needed": False, "text": "no acid needed", "acidify": "yes"},
     "values_used": [{"what": "water row", "because": "x", "source": "Water p. 122"}],
 }
+STEP13_OUT = {
+    "mash": {"mash_c": 66.5,
+             "steps": [{"name": "saccharification rest", "temp_c": 66.5, "minutes": 60, "why": "x", "source": "x"}],
+             "volumes": STEP12_OUT["volumes"], "strike_c": 73.8, "grain_c": 21,
+             "additions": [{"ingredient_id": 4, "name": "Coffee", "usage": "mash", "time_min": None, "g": 60}]},
+    "boil": {"boil_min": 60, "because": "60 min",
+             "additions": [{"at_min": 60, "kind": "hop", "ingredient_id": 3, "name": "Cascade", "usage": "boil", "g": 40}],
+             "whirlpool": [{"minutes": 15, "kind": "extra", "ingredient_id": 9, "name": "Orange Peel", "usage": "whirlpool", "g": 20}]},
+    "values_used": [{"what": "mash steps", "because": "x", "source": "x"}],
+}
 GOOD = {
     **_CHOOSE_OUT,
+    "step13.input": {"run_id": 1, "profile": GOOD_PROFILE, "targets": STEP4_OUT, "step10": STEP10_OUT},
+    "step13.output": STEP13_OUT,
     "step12.input": {"run_id": 1, "brief": BRIEF, "profile": GOOD_PROFILE, "targets": STEP4_OUT, "step10": STEP10_OUT},
     "step12.output": STEP12_OUT,
     "step10.input": {"run_id": 1, "try": 1, "brief": BRIEF, "profile": GOOD_PROFILE, "targets": STEP4_OUT,
@@ -328,6 +341,10 @@ GOOD = {
     "step5.output": STEP5_OUT,
 }
 BAD = [
+    ("step13.output", {k: v for k, v in STEP13_OUT.items() if k != "values_used"}),
+    ("step13.output", {**STEP13_OUT, "boil": {k: v for k, v in STEP13_OUT["boil"].items() if k != "whirlpool"}}),
+    ("step13.output", {**STEP13_OUT, "boil": {**STEP13_OUT["boil"], "additions": [{**STEP13_OUT["boil"]["additions"][0], "kind": "salt"}]}}),
+    ("step13.input", {k: v for k, v in GOOD["step13.input"].items() if k != "step10"}),
     ("step12.output", {**STEP12_OUT, "target": {**STEP12_OUT["target"], "from": "web"}}),
     ("step12.output", {k: v for k, v in STEP12_OUT.items() if k != "acid"}),
     ("step12.output", {**STEP12_OUT, "salts": [{**STEP12_OUT["salts"][0], "aims_at": "acid"}]}),
