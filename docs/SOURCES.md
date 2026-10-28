@@ -18,6 +18,34 @@ of them were read. PROJECT.md §5 summarises; this file has the per-file detail.
 
 A file can have more than one fate (most books are calc first, then kb).
 
+## Source priority (user rule, 2026-10-28)
+
+For any question of brewing methodology, *How to Brew* (`books/how_to_brew.pdf`, 2017, the newest of
+the books) is the only source of truth if it covers the point. *Water* (2013), *Yeast* (2010), the
+BJCP study guide, the articles and web pages are used only where it is silent. Each value in
+`app.*` output and in the `doc-calc.md` of the work says its source. Example (m7-process): mash pH,
+pitch rate, diacetyl rest and dry-hop figures come from *How to Brew*; the style → water rows from
+*Water* (HTB gives none); Berliner Weisse and honey beer water from the web (below).
+
+## Web sources used for calculation values
+
+Fetched or searched 2026-10-28 for [`m7-process`](work/m7-process/doc-calc.md) §4b. None is saved under
+`shared/rag-files/`; they are cited by URL and carry no licence. "Search text only" means the page itself
+was not read (or held nothing relevant) and only the search result's summary was seen.
+
+| URL | Used for | Read |
+|---|---|---|
+| https://brewersfriend.com/homebrew/recipe/print/1109903 | Berliner Weisse target profile Ca 48, Mg 3, Na 0, Cl 47.7, SO₄ 50, HCO₃ 0 | fetched |
+| https://forum.homebrewersassociation.org/t/water-profile-wheat-hefe/28606 | Bru'n Water users and M. Brungard: Ca 40-50, SO₄/Cl low, mash pH 5.4 or less; K. Troester (quoted): Weissbier RA about 0, Ca 50, SO₄ 57, Cl 43 | fetched |
+| https://learningtohomebrew.com/?p=513155 | "soft water, balanced chloride:sulfate, keep both low" | search text only (the page held no water text) |
+| https://brewersfriend.com/homebrew/recipe/print/745992 | Ca 100, Cl 50, SO₄ 100: **not used**, the stored profile is a Helles profile | fetched |
+| https://brewersfriend.com/homebrew/recipe/print/14426 | a lambic profile (Ca 31, Cl 25, SO₄ 20): **not used**, a lambic, not a Berliner | fetched |
+| https://getollie.com/blog/blonde-ale-brewing-guide | blonde ale water: Ca 50-100, Cl 50-75, SO₄ 50-100 (Newman, Maui Brewing); no carbonation figure | fetched |
+| https://shop.theelectricbrewery.com/pages/water-adjustment | blonde ale target Ca 50, Mg 10, Na 16, Cl 70, SO₄ 70 | search text only |
+| https://www.homebrewtalk.com/threads/thoughts-on-water-profile-for-honey-ale.410384/post-5186504 | one brewer's honey ale water; "50 ppm Ca from calcium chloride" | search text only (HTTP 403); not used for a value |
+
+No source found for a honey-specific water profile or honey beer carbonation.
+
 ## Folders
 
 | Folder | Holds |

@@ -1,8 +1,13 @@
 # M7 · Doc → calc pass for steps 12–15
 
-Status: **waiting for your review** of §4 (style → water row), §5 (hints), §11 (fermentation schedule),
-§14 (style → CO₂ family), and the values marked `unsourced` / `judgement` in §10 and §12.
+Status: **waiting for your review** (second pass, 2026-10-28, after your answers): §4 (style → water row,
+now with two web-sourced rows), §5, §7, §11, §14, and the values marked `unsourced` / `judgement`.
 Work: [brief.md](brief.md) · [plan.md](plan.md) (Task 1) · written 2026-10-28 (PROJECT.md §6.7, brief R1, A1)
+
+**Source rule (your standing rule, 2026-10-28).** Where there is an open question of brewing
+methodology, *How to Brew* (HTB, 2017) is the only source of truth if it covers the point; other
+books, articles and the web are used only where HTB is silent (HTB is newer than *Yeast*, 2010,
+and *Water*, 2013). This pass re-checked every section against HTB. §18 lists every switch.
 
 Every formula, table and constant that steps 12–15 use is in this file with book, chapter and
 page. Page numbers are **printed page / PDF page**: *How to Brew* (HTB) printed + 26 = PDF,
@@ -17,30 +22,40 @@ from another layout of the book; I cite the table by its caption and by the page
 
 ## Questions for you
 
-1. **23A Berliner Weisse, water row** (§4). The book's tables exclude sours, so I proposed no row (no
-   salts, a pH estimate of the source water), as decision Q1 reads. Alternative: map it to
-   `ale-medium-pale-soft` (soft, light-bodied, RA −30–0) so b14 gets calcium chloride and gypsum.
-   Recommend: no row, because the book says so.
-2. **23A, CO₂ family** (§14). German wheat beer 3.3–4.5 (my pick: a German wheat beer, high
-   carbonation) or Belgian lambic 2.4–2.8 (the book's only sour family). Recommend: German wheat.
-3. **Lager diacetyl rest length** (§11). 2 days (*Yeast* p. 113, as in the plan) or 6 days (HTB Table 6.2,
-   "minimum 6 days"; p. 174 "at least four days"). Recommend: 2 days as planned, the plan's source;
-   say if you want the longer.
-4. **Dry yeast viable cells per gram** (§10). I used 7 billion (the bottom of *Yeast*'s printed 7–20
-   billion), which gives 26 g of dry yeast for a 20 L, 12 °P ale (2.3 sachets). 20 billion gives 9 g;
-   5 billion ("might be as low as") 36 g. Recommend: 7 billion, since no maker's data sheet is in
-   the repo.
-5. **`specialty-honey-beer`** (§4, §14). Only b12's alternative list names it; step 4 returns 18A.
-   Proposed: no row, no CO₂ family, the 2.5 default. Alternative: give it a row and a family. Recommend:
-   leave out.
+Your first-round answers are applied: Q2 (23A CO₂ = German wheat 3.3–4.5), Q3 (lager diacetyl rest 6 days,
+ale 4 days; verified, §11), Q4 (dry yeast: HTB gives its own figure, 10 billion/g, so 10 is used and 7 is
+reported next to it, §10), Q1 and Q5 (web research, §4). What still needs your decision:
+
+1. **Brief A8 names *Yeast*'s pitching-rate worked example** (rule: HTB first). HTB Table 7.1 (p. 114) reproduces the
+   same 180 billion cells (1.050 SG / 12.4 °P, 0.75 billion/L/°P, 20 L). Change A8 to "HTB Table 7.1 / ch. 7"?
+   Recommend: yes.
+2. **Souring culture pitch (decision Q3 "keep 1 pack").** Q3 rested on "no source gives a cell count". HTB p. 206 does: 100–200 billion
+   Lactobacillus cells per 5 gal (19 L). With HTB's 100 billion per liquid pack that is 2 packs for 20 L, and HTB p. 212 adds a
+   higher main-yeast rate after souring (1.0 instead of 0.75 billion/L/°P). Replace "1 pack, no sourced pitch rate"
+   (brief A7 as revised) by the HTB rate? Recommend: yes.
+3. **Mash pH target for the acid line (brief A10, "above the target").** HTB p. 341 and 365 give 5.2–5.6 overall and
+   5.2–5.4 pale, 5.3–5.5 amber, 5.4–5.6 dark. With the pale/amber/dark target the pale hand case (pH 5.57) needs acid;
+   with the single 5.2–5.6 it would not. Use the colour-specific target, by the water row's colour (no row: 5.2–5.6)?
+   Recommend: yes.
+4. **Sulfate : chloride ratio.** HTB p. 134 and 364: hoppy beers about 5:1, malty 1:1 or 0.5:1, "a guideline". The approved hint
+   positions (87.5 % / 12.5 % of the row's ranges, RECIPE-ROADMAP §7) give up to about 29:1 for `bitter` in `ale-medium-pale-assertive`
+   (SO₄ 362, Cl 12.5). Keep your positions and add HTB's limits (SO₄ ≤ 400, Cl ≤ 150, SO₄ + Cl ≤ 500) as caps, or change the
+   positions to HTB's ratios? Recommend: keep the positions, add the caps.
+5. **Souring method.** HTB's kettle souring (p. 211) sours the wort in the kettle and boils afterwards; the plan sours in the fermenter
+   after the boil (HTB p. 209 "bacteria first, yeast second"), because step 13's boil is step 10's and is not changed. Keep as planned?
+   Recommend: yes.
+6. **`ref.water_salt` baking soda.** Stored HCO₃ is 726.3 mg/L per g/L (100 % purity); HTB Table 21.2 (p. 344) gives 710.5
+   (11.8 mEq/L). Align the stored value (a `ref` data change, outside this work's files)? Recommend: leave, 2 % difference.
+7. **Honey beer CO₂.** Your 2.5–2.8 volumes are not in HTB (nearest: American ales 2.2–2.7, p. 159; "2.5" p. 155). Use your range for the
+   web-sourced honey row, or HTB's American ales family? Recommend: HTB's family (the rule), keep 2.5–2.8 as a note.
 
 ## 0. The brief's three assumptions
 
 | Assumption (brief) | Result |
 |---|---|
-| *How to Brew*'s 8 style families cover every style once each is mapped to one | **Holds** for the 31 style codes in §14 (every one has a family; seven are judgement calls, marked; of those only 23A's choice changes the volumes, the lager and Kölsch calls give the same range as the alternative). **One exception:** `specialty-honey-beer` (BA, ranges 1.03–1.11 OG, 1–100 IBU, 1–100 SRM) cannot be placed: its ranges say nothing about a family. See question 5. |
-| A sourced cell count per pack or per gram exists for the yeasts the briefs use *(unverified)* | **Holds generically, not per product.** *Yeast* p. 124 gives 7–20 billion cells per gram of dry yeast ("as low as 5 billion" viable) and p. 140 ~100 billion cells per liquid package. `ref.yeast` and the hopline files hold no cell count, and I had no maker's data sheet, so §10 uses the book's generic figures. No source gives a count for a souring culture (decision Q3). |
-| *Water*'s Tables 18–19 rows can be matched to a recipe from its style, colour and bitterness | **Holds for 30 of the 31 codes** (the 29 that step 4 returns for the briefs, plus 17D and 20C, §4). The row lists name 19 of them; ties and judgement calls are marked in §4. **Exception: 23A Berliner Weisse.** The book says its tables exclude sours (p. 119: "excluding sours and wood aged"), so 23A gets no row (decision Q1). That means b14 gets no salts (question 1). |
+| *How to Brew*'s 8 style families cover every style once each is mapped to one | **Holds** for the 31 style codes in §14 (every one has a family; seven are judgement calls, marked; of those only 23A's choice changes the volumes, the lager and Kölsch calls give the same range as the alternative). **One exception:** `specialty-honey-beer` (BA, ranges 1.03–1.11 OG, 1–100 IBU, 1–100 SRM) has no family by its ranges; the BA text says it "may be brewed to a traditional style or may be experimental". It gets HTB's American ales family and a web-sourced water row (§4, §14, question 7). |
+| A sourced cell count per pack or per gram exists for the yeasts the briefs use *(unverified)* | **Holds generically, not per product.** HTB p. 108 gives about 10 billion viable cells per gram of dry yeast and 100 billion per liquid package (*Yeast* p. 124 and 140: 7–20 billion and 100 billion). `ref.yeast` and the hopline files hold no cell count and no maker's data sheet is in the repo, so §10 uses HTB's generic figures. For a souring culture HTB p. 206 gives a rate (100–200 billion per 19 L), which replaces "no source" (question 2). |
+| *Water*'s Tables 18–19 rows can be matched to a recipe from its style, colour and bitterness | **Holds for 30 of the 31 codes** (the 29 that step 4 returns for the briefs, plus 17D and 20C, §4); the 31st, 23A, and `specialty-honey-beer` have web-sourced rows. The row lists name 19 of them; ties and judgement calls are marked in §4. **Exception: 23A Berliner Weisse.** The book says its tables exclude sours (p. 119: "excluding sours and wood aged"), and HTB has no per-style rows (ch. 22: the brew cube numbers are "for frame of reference only"). 23A gets a web-sourced row instead (§4), as does `specialty-honey-beer`. |
 
 ## 1. *Water* Table 17 and `ref.water_salt`
 
@@ -64,14 +79,17 @@ The stored values match the book within 0.1 mg/L except baking soda's bicarbonat
 purity; the book's 710.5 mg/L per g/L is "@99 %"). Used as stored: **becomes** `test_table17_per_gallon`
 (Task 3) and the ion arithmetic of `app.salt_ions`.
 
+HTB Table 21.2 (ch. 21, p. 344 / PDF 370) and Table 8.2 (ch. 8) give the same figures (calcium chloride 72.0 Ca / 127.4 Cl, gypsum 61.5 / 147.4 per gallon); only baking soda differs: HTB prints HCO₃ 710.5 mg/L and 11.8 mEq/L (question 6).
+
 Solubility limits the book gives (p. 117): gypsum about 2 g/L (stir hard), chalk 0.05 g/L. No
 dosing rate in a recipe here reaches 1.9 g/L of gypsum (highest aim in §3: sulfate 400 mg/L =
 0.72 g/L).
 
 ## 2. Kolbach residual alkalinity
 
-Source: *Water* ch. 4, "Residual Alkalinity", p. 53–54 / PDF 71–72, and the working form in
-ch. 7, p. 124 / PDF 142.
+Source (HTB first): *How to Brew* ch. 21, p. 342 / PDF 368 (same equation, same 1.4 / 1.7 factors, ppm as
+CaCO₃, and the unit table 21.1, p. 339); *Water* ch. 4, "Residual Alkalinity", p. 53–54 / PDF 71–72 and ch. 7,
+p. 124 / PDF 142 say the same.
 
 - mEq/L RA = mEq/L alkalinity − [(mEq/L Ca) / 3.5 + (mEq/L Mg) / 7]
 - In ppm as CaCO₃ (what Tables 18/19 use): **RA = alkalinity − Ca / 1.4 − Mg / 1.7**
@@ -135,6 +153,8 @@ How odd cells are stored (the user reviews this with §4):
 | `ale-strong-amber` | 19 | ale · strong · amber · moderate, assertive | [50,100] | [40,120] | [50,100] | [50,150] | [0,60] | no | Strong Scotch Ale, Bière de Garde, Dubbel, Old Ale, Barleywine |
 | `ale-strong-brown-black` | 19 | ale · strong · brown/black · moderate–assertive | [50,75] | [120,200] | [50,150] | [50,150] | [120,200] | no | Baltic Porter, Foreign Extra Stout, American Stout, Russian Imperial Stout, Weizenbock, Belgian Dark Strong, Old Ale |
 
+**Source note.** HTB has no per-style rows: ch. 22 (p. 363) says the brew cube numbers are "for frame of reference only—do not use them as targets for specific styles". These 16 rows therefore stay from *Water*, the only source HTB does not cover. Where HTB gives general limits (Table 8.1, p. 134; seasoning guidelines, p. 135) they cap the aims (§6).
+
 Other book facts the code uses (p. 119–120): no sodium or magnesium range is given; sodium
 should not exceed 100 mg/L; the authors assumed 15 mg/L Mg in all RA figures; porters/stouts and
 similar dark lagers want about 30 mg/L Mg (taken as a note only; no Mg salt, §6).
@@ -148,7 +168,7 @@ and RA [−30,30]; light lager Ca from 50; strong ale brown/black alkalinity [12
 Source for the mapping: the row's own style list (§3, column "Styles") where it names the style;
 otherwise the bands at the midpoints of the style's `ref.beer_style` ranges (OG as gravity
 points, SRM, IBU) with lager or ale from the style. "listed" = the book's list names it. The 31
-codes are the 29 that step 4 returns for b01–b24 and h01–h06 (measured with
+codes (plus specialty-honey-beer) are the 29 that step 4 returns for b01–b24 and h01–h06 (measured with
 `tests.test_step4.step4` on 2026-10-28) plus 17D (h06's brief style; step 4 returns 22C for it)
 and 20C (b05's alternative). 30A and 31B never reach step 12 (step 4 returns their base styles:
 30A → 20B, 31B → 18A). Note: the plan's list had 20C and 17D where step 4 actually returns 22C
@@ -186,38 +206,89 @@ for h06; both are mapped.
 | 6A Märzen | 57 · 12.5 · 21 | `lager-medium-amber` | listed ("Oktoberfest"); bands agree |
 | mexican-style-amber-lager (BA) | 48.5 · 11 · 18.5 | `lager-medium-amber` | bands (medium / amber / soft); Vienna-like |
 | 8B Schwarzbier | 49 · 24.5 · 27.5 | `lager-medium-brown-black` | listed |
-| 23A Berliner Weisse | 30 · 2.5 · 5.5 | *(no row)* | the tables exclude sours (p. 119). Decision Q1 gives no salts and the source-water pH estimate. **Question 1** |
-| specialty-honey-beer (BA) | 70 · 50 · 50 | *(no row)* | its ranges span the whole scale (1.03–1.11 OG, 1–100 SRM and IBU), so no band can be read. Only b12's alternative list names it; step 4 returns 18A. **Question 5** |
+| 23A Berliner Weisse | 30 · 2.5 · 5.5 | `web-berliner-weisse` | not in *Water* (sours excluded, p. 119) or HTB; web-sourced row, §4b |
+| specialty-honey-beer (BA) | 70 · 50 · 50 | `web-honey-beer` | ranges too wide for a band (1.03–1.11 OG, 1–100 SRM and IBU); no honey profile in any book; web-sourced row, §4b. Only b12's alternative list names it; step 4 returns 18A |
 
 Every other `ref.beer_style` code (254 of 285, `specialty-honey-beer` among them) gets no row and no `co2_vol`
-(decision Q1). Of the 31 codes in this table, 30 have a row; the test
-`test_every_brief_style_has_a_row_and_co2` will name 23A explicitly as the one without.
+(decision Q1) -- except the two web-sourced rows below.
+
+### 4b. Two web-sourced rows (23A and `specialty-honey-beer`) -- for your review
+
+HTB and *Water* have no Berliner Weisse or honey beer row (*Water* excludes sours, p. 119). You asked for web research. Stored as extra rows
+in `ref.water_profile` with `table_no = 'web'`, `basis = 'web'`, and their own `ref.source` rows (the URLs are in
+[`SOURCES.md`](../../SOURCES.md)); they are not Table 18/19 rows and the tests that count the book's 16 rows count only `table_no in ('18','19')`.
+Answer to your question "general row or a dedicated row per style": the table is keyed per style *group* (16 groups cover
+30 styles); a style gets its own row only when no group fits, as these two. Not decided here (the orchestrator answers
+that in chat).
+
+**23A Berliner Weisse -- `web-berliner-weisse`.** What the sources say (fetched 2026-10-28; none is a book):
+
+| Source | What it gives | Weight |
+|---|---|---|
+| Brewer's Friend recipe "#1 Berliner Weisse" (brewersfriend.com/homebrew/recipe/print/1109903) | target profile Ca 48, Mg 3, Na 0, Cl 47.7, SO₄ 50, HCO₃ 0; no source named | one homebrewer's recipe |
+| HomebrewersAssociation forum thread "Water profile wheat/hefe" (forum.homebrewersassociation.org/t/water-profile-wheat-hefe/28606) | Bru'n Water users: Ca 40-50, sulfate and chloride "20 or less"; M. Brungard: "both should be modest"; mash pH 5.4 or lower; K. Troester (quoted) for a Weissbier hell: RA about 0, Ca 50, SO₄ 57, Cl 43 | forum posts relaying named authorities |
+| Learning to Homebrew, Berliner Weisse guide (learningtohomebrew.com/?p=513155) | "soft water with a balanced chloride-to-sulfate ratio... keep both levels low" | **search-result text only; the fetched page held no water text** (unverified) |
+| Brewer's Friend recipe "Washingtonian Raw Weisse" | Ca 100, Cl 50, SO₄ 100 | **not used:** the stored profile is named "Braukaiser Edel Hell", a Helles profile, not a Berliner one |
+
+Two sources agree (Ca about 40-50, Cl about 43-48, SO₄ 50-57 in the two that give numbers; low and balanced in the others). HTB overrides where it
+speaks: Ca minimum 50 (Table 8.1, p. 134); "soft" structure Ca 50-100 (brew cube, p. 363); pale beer mash pH 5.2-5.4 (p. 365); Lactobacillus beers
+5-8 IBU (p. 206). Proposed row:
+
+| Code | Table | Ca | Alkalinity | SO₄ | Cl | RA | Acidify | Basis |
+|---|---|---|---|---|---|---|---|---|
+| `web-berliner-weisse` | web · ale · light · pale · 3-8 IBU | [50,100] | [0,40] | [20,60] | [40,60] | [-60,0] | yes | Ca: HTB; alkalinity 0 in the Brewer's Friend profile and "soft"; SO₄/Cl: BF profile (50/47.7), Troester (57/43), forum (low); RA: computed from Ca 50-100, alk 0-40 |
+
+Mid aims: SO₄ 40, Cl 50 (ratio 0.8:1, "balanced"). With Ca at the HTB minimum, gypsum 40 and calcium chloride 50 give Ca 45, so
+calcium is raised to 50 as in §6. b14 gets this row; it is `unverified` against any brewery source.
+
+**`specialty-honey-beer` -- `web-honey-beer`.** Your figures, checked:
+
+| Your figure | Check | Verdict |
+|---|---|---|
+| Ca 50-100 | HTB Table 8.1: 50-150, minimum 50; blonde-ale guidance (Newman, Maui Brewing, via getollie.com/blog/blonde-ale-brewing-guide, fetched): Ca 50-100 | holds |
+| SO₄ 60-90 | HTB: 50-400 (drier, crisper, p. 133-134); same Newman guidance: SO₄ 50-100 | holds |
+| Cl 50-60 | HTB: 50-150 (fuller, sweeter); Newman: Cl 50-75 | holds |
+| SO₄ : Cl 1.2-1.5 : 1 | HTB: balanced about 1:1, hoppy 5:1 (p. 134). Computed from your ranges: 60/60 = 1.0 up to 90/50 = 1.8, middle 75/55 = 1.36 | consistent at the middle only: the ratio range is **narrower** than the two ranges allow (the hint positions 12.5 % / 87.5 % give 1.09 and 1.68, outside 1.2-1.5) |
+| Mg 5-15 | HTB Table 8.1: 0-30, "5 ppm minimum... usually fully supplied by the malt extract" | holds (no Mg salt is dosed, §6) |
+| Na 0-30 | HTB: 0-100 (> 100 minerally); Bru'n: below 60 in practice | holds (stricter than HTB) |
+| CO₂ 2.5-2.8 | HTB p. 155: 2.5 for "most American and European pale ales"; p. 159: American ales 2.2-2.7; nothing for honey | **not in HTB**; 2.5-2.7 overlaps (question 7) |
+| why (yeast health, flocculation; crisp finish to cut sweetness; roundness after honey ferments out) | HTB p. 133-134 on Ca, sulfate, chloride | holds as flavour/process reasoning; I found **no source for a honey-specific water profile**: web search returned blonde-ale guidance (Newman; The Electric Brewery: Ca 50, Mg 10, Na 16, Cl 70, SO₄ 70, a balanced blonde) and one homebrewtalk thread (not fetched, HTTP 403; snippet only) |
+| origin of your figures | not traceable | the BA text says honey beer "may be brewed to a traditional style or may be experimental" -- a honey beer's water should follow the underlying style; this row is only the fallback |
+
+Proposed row (user-supplied, corroborated by HTB's general ranges and the blonde-ale guidance):
+
+| Code | Table | Ca | Alkalinity | SO₄ | Cl | RA | Acidify | Basis |
+|---|---|---|---|---|---|---|---|---|
+| `web-honey-beer` | web · no type/colour/bitterness | [50,100] | none | [60,90] | [50,60] | none | -- | user-supplied figures, checked against HTB Table 8.1 and Newman |
+
+No alkalinity or RA target is stored (nothing sourced), so nothing but gypsum and calcium chloride is dosed and the mash pH target
+is the general 5.2-5.6. Mg and Na ranges are not stored (no Mg salt; sodium only comes from bicarbonate, capped at 100 mg/L by §6).
+CO₂ family: `american-ales` (HTB) unless you decide otherwise (question 7).
 
 ## 5. Hints → aim
 
-Source: step 1's hint vocabulary (contract `step1.output.schema.json`): `bitter, hoppy, juicy,
+Source (HTB first): step 1's hint vocabulary (contract `step1.output.schema.json`): `bitter, hoppy, juicy,
 dry, crisp, full, chewy, malty, darker, stronger, session`.
 
-- *Water* ch. 7, "Sulfate", p. 115 / PDF 133: sulfate "can make the hop character more
-  assertive, or dryer"; "Chloride", p. 115: "a rounder, fuller, sweeter quality to the malt
-  character". "Sulfate-to-Chloride Ratio", p. 116 / PDF 134: the ratio "is said to greatly
-  influence the hoppy-to-malty or dryness-to-fullness balance"; useful ratio 9 to 0.5; at least
-  50 mg/L of each to be noticed; "Pale and light lagers... are more sensitive to sulfate".
-- Bru'n Water *Water Knowledge* §2.5.2 "Major Ions in brewing": "Sulfate provides a sharper, dryer
-  edge to highly hopped beers"; chloride "accentuates fullness and sweetness"; "Brewers of juicy
-  IPAs have reported... around 150 ppm chloride and 75 ppm sulfate".
+- HTB ch. 8, p. 133 / PDF 159: "Chloride accentuates the maltiness of the beer, making the beer seem fuller and sweeter.
+  Sulfate accentuates the hop character of the beer, making the beer taste drier and crisper"; p. 134: hoppy beers like IPA a
+  sulfate-to-chloride ratio of 5:1, malty beers (bock, Oktoberfest) 1:1 or 0.5:1, "not a rule, however, it is a guideline"; ch. 22, p. 364:
+  hoppy 4:1, balanced, malty on the brew cube.
+- Where HTB is silent on a hint (`juicy`): Bru'n Water *Water Knowledge* §2.5.2: "Brewers of juicy IPAs have reported... around 150 ppm
+  chloride and 75 ppm sulfate" (chloride-led).
+- *Water* (ch. 7, p. 115-116) says the same and is no longer needed for the direction.
 - The 87.5 % / 12.5 % positions are RECIPE-ROADMAP §7's (the user's 2026-10-17 decision, the
-  same positions step 4 uses for its knobs, `app.hint_knob`).
+  same positions step 4 uses for its knobs, `app.hint_knob`). They are not HTB's; HTB gives ratios (question 4).
 
 | Hint | Side | Passage |
 |---|---|---|
-| `bitter` | sulfate | Water p. 115 (sulfate accentuates hops) |
+| `bitter` | sulfate | HTB p. 133 (sulfate accentuates hop character) |
 | `hoppy` | sulfate | same |
-| `dry` | sulfate | Water p. 115 ("dryer"); p. 116 ("dryness-to-fullness") |
-| `crisp` | sulfate | Bru'n §2.5.2 ("sharper, dryer edge"); p. 116 |
-| `juicy` | chloride | Bru'n §2.5.2 (juicy IPA: chloride-led) |
-| `malty` | chloride | Water p. 115, 116 ("malty" balance) |
-| `full` | chloride | Water p. 115 ("fuller"), p. 116 ("fullness") |
+| `dry` | sulfate | HTB p. 133 ("drier") |
+| `crisp` | sulfate | HTB p. 133 ("crisper") |
+| `juicy` | chloride | Bru'n §2.5.2 (HTB silent) |
+| `malty` | chloride | HTB p. 133-134 ("maltiness", malty beers 1:1 or 0.5:1) |
+| `full` | chloride | HTB p. 133 ("fuller") |
 | `chewy` | chloride | same as `full` (body) |
 | `darker`, `stronger`, `session` | none | they move colour, gravity and strength, not the ion balance |
 
@@ -225,13 +296,15 @@ Rule (Approach step 12, item 2): sulfate and chloride aims start at the **middle
 ranges. One or more sulfate-side hints (and no chloride-side hint) move sulfate to 87.5 % and
 chloride to 12.5 % of their ranges; chloride-side hints (and no sulfate-side hint) the reverse;
 both sides at once leave the middle and say so. A hint never moves an aim outside the row's range.
-The book's 87.5 / 12.5 are not from *Water*; *Water* gives only the direction. A hint pair seen
-in the briefs: b02 `juicy, hoppy` (both sides, so the middle), b11 `dry, full, chewy` (both).
+Hint pairs in the briefs: b02 `juicy, hoppy` (both sides, so the middle), b11 `dry, full, chewy` (both).
+HTB caps apply to every aim: sulfate ≤ 400, chloride ≤ 150, sulfate + chloride ≤ 500 (p. 135); no row range exceeds them (largest
+row: sulfate 400, chloride 150, aims at 87.5 % stay below 500 together).
 
 **Becomes:** `app.water_aim(row, hints)` → `moved_by`; `test_aim_moves_with_hints`.
 
 ## 6. Salt order and limits
 
+- **Calcium floor and caps** (HTB Table 8.1, p. 134; seasoning guidelines, p. 135): calcium at least 50 ppm (same as the row minimum), sulfate ≤ 400, chloride ≤ 150, sulfate + chloride ≤ 500, "exceeding 200 [calcium] can taste minerally".
 - **Order** (Approach step 12 items 3–5): gypsum for sulfate and calcium chloride for chloride,
   each `(aim − source water) / (mg/L per g/L)`; never below 0 (p. 117: these are the only two
   calcium salts that add flavour ions without alkalinity). Then calcium: if below the row's
@@ -243,15 +316,14 @@ in the briefs: b02 `juicy, hoppy` (both sides, so the middle), b11 `dry, full, c
   89 against [50,75]). The tables say their combinations "may not produce a residual
   alkalinity value that is within the listed RA range. That's ok" (p. 119). The output carries
   an `outside_row` note per ion instead of dropping a salt.
-- **No magnesium salt.** *Water* p. 119: "no particular recommendations for magnesium...
-  the vast majority of this came from the malt"; only the 30 mg/L porter note. Epsom and
-  magnesium chloride stay in `ref.water_salt` unused.
-- **Sodium ≤ 100 mg/L**: *Water* p. 116, 119 ("We are generally recommending not exceeding
-  100 ppm"); Bru'n §2.5.2 (100 ppm practical maximum). Baking soda is used while the
+- **No magnesium salt.** HTB Table 8.1 (p. 134): magnesium 5 ppm minimum, range 0-30, "usually fully supplied by the malt extract"; *Water* p. 119 agrees
+  ("the vast majority of this came from the malt"). Epsom and magnesium chloride stay in `ref.water_salt` unused.
+- **Sodium ≤ 100 mg/L**: HTB Table 8.1 (p. 134, range 0-100) and p. 133 ("at high concentrations (>100 ppm) it tends to give an overall minerally character");
+  *Water* p. 116, 119 and Bru'n §2.5.2 agree. Baking soda is used while the
   resulting sodium stays at or below 100 mg/L (the source water's own sodium counts).
 - **Lime over chalk.** *Water* p. 117 / PDF 135 and Table 17: chalk "largely ineffective"
   in the mash, "Don't Use"; Bru'n §4.3.1 (avoid chalk) and §4.3.2 (pickling lime is readily
-  soluble). Slaked lime's alkalinity is counted at its Kolbach ΔRA (19.28 mEq/L per g/L), the
+  soluble). HTB Table 21.2 (p. 344) lists chalk as "does not raise mash pH effectively". Slaked lime's alkalinity is counted at its Kolbach ΔRA (19.28 mEq/L per g/L), the
   form the Foreign Extra Stout example uses (p. 130–132 / PDF 148–150), and the form *Water*
   confirms for additions to the water (ch. 6, p. 105–106 / PDF 123–124).
 - **Alkalinity only in the strike water.** Not a book rule; it follows from the book's
@@ -276,80 +348,62 @@ in the briefs: b02 `juicy, hoppy` (both sides, so the middle), b11 `dry, full, c
 
 ## 7. Mash pH estimate
 
-Source: *Water* ch. 5, "The Hypothesis for Predicting Mash pH", p. 77–78 / PDF 95–96, Table 9
-(p. 67 / PDF 85), Table 5 (p. 56 / PDF 74) and the conclusions list (p. 73 / PDF 91); ch. 7 golden
-rule 4 (p. 124 / PDF 142): "The target mash pH range is **5.2-5.6**, measured at room temperature."
+Source (HTB first): *How to Brew* ch. 21, p. 338-351 / PDF 364-377: "Mash pH is Water Chemistry plus Malt Chemistry" (p. 349-350), Table 21.4 (p. 351 / PDF
+377), the RA-to-pH rule of thumb (p. 342 / PDF 368), mash pH targets (p. 341 and, by colour, p. 365 / PDF 391). *Water* ch. 5 (Table 9, titration
+curves) is **no longer used** for the malt figures (§18).
 
-**Method** (zero-sum, the book's step list 1–6, with average buffer capacities instead of
-titration curves; brief Out):
+**Method** (HTB p. 350: base-malt alkalinity × kg + specialty-malt acidity × kg + water RA (mEq/L) × litres = 0 means the target pH is hit;
+a surplus or deficit is the gap), made into a pH estimate with HTB's own buffer figure:
 
-    pH = 5.4 + (Σ kg × alk_i + V_strike × RA_mEq/L) / (Σ kg × buffer_i)
+    pH = 5.4 + (Σ kg × alk_i + V_strike × RA_mEq/L) / (40 × Σ kg)
 
-where for each mashed fermentable alk_i is its alkalinity (+) or acidity (−) in mEq/kg **re pH 5.4**
-and buffer_i its buffer capacity in mEq/(pH·kg), both from Table 9 below; V_strike is the strike
-water in litres and RA the strike water's Kolbach RA in mEq/L (can be negative). The water adds
-no buffer term (a deliberate simplification, no source gives one at the strike water's
-alkalinities that is not pH-dependent). A positive sum puts the pH above 5.4 (p. 77, step 6).
+- alk_i: mEq/kg of alkalinity (+) or acidity (−) of mashed fermentable *i* **to target pH 5.4**, HTB Table 21.4, column 5.4 (below).
+- **Buffer: 40 mEq per pH unit per kg of grist.** HTB p. 342: the RA change that moves the mash pH by 0.1 is "very nearly equal to 200/Rv" ppm as CaCO₃
+  (50 ppm at Rv = 4 L/kg). 200/Rv ppm = 4/Rv mEq/L; times Rv litres per kg of grist = 4 mEq per kg per 0.1 pH = **40 mEq/(pH·kg)**, independent of the
+  ratio. HTB calls it "my own experiments"; it is applied here to the whole mash (malt and water together). **Judgement**: it is the only buffer figure HTB gives.
+- V_strike = strike water in litres; RA = its Kolbach RA in mEq/L (negative with hardness). A positive sum puts the pH above 5.4.
 
-**Table 9** (Troester "T" and Bies "B"; the last two columns, p. 67): the figures used are the
-**mean of T and B** where both are measured; where only one is, that one. The two sets differ a
-lot for caramel malts (e.g. caramel 20 acidity −5.3 vs −22.2); the mean is the plan's choice.
+**Table 21.4 (HTB p. 351), the 5.4 column** (Briess 2015 data, "single data points"; HTB: "for information only"):
 
-| Row | °L | Alkalinity(+)/acidity(−) re 5.4, mEq/kg (T, B) | Buffer mEq/(pH·kg) (T, B) |
-|---|---|---|---|
-| 2-row base | 2 | B only: 16.1 | B only: 40.3 |
-| Munich | 10 | 4.9, 4.4 → **4.65** | 35.0, 36.9 → **35.95** |
-| caramel 20 | 20 | −5.3, −22.2 → **−13.75** | 29.6, 37.6 → **33.6** |
-| caramel 40 | 40 | −14.3, −41.4 → **−27.85** | 37.6, 46.5 → **42.05** |
-| caramel 60 | 60 | −35.9, −33.8 → **−34.85** | 48.5, 46.3 → **47.4** |
-| caramel 120 | 120 | −31.5, −43.3 → **−37.4** | 48.4, 59.3 → **53.85** |
-| roasted barley | 300 | −27.9, −47.5 | 38.8, 48.5 |
-| black malt | 500 | −32.4, −43.4 | 41.5, 43.4 |
+| Malt | °L | mEq/kg | Malt | °L | mEq/kg |
+|---|---|---|---|---|---|
+| Pilsen Malt | 1.5 | 9.2 | Caramel 40L | 40 | −30.4 |
+| Brewers Malt | 1.9 | 5.0 | Special Roast | 40 | −13.0 |
+| Pale Ale Malt | 2.9 | 3.4 | Caramel 60L | 61 | −43.4 |
+| Red Wheat Malt | 2.8 | 11.1 | Caramel 80L | 80 | −45.1 |
+| Goldpils Vienna | 3.5 | 7.2 | Caramel 120L | 120 | −60.4 |
+| Ashburne Mild | 4.4 | 2.6 | Extra Special Malt | 126 | −67.5 |
+| Bonlander Munich | 12 | 2.6 | Roasted Barley | 292 | −38.6 |
+| Aromatic Munich | 16 | 0 | Chocolate Malt | 416 | −39.7 |
+| Victory | 28 | −0.9 | Dark Chocolate | 458 | −48.8 |
+| Caramel 20L | 19 | −21.3 | Black Malt | 471 | −36.0 |
+| | | | Black Barley | 514 | −51.8 |
 
-**Classes** (`app.malt_acidity(role, ebc)`; one `case`). Colour is the midpoint of the ingredient's
-`ebc` range (a range with no lower end uses its upper end); °L is taken as SRM = EBC ÷ 1.97, which
-*How to Brew* ch. 15 calls "nearly identical" for malt (p. 234–235 / PDF 260–261; EBC = SRM ×
-1.97). A class is the nearest Table 9 row by °L (boundaries at the midpoints 6, 15, 30, 50, 90):
+**Classes** (`app.malt_acidity(role, ebc)`, a `values` list and a nearest-row pick). °L ≈ SRM = EBC ÷ 1.97 (HTB p. 234-235, "nearly identical"); colour is the midpoint of the
+ingredient's `ebc` range (no lower end: its upper end).
+- `role` base, kilned, crystal, adjunct: the **non-roast row with the nearest °L** (the 16 rows above the Special Roast / Roasted Barley split: Pilsen... Extra Special).
+  Flaked and unmalted adjuncts count as base (Bru'n §2.4 "Grain Acidity": "Flaked malt and grain should be considered base malts"; HTB is silent).
+- `role` roast: **one class, −42.98 mEq/kg** (mean of the five roast rows: the stored roast colours, 450-760 °L, sit beyond Table 21.4's 292-514 °L rows and do not separate them).
+- `role` sugar is not mashed and is skipped.
+Not covered by Table 21.4: acidulated malt (treated like its nearest row, so the estimate is too high: the safe side for the acid line) and smoked/Sprau malts (same).
 
-| Class | Chosen by | alk (mEq/kg) | buffer |
-|---|---|---|---|
-| `base` | `role` base; `role` adjunct (Bru'n §2.4 "Grain Acidity": "Flaked malt and grain should be considered base malts"); any kilned/crystal below 6 °L (no Table 9 row between base and Munich) | 16.1 | 40.3 |
-| `munich` | kilned/crystal 6 ≤ °L < 15 | 4.65 | 35.95 |
-| `caramel-20` | 15 ≤ °L < 30 | −13.75 | 33.6 |
-| `caramel-40` | 30 ≤ °L < 50 | −27.85 | 42.05 |
-| `caramel-60` | 50 ≤ °L < 90 | −34.85 | 47.4 |
-| `caramel-120` | °L ≥ 90 (kilned/crystal) | −37.4 | 53.85 |
-| `roast` | `role` roast, **one class**: the stored roast colours (900–1500 EBC for roasted barley and black malt) do not separate Table 9's 300 and 500 °L rows, so the mean of the four figures | −37.8 | 43.05 |
+**Targets** (HTB p. 341: "the commonly agreed target range for mash pH is 5.2-5.6, as measured at room temperature"; p. 365: pale 5.2-5.4, amber 5.3-5.5, dark 5.4-5.6, "general
+guidelines"). The acid line compares the estimate with the target of the water row's colour (pale / amber / brown-black); a style with no row: 5.2-5.6. Question 3.
 
-`role` sugar is not mashed and is skipped. Not covered by Table 9: acidulated malt
-(role kilned, 1.5–5 EBC) is treated as `base` (its acid is not measured there; the estimate is
-then too high, i.e. on the safe side for the "acid needed" line); smoked and Sprau malts as above.
-The 5.4 reference pH and the use of average buffer capacities are the book's own simplifications
-(p. 73: "for small magnitudes of pH change, the buffering capacity can be approximated by an
-average value").
+**Hand-worked case** (A10; checked by `test_pale_grist_needs_acid`): 4.0 kg Pilsen malt (HTB Table 21.4, 9.2 mEq/kg), strike water 12 L (3 L/kg) from distilled water
+with the light-lager aim: sulfate 25, chloride 75. Gypsum 25 / 557.9 = 0.04481 g/L, calcium chloride 75 / 482.3 = 0.15550 g/L, Ca = 52.82 mg/L (≥ 50), alkalinity 0.
+RA = −52.82 / 1.4 = −37.73 mg/L as CaCO₃ = **−0.7546 mEq/L**. Σ mEq = 4.0 × 9.2 + 12 × (−0.7546) = 36.80 − 9.06 = 27.74; Σ buffer = 40 × 4.0 = 160.
+**pH = 5.4 + 27.74 / 160 = 5.573.** That is inside the general 5.2-5.6 but **above the pale target 5.2-5.4**, so the acid line fires (question 3). b08's case
+through the step (German Pils with `bitter`, Ca about 89): 4.9 kg, 14.7 L: pH about **5.53**, above 5.4, acid line fires. The test checks the function with the grist and strike ions given
+directly, within 0.02 of 5.573.
 
-**Hand-worked case** (A10; the number `test_pale_grist_needs_acid` checks):
-4.0 kg `base` malt, strike water 12 L (ratio 3 L/kg) from distilled water with the light-lager
-aim: sulfate 25 (middle of [0,50]), chloride 75 (middle of [50,100]). Gypsum 25 / 557.9 =
-0.04481 g/L, calcium chloride 75 / 482.3 = 0.15550 g/L, Ca = 0.04481 × 232.8 + 0.15550 × 272.6 =
-52.82 mg/L (already ≥ 50, no extra), alkalinity 0.
-RA = 0 − 52.82 / 1.4 = −37.73 mg/L as CaCO₃ = **−0.7546 mEq/L**.
-Σ mEq = 4.0 × 16.1 + 12 × (−0.7546) = 64.40 − 9.06 = 55.34; Σ buffer = 4.0 × 40.3 = 161.2.
-**pH = 5.4 + 55.34 / 161.2 = 5.743** → above 5.6, so the acid line fires. (b08's case through the
-step, German Pils with `bitter`, gives about 5.70, also above 5.6.) The test checks within 0.02
-of 5.743 by feeding the function the grist and strike ions directly, so the figure does not
-depend on how the salts round.
+**A dark grist on distilled water** (`test_dark_grist_on_distilled_is_low`): 4.0 kg Pilsen malt, 1.0 kg Caramel 60L (−43.4), 1.0 kg roast (−42.98), no alkalinity,
+ions zero: Σ mEq = 36.8 − 43.4 − 42.98 = −49.58, Σ buffer = 240, pH = **5.193**, below 5.4. The plan's b05-style grist (80 % base, 10 % caramel, 10 % roast, 8 kg,
+24 L, Ca 60, RA −0.857 mEq/L) gives **5.30**, below 5.4 as the plan assumed, so the plan's original test grist stands (my first-round note about 5.47 came
+from *Water* Table 9 and no longer applies).
 
-**A dark grist on distilled water** (`test_dark_grist_on_distilled_is_low`): 4.0 kg base,
-1.0 kg caramel-60, 1.0 kg roast, no alkalinity, ions zero: Σ mEq = 64.4 − 34.85 − 37.8 = −8.25
-and Σ buffer = 161.2 + 47.4 + 43.05 = 251.65 → pH = 5.367, **below 5.4**. Worth knowing for
-Task 3: the plan's example of "b05-style" grist (80 % base, 10 % caramel, 10 % roast) gives
-**5.47** on a strong-brown/black aim with Ca 60, i.e. *not* below 5.4. That test will use the
-darker grist above; I record it as a plan detail in the Deviations when Task 3 is written.
-
-**Becomes:** `app.malt_acidity`, `app.mash_ph_estimate`, tests `test_pale_grist_needs_acid`,
-`test_dark_grist_on_distilled_is_low`, `test_ph_terms_add_up`. Marked **unverified against Bru'n
-Water** (§16).
+**Becomes:** `app.malt_acidity`, `app.mash_ph_estimate`, tests `test_pale_grist_needs_acid`, `test_dark_grist_on_distilled_is_low`, `test_ph_terms_add_up`. Marked
+**unverified against Bru'n Water** (§16).
 
 ## 8. Water-to-grist ratio, total water, strike temperature
 
@@ -394,157 +448,111 @@ rounded 0.41 constant: 73.29. `test_strike_temp_example` checks 73.2 ± 0.5. Vol
 
 All rests sit **below the starch range** so rule 10's FG model (the temperature of `mash_c`) is
 unchanged (brief R3, A11). The saccharification rest is `step10.mash_c`, **60 min** (HTB Table
-17.1, p. 263 / PDF 289: 30–60 min; s5's model assumes a 60 min rest, `s5-mash-attenuation` doc-calc
-§4).
+17.1, p. 263 / PDF 289: 30-60 min; s5's model assumes a 60 min rest, `s5-mash-attenuation` doc-calc §4). All figures are HTB's.
 
 | Rest | °C | Minutes | Trigger | Source |
 |---|---|---|---|---|
-| Ferulic acid | **43** | **30** | style 10A Weissbier, 10B Dunkles Weissbier, 10C Weizenbock (the German wheat beers; `ref.beer_style.code` `10A`, `10B`, `10C`, all present) | *Yeast* ch. 3, p. 33 / PDF 54: "a ferulic acid rest around 110 °F (43 °C)"; HTB ch. 17, p. 264 / PDF 290: 104 °F (40 °C) with a half hour rest "to enhance the phenolic character" in Bavarian wheat beers, and Table 17.2, p. 265: 10–20 min at 40 °C. 43 °C is *Yeast*'s figure; the time is HTB's 30 min. The two books differ by 3 °C; both are inside the 35–45 °C esterase/phytase range HTB gives (p. 274 / PDF 300, 95–113 °F for the phytase/beta-glucanase/ferulic acid rest) |
-| Beta-glucan | **45** | **20** | `role = 'adjunct'` (flaked and unmalted grains) above 20 % of the grist by mass | HTB ch. 16, p. 244 / PDF 270: "Resting the mash at 104–118 °F (40–48 °C) for 20 min... is recommended to improve lautering when using more than 20 % of unmalted or flaked barley, oatmeal, rye, or wheat" ("optional" at 10–20 %); Table 16.2, p. 249 / PDF 275: beta-glucanase preferred 40–48 °C. 45 °C is the middle of 40–48 |
-| Protein | — | — | **not used** | HTB p. 245 / PDF 271: needed only for "moderately modified malts, or... well-modified malts with more than 20 % of unmalted wheat, rye, or oats", and warns a long (> 30 min) protein rest at 50 °C removes body and foam. Our data has no modification column (`ref.fermentable` has `enzyme_activity` but no Kolbach index), so there is no rule the data can test; skipped (plan: "where the doc-calc pass finds a rule our data can test") |
-| Mash-out | **77** | **10** | always | HTB ch. 16, "Mash-Out", p. 252 / PDF 278: raise "to 170 °F (77 °C) prior to lautering". The book says it is "not needed" for 3–4 L/kg mashes and "may be helpful" for > 25 % wheat/rye/oats; the plan includes it (decision 3). **The 10 minutes are `unsourced`:** no page gives a time |
+| Ferulic acid | **40** | **30** | style 10A Weissbier, 10B Dunkles Weissbier, 10C Weizenbock | HTB ch. 17, p. 264 / PDF 290: "104 °F, 145 °F, 158 °F (40 °C, 63 °C, 70 °C) mash, using a half hour rest at each temperature... The time at 104 °F (40 °C) serves as a ferulic acid rest" for Bavarian wheat beers; Table 17.2, p. 265: 10-20 min at 40 °C (the text's half hour is used). *Yeast*'s 43 °C (p. 33) is no longer used |
+| Beta-glucan | **45** | **20** | `role = 'adjunct'` above 20 % of the grist by mass | HTB ch. 16, p. 244 / PDF 270: "Resting the mash at 104-118 °F (40-48 °C) for 20 min... recommended... when using more than 20 % of unmalted or flaked barley, oatmeal, rye, or wheat" (optional at 10-20 %); Table 16.2, p. 249 / PDF 275. 45 is the middle of 40-48 |
+| Protein | -- | -- | **not used** | HTB p. 245 / PDF 271: only for moderately modified malts or more than 20 % unmalted wheat, rye or oats; a long (> 30 min) rest at 50 °C removes body and foam. No modification column in `ref.fermentable`, so no rule the data can test |
+| Mash-out | **77** | **10** | always | HTB ch. 16, "Mash-Out", p. 252 / PDF 278: raise "to 170 °F (77 °C) prior to lautering"; "not needed" at 3-4 L/kg, "may be helpful" above 25 % wheat/rye/oats; the plan includes it (decision 3). **The 10 minutes are `unsourced`:** HTB gives no time |
 
-Ordering in the output: neutral rests (ferulic, then beta-glucan if both) by temperature
-ascending, then the saccharification rest, then the mash-out. A beta-glucan rest and a ferulic
-rest at once (a weizen with > 20 % flaked oats) keep both: 43 °C and 45 °C are two rests 2 °C
-apart, so the code **merges them into the one rest at 43 °C for 30 min** when both fire (judgement:
-both are inside the 40–48 °C beta-glucanase range). Flaked share is by mass of `role = 'adjunct'`
-over all mashed fermentables.
+Ordering: neutral rests by temperature ascending, saccharification rest, mash-out. A weizen with a beta-glucan trigger as well keeps **one** rest at 40 °C for 30 min
+(inside both HTB ranges, judgement). Flaked share is by mass of `role = 'adjunct'` over all mashed fermentables.
 
-**Becomes:** `app.mash_rests(style_code, grist, mash_c)`; tests `test_rests_are_neutral_and_sourced`
-(every rest but saccharification is < 55 °C or the 77 °C mash-out, with a `source`),
-`test_weizen_gets_ferulic_rest`, `test_flaked_over_20_gets_beta_glucan_rest`,
-`test_single_infusion_otherwise`.
+**Becomes:** `app.mash_rests(style_code, grist, mash_c)`; tests `test_rests_are_neutral_and_sourced` (every rest but saccharification is below 55 °C or the 77 °C mash-out, with a
+`source`), `test_weizen_gets_ferulic_rest`, `test_flaked_over_20_gets_beta_glucan_rest`, `test_single_infusion_otherwise`.
 
 ## 10. Pitch rate
 
-Source: *Yeast*, "Pitching Rates", p. 121–124 / PDF 142–145; "average liquid package",
-p. 140 / PDF 161.
+Source (HTB first): *How to Brew* ch. 7, "What Is the Pitching Rate and Why Does It Matter?" p. 111-114 / PDF 137-140, Tables 7.1-7.3 (p. 114-116), and p. 108 / PDF 134 for cells per gram. *Yeast*
+("Pitching Rates", p. 121-124) is **no longer used**.
 
-    cells to pitch = rate × 10⁶ × wort mL × °P          (p. 123 / PDF 144)
+    cells to pitch = rate (billion cells / L / °P) × wort litres × °P            (1 °P = 4 gravity points, HTB p. 111)
 
-- **Rate**: 0.75 million cells/mL/°P for ales, 1.5 for lagers (p. 122 / PDF 143: "We prefer slightly
-  lower rates for ales (0.75 million) and slightly higher for lagers (1.5 million)"). The book
-  adds that British ales and German weizen are "often around 0.5 to 0.75" and that a fresh
-  laboratory culture "can use up to a 50 percent lower pitching rate" (same page). Both are
-  **not used**: the code keeps the two rates the plan names (conservative: more cells), and says so
-  in `because`.
-- **Ale rate for everything not lager** (kveik, brett, no-type yeasts included); lager = `ref.yeast.type =
-  'lager'`.
-- **Worked example** (p. 123 / PDF 144): 0.75 × 10⁶ × 20 000 mL × 12 °P = **180 billion cells**
-  (a lager at the same wort: 360 billion). `test_yeast_book_example`.
-- **Liquid yeast**: packs = cells ÷ **100 billion**, rounded up (p. 140 / PDF 161: "the average liquid
-  yeast package for homebrewers has about 100 billion cells"). 180 billion → 2 packs.
-- **Dry yeast**: grams = cells ÷ viable cells per gram, rounded up to 1 g. The book (p. 124 / PDF
-  145): "Most dry yeast contains about **7 billion to 20 billion** cells per gram... but that is not the
-  number of viable cells per gram you will have once you rehydrate... Find out from your supplier how
-  many viable cells per gram you can expect (which might be as low as 5 billion)". No maker's data
-  sheet is in the repo. **Chosen: 7 billion cells/g**, the bottom of the book's printed range:
-  the pitch cannot be under-sized by a generous count, and 5 billion is the book's unsupported
-  "might be". Judgement; the reason goes into `because`. At 7 billion/g a 180 billion-cell ale
-  pitch is 26 g, i.e. 2.3 of the usual 11.5 g sachets: higher than home brewers' usual 1 sachet,
-  but the book's own formula (it assumes repitched slurry; fresh dry yeast could use less, p. 122)
-  - **question 4**.
-- **Souring culture** (`ref.yeast.type = 'lacto'`): no source gives a cell count; `1 pack`,
-  `cells_billion` null, "no sourced pitch rate" (decision Q3).
-- Wort volume for the cell count: the batch volume (fermenter volume `numbers.batch_l`); °P =
-  `app.sg_to_plato(og)`.
+- **Rate**: HTB p. 111-113 gives rates **for fresh yeast** ("only half as much fresh yeast is needed" as repitched): ales 0.5-1.0 billion cells per litre per °P (0.5 Belgian,
+  0.75 "balanced... dry stout, English pale ale", 1.0 "very clean... American pale ale"), lagers 1.0-1.5 (1.25 Kölsch and California common, 1.5 Dortmunder, Munich dunkel,
+  American lagers and the cleanest lagers). The code keeps two rates, **0.75 for ale yeasts and 1.5 for lager yeasts** (HTB's balanced-ale and moderate-lager figures; the
+  same numbers the plan took from *Yeast*, which gives them for repitched yeast). A per-style rate (HTB's list above) is a later refinement. Kveik, brett and no-type yeasts use the ale rate.
+- **Worked example**: HTB Table 7.1 (p. 114 / PDF 140): 1.050 SG (12.4 °P), rate 0.75: **9 billion cells per litre** → 20 L = **180 billion cells** (a lager rate 1.5: 19 → 380). The same
+  arithmetic as *Yeast*'s 0.75 × 20 000 mL × 12 °P = 180 billion. `test_yeast_book_example` uses HTB's Table 7.1 (question 1).
+- **Liquid yeast**: packs = cells ÷ **100 billion**, rounded up (HTB p. 108 and 111: "typically contain about 100 billion cells per package"; *Yeast* p. 140 agrees).
+- **Dry yeast**: grams = cells ÷ **10 billion viable cells per gram**, rounded up to 1 g. HTB p. 108 / PDF 134: "dry yeast has about 10 billion cells per gram, so a 10 g packet contains about
+  100 billion viable yeast cells" (after rehydration). *Yeast* p. 124 gives 7-20 billion and "as low as 5". Your Q4 answer was 7 billion unless HTB gives its own figure; HTB does, so **10** is used
+  and 7 is reported here. At 10 billion/g a 180 billion-cell ale pitch is 18 g (about 2 sachets of 10 g); at 7, 26 g.
+- **Souring culture** (`ref.yeast.type = 'lacto'`): HTB p. 206 / PDF 232: "The suggested pitching rate for Lactobacillus is between **100 and 200 billion cells per 5 gal. (19 L)**".
+  Low end scaled to the batch: 100 × batch_L / 19 billion (105 billion for 20 L); a culture package counts as 100 billion (HTB p. 108, liquid) → 2 packs for 20 L. This replaces decision Q3 ("keep 1 pack,
+  no sourced pitch rate") if you agree (question 2); until then the code keeps `1 pack`.
+- **Main yeast after souring**: HTB p. 211-212: "the pitching rate for the yeast fermentation should be higher than normal... for ales that would normally pitch 0.75... you would instead pitch 1.0".
+  Applied when a souring culture is in the recipe (question 2).
+- Wort volume for the cell count: the batch volume (`numbers.batch_l`); °P = `app.sg_to_plato(og)`.
 
-**Becomes:** `app.pitch_rate`; tests `test_yeast_book_example`, `test_dry_yeast_in_grams`,
-`test_liquid_yeast_in_packs`, `test_souring_culture_keeps_one_pack`.
+**Becomes:** `app.pitch_rate`; tests `test_yeast_book_example`, `test_dry_yeast_in_grams`, `test_liquid_yeast_in_packs`, `test_souring_culture_pitch`.
 
 ## 11. Fermentation schedule (**for your review**)
 
-Source: *Yeast* ch. 4 (temperature control) and "Diacetyl Rest", "Lagering"; *How to Brew* ch. 6 (fermentation
-phases, Table 6.2) and the lager section on p. 174. Values marked `unsourced` have no page; the proposed
-value is given.
+Source (HTB first): *How to Brew* ch. 6 "Yeast and Fermentation" (adaptation, high-growth and maturation phases, Table 6.2, cold conditioning), the lager chapter's "Lagering" (p. 174);
+*Yeast* only where HTB is silent (marked).
 
-**Main temperature M** = step 6's `ferm_c` raised to at least the yeast range's lower bound + 1 °C,
-so a start 1–2 °C below it is still inside the range. **Start S** = max(M − 2, lower bound).
-**End raise E** = min(M + 3, upper bound). Source for S and the 18–36 h rise: *Yeast* ch. 4,
-"Temperature Control", p. 97 / PDF 118: "the optimal starting temperature for the majority of
-fermentations is just a couple degrees (1 to 3 °F / 1 to 2 °C) below your target... slowly raise or
-allow the temperature to rise to your target fermentation temperature over the course of 18 to 36
-hours. Once it reaches fermentation temperature, hold... until at least the last one-third to
-one-fourth of fermentation. At that time raise the temperature several degrees or more (4 to 10 °F /
-2 to 5 °C) over the course of a day or two." HTB agrees: p. 94 Table 6.2 raise ales 3–6 °C (5–10 °F);
-p. 95 sidebar. The overlap of the two raises (2–5 and 3–6) starts at 3 °C: **E = M + 3** (judgement,
-the lowest figure both books allow), never above the yeast's upper bound.
+**Main temperature M** = step 6's `ferm_c` raised to at least the yeast range's lower bound + 1 °C. **Ale start S** = max(M − 2, lower bound): HTB p. 90 / PDF 116 "pitched into the wort when the wort
+temperature is at or slightly below the intended fermentation temperature" (example: range 20-23 °C, pitch at 18-20 °C). **Lager start = M**: HTB p. 174 / PDF 200, lager summary item 2, "Pitch at your target
+fermentation temperature". The 1-2 °C offset and the 18-36 h rise are *Yeast* p. 97 and are not in HTB (kept for ales as a consistent reading of "slightly below"; no separate rise step).
 
-| Phase (`phase`) | Applies to | °C | Days | Source |
+**Diacetyl / maturation rest** (HTB Table 6.2, p. 94 / PDF 120, and p. 93-94): *lager*: when "day 4 of 6" / 2-5 gravity points from FG, raise by **14-18 °F (8-10 °C)**, leave for **minimum 6 days (up to 12)**;
+*ale*: "~day 3 of 4", raise by **5-10 °F (3-6 °C)**, leave **minimum 4 days (up to 8)**. This is your Q3 answer (6 days lagers, 4 days ales), confirmed against HTB: it reads the same. Inside HTB:
+p. 172 says a diacetyl rest raises the temperature "by 5 °F [3 °C]" and p. 174 "10-15 °F (5-10 °C)... for at least four days, if not a week"; Table 6.2 is the one table and is used. *Yeast* (18-20 °C,
+2 days, p. 113) is no longer used.
+
+| Phase | Applies to | °C | Days | Source |
 |---|---|---|---|---|
-| `ferment` start | every main yeast | S | 1 | *Yeast* p. 97 (rise over 18–36 h; 1 day is the middle) |
-| `ferment` hold | ale, kveik, brett and no-type yeasts | M | 2 | HTB Table 6.2, p. 94 / PDF 120: the rest starts "~day 3 of 4"; the high-growth phase is 1–3 days for ales (p. 91 / PDF 117) |
-| `rest` (end raise) | ale, kveik, brett and no-type | E | 4 | HTB Table 6.2: "Leave for minimum 4 days (up to 8)" for ales; *Yeast* p. 113: "a two-day rest at fermentation temperature" |
-| `ferment` hold | lager (`type = 'lager'`) | M | 3 | HTB Table 6.2: the lager rest starts "day 4 of 6"; high-growth phase 2–5 days for lagers (p. 91) |
-| `rest` (diacetyl) | lager | R = least(upper bound, 18), at least M | 2 | *Yeast* ch. 5, "Diacetyl Rest", p. 113 / PDF 134: "raise the temperature into the 65 to 68 °F (18 to 20 °C) range for a two-day period near the end of the fermentation". The upper bound caps it so A4 holds: 10 of 17 lager yeasts top out at or below 15 °C (measured 2026-10-27). HTB gives longer rests: "minimum 6 days (up to 12)" (Table 6.2, p. 94) and "at least four days, if not a week" (p. 174 / PDF 200). **Question 3: 2 days (Yeast, the plan) or 6** |
-| `souring` | culture with `ref.yeast.type = 'lacto'` | 35 | 1 | see §13 |
-| `dry_hop` | step 10 dry hops | least(14, last ferment temp) | 2 (contact) | see §12 |
-| `crash` | ale, kveik, brett, no-type | 2 | 7 | HTB p. 95 / PDF 121 "Cold conditioning": "cool... to about 5–8 °C below the fermentation temperature... colder being better", "only have to cold condition for a week or two"; 2 °C is HTB's lagering floor (p. 174, 35 °F); *Yeast* p. 114–115: near freezing; "very little happens once you take the yeast below 4 °C". 7 days is the low end of "a week or two". Judgement: HTB describes this as cold conditioning, not a crash |
-| `lager` | lager | 2 | 14 | HTB p. 174 / PDF 200: cool "by not more than 10 °F (6 °C) a day down to about 35 °F (2 °C)"; "The lagering time can be 2–4 weeks, although I recommend shorter times (1–2 weeks) if you plan on priming and bottle conditioning". Packaging here is by priming, so the upper end of the shorter figure: 14 days |
+| `ferment` start | ale, kveik, brett, no-type | S | 1 | HTB p. 90 (first day is mostly adaptation, "high-growth phase... on day 2") |
+| `ferment` hold | ale, kveik, brett, no-type | M | 2 | HTB Table 6.2: rest at "~day 3 of 4"; high-growth phase 1-3 days for ales (p. 91) |
+| `rest` | ale, kveik, brett, no-type | E = least(M + 3, upper bound) | 4 | HTB Table 6.2: raise 3-6 °C (lowest figure), "minimum 4 days (up to 8)" |
+| `ferment` hold | lager (`type = 'lager'`) | M | 4 | HTB Table 6.2: rest at "day 4 of 6"; high-growth 2-5 days for lagers (p. 91) |
+| `rest` (diacetyl) | lager | R = least(upper bound, M + 8) | 6 | HTB Table 6.2: raise 8-10 °C (lowest figure), "minimum 6 days (up to 12)". The upper bound keeps A4: 10 of 17 lager yeasts top out at or below 15 °C (measured 2026-10-27) |
+| `souring` | culture with `ref.yeast.type = 'lacto'` | 35 | 1.5 | see §13 |
+| `dry_hop` | step 10 dry hops | 14 | 3 (contact) | see §12 |
+| `crash` | ale, kveik, brett, no-type | greatest(2, M − 8) | 7 | HTB ch. 6 "Cold Conditioning", p. 95 / PDF 121: "slowly cooling the beer down by 2 °F (1 °C) per day to about 9-15 °F (5-8 °C) below the fermentation temperature"; "only have to cold condition for a week or two" (the low end, 7 days). HTB calls this cold conditioning, not a crash. *Yeast*'s 2 °C is no longer used for ales |
+| `lager` | lager | 2 | 14 | HTB p. 174 / PDF 200: cool "by not more than 10 °F (6 °C) a day down to about 35 °F (2 °C)"; "The lagering time can be 2-4 weeks, although I recommend shorter times (1-2 weeks) if you plan on priming and bottle conditioning". Packaging here is by priming, so 14 days |
 
-Notes on the rows:
-- **Kveik** (20 rows, 20–42 °C), **brett** (2), and the **3 yeasts with no `type`** use the ale schedule.
-  Kveik fermenting much faster is not in *Yeast* or HTB; ale durations are therefore `unsourced` for
-  kveik. They are conservative (longer).
-- **A4**: every `souring`, `ferment` and `rest` step lies inside its yeast's `temp_c`. `dry_hop`,
-  `crash` and `lager` are conditioning below any yeast's range and are exempt (plan, step 14).
-  A lager yeast whose M exceeds 18 keeps R = M (no raise).
-- **Slow cooling.** *Yeast* p. 115 / PDF 136 describes lagering as cooling 0.5–1 °C a day, to
-  about 4 °C. HTB p. 174 allows up to 6 °C a day. Home refrigerators do the latter; HTB's figure is
-  used and *Yeast*'s slow rate is in the `why` text of the `lager` step as the commercial method.
-- **Total days**: ale 1 + 2 + 4 = 7 days at temperature, then dry hop 2 and crash 7; lager 1 + 3
-  + 2 = 6 days, then lager 14. (HTB p. 102: "Maturation can take anywhere from two days to two
-  weeks" for ale.)
+Notes:
+- **Kveik** (20 rows, 20-42 °C), **brett** (2), and the **3 yeasts with no `type`** use the ale schedule. HTB and *Yeast* are silent on kveik; its shorter fermentations are not modelled
+  (`unsourced`; the ale durations are conservative).
+- **A4**: every `souring`, `ferment` and `rest` step lies inside its yeast's `temp_c`. `dry_hop`, `crash` and `lager` are conditioning below any yeast's range and are exempt. A lager yeast whose M plus
+  8 exceeds its upper bound rests at the bound.
+- **Total days**: ale 1 + 2 + 4 = 7 days at temperature, then dry hop 3 and cold conditioning 7; lager 4 + 6 = 10 days, then lagering 14. HTB p. 102: ale maturation "from two days to two weeks".
+- Cooling rates (HTB p. 95: 1 °C/day for cold conditioning; p. 174: up to 6 °C/day for lagering) are in the step's `why` text, not modelled.
 
-**Becomes:** `app.ferment_schedule`; tests `test_every_ferment_temp_in_range`,
-`test_every_lager_has_diacetyl_rest`, `test_ramp_shape`, `test_b13_weizen_schedule`.
+**Becomes:** `app.ferment_schedule`; tests `test_every_ferment_temp_in_range`, `test_every_lager_has_diacetyl_rest`, `test_ramp_shape` (ale: S < M ≤ E, lager: start = M),
+`test_b13_weizen_schedule`.
 
 ## 12. Dry hop and secondary extras
 
-**Dry hop** (step 10 hops with `usage = 'dry_hop'`): after the last `ferment`/`rest` step.
-Sources: Janish, *Dry Hop Best Practices*, MBAA TQ 58(1), 2021, summary list (PDF p. 8 of
-`shared/rag-files/articles/janish_dry_hop_best_practices_tq_2021.pdf`): extraction "generally
-1–3 days... even at temperatures cooler than fermentation"; "Duration of dry hopping for no longer
-than 3 days"; "Dry hop at cool temperatures, 50–58 °F (10–14 °C), to improve foam and to reduce
-excessive hydrocarbon extraction, polyphenols, and hop creep". Janish, *A Case for Short and
-Cool Dry Hopping* (web): "the majority of the 4MMP extracted into the beer the first two days"; the
-Sapwood practice of starting post-fermentation dry hopping "around 58 °F" (14 °C).
-- Temperature: **14 °C** (top of Janish's 10–14 °C: least cooling needed), or the last
-  fermentation temperature if that is lower (a lager).
-- Contact: **2 days** (inside "no longer than 3 days"; the 4MMP and monoterpene alcohols extract in
-  the first two days). Day: the first day after the last `ferment`/`rest` step.
-- Amounts: grams as step 10 has them. Agitation, burping, oxygen purging are not modelled.
-- Janish's sulphur/hazy remarks (myrcene, hop creep) are the reasons, not extra computed values.
+**Dry hop** (step 10 hops with `usage = 'dry_hop'`): after the last `ferment`/`rest` step. Source (HTB first): *How to Brew* ch. 4, p. 72 / PDF 98: "Dry hops for IPAs are generally added to give **3-5 days
+of contact time at temperatures of 50-70 °F (10-21 °C)**. Allow less contact time at warmer temperatures. The hops should be removed after this period".
+- Temperature **14 °C**, or the last fermentation temperature if lower: inside HTB's 10-21 °C. HTB gives no single value; the point inside is from Janish, *Dry Hop Best Practices*, MBAA TQ 58(1),
+  2021 (PDF p. 8): "Dry hop at cool temperatures, 50-58 °F (10-14 °C)" and Sapwood's post-fermentation 58 °F (*A Case for Short and Cool Dry Hopping*).
+- Contact **3 days**: the low end of HTB's 3-5 (less contact at warmer temperatures); Janish agrees ("no longer than 3 days"). (Previously 2 days from Janish alone.)
+- Day: the first day after the last `ferment`/`rest` step. Amounts: grams as step 10 has them. Agitation and oxygen purging are not modelled.
 
-**Secondary extras** (step 10 extras with `usage = 'secondary'`): day = the first day after the
-last `ferment`/`rest` step; contact = `ref.misc.time_min` in days (coffee beans 2880 min = 2 days,
-Janish *Coffee Beers*, in `ref.misc.field_source`); none (vanilla) → "until it tastes right",
-`contact_days` null, `unknown`. Orange peel is `whirlpool` (step 13), cold brew coffee `packaging`
-(step 15).
+**Secondary extras** (step 10 extras with `usage = 'secondary'`): day = the first day after the last `ferment`/`rest` step; contact = `ref.misc.time_min` in days (coffee beans 2880 min = 2 days,
+Janish *Coffee Beers*, in `ref.misc.field_source`); none (vanilla) → "until it tastes right", `contact_days` null, `unknown`. HTB p. 193 on fruit/spices after primary is the same idea; no
+contact times in HTB for coffee or vanilla. Orange peel is `whirlpool` (step 13), cold brew coffee `packaging` (step 15).
 
-**Becomes:** `app.step14_ferment` (`dry_hops`, `secondary`); tests `test_dry_hop_after_fermentation`,
-`test_secondary_extras`.
+**Becomes:** `app.step14_ferment` (`dry_hops`, `secondary`); tests `test_dry_hop_after_fermentation`, `test_secondary_extras`.
 
 ## 13. Souring (b14, a souring culture is in the recipe)
 
-Source: Milk The Funk, *Berliner Weissbier* (web), "General Best Practices" and the MTF recipe
-steps 6–7; *Lactobacillus Fermentation* (web).
-- "Pitch Lactobacillus between **90 °F and 110 °F (32–43 °C)** depending on your Lactobacillus
-  strain or blend for **~1–4 days**" (Best Practices).
-- Recipe: "Chill the wort down to 95 °F (35 °C)... Allow it to sour for **24 hours**"; then "chill the
-  soured wort down to ~70 °F (21 °C) and pitch" the yeast; "After 2 weeks a stable gravity should be
-  reached" (steps 6–7).
-- *Lactobacillus Fermentation*: tests at ~90 °F (32 °C), 2 weeks, pure Lactobacillus does not ferment
-  wort to completion (only ~0.5 °P): so the main yeast is needed.
-- Method: pre-souring **in the fermenter after the boil** (the recipe's no-boil/no-hops route is not
-  used: hops inhibit L. plantarum, "Do not use any hops if using a hop sensitive species", a
-  caution carried in `because`).
-- The overlap of the MTF band (32–43 °C) and the chosen culture's `temp_c` (YF-998/999: 15–35 °C)
-  is 32–35 °C. **Souring temperature = the overlap's top, 35 °C** (MTF recipe's figure). Days: **1**
-  (the recipe's 24 h; the 1–4 day range is in the text). If the overlap is empty, no souring step
-  is made and `because` says so.
-- Then cool to the main yeast's start temperature S (the next `ferment` step) and pitch it.
+Source (HTB first): *How to Brew* "Brewing Sour Beers", p. 206-212 / PDF 232-238.
+- **Temperature**: "Lactobacilli grow best between 90-115 °F (32-46 °C), but will still grow well at typical ale fermentation temperatures" (p. 206). Kettle souring chills to 100-110 °F (38-43 °C)
+  (p. 211) but the culture rows (YF-998/999) only reach 35 °C, so the **souring step is 35 °C, the top of the overlap with the culture's `temp_c`** (A4). If the overlap is empty, no souring step.
+- **Time**: "The wort should take **18-36 hours** to sour to a pH of 3.5-ish" (p. 211): **1.5 days** (the middle). (MTF's 24 h is no longer used.)
+- **Order**: "Bacteria first, yeast second" (p. 210): souring in the fermenter after the boil, then the main yeast at its start temperature (HTB kettle souring boils *after* souring, which would
+  change step 13's boil; the plan does not, question 5). Hops inhibit lactobacilli: "Berliner weiss, usually only have 5-8 IBUs" (p. 206), carried in `because`.
+- **Pre-acidify**: HTB p. 207 and 211 recommend 88 % lactic acid to pH 4.5-4.8 (about 5 mL): the step text says "pre-acidify to pH 4.5-4.8 (amount not computed)"; no acid amount is stored (A10).
+- **Pitch**: culture 100-200 billion cells per 19 L (p. 206), main yeast 1.0 billion/L/°P instead of 0.75 after souring (p. 212) -- see §10 and question 2.
+- Pure *Lactobacillus* does not ferment wort fully (HTB p. 206: "only consume a small amount of sugars... about 2-4 gravity points"; MTF *Lactobacillus Fermentation*, ~0.5 °P): so the main yeast is needed.
+Milk The Funk (Berliner Weissbier page: 90-110 °F, 1-4 days, 95 °F for 24 h) is kept only as a cross-check; HTB covers the point.
 
 **Becomes:** the `souring` step of `app.ferment_schedule`; test `test_b14_souring_first`.
 
@@ -602,10 +610,10 @@ the family's range; step 15 takes its midpoint).
 | mexican-style-amber-lager | `european-lagers` | **judgement:** same reason |
 | 5B Kölsch | `european-lagers` | **judgement:** German, lagered; same range as American ales |
 | 10A Weissbier | `german-wheat` | named |
-| 23A Berliner Weisse | `german-wheat` | **judgement.** The book names neither Berliner Weisse nor sours but lambic; Berliner is a German wheat beer with high carbonation, so German wheat (3.3–4.5) was chosen over lambic (2.4–2.8). **Question 2** |
-| specialty-honey-beer | *(no family, 2.5 default)* | see question 5 |
+| 23A Berliner Weisse | `german-wheat` | **your answer (2026-10-28):** German wheat 3.3-4.5 volumes (the book names neither Berliner Weisse nor sours but lambic) |
+| specialty-honey-beer | `american-ales` | **proposal (question 7):** HTB's family for American pale-ale-like beers, 2.2-2.7 (2.5 is HTB's "medium" figure, p. 155); your 2.5-2.8 is not in HTB |
 
-Checked: every style above maps to exactly one family (30 styles + the honey exception).
+Checked: every style above maps to exactly one family (31 codes plus specialty-honey-beer).
 
 **Default** (decision Q1): a style with no `co2_vol` gets **2.5 volumes**, from HTB p. 155 / PDF 181:
 "medium carbonation seems to work pretty well for everything"; "¾ cup of corn sugar for a 5 gal.
@@ -695,9 +703,8 @@ for it. Bru'n Water *Water Knowledge* (web) is used as a source only for the poi
 
 ## 17. Not used
 
-- **Titration curves** (*Water* Figures 17–21, ch. 5): the zero-sum estimate uses average buffer
-  capacities (Table 9) instead, as the brief allows.
-- **Z alkalinity and Z RA** (ch. 5, p. 73–77; ch. 6 option 1b/1d): they need the source water's pH
+- **Titration curves and Table 9** (*Water* ch. 5): replaced by HTB Table 21.4 and HTB's 40 mEq/(pH·kg) (§7).
+- **Z alkalinity and Z RA** (*Water* ch. 5, p. 73–77; ch. 6 option 1b/1d): they need the source water's pH
   (`app.brewer_profile` has none; default is distilled). Kolbach RA is used throughout (the book
   says "the most straightforward is to use Kolbach", p. 132).
 - **Acid tables** (ch. 6, Appendix B), sparge-water acidification amounts, Sauermalz dose (2 % of the
@@ -705,6 +712,35 @@ for it. Bru'n Water *Water Knowledge* (web) is used as a source only for the poi
 - **Magnesium salts** (§6). **Water softening, boiling, dilution** (ch. 6): source water is distilled.
 - **Kegging and force-carbonation tables** (HTB Table 10.4, p. 167, and the kegging text; brief Out): priming only.
 - **Priming with sugars other than table sugar** (Table 10.1's other rows).
-- **Yeast starters, cell counts of harvested slurry, rehydration** (*Yeast* ch. 7, p. 124 ff.).
+- **Yeast starters, cell counts of harvested slurry, rehydration** (HTB ch. 7, *Yeast*).
 - **Multi-step mash profiles and decoction** (brief Out; RECIPE-ROADMAP §8 Later TODO).
 - **Protein rest** (§9) and **dry-hop agitation / burping** (§12).
+
+## 18. Source rule: every switch to *How to Brew* (second pass, 2026-10-28)
+
+Your rule: HTB is the only source of truth for brewing methodology where it covers the point; other sources only where it does not. Every doc-calc item was re-checked against HTB. Switched to HTB:
+
+| Item | Was | Now (HTB, printed page) |
+|---|---|---|
+| Diacetyl rest, lager | *Yeast* p. 113: 18-20 °C, 2 days | Table 6.2 p. 94: raise 8-10 °C (8 used), min 6 days; "day 4 of 6" |
+| Diacetyl rest, ale | *Yeast*: 2 days at fermentation temperature | Table 6.2: raise 3-6 °C (3 used), min 4 days; "day 3 of 4" |
+| Lager start temperature | *Yeast* p. 97: 1-2 °C below M, 18-36 h rise | p. 174: pitch at the target fermentation temperature |
+| Ale start | *Yeast* p. 97 | p. 90: "at or slightly below" the fermentation temperature (offset 2 °C kept, rise step dropped) |
+| Cold conditioning, ales | 2 °C, 7 days (HTB lagering floor) | p. 95: 5-8 °C below the fermentation temperature, a week or two |
+| Dry hop contact | 2 days (Janish) | p. 72: 3-5 days, 10-21 °C (3 days, 14 °C inside the range from Janish) |
+| Ferulic rest | 43 °C, 30 min (*Yeast* p. 33 + HTB time) | p. 264: 40 °C, 30 min |
+| Pitch rate | *Yeast* p. 121-124 (0.75 / 1.5, repitched yeast) | ch. 7 p. 111-114, Table 7.1: 0.75 / 1.5 billion/L/°P for fresh yeast (same numbers) |
+| Dry yeast cells per gram | 7 billion (*Yeast* p. 124) | p. 108: 10 billion viable (7 reported) |
+| Liquid package | 100 billion (*Yeast* p. 140) | p. 108: 100 billion (same) |
+| Souring: temperature and time | MTF: 35 °C, 24 h | p. 206, 211: 32-46 °C grows best, 18-36 h (35 °C, 1.5 days) |
+| Souring culture pitch | none (Q3: 1 pack) | p. 206: 100-200 billion per 19 L; main yeast 1.0 after souring, p. 212 (question 2) |
+| Mash pH: malt figures | *Water* Table 9 (Troester/Bies mean) | ch. 21 Table 21.4 p. 351 (Briess/Hansen & Geurts 2015) |
+| Mash pH: buffer | *Water* Table 9 per class | p. 342: 200/Rv ppm per 0.1 pH = 40 mEq/(pH·kg) |
+| Mash pH: target | *Water* ch. 7: 5.2-5.6 | p. 341/365: 5.2-5.6 overall; pale 5.2-5.4, amber 5.3-5.5, dark 5.4-5.6 (question 3) |
+| Sulfate / chloride direction | *Water* p. 115-116 | p. 133-134 (same direction; ratios 5:1 / 1:1 / 0.5:1, question 4) |
+| Calcium floor, ion caps, no Mg salt, Na ≤ 100 | *Water* p. 116, 119 | Table 8.1 p. 134, p. 135 |
+| RA formula | *Water* p. 53, 124 | p. 342 (same) |
+
+Already HTB, unchanged: priming and CO₂ (ch. 10), 8 CO₂ families, strike equation and ratio (ch. 17), rests (ch. 16-17), mash-out, saccharification time (Table 17.1), lagering (p. 174).
+**Not covered by HTB, so the other source stays:** the 16 style → water rows (*Water* Tables 18/19; HTB p. 363 refuses per-style targets), the 87.5 / 12.5 hint positions (your decision), flaked grain acidity (Bru'n),
+the 14 °C dry hop point (Janish), kveik schedules (none), the web rows (§4b), and `ref.water_salt` (question 6).

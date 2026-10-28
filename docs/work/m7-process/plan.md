@@ -37,7 +37,8 @@ Branch: m7-process
   3. Gypsum for sulfate and calcium chloride for chloride, each `(aim − source) / ion mg per g/L`
      from `ref.water_salt`, never below 0. If calcium is then below the row's minimum, both salts
      rise in their proportion until it is reached or sulfate or chloride hits its maximum (then
-     "calcium below the row" is said). Calcium above the row's maximum, which the sulfate and
+     "calcium below the row" is said; HTB Table 8.1 / p. 135 caps: sulfate ≤ 400, chloride ≤ 150,
+     together ≤ 500). Calcium above the row's maximum, which the sulfate and
      chloride aims can cause, is reported in the output and not corrected. No magnesium salt (*Water* ch. 7: the tables give no Mg,
      the malt supplies it).
   4. Residual alkalinity (Kolbach, *Water* ch. 4: RA = alkalinity − Ca/1.4 − Mg/1.7, ppm as
@@ -49,21 +50,20 @@ Branch: m7-process
   5. Grams per water: gypsum and calcium chloride at the same g/L in strike and sparge water,
      alkalinity salts in the strike water only; each rounded to 0.1 g, ions recomputed from the
      rounded grams. Output both waters' ions, alkalinity and RA.
-  6. Mash pH estimate, the book's zero-sum method with average buffer capacities (*Water* ch. 5,
-     "The Hypothesis for Predicting Mash pH", Table 9; not the full titration curves, brief Out):
-     pH = 5.4 + Σ mEq / Σ buffer, where each mashed fermentable adds kg × its class's alkalinity
-     (+) or acidity (−) re pH 5.4 and kg × its class's buffer capacity, and the strike water adds
-     litres × RA in mEq/L. The classes (base, Munich, four caramel classes by colour, one roast class;
-     flaked and unmalted adjuncts count as base, Bru'n Water) and their figures come from Table 9 by
-     `role` and EBC; `doc-calc.md` §7 lists them.
-  7. Acid line (decision 2): the estimate against *Water*'s target range 5.2–5.6 (ch. 7 golden
-     rule 4). Above 5.6 → `acid.needed` true with "acid would be needed to bring the mash from
-     5.xx into 5.2–5.6", plus the row's "Acidify" flag. No acid amount anywhere (A10).
+  6. Mash pH estimate, *How to Brew* ch. 21's zero-sum method (p. 349–350; not the full titration
+     curves, brief Out): pH = 5.4 + Σ mEq / (40 × grist kg), where each mashed fermentable adds kg ×
+     its alkalinity (+) or acidity (−) to pH 5.4 from HTB Table 21.4 (nearest-°L row; one roast
+     class; flaked and unmalted adjuncts count as base, Bru'n Water) and the strike water adds
+     litres × RA in mEq/L; 40 mEq/(pH·kg) is HTB p. 342's 200/Rv rule of thumb. `doc-calc.md` §7.
+  7. Acid line (decision 2): the estimate against HTB's mash pH target for the row's colour (p. 341,
+     365: pale 5.2–5.4, amber 5.3–5.5, brown/black 5.4–5.6; no row 5.2–5.6; brief A10 question).
+     Above the upper bound → `acid.needed` true with "acid would be needed to bring the mash from
+     5.xx into x–y", plus the row's "Acidify" flag. No acid amount anywhere (A10).
 - **Step 13 mash and boil** (decision 3): mash steps are any neutral rest a source ties to the
   recipe, the single infusion at `step10.mash_c`, and a mash-out (*How to Brew* ch. 16: 77 °C).
   Neutral rests, each with its source and only below the starch range, so rule 10's FG model is
-  unchanged: ferulic acid rest (about 43 °C) for the styles `doc-calc.md` ties it to (German wheat
-  beers, *Yeast* and *How to Brew* ch. 17), beta-glucan rest (40–48 °C, 20 min) when `role =
+  unchanged: ferulic acid rest (40 °C, 30 min, *How to Brew* ch. 17) for the styles `doc-calc.md` ties it to (German wheat
+  beers 10A–10C), beta-glucan rest (45 °C, 20 min) when `role =
   'adjunct'` (flaked grains) is above 20 % of the grist (*How to Brew* ch. 16), protein rest only
   where the doc-calc pass finds a rule our data can test. The boil is `step10.boil` as is; the
   addition schedule lists every boil and whirlpool hop and every mash, boil and whirlpool extra of
@@ -72,27 +72,24 @@ Branch: m7-process
   *How to Brew* ch. 17's single infusion equation, Tw = (0.4 ÷ (0.985 × r))(T₂ − T₁) + T₂ in its
   metric form (r = `ratio_l_kg`, T₂ = the first mash step's temperature, T₁ = the grain temperature
   `doc-calc.md` §8 fixes; decision Q2, brief R3 as revised 2026-10-28).
-- **Step 14 fermentation** (R4): the main temperature is step 6's `ferm_c`, raised to at least
-  the yeast range's lower bound + 1 °C so the start can sit 1–2 °C below it inside the range. The
-  ramp is *Yeast*'s (ch. 4, temperature control): start 1–2 °C below, rise to the main
-  temperature over 18–36 h, hold, then raise 2–5 °C over the last third, never above the yeast's
-  upper bound. Lager yeasts (`ref.yeast.type = 'lager'`) get a diacetyl rest (*Yeast*: 18–20 °C,
-  2 days), placed at the yeast's upper bound when that is below 18 °C, so A4 holds for every lager
-  yeast in `ref`; then slow cooling and lagering. Ales get a cold crash. Dry hops: day,
-  temperature and contact days from Janish (short and cool). Secondary extras: day and contact
-  time from their `ref.misc` row (`time_min`; none → "until it tastes right", `unknown`). A
-  souring culture (b14): pre-souring in the fermenter after the boil, at the overlap of the MTF
-  temperature (32–43 °C) and the culture's `temp_c`, for MTF's days, then cooling and the main
-  yeast. Phase names say which steps are fermentation: A4 checks `souring`, `ferment` and `rest`
-  steps against their yeast's range; `crash`, `lager` and `dry_hop` are conditioning below any
-  yeast's range.
-- **Pitch rate** (*Yeast*, "Pitching Rates"): cells = rate × 10⁶ × wort mL × °P, rate 1.5 for
-  lager yeasts and 0.75 for the rest, wort = the batch volume, °P = `app.sg_to_plato(og)`. Dry
-  yeast: grams = cells ÷ the viable cells per gram `doc-calc.md` picks from *Yeast*'s 7–20 billion
-  (or a maker's data sheet), rounded up to 1 g; liquid: packs = cells ÷ 100 billion (*Yeast*, the
-  average homebrew package), rounded up. This replaces step 10's `1 pack` in the saved yeast rows
-  (A7). The souring culture keeps `1 pack` with "no sourced pitch rate": no source gives a cell
-  count, and MTF's starter is out of scope (decision Q3; brief A7 as revised 2026-10-28).
+- **Step 14 fermentation** (R4; *How to Brew* first, `doc-calc.md` §11): the main temperature is
+  step 6's `ferm_c`, raised to at least the yeast range's lower bound + 1 °C. Ale start 1–2 °C
+  below it (HTB p. 90), lager start at it (HTB p. 174). Maturation rest from HTB Table 6.2: ales
+  raise 3 °C for at least 4 days, lagers raise 8 °C (capped at the yeast's upper bound, so A4 holds
+  for every lager yeast in `ref`) for at least 6 days; then dry hops (HTB p. 72: 3 days, 14 °C), and
+  cold conditioning (ales: 5–8 °C below the fermentation temperature, a week) or lagering (lagers:
+  2 °C, 14 days). Secondary extras: day and contact time from their `ref.misc` row (`time_min`; none →
+  "until it tastes right", `unknown`). A souring culture (b14): pre-souring in the fermenter after
+  the boil at 35 °C (the overlap of HTB's 32–46 °C and the culture's `temp_c`) for 1.5 days (HTB
+  p. 211), then the main yeast. Phase names say which steps are fermentation: A4 checks `souring`,
+  `ferment` and `rest` steps against their yeast's range; `crash`, `lager` and `dry_hop` are
+  conditioning below any yeast's range.
+- **Pitch rate** (*How to Brew* ch. 7): cells = rate × wort litres × °P, rate 1.5 billion/L/°P for lager
+  yeasts and 0.75 for the rest (fresh yeast), wort = the batch volume, °P = `app.sg_to_plato(og)`. Dry
+  yeast: grams = cells ÷ 10 billion viable cells per gram (HTB p. 108), rounded up to 1 g; liquid:
+  packs = cells ÷ 100 billion, rounded up. This replaces step 10's `1 pack` in the saved yeast rows
+  (A7). The souring culture keeps `1 pack` with "no sourced pitch rate" **until the user answers
+  doc-calc question 2** (HTB p. 206 gives 100–200 billion cells per 19 L; decision Q3 predates it).
 - **Step 15 packaging** (R5): CO₂ volumes = the middle of `ref.beer_style.co2_vol` (the style's
   *How to Brew* p. 159 family); a style with none uses 2.5 volumes, Palmer's "medium carbonation"
   (p. 155), marked `from: default` (decision Q1). Priming sugar (table sugar) grams = (target − residual
@@ -313,8 +310,8 @@ Why: R1, R2, A3, A10 (the estimate), A12 (volumes).
       a note); `test_calcium_brought_to_minimum`; `test_alkalinity_only_in_strike`
       (a brown/black ale row on distilled water: baking soda and lime only in `strike_g`, Na ≤ 100);
       `test_pale_grist_needs_acid` (A10: the §7 hand-worked case: estimate within 0.02 of
-      `doc-calc.md`'s figure and above 5.6); `test_dark_grist_on_distilled_is_low` (the doc-calc §7 dark
-      grist, 4 kg base, 1 kg caramel-60, 1 kg roast, no alkalinity: 5.37, below 5.4); `test_ph_terms_add_up` (Σ meq / Σ buffer
+      `doc-calc.md`'s 5.573 and above the pale target's 5.4); `test_dark_grist_on_distilled_is_low` (b05-style roast
+      grist without alkalinity: estimate below 5.4; doc-calc §7: 5.30); `test_ph_terms_add_up` (Σ meq / Σ buffer
       reproduces `ph`).
 - [ ] Optional, needs you: if you enter b08's grist and its step 12 waters into Bru'n Water 1.25
       and send its mash pH, add `test_brunwater_oracle` (± 0.15) and note it in `doc-calc.md` §16;
@@ -421,7 +418,7 @@ Why: R4, A4, A7 (amounts), A8.
       yeast's `temp_c`); `test_every_lager_has_diacetyl_rest` (A4: every lager row);
       `test_ramp_shape` (start < main ≤ end raise, start inside the range; b03's S-04 at step 6's
       15 °C starts at 15 and holds at 16 or above); `test_b13_weizen_schedule`;
-      `test_b14_souring_first` (souring step with YF-998 inside 15–35 °C and the MTF band, before
+      `test_b14_souring_first` (souring step with YF-998 inside 15–35 °C and HTB's 32–46 °C band, before
       the main yeast's first step); `test_souring_culture_keeps_one_pack` (b14: YF-998 pitch
       `cells_billion` null, 1 pack, "no sourced pitch rate"); `test_dry_hop_after_fermentation` (b02: day after the last
       ferment step, Janish temperature and contact days, grams equal step 10's);
@@ -565,7 +562,7 @@ Why: brief Scope "Docs".
 - [ ] `docs/RECIPE-ROADMAP.md`: §3 rows 12–15 say what is built (functions, sources, the acid
       line, the neutral rests, pitch, priming); §6: carbonation is *How to Brew* ch. 10 (Tables
       10.1–10.3, p. 159 families), residual alkalinity and salts *Water* ch. 4–7 with the tables, mash
-      pH ch. 5, pitch rate *Yeast*; §8 P6 marked done with the measured counts; §8 Later gains acid
+      pH ch. 5, pitch rate HTB ch. 7; §8 P6 marked done with the measured counts; §8 Later gains acid
       dosing (*Water* ch. 6, Appendix B), own water ions (already there: check), and water rows and
       CO₂ families for the styles outside the reviewed tables (decision Q1).
 - [ ] `docs/WORKFLOW-ROADMAP.md`: M7 row (built, date, counts), §3 M7 gap marked done.
@@ -591,7 +588,7 @@ Commit: `Describe steps 12-15 in the docs`
 | Strike temperature reproduces HTB ch. 17's example (R3) | `test_mash_boil.py::test_strike_temp_example` | 5 |
 | No rest changes fermentability; each has a source (A11) | `test_mash_boil.py::test_rests_are_neutral_and_sourced`; `test_save_process.py::test_fg_unchanged` | 5, 8 |
 | Every fermentation temperature inside its yeast's range; lagers rest (A4) | `test_ferment.py::test_every_ferment_temp_in_range`, `test_every_lager_has_diacetyl_rest` | 6 |
-| Pitch rate reproduces *Yeast*'s example (A8) | `test_ferment.py::test_yeast_book_example` | 6 |
+| Pitch rate reproduces the pitching-rate example (A8; HTB Table 7.1 or *Yeast*, doc-calc question 1) | `test_ferment.py::test_yeast_book_example` | 6 |
 | Priming reproduces Palmer within 5 % (A5) | `test_package.py::test_palmer_cane_sugar`, `test_table_10_3_cells` | 7 |
 | Saved process and yeast amounts (R6, A7) | `test_save_process.py::test_process_saved`, `test_yeast_rows_from_pitch` | 8 |
 | Pipeline logs 12–15 and saves the process | `test_pipeline.py::test_b01_validates_and_saves` | 9 |
@@ -614,17 +611,26 @@ Answered by you in chat, 2026-10-28:
 None.
 
 ## Deviations
-- 2026-10-28 · Task 1 (Approach step 12 items 3 and 6, step 13 strike, Task 3 test): the doc → calc pass
-  changed four details, none of scope — (a) calcium above the row maximum is reported, not
-  corrected (the sulfate and chloride aims bring calcium with them, doc-calc §6); (b) the mash pH
-  classes are base (flaked and unmalted adjuncts count as base, Bru'n Water §2.4), munich, four
-  caramel classes and one roast class, because the stored roast colours do not separate Table 9's
-  300 and 500 °L rows (doc-calc §7); (c) the strike equation uses the book's exact constant
-  0.4 ÷ (0.985 × r), not the rounded 0.41 (73.23 vs 73.29 °C at 3 L/kg, doc-calc §8); (d) the b05-style
-  80/10/10 grist gives 5.47 (not below 5.4), so `test_dark_grist_on_distilled_is_low` uses the
-  4 kg base / 1 kg caramel-60 / 1 kg roast grist (5.37).
+- 2026-10-28 · Task 1 (Approach step 12 items 3 and 6, step 13 strike): the doc → calc pass changed three
+  details, none of scope — (a) calcium above the row maximum is reported, not corrected (doc-calc
+  §6); (b) flaked and unmalted adjuncts count as base for mash pH (Bru'n Water §2.4; HTB silent);
+  (c) the strike equation uses the book's exact constant 0.4 ÷ (0.985 × r), not the rounded 0.41
+  (73.23 vs 73.29 °C at 3 L/kg, doc-calc §8).
 - 2026-10-28 · Approach, Files, Tasks 1, 5, 6, 8, 11, 12, Open questions → Decisions: Q1 (no
   water row and 2.5 CO₂ volumes for unmapped styles), Q2 (strike water temperature added to
   step 13 as `app.strike_temp`, Task 5 bullet unconditional, two tests) and Q3 (souring culture
   keeps `1 pack` marked "no sourced pitch rate"; brief A7 and R3 revised) written in — user
   answers in chat.
+- 2026-10-28 · Task 1 (user rule: *How to Brew* is the only source of truth where it covers the point; user
+  answers to the gate questions): doc-calc §18 lists every switch. Plan text changed to match —
+  step 12 item 6 and 7 (mash pH from HTB Table 21.4, 40 mEq/(pH·kg) from HTB p. 342, colour-specific
+  target from HTB p. 341/365; this restores the plan's b05-style dark-grist test, which *Water*'s Table 9
+  had broken) and item 3 (HTB ion caps); step 13 (ferulic rest 40 °C / 30 min, HTB); step 14 (HTB Table 6.2
+  maturation rests: lagers 6 days, ales 4 days, user answer; lager start at the target temperature; dry hop
+  3 days; ale cold conditioning from HTB p. 95; souring 35 °C for 1.5 days from HTB p. 211); pitch rate
+  (HTB ch. 7: 10 billion cells per gram of dry yeast, user's 7 billion reported alongside). Two plan
+  decisions are now in question and wait for the user: Q3 (souring culture 1 pack; HTB p. 206 gives
+  a rate) and brief A8 (names *Yeast*'s example; HTB Table 7.1 gives the same 180 billion). Also answered:
+  23A CO₂ family = German wheat beer 3.3–4.5; 23A and `specialty-honey-beer` get web-sourced
+  `ref.water_profile` rows (doc-calc §4b), which Task 2 stores with `table_no = 'web'`, a `basis` column and
+  their own `ref.source` rows (so Task 2's "16 rows" test counts `table_no in ('18','19')`).
