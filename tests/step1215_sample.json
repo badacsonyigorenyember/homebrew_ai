@@ -1,0 +1,279 @@
+[
+ {
+  "run_id": 0,
+  "brief": {
+   "named": "West Coast IPA",
+   "stated": {
+    "batch_l": 20,
+    "abv": 6.5
+   },
+   "hints": [
+    "bitter"
+   ],
+   "wanted": [],
+   "excluded": [],
+   "inventory": [],
+   "unknown": [],
+   "guidance": true
+  },
+  "profile": {
+   "units": "metric",
+   "water": {
+    "ca": 0.0,
+    "cl": 0.0,
+    "mg": 0.0,
+    "na": 0.0,
+    "so4": 0.0,
+    "hco3": 0.0
+   },
+   "batch_l": 20.0,
+   "losses_l": 2.0,
+   "inventory": [],
+   "boil_off_l_h": 4.0,
+   "efficiency_pct": 72.0,
+   "grain_abs_l_kg": 1.0
+  },
+  "targets": {
+   "knobs": [
+    {
+     "knob": "ibu",
+     "hints": "bitter",
+     "intent": null,
+     "source": "unsourced",
+     "direction": 1
+    },
+    {
+     "knob": "bu_gu",
+     "hints": "bitter",
+     "intent": null,
+     "source": "bjcp-exam-study-guide-2017, p60",
+     "direction": 1
+    }
+   ],
+   "style": {
+    "code": "21A",
+    "from": "chosen",
+    "name": "American IPA",
+    "because": "step 2 chose 21A"
+   },
+   "mash_c": {
+    "from": "midpoint",
+    "value": 66.5,
+    "because": "middle of rule 10's mash range 64–69 °C"
+   },
+   "batch_l": {
+    "from": "stated",
+    "value": 20,
+    "because": "stated by the user"
+   },
+   "targets": {
+    "fg": {
+     "from": "midpoint",
+     "value": 1.011,
+     "because": "midpoint of 21A FG 1.008–1.014"
+    },
+    "og": {
+     "from": "derived",
+     "value": 1.0613,
+     "because": "solved so app.abv gives the stated ABV 6.5 at FG 1.011"
+    },
+    "abv": {
+     "from": "stated",
+     "value": 6.5,
+     "because": "stated by the user"
+    },
+    "ibu": {
+     "from": "hint",
+     "value": 66.25,
+     "because": "bitter: 87.5 % of 21A IBU 40–70"
+    },
+    "srm": {
+     "from": "midpoint",
+     "value": 10.0,
+     "because": "midpoint of 21A SRM 6–14"
+    }
+   },
+   "guidance": true,
+   "conflicts": []
+  },
+  "step10": {
+   "boil": {
+    "because": "90 min: Bohemian Pilsner Malt needs at least 90 min (rule 13)",
+    "boil_min": 90
+   },
+   "hops": [
+    {
+     "g": 39,
+     "name": "African Queen",
+     "usage": "boil",
+     "minutes": 90,
+     "purpose": "test",
+     "alpha_pct": 13.5,
+     "share_pct": 100.0,
+     "ingredient_id": 453
+    }
+   ],
+   "batch": {
+    "losses_l": 2.0,
+    "volume_l": 20,
+    "boil_off_l_h": 4.0,
+    "efficiency_pct": 72.0
+   },
+   "colour": {
+    "srm": 4.332038762315092,
+    "grist": [
+     {
+      "kg": 5.542896412037037,
+      "ebc": 4.0,
+      "pct": 100,
+      "name": "Bohemian Pilsner Malt",
+      "role": "base",
+      "usage": "mash",
+      "mashed": true,
+      "max_pct": 100.0,
+      "purpose": "test",
+      "extract_pct": 80.0,
+      "ingredient_id": 75,
+      "fermentability": "normal"
+     }
+    ],
+    "second": null,
+    "to_pct": 100,
+    "because": "Bohemian Pilsner Malt is the darkest fermentable and no other base malt can take up the change",
+    "darkest": {
+     "name": "Bohemian Pilsner Malt",
+     "ingredient_id": 75
+    },
+    "reached": false,
+    "absorber": null,
+    "adjusted": false,
+    "from_pct": 100
+   },
+   "extras": [],
+   "ferm_c": 15,
+   "mash_c": 66.5,
+   "recipe": {
+    "hops": [
+     {
+      "g": 39,
+      "usage": "boil",
+      "minutes": 90,
+      "purpose": "test",
+      "ingredient_id": 453
+     }
+    ],
+    "batch": {
+     "losses_l": 2.0,
+     "volume_l": 20,
+     "boil_off_l_h": 4.0,
+     "efficiency_pct": 72.0
+    },
+    "hints": [
+     "bitter"
+    ],
+    "yeast": {
+     "ferm_c": 15,
+     "purpose": "test",
+     "ingredient_id": 1847
+    },
+    "mash_c": 66.5,
+    "stated": {
+     "abv": 6.5
+    },
+    "targets": {
+     "fg": 1.011,
+     "og": 1.06137856,
+     "abv": 6.5,
+     "ibu": 66.25,
+     "srm": 10.0
+    },
+    "boil_min": 90,
+    "guidance": true,
+    "style_code": "21A",
+    "fermentables": [
+     {
+      "pct": 100.0,
+      "purpose": "test",
+      "ingredient_id": 75
+     }
+    ]
+   },
+   "yeasts": [
+    {
+     "name": "BRY-97",
+     "role": "main",
+     "unit": "pack",
+     "amount": 1,
+     "purpose": "test",
+     "ingredient_id": 1847
+    }
+   ],
+   "numbers": {
+    "fg": 1.0116619264,
+    "og": 1.06137856,
+    "abv": 6.424804302408088,
+    "ibu": 65.99971939650898,
+    "srm": 4.335868739573207,
+    "attenuation_pct": 81.0,
+    "srm_lower_bound": []
+   },
+   "og_used": {
+    "moved": false,
+    "value": 1.0613,
+    "because": "ABV 6.42 at OG 1.0613 is within 0.2 of the target 6.5, so the OG stays"
+   },
+   "rounding": {
+    "added": [],
+    "steps": {
+     "hop_g": 1,
+     "extra_g": 1,
+     "malt_kg": 0.05,
+     "sugar_kg": 0.001
+    },
+    "because": "Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.",
+    "reached": true,
+    "off_nearest": []
+   },
+   "values_used": [
+    {
+     "what": "colour",
+     "because": "each fermentable counts at the middle of its EBC range: Bohemian Pilsner Malt 4"
+    },
+    {
+     "what": "alpha",
+     "because": "each hop counts at the middle of its alpha acid range: African Queen 13.5 %"
+    },
+    {
+     "what": "attenuation",
+     "because": "BRY-97 attenuates 81 %: the middle of its range [78,84] at a mash of 66.5 C (app.mash_attenuation)"
+    },
+    {
+     "what": "ferm_c",
+     "because": "15 C, the temperature of the chosen \"ferment at 15 °C\""
+    },
+    {
+     "what": "boil",
+     "because": "90 min: Bohemian Pilsner Malt needs at least 90 min (rule 13)"
+    },
+    {
+     "what": "mash",
+     "because": "66.5 C stays: the predicted FG 1.0116 is inside the range 1.0090 to 1.0130"
+    },
+    {
+     "what": "yeast amount",
+     "because": "1 pack of each yeast: a placeholder until the pitch rate is set (M7)"
+    }
+   ],
+   "fermentables": [
+    {
+     "kg": 5.55,
+     "pct": 100.0,
+     "name": "Bohemian Pilsner Malt",
+     "usage": "mash",
+     "purpose": "test",
+     "ingredient_id": 75
+    }
+   ]
+  }
+ }
+]

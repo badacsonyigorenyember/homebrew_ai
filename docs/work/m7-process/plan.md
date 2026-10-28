@@ -509,7 +509,7 @@ Commit: `Save the process with the recipe`
 
 ### Task 9: the pipeline runs steps 12–15 before saving
 Why: R6, A2 (wiring).
-- [ ] Sub-workflow `Steps 12–15 · process` (id `ST1215process01`), JSON from
+- [x] Sub-workflow `Steps 12–15 · process` (id `ST1215process01`), JSON from
       `n8n/workflows/steps-10-11-compute-and-validate.json`'s pattern: trigger with the
       `process.input` fields `{run_id, brief, profile, targets, step10}` → `Check contract` →
       for each step: Postgres `select app.step12_water($1,$2,$3,$4)` → `Check contract`
@@ -520,21 +520,21 @@ Why: R6, A2 (wiring).
       `{step12, step13, step14, step15, process}`. A raise logs that step's row with ok false and
       `error` (`step 1N: …`), then `Stop and Error`. Sticky note and `Test data`
       (`tests/step1215_sample.json`: b01's step 10 from Task 4's helpers, `run_id` 0).
-- [ ] `Recipe pipeline`: each `Try n passed?` yes → `Steps 12–15 · input` → `Steps 12–15 ·
+- [x] `Recipe pipeline`: each `Try n passed?` yes → `Steps 12–15 · input` → `Steps 12–15 ·
       process` (continueErrorOutput) → `Save recipe` (`select app.save_recipe($1, $2, $3, $4, $5,
       $6)` with `$6` the returned `process`) → `Finish run` → `Respond ok`; error →
       `Finish run (failed, steps 12–15)` → `Respond failed (steps 12–15)` (`failed_step` from the
       message). Update the per-step sticky note (steps 0–15 built).
-- [ ] Contract `process.input`; `NAMES` gains `process.input`, `process.output`. Import and publish
+- [x] Contract `process.input`; `NAMES` gains `process.input`, `process.output`. Import and publish
       the sub-workflow, then the pipeline; delete the copies in `shared/`; `.venv/bin/python -m
       evals.workflows`.
-- [ ] `tests/test_workflows.py`: `SAMPLES` and `CONTRACT_OF` for the new file.
+- [x] `tests/test_workflows.py`: `SAMPLES` and `CONTRACT_OF` for the new file.
       `tests/test_pipeline.py::test_b01_validates_and_saves` also checks rows 12–15 (ok, valid
       against their contracts, `try` 1) and the saved `process` (valid against `process.output`,
       mash and boil equal the step 10 row's); `test_impossible_target_fails_after_three_tries` also
       checks no row 12–15. Time the file.
-- [ ] Run `.venv/bin/pytest tests/test_workflows.py tests/test_pipeline.py`, expect all pass.
-- [ ] `docs/OPERATIONS.md` §5: twelve workflows, the new one, `failed_step` 12–15. PROJECT.md §4
+- [x] Run `.venv/bin/pytest tests/test_workflows.py tests/test_pipeline.py`, expect all pass.
+- [x] `docs/OPERATIONS.md` §5: twelve workflows, the new one, `failed_step` 12–15. PROJECT.md §4
       Orchestration row and §8.
 Done when: a webhook run of b01 saves a recipe with its process and logs steps 12–15.
 Commit: `Run steps 12-15 in the pipeline`

@@ -324,6 +324,18 @@ def test_b01_validates_and_saves(conn, post):
         assert _valid(conn, f"step{step}.output", output) == []
     assert rows[1][4]["passed"] is True
     rid = answer["recipe_id"]
+    process_rows = conn.execute(
+        "select step, try, ok, input, output from app.run_step where run_id = %s and step between 12 and 15 "
+        "order by step", (run_id,)).fetchall()
+    assert [(r[0], r[1], r[2]) for r in process_rows] == [(n, 1, True) for n in (12, 13, 14, 15)]
+    for step, _, _, step_input, output in process_rows:
+        assert _valid(conn, f"step{step}.input", step_input) == []
+        assert _valid(conn, f"step{step}.output", output) == []
+    saved = conn.execute("select process from app.recipe where id = %s", (rid,)).fetchone()[0]
+    assert _valid(conn, "process.output", saved) == []
+    step10 = rows[0][4]
+    assert saved["mash"]["mash_c"] == step10["mash_c"]
+    assert (saved["boil"]["boil_min"], saved["boil"]["because"]) == (step10["boil"]["boil_min"], step10["boil"]["because"])
     og, ibu, srm = conn.execute("select og, ibu, srm from app.recipe where id = %s", (rid,)).fetchone()
     mine = recompute(conn, rid)
     assert abs(mine["og"] - float(og)) <= RECOMPUTE_TOLERANCES["og"]
@@ -344,3 +356,4 @@ def test_impossible_target_fails_after_three_tries(conn, post):
         "select try, ok, error from app.run_step where run_id = %s and step = 11 order by try", (run_id,)).fetchall()
     assert [r[0] for r in rows] == [1, 2, 3] and not any(r[1] for r in rows) and all(r[2] for r in rows)
     assert conn.execute("select count(*) from app.recipe where brief_id = %s", (run[2],)).fetchone() == (0,)
+    assert conn.execute("select count(*) from app.run_step where run_id = %s and step >= 12", (run_id,)).fetchone() == (0,)

@@ -10,7 +10,7 @@ from loaders.db import connect
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
 NAMES = [f"step{n}.{side}" for n in range(16) for side in ("input", "output")]
 NAMES += ["choose.input", "choose.proposal"]
-NAMES += ["process.output"]
+NAMES += ["process.input", "process.output"]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
 NAMES += [f"try.{side}" for side in ("input", "output")]
 
@@ -319,6 +319,7 @@ STEP15_OUT = {
 PROCESS_OUT = {"water": STEP12_OUT, "mash": STEP13_OUT["mash"], "boil": STEP13_OUT["boil"],
                "fermentation": STEP14_OUT, "packaging": STEP15_OUT}
 GOOD = {
+    "process.input": {"run_id": 1, "brief": BRIEF, "profile": GOOD_PROFILE, "targets": STEP4_OUT, "step10": STEP10_OUT},
     "process.output": PROCESS_OUT,
     **_CHOOSE_OUT,
     "step15.input": {"run_id": 1, "targets": STEP4_OUT, "step10": STEP10_OUT, "step14": STEP14_OUT},
@@ -372,6 +373,8 @@ GOOD = {
     "step5.output": STEP5_OUT,
 }
 BAD = [
+    ("process.input", {k: v for k, v in GOOD["process.input"].items() if k != "step10"}),
+    ("process.input", {**GOOD["process.input"], "run_id": "1"}),
     ("process.output", {k: v for k, v in PROCESS_OUT.items() if k != "packaging"}),
     ("process.output", {**PROCESS_OUT, "boil": {k: v for k, v in STEP13_OUT["boil"].items() if k != "boil_min"}}),
     ("process.output", {**PROCESS_OUT, "fermentation": {**STEP14_OUT, "max_temp_c": "21"}}),
