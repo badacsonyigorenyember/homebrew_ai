@@ -640,6 +640,7 @@ def grade_process(brief: dict, process: dict | None) -> dict:
     """Grade the saved process (app.recipe.process) against the brief's `process` expectations
     (docs/work/m7-process, R7, A6). `present`: the process has all five parts. Each expectation is
     {expected, got, met}: ferm_c = every `ferment` step's temperature lies in [low, high]; diacetyl_rest,
+    packaging_extras = each word is in the name of a packaging extra (step 15); diacetyl_rest,
     lagering and souring = the schedule has a `rest`, `lager` or `souring` step (or has none, when the
     expectation is false); water_row = step 12's table row. `got` is None when there is no process.
     `process_ok`: present and every expectation met (an empty expectation is met)."""
@@ -651,6 +652,7 @@ def grade_process(brief: dict, process: dict | None) -> dict:
         "diacetyl_rest": "rest" in phases,
         "lagering": "lager" in phases,
         "souring": "souring" in phases,
+        "packaging_extras": [e["name"] for e in ((process or {}).get("packaging") or {}).get("extras") or []],
         "water_row": (((process or {}).get("water") or {}).get("target") or {}).get("row"),
     }
     expectations = {}
@@ -661,6 +663,10 @@ def grade_process(brief: dict, process: dict | None) -> dict:
             temps = got[key]
             met = bool(temps) and all(expected[0] - EPS <= t <= expected[1] + EPS for t in temps)
             expectations[key] = {"expected": expected, "got": temps, "met": met}
+        elif key == "packaging_extras":
+            names = [n.lower() for n in got[key]]
+            met = all(any(w.lower() in n for n in names) for w in expected)
+            expectations[key] = {"expected": expected, "got": got[key], "met": met}
         else:
             expectations[key] = {"expected": expected, "got": got[key], "met": got[key] == expected}
     return {"present": present, "expectations": expectations,

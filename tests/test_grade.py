@@ -921,3 +921,16 @@ def test_grade_process_empty_expectations():
     assert g == {"present": True, "expectations": {}, "process_ok": True}
     assert grade.grade_process({"process": {}}, None) == {"present": False, "expectations": {}, "process_ok": False}
     assert grade.grade_process({}, _process())["process_ok"]  # a brief without the field expects nothing
+
+
+def test_grade_process_packaging_extras():
+    """b23: the coffee extra goes in at packaging (step 15's extras); each word must be in an extra's name."""
+    b = {"process": {"packaging_extras": ["coffee"]}}
+    yes = _process()
+    yes["packaging"] = {"extras": [{"ingredient_id": 1, "name": "Cold brew coffee", "g": 100}]}
+    g = grade.grade_process(b, yes)
+    assert g["expectations"]["packaging_extras"] == {"expected": ["coffee"], "got": ["Cold brew coffee"], "met": True}
+    no = _process()
+    no["packaging"] = {"extras": [{"ingredient_id": 2, "name": "Vanilla beans", "g": 5}]}
+    assert not grade.grade_process(b, no)["process_ok"]
+    assert not grade.grade_process(b, _process())["process_ok"]  # no packaging extras at all

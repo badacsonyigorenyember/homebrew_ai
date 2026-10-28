@@ -36,6 +36,8 @@
 #                 diacetyl_rest  true: step 14 has a `rest` step (a lager or ale diacetyl rest)
 #                 lagering       true: step 14 ends with a `lager` step (cold lagering)
 #                 souring        true: step 14 starts with a `souring` step (a souring culture)
+#                 packaging_extras  words that must each appear in the name of a packaging extra of
+#                                step 15 (b23: the coffee goes in at packaging)
 #                 water_row      the ref.water_profile code step 12 must use (water.target.row)
 #               Methodology sources: How to Brew first (p. 109 German weizen yeast 18-24 °C, p. 380
 #               Bavarian weissbier 17 °C; Table 6.2 and p. 174 for the lager rest and lagering;
@@ -535,7 +537,7 @@ wanted = [{ item = "coffee", role = "feature" }, { item = "vanilla", role = "bac
 excluded = []
 inventory = []
 guidance = true
-process = {}
+process = { packaging_extras = ["coffee"] }
 [brief.needs]
 fermentables = ["pale ale malt", "roasted barley", "chocolate malt"]
 hops = ["Cascade"]

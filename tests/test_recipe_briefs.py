@@ -23,7 +23,7 @@ FIELDS = {
     "wanted", "excluded", "inventory", "guidance", "process", "needs",
 }
 STATED_KEYS = {"batch_l", "abv", "og", "ibu", "srm"}
-PROCESS_KEYS = {"ferm_c", "diacetyl_rest", "lagering", "souring", "water_row"}
+PROCESS_KEYS = {"ferm_c", "diacetyl_rest", "lagering", "souring", "water_row", "packaging_extras"}
 NEEDS_KEYS = {"fermentables", "hops", "yeast", "water_salts", "misc"}
 DEVIATION_KINDS = {"ingredient", "number", "mismatch", "conflict"}
 
@@ -311,5 +311,6 @@ def test_process_keys():
             assert len(process["ferm_c"]) == 2 and all(isinstance(x, (int, float)) for x in (lo, hi)) and lo < hi, b["id"]
         for key in ("diacetyl_rest", "lagering", "souring"):
             assert isinstance(process.get(key, True), bool), f"{b['id']}: {key}"
+        assert isinstance(process.get("packaging_extras", []), list), f"{b['id']}: packaging_extras"
         assert process.get("water_row", next(iter(codes))) in codes, f"{b['id']}: water_row"
     assert all(b["process"] == {} for b in HELDOUT)

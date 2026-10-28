@@ -541,27 +541,27 @@ Commit: `Run steps 12-15 in the pipeline`
 
 ### Task 10: the briefs get process expectations and the harness grades them (gate)
 Why: R7, A6 (WORKFLOW-ROADMAP §3 M7 row).
-- [ ] Propose a `process` table for the briefs that need one, with keys only from: `ferm_c`
+- [x] Propose a `process` table for the briefs that need one, with keys only from: `ferm_c`
       (`[low, high]` that every `ferment` step must lie in), `diacetyl_rest` (bool), `lagering`
-      (bool), `souring` (bool), `water_row` (expected `ref.water_profile` code). Proposal: b13
+      (bool), `souring` (bool), `water_row` (expected `ref.water_profile` code). Approved 2026-10-28 (plus `packaging_extras`, a sixth key, for b23's coffee at packaging; b02 gets none): b13
       weizen `ferm_c` band, b06, b08, b09, b17 lager schedule (`diacetyl_rest`, `lagering`), b14
       `souring`, b01 and b05 `water_row`; every other brief `process = {}`. Hand back
       `needs-approval` with the table (values and why); write the approved values into
       `evals/recipe_briefs.toml` (header documents the field) and `process = {}` into
       `evals/heldout_briefs.toml`.
-- [ ] `tests/test_recipe_briefs.py`: `FIELDS` gains `process`; `test_process_keys` (only the five
+- [x] `tests/test_recipe_briefs.py`: `FIELDS` gains `process`; `test_process_keys` (only the five
       keys, `ferm_c` a two-number range, `water_row` an existing code).
-- [ ] `evals/grade.py` `grade_process(brief, process) -> dict` (pure Python: `present` = the
+- [x] `evals/grade.py` `grade_process(brief, process) -> dict` (pure Python: `present` = the
       saved process has all five parts; each expectation `{expected, got, met}`; `process_ok`).
       `evals/run.py` `read_recipe` adds `process`; the result line and totals add
       `process present` and `process ok`. `evals/show_recipe.py` prints water (row, salts per
       water, pH, acid line), mash steps and volumes, boil schedule, fermentation steps and pitch,
       CO₂ and priming.
-- [ ] Write `tests/test_grade.py::test_grade_process_*` (met, not met, missing process, empty
+- [x] Write `tests/test_grade.py::test_grade_process_*` (met, not met, missing process, empty
       expectations) and extend `tests/test_run.py` for the new columns. Each seen failing first.
-- [ ] Run `.venv/bin/pytest tests/test_recipe_briefs.py tests/test_grade.py tests/test_run.py`,
+- [x] Run `.venv/bin/pytest tests/test_recipe_briefs.py tests/test_grade.py tests/test_run.py`,
       expect all pass.
-- [ ] PROJECT.md §8.
+- [x] PROJECT.md §8.
 Done when: you approved the expectations and the harness grades them.
 Commit: `Add process expectations to the briefs`
 
@@ -683,3 +683,4 @@ None.
 - 2026-10-28 · Approach (step 14), Task 6 (user, "Yes, add both"): (1) fermentation steps advance on gravity: `days` stays as the minimum and every step has `move_on` text with HTB Table 6.2's trigger (rest starts when gravity is within 2-5 points of FG; ale hold at least 2 more days, lager 4; souring 18-36 hours or about pH 3.5, p. 211); `test_gravity_trigger_on_the_rest` added. (2) Generic HTB cell counts (10 billion/g dry, 100 billion/pack, 150 billion souring midpoint) are labelled estimates in each yeast line's `because`; `test_pitch_is_labelled_as_an_estimate` added. doc-calc §10 and §11 reworded.
 - 2026-10-28 · Task 6: implementation details. `app.pitch_rate` takes a fourth parameter `after_souring` (the main yeast's 1.0 rate) and `app.ferment_schedule` a fourth `dry_hop` (adds the `dry_hop` step before cold conditioning). `max_temp_c` is the highest `ferment` or `rest` temperature, not `souring` too: the culture is at 35 °C before the yeast has made CO2, and Table 10.3 (Task 7) stops at 30 °C, so including it would make step 15 raise for every souring recipe. `secondary` items gain `usage` (`secondary` or `ferment`; a `ferment` extra goes in at pitching, day 0), because step 10's `ferment` extras belong to step 14. The tests for dry hops and secondary extras use a step 10 with those entries added: b02 and b23 have none (b23's coffee is cold brew at `package`).
 - 2026-10-28 · Task 7: implementation details. `step15.output` has no `values_used`; each block carries its own `source` instead (the plan's shape). `app.priming_sugar_g` returns the unrounded grams (the Table 10.3 g/L cells need it); `app.step15_package` rounds `g` to 1 g and gives `g_per_l` to 0.01. `co2.basis`, `co2.family` and `co2.range` are null for the 2.5 default. `priming.temp_c` is the Table 10.3 row used (step 14's `max_temp_c` to the nearest whole °C).
+- 2026-10-28 · Task 10: the `process` keys are six, not five: `packaging_extras` (words that must each appear in a packaging extra's name in step 15) is added for b23's coffee, at your request. The plan's text said "keys only from" the five.
