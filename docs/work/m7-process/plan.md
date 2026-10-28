@@ -254,7 +254,7 @@ Commit: `Add the m7 doc-calc pass`
 
 ### Task 2: the water rows and CO₂ volumes are `ref` data
 Why: R1, R2 (target row), R5 (`co2_vol`), A9.
-- [ ] `db/049_process_ref.sql` (needs 010, 011): `ref.water_profile` (`code text primary key`,
+- [x] `db/049_process_ref.sql` (needs 010, 011): `ref.water_profile` (`code text primary key`,
       `table_no text check (table_no in ('18','19','web'))`, `beer_type` lager|ale, `strength`, `colour`,
       `bitterness`, `ca`, `alkalinity`, `so4`, `cl`, `ra` numrange, `acidify` yes|maybe|no,
       `styles text`, `source_id` → `ref.source` slug `palmer-kaminski-water`, `page text`); the 16
@@ -265,8 +265,8 @@ Why: R1, R2 (target row), R5 (`co2_vol`), A9.
       text` (`add column if not exists`), and one `update` per style of `doc-calc.md` §4 and §14
       (by `code`; the comment names the section). Codes are row names a reader can follow
       (`ale-medium-pale-assertive`), not numbers.
-- [ ] Apply twice; tables and functions owned by `postgres`; row counts printed.
-- [ ] Write `tests/test_process_ref.py` (stack), each seen failing first:
+- [x] Apply twice; tables and functions owned by `postgres`; row counts printed.
+- [x] Write `tests/test_process_ref.py` (stack), each seen failing first:
       `test_water_rows_are_the_books` (the 16 rows with `table_no in ('18','19')`; three spot checks against `doc-calc.md`: medium
       ale pale moderate–assertive SO₄ `[100,400]` and RA `[-30,30]`, light lager Ca from 50,
       strong ale brown/black alkalinity `[120,200]`);
@@ -274,8 +274,8 @@ Why: R1, R2 (target row), R5 (`co2_vol`), A9.
       from `tests.test_step4.step4` and every listed `alt_styles` code with ranges has
       `water_profile` and `co2_vol`, except 23A, whose row is `web-berliner-weisse`, and every mapped style has `water_basis` and `co2_basis`); `test_basis_labels` (doc-calc §4/§14 lists: the `listed`, `inferred`, `judgement`, `web` sets match); `test_co2_inside_its_family` (each `co2_vol` equals its
       family's p. 159 range); `test_rows_have_a_source`.
-- [ ] Run `.venv/bin/pytest tests/test_process_ref.py tests/test_styles.py`, expect all pass.
-- [ ] `docs/DATABASE.md` §2 rows for `water_profile` and the three columns, §9 `co2_vol` line
+- [x] Run `.venv/bin/pytest tests/test_process_ref.py tests/test_styles.py`, expect all pass.
+- [x] `docs/DATABASE.md` §2 rows for `water_profile` and the three columns, §9 `co2_vol` line
       removed. PROJECT.md §8.
 Done when: every brief style has a water row and CO₂ volumes from a reviewed table.
 Commit: `Load water rows and CO2 volumes into ref`
