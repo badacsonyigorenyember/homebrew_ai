@@ -30,6 +30,17 @@
 #   inventory   ingredients the user says they have, in the user's words: amount words
 #               dropped, form words (flaked, ground, malted...) kept
 #   guidance    style guidance on (true) or off (false)
+#   process     what the saved process (steps 12-15) must show; graded by evals/grade.py grade_process
+#               (docs/work/m7-process, R7). Only these keys, and `{}` for a brief with no expectation:
+#                 ferm_c         [low, high] in °C: every `ferment` step of step 14 lies inside it
+#                 diacetyl_rest  true: step 14 has a `rest` step (a lager or ale diacetyl rest)
+#                 lagering       true: step 14 ends with a `lager` step (cold lagering)
+#                 souring        true: step 14 starts with a `souring` step (a souring culture)
+#                 water_row      the ref.water_profile code step 12 must use (water.target.row)
+#               Methodology sources: How to Brew first (p. 109 German weizen yeast 18-24 °C, p. 380
+#               Bavarian weissbier 17 °C; Table 6.2 and p. 174 for the lager rest and lagering;
+#               p. 206-211 for souring); the water rows are Water's Tables 18/19 as mapped in
+#               docs/work/m7-process/doc-calc.md §4.
 #   needs       generic ingredients the recipe will need: fermentables, hops, yeast, water_salts
 
 [[brief]]
@@ -46,6 +57,7 @@ wanted = []
 excluded = []
 inventory = []
 guidance = true
+process = { water_row = "ale-medium-pale-assertive" }
 [brief.needs]
 fermentables = ["pale ale malt", "crystal malt"]
 hops = ["Columbus", "Centennial", "Simcoe"]
@@ -66,6 +78,7 @@ wanted = [{ item = "oats", role = "background" }]
 excluded = []
 inventory = []
 guidance = true
+process = {}
 [brief.needs]
 fermentables = ["pilsner malt", "wheat malt", "flaked oats"]
 hops = ["Citra", "Mosaic", "Galaxy"]
@@ -86,6 +99,7 @@ wanted = []
 excluded = []
 inventory = []
 guidance = true
+process = {}
 [brief.needs]
 fermentables = ["Maris Otter", "flaked oats", "crystal malt", "chocolate malt", "roasted barley"]
 hops = ["East Kent Goldings"]
@@ -106,6 +120,7 @@ wanted = []
 excluded = []
 inventory = []
 guidance = true
+process = {}
 [brief.needs]
 fermentables = ["pale ale malt", "crystal malt", "chocolate malt", "roasted barley", "lactose"]
 hops = ["East Kent Goldings"]
@@ -128,6 +143,7 @@ wanted = []
 excluded = []
 inventory = []
 guidance = true
+process = { water_row = "ale-light-brown-black" }
 [brief.needs]
 fermentables = ["pale ale malt", "flaked barley", "roasted barley"]
 hops = ["East Kent Goldings"]
@@ -148,6 +164,7 @@ wanted = [{ item = "rice", role = "background" }]
 excluded = []
 inventory = []
 guidance = true
+process = { diacetyl_rest = true, lagering = true }
 [brief.needs]
 fermentables = ["pilsner malt", "flaked rice"]
 hops = ["Magnum"]
@@ -168,6 +185,7 @@ wanted = [{ item = "corn", role = "background" }]
 excluded = []
 inventory = []
 guidance = true
+process = {}
 [brief.needs]
 fermentables = ["pilsner malt", "flaked corn"]
 hops = ["Willamette"]
@@ -190,6 +208,7 @@ wanted = []
 excluded = ["Saaz"]
 inventory = []
 guidance = true
+process = { diacetyl_rest = true, lagering = true }
 [brief.needs]
 fermentables = ["pilsner malt"]
 hops = ["Magnum", "Hallertau Mittelfrüh", "Tettnang"]
@@ -210,6 +229,7 @@ wanted = []
 excluded = []
 inventory = []
 guidance = true
+process = { diacetyl_rest = true, lagering = true }
 [brief.needs]
 fermentables = ["pilsner malt", "Munich malt", "Vienna malt"]
 hops = ["Hallertau Mittelfrüh"]
@@ -230,6 +250,7 @@ wanted = []
 excluded = []
 inventory = ["dark candi sugar", "Munich malt", "abbey yeast"]
 guidance = true
+process = {}
 [brief.needs]
 fermentables = ["pilsner malt", "Munich malt", "Special B", "candi sugar"]
 hops = ["Styrian Golding"]
@@ -252,6 +273,7 @@ wanted = []
 excluded = []
 inventory = []
 guidance = true
+process = {}
 [brief.needs]
 fermentables = ["pilsner malt", "wheat malt"]
 hops = ["Styrian Golding", "Saaz"]
@@ -272,6 +294,7 @@ wanted = [{ item = "honey", role = "feature" }]
 excluded = []
 inventory = []
 guidance = true
+process = {}
 [brief.needs]
 fermentables = ["pale ale malt", "Vienna malt", "honey"]
 hops = ["Cascade"]
@@ -292,6 +315,7 @@ wanted = []
 excluded = []
 inventory = []
 guidance = true
+process = { ferm_c = [17, 24] }
 [brief.needs]
 fermentables = ["wheat malt", "pilsner malt"]
 hops = ["Hallertau Mittelfrüh"]
@@ -312,6 +336,7 @@ wanted = []
 excluded = []
 inventory = []
 guidance = true
+process = { souring = true }
 [brief.needs]
 fermentables = ["wheat malt", "pilsner malt"]
 hops = ["Hallertau Mittelfrüh"]
@@ -332,6 +357,7 @@ wanted = []
 excluded = []
 inventory = ["Maris Otter", "crystal malt", "East Kent Goldings"]
 guidance = true
+process = {}
 [brief.needs]
 fermentables = ["Maris Otter", "crystal malt"]
 hops = ["East Kent Goldings", "Fuggle"]
@@ -354,6 +380,7 @@ wanted = [{ item = "rice", role = "background" }]
 excluded = ["Citra", "Mosaic"]
 inventory = []
 guidance = true
+process = {}
 [brief.needs]
 fermentables = ["pale ale malt", "crystal malt", "flaked rice"]
 hops = ["Cascade", "Centennial"]
@@ -376,6 +403,7 @@ wanted = []
 excluded = []
 inventory = []
 guidance = true
+process = { diacetyl_rest = true, lagering = true }
 [brief.needs]
 fermentables = ["pilsner malt", "Munich malt", "Carafa Special"]
 hops = ["Hallertau Mittelfrüh"]
@@ -398,6 +426,7 @@ wanted = []
 excluded = []
 inventory = []
 guidance = false
+process = {}
 [brief.needs]
 fermentables = ["pale ale malt", "crystal malt", "roasted barley"]
 hops = ["East Kent Goldings"]
@@ -420,6 +449,7 @@ wanted = [{ item = "honey", role = "background" }]
 excluded = []
 inventory = []
 guidance = true
+process = {}
 [brief.needs]
 fermentables = ["Maris Otter", "crystal malt", "roasted barley", "honey"]
 hops = ["East Kent Goldings"]
@@ -442,6 +472,7 @@ wanted = [{ item = "lactose", role = "background" }]
 excluded = []
 inventory = []
 guidance = true
+process = {}
 [brief.needs]
 fermentables = ["pale ale malt", "crystal malt", "chocolate malt", "lactose"]
 hops = ["Cascade"]
@@ -462,6 +493,7 @@ wanted = []
 excluded = []
 inventory = []
 guidance = true
+process = {}
 [brief.needs]
 fermentables = ["pale ale malt", "crystal malt"]
 hops = ["Cascade", "Centennial"]
@@ -482,6 +514,7 @@ wanted = []
 excluded = []
 inventory = []
 guidance = true
+process = {}
 [brief.needs]
 fermentables = ["pilsner malt", "Vienna malt", "crystal malt", "flaked corn"]
 hops = ["Hallertau Mittelfrüh"]
@@ -502,6 +535,7 @@ wanted = [{ item = "coffee", role = "feature" }, { item = "vanilla", role = "bac
 excluded = []
 inventory = []
 guidance = true
+process = {}
 [brief.needs]
 fermentables = ["pale ale malt", "roasted barley", "chocolate malt"]
 hops = ["Cascade"]
@@ -525,6 +559,7 @@ wanted = [{ item = "orange peel", role = "background" }]
 excluded = []
 inventory = []
 guidance = true
+process = {}
 [brief.needs]
 fermentables = ["pale ale malt", "crystal malt"]
 hops = ["Cascade", "Centennial"]

@@ -112,9 +112,10 @@ def read_recipe(conn, run_id) -> dict | None:
                   for k, s_, lv, by, note in conn.execute(
                       "select kind, subject, level, requested_by, note from app.recipe_deviation "
                       "where recipe_id = %s order by id", (rid,)).fetchall()]
+    process = conn.execute("select process from app.recipe where id = %s", (rid,)).fetchone()[0]
     conn.commit()
     return {"id": rid, **dict(zip(("batch_l", "og", "fg", "abv", "ibu", "srm"), map(num, row[1:]))),
-            "items": items, "deviations": deviations}
+            "items": items, "deviations": deviations, "process": process}
 
 
 def read_facts(conn, steps: dict, inputs: dict | None = None) -> dict:
@@ -234,6 +235,7 @@ def grade_result(brief: dict, answer: dict, steps: dict, llm=None, facts=None, l
     llms = llms if llms is not None else ({1: llm} if llm else {})
     stats = stats or {"calls": sum(int((x or {}).get("tries") or 0) for x in llms.values())}
     recipe_grade = grade.grade_recipe(brief, recipe)
+    process_grade = grade.grade_process(brief, (recipe or {}).get("process"))
     return {
         "id": brief["id"], "run_id": answer.get("run_id"), "run_ok": run_ok,
         "error": answer.get("error"), "failed_step": answer.get("failed_step"),
@@ -243,7 +245,7 @@ def grade_result(brief: dict, answer: dict, steps: dict, llm=None, facts=None, l
         "passed": run_ok and graded["passed"] and recipe_grade["validated"],
         "calls": stats.get("calls", 0), "first_try_calls": stats.get("first_try_calls", 0),
         "retry_calls": stats.get("retry_calls", 0), "tries": stats.get("tries", 0),
-        **recipe_grade, "recipe": recipe,
+        **recipe_grade, "process": process_grade, "recipe": recipe,
     }
 
 
@@ -289,6 +291,17 @@ def stated_summary(r: dict) -> str:
     return ", ".join(parts) or "-"
 
 
+def process_summary(p: dict) -> str:
+    """`process ok` / `process MISS(water_row,...)` for a saved process, `process -` when it has no
+    expectations to check, `process NONE` when the run saved no (complete) process."""
+    if not p["present"]:
+        return "process NONE"
+    missed = [k for k, e in p["expectations"].items() if not e["met"]]
+    if missed:
+        return f"process MISS({','.join(missed)})"
+    return "process ok" if p["expectations"] else "process -"
+
+
 def table(results: list[dict]) -> str:
     def cell(r, n):
         if not r["ran"][n]:
@@ -297,7 +310,7 @@ def table(results: list[dict]) -> str:
 
     steps = " ".join(f"{'step ' + str(n):<8}" for n in GRADED_STEPS)
     lines = [f"{'brief':<6} {'run':<8} {'step 1':<26} {steps} {'valid':<6} {'tries':<6} "
-             f"{'calls (first+retry)':<20} {'stated':<24} result   needs"]
+             f"{'calls (first+retry)':<20} {'stated':<24} {'process':<22} result   needs"]
     for r in results:
         if r["run_ok"]:
             run_col = "ok"
@@ -313,6 +326,7 @@ def table(results: list[dict]) -> str:
         lines.append(f"{r['id']:<6} {'ok' if r['run_ok'] else 'FAILED':<8} {step1:<26} {cells} "
                      f"{'yes' if r['validated'] else 'NO':<6} {r['tries']:<6} "
                      f"{str(r['first_try_calls']) + '+' + str(r['retry_calls']):<20} {stated_summary(r):<24} "
+                     f"{process_summary(r['process']):<22} "
                      f"{'pass' if r['passed'] else 'FAIL':<8} "
                      f"{needs_summary(r.get('needs') or {})}"
                      + ("" if r["run_ok"] else f"  [{run_col}]"))
@@ -339,6 +353,9 @@ def totals(results: list[dict]) -> dict:
     out["invented"] = sum(r["invented"] for r in results)
     stated = [s for r in results for s in r["stated"].values()]
     out["stated_met"] = {"met": sum(s["met"] for s in stated), "total": len(stated)}
+    out["process_present"] = {"present": sum(r["process"]["present"] for r in results), "total": n}
+    expecting = [r for r in results if r["process"]["expectations"]]
+    out["process_ok"] = {"ok": sum(r["process"]["process_ok"] for r in expecting), "total": len(expecting)}
     out["briefs"] = {"passed": sum(r["passed"] for r in results), "total": n}
     return out
 
@@ -354,6 +371,8 @@ def format_totals(t: dict) -> str:
     parts.append(f"stated {t['stated_met']['met']}/{t['stated_met']['total']}")
     parts.append(f"LLM calls {t['calls']['total']} in {t['calls']['runs']} runs "
                  f"(first-try max {t['first_try_calls_max']}, retry calls {t['retry_calls']})")
+    parts.append(f"process present {t['process_present']['present']}/{t['process_present']['total']}")
+    parts.append(f"process ok {t['process_ok']['ok']}/{t['process_ok']['total']}")
     parts.append(f"briefs {t['briefs']['passed']}/{t['briefs']['total']}")
     return "; ".join(parts)
 

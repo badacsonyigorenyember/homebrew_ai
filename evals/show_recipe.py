@@ -28,6 +28,42 @@ def _number(label, value, target, unit=""):
     return f"  {label:<4} {got}{unit}{goal}"
 
 
+def _process_lines(process: dict | None) -> list[str]:
+    """Steps 12-15 as saved in app.recipe.process: water, mash and volumes, boil, fermentation, packaging."""
+    if not process:
+        return []
+    water, mash, boil = process["water"], process["mash"], process["boil"]
+    ferm, pack = process["fermentation"], process["packaging"]
+    target, vol = water["target"], mash["volumes"]
+    lines = ["", "Water:",
+             f"  row: {target.get('row') or 'none'} ({target.get('basis') or 'no basis'}"
+             f"{', fallback' if target.get('fallback') else ''})"]
+    for salt in water["salts"]:
+        lines.append(f"  {salt['name']}: {salt['total_g']:g} g ({salt['strike_g']:g} strike, "
+                     f"{salt['sparge_g']:g} sparge), for {salt['aims_at']}")
+    if water["none_needed"]:
+        lines.append("  no salts needed")
+    ph = water["mash_ph"]
+    lines.append(f"  mash pH {ph['ph']:g} (aim {ph['target_low']:g}-{ph['target_high']:g})")
+    lines.append(f"  acid: {water['acid']['text']}")
+    lines.extend(["", f"Mash: strike {vol['strike_l']:g} l at {mash['strike_c']:g} °C, sparge {vol['sparge_l']:g} l, "
+                      f"pre-boil {vol['preboil_l']:g} l"])
+    lines.extend(f"  {x['name']}: {x['temp_c']:g} °C, {x['minutes']:g} min" for x in mash["steps"])
+    lines.extend(["", f"Boil: {boil['boil_min']:g} min"])
+    lines.extend(f"  at {x['at_min']:g} min: {x['g']:g} g {x['name']} ({x['usage']})" for x in boil["additions"])
+    lines.extend(f"  whirlpool: {x['g']:g} g {x['name']} ({x['usage']})" for x in boil["whirlpool"])
+    lines.extend(["", "Fermentation:"])
+    for x in ferm["steps"]:
+        lines.append(f"  {x['phase']}: {x['temp_c']:g} °C, {x['days']:g} days"
+                     + (f"; {x['move_on']}" if x.get("move_on") else ""))
+    for x in ferm["pitch"]:
+        lines.append(f"  pitch ({x['role']}): {x['amount']:g} {x['unit']} {x['name']}; {x['because']}")
+    co2, prime = pack["co2"], pack["priming"]
+    lines.extend(["", f"Packaging: CO2 {co2['volumes']:g} volumes ({co2['from']}, {co2['source']})"])
+    lines.append(f"  priming: {prime['g']:g} g {prime['sugar']} for {prime['volume_l']:g} l at {prime['temp_c']:g} °C")
+    return lines
+
+
 def format_recipe(request: str, steps: dict, recipe: dict) -> str:
     step4 = steps.get(4) or {}
     style = step4.get("style") or {}
@@ -68,6 +104,7 @@ def format_recipe(request: str, steps: dict, recipe: dict) -> str:
             lambda i: f"{i['amount']:g} {i['unit']}  {i['raw_name']}")
     section("Extras:", lambda i: i["unit"] == "g" and i["pct"] is None and i["usage"] != "ferment",
             lambda i: f"{i['amount']:g} g  {i['raw_name']}  {i['usage']}{minutes(i)}")
+    lines.extend(_process_lines(recipe.get("process")))
     lines.extend(["", "Deviations:"])
     lines.extend([f"  {d['subject']}: {d['level']} (asked by {d['requested_by']}) {d['note']}"
                   for d in recipe["deviations"]] or ["  none"])
