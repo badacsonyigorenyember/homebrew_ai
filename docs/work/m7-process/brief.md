@@ -146,7 +146,8 @@ R7. The briefs that need it get a `process` expectation (e.g. b13 weizen tempera
 - *How to Brew*'s 8 style families cover every style a recipe can get once each style is mapped
   to one *(the mapping is new and reviewed by you)*.
 - A sourced cell count per pack or per gram exists for the yeasts the briefs use (makers' data
-  sheets, or *Yeast*'s 7–20 billion cells/g for dry yeast) *(unverified)*.
+  sheets, or *How to Brew*'s 10 billion cells/g for dry yeast and 100 billion per liquid package)
+  *(unverified per product)*.
 - *Water*'s Tables 18–19 rows can be matched to a recipe from its style, colour and bitterness
   *(unverified until the doc → calc pass)*.
 
@@ -162,13 +163,15 @@ A5. Priming sugar for a test case matches a worked example from Palmer within ±
 A6. The `process` expectations pass for the briefs that have them (R7).
 A7. Each saved recipe's `process` mash and boil equal its step 10 `mash_c` and `boil.boil_min`,
     and its yeast rows no longer say `1 pack` unless the pitch rate gives one pack or none is
-    sourced (a souring culture keeps `1 pack`, marked "no sourced pitch rate") (R3, R4, R6).
-A8. A test reproduces *Yeast*'s pitching-rate worked example (R4).
+    sourced (a souring culture is pitched at *How to Brew* p. 206's rate) (R3, R4, R6).
+A8. A test reproduces the pitching-rate worked example in *How to Brew* ch. 7, Table 7.1 (p. 114:
+    1.050 SG, 0.75 billion cells/L/°P, 20 L = 180 billion cells) (R4).
 A9. Every saved recipe's water target names its *Water* Table 18/19 row; a test checks the
     style-to-row table covers every style a b01–b24 recipe gets; the BJCP 8-city table is used
     only as a check in a test (R2).
 A10. A test case with a pale grist on distilled water gets a mash pH estimate above the target
-     and an "acid would be needed" line; no output holds an acid amount (R2).
+     (*How to Brew* p. 341/365: pale 5.2-5.4, amber 5.3-5.5, dark 5.4-5.6; 5.2-5.6 when the style
+     has no water row) and an "acid would be needed" line; no output holds an acid amount (R2).
 A11. No mash step changes the recipe's FG: after steps 12–15 every saved recipe's `fg` still
      equals its step 10 FG, and every rest besides the infusion and mash-out has a source (R3).
 A12. A test reproduces strike and sparge volumes for a test case from s1's volume functions and
@@ -221,3 +224,8 @@ None open. Decided by you, 2026-10-27:
   the souring culture keeps `1 pack` marked "no sourced pitch rate"; styles outside the reviewed
   tables get no water row (no salts) and Palmer's default 2.5 CO₂ volumes, wider coverage a Later
   TODO — user answers to the plan's questions 1–3 in chat.
+- 2026-10-28 · Assumptions, A7, A8, A10: user answers to the doc-calc gate, under the new rule that
+  *How to Brew* is the source of truth for brewing method. A7: the souring culture is pitched at HTB
+  p. 206's rate (100-200 billion cells per 19 L), not `1 pack`. A8: the worked example is HTB Table 7.1
+  (180 billion cells, same number as *Yeast*'s). A10: "the target" is HTB's mash pH target by colour.
+  The cell-count assumption cites HTB.

@@ -20,41 +20,25 @@ figures are measured, not copied. Tables are quoted only as far as the code need
 (p. 153)" where the PDF has Tables 18/19 and Table 17 on printed p. 118. The cross-references come
 from another layout of the book; I cite the table by its caption and by the page I read it on.
 
-## Questions for you
+## Decisions since the first pass (your answers, 2026-10-28)
 
-Your first-round answers are applied: Q2 (23A CO₂ = German wheat 3.3–4.5), Q3 (lager diacetyl rest 6 days,
-ale 4 days; verified, §11), Q4 (dry yeast: HTB gives its own figure, 10 billion/g, so 10 is used and 7 is
-reported next to it, §10), Q1 and Q5 (web research, §4). What still needs your decision:
-
-1. **Brief A8 names *Yeast*'s pitching-rate worked example** (rule: HTB first). HTB Table 7.1 (p. 114) reproduces the
-   same 180 billion cells (1.050 SG / 12.4 °P, 0.75 billion/L/°P, 20 L). Change A8 to "HTB Table 7.1 / ch. 7"?
-   Recommend: yes.
-2. **Souring culture pitch (decision Q3 "keep 1 pack").** Q3 rested on "no source gives a cell count". HTB p. 206 does: 100–200 billion
-   Lactobacillus cells per 5 gal (19 L). With HTB's 100 billion per liquid pack that is 2 packs for 20 L, and HTB p. 212 adds a
-   higher main-yeast rate after souring (1.0 instead of 0.75 billion/L/°P). Replace "1 pack, no sourced pitch rate"
-   (brief A7 as revised) by the HTB rate? Recommend: yes.
-3. **Mash pH target for the acid line (brief A10, "above the target").** HTB p. 341 and 365 give 5.2–5.6 overall and
-   5.2–5.4 pale, 5.3–5.5 amber, 5.4–5.6 dark. With the pale/amber/dark target the pale hand case (pH 5.57) needs acid;
-   with the single 5.2–5.6 it would not. Use the colour-specific target, by the water row's colour (no row: 5.2–5.6)?
-   Recommend: yes.
-4. **Sulfate : chloride ratio.** HTB p. 134 and 364: hoppy beers about 5:1, malty 1:1 or 0.5:1, "a guideline". The approved hint
-   positions (87.5 % / 12.5 % of the row's ranges, RECIPE-ROADMAP §7) give up to about 29:1 for `bitter` in `ale-medium-pale-assertive`
-   (SO₄ 362, Cl 12.5). Keep your positions and add HTB's limits (SO₄ ≤ 400, Cl ≤ 150, SO₄ + Cl ≤ 500) as caps, or change the
-   positions to HTB's ratios? Recommend: keep the positions, add the caps.
-5. **Souring method.** HTB's kettle souring (p. 211) sours the wort in the kettle and boils afterwards; the plan sours in the fermenter
-   after the boil (HTB p. 209 "bacteria first, yeast second"), because step 13's boil is step 10's and is not changed. Keep as planned?
-   Recommend: yes.
-6. **`ref.water_salt` baking soda.** Stored HCO₃ is 726.3 mg/L per g/L (100 % purity); HTB Table 21.2 (p. 344) gives 710.5
-   (11.8 mEq/L). Align the stored value (a `ref` data change, outside this work's files)? Recommend: leave, 2 % difference.
-7. **Honey beer CO₂.** Your 2.5–2.8 volumes are not in HTB (nearest: American ales 2.2–2.7, p. 159; "2.5" p. 155). Use your range for the
-   web-sourced honey row, or HTB's American ales family? Recommend: HTB's family (the rule), keep 2.5–2.8 as a note.
+All applied below; nothing is open except your review of the tables and values listed in the report.
+- Q1 → A8 cites HTB Table 7.1 (p. 114): 1.050 SG / 12.4 °P, 0.75 billion/L/°P, 20 L = 180 billion cells (§10).
+- Q2 → souring culture pitch from HTB p. 206: 100-200 billion cells per 19 L, **150 billion per 19 L used** (the middle: HTB says lower rates make off-flavours), scaled to the batch and
+  counted in 100 billion packs (20 L: 158 billion, 2 packs); main yeast 1.0 billion/L/°P after souring (p. 212). Replaces "keep 1 pack" (§10, §13).
+- Q3 → acid line target by colour: pale 5.2-5.4, amber 5.3-5.5, dark 5.4-5.6, no row 5.2-5.6 (§7).
+- Q4 → hint positions kept; HTB caps added (§5).
+- Q5 → souring in the fermenter after the boil, as planned (§13).
+- Q6 → `ref.water_salt` baking soda left as stored (§1).
+- Q7 → honey beer CO₂ = HTB American ales 2.2-2.7 (§4b, §14).
+- Earlier: 23A CO₂ = German wheat 3.3-4.5; lager diacetyl rest 6 days, ale 4 days (§11); dry yeast 10 billion/g (§10).
 
 ## 0. The brief's three assumptions
 
 | Assumption (brief) | Result |
 |---|---|
-| *How to Brew*'s 8 style families cover every style once each is mapped to one | **Holds** for the 31 style codes in §14 (every one has a family; seven are judgement calls, marked; of those only 23A's choice changes the volumes, the lager and Kölsch calls give the same range as the alternative). **One exception:** `specialty-honey-beer` (BA, ranges 1.03–1.11 OG, 1–100 IBU, 1–100 SRM) has no family by its ranges; the BA text says it "may be brewed to a traditional style or may be experimental". It gets HTB's American ales family and a web-sourced water row (§4, §14, question 7). |
-| A sourced cell count per pack or per gram exists for the yeasts the briefs use *(unverified)* | **Holds generically, not per product.** HTB p. 108 gives about 10 billion viable cells per gram of dry yeast and 100 billion per liquid package (*Yeast* p. 124 and 140: 7–20 billion and 100 billion). `ref.yeast` and the hopline files hold no cell count and no maker's data sheet is in the repo, so §10 uses HTB's generic figures. For a souring culture HTB p. 206 gives a rate (100–200 billion per 19 L), which replaces "no source" (question 2). |
+| *How to Brew*'s 8 style families cover every style once each is mapped to one | **Holds** for the 31 style codes in §14 (every one has a family; seven are judgement calls, marked; of those only 23A's choice changes the volumes, the lager and Kölsch calls give the same range as the alternative). **One exception:** `specialty-honey-beer` (BA, ranges 1.03–1.11 OG, 1–100 IBU, 1–100 SRM) has no family by its ranges; the BA text says it "may be brewed to a traditional style or may be experimental". It gets HTB's American ales family and a web-sourced water row (§4, §14). |
+| A sourced cell count per pack or per gram exists for the yeasts the briefs use *(unverified)* | **Holds generically, not per product.** HTB p. 108 gives about 10 billion viable cells per gram of dry yeast and 100 billion per liquid package (*Yeast* p. 124 and 140: 7–20 billion and 100 billion). `ref.yeast` and the hopline files hold no cell count and no maker's data sheet is in the repo, so §10 uses HTB's generic figures. For a souring culture HTB p. 206 gives a rate (100–200 billion per 19 L), which replaces "no source" (§10). |
 | *Water*'s Tables 18–19 rows can be matched to a recipe from its style, colour and bitterness | **Holds for 30 of the 31 codes** (the 29 that step 4 returns for the briefs, plus 17D and 20C, §4); the 31st, 23A, and `specialty-honey-beer` have web-sourced rows. The row lists name 19 of them; ties and judgement calls are marked in §4. **Exception: 23A Berliner Weisse.** The book says its tables exclude sours (p. 119: "excluding sours and wood aged"), and HTB has no per-style rows (ch. 22: the brew cube numbers are "for frame of reference only"). 23A gets a web-sourced row instead (§4), as does `specialty-honey-beer`. |
 
 ## 1. *Water* Table 17 and `ref.water_salt`
@@ -248,10 +232,10 @@ calcium is raised to 50 as in §6. b14 gets this row; it is `unverified` against
 | Ca 50-100 | HTB Table 8.1: 50-150, minimum 50; blonde-ale guidance (Newman, Maui Brewing, via getollie.com/blog/blonde-ale-brewing-guide, fetched): Ca 50-100 | holds |
 | SO₄ 60-90 | HTB: 50-400 (drier, crisper, p. 133-134); same Newman guidance: SO₄ 50-100 | holds |
 | Cl 50-60 | HTB: 50-150 (fuller, sweeter); Newman: Cl 50-75 | holds |
-| SO₄ : Cl 1.2-1.5 : 1 | HTB: balanced about 1:1, hoppy 5:1 (p. 134). Computed from your ranges: 60/60 = 1.0 up to 90/50 = 1.8, middle 75/55 = 1.36 | consistent at the middle only: the ratio range is **narrower** than the two ranges allow (the hint positions 12.5 % / 87.5 % give 1.09 and 1.68, outside 1.2-1.5) |
+| SO₄ : Cl 1.2-1.5 : 1 | HTB: balanced about 1:1, hoppy 5:1 (p. 134). Computed from your ranges: 60/60 = 1.0 up to 90/50 = 1.8, middle 75/55 = 1.36 | consistent at the middle only: the ratio range is **narrower** than the two ranges allow (the hint positions 12.5 % / 87.5 % give 1.09 and 1.68, outside 1.2-1.5; positions kept by your decision) |
 | Mg 5-15 | HTB Table 8.1: 0-30, "5 ppm minimum... usually fully supplied by the malt extract" | holds (no Mg salt is dosed, §6) |
 | Na 0-30 | HTB: 0-100 (> 100 minerally); Bru'n: below 60 in practice | holds (stricter than HTB) |
-| CO₂ 2.5-2.8 | HTB p. 155: 2.5 for "most American and European pale ales"; p. 159: American ales 2.2-2.7; nothing for honey | **not in HTB**; 2.5-2.7 overlaps (question 7) |
+| CO₂ 2.5-2.8 | HTB p. 155: 2.5 for "most American and European pale ales"; p. 159: American ales 2.2-2.7; nothing for honey | **not in HTB**; 2.5-2.7 overlaps. Decided: HTB's American ales 2.2-2.7 |
 | why (yeast health, flocculation; crisp finish to cut sweetness; roundness after honey ferments out) | HTB p. 133-134 on Ca, sulfate, chloride | holds as flavour/process reasoning; I found **no source for a honey-specific water profile**: web search returned blonde-ale guidance (Newman; The Electric Brewery: Ca 50, Mg 10, Na 16, Cl 70, SO₄ 70, a balanced blonde) and one homebrewtalk thread (not fetched, HTTP 403; snippet only) |
 | origin of your figures | not traceable | the BA text says honey beer "may be brewed to a traditional style or may be experimental" -- a honey beer's water should follow the underlying style; this row is only the fallback |
 
@@ -263,7 +247,7 @@ Proposed row (user-supplied, corroborated by HTB's general ranges and the blonde
 
 No alkalinity or RA target is stored (nothing sourced), so nothing but gypsum and calcium chloride is dosed and the mash pH target
 is the general 5.2-5.6. Mg and Na ranges are not stored (no Mg salt; sodium only comes from bicarbonate, capped at 100 mg/L by §6).
-CO₂ family: `american-ales` (HTB) unless you decide otherwise (question 7).
+CO₂ family: `american-ales` (HTB, 2.2-2.7; your decision).
 
 ## 5. Hints → aim
 
@@ -278,7 +262,7 @@ dry, crisp, full, chewy, malty, darker, stronger, session`.
   chloride and 75 ppm sulfate" (chloride-led).
 - *Water* (ch. 7, p. 115-116) says the same and is no longer needed for the direction.
 - The 87.5 % / 12.5 % positions are RECIPE-ROADMAP §7's (the user's 2026-10-17 decision, the
-  same positions step 4 uses for its knobs, `app.hint_knob`). They are not HTB's; HTB gives ratios (question 4).
+  same positions step 4 uses for its knobs, `app.hint_knob`). They are not HTB's (HTB gives ratios); kept by your decision, with HTB's caps added.
 
 | Hint | Side | Passage |
 |---|---|---|
@@ -393,7 +377,7 @@ guidelines"). The acid line compares the estimate with the target of the water r
 **Hand-worked case** (A10; checked by `test_pale_grist_needs_acid`): 4.0 kg Pilsen malt (HTB Table 21.4, 9.2 mEq/kg), strike water 12 L (3 L/kg) from distilled water
 with the light-lager aim: sulfate 25, chloride 75. Gypsum 25 / 557.9 = 0.04481 g/L, calcium chloride 75 / 482.3 = 0.15550 g/L, Ca = 52.82 mg/L (≥ 50), alkalinity 0.
 RA = −52.82 / 1.4 = −37.73 mg/L as CaCO₃ = **−0.7546 mEq/L**. Σ mEq = 4.0 × 9.2 + 12 × (−0.7546) = 36.80 − 9.06 = 27.74; Σ buffer = 40 × 4.0 = 160.
-**pH = 5.4 + 27.74 / 160 = 5.573.** That is inside the general 5.2-5.6 but **above the pale target 5.2-5.4**, so the acid line fires (question 3). b08's case
+**pH = 5.4 + 27.74 / 160 = 5.573.** That is inside the general 5.2-5.6 but **above the pale target 5.2-5.4**, so the acid line fires (colour-specific target, your decision). b08's case
 through the step (German Pils with `bitter`, Ca about 89): 4.9 kg, 14.7 L: pH about **5.53**, above 5.4, acid line fires. The test checks the function with the grist and strike ions given
 directly, within 0.02 of 5.573.
 
@@ -475,19 +459,20 @@ Source (HTB first): *How to Brew* ch. 7, "What Is the Pitching Rate and Why Does
   American lagers and the cleanest lagers). The code keeps two rates, **0.75 for ale yeasts and 1.5 for lager yeasts** (HTB's balanced-ale and moderate-lager figures; the
   same numbers the plan took from *Yeast*, which gives them for repitched yeast). A per-style rate (HTB's list above) is a later refinement. Kveik, brett and no-type yeasts use the ale rate.
 - **Worked example**: HTB Table 7.1 (p. 114 / PDF 140): 1.050 SG (12.4 °P), rate 0.75: **9 billion cells per litre** → 20 L = **180 billion cells** (a lager rate 1.5: 19 → 380). The same
-  arithmetic as *Yeast*'s 0.75 × 20 000 mL × 12 °P = 180 billion. `test_yeast_book_example` uses HTB's Table 7.1 (question 1).
+  arithmetic as *Yeast*'s 0.75 × 20 000 mL × 12 °P = 180 billion. `test_yeast_book_example` uses HTB's Table 7.1 (brief A8 now cites it).
 - **Liquid yeast**: packs = cells ÷ **100 billion**, rounded up (HTB p. 108 and 111: "typically contain about 100 billion cells per package"; *Yeast* p. 140 agrees).
 - **Dry yeast**: grams = cells ÷ **10 billion viable cells per gram**, rounded up to 1 g. HTB p. 108 / PDF 134: "dry yeast has about 10 billion cells per gram, so a 10 g packet contains about
   100 billion viable yeast cells" (after rehydration). *Yeast* p. 124 gives 7-20 billion and "as low as 5". Your Q4 answer was 7 billion unless HTB gives its own figure; HTB does, so **10** is used
   and 7 is reported here. At 10 billion/g a 180 billion-cell ale pitch is 18 g (about 2 sachets of 10 g); at 7, 26 g.
-- **Souring culture** (`ref.yeast.type = 'lacto'`): HTB p. 206 / PDF 232: "The suggested pitching rate for Lactobacillus is between **100 and 200 billion cells per 5 gal. (19 L)**".
-  Low end scaled to the batch: 100 × batch_L / 19 billion (105 billion for 20 L); a culture package counts as 100 billion (HTB p. 108, liquid) → 2 packs for 20 L. This replaces decision Q3 ("keep 1 pack,
-  no sourced pitch rate") if you agree (question 2); until then the code keeps `1 pack`.
+- **Souring culture** (`ref.yeast.type = 'lacto'`): HTB p. 206 / PDF 232: "The suggested pitching rate for Lactobacillus is between **100 and 200 billion cells per 5 gal. (19 L)**"; lower rates "produce more
+  off-flavors". **150 billion per 19 L** (the middle), scaled to the batch: 150 × batch_L / 19 billion (20 L: 158 billion); a culture package counts as 100 billion (HTB p. 108, liquid), so
+  packs = ⌈cells ÷ 100⌉ = **2 packs** for 20 L. Replaces decision Q3 ("keep 1 pack"; your answer 2026-10-28). The 100 billion per pack is HTB's figure for a yeast package, assumed for a lacto package
+  (`unverified` for YF-998/999).
 - **Main yeast after souring**: HTB p. 211-212: "the pitching rate for the yeast fermentation should be higher than normal... for ales that would normally pitch 0.75... you would instead pitch 1.0".
-  Applied when a souring culture is in the recipe (question 2).
+  Applied when a souring culture is in the recipe (ale yeasts 1.0; a lager yeast keeps 1.5).
 - Wort volume for the cell count: the batch volume (`numbers.batch_l`); °P = `app.sg_to_plato(og)`.
 
-**Becomes:** `app.pitch_rate`; tests `test_yeast_book_example`, `test_dry_yeast_in_grams`, `test_liquid_yeast_in_packs`, `test_souring_culture_pitch`.
+**Becomes:** `app.pitch_rate`; tests `test_yeast_book_example`, `test_dry_yeast_in_grams`, `test_liquid_yeast_in_packs`, `test_souring_culture_pitch` (b14: YF-998 pitch 150 × L / 19 billion cells, 2 packs; main yeast rate 1.0).
 
 ## 11. Fermentation schedule (**for your review**)
 
@@ -548,9 +533,9 @@ Source (HTB first): *How to Brew* "Brewing Sour Beers", p. 206-212 / PDF 232-238
   (p. 211) but the culture rows (YF-998/999) only reach 35 °C, so the **souring step is 35 °C, the top of the overlap with the culture's `temp_c`** (A4). If the overlap is empty, no souring step.
 - **Time**: "The wort should take **18-36 hours** to sour to a pH of 3.5-ish" (p. 211): **1.5 days** (the middle). (MTF's 24 h is no longer used.)
 - **Order**: "Bacteria first, yeast second" (p. 210): souring in the fermenter after the boil, then the main yeast at its start temperature (HTB kettle souring boils *after* souring, which would
-  change step 13's boil; the plan does not, question 5). Hops inhibit lactobacilli: "Berliner weiss, usually only have 5-8 IBUs" (p. 206), carried in `because`.
+  change step 13's boil; the plan does not; your decision). Hops inhibit lactobacilli: "Berliner weiss, usually only have 5-8 IBUs" (p. 206), carried in `because`.
 - **Pre-acidify**: HTB p. 207 and 211 recommend 88 % lactic acid to pH 4.5-4.8 (about 5 mL): the step text says "pre-acidify to pH 4.5-4.8 (amount not computed)"; no acid amount is stored (A10).
-- **Pitch**: culture 100-200 billion cells per 19 L (p. 206), main yeast 1.0 billion/L/°P instead of 0.75 after souring (p. 212) -- see §10 and question 2.
+- **Pitch**: culture 100-200 billion cells per 19 L (p. 206), main yeast 1.0 billion/L/°P instead of 0.75 after souring (p. 212) -- see §10.
 - Pure *Lactobacillus* does not ferment wort fully (HTB p. 206: "only consume a small amount of sugars... about 2-4 gravity points"; MTF *Lactobacillus Fermentation*, ~0.5 °P): so the main yeast is needed.
 Milk The Funk (Berliner Weissbier page: 90-110 °F, 1-4 days, 95 °F for 24 h) is kept only as a cross-check; HTB covers the point.
 
@@ -611,7 +596,7 @@ the family's range; step 15 takes its midpoint).
 | 5B Kölsch | `european-lagers` | **judgement:** German, lagered; same range as American ales |
 | 10A Weissbier | `german-wheat` | named |
 | 23A Berliner Weisse | `german-wheat` | **your answer (2026-10-28):** German wheat 3.3-4.5 volumes (the book names neither Berliner Weisse nor sours but lambic) |
-| specialty-honey-beer | `american-ales` | **proposal (question 7):** HTB's family for American pale-ale-like beers, 2.2-2.7 (2.5 is HTB's "medium" figure, p. 155); your 2.5-2.8 is not in HTB |
+| specialty-honey-beer | `american-ales` | **your decision:** HTB's family for American pale-ale-like beers, 2.2-2.7 (2.5 is HTB's "medium" figure, p. 155); your 2.5-2.8 is not in HTB |
 
 Checked: every style above maps to exactly one family (31 codes plus specialty-honey-beer).
 
@@ -733,14 +718,14 @@ Your rule: HTB is the only source of truth for brewing methodology where it cove
 | Dry yeast cells per gram | 7 billion (*Yeast* p. 124) | p. 108: 10 billion viable (7 reported) |
 | Liquid package | 100 billion (*Yeast* p. 140) | p. 108: 100 billion (same) |
 | Souring: temperature and time | MTF: 35 °C, 24 h | p. 206, 211: 32-46 °C grows best, 18-36 h (35 °C, 1.5 days) |
-| Souring culture pitch | none (Q3: 1 pack) | p. 206: 100-200 billion per 19 L; main yeast 1.0 after souring, p. 212 (question 2) |
+| Souring culture pitch | none (Q3: 1 pack) | p. 206: 100-200 billion per 19 L; main yeast 1.0 after souring, p. 212 (150 used) |
 | Mash pH: malt figures | *Water* Table 9 (Troester/Bies mean) | ch. 21 Table 21.4 p. 351 (Briess/Hansen & Geurts 2015) |
 | Mash pH: buffer | *Water* Table 9 per class | p. 342: 200/Rv ppm per 0.1 pH = 40 mEq/(pH·kg) |
-| Mash pH: target | *Water* ch. 7: 5.2-5.6 | p. 341/365: 5.2-5.6 overall; pale 5.2-5.4, amber 5.3-5.5, dark 5.4-5.6 (question 3) |
-| Sulfate / chloride direction | *Water* p. 115-116 | p. 133-134 (same direction; ratios 5:1 / 1:1 / 0.5:1, question 4) |
+| Mash pH: target | *Water* ch. 7: 5.2-5.6 | p. 341/365: 5.2-5.6 overall; pale 5.2-5.4, amber 5.3-5.5, dark 5.4-5.6 (your decision) |
+| Sulfate / chloride direction | *Water* p. 115-116 | p. 133-134 (same direction; ratios 5:1 / 1:1 / 0.5:1 not applied; your decision) |
 | Calcium floor, ion caps, no Mg salt, Na ≤ 100 | *Water* p. 116, 119 | Table 8.1 p. 134, p. 135 |
 | RA formula | *Water* p. 53, 124 | p. 342 (same) |
 
 Already HTB, unchanged: priming and CO₂ (ch. 10), 8 CO₂ families, strike equation and ratio (ch. 17), rests (ch. 16-17), mash-out, saccharification time (Table 17.1), lagering (p. 174).
 **Not covered by HTB, so the other source stays:** the 16 style → water rows (*Water* Tables 18/19; HTB p. 363 refuses per-style targets), the 87.5 / 12.5 hint positions (your decision), flaked grain acidity (Bru'n),
-the 14 °C dry hop point (Janish), kveik schedules (none), the web rows (§4b), and `ref.water_salt` (question 6).
+the 14 °C dry hop point (Janish), kveik schedules (none), the web rows (§4b), and `ref.water_salt` (HTB's 710.5 vs the stored 726.3 left as it is, your decision).

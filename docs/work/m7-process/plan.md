@@ -88,8 +88,9 @@ Branch: m7-process
   yeasts and 0.75 for the rest (fresh yeast), wort = the batch volume, °P = `app.sg_to_plato(og)`. Dry
   yeast: grams = cells ÷ 10 billion viable cells per gram (HTB p. 108), rounded up to 1 g; liquid:
   packs = cells ÷ 100 billion, rounded up. This replaces step 10's `1 pack` in the saved yeast rows
-  (A7). The souring culture keeps `1 pack` with "no sourced pitch rate" **until the user answers
-  doc-calc question 2** (HTB p. 206 gives 100–200 billion cells per 19 L; decision Q3 predates it).
+  (A7). The souring culture (`type = 'lacto'`) is pitched at HTB p. 206's rate, 150 billion cells per
+  19 L scaled to the batch, in 100-billion packs, and the main yeast then uses 1.0 billion/L/°P (HTB
+  p. 212); decision Q3 as revised 2026-10-28.
 - **Step 15 packaging** (R5): CO₂ volumes = the middle of `ref.beer_style.co2_vol` (the style's
   *How to Brew* p. 159 family); a style with none uses 2.5 volumes, Palmer's "medium carbonation"
   (p. 155), marked `from: default` (decision Q1). Priming sugar (table sugar) grams = (target − residual
@@ -397,7 +398,9 @@ Why: R4, A4, A7 (amounts), A8.
       volume_l numeric) returns jsonb` → `{rate_m_per_ml_p, plato, cells_billion, amount, unit
       g|pack, because}` (Approach; a souring culture, `ref.yeast.type = 'lacto'`, and any yeast
       whose amount cannot be computed give `cells_billion` null, `amount` 1, `unit` pack and
-      `because` "no sourced pitch rate", decision Q3). `app.ferment_schedule(main
+      `because` "no sourced pitch rate"; a souring culture gets HTB p. 206's rate, 150 billion cells
+      per 19 L scaled to the batch, ⌈cells ÷ 100⌉ packs, and the main yeast 1.0 billion/L/°P
+      after souring (p. 212), decision Q3 as revised 2026-10-28). `app.ferment_schedule(main
       jsonb, souring jsonb, ferm_c numeric) returns jsonb` → `[{phase souring|ferment|rest|dry_hop|
       crash|lager, yeast_id, temp_c, days, why, source}]` (Approach; constants from
       `doc-calc.md` §11 and §13). `app.step14_ferment(targets jsonb, step10 jsonb) returns jsonb` →
@@ -419,8 +422,8 @@ Why: R4, A4, A7 (amounts), A8.
       `test_ramp_shape` (start < main ≤ end raise, start inside the range; b03's S-04 at step 6's
       15 °C starts at 15 and holds at 16 or above); `test_b13_weizen_schedule`;
       `test_b14_souring_first` (souring step with YF-998 inside 15–35 °C and HTB's 32–46 °C band, before
-      the main yeast's first step); `test_souring_culture_keeps_one_pack` (b14: YF-998 pitch
-      `cells_billion` null, 1 pack, "no sourced pitch rate"); `test_dry_hop_after_fermentation` (b02: day after the last
+      the main yeast's first step); `test_souring_culture_pitch` (b14: YF-998 pitch
+      150 × L ÷ 19 billion cells, 2 packs for 20 L; the main yeast's rate 1.0); `test_dry_hop_after_fermentation` (b02: day after the last
       ferment step, Janish temperature and contact days, grams equal step 10's);
       `test_secondary_extras` (b23: coffee 60 g, contact 2 days from `time_min` 2880; vanilla
       `contact_days` null); `test_max_temp` (b08: equals its diacetyl rest temperature);
@@ -474,7 +477,7 @@ Why: R6, A7, A11.
       (b23: `app.recipe.process` valid against `process.output`, its water, mash, boil,
       fermentation and packaging equal the step outputs); `test_mash_and_boil_match_step10` (A7
       on the saved row); `test_yeast_rows_from_pitch` (A7: b01's yeast row `g` with step 14's
-      amount; b14's souring row stays 1 pack with step 14's `because`); `test_fg_unchanged` (A11: saved `fg` = step 10's
+      amount; b14's souring row has step 14's packs and `because`); `test_fg_unchanged` (A11: saved `fg` = step 10's
       `numbers.fg`); `test_recipe_process_refuses_other_mash`; `test_save_without_process_still_works`.
       `tests/test_save_recipe.py` keeps passing unchanged.
 - [ ] Run `.venv/bin/pytest tests/test_save_process.py tests/test_save_recipe.py tests/test_contracts.py`,
@@ -548,8 +551,8 @@ Why: A2, A6, A7, A11 on the real pipeline.
       compare with m6's 19–20/24 as a sanity check, not a bar), every validated run has rows 12–15
       ok and a saved `process` (A2), `process ok` per brief with expectations (A6), every saved
       recipe's mash and boil equal its step 10 row and its `fg` equals step 10's (A7, A11, by one
-      read-only SQL query written into the entry), yeast rows no longer `1 pack` except a souring
-      culture marked "no sourced pitch rate" (A7 as revised).
+      read-only SQL query written into the entry), yeast rows no longer `1 pack` unless the pitch rate gives one pack
+      (A7 as revised 2026-10-28).
 - [ ] If a check fails, stop and hand back `needs-input` with the failing briefs and the cause;
       do not tune expectations to pass.
 - [ ] Hand back `needs-approval` with the counts and `evals.show_recipe` output of b08, b13 and b14
@@ -602,9 +605,13 @@ Answered by you in chat, 2026-10-28:
   (p. 155), marked `default`. Wider coverage is a RECIPE-ROADMAP §8 Later TODO (Task 12).
 - **Q2** Strike water temperature: "Add it". HTB ch. 17's single infusion equation as one
   function, tested against the book's worked example (Task 5; brief R3).
-- **Q3** Souring culture amount: "Keep 1 pack". The culture keeps `1 pack` marked "no sourced
-  pitch rate"; brief A7 reads "unless the pitch rate gives one pack or none is sourced" (Tasks 6,
-  8, 11).
+- **Q3** Souring culture amount: first "Keep 1 pack" (2026-10-28), **replaced the same day**
+  by "Use HTB's rate": *How to Brew* p. 206 gives 100-200 billion Lactobacillus cells per 19 L,
+  so the culture gets 150 billion per 19 L scaled to the batch in 100-billion packs, and the main
+  yeast 1.0 billion/L/°P after souring (p. 212). Brief A7 revised (Tasks 6, 8, 11).
+- **Q4-Q8 (doc-calc gate, 2026-10-28)** A8 cites HTB Table 7.1; acid line target by colour (HTB
+  p. 341/365); hint positions kept plus HTB ion caps; souring in the fermenter after the boil;
+  `ref.water_salt` left as stored; honey beer CO₂ = HTB American ales 2.2-2.7.
 
 ## Approved exceptions
 
@@ -634,3 +641,9 @@ None.
   23A CO₂ family = German wheat beer 3.3–4.5; 23A and `specialty-honey-beer` get web-sourced
   `ref.water_profile` rows (doc-calc §4b), which Task 2 stores with `table_no = 'web'`, a `basis` column and
   their own `ref.source` rows (so Task 2's "16 rows" test counts `table_no in ('18','19')`).
+- 2026-10-28 · Approach (step 12, step 14 pitch), Tasks 6, 8, 11, Decisions Q3, Critical behaviour table: user
+  answers to the doc-calc gate. Q3 revised: the souring culture is pitched at HTB p. 206's rate
+  (150 billion cells per 19 L, 2 packs for 20 L) and no longer keeps `1 pack`; the main yeast uses 1.0
+  billion/L/°P after souring. `test_souring_culture_keeps_one_pack` became `test_souring_culture_pitch`. Brief A7, A8
+  and A10 revised (see brief Deviations). The acid line uses HTB's colour-specific mash pH target. Soured
+  in the fermenter after the boil, as planned. Nothing else in the plan changed.
