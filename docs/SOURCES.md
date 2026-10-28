@@ -44,7 +44,7 @@ was not read (or held nothing relevant) and only the search result's summary was
 | https://shop.theelectricbrewery.com/pages/water-adjustment | blonde ale target Ca 50, Mg 10, Na 16, Cl 70, SO₄ 70 | search text only |
 | https://www.homebrewtalk.com/threads/thoughts-on-water-profile-for-honey-ale.410384/post-5186504 | one brewer's honey ale water; "50 ppm Ca from calcium chloride" | search text only (HTTP 403); not used for a value |
 
-No source found for a honey-specific water profile or honey beer carbonation.
+No source found for a honey-specific water profile or honey beer carbonation. The blonde-ale, Electric Brewery and homebrewtalk rows were checked for a proposed honey-beer water row, which was **dropped** (2026-10-28): honey beer follows its underlying style (BA text), so nothing from them enters `ref`. Only the Berliner Weisse pages feed a stored row (`web-berliner-weisse`).
 
 ## Folders
 

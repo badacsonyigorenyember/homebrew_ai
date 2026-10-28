@@ -111,8 +111,10 @@ Out:
 R1. Every formula and table used is listed in `doc-calc.md` with book, chapter and page, and is
     code or `ref` data with tests; nothing is LLM-generated.
 R2. Step 12 outputs salt grams per addition, split between strike and sparge water, the
-    resulting ion profile, and the target it aimed for (the *Water* Table 18/19 row the style
-    maps to, with its source and the hint that moved it); amounts never negative; with no salts
+    resulting ion profile, and the target it aimed for (the *Water* Table 18/19 row, or the web-sourced Berliner Weisse row, the
+    style maps to, with its source, its basis label `listed`/`inferred`/`judgement`/`web` and the hint that
+    moved it; the row's alkalinity and RA ranges are references, and alkalinity is dosed from the grist's
+    mash pH estimate, not to the row); amounts never negative; with no salts
     needed it says so. It also outputs the residual alkalinity and the estimated mash pH, and says
     when acid would be needed to reach the target pH; it doses no acid.
 R3. Step 13 outputs mash steps (°C, minutes): a single infusion at step 10's `mash_c`, plus any
@@ -166,7 +168,8 @@ A7. Each saved recipe's `process` mash and boil equal its step 10 `mash_c` and `
     sourced (a souring culture is pitched at *How to Brew* p. 206's rate) (R3, R4, R6).
 A8. A test reproduces the pitching-rate worked example in *How to Brew* ch. 7, Table 7.1 (p. 114:
     1.050 SG, 0.75 billion cells/L/°P, 20 L = 180 billion cells) (R4).
-A9. Every saved recipe's water target names its *Water* Table 18/19 row; a test checks the
+A9. Every saved recipe's water target names its row (a *Water* Table 18/19 row, or `web-berliner-weisse`
+    for 23A) and its basis label (so a fallback row is visible); a test checks the
     style-to-row table covers every style a b01–b24 recipe gets; the BJCP 8-city table is used
     only as a check in a test (R2).
 A10. A test case with a pale grist on distilled water gets a mash pH estimate above the target
@@ -229,3 +232,7 @@ None open. Decided by you, 2026-10-27:
   p. 206's rate (100-200 billion cells per 19 L), not `1 pack`. A8: the worked example is HTB Table 7.1
   (180 billion cells, same number as *Yeast*'s). A10: "the target" is HTB's mash pH target by colour.
   The cell-count assumption cites HTB.
+- 2026-10-28 · R2, A9: outside review of the water profiles ("apply all three"): alkalinity is dosed from the
+  grist-based mash pH estimate to the bottom of *How to Brew*'s colour target and the row's alkalinity/RA are
+  reported references only; every style → row mapping carries a basis label (`listed`, `inferred`, `judgement`,
+  `web`) that step 12 shows; the honey beer row proposed earlier is dropped (honey beer follows its underlying style).

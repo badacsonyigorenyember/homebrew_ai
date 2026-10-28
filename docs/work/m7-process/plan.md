@@ -41,12 +41,14 @@ Branch: m7-process
      together ≤ 500). Calcium above the row's maximum, which the sulfate and
      chloride aims can cause, is reported in the output and not corrected. No magnesium salt (*Water* ch. 7: the tables give no Mg,
      the malt supplies it).
-  4. Residual alkalinity (Kolbach, *Water* ch. 4: RA = alkalinity − Ca/1.4 − Mg/1.7, ppm as
-     CaCO₃). When it is below the row's RA range (dark rows on distilled water), alkalinity is added
-     to the strike water only, aimed at the middle of the RA range: baking soda while sodium stays
-     at or below 100 mg/L (*Water* ch. 7), slaked lime for the rest (*Water*'s Foreign Extra Stout
-     example; chalk is not used, *Water* ch. 6). Above the range nothing is added and the acid line
-     says acid would be needed.
+  4. Residual alkalinity (Kolbach, HTB p. 342: RA = alkalinity − Ca/1.4 − Mg/1.7, ppm as CaCO₃).
+     Alkalinity follows the **grist**, not the row's RA (outside review 2026-10-28): it is added to
+     the strike water only, baking soda while sodium stays at or below 100 mg/L (HTB Table 8.1), slaked
+     lime for the rest (*Water*'s Foreign Extra Stout example; chalk is not used), until item 6's pH
+     estimate reaches the bottom of item 7's colour target (`doc-calc.md` §6). The row's alkalinity and
+     RA ranges are reported references (`outside_row` note), never dosing targets (HTB p. 350, 363).
+     At or above the bottom of the target nothing is added; above the top the acid line says acid
+     would be needed.
   5. Grams per water: gypsum and calcium chloride at the same g/L in strike and sparge water,
      alkalinity salts in the strike water only; each rounded to 0.1 g, ions recomputed from the
      rounded grams. Output both waters' ions, alkalinity and RA.
@@ -151,8 +153,8 @@ existing workflows and OPERATIONS §5.
 | Path | New / changed | Purpose |
 |---|---|---|
 | `docs/work/m7-process/doc-calc.md` | new | Task 1: the doc → calc pass, the two mapping tables, the schedule constants |
-| `db/049_process_ref.sql` | new | `ref.water_profile` (Tables 18–19), `ref.beer_style.water_profile`, `co2_vol`, `co2_family` |
-| `db/050_water.sql` | new | `app.salt_ions`, `app.residual_alkalinity`, `app.water_volumes`, `app.water_aim`, `app.salt_additions`, `app.malt_acidity`, `app.mash_ph_estimate`, `app.step12_water` |
+| `db/049_process_ref.sql` | new | `ref.water_profile` (Tables 18–19 and `web-berliner-weisse`), `ref.beer_style.water_profile`, `water_basis`, `co2_vol`, `co2_family`, `co2_basis` |
+| `db/050_water.sql` | new | `app.salt_ions`, `app.residual_alkalinity`, `app.water_volumes`, `app.water_aim`, `app.salt_additions`, `app.alkalinity_dose`, `app.malt_acidity`, `app.mash_ph_estimate`, `app.step12_water` |
 | `db/051_mash_boil.sql` | new | `app.mash_rests`, `app.strike_temp`, `app.step13_mash_boil` |
 | `db/052_ferment.sql` | new | `app.pitch_rate`, `app.ferment_schedule`, `app.step14_ferment` |
 | `db/053_package.sql` | new | `app.residual_co2`, `app.priming_sugar_g`, `app.step15_package` |
@@ -253,22 +255,24 @@ Commit: `Add the m7 doc-calc pass`
 ### Task 2: the water rows and CO₂ volumes are `ref` data
 Why: R1, R2 (target row), R5 (`co2_vol`), A9.
 - [ ] `db/049_process_ref.sql` (needs 010, 011): `ref.water_profile` (`code text primary key`,
-      `table_no text check (table_no in ('18','19'))`, `beer_type` lager|ale, `strength`, `colour`,
+      `table_no text check (table_no in ('18','19','web'))`, `beer_type` lager|ale, `strength`, `colour`,
       `bitterness`, `ca`, `alkalinity`, `so4`, `cl`, `ra` numrange, `acidify` yes|maybe|no,
       `styles text`, `source_id` → `ref.source` slug `palmer-kaminski-water`, `page text`); the 16
-      rows from `doc-calc.md` §3, `on conflict (code) do update`. `ref.beer_style` gains
-      `water_profile text references ref.water_profile (code)`, `co2_vol numrange`, `co2_family
+      rows from `doc-calc.md` §3 plus the web-sourced `web-berliner-weisse` (`table_no = 'web'`, its own
+      `ref.source` row, doc-calc §4b), `on conflict (code) do update`. `ref.beer_style` gains
+      `water_profile text references ref.water_profile (code)`, `water_basis` and `co2_basis` (each
+      `listed|inferred|judgement|web`, a check constraint), `co2_vol numrange`, `co2_family
       text` (`add column if not exists`), and one `update` per style of `doc-calc.md` §4 and §14
       (by `code`; the comment names the section). Codes are row names a reader can follow
       (`ale-medium-pale-assertive`), not numbers.
 - [ ] Apply twice; tables and functions owned by `postgres`; row counts printed.
 - [ ] Write `tests/test_process_ref.py` (stack), each seen failing first:
-      `test_water_rows_are_the_books` (16 rows; three spot checks against `doc-calc.md`: medium
+      `test_water_rows_are_the_books` (the 16 rows with `table_no in ('18','19')`; three spot checks against `doc-calc.md`: medium
       ale pale moderate–assertive SO₄ `[100,400]` and RA `[-30,30]`, light lager Ca from 50,
       strong ale brown/black alkalinity `[120,200]`);
       `test_every_brief_style_has_a_row_and_co2` (A9: for b01–b24 and h01–h06, `targets.style.code`
       from `tests.test_step4.step4` and every listed `alt_styles` code with ranges has
-      `water_profile` and `co2_vol`); `test_co2_inside_its_family` (each `co2_vol` equals its
+      `water_profile` and `co2_vol`, except 23A, whose row is `web-berliner-weisse`, and every mapped style has `water_basis` and `co2_basis`); `test_basis_labels` (doc-calc §4/§14 lists: the `listed`, `inferred`, `judgement`, `web` sets match); `test_co2_inside_its_family` (each `co2_vol` equals its
       family's p. 159 range); `test_rows_have_a_source`.
 - [ ] Run `.venv/bin/pytest tests/test_process_ref.py tests/test_styles.py`, expect all pass.
 - [ ] `docs/DATABASE.md` §2 rows for `water_profile` and the three columns, §9 `co2_vol` line
@@ -292,11 +296,16 @@ Why: R1, R2, A3, A10 (the estimate), A12 (volumes).
       - `app.salt_additions(source jsonb, aim jsonb, row text, strike_l numeric, sparge_l numeric)
         returns jsonb` → `{salts [{ingredient_id, name, aims_at, strike_g, sparge_g, total_g}],
         none_needed, strike_water {ions, alkalinity_ppm, ra_ppm}, sparge_water {…}, notes [text]}`
-        (items 3–5).
+        (items 3 and 5: gypsum and calcium chloride only).
+      - `app.alkalinity_dose(grist jsonb, strike_ions jsonb, strike_l numeric, target_low numeric)
+        returns jsonb` → `{ra_needed_meq_l, salts [{ingredient_id, name, strike_g}], because}`
+        (item 4: baking soda to Na ≤ 100 mg/L, then slaked lime; nothing when the estimate is already
+        at or above `target_low`).
       - `app.malt_acidity(role text, ebc numeric) returns jsonb` → `{class, meq_kg, buffer, page}`
         (§7 classes; one `case` a reader can follow).
-      - `app.mash_ph_estimate(grist jsonb, strike_ions jsonb, strike_l numeric) returns jsonb` →
-        `{ph, target_low 5.2, target_high 5.6, terms [{what, meq, buffer}], because}`.
+      - `app.mash_ph_estimate(grist jsonb, strike_ions jsonb, strike_l numeric, colour text) returns jsonb` →
+        `{ph, target_low, target_high, terms [{what, meq, buffer}], because}` (the target comes from the
+        row's colour, item 7; `colour` is a fourth argument, null for 5.2–5.6).
 - [ ] Apply twice; owners `postgres`.
 - [ ] Write `tests/test_water.py` (stack), each seen failing first:
       `test_pilsner_example` (A3: calcium chloride for 30 ppm Ca in 37.854 L → 4.17 g ± 0.02, and
@@ -309,7 +318,12 @@ Why: R1, R2, A3, A10 (the estimate), A12 (volumes).
       above every aim: no salt, `none_needed` true); `test_aim_moves_with_hints` (same row: `bitter`
       gives higher sulfate and lower chloride than no hint, `malty` the reverse, both → middle with
       a note); `test_calcium_brought_to_minimum`; `test_alkalinity_only_in_strike`
-      (a brown/black ale row on distilled water: baking soda and lime only in `strike_g`, Na ≤ 100);
+      (a dark grist on distilled water: baking soda and lime only in `strike_g`, Na ≤ 100);
+      `test_alkalinity_follows_grist` (the doc-calc §6 case: 4 kg Pilsen + 1 kg caramel 60L + 1 kg
+      roast, 18 L: 0.2314 g/L baking soda, estimate then 5.400 ± 0.01; the pale 4 kg Pilsen grist: no
+      dose); `test_alkalinity_soda_then_lime` (a need above Na 100 mg/L: soda to the cap, lime for the
+      rest); `test_row_ranges_are_references` (a recipe whose water is outside the row's alkalinity or RA
+      range gets an `outside_row` note and no extra dose);
       `test_pale_grist_needs_acid` (A10: the §7 hand-worked case: estimate within 0.02 of
       `doc-calc.md`'s 5.573 and above the pale target's 5.4); `test_dark_grist_on_distilled_is_low` (b05-style roast
       grist without alkalinity: estimate below 5.4; doc-calc §7: 5.30); `test_ph_terms_add_up` (Σ meq / Σ buffer
@@ -327,7 +341,8 @@ Commit: `Add water maths from the Water book`
 Why: R2, A3, A9, A10, A12.
 - [ ] `db/050_water.sql`: `app.step12_water(profile jsonb, targets jsonb, brief jsonb, step10
       jsonb) returns jsonb` → `{target {from style|none, style_code, row, table_no, beer_type,
-      strength, colour, bitterness, ranges {ca, alkalinity, so4, cl, ra}, acidify, page, aim,
+      strength, colour, bitterness, ranges {ca, alkalinity, so4, cl, ra} (references), acidify, page, aim,
+      basis (listed|inferred|judgement|web), fallback (basis is not listed), outside_row [text],
       moved_by}, source_water {ions, alkalinity_ppm, ra_ppm}, volumes (app.water_volumes),
       salts, none_needed, strike_water, sparge_water, mash_ph, acid {needed, text, acidify},
       values_used [{what, because, source}]}`. With no row: `target.from = "none"`, `salts []`,
@@ -440,7 +455,7 @@ Why: R5, A5.
       `{temp_c, gas_l_mol, residual_vol}` from Table 10.3's rows written as a `values` list (the
       nearest whole °C row; below 5 or above 30 raises); `app.priming_sugar_g(co2_vol numeric,
       temp_c numeric, volume_l numeric) returns numeric` (sucrose, Approach formula);
-      `app.step15_package(targets jsonb, step10 jsonb, step14 jsonb) returns jsonb` → `{co2 {volumes,
+      `app.step15_package(targets jsonb, step10 jsonb, step14 jsonb) returns jsonb` → `{co2 {volumes, basis,
       range, family, from style|default, source}, priming {sugar "table sugar (sucrose)", g,
       g_per_l, temp_c, residual_vol, volume_l, source}, extras [{ingredient_id, name, g}]}`; grams
       rounded to 1 g.
@@ -647,3 +662,12 @@ None.
   billion/L/°P after souring. `test_souring_culture_keeps_one_pack` became `test_souring_culture_pitch`. Brief A7, A8
   and A10 revised (see brief Deviations). The acid line uses HTB's colour-specific mash pH target. Soured
   in the fermenter after the boil, as planned. Nothing else in the plan changed.
+- 2026-10-28 · Approach (step 12 item 4), Tasks 2, 3, 4, 7, Files table: outside review, "apply all three". (1) Alkalinity is
+  dosed from the grist-based pH estimate to the bottom of the colour target, not to the middle of the row's RA
+  range; the row's alkalinity and RA are references (`outside_row` note). New `app.alkalinity_dose`,
+  `app.mash_ph_estimate` takes the colour, tests `test_alkalinity_follows_grist`, `test_alkalinity_soda_then_lime` and
+  `test_row_ranges_are_references` added; the pH model (40 mEq/(pH·kg) buffer) now drives dosing and is unverified
+  against Bru'n Water. (2) `ref.beer_style.water_basis` and `co2_basis` (`listed|inferred|judgement|web`) carry into
+  step 12's `target.basis`/`fallback` and step 15's `co2.basis`; `test_basis_labels` added. (3) `web-honey-beer` dropped:
+  one web row (`web-berliner-weisse`) in `ref.water_profile`; `specialty-honey-beer` gets the no-row defaults and the 2.5
+  volumes default.

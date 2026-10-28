@@ -1,7 +1,7 @@
 # M7 · Doc → calc pass for steps 12–15
 
 Status: **waiting for your review** (second pass, 2026-10-28, after your answers): §4 (style → water row,
-now with two web-sourced rows), §5, §7, §11, §14, and the values marked `unsourced` / `judgement`.
+now with one web-sourced row and basis labels), §5, §7, §11, §14, and the values marked `unsourced` / `judgement`.
 Work: [brief.md](brief.md) · [plan.md](plan.md) (Task 1) · written 2026-10-28 (PROJECT.md §6.7, brief R1, A1)
 
 **Source rule (your standing rule, 2026-10-28).** Where there is an open question of brewing
@@ -30,16 +30,19 @@ All applied below; nothing is open except your review of the tables and values l
 - Q4 → hint positions kept; HTB caps added (§5).
 - Q5 → souring in the fermenter after the boil, as planned (§13).
 - Q6 → `ref.water_salt` baking soda left as stored (§1).
-- Q7 → honey beer CO₂ = HTB American ales 2.2-2.7 (§4b, §14).
+- Q7 → honey beer CO₂ = HTB American ales 2.2-2.7 (§4b, §14) -- **superseded by outside-review change 3 below: `specialty-honey-beer` gets the 2.5 default.**
+- Outside review (your "apply all three", 2026-10-28): (1) alkalinity is dosed from the grist-based pH estimate, not the row's RA (§6, §7); (2) every
+  style → row (and → CO₂ family) mapping carries a basis label `listed` / `inferred` / `judgement` / `web`, stored in `ref` and shown in step 12 and 15 (§4, §14); (3) `web-honey-beer` is dropped: honey
+  beer takes its base style's row, `specialty-honey-beer` itself falls back to the no-row defaults and the 2.5 volumes default (§4b, §14).
 - Earlier: 23A CO₂ = German wheat 3.3-4.5; lager diacetyl rest 6 days, ale 4 days (§11); dry yeast 10 billion/g (§10).
 
 ## 0. The brief's three assumptions
 
 | Assumption (brief) | Result |
 |---|---|
-| *How to Brew*'s 8 style families cover every style once each is mapped to one | **Holds** for the 31 style codes in §14 (every one has a family; seven are judgement calls, marked; of those only 23A's choice changes the volumes, the lager and Kölsch calls give the same range as the alternative). **One exception:** `specialty-honey-beer` (BA, ranges 1.03–1.11 OG, 1–100 IBU, 1–100 SRM) has no family by its ranges; the BA text says it "may be brewed to a traditional style or may be experimental". It gets HTB's American ales family and a web-sourced water row (§4, §14). |
+| *How to Brew*'s 8 style families cover every style once each is mapped to one | **Holds** for the 31 style codes in §14 (every one has a family; seven are judgement calls, marked; of those only 23A's choice changes the volumes, the lager and Kölsch calls give the same range as the alternative). **One exception:** `specialty-honey-beer` (BA, ranges 1.03–1.11 OG, 1–100 IBU, 1–100 SRM) has no family by its ranges; the BA text says it "may be brewed to a traditional style or may be experimental", so it follows its underlying (base) style. It stays out of the table and gets the no-row defaults (no salts) and the 2.5 volumes default (§4b, §14). |
 | A sourced cell count per pack or per gram exists for the yeasts the briefs use *(unverified)* | **Holds generically, not per product.** HTB p. 108 gives about 10 billion viable cells per gram of dry yeast and 100 billion per liquid package (*Yeast* p. 124 and 140: 7–20 billion and 100 billion). `ref.yeast` and the hopline files hold no cell count and no maker's data sheet is in the repo, so §10 uses HTB's generic figures. For a souring culture HTB p. 206 gives a rate (100–200 billion per 19 L), which replaces "no source" (§10). |
-| *Water*'s Tables 18–19 rows can be matched to a recipe from its style, colour and bitterness | **Holds for 30 of the 31 codes** (the 29 that step 4 returns for the briefs, plus 17D and 20C, §4); the 31st, 23A, and `specialty-honey-beer` have web-sourced rows. The row lists name 19 of them; ties and judgement calls are marked in §4. **Exception: 23A Berliner Weisse.** The book says its tables exclude sours (p. 119: "excluding sours and wood aged"), and HTB has no per-style rows (ch. 22: the brew cube numbers are "for frame of reference only"). 23A gets a web-sourced row instead (§4), as does `specialty-honey-beer`. |
+| *Water*'s Tables 18–19 rows can be matched to a recipe from its style, colour and bitterness | **Holds for 30 of the 31 codes** (the 29 that step 4 returns for the briefs, plus 17D and 20C, §4); the 31st, 23A, has a web-sourced row. The row lists name 19 of them; ties and judgement calls are marked in §4. **Exception: 23A Berliner Weisse.** The book says its tables exclude sours (p. 119: "excluding sours and wood aged"), and HTB has no per-style rows (ch. 22: the brew cube numbers are "for frame of reference only"). 23A gets a web-sourced row instead (§4b). |
 
 ## 1. *Water* Table 17 and `ref.water_salt`
 
@@ -137,6 +140,8 @@ How odd cells are stored (the user reviews this with §4):
 | `ale-strong-amber` | 19 | ale · strong · amber · moderate, assertive | [50,100] | [40,120] | [50,100] | [50,150] | [0,60] | no | Strong Scotch Ale, Bière de Garde, Dubbel, Old Ale, Barleywine |
 | `ale-strong-brown-black` | 19 | ale · strong · brown/black · moderate–assertive | [50,75] | [120,200] | [50,150] | [50,150] | [120,200] | no | Baltic Porter, Foreign Extra Stout, American Stout, Russian Imperial Stout, Weizenbock, Belgian Dark Strong, Old Ale |
 
+**Alkalinity and RA columns are references only (outside review, 2026-10-28).** They are reported in step 12 as an `outside_row` note when the recipe's water falls outside them; they are never dosing targets. Alkalinity is dosed from the grist (§6, §7), on HTB p. 350 and p. 363 (brew cube numbers "for frame of reference only—do not use them as targets").
+
 **Source note.** HTB has no per-style rows: ch. 22 (p. 363) says the brew cube numbers are "for frame of reference only—do not use them as targets for specific styles". These 16 rows therefore stay from *Water*, the only source HTB does not cover. Where HTB gives general limits (Table 8.1, p. 134; seasoning guidelines, p. 135) they cap the aims (§6).
 
 Other book facts the code uses (p. 119–120): no sodium or magnesium range is given; sodium
@@ -191,18 +196,29 @@ for h06; both are mapped.
 | mexican-style-amber-lager (BA) | 48.5 · 11 · 18.5 | `lager-medium-amber` | bands (medium / amber / soft); Vienna-like |
 | 8B Schwarzbier | 49 · 24.5 · 27.5 | `lager-medium-brown-black` | listed |
 | 23A Berliner Weisse | 30 · 2.5 · 5.5 | `web-berliner-weisse` | not in *Water* (sours excluded, p. 119) or HTB; web-sourced row, §4b |
-| specialty-honey-beer (BA) | 70 · 50 · 50 | `web-honey-beer` | ranges too wide for a band (1.03–1.11 OG, 1–100 SRM and IBU); no honey profile in any book; web-sourced row, §4b. Only b12's alternative list names it; step 4 returns 18A |
+| specialty-honey-beer (BA) | 70 · 50 · 50 | *(no row)* | ranges too wide for a band (1.03–1.11 OG, 1–100 SRM and IBU), and the BA text says honey beer follows its underlying style. A honey beer in a brief reaches step 12 as its base style (b12: 31B → 18A, measured); the style itself falls back to the no-row defaults (decision Q1) |
 
 Every other `ref.beer_style` code (254 of 285, `specialty-honey-beer` among them) gets no row and no `co2_vol`
-(decision Q1) -- except the two web-sourced rows below.
+(decision Q1) -- except 23A, whose web-sourced row is below.
 
-### 4b. Two web-sourced rows (23A and `specialty-honey-beer`) -- for your review
+**Basis labels (outside review, 2026-10-28).** Every mapping carries one, stored in `ref.beer_style.water_basis` and carried into step 12's output (`target.basis`, and `target.fallback` = true unless the
+basis is `listed`), so a recipe says when its row is a fallback. `listed` = the book's row names the style; `inferred` = read from the bands; `judgement` = a tie or call (the ones I marked above, as you
+listed them); `web` = the web-sourced row.
 
-HTB and *Water* have no Berliner Weisse or honey beer row (*Water* excludes sours, p. 119). You asked for web research. Stored as extra rows
-in `ref.water_profile` with `table_no = 'web'`, `basis = 'web'`, and their own `ref.source` rows (the URLs are in
-[`SOURCES.md`](../../SOURCES.md)); they are not Table 18/19 rows and the tests that count the book's 16 rows count only `table_no in ('18','19')`.
+| Basis | Styles |
+|---|---|
+| `listed` | 21A, 18B, 16B, 16A, 20B, 20C, 19C, 10A, 1C, 5B, 11B, 14B, 26B, 25A, 17C, 17D, 22C, 1B, 3B, 5D, 6A, 8B |
+| `inferred` | mexican-style-amber-lager |
+| `judgement` | 21C, session-india-pale-ale, 13C, 18A, 25B, 15B, 15A |
+| `web` | 23A |
+
+### 4b. One web-sourced row (23A) and the honey beer research that was dropped -- for your review
+
+HTB and *Water* have no Berliner Weisse row (*Water* excludes sours, p. 119). You asked for web research. Stored as an extra row
+in `ref.water_profile` with `table_no = 'web'`, `basis = 'web'`, and its own `ref.source` row (the URLs are in
+[`SOURCES.md`](../../SOURCES.md)); it is not a Table 18/19 row and the tests that count the book's 16 rows count only `table_no in ('18','19')`.
 Answer to your question "general row or a dedicated row per style": the table is keyed per style *group* (16 groups cover
-30 styles); a style gets its own row only when no group fits, as these two. Not decided here (the orchestrator answers
+30 styles); a style gets its own row only when no group fits, as 23A. Not decided here (the orchestrator answers
 that in chat).
 
 **23A Berliner Weisse -- `web-berliner-weisse`.** What the sources say (fetched 2026-10-28; none is a book):
@@ -225,7 +241,7 @@ speaks: Ca minimum 50 (Table 8.1, p. 134); "soft" structure Ca 50-100 (brew cube
 Mid aims: SO₄ 40, Cl 50 (ratio 0.8:1, "balanced"). With Ca at the HTB minimum, gypsum 40 and calcium chloride 50 give Ca 45, so
 calcium is raised to 50 as in §6. b14 gets this row; it is `unverified` against any brewery source.
 
-**`specialty-honey-beer` -- `web-honey-beer`.** Your figures, checked:
+**`specialty-honey-beer` -- researched and dropped (outside review, 2026-10-28).** Your figures, checked (kept as a record):
 
 | Your figure | Check | Verdict |
 |---|---|---|
@@ -239,15 +255,10 @@ calcium is raised to 50 as in §6. b14 gets this row; it is `unverified` against
 | why (yeast health, flocculation; crisp finish to cut sweetness; roundness after honey ferments out) | HTB p. 133-134 on Ca, sulfate, chloride | holds as flavour/process reasoning; I found **no source for a honey-specific water profile**: web search returned blonde-ale guidance (Newman; The Electric Brewery: Ca 50, Mg 10, Na 16, Cl 70, SO₄ 70, a balanced blonde) and one homebrewtalk thread (not fetched, HTTP 403; snippet only) |
 | origin of your figures | not traceable | the BA text says honey beer "may be brewed to a traditional style or may be experimental" -- a honey beer's water should follow the underlying style; this row is only the fallback |
 
-Proposed row (user-supplied, corroborated by HTB's general ranges and the blonde-ale guidance):
-
-| Code | Table | Ca | Alkalinity | SO₄ | Cl | RA | Acidify | Basis |
-|---|---|---|---|---|---|---|---|---|
-| `web-honey-beer` | web · no type/colour/bitterness | [50,100] | none | [60,90] | [50,60] | none | -- | user-supplied figures, checked against HTB Table 8.1 and Newman |
-
-No alkalinity or RA target is stored (nothing sourced), so nothing but gypsum and calcium chloride is dosed and the mash pH target
-is the general 5.2-5.6. Mg and Na ranges are not stored (no Mg salt; sodium only comes from bicarbonate, capped at 100 mg/L by §6).
-CO₂ family: `american-ales` (HTB, 2.2-2.7; your decision).
+**Why no `web-honey-beer` row:** no honey-specific source exists (web search found only blonde-ale guidance and one forum thread), and the BA text says honey beer "may be brewed to a traditional style"
+-- it follows its underlying style. The pipeline already classifies to the base style (b12: 31B → 18A, measured), so a honey beer's water comes from that style's row. `specialty-honey-beer` itself,
+if it ever reaches step 12, gets the no-row defaults (decision Q1: no salts, pH estimate of the source water). CO₂: the 2.5 volumes default (§14): HTB's American ales family would assume one underlying
+style, which the BA text says is not so. The check above stays here as a record of what was verified.
 
 ## 5. Hints → aim
 
@@ -310,17 +321,25 @@ row: sulfate 400, chloride 150, aims at 87.5 % stay below 500 together).
   soluble). HTB Table 21.2 (p. 344) lists chalk as "does not raise mash pH effectively". Slaked lime's alkalinity is counted at its Kolbach ΔRA (19.28 mEq/L per g/L), the
   form the Foreign Extra Stout example uses (p. 130–132 / PDF 148–150), and the form *Water*
   confirms for additions to the water (ch. 6, p. 105–106 / PDF 123–124).
-- **Alkalinity only in the strike water.** Not a book rule; it follows from the book's
+- **Alkalinity only in the strike water.** (Where it goes; how much is above.) Not a book rule; it follows from the book's
   mash-pH frame (the alkalinity must be in the mash) and from Bru'n §4.3.1 on the mash being the
   place alkalinity matters. Sparge water takes the same gypsum and calcium chloride per litre
   (flavour ions are for the whole beer) and no alkalinity (the book warns about sparge water
   alkalinity raising pH and extracting tannin, Table 18/19 "Acidify" note, p. 120). Marked
   **judgement**; the reason is in the step's `because`.
-- **How much alkalinity.** When RA is below the row's range (dark rows on distilled water), add
-  alkalinity to the strike water, aimed at the **middle of the RA range**: baking soda while the
-  resulting sodium is ≤ 100 mg/L, slaked lime for the rest. RA needed = middle − current RA in mEq/L,
-  ÷ (11.90 − 0 for baking soda: only the HCO₃ term, calcium unchanged; ÷ 19.28 for lime).
-  Above the range nothing is added and the acid line says acid would be needed (§7).
+- **How much alkalinity -- from the grist, not the row (outside review, 2026-10-28).** Alkalinity (baking soda while the resulting sodium stays ≤ 100 mg/L, then slaked lime) goes into the **strike
+  water only**, and only until the §7 mash pH estimate reaches the **bottom of the colour target** (pale 5.2-5.4, amber 5.3-5.5, dark 5.4-5.6; 5.2-5.6 without a row). With
+  Σ_malt = Σ kg × alk_i, K = 40 × grist kg, V = strike litres and RA₀ = the RA of the strike water with its flavour salts (mEq/L):
+
+      RA needed (mEq/L) = ((target_low − 5.4) × K − Σ_malt) / V        ΔRA = RA needed − RA₀          (dose only when ΔRA > 0)
+      baking soda g/L = ΔRA / 11.90 (HCO₃ alkalinity; no hardness effect), capped so Na ≤ 100 mg/L; the rest as lime g/L = ΔRA₍rest₎ / 19.28.
+
+  When the estimate is already at or above the bottom of the target nothing is added; above the top, the acid line says acid would be needed (§7). The row's alkalinity and RA ranges are
+  **reported references only**: step 12 adds an `outside_row` note when the recipe's water is outside them, never dosing to them. Basis: HTB p. 350 (the zero-sum method) and p. 363 ("for frame of
+  reference only—do not use them as targets"). **The pH model, with its judgement buffer of 40 mEq/(pH·kg) (§7), now drives dosing and is still unverified against Bru'n Water (§16).**
+  Worked example (computed): 4.0 kg Pilsen malt, 1.0 kg caramel 60L, 1.0 kg roast (Σ_malt = −49.58 mEq, K = 240), 18 L strike water, no ions, dark target low 5.4: RA needed = 49.58 / 18 =
+  **2.754 mEq/L**, baking soda 2.754 / 11.903 = **0.2314 g/L** (Na 63.3 mg/L ≤ 100) in the strike water, 4.2 g in all; the estimate then reads 5.400. A pale 4 kg Pilsen grist (§7) needs none (5.57 is above the
+  pale target). `test_alkalinity_follows_grist` checks both; the Foreign Extra Stout lime figure (0.087 g/L for ΔRA 1.68) stays as the unit test of the lime arithmetic.
 
 **The three worked examples** (book, computed):
 
@@ -369,7 +388,7 @@ ingredient's `ebc` range (no lower end: its upper end).
   Flaked and unmalted adjuncts count as base (Bru'n §2.4 "Grain Acidity": "Flaked malt and grain should be considered base malts"; HTB is silent).
 - `role` roast: **one class, −42.98 mEq/kg** (mean of the five roast rows: the stored roast colours, 450-760 °L, sit beyond Table 21.4's 292-514 °L rows and do not separate them).
 - `role` sugar is not mashed and is skipped.
-Not covered by Table 21.4: acidulated malt (treated like its nearest row, so the estimate is too high: the safe side for the acid line) and smoked/Sprau malts (same).
+This estimate now also drives the alkalinity dose (§6). Not covered by Table 21.4: acidulated malt (treated like its nearest row, so the estimate is too high: the safe side for the acid line) and smoked/Sprau malts (same).
 
 **Targets** (HTB p. 341: "the commonly agreed target range for mash pH is 5.2-5.6, as measured at room temperature"; p. 365: pale 5.2-5.4, amber 5.3-5.5, dark 5.4-5.6, "general
 guidelines"). The acid line compares the estimate with the target of the water row's colour (pale / amber / brown-black); a style with no row: 5.2-5.6. Question 3.
@@ -596,11 +615,20 @@ the family's range; step 15 takes its midpoint).
 | 5B Kölsch | `european-lagers` | **judgement:** German, lagered; same range as American ales |
 | 10A Weissbier | `german-wheat` | named |
 | 23A Berliner Weisse | `german-wheat` | **your answer (2026-10-28):** German wheat 3.3-4.5 volumes (the book names neither Berliner Weisse nor sours but lambic) |
-| specialty-honey-beer | `american-ales` | **your decision:** HTB's family for American pale-ale-like beers, 2.2-2.7 (2.5 is HTB's "medium" figure, p. 155); your 2.5-2.8 is not in HTB |
+| specialty-honey-beer | *(no family)* | **outside review:** no single underlying style (BA text), so the 2.5 default of the next paragraph, `from: default` |
 
-Checked: every style above maps to exactly one family (31 codes plus specialty-honey-beer).
+Checked: every style above maps to exactly one family (31 codes); specialty-honey-beer has none.
 
-**Default** (decision Q1): a style with no `co2_vol` gets **2.5 volumes**, from HTB p. 155 / PDF 181:
+**Basis labels** (stored in `ref.beer_style.co2_basis`, shown in step 15's `co2.basis`): `listed` = the family names the style or its class ("Porter and stout", "German wheat beer"); `inferred` = by
+region or type; `judgement` = the calls marked above (15A, 25B, 1B, mexican amber lager, 5B, 23A).
+
+| Basis | Styles |
+|---|---|
+| `listed` | 16B, 16A, 20B, 15B, 20C, 13C, 10A |
+| `inferred` | 21A, 21C, session-india-pale-ale, 18B, 18A, 19C, 1C, 22C, 11B, 14B, 17C, 17D, 26B, 25A, 5D, 3B, 6A, 8B |
+| `judgement` | 15A, 25B, 1B, mexican-style-amber-lager, 5B, 23A |
+
+**Default** (decision Q1): a style with no `co2_vol` (specialty-honey-beer among them) gets **2.5 volumes**, from HTB p. 155 / PDF 181:
 "medium carbonation seems to work pretty well for everything"; "¾ cup of corn sugar for a 5 gal.
 (19 L) batch... will produce about 2.5 volumes of CO₂... pretty typical of most American and
 European pale ales". `from: default`.
@@ -729,3 +757,5 @@ Your rule: HTB is the only source of truth for brewing methodology where it cove
 Already HTB, unchanged: priming and CO₂ (ch. 10), 8 CO₂ families, strike equation and ratio (ch. 17), rests (ch. 16-17), mash-out, saccharification time (Table 17.1), lagering (p. 174).
 **Not covered by HTB, so the other source stays:** the 16 style → water rows (*Water* Tables 18/19; HTB p. 363 refuses per-style targets), the 87.5 / 12.5 hint positions (your decision), flaked grain acidity (Bru'n),
 the 14 °C dry hop point (Janish), kveik schedules (none), the web rows (§4b), and `ref.water_salt` (HTB's 710.5 vs the stored 726.3 left as it is, your decision).
+
+**Outside review (2026-10-28), not HTB switches:** alkalinity dosing now follows the grist (§6); basis labels on both mappings (§4, §14); `web-honey-beer` dropped (§4b).
