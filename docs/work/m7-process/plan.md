@@ -1,6 +1,6 @@
 # M7 · Steps 12–15: water, mash and boil, fermentation, packaging — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: m7-process
 
@@ -37,7 +37,8 @@ Branch: m7-process
   3. Gypsum for sulfate and calcium chloride for chloride, each `(aim − source) / ion mg per g/L`
      from `ref.water_salt`, never below 0. If calcium is then below the row's minimum, both salts
      rise in their proportion until it is reached or sulfate or chloride hits its maximum (then
-     "calcium below the row" is said). No magnesium salt (*Water* ch. 7: the tables give no Mg,
+     "calcium below the row" is said). Calcium above the row's maximum, which the sulfate and
+     chloride aims can cause, is reported in the output and not corrected. No magnesium salt (*Water* ch. 7: the tables give no Mg,
      the malt supplies it).
   4. Residual alkalinity (Kolbach, *Water* ch. 4: RA = alkalinity − Ca/1.4 − Mg/1.7, ppm as
      CaCO₃). When it is below the row's RA range (dark rows on distilled water), alkalinity is added
@@ -52,8 +53,9 @@ Branch: m7-process
      "The Hypothesis for Predicting Mash pH", Table 9; not the full titration curves, brief Out):
      pH = 5.4 + Σ mEq / Σ buffer, where each mashed fermentable adds kg × its class's alkalinity
      (+) or acidity (−) re pH 5.4 and kg × its class's buffer capacity, and the strike water adds
-     litres × RA in mEq/L. The classes (base, Munich, caramel by colour, roast, black, flaked) and
-     their figures come from Table 9 by `role` and EBC; `doc-calc.md` lists them.
+     litres × RA in mEq/L. The classes (base, Munich, four caramel classes by colour, one roast class;
+     flaked and unmalted adjuncts count as base, Bru'n Water) and their figures come from Table 9 by
+     `role` and EBC; `doc-calc.md` §7 lists them.
   7. Acid line (decision 2): the estimate against *Water*'s target range 5.2–5.6 (ch. 7 golden
      rule 4). Above 5.6 → `acid.needed` true with "acid would be needed to bring the mash from
      5.xx into 5.2–5.6", plus the row's "Acidify" flag. No acid amount anywhere (A10).
@@ -67,8 +69,8 @@ Branch: m7-process
   addition schedule lists every boil and whirlpool hop and every mash, boil and whirlpool extra of
   step 10, in time order (largest boil minute first, then whirlpool). Dry hops and fermentation
   extras go to step 14, packaging extras to step 15. The strike water temperature comes from
-  *How to Brew* ch. 17's single infusion equation, Tw = (0.41 ÷ r)(T₂ − T₁) + T₂ in its metric
-  form (r = `ratio_l_kg`, T₂ = the first mash step's temperature, T₁ = the grain temperature
+  *How to Brew* ch. 17's single infusion equation, Tw = (0.4 ÷ (0.985 × r))(T₂ − T₁) + T₂ in its
+  metric form (r = `ratio_l_kg`, T₂ = the first mash step's temperature, T₁ = the grain temperature
   `doc-calc.md` §8 fixes; decision Q2, brief R3 as revised 2026-10-28).
 - **Step 14 fermentation** (R4): the main temperature is step 6's `ferm_c`, raised to at least
   the yeast range's lower bound + 1 °C so the start can sit 1–2 °C below it inside the range. The
@@ -187,7 +189,7 @@ are already there; add b03, b05, b13 where a task needs them).
 ### Task 1: the doc → calc pass is written up (gate)
 Why: R1, A1; brief Assumptions (8 families cover the styles, a cell count exists, Table 18–19
 rows match the styles).
-- [ ] Read and write `docs/work/m7-process/doc-calc.md`, one numbered section per item, each with
+- [x] Read and write `docs/work/m7-process/doc-calc.md`, one numbered section per item, each with
       book, chapter, printed page and PDF page (HTB printed + 26 = PDF, `docs/BOOKS.md`), the
       formula or table, the worked example if the book has one, and what it becomes (function or
       `ref` column, test name). Use `pdftotext -layout` into the scratchpad; quote no more than a
@@ -241,9 +243,9 @@ rows match the styles).
       16. Bru'n Water 1.25: oracle only; whether you supply a mash-pH figure for one case (Task 3).
       17. What is not used and why (titration curves, Z alkalinity without a water pH, acid
           tables, kegging tables, starters).
-- [ ] Check the brief's three assumptions against what you found and write the result at the top
+- [x] Check the brief's three assumptions against what you found and write the result at the top
       of `doc-calc.md` (each: holds, or how it does not).
-- [ ] PROJECT.md §8 entry. Hand back `needs-approval`: sections 4, 5, 11 and 14 (the reviewed
+- [x] PROJECT.md §8 entry. Hand back `needs-approval`: sections 4, 5, 11 and 14 (the reviewed
       tables and the unsourced values) for your review, with any assumption that failed as a
       question. Do not start Task 2 before the answer.
 Done when: every item steps 12–15 use is in `doc-calc.md` with a page, and you approved the
@@ -311,8 +313,8 @@ Why: R1, R2, A3, A10 (the estimate), A12 (volumes).
       a note); `test_calcium_brought_to_minimum`; `test_alkalinity_only_in_strike`
       (a brown/black ale row on distilled water: baking soda and lime only in `strike_g`, Na ≤ 100);
       `test_pale_grist_needs_acid` (A10: the §7 hand-worked case: estimate within 0.02 of
-      `doc-calc.md`'s figure and above 5.6); `test_dark_grist_on_distilled_is_low` (b05-style roast
-      grist without alkalinity: estimate below 5.4); `test_ph_terms_add_up` (Σ meq / Σ buffer
+      `doc-calc.md`'s figure and above 5.6); `test_dark_grist_on_distilled_is_low` (the doc-calc §7 dark
+      grist, 4 kg base, 1 kg caramel-60, 1 kg roast, no alkalinity: 5.37, below 5.4); `test_ph_terms_add_up` (Σ meq / Σ buffer
       reproduces `ph`).
 - [ ] Optional, needs you: if you enter b08's grist and its step 12 waters into Bru'n Water 1.25
       and send its mash pH, add `test_brunwater_oracle` (± 0.15) and note it in `doc-calc.md` §16;
@@ -612,6 +614,15 @@ Answered by you in chat, 2026-10-28:
 None.
 
 ## Deviations
+- 2026-10-28 · Task 1 (Approach step 12 items 3 and 6, step 13 strike, Task 3 test): the doc → calc pass
+  changed four details, none of scope — (a) calcium above the row maximum is reported, not
+  corrected (the sulfate and chloride aims bring calcium with them, doc-calc §6); (b) the mash pH
+  classes are base (flaked and unmalted adjuncts count as base, Bru'n Water §2.4), munich, four
+  caramel classes and one roast class, because the stored roast colours do not separate Table 9's
+  300 and 500 °L rows (doc-calc §7); (c) the strike equation uses the book's exact constant
+  0.4 ÷ (0.985 × r), not the rounded 0.41 (73.23 vs 73.29 °C at 3 L/kg, doc-calc §8); (d) the b05-style
+  80/10/10 grist gives 5.47 (not below 5.4), so `test_dark_grist_on_distilled_is_low` uses the
+  4 kg base / 1 kg caramel-60 / 1 kg roast grist (5.37).
 - 2026-10-28 · Approach, Files, Tasks 1, 5, 6, 8, 11, 12, Open questions → Decisions: Q1 (no
   water row and 2.5 CO₂ volumes for unmapped styles), Q2 (strike water temperature added to
   step 13 as `app.strike_temp`, Task 5 bullet unconditional, two tests) and Q3 (souring culture
