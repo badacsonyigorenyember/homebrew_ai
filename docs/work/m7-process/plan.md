@@ -282,7 +282,7 @@ Commit: `Load water rows and CO2 volumes into ref`
 
 ### Task 3: water maths as tested code
 Why: R1, R2, A3, A10 (the estimate), A12 (volumes).
-- [ ] `db/050_water.sql` (needs 030, 049), each function immutable or stable, raising on bad
+- [x] `db/050_water.sql` (needs 030, 049), each function immutable or stable, raising on bad
       input:
       - `app.salt_ions(salts jsonb, volume_l numeric) returns jsonb`: salts `[{ingredient_id, g}]`
         → mg/L of each ion `ref.water_salt` lists, summed (`{ca, mg, na, so4, cl, hco3, oh, co3}`).
@@ -306,8 +306,8 @@ Why: R1, R2, A3, A10 (the estimate), A12 (volumes).
       - `app.mash_ph_estimate(grist jsonb, strike_ions jsonb, strike_l numeric, colour text) returns jsonb` →
         `{ph, target_low, target_high, terms [{what, meq, buffer}], because}` (the target comes from the
         row's colour, item 7; `colour` is a fourth argument, null for 5.2–5.6).
-- [ ] Apply twice; owners `postgres`.
-- [ ] Write `tests/test_water.py` (stack), each seen failing first:
+- [x] Apply twice; owners `postgres`.
+- [x] Write `tests/test_water.py` (stack), each seen failing first:
       `test_pilsner_example` (A3: calcium chloride for 30 ppm Ca in 37.854 L → 4.17 g ± 0.02, and
       4.2 g gives Cl 53.5 ± 0.2; *Water* ch. 7); `test_pale_ale_option_1` (RA 44 ± 1 at Ca 101,
       9 ± 1 at 150 for the book's water); `test_foreign_extra_stout_lime` (0.087 ± 0.002 g/L
@@ -328,12 +328,12 @@ Why: R1, R2, A3, A10 (the estimate), A12 (volumes).
       `doc-calc.md`'s 5.573 and above the pale target's 5.4); `test_dark_grist_on_distilled_is_low` (b05-style roast
       grist without alkalinity: estimate below 5.4; doc-calc §7: 5.30); `test_ph_terms_add_up` (Σ meq / Σ buffer
       reproduces `ph`).
-- [ ] Optional, needs you: if you enter b08's grist and its step 12 waters into Bru'n Water 1.25
+- [x] (not done, no figure came; §16 says the estimate is unverified against Bru'n Water) Optional, needs you: if you enter b08's grist and its step 12 waters into Bru'n Water 1.25
       and send its mash pH, add `test_brunwater_oracle` (± 0.15) and note it in `doc-calc.md` §16;
       otherwise §16 says the estimate is checked only against the book's figures *(unverified
       against Bru'n Water)*. Do not wait for it.
-- [ ] Run `.venv/bin/pytest tests/test_water.py tests/test_maths.py`, expect all pass.
-- [ ] `docs/DATABASE.md` §5 (functions of `db/050`). PROJECT.md §8.
+- [x] Run `.venv/bin/pytest tests/test_water.py tests/test_maths.py`, expect all pass.
+- [x] `docs/DATABASE.md` §5 (functions of `db/050`). PROJECT.md §8.
 Done when: the three worked examples and A10's case pass.
 Commit: `Add water maths from the Water book`
 
@@ -671,3 +671,4 @@ None.
   step 12's `target.basis`/`fallback` and step 15's `co2.basis`; `test_basis_labels` added. (3) `web-honey-beer` dropped:
   one web row (`web-berliner-weisse`) in `ref.water_profile`; `specialty-honey-beer` gets the no-row defaults and the 2.5
   volumes default.
+- 2026-10-28 · Task 3: three small helpers were added to `db/050_water.sql` besides the listed functions, and two parameters renamed — `app.add_ions` (adds two waters' ions), `app.mashed_grist(step10)` (the non-sugar fermentables with role and middle EBC, used by `app.water_volumes` and later by step 12) and `app.outside_row(ions, row_code)` (the `outside_row:` notes, reused by step 12 for the final waters); `row` became `row_code` (a reserved word). `app.water_aim` also returns `ca` (the row's floor) and the row's alkalinity and RA as `{low, high}` references; `app.alkalinity_dose` returns `ra_needed_meq_l` as the RA still to add. The grist for `app.mash_ph_estimate` and `app.alkalinity_dose` is `[{name, kg, role, ebc}]`, not ingredient ids, so tests can give a grist directly. Implementation details, no scope change. `test_brunwater_oracle` not added (no figure).

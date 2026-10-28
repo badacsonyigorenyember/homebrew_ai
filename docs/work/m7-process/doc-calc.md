@@ -707,12 +707,13 @@ but Irish Stout maps to the light dark row (§4); recorded here so the disagreem
 
 ## 16. Bru'n Water 1.25
 
-Oracle only (`water/brunwater_1.25.xlsx`; © all rights reserved, formulas not copied). I have not
-opened the spreadsheet or entered a case: **the mash-pH estimate is unverified against Bru'n
-Water.** If you enter the §7 hand case (4.0 kg Pilsner malt, 12 L, Ca 52.8, SO₄ 25, Cl 75, alkalinity
-0) and send me its mash pH, Task 3 adds `test_brunwater_oracle` (± 0.15). The plan says do not wait
-for it. Bru'n Water *Water Knowledge* (web) is used as a source only for the points named in §5,
-§6 and §7.
+Oracle only (`water/brunwater_1.25.xlsx`; © all rights reserved, formulas not copied). The spreadsheet
+was not opened and no case was entered, so **the mash-pH estimate is checked only against the book's
+figures (the §7 hand cases, `test_pale_grist_needs_acid`, `test_dark_grist_on_distilled_is_low`) and is
+unverified against Bru'n Water**; no `test_brunwater_oracle` was added (Task 3 did not wait for it). If you
+enter the §7 hand case (4.0 kg Pilsner malt, 12 L, Ca 52.8, SO₄ 25, Cl 75, alkalinity 0) and send its mash pH,
+the test can be added later (± 0.15). Bru'n Water *Water Knowledge* (web) is used as a source only for the
+points named in §5, §6 and §7.
 
 ## 17. Not used
 
