@@ -78,7 +78,9 @@ Branch: m7-process
   step 6's `ferm_c`, raised to at least the yeast range's lower bound + 1 °C. Ale start 1–2 °C
   below it (HTB p. 90), lager start at it (HTB p. 174). Maturation rest from HTB Table 6.2: ales
   raise 3 °C for at least 4 days, lagers raise 8 °C (capped at the yeast's upper bound, so A4 holds
-  for every lager yeast in `ref`) for at least 6 days; then dry hops (HTB p. 72: 3 days, 14 °C), and
+  for every lager yeast in `ref`) for at least 6 days. The days are minimums: each step carries
+  `move_on` text with HTB's trigger (the rest starts when gravity is within 2-5 points of FG, Table 6.2;
+  souring ends at about pH 3.5, p. 211); then dry hops (HTB p. 72: 3 days, 14 °C), and
   cold conditioning (ales: 5–8 °C below the fermentation temperature, a week) or lagering (lagers:
   2 °C, 14 days). Secondary extras: day and contact time from their `ref.misc` row (`time_min`; none →
   "until it tastes right", `unknown`). A souring culture (b14): pre-souring in the fermenter after
@@ -89,7 +91,8 @@ Branch: m7-process
 - **Pitch rate** (*How to Brew* ch. 7): cells = rate × wort litres × °P, rate 1.5 billion/L/°P for lager
   yeasts and 0.75 for the rest (fresh yeast), wort = the batch volume, °P = `app.sg_to_plato(og)`. Dry
   yeast: grams = cells ÷ 10 billion viable cells per gram (HTB p. 108), rounded up to 1 g; liquid:
-  packs = cells ÷ 100 billion, rounded up. This replaces step 10's `1 pack` in the saved yeast rows
+  packs = cells ÷ 100 billion, rounded up. These generic HTB cell counts (10 billion per gram, 100 billion per pack, the 150 billion
+  souring midpoint) are labelled estimates, not the maker's spec, in the yeast line's `because`. This replaces step 10's `1 pack` in the saved yeast rows
   (A7). The souring culture (`type = 'lacto'`) is pitched at HTB p. 206's rate, 150 billion cells per
   19 L scaled to the batch, in 100-billion packs, and the main yeast then uses 1.0 billion/L/°P (HTB
   p. 212); decision Q3 as revised 2026-10-28.
@@ -409,25 +412,25 @@ Commit: `Add mash steps and boil schedule in step 13`
 
 ### Task 6: step 14 plans the fermentation and the pitch
 Why: R4, A4, A7 (amounts), A8.
-- [ ] `db/052_ferment.sql` (needs 030, 051): `app.pitch_rate(yeast_id bigint, og numeric,
-      volume_l numeric) returns jsonb` → `{rate_m_per_ml_p, plato, cells_billion, amount, unit
-      g|pack, because}` (Approach; a souring culture, `ref.yeast.type = 'lacto'`, and any yeast
+- [x] `db/052_ferment.sql` (needs 030, 051): `app.pitch_rate(yeast_id bigint, og numeric,
+      volume_l numeric, after_souring boolean default false) returns jsonb` → `{rate_m_per_ml_p, plato, cells_billion, amount, unit
+      g|pack, because}` (Approach; the `because` of every computed amount says the cell counts per gram and per pack are HTB's generic figures, not the maker's spec; a souring culture, `ref.yeast.type = 'lacto'`, and any yeast
       whose amount cannot be computed give `cells_billion` null, `amount` 1, `unit` pack and
       `because` "no sourced pitch rate"; a souring culture gets HTB p. 206's rate, 150 billion cells
       per 19 L scaled to the batch, ⌈cells ÷ 100⌉ packs, and the main yeast 1.0 billion/L/°P
       after souring (p. 212), decision Q3 as revised 2026-10-28). `app.ferment_schedule(main
-      jsonb, souring jsonb, ferm_c numeric) returns jsonb` → `[{phase souring|ferment|rest|dry_hop|
-      crash|lager, yeast_id, temp_c, days, why, source}]` (Approach; constants from
+      jsonb, souring jsonb, ferm_c numeric, dry_hop boolean default false) returns jsonb` → `[{phase souring|ferment|rest|dry_hop|
+      crash|lager, yeast_id, temp_c, days (the minimum), why, source, move_on (HTB's trigger text or null)}]` (Approach; constants from
       `doc-calc.md` §11 and §13). `app.step14_ferment(targets jsonb, step10 jsonb) returns jsonb` →
       `{steps, pitch [{ingredient_id, name, role, …pitch_rate}], dry_hops [{day, temp_c,
-      contact_days, hops [{ingredient_id, name, g}]}], secondary [{day, ingredient_id, name, g,
+      contact_days, hops [{ingredient_id, name, g}]}], secondary [{usage, day, ingredient_id, name, g,
       contact_days}], max_temp_c, values_used}`; `max_temp_c` is the highest `temp_c` of the
-      souring, ferment and rest steps (what step 15 reads).
-- [ ] Contracts `step14.input` = `{run_id, targets, step10}`, `step14.output`;
+      ferment and rest steps (what step 15 reads; the souring step is left out, see Deviations).
+- [x] Contracts `step14.input` = `{run_id, targets, step10}`, `step14.output`;
       `ABSENT_SLOTS["step14.output"] = [("pitch.cells_billion", "null"), ("dry_hops", "array"),
       ("secondary.contact_days", "null")]`.
-- [ ] Apply twice; owners `postgres`.
-- [ ] Write `tests/test_ferment.py` (stack), each seen failing first:
+- [x] Apply twice; owners `postgres`.
+- [x] Write `tests/test_ferment.py` (stack), each seen failing first:
       `test_yeast_book_example` (A8: ale, 20 L, 12 °P → 180 billion cells; a lager at the same wort
       → 360); `test_dry_yeast_in_grams` (US-05 b01: grams = ⌈cells ÷ §10's figure⌉, unit g);
       `test_liquid_yeast_in_packs` (a liquid ale: ⌈cells ÷ 100⌉ packs); `test_every_ferment_temp_in_range`
@@ -436,15 +439,18 @@ Why: R4, A4, A7 (amounts), A8.
       yeast's `temp_c`); `test_every_lager_has_diacetyl_rest` (A4: every lager row);
       `test_ramp_shape` (start < main ≤ end raise, start inside the range; b03's S-04 at step 6's
       15 °C starts at 15 and holds at 16 or above); `test_b13_weizen_schedule`;
-      `test_b14_souring_first` (souring step with YF-998 inside 15–35 °C and HTB's 32–46 °C band, before
+      `test_gravity_trigger_on_the_rest` (the rest and the ferment hold before it carry `move_on` text with
+      "at least" and "2-5 points of FG", HTB Table 6.2); `test_pitch_is_labelled_as_an_estimate` (every
+      pitch `because` says "generic" and "not the maker's spec": dry, liquid, culture, main after souring);
+      `test_no_sourced_rate_is_one_pack`; `test_b14_souring_first` (souring step with YF-998 inside 15–35 °C and HTB's 32–46 °C band, before
       the main yeast's first step); `test_souring_culture_pitch` (b14: YF-998 pitch
-      150 × L ÷ 19 billion cells, 2 packs for 20 L; the main yeast's rate 1.0); `test_dry_hop_after_fermentation` (b02: day after the last
+      150 × L ÷ 19 billion cells, 2 packs for 20 L; the main yeast's rate 1.0); `test_dry_hop_after_fermentation` (b02 with synthetic dry hops added to step 10: day after the last
       ferment step, Janish temperature and contact days, grams equal step 10's);
-      `test_secondary_extras` (b23: coffee 60 g, contact 2 days from `time_min` 2880; vanilla
-      `contact_days` null); `test_max_temp` (b08: equals its diacetyl rest temperature);
+      `test_secondary_extras` (b23 with a synthetic step 10 holding coffee beans 60 g, contact 2 days from `time_min` 2880; vanilla
+      `contact_days` null); `test_max_temp` (b08: equals its diacetyl rest temperature; b14's souring 35 °C does not count);
       `test_step14_meets_contract`.
-- [ ] Run `.venv/bin/pytest tests/test_ferment.py tests/test_contracts.py`, expect all pass.
-- [ ] `docs/DATABASE.md` §5. PROJECT.md §8.
+- [x] Run `.venv/bin/pytest tests/test_ferment.py tests/test_contracts.py`, expect all pass.
+- [x] `docs/DATABASE.md` §5. PROJECT.md §8.
 Done when: every yeast in `ref` gets a schedule inside its range, lagers rest, and the book's
 pitch example reproduces.
 Commit: `Plan fermentation and pitch rate in step 14`
@@ -674,3 +680,5 @@ None.
   volumes default.
 - 2026-10-28 · Task 3: three small helpers were added to `db/050_water.sql` besides the listed functions, and two parameters renamed — `app.add_ions` (adds two waters' ions), `app.mashed_grist(step10)` (the non-sugar fermentables with role and middle EBC, used by `app.water_volumes` and later by step 12) and `app.outside_row(ions, row_code)` (the `outside_row:` notes, reused by step 12 for the final waters); `row` became `row_code` (a reserved word). `app.water_aim` also returns `ca` (the row's floor) and the row's alkalinity and RA as `{low, high}` references; `app.alkalinity_dose` returns `ra_needed_meq_l` as the RA still to add. The grist for `app.mash_ph_estimate` and `app.alkalinity_dose` is `[{name, kg, role, ebc}]`, not ingredient ids, so tests can give a grist directly. Implementation details, no scope change. `test_brunwater_oracle` not added (no figure).
 - 2026-10-28 · Task 4: `NAMES` in `tests/test_contracts.py` covers `range(13)`, not `range(16)` — the step 13-15 contracts do not exist yet; each of Tasks 5-7 widens it. `test_no_acid_amount_anywhere` checks step 12's output only, for the same reason (Tasks 5-7 add theirs). `app.range_json(numrange)` was added to `db/050_water.sql` to output the row's ranges.
+- 2026-10-28 · Approach (step 14), Task 6 (user, "Yes, add both"): (1) fermentation steps advance on gravity: `days` stays as the minimum and every step has `move_on` text with HTB Table 6.2's trigger (rest starts when gravity is within 2-5 points of FG; ale hold at least 2 more days, lager 4; souring 18-36 hours or about pH 3.5, p. 211); `test_gravity_trigger_on_the_rest` added. (2) Generic HTB cell counts (10 billion/g dry, 100 billion/pack, 150 billion souring midpoint) are labelled estimates in each yeast line's `because`; `test_pitch_is_labelled_as_an_estimate` added. doc-calc §10 and §11 reworded.
+- 2026-10-28 · Task 6: implementation details. `app.pitch_rate` takes a fourth parameter `after_souring` (the main yeast's 1.0 rate) and `app.ferment_schedule` a fourth `dry_hop` (adds the `dry_hop` step before cold conditioning). `max_temp_c` is the highest `ferment` or `rest` temperature, not `souring` too: the culture is at 35 °C before the yeast has made CO2, and Table 10.3 (Task 7) stops at 30 °C, so including it would make step 15 raise for every souring recipe. `secondary` items gain `usage` (`secondary` or `ferment`; a `ferment` extra goes in at pitching, day 0), because step 10's `ferment` extras belong to step 14. The tests for dry hops and secondary extras use a step 10 with those entries added: b02 and b23 have none (b23's coffee is cold brew at `package`).

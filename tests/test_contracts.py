@@ -8,7 +8,7 @@ import pytest
 from loaders.db import connect
 
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
-NAMES = [f"step{n}.{side}" for n in range(14) for side in ("input", "output")]
+NAMES = [f"step{n}.{side}" for n in range(15) for side in ("input", "output")]
 NAMES += ["choose.input", "choose.proposal"]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
 NAMES += [f"try.{side}" for side in ("input", "output")]
@@ -31,6 +31,7 @@ ABSENT_SLOTS = {
     "step11.output": [("targets.value", "null"), ("failures", "array")],
     "step12.output": [("salts", "array"), ("target.row", "null")],
     "step13.output": [("boil.whirlpool", "array")],
+    "step14.output": [("pitch.cells_billion", "null"), ("dry_hops", "array"), ("secondary.contact_days", "null")],
     "try.output": [("next_feedback", "null")],
 }
 
@@ -292,8 +293,23 @@ STEP13_OUT = {
              "whirlpool": [{"minutes": 15, "kind": "extra", "ingredient_id": 9, "name": "Orange Peel", "usage": "whirlpool", "g": 20}]},
     "values_used": [{"what": "mash steps", "because": "x", "source": "x"}],
 }
+STEP14_OUT = {
+    "steps": [{"phase": "ferment", "yeast_id": 7, "temp_c": 18, "days": 2, "why": "x", "source": "x",
+               "move_on": "at least 2 days; move on when gravity is within 2-5 points of FG"},
+              {"phase": "dry_hop", "yeast_id": None, "temp_c": 14, "days": 3, "why": "x", "source": "x", "move_on": None}],
+    "pitch": [{"ingredient_id": 7, "name": "US-05", "role": "main", "rate_m_per_ml_p": 0.75, "plato": 12.1,
+               "cells_billion": 181.5, "amount": 19, "unit": "g", "because": "generic figure, not the maker's spec"},
+              {"ingredient_id": 8, "name": "Culture", "role": "souring", "rate_m_per_ml_p": None, "plato": None,
+               "cells_billion": None, "amount": 1, "unit": "pack", "because": "no sourced pitch rate: 1 pack"}],
+    "dry_hops": [{"day": 7, "temp_c": 14, "contact_days": 3, "hops": [{"ingredient_id": 3, "name": "Cascade", "g": 40}]}],
+    "secondary": [{"usage": "secondary", "day": 7, "ingredient_id": 4, "name": "Vanilla bean", "g": 1, "contact_days": None}],
+    "max_temp_c": 21,
+    "values_used": [{"what": "pitch amounts", "because": "x", "source": "x"}],
+}
 GOOD = {
     **_CHOOSE_OUT,
+    "step14.input": {"run_id": 1, "targets": STEP4_OUT, "step10": STEP10_OUT},
+    "step14.output": STEP14_OUT,
     "step13.input": {"run_id": 1, "profile": GOOD_PROFILE, "targets": STEP4_OUT, "step10": STEP10_OUT},
     "step13.output": STEP13_OUT,
     "step12.input": {"run_id": 1, "brief": BRIEF, "profile": GOOD_PROFILE, "targets": STEP4_OUT, "step10": STEP10_OUT},
@@ -341,6 +357,10 @@ GOOD = {
     "step5.output": STEP5_OUT,
 }
 BAD = [
+    ("step14.output", {k: v for k, v in STEP14_OUT.items() if k != "dry_hops"}),
+    ("step14.output", {**STEP14_OUT, "steps": [{k: v for k, v in STEP14_OUT["steps"][0].items() if k != "move_on"}]}),
+    ("step14.output", {**STEP14_OUT, "pitch": [{**STEP14_OUT["pitch"][0], "unit": "kg"}]}),
+    ("step14.input", {k: v for k, v in GOOD["step14.input"].items() if k != "step10"}),
     ("step13.output", {k: v for k, v in STEP13_OUT.items() if k != "values_used"}),
     ("step13.output", {**STEP13_OUT, "boil": {k: v for k, v in STEP13_OUT["boil"].items() if k != "whirlpool"}}),
     ("step13.output", {**STEP13_OUT, "boil": {**STEP13_OUT["boil"], "additions": [{**STEP13_OUT["boil"]["additions"][0], "kind": "salt"}]}}),

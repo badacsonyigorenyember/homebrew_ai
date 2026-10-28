@@ -489,6 +489,7 @@ Source (HTB first): *How to Brew* ch. 7, "What Is the Pitching Rate and Why Does
   (`unverified` for YF-998/999).
 - **Main yeast after souring**: HTB p. 211-212: "the pitching rate for the yeast fermentation should be higher than normal... for ales that would normally pitch 0.75... you would instead pitch 1.0".
   Applied when a souring culture is in the recipe (ale yeasts 1.0; a lager yeast keeps 1.5).
+- **Estimates, not specs (user, 2026-10-28).** 10 billion cells per gram, 100 billion per liquid pack and the 150 billion souring midpoint are HTB's generic figures. The pitch line's `because` says so ("generic ... not the maker's spec") wherever it uses one; a maker's own cell count is not in `ref`.
 - Wort volume for the cell count: the batch volume (`numbers.batch_l`); °P = `app.sg_to_plato(og)`.
 
 **Becomes:** `app.pitch_rate`; tests `test_yeast_book_example`, `test_dry_yeast_in_grams`, `test_liquid_yeast_in_packs`, `test_souring_culture_pitch` (b14: YF-998 pitch 150 × L / 19 billion cells, 2 packs; main yeast rate 1.0).
@@ -501,6 +502,8 @@ Source (HTB first): *How to Brew* ch. 6 "Yeast and Fermentation" (adaptation, hi
 **Main temperature M** = step 6's `ferm_c` raised to at least the yeast range's lower bound + 1 °C. **Ale start S** = max(M − 2, lower bound): HTB p. 90 / PDF 116 "pitched into the wort when the wort
 temperature is at or slightly below the intended fermentation temperature" (example: range 20-23 °C, pitch at 18-20 °C). **Lager start = M**: HTB p. 174 / PDF 200, lager summary item 2, "Pitch at your target
 fermentation temperature". The 1-2 °C offset and the 18-36 h rise are *Yeast* p. 97 and are not in HTB (kept for ales as a consistent reading of "slightly below"; no separate rise step).
+
+**Gravity decides, days are the minimum (user, 2026-10-28).** HTB Table 6.2 and p. 93-94 trigger the rest by gravity, "when the beer is 2-5 specific gravity points from the final gravity" (about day 3 for ales, day 4 for lagers). Step 14's `days` are therefore the minimum and each step has a `move_on` text: the ferment hold before the rest says "at least N days; move on when gravity is within 2-5 points of FG (HTB p. 93-94, Table 6.2)", the rest says it starts at that point and stays at least 4 (ales, up to 8) or 6 days (lagers, up to 12); souring says at least 18 hours, move on at about pH 3.5 (p. 211). HTB gives no gravity trigger for the end of the rest, dry hop, cold conditioning or lagering, which have none.
 
 **Diacetyl / maturation rest** (HTB Table 6.2, p. 94 / PDF 120, and p. 93-94): *lager*: when "day 4 of 6" / 2-5 gravity points from FG, raise by **14-18 °F (8-10 °C)**, leave for **minimum 6 days (up to 12)**;
 *ale*: "~day 3 of 4", raise by **5-10 °F (3-6 °C)**, leave **minimum 4 days (up to 8)**. This is your Q3 answer (6 days lagers, 4 days ales), confirmed against HTB: it reads the same. Inside HTB:
