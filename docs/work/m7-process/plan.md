@@ -567,16 +567,16 @@ Commit: `Add process expectations to the briefs`
 
 ### Task 11: a full brief run has a process on every validated recipe (gate)
 Why: A2, A6, A7, A11 on the real pipeline.
-- [ ] `.venv/bin/python -m evals.run --save --label m7` (b01–b24; the stack and Ollama up,
+- [x] `.venv/bin/python -m evals.run --save --label m7` (b01–b24; the stack and Ollama up,
       OPERATIONS §6). Measure and write into PROJECT.md §8: validated count (stage D unchanged,
       compare with m6's 19–20/24 as a sanity check, not a bar), every validated run has rows 12–15
       ok and a saved `process` (A2), `process ok` per brief with expectations (A6), every saved
       recipe's mash and boil equal its step 10 row and its `fg` equals step 10's (A7, A11, by one
       read-only SQL query written into the entry), yeast rows no longer `1 pack` unless the pitch rate gives one pack
       (A7 as revised 2026-10-28).
-- [ ] If a check fails, stop and hand back `needs-input` with the failing briefs and the cause;
+- [x] If a check fails, stop and hand back `needs-input` with the failing briefs and the cause;
       do not tune expectations to pass.
-- [ ] Hand back `needs-approval` with the counts and `evals.show_recipe` output of b08, b13 and b14
+- [x] Hand back `needs-approval` with the counts and `evals.show_recipe` output of b08, b13 and b14
       (a lager, a weizen, the souring schedule).
 Done when: every validated recipe of the run has its process and the expectations pass.
 Commit: `Measure steps 12-15 on the briefs`
