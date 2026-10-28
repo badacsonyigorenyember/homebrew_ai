@@ -483,7 +483,7 @@ Commit: `Add carbonation and priming in step 15`
 
 ### Task 8: the process is saved with the recipe
 Why: R6, A7, A11.
-- [ ] `db/048_save_recipe.sql`: `app.recipe_process(step10 jsonb, step12 jsonb, step13 jsonb,
+- [x] `db/048_save_recipe.sql`: `app.recipe_process(step10 jsonb, step12 jsonb, step13 jsonb,
       step14 jsonb, step15 jsonb) returns jsonb` → `{water: step12, mash: step13.mash, boil:
       step13.boil, fermentation: step14, packaging: step15}`; raises `recipe_process: mash <x> is
       not step 10's <y>` (and the same for the boil) when they differ. Drop the five-argument
@@ -492,8 +492,8 @@ Why: R6, A7, A11.
       `app.recipe.process` and writes each yeast row's `amount` and `unit` from
       `process.fermentation.pitch` (matched by `ingredient_id`; a yeast missing from it raises);
       without, as today (the comment says only stage D tests call it so).
-- [ ] Contract `process.output` (the saved object). Apply 048 twice; owners `postgres`.
-- [ ] Write `tests/test_save_process.py` (stack; a throwaway run and brief, rolled back, as
+- [x] Contract `process.output` (the saved object). Apply 048 twice; owners `postgres`.
+- [x] Write `tests/test_save_process.py` (stack; a throwaway run and brief, rolled back, as
       `tests/test_save_recipe.py` does), each seen failing first: `test_process_saved`
       (b23: `app.recipe.process` valid against `process.output`, its water, mash, boil,
       fermentation and packaging equal the step outputs); `test_mash_and_boil_match_step10` (A7
@@ -501,9 +501,9 @@ Why: R6, A7, A11.
       amount; b14's souring row has step 14's packs and `because`); `test_fg_unchanged` (A11: saved `fg` = step 10's
       `numbers.fg`); `test_recipe_process_refuses_other_mash`; `test_save_without_process_still_works`.
       `tests/test_save_recipe.py` keeps passing unchanged.
-- [ ] Run `.venv/bin/pytest tests/test_save_process.py tests/test_save_recipe.py tests/test_contracts.py`,
+- [x] Run `.venv/bin/pytest tests/test_save_process.py tests/test_save_recipe.py tests/test_contracts.py`,
       expect all pass.
-- [ ] `docs/DATABASE.md` §5 (`app.recipe.process` shape). PROJECT.md §8.
+- [x] `docs/DATABASE.md` §5 (`app.recipe.process` shape). PROJECT.md §8.
 Done when: a saved recipe carries its process and real yeast amounts.
 Commit: `Save the process with the recipe`
 

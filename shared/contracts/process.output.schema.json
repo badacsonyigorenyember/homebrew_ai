@@ -1,0 +1,1113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "process.output",
+  "description": "The process saved with a recipe as app.recipe.process: water is step 12's output, mash and boil are step 13's, fermentation is step 14's and packaging is step 15's, each as that step's contract defines it. The mash and the boil are step 10's, unchanged. pitch.cells_billion is null where no pitch rate is sourced.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "water",
+    "mash",
+    "boil",
+    "fermentation",
+    "packaging"
+  ],
+  "properties": {
+    "water": {
+      "description": "Step 12, water: the target row (from style, or none when the style has no Water Table 18/19 row: then row, ranges and aim are null, salts empty and the waters equal the source water), the source water, the strike and sparge volumes (the ones step 13 outputs), salts in grams per water (alkalinity salts in the strike water only), none_needed, both waters' ions with alkalinity and residual alkalinity, the mash pH estimate against HTB's colour target, the acid line (a text and a flag, never an amount) and one values_used line per value. Absent: salts empty, target.row null.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "source_water",
+        "volumes",
+        "salts",
+        "none_needed",
+        "strike_water",
+        "sparge_water",
+        "mash_ph",
+        "acid",
+        "values_used"
+      ],
+      "properties": {
+        "target": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "from",
+            "style_code",
+            "row",
+            "table_no",
+            "beer_type",
+            "strength",
+            "colour",
+            "bitterness",
+            "ranges",
+            "acidify",
+            "page",
+            "aim",
+            "basis",
+            "fallback",
+            "outside_row",
+            "moved_by"
+          ],
+          "properties": {
+            "from": {
+              "enum": [
+                "style",
+                "none"
+              ]
+            },
+            "style_code": {
+              "type": "string"
+            },
+            "row": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "table_no": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "beer_type": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "strength": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "colour": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "bitterness": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "ranges": {
+              "anyOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "ca",
+                    "alkalinity",
+                    "so4",
+                    "cl",
+                    "ra"
+                  ],
+                  "properties": {
+                    "ca": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "low",
+                        "high"
+                      ],
+                      "properties": {
+                        "low": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "high": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        }
+                      }
+                    },
+                    "alkalinity": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "low",
+                        "high"
+                      ],
+                      "properties": {
+                        "low": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "high": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        }
+                      }
+                    },
+                    "so4": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "low",
+                        "high"
+                      ],
+                      "properties": {
+                        "low": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "high": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        }
+                      }
+                    },
+                    "cl": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "low",
+                        "high"
+                      ],
+                      "properties": {
+                        "low": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "high": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        }
+                      }
+                    },
+                    "ra": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "low",
+                        "high"
+                      ],
+                      "properties": {
+                        "low": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "high": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "acidify": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "page": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "aim": {
+              "anyOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "ca",
+                    "so4",
+                    "cl"
+                  ],
+                  "properties": {
+                    "ca": {
+                      "type": "number"
+                    },
+                    "so4": {
+                      "type": "number"
+                    },
+                    "cl": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "basis": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "fallback": {
+              "type": "boolean"
+            },
+            "outside_row": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "moved_by": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "source_water": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ions",
+            "alkalinity_ppm",
+            "ra_ppm",
+            "ra_meq_l"
+          ],
+          "properties": {
+            "ions": {
+              "type": "object"
+            },
+            "alkalinity_ppm": {
+              "type": "number"
+            },
+            "ra_ppm": {
+              "type": "number"
+            },
+            "ra_meq_l": {
+              "type": "number"
+            }
+          }
+        },
+        "volumes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "grist_kg",
+            "ratio_l_kg",
+            "preboil_l",
+            "absorbed_l",
+            "total_l",
+            "strike_l",
+            "sparge_l",
+            "because"
+          ],
+          "properties": {
+            "grist_kg": {
+              "type": "number"
+            },
+            "ratio_l_kg": {
+              "type": "number"
+            },
+            "preboil_l": {
+              "type": "number"
+            },
+            "absorbed_l": {
+              "type": "number"
+            },
+            "total_l": {
+              "type": "number"
+            },
+            "strike_l": {
+              "type": "number"
+            },
+            "sparge_l": {
+              "type": "number"
+            },
+            "because": {
+              "type": "string"
+            }
+          }
+        },
+        "salts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ingredient_id",
+              "name",
+              "aims_at",
+              "strike_g",
+              "sparge_g",
+              "total_g"
+            ],
+            "properties": {
+              "ingredient_id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "aims_at": {
+                "enum": [
+                  "sulfate",
+                  "chloride",
+                  "alkalinity"
+                ]
+              },
+              "strike_g": {
+                "type": "number"
+              },
+              "sparge_g": {
+                "type": "number"
+              },
+              "total_g": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "none_needed": {
+          "type": "boolean"
+        },
+        "strike_water": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ions",
+            "alkalinity_ppm",
+            "ra_ppm",
+            "ra_meq_l"
+          ],
+          "properties": {
+            "ions": {
+              "type": "object"
+            },
+            "alkalinity_ppm": {
+              "type": "number"
+            },
+            "ra_ppm": {
+              "type": "number"
+            },
+            "ra_meq_l": {
+              "type": "number"
+            }
+          }
+        },
+        "sparge_water": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ions",
+            "alkalinity_ppm",
+            "ra_ppm",
+            "ra_meq_l"
+          ],
+          "properties": {
+            "ions": {
+              "type": "object"
+            },
+            "alkalinity_ppm": {
+              "type": "number"
+            },
+            "ra_ppm": {
+              "type": "number"
+            },
+            "ra_meq_l": {
+              "type": "number"
+            }
+          }
+        },
+        "mash_ph": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ph",
+            "target_low",
+            "target_high",
+            "because"
+          ],
+          "properties": {
+            "ph": {
+              "type": "number"
+            },
+            "target_low": {
+              "type": "number"
+            },
+            "target_high": {
+              "type": "number"
+            },
+            "because": {
+              "type": "string"
+            }
+          }
+        },
+        "acid": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "needed",
+            "text",
+            "acidify"
+          ],
+          "properties": {
+            "needed": {
+              "type": "boolean"
+            },
+            "text": {
+              "type": "string"
+            },
+            "acidify": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "values_used": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "what",
+              "because",
+              "source"
+            ],
+            "properties": {
+              "what": {
+                "type": "string"
+              },
+              "because": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "mash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mash_c",
+        "steps",
+        "volumes",
+        "strike_c",
+        "grain_c",
+        "additions"
+      ],
+      "properties": {
+        "mash_c": {
+          "type": "number"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "temp_c",
+              "minutes",
+              "why",
+              "source"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "temp_c": {
+                "type": "number"
+              },
+              "minutes": {
+                "type": "number"
+              },
+              "why": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "volumes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "grist_kg",
+            "ratio_l_kg",
+            "preboil_l",
+            "absorbed_l",
+            "total_l",
+            "strike_l",
+            "sparge_l",
+            "because"
+          ],
+          "properties": {
+            "grist_kg": {
+              "type": "number"
+            },
+            "ratio_l_kg": {
+              "type": "number"
+            },
+            "preboil_l": {
+              "type": "number"
+            },
+            "absorbed_l": {
+              "type": "number"
+            },
+            "total_l": {
+              "type": "number"
+            },
+            "strike_l": {
+              "type": "number"
+            },
+            "sparge_l": {
+              "type": "number"
+            },
+            "because": {
+              "type": "string"
+            }
+          }
+        },
+        "strike_c": {
+          "type": "number"
+        },
+        "grain_c": {
+          "type": "number"
+        },
+        "additions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ingredient_id",
+              "name",
+              "usage",
+              "time_min",
+              "g"
+            ],
+            "properties": {
+              "ingredient_id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "usage": {
+                "enum": [
+                  "mash"
+                ]
+              },
+              "time_min": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "g": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "boil": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "boil_min",
+        "because",
+        "additions",
+        "whirlpool"
+      ],
+      "properties": {
+        "boil_min": {
+          "type": "number"
+        },
+        "because": {
+          "type": "string"
+        },
+        "additions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "at_min",
+              "kind",
+              "ingredient_id",
+              "name",
+              "usage",
+              "g"
+            ],
+            "properties": {
+              "at_min": {
+                "type": "number"
+              },
+              "kind": {
+                "enum": [
+                  "hop",
+                  "extra"
+                ]
+              },
+              "ingredient_id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "usage": {
+                "type": "string"
+              },
+              "g": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "whirlpool": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "minutes",
+              "kind",
+              "ingredient_id",
+              "name",
+              "usage",
+              "g"
+            ],
+            "properties": {
+              "minutes": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "kind": {
+                "enum": [
+                  "hop",
+                  "extra"
+                ]
+              },
+              "ingredient_id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "usage": {
+                "type": "string"
+              },
+              "g": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "fermentation": {
+      "description": "Step 14, fermentation and pitch: the temperature steps (days is the minimum, move_on the gravity trigger), the yeast amounts, the dry hop and the secondary extras. pitch.cells_billion is null where no pitch rate is sourced; dry_hops is an empty array without dry hops; secondary.contact_days is null where the misc row has no time. max_temp_c is the highest ferment or rest temperature, which step 15 reads.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "steps",
+        "pitch",
+        "dry_hops",
+        "secondary",
+        "max_temp_c",
+        "values_used"
+      ],
+      "properties": {
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "phase",
+              "yeast_id",
+              "temp_c",
+              "days",
+              "why",
+              "source",
+              "move_on"
+            ],
+            "properties": {
+              "phase": {
+                "enum": [
+                  "souring",
+                  "ferment",
+                  "rest",
+                  "dry_hop",
+                  "crash",
+                  "lager"
+                ]
+              },
+              "yeast_id": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "temp_c": {
+                "type": "number"
+              },
+              "days": {
+                "type": "number"
+              },
+              "why": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "move_on": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "pitch": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ingredient_id",
+              "name",
+              "role",
+              "rate_m_per_ml_p",
+              "plato",
+              "cells_billion",
+              "amount",
+              "unit",
+              "because"
+            ],
+            "properties": {
+              "ingredient_id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "role": {
+                "enum": [
+                  "main",
+                  "souring"
+                ]
+              },
+              "rate_m_per_ml_p": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "plato": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "cells_billion": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "amount": {
+                "type": "number"
+              },
+              "unit": {
+                "enum": [
+                  "g",
+                  "pack"
+                ]
+              },
+              "because": {
+                "type": "string"
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "dry_hops": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "day",
+              "temp_c",
+              "contact_days",
+              "hops"
+            ],
+            "properties": {
+              "day": {
+                "type": "number"
+              },
+              "temp_c": {
+                "type": "number"
+              },
+              "contact_days": {
+                "type": "number"
+              },
+              "hops": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "ingredient_id",
+                    "name",
+                    "g"
+                  ],
+                  "properties": {
+                    "ingredient_id": {
+                      "type": "integer"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "g": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "secondary": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "usage",
+              "day",
+              "ingredient_id",
+              "name",
+              "g",
+              "contact_days"
+            ],
+            "properties": {
+              "usage": {
+                "enum": [
+                  "ferment",
+                  "secondary"
+                ]
+              },
+              "day": {
+                "type": "number"
+              },
+              "ingredient_id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "g": {
+                "type": "number"
+              },
+              "contact_days": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "max_temp_c": {
+          "type": "number"
+        },
+        "values_used": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "what",
+              "because",
+              "source"
+            ],
+            "properties": {
+              "what": {
+                "type": "string"
+              },
+              "because": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "packaging": {
+      "description": "Step 15, carbonation and priming sugar: the CO2 volumes (the middle of the style's family range, or 2.5 by default; range, family and basis are null for the default), the table sugar to prime with at step 14's highest temperature, and step 10's packaging extras. extras is an empty array when there are none.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "co2",
+        "priming",
+        "extras"
+      ],
+      "properties": {
+        "co2": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "volumes",
+            "basis",
+            "range",
+            "family",
+            "from",
+            "source"
+          ],
+          "properties": {
+            "volumes": {
+              "type": "number"
+            },
+            "basis": {
+              "enum": [
+                "listed",
+                "inferred",
+                "judgement",
+                "web",
+                null
+              ]
+            },
+            "range": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "family": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "from": {
+              "enum": [
+                "style",
+                "default"
+              ]
+            },
+            "source": {
+              "type": "string"
+            }
+          }
+        },
+        "priming": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sugar",
+            "g",
+            "g_per_l",
+            "temp_c",
+            "residual_vol",
+            "volume_l",
+            "source"
+          ],
+          "properties": {
+            "sugar": {
+              "type": "string"
+            },
+            "g": {
+              "type": "number"
+            },
+            "g_per_l": {
+              "type": "number"
+            },
+            "temp_c": {
+              "type": "number"
+            },
+            "residual_vol": {
+              "type": "number"
+            },
+            "volume_l": {
+              "type": "number"
+            },
+            "source": {
+              "type": "string"
+            }
+          }
+        },
+        "extras": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ingredient_id",
+              "name",
+              "g"
+            ],
+            "properties": {
+              "ingredient_id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "g": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

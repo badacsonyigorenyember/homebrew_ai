@@ -10,6 +10,7 @@ from loaders.db import connect
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
 NAMES = [f"step{n}.{side}" for n in range(16) for side in ("input", "output")]
 NAMES += ["choose.input", "choose.proposal"]
+NAMES += ["process.output"]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
 NAMES += [f"try.{side}" for side in ("input", "output")]
 
@@ -33,6 +34,7 @@ ABSENT_SLOTS = {
     "step13.output": [("boil.whirlpool", "array")],
     "step14.output": [("pitch.cells_billion", "null"), ("dry_hops", "array"), ("secondary.contact_days", "null")],
     "step15.output": [("co2.range", "null"), ("extras", "array")],
+    "process.output": [("fermentation.pitch.cells_billion", "null"), ("water.salts", "array")],
     "try.output": [("next_feedback", "null")],
 }
 
@@ -314,7 +316,10 @@ STEP15_OUT = {
                 "volume_l": 20, "source": "How to Brew p. 156-161"},
     "extras": [{"ingredient_id": 4, "name": "Coffee", "g": 60}],
 }
+PROCESS_OUT = {"water": STEP12_OUT, "mash": STEP13_OUT["mash"], "boil": STEP13_OUT["boil"],
+               "fermentation": STEP14_OUT, "packaging": STEP15_OUT}
 GOOD = {
+    "process.output": PROCESS_OUT,
     **_CHOOSE_OUT,
     "step15.input": {"run_id": 1, "targets": STEP4_OUT, "step10": STEP10_OUT, "step14": STEP14_OUT},
     "step15.output": STEP15_OUT,
@@ -367,6 +372,9 @@ GOOD = {
     "step5.output": STEP5_OUT,
 }
 BAD = [
+    ("process.output", {k: v for k, v in PROCESS_OUT.items() if k != "packaging"}),
+    ("process.output", {**PROCESS_OUT, "boil": {k: v for k, v in STEP13_OUT["boil"].items() if k != "boil_min"}}),
+    ("process.output", {**PROCESS_OUT, "fermentation": {**STEP14_OUT, "max_temp_c": "21"}}),
     ("step15.output", {k: v for k, v in STEP15_OUT.items() if k != "priming"}),
     ("step15.output", {**STEP15_OUT, "co2": {**STEP15_OUT["co2"], "from": "guess"}}),
     ("step15.output", {**STEP15_OUT, "priming": {**STEP15_OUT["priming"], "g": "113"}}),
