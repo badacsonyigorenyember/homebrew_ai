@@ -74,8 +74,9 @@ In:
   and the boil time step 10 used (neither decided again); rests that do not change
   fermentability (ferulic-acid, protein, beta-glucan) where a source ties them to the style or to
   an ingredient in the grist, so rule 10's FG model is unchanged; strike and sparge water volumes
-  from the brewer profile (grain absorption, boil-off, losses) with s1's volume functions; and
-  the hop and extras schedule in time order from the recipe rows (boil minutes, whirlpool).
+  from the brewer profile (grain absorption, boil-off, losses) with s1's volume functions; the
+  strike water temperature (*How to Brew* ch. 17's infusion equation); and the hop and extras
+  schedule in time order from the recipe rows (boil minutes, whirlpool).
 - Step 14 fermentation: temperature from the yeast's range and the style, starting from step 6's
   chosen ferment option (a ramp, not one flat temperature: the G6 review found 15 C too cool for
   b03 and wanted b10 to start at 17-18 C and rise to 21-23 C,
@@ -117,8 +118,8 @@ R2. Step 12 outputs salt grams per addition, split between strike and sparge wat
 R3. Step 13 outputs mash steps (°C, minutes): a single infusion at step 10's `mash_c`, plus any
     rest that does not change fermentability where a source ties it to the style or an
     ingredient, each with its source; a mash-out; boil minutes equal to step 10's
-    `boil.boil_min`; strike and sparge water volumes (L) from the brewer profile; and the hop and
-    extras schedule in time order, from the recipe rows.
+    `boil.boil_min`; strike and sparge water volumes (L) from the brewer profile; the strike
+    water temperature (°C); and the hop and extras schedule in time order, from the recipe rows.
 R4. Step 14 outputs fermentation steps (°C, days) inside the chosen yeast's `temp_c` range, plus
     rests, dry-hop timing and secondary extras where they apply, the souring schedule where a
     souring culture was picked, and pitch rate (cells needed and the yeast amount, which replaces
@@ -160,7 +161,8 @@ A4. Every fermentation temperature is inside its yeast's range; recipes whose ma
 A5. Priming sugar for a test case matches a worked example from Palmer within ± 5 % (R5).
 A6. The `process` expectations pass for the briefs that have them (R7).
 A7. Each saved recipe's `process` mash and boil equal its step 10 `mash_c` and `boil.boil_min`,
-    and its yeast rows no longer say `1 pack` unless the pitch rate gives one pack (R3, R4, R6).
+    and its yeast rows no longer say `1 pack` unless the pitch rate gives one pack or none is
+    sourced (a souring culture keeps `1 pack`, marked "no sourced pitch rate") (R3, R4, R6).
 A8. A test reproduces *Yeast*'s pitching-rate worked example (R4).
 A9. Every saved recipe's water target names its *Water* Table 18/19 row; a test checks the
     style-to-row table covers every style a b01–b24 recipe gets; the BJCP 8-city table is used
@@ -214,3 +216,8 @@ None open. Decided by you, 2026-10-27:
   only, with a mash pH estimate and an "acid needed" line; neutral rests added beside the single
   infusion and mash-out, FG model unchanged; process aids out (Q10 open); strike and sparge
   volumes in step 13, salts dosed for them — user decisions in chat.
+- 2026-10-28 · Scope (step 13), R3, A7: step 13 also outputs the strike water temperature
+  (*How to Brew* ch. 17 infusion equation); A7 allows `1 pack` where no pitch rate is sourced, so
+  the souring culture keeps `1 pack` marked "no sourced pitch rate"; styles outside the reviewed
+  tables get no water row (no salts) and Palmer's default 2.5 CO₂ volumes, wider coverage a Later
+  TODO — user answers to the plan's questions 1–3 in chat.
