@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step15.output",
+  "description": "Step 15, carbonation and priming sugar: the CO2 volumes (the middle of the style's family range, or 2.5 by default; range, family and basis are null for the default), the table sugar to prime with at step 14's highest temperature, and step 10's packaging extras. extras is an empty array when there are none.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "co2",
+    "priming",
+    "extras"
+  ],
+  "properties": {
+    "co2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "volumes",
+        "basis",
+        "range",
+        "family",
+        "from",
+        "source"
+      ],
+      "properties": {
+        "volumes": {
+          "type": "number"
+        },
+        "basis": {
+          "enum": [
+            "listed",
+            "inferred",
+            "judgement",
+            "web",
+            null
+          ]
+        },
+        "range": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "family": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "from": {
+          "enum": [
+            "style",
+            "default"
+          ]
+        },
+        "source": {
+          "type": "string"
+        }
+      }
+    },
+    "priming": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sugar",
+        "g",
+        "g_per_l",
+        "temp_c",
+        "residual_vol",
+        "volume_l",
+        "source"
+      ],
+      "properties": {
+        "sugar": {
+          "type": "string"
+        },
+        "g": {
+          "type": "number"
+        },
+        "g_per_l": {
+          "type": "number"
+        },
+        "temp_c": {
+          "type": "number"
+        },
+        "residual_vol": {
+          "type": "number"
+        },
+        "volume_l": {
+          "type": "number"
+        },
+        "source": {
+          "type": "string"
+        }
+      }
+    },
+    "extras": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ingredient_id",
+          "name",
+          "g"
+        ],
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "g": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  }
+}

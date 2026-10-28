@@ -8,7 +8,7 @@ import pytest
 from loaders.db import connect
 
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
-NAMES = [f"step{n}.{side}" for n in range(15) for side in ("input", "output")]
+NAMES = [f"step{n}.{side}" for n in range(16) for side in ("input", "output")]
 NAMES += ["choose.input", "choose.proposal"]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
 NAMES += [f"try.{side}" for side in ("input", "output")]
@@ -32,6 +32,7 @@ ABSENT_SLOTS = {
     "step12.output": [("salts", "array"), ("target.row", "null")],
     "step13.output": [("boil.whirlpool", "array")],
     "step14.output": [("pitch.cells_billion", "null"), ("dry_hops", "array"), ("secondary.contact_days", "null")],
+    "step15.output": [("co2.range", "null"), ("extras", "array")],
     "try.output": [("next_feedback", "null")],
 }
 
@@ -306,8 +307,17 @@ STEP14_OUT = {
     "max_temp_c": 21,
     "values_used": [{"what": "pitch amounts", "because": "x", "source": "x"}],
 }
+STEP15_OUT = {
+    "co2": {"volumes": 2.45, "basis": "inferred", "range": [2.2, 2.7], "family": "american-ales", "from": "style",
+            "source": "How to Brew p. 159"},
+    "priming": {"sugar": "table sugar (sucrose)", "g": 113, "g_per_l": 5.7, "temp_c": 21, "residual_vol": 0.8,
+                "volume_l": 20, "source": "How to Brew p. 156-161"},
+    "extras": [{"ingredient_id": 4, "name": "Coffee", "g": 60}],
+}
 GOOD = {
     **_CHOOSE_OUT,
+    "step15.input": {"run_id": 1, "targets": STEP4_OUT, "step10": STEP10_OUT, "step14": STEP14_OUT},
+    "step15.output": STEP15_OUT,
     "step14.input": {"run_id": 1, "targets": STEP4_OUT, "step10": STEP10_OUT},
     "step14.output": STEP14_OUT,
     "step13.input": {"run_id": 1, "profile": GOOD_PROFILE, "targets": STEP4_OUT, "step10": STEP10_OUT},
@@ -357,6 +367,10 @@ GOOD = {
     "step5.output": STEP5_OUT,
 }
 BAD = [
+    ("step15.output", {k: v for k, v in STEP15_OUT.items() if k != "priming"}),
+    ("step15.output", {**STEP15_OUT, "co2": {**STEP15_OUT["co2"], "from": "guess"}}),
+    ("step15.output", {**STEP15_OUT, "priming": {**STEP15_OUT["priming"], "g": "113"}}),
+    ("step15.input", {k: v for k, v in GOOD["step15.input"].items() if k != "step14"}),
     ("step14.output", {k: v for k, v in STEP14_OUT.items() if k != "dry_hops"}),
     ("step14.output", {**STEP14_OUT, "steps": [{k: v for k, v in STEP14_OUT["steps"][0].items() if k != "move_on"}]}),
     ("step14.output", {**STEP14_OUT, "pitch": [{**STEP14_OUT["pitch"][0], "unit": "kg"}]}),

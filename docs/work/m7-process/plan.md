@@ -457,7 +457,7 @@ Commit: `Plan fermentation and pitch rate in step 14`
 
 ### Task 7: step 15 sets carbonation and priming sugar
 Why: R5, A5.
-- [ ] `db/053_package.sql` (needs 049, 052): `app.residual_co2(temp_c numeric) returns jsonb` →
+- [x] `db/053_package.sql` (needs 049, 052): `app.residual_co2(temp_c numeric) returns jsonb` →
       `{temp_c, gas_l_mol, residual_vol}` from Table 10.3's rows written as a `values` list (the
       nearest whole °C row; below 5 or above 30 raises); `app.priming_sugar_g(co2_vol numeric,
       temp_c numeric, volume_l numeric) returns numeric` (sucrose, Approach formula);
@@ -465,10 +465,10 @@ Why: R5, A5.
       range, family, from style|default, source}, priming {sugar "table sugar (sucrose)", g,
       g_per_l, temp_c, residual_vol, volume_l, source}, extras [{ingredient_id, name, g}]}`; grams
       rounded to 1 g.
-- [ ] Contracts `step15.input` = `{run_id, targets, step10, step14}`, `step15.output`;
+- [x] Contracts `step15.input` = `{run_id, targets, step10, step14}`, `step15.output`;
       `ABSENT_SLOTS["step15.output"] = [("co2.range", "null"), ("extras", "array")]`.
-- [ ] Apply twice; owners `postgres`.
-- [ ] Write `tests/test_package.py` (stack), each seen failing first: `test_palmer_cane_sugar`
+- [x] Apply twice; owners `postgres`.
+- [x] Write `tests/test_package.py` (stack), each seen failing first: `test_palmer_cane_sugar`
       (A5: 2.5 volumes, 19 L, 21 °C → within 5 % of Table 10.1's 113 g); `test_table_10_3_cells`
       (5 °C 2.5 → 4.4, 21 °C 2.5 → 6.0, 30 °C 4.5 → 13.1 g/L, each ± 0.1); `test_residual_rows`
       (all 26 rows equal `doc-calc.md` §14); `test_priming_uses_max_temp` (b08: `temp_c` =
@@ -476,8 +476,8 @@ Why: R5, A5.
       porter-and-stout); `test_default_co2` (decision Q1: a style with `co2_vol` null → 2.5, `from`
       default); `test_packaging_extras` (step 10 extras with cold brew coffee at `package`);
       `test_step15_meets_contract`.
-- [ ] Run `.venv/bin/pytest tests/test_package.py tests/test_contracts.py`, expect all pass.
-- [ ] `docs/DATABASE.md` §5. PROJECT.md §8.
+- [x] Run `.venv/bin/pytest tests/test_package.py tests/test_contracts.py`, expect all pass.
+- [x] `docs/DATABASE.md` §5. PROJECT.md §8.
 Done when: Palmer's priming figure and Table 10.3 reproduce.
 Commit: `Add carbonation and priming in step 15`
 
@@ -682,3 +682,4 @@ None.
 - 2026-10-28 · Task 4: `NAMES` in `tests/test_contracts.py` covers `range(13)`, not `range(16)` — the step 13-15 contracts do not exist yet; each of Tasks 5-7 widens it. `test_no_acid_amount_anywhere` checks step 12's output only, for the same reason (Tasks 5-7 add theirs). `app.range_json(numrange)` was added to `db/050_water.sql` to output the row's ranges.
 - 2026-10-28 · Approach (step 14), Task 6 (user, "Yes, add both"): (1) fermentation steps advance on gravity: `days` stays as the minimum and every step has `move_on` text with HTB Table 6.2's trigger (rest starts when gravity is within 2-5 points of FG; ale hold at least 2 more days, lager 4; souring 18-36 hours or about pH 3.5, p. 211); `test_gravity_trigger_on_the_rest` added. (2) Generic HTB cell counts (10 billion/g dry, 100 billion/pack, 150 billion souring midpoint) are labelled estimates in each yeast line's `because`; `test_pitch_is_labelled_as_an_estimate` added. doc-calc §10 and §11 reworded.
 - 2026-10-28 · Task 6: implementation details. `app.pitch_rate` takes a fourth parameter `after_souring` (the main yeast's 1.0 rate) and `app.ferment_schedule` a fourth `dry_hop` (adds the `dry_hop` step before cold conditioning). `max_temp_c` is the highest `ferment` or `rest` temperature, not `souring` too: the culture is at 35 °C before the yeast has made CO2, and Table 10.3 (Task 7) stops at 30 °C, so including it would make step 15 raise for every souring recipe. `secondary` items gain `usage` (`secondary` or `ferment`; a `ferment` extra goes in at pitching, day 0), because step 10's `ferment` extras belong to step 14. The tests for dry hops and secondary extras use a step 10 with those entries added: b02 and b23 have none (b23's coffee is cold brew at `package`).
+- 2026-10-28 · Task 7: implementation details. `step15.output` has no `values_used`; each block carries its own `source` instead (the plan's shape). `app.priming_sugar_g` returns the unrounded grams (the Table 10.3 g/L cells need it); `app.step15_package` rounds `g` to 1 g and gives `g_per_l` to 0.01. `co2.basis`, `co2.family` and `co2.range` are null for the 2.5 default. `priming.temp_c` is the Table 10.3 row used (step 14's `max_temp_c` to the nearest whole °C).
