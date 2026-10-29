@@ -374,8 +374,8 @@ Why: A1, A2, A3, A5; A4 webhook part.
       does not put Special B in `wanted`, rephrase once and say so.
 - [ ] A3: for b01, b05, b08, b13, b14, a read-only query: every citation number on the sheet maps
       to a chunk id in row 16's `sources`, and each shows page or section and URL as R3 says.
-- [ ] A4 webhook part: b05 with `style` 20C gives a 20C recipe with ABV 4 as a deviation; b05
-      without `style` picks 15B (both from the run above or one extra webhook call).
+- [ ] A4 webhook part: b05 with `style` 20C reaches step 2 as 20C (it then fails step 11, measured
+      in Task 3); b05 without `style` picks 15B (both from the run above or one extra webhook call).
 - [ ] Hand back `needs-approval` with the totals, any brief whose step 16 failed (its errors), and
       b10's and the Special B sheet's paths in the results for you to read.
 Done when: you approved the results (A1, A2, A3, A5).
@@ -413,7 +413,7 @@ Commit: `Add the recipe chat workflow`
 Why: A4, A7, A8; brief Assumption 1 (the hosted chat waits through a long run).
 - [ ] Hand back `needs-input` with the chat URL and these steps for you: (1) in a private window,
       not logged in, open the chat URL: refused (A8); (2) logged in, ask b05's request, answer
-      "Keep 20C": a 20C sheet with ABV 4 in the Deviations box; (3) b05 again, "Take 15B": a 15B
+      "Keep 20C": the step 11 failure in plain words and no sheet; (3) b05 again, "Take 15B": a 15B
       sheet with the mismatch listed; (4) accept one sheet (A7); (5) any request of yours.
 - [ ] After your test, read-only checks per chat run: `app.run.eval_id = 'chat'`, rows 0–16 like
       a webhook run, one row 1 with `llm.tries` 1 and `brief_given` true (A4), the accepted
@@ -458,3 +458,4 @@ None.
 - 2026-10-29 · Task 1: the tests use b08 instead of b01 — b01 does not pass step 11 on its own, so `save_recipe` refuses it.
 - 2026-10-29 · Task 3: `Brief given?` sits after `Step 1 · input`, not after `Step 0 · log ok` — the step 1 log nodes read `Step 1 · input` (run id, start time), which must have run on both branches. `Step 1 · given brief` takes `llm` as `brief_llm ?? {}` and `Step 1 · log ok` counts tokens with `?? 0`, so a given brief without an `llm` still logs.
 - 2026-10-29 · Task 4: `app.sheet_facts` takes steps 12–15 from the saved `process` (it holds them) instead of from `run_step` rows, and `db/055_sheet_facts.sql` has three small helpers (`app.sheet_ranges`, `app.sheet_style`, `app.sheet_entries`) — less duplication, same facts. The test uses b10's own style (26B) for the ABV bounds, and b05 for the named-style (20C) ranges.
+- 2026-10-29 · Tasks 9 and 11, brief A4: b05 kept in 20C failed step 11 in all three tries on seeds 42, 1 and 2, so "keep 20C" ends with the chat reporting the failure and no sheet (the `failed_step` 11 path); the Task 9 webhook check and Task 11 hand test step (2) say so — your answer: retry seeds, then accept.

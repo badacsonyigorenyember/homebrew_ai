@@ -122,8 +122,9 @@ R12. RECIPE-ROADMAP (TL;DR, §6, P5) and WORKFLOW-ROADMAP (G6 bar) state the cal
   2.5 and later, n8n docs) holds the mismatch question and the accept step inside one execution,
   with no agent node. Whether the hosted chat waits through a run of 3 to 8 minutes without
   timing out is *(unverified)*.
-- A recipe kept in 20C at 4 % ABV (b05, "keep 20C") passes step 11, since the user's number is a
-  target and a listed deviation *(unverified)*.
+- A recipe kept in 20C at 4 % ABV (b05, "keep 20C") does **not** pass step 11 (measured
+  2026-10-29: 3 runs, seeds 42, 1 and 2, each failed all three tries on ABV 4.5 against the target 4,
+  crystal and roast rules and FG outside the style range).
 - The step 16 prompt (saved recipe, reasons and retrieved chunks) fits the model's context on
   this machine *(unverified; the plan measures it with `prompt_eval_count`, as m5 did)*.
 - The 19 briefs that validated in the m7 run (2026-10-28) still validate when re-run; the
@@ -140,9 +141,11 @@ A3. On 5 sample sheets (b01, b05, b08, b13, b14), every citation resolves to a `
     retrieved, and shows page or section and URL as R3 says (R3).
 A4. You test the chat by hand in n8n's hosted chat for A4, A7 and A8. b05 asked through the
     chat asks about the style once, before the build; answering "keep
-    20C" gives a 20C recipe with the 4 % ABV listed as a deviation; answering "take 15B" gives a
+    20C" ends with the step 11 failure told in plain words and no sheet (measured: it does not
+    validate); answering "take 15B" gives a
     15B recipe with the mismatch listed. Each of these runs has one step 1 call (R5, R6). A
-    webhook run with `style` set to `20C` gives a 20C recipe, and one without `style` picks 15B as
+    webhook run with `style` set to `20C` reaches step 2 with that style (the run then fails at
+    step 11), and one without `style` picks 15B as
     now (R5). The chat run's `app.run` and `run_step` rows match a webhook run's shape, with row
     16 added (R4).
 A5. On the full brief run, first-try LLM calls are at most 3 on every brief, and the totals show
@@ -195,3 +198,4 @@ None. The five questions of 2026-10-29 are answered (see Deviations).
   is removed; A9 now points to [`s11-brew-day`](../s11-brew-day/brief.md), which closes G7's
   "you brew from it"; the brew-day log and the brew are listed under Out, and the Goal says the
   brew is s11. Everything else in m8 is unchanged.
+- 2026-10-29 · Assumption 2, A4: b05 kept in 20C failed step 11 in all three tries on 3 seeds (42, 1, 2), so "keep 20C" ends with the chat reporting the step 11 failure in plain words and no sheet; "take 15B" is unchanged. Your answer: retry seeds, then accept.
