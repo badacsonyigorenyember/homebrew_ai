@@ -202,7 +202,7 @@ Commit: `Accept a style and a read brief in the pipeline`
 
 ### Task 4: step 16 gathers its facts and finds its sources
 Why: R1, R2, R3 (retrieval, §6.9).
-- [ ] `db/055_sheet_facts.sql`:
+- [x] `db/055_sheet_facts.sql`:
       - `app.sheet_facts(run_id bigint) returns jsonb`: the run's saved recipe (row, items,
         deviations with `requested_by`, process), the style row (code, name, ranges, the BJCP
         `overallimpression` text), step 2 (`reason`, `alt_styles`, `mismatch`) with the ranges of
@@ -221,15 +221,15 @@ Why: R1, R2, R3 (retrieval, §6.9).
         jsonb`: per query `app.kb_search(text, embedding, 10)`, *How to Brew* first then score,
         `per_query` kept, each chunk once (first topic wins); each item `{chunk_id, topic,
         source_slug, title, url, section_path, page, text}`. `per_query` 0 gives `[]`.
-- [ ] Apply twice; owners.
-- [ ] Write `tests/test_sheet_facts.py` (stack): facts of a saved b10 case list every recipe item
+- [x] Apply twice; owners.
+- [x] Write `tests/test_sheet_facts.py` (stack): facts of a saved b10 case list every recipe item
       once in `choices` and the inventory flags; `allowed_numbers` holds the saved OG, a salt's
       grams and 15B's ABV bounds; a run without a recipe raises; `test_htb_first` (a mash query:
       every kept chunk is *How to Brew* when the top 10 hold at least `per_query` of them; uses
       Ollama for the embedding, as `tests/test_kb_search.py` does); `per_query` 0 gives none.
       Seen failing first.
-- [ ] Run `.venv/bin/pytest tests/test_sheet_facts.py tests/test_kb_search.py`, expect all pass.
-- [ ] PROJECT.md §8.
+- [x] Run `.venv/bin/pytest tests/test_sheet_facts.py tests/test_kb_search.py`, expect all pass.
+- [x] PROJECT.md §8.
 Done when: facts and sources come back for a saved case and the tests pass.
 Commit: `Gather step 16 facts and sources`
 
@@ -457,3 +457,4 @@ None.
 - 2026-10-29 · Tasks 12 and 14, Approach: the brew-day log (R13) and brew day (A9) moved out of m8 into the new side track `s11-brew-day` (draft brief), with `evals/brew_log.py`, `tests/test_brew_log.py` and `docs/brews/`; the docs task is now Task 12 and keeps G7's "you brew one" open, pointing to s11 — your answer to plan question 1. Your answer to question 2: the sheet must cite at least one retrieved chunk, as planned.
 - 2026-10-29 · Task 1: the tests use b08 instead of b01 — b01 does not pass step 11 on its own, so `save_recipe` refuses it.
 - 2026-10-29 · Task 3: `Brief given?` sits after `Step 1 · input`, not after `Step 0 · log ok` — the step 1 log nodes read `Step 1 · input` (run id, start time), which must have run on both branches. `Step 1 · given brief` takes `llm` as `brief_llm ?? {}` and `Step 1 · log ok` counts tokens with `?? 0`, so a given brief without an `llm` still logs.
+- 2026-10-29 · Task 4: `app.sheet_facts` takes steps 12–15 from the saved `process` (it holds them) instead of from `run_step` rows, and `db/055_sheet_facts.sql` has three small helpers (`app.sheet_ranges`, `app.sheet_style`, `app.sheet_entries`) — less duplication, same facts. The test uses b10's own style (26B) for the ABV bounds, and b05 for the named-style (20C) ranges.
