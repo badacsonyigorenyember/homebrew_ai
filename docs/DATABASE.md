@@ -390,6 +390,7 @@ erDiagram
         numeric srm
         text calc_version
         jsonb process "water, mash, boil, fermentation, packaging (m7-process)"
+        text sheet "Markdown recipe sheet, step 16 (m8)"
     }
     recipe_item {
         bigint recipe_id FK
@@ -466,6 +467,8 @@ Step 11, validate (`db/047_validate.sql`; no LLM): `app.recipe_tolerances()` (OG
 Saving (`db/048_save_recipe.sql`; no LLM): `app.save_recipe(run_id, step3, targets, step10, step11, process default null) returns bigint` raises unless `step11.passed` and the run has a `brief_id`, then in one transaction inserts the `app.recipe` row (draft, step 4's output as `targets`, the numbers, batch and efficiency of step 10, `calc_version`), one `app.recipe_item` per fermentable (kg), hop (g, minutes, share as `pct`), yeast (`ferment`; 1 pack as step 10 says, or step 14's pitch amount and unit when `process` is given) and extra (g), one `app.recipe_deviation` per step 3 deviation (`requested_by` user) and per `step11.model_deviations` row (kind ingredient, `requested_by` model), and sets `app.run.recipe_id`.
 
 The process (m7-process Task 8, same file): `app.recipe_process(step10, step12, step13, step14, step15) returns jsonb` builds `{water, mash, boil, fermentation, packaging}` (step 12's output, step 13's `mash` and `boil`, step 14's, step 15's; contract `process.output`) and raises `recipe_process: mash <x> is not step 10's <y>` (or `boil ...`) when step 13's mash temperature or boil differ from step 10's. Given as `process` to `app.save_recipe`, it is stored in `app.recipe.process`, and each yeast row takes its `amount` and `unit` from `process.fermentation.pitch` (matched by `ingredient_id`; a yeast missing from it raises). Without `process` (only the stage D tests) the column stays null and a yeast row is 1 pack.
+
+The sheet (m8-recipe-sheet-chat Task 1, `db/054_recipe_sheet.sql`): `app.recipe.sheet text` holds the Markdown sheet step 16 writes. `app.save_sheet(recipe_id, sheet) returns bigint` saves or overwrites it and raises on an empty sheet or an unknown recipe. `app.accept_recipe(recipe_id) returns text` raises when the recipe has no sheet, turns `draft` into `final`, leaves `final` and `brewed` as they are, and returns the status.
 
 Rule 9 (`app.check_rule_9`, `db/032_formulation_check.sql`) calls `app.step4_numbers` with the recipe's `hints`: an unstated OG, FG, IBU or SRM must be where step 4 puts it (within `midpoint_tolerance`), and the ABV target must be `app.abv` of the OG and FG targets within `midpoint_tolerance.abv`. The `formulation_check` input requires `hints`.
 

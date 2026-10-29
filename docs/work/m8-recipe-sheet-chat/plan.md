@@ -1,6 +1,6 @@
 # M8 · Step 16 and the chat: the recipe sheet you brew from — implementation plan
 
-Stage: approved
+Stage: implementing
 Brief: [brief.md](brief.md)
 Branch: m8-recipe-sheet-chat
 
@@ -135,17 +135,17 @@ supports), inserting the `run_step` rows 2, 6–11 and 12–15 that `app.sheet_f
 
 ### Task 1: a recipe can hold a sheet and be accepted
 Why: R8, R9, A7.
-- [ ] `db/054_recipe_sheet.sql`: `alter table app.recipe add column if not exists sheet text`;
+- [x] `db/054_recipe_sheet.sql`: `alter table app.recipe add column if not exists sheet text`;
       `app.save_sheet(recipe_id bigint, sheet text) returns bigint` (raises on an empty sheet or an
       unknown recipe; overwrites, so a re-run of step 16 on the same recipe works);
       `app.accept_recipe(recipe_id bigint) returns text` (raises when `sheet` is null; sets
       `status = 'final'`; a `final` recipe stays `final`; a `brewed` one is not changed back).
-- [ ] Apply twice; check the table owner and the two functions' owners.
-- [ ] Write `tests/test_recipe_sheet.py` (stack): save then read the sheet; accept with a sheet
+- [x] Apply twice; check the table owner and the two functions' owners.
+- [x] Write `tests/test_recipe_sheet.py` (stack): save then read the sheet; accept with a sheet
       gives `final`; accept without one raises and leaves `draft`; `brewed` stays `brewed`.
       Seen failing first (functions missing).
-- [ ] Run `.venv/bin/pytest tests/test_recipe_sheet.py tests/test_save_recipe.py`, expect all pass.
-- [ ] `docs/DATABASE.md`: the column. PROJECT.md §4 Database row (app column) and §8.
+- [x] Run `.venv/bin/pytest tests/test_recipe_sheet.py tests/test_save_recipe.py`, expect all pass.
+- [x] `docs/DATABASE.md`: the column. PROJECT.md §4 Database row (app column) and §8.
 Done when: the column exists owned by `postgres` and the tests pass.
 Commit: `Add recipe sheet column and accept function`
 
@@ -455,3 +455,4 @@ None.
 
 ## Deviations
 - 2026-10-29 · Tasks 12 and 14, Approach: the brew-day log (R13) and brew day (A9) moved out of m8 into the new side track `s11-brew-day` (draft brief), with `evals/brew_log.py`, `tests/test_brew_log.py` and `docs/brews/`; the docs task is now Task 12 and keeps G7's "you brew one" open, pointing to s11 — your answer to plan question 1. Your answer to question 2: the sheet must cite at least one retrieved chunk, as planned.
+- 2026-10-29 · Task 1: the tests use b08 instead of b01 — b01 does not pass step 11 on its own, so `save_recipe` refuses it.
