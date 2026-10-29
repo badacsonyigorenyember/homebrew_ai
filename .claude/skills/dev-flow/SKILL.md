@@ -101,7 +101,8 @@ End with the Report block from the conventions.
 - `needs-input`: ask the user the questions (use AskUserQuestion when they have options). Keep
   the subagent's recommendation. Then resume that subagent with SendMessage, or dispatch a new
   one with the answers in *User decisions so far*.
-- `needs-approval`: show a 3–6 line summary and the file path, and ask for approval or changes.
+- `needs-approval`: read the brief or plan and write the approval summary (below), then ask
+  for approval or changes.
   Changes → resume or re-dispatch with the feedback. Approval → set `Status: approved` /
   `Stage: approved` and commit exactly the *Commit on approval* paths and message (create the
   branch first if needed).
@@ -116,6 +117,14 @@ continue?". Keep going.
 
 - Every question or approval request: first open each file it mentions beside the chat, and
   the file where each id it uses is defined (CLAUDE.md "Show the files you ask about").
+- Approval summary, before asking to approve a brief or a plan:
+  - What it builds, then its main parts grouped by theme, with the ids (R1, A4, Task 3) in
+    brackets.
+  - Critical parts marked ⚠️: changes to existing behaviour, what is out of scope, unverified
+    assumptions and risks, and anything the user has to do by hand.
+  - Every clarifying question asked for this brief or plan: the question, its options, and the
+    answer chosen. Take them from this chat, or from the file's Deviations when resuming.
+  - The file path.
 - After step 4: the must-fix and should-fix findings, one line each. Ask about the should-fix
   ones.
 - After step 5, always before /dev-ship: read `verification.md` and show the Overall line and
