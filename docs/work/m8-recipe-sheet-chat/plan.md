@@ -270,7 +270,7 @@ Commit: `Add the step 16 answer contract and check`
 
 ### Task 6: code writes the sheet in Markdown
 Why: R1, R2, R3, A1, A2, A3.
-- [ ] `db/057_sheet_markdown.sql`: `app.sheet_markdown(facts jsonb, sources jsonb, answer jsonb)
+- [x] `db/057_sheet_markdown.sql`: `app.sheet_markdown(facts jsonb, sources jsonb, answer jsonb)
       returns text` calling one helper per section, in R2's order: style (pick, step 2 reason,
       alternative or mismatch, description, why); targets and results (batch, efficiency, OG,
       FG, ABV, IBU, SRM: target with its `from`, result, style range); fermentables (kg, %, "from
@@ -289,8 +289,8 @@ Why: R1, R2, R3, A1, A2, A3.
       sources (Approach, "Citations"). Each `why` goes under its item or section with its
       citation numbers. Display precision: gravity 3 decimals, ABV/%/°C/L 1 decimal, kg 2
       decimals, g and minutes whole.
-- [ ] Apply twice; owners.
-- [ ] Write `tests/test_sheet_markdown.py` (stack, rolled back, a fixed answer):
+- [x] Apply twice; owners.
+- [x] Write `tests/test_sheet_markdown.py` (stack, rolled back, a fixed answer):
       `test_quantities_equal_saved_rows` (b01 and b10: every fermentable, hop, yeast and salt
       line and the OG/FG/ABV/IBU/SRM row parse back to the saved values at the display precision),
       `test_section_order` (R2's headings in order), `test_labels_shown` (estimate, acid line,
@@ -299,9 +299,9 @@ Why: R1, R2, R3, A1, A2, A3.
       `test_absent_special_b` (facts with step 9 absent `Special B`, kind null: listed with what
       to do), `test_citation_format` (a book chunk shows title and PDF page, an article chunk
       section and URL; numbers follow first use). Seen failing first.
-- [ ] Run `.venv/bin/pytest tests/test_sheet_markdown.py tests/test_sheet_check.py`, expect all
+- [x] Run `.venv/bin/pytest tests/test_sheet_markdown.py tests/test_sheet_check.py`, expect all
       pass.
-- [ ] PROJECT.md §8.
+- [x] PROJECT.md §8.
 Done when: the sheet of a saved case has every R2 section with the saved numbers.
 Commit: `Write the recipe sheet in Markdown`
 
@@ -460,3 +460,4 @@ None.
 - 2026-10-29 · Task 4: `app.sheet_facts` takes steps 12–15 from the saved `process` (it holds them) instead of from `run_step` rows, and `db/055_sheet_facts.sql` has three small helpers (`app.sheet_ranges`, `app.sheet_style`, `app.sheet_entries`) — less duplication, same facts. The test uses b10's own style (26B) for the ABV bounds, and b05 for the named-style (20C) ranges.
 - 2026-10-29 · Tasks 9 and 11, brief A4: b05 kept in 20C failed step 11 in all three tries on seeds 42, 1 and 2, so "keep 20C" ends with the chat reporting the failure and no sheet (the `failed_step` 11 path); the Task 9 webhook check and Task 11 hand test step (2) say so — your answer: retry seeds, then accept.
 - 2026-10-29 · Task 5: `app.sheet_read_answer` takes the contract text as a fourth argument (`contract json`) — the plan said n8n passes it, as in step 1, so the function needs it. The contract's absent slot is checked in its own test (`test_sheet_answer_has_an_absent_slot`), not in `ABSENT_SLOTS`, which is for `.output` names only.
+- 2026-10-29 · Task 6: water salts show 1 decimal on the sheet (not whole grams) — salt amounts are small and saved with one decimal (4.5 g), so whole grams would hide the saved value; hops, extras and priming sugar stay whole.
