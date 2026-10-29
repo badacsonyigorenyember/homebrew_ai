@@ -68,6 +68,8 @@ def test_contract_files_complete():
             assert schema.get(key), f"{name}: {key} missing"
         assert schema["type"] == "object"
         optional = {"temperature", "seed"} if name == "step1.input" else set()
+        if name == "step2.input":
+            optional = {"style"}
         if name == "formulation_check.input":
             optional = {"extras"}
         assert set(schema["required"]) == set(schema["properties"]) - optional, name
@@ -459,6 +461,13 @@ def test_good_examples(conn, name):
 @pytest.mark.parametrize("name,value", BAD, ids=[f"{n}-{i}" for i, (n, _) in enumerate(BAD)])
 def test_bad_examples(conn, name, value):
     assert len(errors(conn, name, value)) >= 1
+
+
+@pytest.mark.stack
+def test_step2_input_style_is_optional(conn):
+    assert errors(conn, "step2.input", {**GOOD["step2.input"], "style": "20C"}) == []
+    assert errors(conn, "step2.input", {**GOOD["step2.input"], "style": None}) == []
+    assert errors(conn, "step2.input", {**GOOD["step2.input"], "style": 5}) != []
 
 
 @pytest.mark.stack

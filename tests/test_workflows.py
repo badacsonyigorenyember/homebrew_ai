@@ -106,6 +106,8 @@ def test_test_data_notes(name):
     else:
         declared = [v["name"] for v in trigger["parameters"]["workflowInputs"]["values"]]
         optional = {"temperature", "seed"}  # step 1 defaults them; the sample leaves them out
+        if name == "step-2-best-fit-style.json":
+            optional = {"style"}  # optional; the sample leaves it out
         assert set(sample[0]) == set(declared) - optional
 
 

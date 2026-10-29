@@ -151,26 +151,26 @@ Commit: `Add recipe sheet column and accept function`
 
 ### Task 2: step 2 obeys an optional style
 Why: R5, A4 (webhook part).
-- [ ] `db/022_step2.sql`: `drop function if exists app.step2_best_style(jsonb, text, text)`, then
+- [x] `db/022_step2.sql`: `drop function if exists app.step2_best_style(jsonb, text, text)`, then
       create it with a fourth argument `style text default null` (Approach, "Style field").
       Resolve the code in `ref.beer_style` under the guide in force, BJCP before BA; unknown →
       `raise exception 'step 2: unknown style %'`. When it differs from the pick: `style` is it,
       no specialty swap, `mismatch` null, `alt_styles` = the pick first then the others (at most
       4), `reason` = `Picked <code> <name>: you chose it (style field); best fit <code>.`
       Header comment states the rule.
-- [ ] `shared/contracts/step2.input.schema.json`: optional `style` (`string` or null, not in
+- [x] `shared/contracts/step2.input.schema.json`: optional `style` (`string` or null, not in
       `required`). `Step 2 · best-fit style`: trigger input `style` (`any`), read with
       `?? null`, query `select app.step2_best_style($1::jsonb, $2, $3, $4) as result`; `Test data`
       unchanged. Import, publish, export.
-- [ ] Write tests: `tests/test_step2_pick.py::test_style_field_keeps_named_style` (b05 brief,
+- [x] Write tests: `tests/test_step2_pick.py::test_style_field_keeps_named_style` (b05 brief,
       `style` 20C → 20C, mismatch null, `alt_styles[0]` 15B),
       `::test_style_field_equal_to_pick_changes_nothing` (15B → output equals the no-style
       output), `::test_unknown_style_field_raises`; `tests/test_step3.py::test_kept_style_lists_the_number`
       (step 3 on the 20C output lists ABV 4 as a `number` deviation). `tests/test_contracts.py`
       covers the new field. Seen failing first.
-- [ ] Run `.venv/bin/pytest tests/test_step2_pick.py tests/test_step2_signals.py tests/test_step3.py
+- [x] Run `.venv/bin/pytest tests/test_step2_pick.py tests/test_step2_signals.py tests/test_step3.py
       tests/test_contracts.py tests/test_workflows.py`, expect all pass.
-- [ ] PROJECT.md §8.
+- [x] PROJECT.md §8.
 Done when: step 2 picks the given style and every existing step 2 test still passes.
 Commit: `Let step 2 obey a style field`
 

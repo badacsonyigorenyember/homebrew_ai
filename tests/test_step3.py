@@ -89,6 +89,16 @@ def test_mismatch_carried(conn):
 
 
 @pytest.mark.stack
+def test_kept_style_lists_the_number(conn):
+    """b05 with style 20C: step 2 drops the mismatch, and step 3 lists ABV 4 as a number deviation."""
+    brief = brief_of(BRIEFS["b05"])
+    style = sql(conn, "step2_best_style", brief, BRIEFS["b05"]["request"], None, "20C")
+    assert style["style"]["code"] == "20C" and style["mismatch"] is None
+    got = [d for d in sql(conn, "step3_deviations", brief, style)["deviations"] if d["kind"] == "number"]
+    assert len(got) == 1 and got[0]["subject"] == "ABV 4" and "20C" in got[0]["from"]
+
+
+@pytest.mark.stack
 def test_dry_vs_full_chewy_is_one_conflict(conn):
     got = conflicts(conn, BRIEFS["b11"]["hints"])
     assert len(got) == 1

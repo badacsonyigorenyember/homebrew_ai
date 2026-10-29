@@ -28,6 +28,13 @@
         "ba",
         null
       ]
+    },
+    "style": {
+      "description": "Optional. A style code the user chose; step 2 then picks it. null or missing = no choice.",
+      "type": [
+        "string",
+        "null"
+      ]
     }
   }
 }

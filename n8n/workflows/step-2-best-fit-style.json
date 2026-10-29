@@ -29,6 +29,10 @@
             {
               "name": "guide_preference",
               "type": "any"
+            },
+            {
+              "name": "style",
+              "type": "any"
             }
           ]
         }
@@ -54,7 +58,7 @@
           "mappingMode": "defineBelow",
           "value": {
             "contract": "step2.input",
-            "value": "={{ { run_id: $json.run_id, brief: $json.brief, request: $json.request, guide_preference: $json.guide_preference ?? null } }}"
+            "value": "={{ { run_id: $json.run_id, brief: $json.brief, request: $json.request, guide_preference: $json.guide_preference ?? null, style: $json.style ?? null } }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -94,9 +98,9 @@
       ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "select app.step2_best_style($1::jsonb, $2, $3) as result",
+        "query": "select app.step2_best_style($1::jsonb, $2, $3, $4) as result",
         "options": {
-          "queryReplacement": "={{ [JSON.stringify($(\"When Executed by Another Workflow\").item.json.brief), $(\"When Executed by Another Workflow\").item.json.request, $(\"When Executed by Another Workflow\").item.json.guide_preference ?? null] }}"
+          "queryReplacement": "={{ [JSON.stringify($(\"When Executed by Another Workflow\").item.json.brief), $(\"When Executed by Another Workflow\").item.json.request, $(\"When Executed by Another Workflow\").item.json.guide_preference ?? null, $(\"When Executed by Another Workflow\").item.json.style ?? null] }}"
         }
       },
       "credentials": {
