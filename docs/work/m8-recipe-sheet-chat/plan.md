@@ -235,36 +235,36 @@ Commit: `Gather step 16 facts and sources`
 
 ### Task 5: the LLM's prose has a contract, a prompt and a check
 Why: R1, R3, R7, A1, A6 (check level), §6.2, §6.3.
-- [ ] `shared/contracts/sheet.answer.schema.json`: `{style_description: string, why: [{key,
+- [x] `shared/contracts/sheet.answer.schema.json`: `{style_description: string, why: [{key,
       text, cite: [integer]}], notes: [{text, cite: [integer]}]}`, all required, no extra
       properties; `cite` may be empty (the "no source" slot). `shared/prompts/sheet.system.md`:
       prose only; one `why` per listed key; numbers only as shown in the facts, else none; cite
       chunk ids from the Sources list; *How to Brew* first where it covers the point; plain
       brewer's English.
-- [ ] `db/055_sheet_facts.sql` gains `app.sheet_prompt(facts jsonb, sources jsonb) returns text`:
+- [x] `db/055_sheet_facts.sql` gains `app.sheet_prompt(facts jsonb, sources jsonb) returns text`:
       the facts (labelled sections, numbers as the sheet shows them), the keys to write, the
       sources as `[<chunk_id>] <title> — <section>: <text>`.
-- [ ] `db/056_sheet_check.sql`: `app.prose_numbers(t text) returns text[]` (the token rule of the
-      Approach); `app.sheet_read_answer(content text, facts jsonb, sources jsonb) returns table
+- [x] `db/056_sheet_check.sql`: `app.prose_numbers(t text) returns text[]` (the token rule of the
+      Approach); `app.sheet_read_answer(content text, facts jsonb, sources jsonb, contract json) returns table
       (answer jsonb, errors text[])`: JSON parse, contract (`extensions.jsonschema_validation_errors`
       on the schema file's text passed in by n8n, as step 1 does), keys (missing, unknown,
       repeated), numbers (`number 152 in why[mash] is not a saved value or a style range value`),
       citations (`chunk 9999 in notes[0] was not retrieved`; `the sheet cites no source`);
       `app.sheet_retry_text(errors text[]) returns text`.
-- [ ] Apply twice; owners.
-- [ ] Write `tests/test_sheet_check.py` (stack, rolled back): a good answer passes; a wrong number,
+- [x] Apply twice; owners.
+- [x] Write `tests/test_sheet_check.py` (stack, rolled back): a good answer passes; a wrong number,
       `66` for a 66.5 °C mash, a number in the style description, an unknown chunk id, no
       citation at all, a missing key and an unknown key each fail with their message; `1.040`
       for a saved 1.0401 and `15B` / `US-05` in a text pass; an empty `cite` on one line passes.
       `tests/test_contracts.py`: `sheet.answer` in `NAMES`, its absent slot (`why.cite`, array).
       Seen failing first.
-- [ ] Measure the prompt once (scratchpad script, not committed): for the saved m7 run with the
+- [x] Measure the prompt once (scratchpad script, not committed): for the saved m7 run with the
       longest `app.sheet_prompt` among runs 4976–4998, ask Ollama as the workflow will (system
       prompt, `num_ctx` 32768, `num_predict` 4096, the contract as `format`) and record
       `prompt_eval_count` + 4096 ≤ 32768 and whether the answer passes the check, in PROJECT.md
       §8. Over the limit → stop and hand back `needs-input` (fewer chunks per query is the
       likely fix).
-- [ ] Run `.venv/bin/pytest tests/test_sheet_check.py tests/test_contracts.py`, expect all pass.
+- [x] Run `.venv/bin/pytest tests/test_sheet_check.py tests/test_contracts.py`, expect all pass.
 Done when: the check rejects every listed case, and the measured prompt fits.
 Commit: `Add the step 16 answer contract and check`
 
@@ -459,3 +459,4 @@ None.
 - 2026-10-29 · Task 3: `Brief given?` sits after `Step 1 · input`, not after `Step 0 · log ok` — the step 1 log nodes read `Step 1 · input` (run id, start time), which must have run on both branches. `Step 1 · given brief` takes `llm` as `brief_llm ?? {}` and `Step 1 · log ok` counts tokens with `?? 0`, so a given brief without an `llm` still logs.
 - 2026-10-29 · Task 4: `app.sheet_facts` takes steps 12–15 from the saved `process` (it holds them) instead of from `run_step` rows, and `db/055_sheet_facts.sql` has three small helpers (`app.sheet_ranges`, `app.sheet_style`, `app.sheet_entries`) — less duplication, same facts. The test uses b10's own style (26B) for the ABV bounds, and b05 for the named-style (20C) ranges.
 - 2026-10-29 · Tasks 9 and 11, brief A4: b05 kept in 20C failed step 11 in all three tries on seeds 42, 1 and 2, so "keep 20C" ends with the chat reporting the failure and no sheet (the `failed_step` 11 path); the Task 9 webhook check and Task 11 hand test step (2) say so — your answer: retry seeds, then accept.
+- 2026-10-29 · Task 5: `app.sheet_read_answer` takes the contract text as a fourth argument (`contract json`) — the plan said n8n passes it, as in step 1, so the function needs it. The contract's absent slot is checked in its own test (`test_sheet_answer_has_an_absent_slot`), not in `ABSENT_SLOTS`, which is for `.output` names only.

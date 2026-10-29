@@ -9,7 +9,7 @@ from loaders.db import connect
 
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
 NAMES = [f"step{n}.{side}" for n in range(16) for side in ("input", "output")]
-NAMES += ["choose.input", "choose.proposal"]
+NAMES += ["choose.input", "choose.proposal", "sheet.answer"]
 NAMES += ["process.input", "process.output"]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
 NAMES += [f"try.{side}" for side in ("input", "output")]
@@ -353,6 +353,8 @@ GOOD = {
     "choose.input": {"run_id": 1, "brief": BRIEF, "style": STEP2_OUT, "profile": GOOD_PROFILE, "targets": STEP4_OUT,
                      "frame": STEP5_OUT, "model": "gemma4:12b", "think": False, "temperature": 0, "seed": 42, "feedback": None},
     "choose.proposal": PROPOSAL,
+    "sheet.answer": {"style_description": "A dark ale.", "why": [{"key": "style", "text": "It fits.", "cite": []}],
+                     "notes": [{"text": "Keep it warm.", "cite": [1]}]},
     "formulation_check.input": CHECK_IN,
     "formulation_check.output": CHECK_OUT,
     "step0.input": {"run_id": 1, "profile_id": None},
@@ -461,6 +463,12 @@ def test_good_examples(conn, name):
 @pytest.mark.parametrize("name,value", BAD, ids=[f"{n}-{i}" for i, (n, _) in enumerate(BAD)])
 def test_bad_examples(conn, name, value):
     assert len(errors(conn, name, value)) >= 1
+
+
+def test_sheet_answer_has_an_absent_slot():
+    """The model's answer has no `.output` name, so its absent slot is checked here: an empty cite list."""
+    schema = load("sheet.answer")
+    assert _walk(schema, "why.cite")["type"] == "array" and _walk(schema, "notes.cite")["type"] == "array"
 
 
 @pytest.mark.stack

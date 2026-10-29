@@ -292,3 +292,81 @@ begin
     return kept;
 end;
 $$;
+
+-- The user message of the step 16 model call (docs/work/m8-recipe-sheet-chat, Task 5): the facts in labelled
+-- sections, then the keys to write a "why" for, then the sources. The numbers are the saved ones, written as
+-- they are stored; the model may repeat them and may not make up others. Sources are
+-- "[<chunk_id>] <title> - <section>: <text>".
+create or replace function app.sheet_prompt(facts jsonb, sources jsonb)
+returns text
+language plpgsql
+immutable
+as $$
+declare
+    st    jsonb := facts->'style';
+    rc    jsonb := facts->'recipe';
+    pr    jsonb := facts->'process';
+    s2    jsonb := facts->'step2';
+    out   text;
+    c     jsonb;
+    x     jsonb;
+    extra text;
+begin
+    out := format(E'STYLE\n%s %s (%s guide)\nOG %s-%s, FG %s-%s, IBU %s-%s, SRM %s-%s, ABV %s-%s\nOverall impression: %s\nWhy this style: %s\n',
+        st->>'code', st->>'name', st->>'guide',
+        st#>>'{ranges,og,low}', st#>>'{ranges,og,high}', st#>>'{ranges,fg,low}', st#>>'{ranges,fg,high}',
+        st#>>'{ranges,ibu,low}', st#>>'{ranges,ibu,high}', st#>>'{ranges,srm,low}', st#>>'{ranges,srm,high}',
+        st#>>'{ranges,abv,low}', st#>>'{ranges,abv,high}', st->>'overall_impression', s2->>'reason');
+    if s2->'mismatch' is not null and s2->>'mismatch' <> 'null' then
+        out := out || format(E'Style mismatch: %s\n', s2->>'mismatch');
+    end if;
+    if jsonb_array_length(coalesce(s2->'alt_styles', '[]'::jsonb)) > 0 then
+        out := out || format(E'Other styles considered: %s\n',
+                             (select string_agg(a, ', ') from jsonb_array_elements_text(s2->'alt_styles') a));
+    end if;
+
+    out := out || format(E'\nRECIPE\nBatch %s L, efficiency %s %%, OG %s, FG %s, ABV %s %%, IBU %s, SRM %s\n',
+        rc->>'batch_l', rc->>'efficiency_pct', rc->>'og', rc->>'fg', rc->>'abv', rc->>'ibu', rc->>'srm');
+    for x in select * from jsonb_array_elements(facts->'items') loop
+        out := out || format(E'- %s: %s %s%s%s%s\n', x->>'name', x->>'amount', x->>'unit',
+                             case when x->>'pct' is not null then ', ' || (x->>'pct') || ' %' else '' end,
+                             case when x->>'usage' is not null then ', ' || (x->>'usage') else '' end,
+                             case when x->>'time_min' is not null then ', ' || (x->>'time_min') || ' min' else '' end);
+    end loop;
+
+    out := out || E'\nKEYS TO WRITE (one "why" for each key, in this order)\n';
+    for c in select * from jsonb_array_elements(facts->'choices') loop
+        extra := case c->>'key'
+            when 'water' then format('target %s (%s, %s); salts: %s; mash pH %s (estimate); %s',
+                pr#>>'{water,target,row}', pr#>>'{water,target,from}', pr#>>'{water,target,basis}',
+                (select coalesce(string_agg(format('%s %s g', s->>'name', s->>'total_g'), ', '), 'none')
+                 from jsonb_array_elements(coalesce(pr#>'{water,salts}', '[]'::jsonb)) s),
+                pr#>>'{water,mash_ph,ph}', pr#>>'{water,acid,text}')
+            when 'mash' then format('strike %s C, %s',
+                pr#>>'{mash,strike_c}',
+                (select string_agg(format('%s %s C %s min', s->>'name', s->>'temp_c', s->>'minutes'), '; ')
+                 from jsonb_array_elements(coalesce(pr#>'{mash,steps}', '[]'::jsonb)) s))
+            when 'boil' then format('%s min. %s', pr#>>'{boil,boil_min}', pr#>>'{boil,because}')
+            when 'fermentation' then (select string_agg(format('%s %s C %s days', s->>'phase', s->>'temp_c', s->>'days'), '; ')
+                 from jsonb_array_elements(coalesce(pr#>'{fermentation,steps}', '[]'::jsonb)) s)
+            when 'packaging' then format('CO2 %s volumes (%s, %s); priming %s g %s',
+                pr#>>'{packaging,co2,volumes}', pr#>>'{packaging,co2,family}', pr#>>'{packaging,co2,basis}',
+                pr#>>'{packaging,priming,g}', pr#>>'{packaging,priming,sugar}')
+            else null end;
+        out := out || format(E'- %s | %s%s%s%s%s\n', c->>'key', c->>'label',
+            case when c->>'because' is not null and c->>'because' <> 'null' then ' | reason: ' || (c->>'because') else '' end,
+            case when c->>'level' is not null and c->>'level' <> 'null' then ' | level in the style: ' || (c->>'level') else '' end,
+            case when c->>'inventory' = 'true' then ' | from the brewer''s inventory' else '' end,
+            case when extra is not null then ' | facts: ' || extra else '' end);
+    end loop;
+
+    out := out || E'\nSOURCES\n';
+    if jsonb_array_length(coalesce(sources, '[]'::jsonb)) = 0 then
+        out := out || E'(none)\n';
+    end if;
+    for x in select * from jsonb_array_elements(coalesce(sources, '[]'::jsonb)) loop
+        out := out || format(E'[%s] %s - %s: %s\n', x->>'chunk_id', x->>'title', x->>'section_path', x->>'text');
+    end loop;
+    return out;
+end;
+$$;
