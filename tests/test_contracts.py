@@ -8,8 +8,9 @@ import pytest
 from loaders.db import connect
 
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
-NAMES = [f"step{n}.{side}" for n in range(12) for side in ("input", "output")]
+NAMES = [f"step{n}.{side}" for n in range(16) for side in ("input", "output")]
 NAMES += ["choose.input", "choose.proposal"]
+NAMES += ["process.input", "process.output"]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
 NAMES += [f"try.{side}" for side in ("input", "output")]
 
@@ -29,6 +30,11 @@ ABSENT_SLOTS = {
     "formulation_check.output": [("results.status", "enum:unknown"), ("numbers.fg", "null")],
     "step10.output": [("colour.darkest", "null"), ("numbers.abv", "null"), ("extras", "array")],
     "step11.output": [("targets.value", "null"), ("failures", "array")],
+    "step12.output": [("salts", "array"), ("target.row", "null")],
+    "step13.output": [("boil.whirlpool", "array")],
+    "step14.output": [("pitch.cells_billion", "null"), ("dry_hops", "array"), ("secondary.contact_days", "null")],
+    "step15.output": [("co2.range", "null"), ("extras", "array")],
+    "process.output": [("fermentation.pitch.cells_billion", "null"), ("water.salts", "array")],
     "try.output": [("next_feedback", "null")],
 }
 
@@ -263,8 +269,67 @@ TRY_FEEDBACK = {
 TRY_CHOOSE = {"run_id": 1, "brief": BRIEF, "style": STEP2_OUT, "profile": GOOD_PROFILE, "targets": STEP4_OUT,
               "frame": STEP5_OUT, "model": "gemma4:12b", "think": False, "temperature": 0, "seed": 42,
               "feedback": {**TRY_FEEDBACK, "try": 2}}
+_ION = {"ca": 0, "mg": 0, "na": 0, "so4": 0, "cl": 0, "hco3": 0}
+_WATER = {"ions": _ION, "alkalinity_ppm": 0, "ra_ppm": 0, "ra_meq_l": 0}
+STEP12_OUT = {
+    "target": {"from": "style", "style_code": "21A", "row": "ale-medium-pale-assertive", "table_no": "19", "beer_type": "ale",
+               "strength": "medium", "colour": "pale", "bitterness": "assertive",
+               "ranges": {k: {"low": 50, "high": None} for k in ("ca", "alkalinity", "so4", "cl", "ra")},
+               "acidify": "yes", "page": "p. 122", "aim": {"ca": 50, "so4": 250, "cl": 50}, "basis": "listed",
+               "fallback": False, "outside_row": [], "moved_by": []},
+    "source_water": _WATER,
+    "volumes": {"grist_kg": 4.5, "ratio_l_kg": 3, "preboil_l": 24, "absorbed_l": 4.5, "total_l": 28.5, "strike_l": 13.5,
+                "sparge_l": 15, "because": "x"},
+    "salts": [{"ingredient_id": 1, "name": "gypsum", "aims_at": "sulfate", "strike_g": 3, "sparge_g": 3, "total_g": 6}],
+    "none_needed": False, "strike_water": _WATER, "sparge_water": _WATER,
+    "mash_ph": {"ph": 5.3, "target_low": 5.2, "target_high": 5.4, "because": "x"},
+    "acid": {"needed": False, "text": "no acid needed", "acidify": "yes"},
+    "values_used": [{"what": "water row", "because": "x", "source": "Water p. 122"}],
+}
+STEP13_OUT = {
+    "mash": {"mash_c": 66.5,
+             "steps": [{"name": "saccharification rest", "temp_c": 66.5, "minutes": 60, "why": "x", "source": "x"}],
+             "volumes": STEP12_OUT["volumes"], "strike_c": 73.8, "grain_c": 21,
+             "additions": [{"ingredient_id": 4, "name": "Coffee", "usage": "mash", "time_min": None, "g": 60}]},
+    "boil": {"boil_min": 60, "because": "60 min",
+             "additions": [{"at_min": 60, "kind": "hop", "ingredient_id": 3, "name": "Cascade", "usage": "boil", "g": 40}],
+             "whirlpool": [{"minutes": 15, "kind": "extra", "ingredient_id": 9, "name": "Orange Peel", "usage": "whirlpool", "g": 20}]},
+    "values_used": [{"what": "mash steps", "because": "x", "source": "x"}],
+}
+STEP14_OUT = {
+    "steps": [{"phase": "ferment", "yeast_id": 7, "temp_c": 18, "days": 2, "why": "x", "source": "x",
+               "move_on": "at least 2 days; move on when gravity is within 2-5 points of FG"},
+              {"phase": "dry_hop", "yeast_id": None, "temp_c": 14, "days": 3, "why": "x", "source": "x", "move_on": None}],
+    "pitch": [{"ingredient_id": 7, "name": "US-05", "role": "main", "rate_m_per_ml_p": 0.75, "plato": 12.1,
+               "cells_billion": 181.5, "amount": 19, "unit": "g", "because": "generic figure, not the maker's spec"},
+              {"ingredient_id": 8, "name": "Culture", "role": "souring", "rate_m_per_ml_p": None, "plato": None,
+               "cells_billion": None, "amount": 1, "unit": "pack", "because": "no sourced pitch rate: 1 pack"}],
+    "dry_hops": [{"day": 7, "temp_c": 14, "contact_days": 3, "hops": [{"ingredient_id": 3, "name": "Cascade", "g": 40}]}],
+    "secondary": [{"usage": "secondary", "day": 7, "ingredient_id": 4, "name": "Vanilla bean", "g": 1, "contact_days": None}],
+    "max_temp_c": 21,
+    "values_used": [{"what": "pitch amounts", "because": "x", "source": "x"}],
+}
+STEP15_OUT = {
+    "co2": {"volumes": 2.45, "basis": "inferred", "range": [2.2, 2.7], "family": "american-ales", "from": "style",
+            "source": "How to Brew p. 159"},
+    "priming": {"sugar": "table sugar (sucrose)", "g": 113, "g_per_l": 5.7, "temp_c": 21, "residual_vol": 0.8,
+                "volume_l": 20, "source": "How to Brew p. 156-161"},
+    "extras": [{"ingredient_id": 4, "name": "Coffee", "g": 60}],
+}
+PROCESS_OUT = {"water": STEP12_OUT, "mash": STEP13_OUT["mash"], "boil": STEP13_OUT["boil"],
+               "fermentation": STEP14_OUT, "packaging": STEP15_OUT}
 GOOD = {
+    "process.input": {"run_id": 1, "brief": BRIEF, "profile": GOOD_PROFILE, "targets": STEP4_OUT, "step10": STEP10_OUT},
+    "process.output": PROCESS_OUT,
     **_CHOOSE_OUT,
+    "step15.input": {"run_id": 1, "targets": STEP4_OUT, "step10": STEP10_OUT, "step14": STEP14_OUT},
+    "step15.output": STEP15_OUT,
+    "step14.input": {"run_id": 1, "targets": STEP4_OUT, "step10": STEP10_OUT},
+    "step14.output": STEP14_OUT,
+    "step13.input": {"run_id": 1, "profile": GOOD_PROFILE, "targets": STEP4_OUT, "step10": STEP10_OUT},
+    "step13.output": STEP13_OUT,
+    "step12.input": {"run_id": 1, "brief": BRIEF, "profile": GOOD_PROFILE, "targets": STEP4_OUT, "step10": STEP10_OUT},
+    "step12.output": STEP12_OUT,
     "step10.input": {"run_id": 1, "try": 1, "brief": BRIEF, "profile": GOOD_PROFILE, "targets": STEP4_OUT,
                      "step6": _CHOOSE_OUT["step6.output"], "step7": _CHOOSE_OUT["step7.output"],
                      "step8": _CHOOSE_OUT["step8.output"], "step9": _CHOOSE_OUT["step9.output"]},
@@ -308,6 +373,27 @@ GOOD = {
     "step5.output": STEP5_OUT,
 }
 BAD = [
+    ("process.input", {k: v for k, v in GOOD["process.input"].items() if k != "step10"}),
+    ("process.input", {**GOOD["process.input"], "run_id": "1"}),
+    ("process.output", {k: v for k, v in PROCESS_OUT.items() if k != "packaging"}),
+    ("process.output", {**PROCESS_OUT, "boil": {k: v for k, v in STEP13_OUT["boil"].items() if k != "boil_min"}}),
+    ("process.output", {**PROCESS_OUT, "fermentation": {**STEP14_OUT, "max_temp_c": "21"}}),
+    ("step15.output", {k: v for k, v in STEP15_OUT.items() if k != "priming"}),
+    ("step15.output", {**STEP15_OUT, "co2": {**STEP15_OUT["co2"], "from": "guess"}}),
+    ("step15.output", {**STEP15_OUT, "priming": {**STEP15_OUT["priming"], "g": "113"}}),
+    ("step15.input", {k: v for k, v in GOOD["step15.input"].items() if k != "step14"}),
+    ("step14.output", {k: v for k, v in STEP14_OUT.items() if k != "dry_hops"}),
+    ("step14.output", {**STEP14_OUT, "steps": [{k: v for k, v in STEP14_OUT["steps"][0].items() if k != "move_on"}]}),
+    ("step14.output", {**STEP14_OUT, "pitch": [{**STEP14_OUT["pitch"][0], "unit": "kg"}]}),
+    ("step14.input", {k: v for k, v in GOOD["step14.input"].items() if k != "step10"}),
+    ("step13.output", {k: v for k, v in STEP13_OUT.items() if k != "values_used"}),
+    ("step13.output", {**STEP13_OUT, "boil": {k: v for k, v in STEP13_OUT["boil"].items() if k != "whirlpool"}}),
+    ("step13.output", {**STEP13_OUT, "boil": {**STEP13_OUT["boil"], "additions": [{**STEP13_OUT["boil"]["additions"][0], "kind": "salt"}]}}),
+    ("step13.input", {k: v for k, v in GOOD["step13.input"].items() if k != "step10"}),
+    ("step12.output", {**STEP12_OUT, "target": {**STEP12_OUT["target"], "from": "web"}}),
+    ("step12.output", {k: v for k, v in STEP12_OUT.items() if k != "acid"}),
+    ("step12.output", {**STEP12_OUT, "salts": [{**STEP12_OUT["salts"][0], "aims_at": "acid"}]}),
+    ("step12.input", {k: v for k, v in GOOD["step12.input"].items() if k != "targets"}),
     ("step10.output", {k: v for k, v in STEP10_OUT.items() if k != "recipe"}),
     ("step10.output", {**STEP10_OUT, "yeasts": []}),
     ("step10.output", {**STEP10_OUT, "extras": [{**STEP10_OUT["extras"][0], "usage": "packaging"}]}),

@@ -631,3 +631,43 @@ def grade_recipe(brief: dict, recipe: dict | None) -> dict:
     invented = 0 if recipe is None else sum(i.get("ingredient_id") is None for i in recipe["items"])
     return {"validated": recipe is not None, "invented": invented, "stated": stated,
             "stated_ok": all(s["met"] for s in stated.values())}
+
+
+PROCESS_PARTS = ("water", "mash", "boil", "fermentation", "packaging")
+
+
+def grade_process(brief: dict, process: dict | None) -> dict:
+    """Grade the saved process (app.recipe.process) against the brief's `process` expectations
+    (docs/work/m7-process, R7, A6). `present`: the process has all five parts. Each expectation is
+    {expected, got, met}: ferm_c = every `ferment` step's temperature lies in [low, high]; diacetyl_rest,
+    packaging_extras = each word is in the name of a packaging extra (step 15); diacetyl_rest,
+    lagering and souring = the schedule has a `rest`, `lager` or `souring` step (or has none, when the
+    expectation is false); water_row = step 12's table row. `got` is None when there is no process.
+    `process_ok`: present and every expectation met (an empty expectation is met)."""
+    present = isinstance(process, dict) and all(process.get(k) is not None for k in PROCESS_PARTS)
+    steps = ((process or {}).get("fermentation") or {}).get("steps") or []
+    phases = {s["phase"] for s in steps}
+    got = {
+        "ferm_c": [s["temp_c"] for s in steps if s["phase"] == "ferment"],
+        "diacetyl_rest": "rest" in phases,
+        "lagering": "lager" in phases,
+        "souring": "souring" in phases,
+        "packaging_extras": [e["name"] for e in ((process or {}).get("packaging") or {}).get("extras") or []],
+        "water_row": (((process or {}).get("water") or {}).get("target") or {}).get("row"),
+    }
+    expectations = {}
+    for key, expected in (brief.get("process") or {}).items():
+        if not present:
+            expectations[key] = {"expected": expected, "got": None, "met": False}
+        elif key == "ferm_c":
+            temps = got[key]
+            met = bool(temps) and all(expected[0] - EPS <= t <= expected[1] + EPS for t in temps)
+            expectations[key] = {"expected": expected, "got": temps, "met": met}
+        elif key == "packaging_extras":
+            names = [n.lower() for n in got[key]]
+            met = all(any(w.lower() in n for n in names) for w in expected)
+            expectations[key] = {"expected": expected, "got": got[key], "met": met}
+        else:
+            expectations[key] = {"expected": expected, "got": got[key], "met": got[key] == expected}
+    return {"present": present, "expectations": expectations,
+            "process_ok": present and all(e["met"] for e in expectations.values())}

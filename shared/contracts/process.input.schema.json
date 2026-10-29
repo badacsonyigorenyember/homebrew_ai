@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "process.input",
+  "description": "Input of the Steps 12-15 sub-workflow (the recipe's process): the run, the brief (a step1.output), the profile (a step0.output), the targets (a step4.output) and the step 10 output of the passed try, each already checked. No absent slot.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "brief",
+    "profile",
+    "targets",
+    "step10"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "brief": {
+      "type": "object"
+    },
+    "profile": {
+      "type": "object"
+    },
+    "targets": {
+      "type": "object"
+    },
+    "step10": {
+      "type": "object"
+    }
+  }
+}

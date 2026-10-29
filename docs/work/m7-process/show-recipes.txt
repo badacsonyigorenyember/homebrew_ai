@@ -1,0 +1,172 @@
+===== b08 (run 4964) =====
+Request: German pils, but I want it really bitter, around 50 IBU. I have no Saaz, so pick another noble-type hop. Only 10 litres.
+
+Style: German Pils (5D)
+Batch: 10 l
+Mash: 66.5 °C (66.5 C stays: the predicted FG 1.0086 is inside the range 1.0080 to 1.0130)
+
+Numbers against targets:
+  OG   1.0455   (target 1.047)
+  FG   1.0086   (target 1.0105)
+  ABV  4.7 %   (target 4.7)
+  IBU  50.7   (target 50)
+  SRM  3.2   (target 3)
+
+Fermentables:
+  1.95 kg  95.12 %  Pilsner Malt  (mash)
+      because: Pilsner Malt: Provides the clean, malty-sweet foundation and pale colour characteristic of a German Pils. (typical at mash in 5D)
+  0.1 kg  4.88 %  Carapils  (mash)
+      because: Carapils: Adds body and foam stability without contributing significant colour or flavour. (typical at mash in 5D)
+
+Hops:
+  13 g  Magnum  boil 90 min
+      because: Magnum: Delivers the necessary bitterness with a clean, neutral profile. (allowed at boil 30 min in 5D)
+  8 g  Tettnanger  boil 15 min
+      because: Tettnanger: Contributes a subtle floral aroma typical of German lagers. (typical at boil 5 min in 5D)
+
+Yeast:
+  17 g  German Lager
+      because: German Lager: A clean German lager yeast that ensures a crisp, dry finish. (allowed at ferment at 12 °C in 5D)
+
+Water:
+  row: lager-medium-pale (listed)
+  gypsum: 4.9 g (1.5 strike, 3.4 sparge), for sulfate
+  calcium chloride: 2.3 g (0.7 strike, 1.6 sparge), for chloride
+  mash pH 5.431 (aim 5.2-5.4)
+  acid: acid would be needed to bring the mash from 5.43 into 5.2-5.4
+
+Mash: strike 6.15 l at 72.7 °C, sparge 13.9 l, pre-boil 18 l
+  saccharification rest: 66.5 °C, 60 min
+  mash-out: 77 °C, 10 min
+
+Boil: 90 min
+  at 90 min: 13 g Magnum (boil)
+  at 15 min: 8 g Tettnanger (boil)
+
+Fermentation:
+  ferment: 13 °C, 4 days; at least 4 days; move on to the diacetyl rest when gravity within 2-5 points of FG (HTB p. 93-94, Table 6.2)
+  rest: 15 °C, 6 days; starts when gravity within 2-5 points of FG (HTB p. 93-94, Table 6.2); stay at least 6 days (up to 12), then cool
+  lager: 2 °C, 14 days
+  pitch (main): 17 g German Lager; 1.5 billion cells/L/degP (HTB ch. 7 p. 111-113) x 10 L x 11.3 degP = 169.0 billion cells; dry yeast at 10 billion cells per gram is HTB's generic figure (p. 108), not the maker's spec, so the 17 g are an estimate
+
+Packaging: CO2 2.45 volumes (style, How to Brew p. 159: the middle of the european-lagers family's 2.2-2.7 volumes (doc-calc.md §14))
+  priming: 53 g table sugar (sucrose) for 10 l at 15 °C
+
+Deviations:
+  IBU 50: None (asked by user) IBU 50 is above German Pils (5D)'s IBU range 22–40
+
+===== b13 (run 4992) =====
+Request: A traditional Bavarian hefeweizen, 15 litres please.
+
+Style: Weissbier (10A)
+Batch: 15 l
+Mash: 66.5 °C (66.5 C stays: the predicted FG 1.0114 is inside the range 1.0080 to 1.0140)
+
+Numbers against targets:
+  OG   1.0479   (target 1.0485)
+  FG   1.0113   (target 1.011)
+  ABV  4.7 %   (target 4.83)
+  IBU  11.3   (target 11.5)
+  SRM  3.5   (target 4)
+
+Fermentables:
+  1.6 kg  50 %  Wheat Malt Pale  (mash)
+      because: Wheat Malt Pale: Provides the characteristic wheat character and full body required for a Weissbier. (typical at mash in 10A)
+  1.6 kg  50 %  Pilsner Malt  (mash)
+      because: Pilsner Malt: Serves as the base malt to balance the wheat and provide fermentable sugars. (allowed at mash in 10A)
+
+Hops:
+  5 g  Magnum  boil 90 min
+      because: Magnum: Provides the necessary bitterness without adding strong hop aroma. (allowed at boil 30 min in 10A)
+
+Yeast:
+  2 pack  YF-401 Mr. Weizen
+      because: YF-401 Mr. Weizen: A classic wheat yeast that produces the desired banana and clove esters at cool fermentation temperatures. (allowed at ferment at 14 °C in 10A)
+
+Water:
+  row: ale-medium-pale-soft (listed)
+  gypsum: 1.6 g (0.6 strike, 1 sparge), for sulfate
+  calcium chloride: 3.5 g (1.3 strike, 2.2 sparge), for chloride
+  mash pH 5.47 (aim 5.2-5.4)
+  acid: acid would be needed to bring the mash from 5.47 into 5.2-5.4
+
+Mash: strike 9.6 l at 42.6 °C, sparge 16.6 l, pre-boil 23 l
+  ferulic acid rest: 40 °C, 30 min
+  saccharification rest: 66.5 °C, 60 min
+  mash-out: 77 °C, 10 min
+
+Boil: 90 min
+  at 90 min: 5 g Magnum (boil)
+
+Fermentation:
+  ferment: 17 °C, 1 days
+  ferment: 19 °C, 2 days; at least 2 more days (about day 3 of 4); move on to the rest when gravity within 2-5 points of FG (HTB p. 93-94, Table 6.2)
+  rest: 22 °C, 4 days; starts when gravity within 2-5 points of FG (HTB p. 93-94, Table 6.2); stay at least 4 days (up to 8), then cool
+  crash: 11 °C, 7 days
+  pitch (main): 2 pack YF-401 Mr. Weizen; 0.75 billion cells/L/degP (HTB ch. 7 p. 111-113) x 15 L x 11.8 degP = 133.3 billion cells; about 100 billion cells per liquid pack is HTB's generic figure (p. 108), not the maker's spec, so the 2 pack(s) are an estimate
+
+Packaging: CO2 3.9 volumes (style, How to Brew p. 159: the middle of the german-wheat family's 3.3-4.5 volumes (doc-calc.md §14))
+  priming: 164 g table sugar (sucrose) for 15 l at 22 °C
+
+Deviations:
+  none
+
+===== b14 (run 4970) =====
+Request: I'd like a light, tart Berliner Weisse at 3 %, a real session beer for hot days.
+
+Style: Berliner Weisse (23A)
+Batch: 20 l
+Mash: 66.5 °C (66.5 C stays: the predicted FG 1.0057 is inside the range 1.0025 to 1.0065)
+
+Numbers against targets:
+  OG   1.0281   (target 1.0278)
+  FG   1.0058   (target 1.0045)
+  ABV  2.9 %   (target 3)
+  IBU  5.7   (target 5.5)
+  SRM  2.4   (target 2.5)
+
+Fermentables:
+  1.25 kg  50 %  Wheat Malt Pale  (mash)
+      because: Wheat Malt Pale: Provides the characteristic wheat body and haze typical of Berliner Weisse. (typical at mash in 23A)
+  1.25 kg  50 %  Pilsner Malt  (mash)
+      because: Pilsner Malt: Serves as the base malt to support the wheat and provide fermentable sugars. (allowed at mash in 23A)
+
+Hops:
+  3 g  Magnum  boil 90 min
+      because: Magnum: Provides the low bitterness required for the style without adding significant aroma. (allowed at boil 30 min in 23A)
+
+Yeast:
+  15 g  Munich Classic
+      because: Munich Classic: A top-fermenting wheat yeast that provides the necessary attenuation and fruity character for the symbiotic fermentation. (allowed at ferment at 17 °C in 23A)
+  2 pack  YF-998 Sour, yes sour!
+      because: YF-998 Sour, yes sour!: Lacto culture to provide the sharp sourness characteristic of the style. (allowed at ferment at 15 °C in 23A)
+
+Water:
+  row: web-berliner-weisse (web, fallback)
+  gypsum: 2.4 g (0.6 strike, 1.8 sparge), for sulfate
+  calcium chloride: 3.6 g (0.9 strike, 2.7 sparge), for chloride
+  mash pH 5.47 (aim 5.2-5.4)
+  acid: acid would be needed to bring the mash from 5.47 into 5.2-5.4
+
+Mash: strike 7.5 l at 72.7 °C, sparge 23 l, pre-boil 28 l
+  saccharification rest: 66.5 °C, 60 min
+  mash-out: 77 °C, 10 min
+
+Boil: 90 min
+  at 90 min: 3 g Magnum (boil)
+
+Fermentation:
+  souring: 35 °C, 1.5 days; at least 18 hours (1.5 days planned); move on when the wort has soured to about pH 3.5 (HTB p. 211: 18-36 hours)
+  ferment: 17 °C, 1 days
+  ferment: 18 °C, 2 days; at least 2 more days (about day 3 of 4); move on to the rest when gravity within 2-5 points of FG (HTB p. 93-94, Table 6.2)
+  rest: 21 °C, 4 days; starts when gravity within 2-5 points of FG (HTB p. 93-94, Table 6.2); stay at least 4 days (up to 8), then cool
+  crash: 10 °C, 7 days
+  pitch (souring): 2 pack YF-998 Sour, yes sour!; souring culture at 150 billion cells per 19 L, the middle of HTB p. 206's 100-200 range, for 20 L = 157.9 billion cells; both that range and the 100 billion cells per pack are HTB's generic figures, not the maker's spec, so the 2 pack(s) are an estimate
+  pitch (main): 15 g Munich Classic; 1.0 billion cells/L/degP (HTB ch. 7 p. 111-113, raised from 0.75 after souring, p. 212) x 20 L x 7.1 degP = 141.5 billion cells; dry yeast at 10 billion cells per gram is HTB's generic figure (p. 108), not the maker's spec, so the 15 g are an estimate
+
+Packaging: CO2 3.9 volumes (style, How to Brew p. 159: the middle of the german-wheat family's 3.3-4.5 volumes (doc-calc.md §14))
+  priming: 217 g table sugar (sucrose) for 20 l at 21 °C
+
+Deviations:
+  none
+

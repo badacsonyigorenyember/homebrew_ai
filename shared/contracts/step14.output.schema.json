@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step14.output",
+  "description": "Step 14, fermentation and pitch: the temperature steps (days is the minimum, move_on the gravity trigger), the yeast amounts, the dry hop and the secondary extras. pitch.cells_billion is null where no pitch rate is sourced; dry_hops is an empty array without dry hops; secondary.contact_days is null where the misc row has no time. max_temp_c is the highest ferment or rest temperature, which step 15 reads.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "steps",
+    "pitch",
+    "dry_hops",
+    "secondary",
+    "max_temp_c",
+    "values_used"
+  ],
+  "properties": {
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "phase",
+          "yeast_id",
+          "temp_c",
+          "days",
+          "why",
+          "source",
+          "move_on"
+        ],
+        "properties": {
+          "phase": {
+            "enum": [
+              "souring",
+              "ferment",
+              "rest",
+              "dry_hop",
+              "crash",
+              "lager"
+            ]
+          },
+          "yeast_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "temp_c": {
+            "type": "number"
+          },
+          "days": {
+            "type": "number"
+          },
+          "why": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "move_on": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "pitch": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ingredient_id",
+          "name",
+          "role",
+          "rate_m_per_ml_p",
+          "plato",
+          "cells_billion",
+          "amount",
+          "unit",
+          "because"
+        ],
+        "properties": {
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "main",
+              "souring"
+            ]
+          },
+          "rate_m_per_ml_p": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "plato": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "cells_billion": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "amount": {
+            "type": "number"
+          },
+          "unit": {
+            "enum": [
+              "g",
+              "pack"
+            ]
+          },
+          "because": {
+            "type": "string"
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "dry_hops": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "day",
+          "temp_c",
+          "contact_days",
+          "hops"
+        ],
+        "properties": {
+          "day": {
+            "type": "number"
+          },
+          "temp_c": {
+            "type": "number"
+          },
+          "contact_days": {
+            "type": "number"
+          },
+          "hops": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "ingredient_id",
+                "name",
+                "g"
+              ],
+              "properties": {
+                "ingredient_id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "g": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "secondary": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "usage",
+          "day",
+          "ingredient_id",
+          "name",
+          "g",
+          "contact_days"
+        ],
+        "properties": {
+          "usage": {
+            "enum": [
+              "ferment",
+              "secondary"
+            ]
+          },
+          "day": {
+            "type": "number"
+          },
+          "ingredient_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "g": {
+            "type": "number"
+          },
+          "contact_days": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "max_temp_c": {
+      "type": "number"
+    },
+    "values_used": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "what",
+          "because",
+          "source"
+        ],
+        "properties": {
+          "what": {
+            "type": "string"
+          },
+          "because": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

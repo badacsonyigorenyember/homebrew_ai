@@ -386,3 +386,50 @@ def test_revalidate_totals():
             {"id": "b20", "before": False, "after": True}, {"id": "b21", "before": True, "after": True},
             {"id": "b24", "before": False, "after": False}]
     assert revalidate.totals(rows) == {"b01_b20": {"before": 2, "after": 2}, "all": {"before": 3, "after": 3}}
+
+
+def test_process_columns_in_table_and_totals():
+    """M7 Task 10: the result line and totals count a saved process and the process expectations."""
+    proc = {"water": {"target": {"row": "ale-medium-pale-assertive"}}, "mash": {}, "boil": {}, "packaging": {},
+            "fermentation": {"steps": [{"phase": "ferment", "temp_c": 20}]}}
+    good = _graded("b01", _recipe(process=proc))                                  # expects that row: met
+    wrong = _graded("b05", _recipe(process={**proc, "water": {"target": {"row": "x"}}}))  # expects another row
+    plain = _graded("b02", _recipe(process=proc))                                 # no expectations
+    none = _graded("b07", _recipe())                                              # no process saved
+    assert good["process"]["process_ok"] and not wrong["process"]["process_ok"]
+    assert plain["process"]["expectations"] == {} and not none["process"]["present"]
+    lines = run.table([good, wrong, plain, none]).splitlines()
+    assert "process" in lines[0]
+    assert "process ok" in lines[1] and "process MISS(water_row)" in lines[2]
+    assert "process -" in lines[3] and "process NONE" in lines[4]
+    t = run.totals([good, wrong, plain, none])
+    assert t["process_present"] == {"present": 3, "total": 4}
+    assert t["process_ok"] == {"ok": 1, "total": 2}  # only the briefs with expectations
+    text = run.format_totals(t)
+    assert "process present 3/4" in text and "process ok 1/2" in text
+
+
+def test_show_recipe_prints_the_process():
+    from evals import show_recipe
+    vols = {"grist_kg": 5, "ratio_l_kg": 3, "preboil_l": 26, "absorbed_l": 5, "total_l": 30, "strike_l": 15,
+            "sparge_l": 15, "because": "x"}
+    process = {
+        "water": {"target": {"row": "lager-light-pale", "basis": "listed", "fallback": False},
+                  "salts": [{"name": "Gypsum", "total_g": 1.2, "strike_g": 0.6, "sparge_g": 0.6, "aims_at": "sulfate"}],
+                  "none_needed": False, "mash_ph": {"ph": 5.4, "target_low": 5.2, "target_high": 5.6},
+                  "acid": {"text": "no acid line needed"}},
+        "mash": {"mash_c": 66, "strike_c": 72.5, "volumes": vols,
+                 "steps": [{"name": "Saccharification", "temp_c": 66, "minutes": 60}]},
+        "boil": {"boil_min": 90, "additions": [{"at_min": 60, "g": 30, "name": "Saaz", "usage": "boil"}], "whirlpool": []},
+        "fermentation": {"steps": [{"phase": "ferment", "temp_c": 10, "days": 4, "move_on": "move on at FG"}],
+                         "pitch": [{"role": "main", "amount": 2, "unit": "pack", "name": "W-34/70", "because": "generic estimate"}]},
+        "packaging": {"co2": {"volumes": 2.5, "from": "style", "source": "HTB Table 10.1"},
+                      "priming": {"g": 110, "sugar": "dextrose", "volume_l": 20, "temp_c": 18}}}
+    steps = {4: {"style": {"code": "1B", "name": "American Lager"}, "targets": {}},
+             6: {}, 7: {"fermentables": []}, 8: {"hops": []}, 9: {"extras": []}}
+    text = show_recipe.format_recipe("a lager", steps, _recipe(process=process, items=[]))
+    for part in ("row: lager-light-pale (listed)", "Gypsum: 1.2 g (0.6 strike, 0.6 sparge), for sulfate",
+                 "mash pH 5.4 (aim 5.2-5.6)", "acid: no acid line needed", "Mash: strike 15 l at 72.5 °C",
+                 "Boil: 90 min", "at 60 min: 30 g Saaz", "ferment: 10 °C, 4 days; move on at FG",
+                 "pitch (main): 2 pack W-34/70", "CO2 2.5 volumes (style, HTB Table 10.1)", "priming: 110 g dextrose for 20 l"):
+        assert part in text, part

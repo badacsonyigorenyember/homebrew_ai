@@ -878,3 +878,59 @@ def test_recipe_invented_items_and_not_validated():
 
 def test_recipe_tolerances_are_the_user_decision():
     assert grade.RECIPE_TOLERANCES == {"og": 0.002, "abv": 0.2, "ibu": 2, "srm": 2, "batch_l": 0}
+
+
+# --- process expectations (docs/work/m7-process, Task 10) ---------------------------------------
+def _process(ferment=(20, 20), rest=True, lager=False, souring=False, row="lager-light-pale"):
+    steps = ([{"phase": "souring", "temp_c": 35}] if souring else [])
+    steps += [{"phase": "ferment", "temp_c": t} for t in ferment]
+    steps += [{"phase": "rest", "temp_c": 22}] if rest else []
+    steps += [{"phase": "lager", "temp_c": 2}] if lager else []
+    return {"water": {"target": {"row": row}}, "mash": {}, "boil": {}, "packaging": {},
+            "fermentation": {"steps": steps}}
+
+
+def test_grade_process_met():
+    b = {"process": {"ferm_c": [17, 24], "diacetyl_rest": True, "lagering": True, "souring": False,
+                     "water_row": "lager-light-pale"}}
+    g = grade.grade_process(b, _process(ferment=(18, 20), lager=True))
+    assert g["present"] and g["process_ok"]
+    assert g["expectations"]["ferm_c"] == {"expected": [17, 24], "got": [18, 20], "met": True}
+    assert g["expectations"]["lagering"] == {"expected": True, "got": True, "met": True}
+    assert g["expectations"]["souring"] == {"expected": False, "got": False, "met": True}
+    assert g["expectations"]["water_row"]["got"] == "lager-light-pale"
+
+
+def test_grade_process_not_met():
+    b = {"process": {"ferm_c": [17, 24], "diacetyl_rest": True, "water_row": "ale-medium-pale-assertive"}}
+    g = grade.grade_process(b, _process(ferment=(16, 20), rest=False))
+    assert g["present"] and not g["process_ok"]
+    assert [k for k, v in g["expectations"].items() if not v["met"]] == ["ferm_c", "diacetyl_rest", "water_row"]
+    assert g["expectations"]["ferm_c"]["got"] == [16, 20]
+
+
+def test_grade_process_missing():
+    for process in (None, {}, {"water": {}, "mash": {}}):  # nothing saved, or fewer than the five parts
+        g = grade.grade_process({"process": {"souring": True}}, process)
+        assert not g["present"] and not g["process_ok"]
+        assert g["expectations"]["souring"] == {"expected": True, "got": None, "met": False}
+
+
+def test_grade_process_empty_expectations():
+    g = grade.grade_process({"process": {}}, _process())
+    assert g == {"present": True, "expectations": {}, "process_ok": True}
+    assert grade.grade_process({"process": {}}, None) == {"present": False, "expectations": {}, "process_ok": False}
+    assert grade.grade_process({}, _process())["process_ok"]  # a brief without the field expects nothing
+
+
+def test_grade_process_packaging_extras():
+    """b23: the coffee extra goes in at packaging (step 15's extras); each word must be in an extra's name."""
+    b = {"process": {"packaging_extras": ["coffee"]}}
+    yes = _process()
+    yes["packaging"] = {"extras": [{"ingredient_id": 1, "name": "Cold brew coffee", "g": 100}]}
+    g = grade.grade_process(b, yes)
+    assert g["expectations"]["packaging_extras"] == {"expected": ["coffee"], "got": ["Cold brew coffee"], "met": True}
+    no = _process()
+    no["packaging"] = {"extras": [{"ingredient_id": 2, "name": "Vanilla beans", "g": 5}]}
+    assert not grade.grade_process(b, no)["process_ok"]
+    assert not grade.grade_process(b, _process())["process_ok"]  # no packaging extras at all

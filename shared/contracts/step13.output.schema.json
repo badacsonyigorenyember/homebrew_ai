@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step13.output",
+  "description": "Step 13, mash and boil: the mash steps with the strike temperature and volumes, and the boil and whirlpool schedule. mash_c and boil_min are step 10's, unchanged. boil.whirlpool is an empty array when nothing goes in the whirlpool.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "mash",
+    "boil",
+    "values_used"
+  ],
+  "properties": {
+    "mash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mash_c",
+        "steps",
+        "volumes",
+        "strike_c",
+        "grain_c",
+        "additions"
+      ],
+      "properties": {
+        "mash_c": {
+          "type": "number"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "temp_c",
+              "minutes",
+              "why",
+              "source"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "temp_c": {
+                "type": "number"
+              },
+              "minutes": {
+                "type": "number"
+              },
+              "why": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "volumes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "grist_kg",
+            "ratio_l_kg",
+            "preboil_l",
+            "absorbed_l",
+            "total_l",
+            "strike_l",
+            "sparge_l",
+            "because"
+          ],
+          "properties": {
+            "grist_kg": {
+              "type": "number"
+            },
+            "ratio_l_kg": {
+              "type": "number"
+            },
+            "preboil_l": {
+              "type": "number"
+            },
+            "absorbed_l": {
+              "type": "number"
+            },
+            "total_l": {
+              "type": "number"
+            },
+            "strike_l": {
+              "type": "number"
+            },
+            "sparge_l": {
+              "type": "number"
+            },
+            "because": {
+              "type": "string"
+            }
+          }
+        },
+        "strike_c": {
+          "type": "number"
+        },
+        "grain_c": {
+          "type": "number"
+        },
+        "additions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ingredient_id",
+              "name",
+              "usage",
+              "time_min",
+              "g"
+            ],
+            "properties": {
+              "ingredient_id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "usage": {
+                "enum": [
+                  "mash"
+                ]
+              },
+              "time_min": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "g": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "boil": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "boil_min",
+        "because",
+        "additions",
+        "whirlpool"
+      ],
+      "properties": {
+        "boil_min": {
+          "type": "number"
+        },
+        "because": {
+          "type": "string"
+        },
+        "additions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "at_min",
+              "kind",
+              "ingredient_id",
+              "name",
+              "usage",
+              "g"
+            ],
+            "properties": {
+              "at_min": {
+                "type": "number"
+              },
+              "kind": {
+                "enum": [
+                  "hop",
+                  "extra"
+                ]
+              },
+              "ingredient_id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "usage": {
+                "type": "string"
+              },
+              "g": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "whirlpool": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "minutes",
+              "kind",
+              "ingredient_id",
+              "name",
+              "usage",
+              "g"
+            ],
+            "properties": {
+              "minutes": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "kind": {
+                "enum": [
+                  "hop",
+                  "extra"
+                ]
+              },
+              "ingredient_id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "usage": {
+                "type": "string"
+              },
+              "g": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "values_used": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "what",
+          "because",
+          "source"
+        ],
+        "properties": {
+          "what": {
+            "type": "string"
+          },
+          "because": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

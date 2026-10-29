@@ -248,7 +248,7 @@
     },
     {
       "parameters": {
-        "content": "### Per-step block\nEach step is: set its input and start time, call its sub-workflow, then log ok or log the failure, and on to the next step. A failure logs its error, finishes the run with ok = false and responds. Steps 0 to 11 are built (step 0 runs before step 1); steps 12 to 16 copy this block. Steps 6 to 11 run as up to three tries, each the sub-workflow `Steps 6–11 · one try` (`Try 1`, `Try 2`, `Try 3`, no loop-back edge): it makes the one model call of steps 6 to 9 and logs rows 6 to 11 with the try's number (the call's `llm` and tokens on step 6; steps 7 to 9 and 11 log ms 0). A try whose step 11 fails passes its failures and bans to the next one. A passed try goes to `Save recipe` (`app.save_recipe`), then `Finish run` and `Respond ok` (`recipe_id`, `tries`). Three failed tries finish the run with ok = false and respond with `failed_step` 11 and each try's failure lines. A failure in steps 6 to 10 logs the row of the lowest `step N:` in its error text (6 when none) and finishes the run. The webhook body's optional `temperature` and `seed` (defaults 0 and 42) go to step 1. Its optional `profile_id` (null means the default profile) goes to step 0. Its optional `guide` (`any`, `bjcp`, `ba`; null when not sent) goes to step 2. Step 1 also logs tokens and the `llm` details (model, tries, ms), then saves the brief in `app.brief` and sets `app.run.brief_id`.",
+        "content": "### Per-step block\nEach step is: set its input and start time, call its sub-workflow, then log ok or log the failure, and on to the next step. A failure logs its error, finishes the run with ok = false and responds. Steps 0 to 15 are built (step 0 runs before step 1); step 16 copies this block. Steps 6 to 11 run as up to three tries, each the sub-workflow `Steps 6–11 · one try` (`Try 1`, `Try 2`, `Try 3`, no loop-back edge): it makes the one model call of steps 6 to 9 and logs rows 6 to 11 with the try's number (the call's `llm` and tokens on step 6; steps 7 to 9 and 11 log ms 0). A try whose step 11 fails passes its failures and bans to the next one. A passed try goes to `Steps 12–15 · process` (the sub-workflow of steps 12 to 15: it logs rows 12 to 15, try 1, and returns the recipe's process; a failure there logs that step's row and finishes the run with `failed_step` 12 to 15), then `Save recipe` (`app.save_recipe`, with the process), `Finish run` and `Respond ok` (`recipe_id`, `tries`). Three failed tries finish the run with ok = false and respond with `failed_step` 11 and each try's failure lines. A failure in steps 6 to 10 logs the row of the lowest `step N:` in its error text (6 when none) and finishes the run. The webhook body's optional `temperature` and `seed` (defaults 0 and 42) go to step 1. Its optional `profile_id` (null means the default profile) goes to step 0. Its optional `guide` (`any`, `bjcp`, `ba`; null when not sent) goes to step 2. Step 1 also logs tokens and the `llm` details (model, tries, ms), then saves the brief in `app.brief` and sets `app.run.brief_id`.",
         "height": 300,
         "width": 300,
         "color": 4
@@ -1636,14 +1636,14 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        6700,
+        7148,
         -288
       ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "select app.save_recipe($1::bigint, $2::jsonb, $3::jsonb, $4::jsonb, $5::jsonb)::int as recipe_id, $6::int as tries",
+        "query": "select app.save_recipe($1::bigint, $2::jsonb, $3::jsonb, $4::jsonb, $5::jsonb, $6::jsonb)::int as recipe_id, $7::int as tries",
         "options": {
-          "queryReplacement": "={{ [$(\"Start run\").item.json.id, JSON.stringify($(\"Step 3 · deviations\").item.json), JSON.stringify($(\"Step 4 · targets\").item.json), JSON.stringify($json.step10), JSON.stringify($json.step11), $json.try] }}"
+          "queryReplacement": "={{ [$(\"Start run\").item.json.id, JSON.stringify($(\"Step 3 · deviations\").item.json), JSON.stringify($(\"Step 4 · targets\").item.json), JSON.stringify($(\"Steps 12–15 · input\").item.json.step10), JSON.stringify($(\"Steps 12–15 · input\").item.json.step11), JSON.stringify($json.process), $(\"Steps 12–15 · input\").item.json.try] }}"
         }
       },
       "credentials": {
@@ -1660,7 +1660,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        6924,
+        7372,
         -288
       ],
       "parameters": {
@@ -1683,7 +1683,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        7148,
+        7596,
         -288
       ],
       "parameters": {
@@ -1766,6 +1766,139 @@
         "respondWith": "json",
         "responseBody": "={{ { run_id: $json.id, ok: false, failed_step: 11, tries: 3, error: \"try 1: \" + $(\"Try 1 · steps 6–11\").item.json.step11.feedback.join(\"; \") + \"; \" + \"try 2: \" + $(\"Try 2 · steps 6–11\").item.json.step11.feedback.join(\"; \") + \"; \" + \"try 3: \" + $(\"Try 3 · steps 6–11\").item.json.step11.feedback.join(\"; \") } }}",
         "options": {}
+      }
+    },
+    {
+      "id": "be5377a7-f2c0-55ee-b196-c3a8a06f91e9",
+      "name": "Steps 12–15 · input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6700,
+        -288
+      ],
+      "parameters": {
+        "mode": "raw",
+        "options": {},
+        "jsonOutput": "={{ { run_id: $(\"Step 3 · input\").item.json.run_id, brief: $(\"Step 3 · input\").item.json.brief, profile: $(\"Step 0 · load profile\").item.json, targets: $(\"Step 4 · targets\").item.json, step10: $json.step10, step11: $json.step11, try: $json.try } }}"
+      }
+    },
+    {
+      "id": "c3074a4b-88ef-567d-8a3e-2480522a7261",
+      "name": "Steps 12–15 · process",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        6924,
+        -288
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ST1215process01",
+          "cachedResultName": "Steps 12–15 · process"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "brief": "={{ $json.brief }}",
+            "profile": "={{ $json.profile }}",
+            "targets": "={{ $json.targets }}",
+            "step10": "={{ $json.step10 }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "brief",
+              "displayName": "brief",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "profile",
+              "displayName": "profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "targets",
+              "displayName": "targets",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "step10",
+              "displayName": "step10",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "abbaa93d-327c-51cd-82df-54ba3efc1c13",
+      "name": "Finish run (failed, steps 12–15)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        7148,
+        96
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "update app.run set finished_at = now(), ok = false where id = $1 returning id::int as id, $2::text as error",
+        "options": {
+          "queryReplacement": "={{ [$(\"Start run\").item.json.id, $json.error] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "c16a97a1-0b67-54fc-9717-8e62a4f3e866",
+      "name": "Respond failed (steps 12–15)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        7372,
+        96
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "options": {},
+        "responseBody": "={{ { run_id: $json.id, ok: false, failed_step: ((($json.error ?? \"\").match(/step ?(\\d+)[:.]/g) ?? [\"step 12:\"]).map(s => Number(s.replace(/\\D/g, \"\"))).sort((a, b) => a - b)[0]), error: $json.error } }}"
       }
     }
   ],
@@ -2219,7 +2352,7 @@
       "main": [
         [
           {
-            "node": "Save recipe",
+            "node": "Steps 12–15 · input",
             "type": "main",
             "index": 0
           }
@@ -2266,7 +2399,7 @@
       "main": [
         [
           {
-            "node": "Save recipe",
+            "node": "Steps 12–15 · input",
             "type": "main",
             "index": 0
           }
@@ -2313,7 +2446,7 @@
       "main": [
         [
           {
-            "node": "Save recipe",
+            "node": "Steps 12–15 · input",
             "type": "main",
             "index": 0
           }
@@ -2372,6 +2505,46 @@
         [
           {
             "node": "Respond failed (3 tries)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Steps 12–15 · input": {
+      "main": [
+        [
+          {
+            "node": "Steps 12–15 · process",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Steps 12–15 · process": {
+      "main": [
+        [
+          {
+            "node": "Save recipe",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Finish run (failed, steps 12–15)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish run (failed, steps 12–15)": {
+      "main": [
+        [
+          {
+            "node": "Respond failed (steps 12–15)",
             "type": "main",
             "index": 0
           }

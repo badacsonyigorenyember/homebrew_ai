@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step14.input",
+  "description": "Step 14, fermentation and pitch. targets is a step4.output and step10 a step10.output, each already checked. No absent slot.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "targets",
+    "step10"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "targets": {
+      "type": "object"
+    },
+    "step10": {
+      "type": "object"
+    }
+  }
+}

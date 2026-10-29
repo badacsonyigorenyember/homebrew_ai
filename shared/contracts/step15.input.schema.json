@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step15.input",
+  "description": "Step 15, carbonation and priming sugar. targets is a step4.output, step10 a step10.output and step14 a step14.output, each already checked. No absent slot.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "targets",
+    "step10",
+    "step14"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "targets": {
+      "type": "object"
+    },
+    "step10": {
+      "type": "object"
+    },
+    "step14": {
+      "type": "object"
+    }
+  }
+}

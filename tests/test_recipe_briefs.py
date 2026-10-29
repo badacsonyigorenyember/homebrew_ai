@@ -20,9 +20,10 @@ with BRIEFS_FILE.open("rb") as f:
 # The R2 field list. No other key is allowed, so style ranges cannot sneak in (R4).
 FIELDS = {
     "id", "request", "named", "why", "style", "alt_styles", "deviations", "stated", "hints",
-    "wanted", "excluded", "inventory", "guidance", "needs",
+    "wanted", "excluded", "inventory", "guidance", "process", "needs",
 }
 STATED_KEYS = {"batch_l", "abv", "og", "ibu", "srm"}
+PROCESS_KEYS = {"ferm_c", "diacetyl_rest", "lagering", "souring", "water_row", "packaging_extras"}
 NEEDS_KEYS = {"fermentables", "hops", "yeast", "water_salts", "misc"}
 DEVIATION_KINDS = {"ingredient", "number", "mismatch", "conflict"}
 
@@ -294,3 +295,22 @@ def test_heldout_style_codes_exist():
             " where s.slug in ('bjcp-2021', 'ba-2026')").fetchall()}
     used = {b["style"] for b in HELDOUT} | {c for b in HELDOUT for c in b["alt_styles"]}
     assert used - known == set(), f"codes not in ref.beer_style: {sorted(used - known)}"
+
+
+def test_process_keys():
+    """M7 Task 10 (R7): `process` holds only the five expectation keys; ferm_c is a [low, high] range,
+    the other three flags are bools, and water_row is a code in ref.water_profile (db/049_process_ref.sql)."""
+    sql = (Path(__file__).resolve().parent.parent / "db" / "049_process_ref.sql").read_text("utf-8")
+    codes = set(re.findall(r"^(?:\s*\(|select )'([a-z-]+)',\s*'(?:18|19|web)'", sql, re.M))
+    assert "ale-medium-pale-assertive" in codes and len(codes) == 17, codes
+    for b in BRIEFS + HELDOUT:
+        process = b["process"]
+        assert isinstance(process, dict) and set(process) <= PROCESS_KEYS, f"{b['id']}: process keys {set(process)}"
+        if "ferm_c" in process:
+            lo, hi = process["ferm_c"]
+            assert len(process["ferm_c"]) == 2 and all(isinstance(x, (int, float)) for x in (lo, hi)) and lo < hi, b["id"]
+        for key in ("diacetyl_rest", "lagering", "souring"):
+            assert isinstance(process.get(key, True), bool), f"{b['id']}: {key}"
+        assert isinstance(process.get("packaging_extras", []), list), f"{b['id']}: packaging_extras"
+        assert process.get("water_row", next(iter(codes))) in codes, f"{b['id']}: water_row"
+    assert all(b["process"] == {} for b in HELDOUT)

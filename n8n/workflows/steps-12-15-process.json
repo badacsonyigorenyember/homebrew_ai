@@ -1,0 +1,1128 @@
+{
+  "id": "ST1215process01",
+  "name": "Steps 12–15 · process",
+  "nodes": [
+    {
+      "id": "ecf1c595-26fd-5fa3-b533-afb67460d786",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "run_id",
+              "type": "number"
+            },
+            {
+              "name": "brief",
+              "type": "object"
+            },
+            {
+              "name": "profile",
+              "type": "object"
+            },
+            {
+              "name": "targets",
+              "type": "object"
+            },
+            {
+              "name": "step10",
+              "type": "object"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "d51718f1-dc81-51c0-8052-b7d73037b814",
+      "name": "Check process input",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "process.input",
+            "value": "={{ { run_id: $(\"When Executed by Another Workflow\").item.json.run_id, brief: $(\"When Executed by Another Workflow\").item.json.brief, profile: $(\"When Executed by Another Workflow\").item.json.profile, targets: $(\"When Executed by Another Workflow\").item.json.targets, step10: $(\"When Executed by Another Workflow\").item.json.step10 } }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "8738bfa1-9d56-500e-934d-9b9e727a34a2",
+      "name": "Step 12 · input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        0
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { run_id: $(\"When Executed by Another Workflow\").item.json.run_id, brief: $(\"When Executed by Another Workflow\").item.json.brief, profile: $(\"When Executed by Another Workflow\").item.json.profile, targets: $(\"When Executed by Another Workflow\").item.json.targets, step10: $(\"When Executed by Another Workflow\").item.json.step10, started_at: $now.toISO() } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "7c560aca-15e2-5790-8212-e5ffcc069440",
+      "name": "Step 12 · water salts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        672,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select app.step12_water($1::jsonb, $2::jsonb, $3::jsonb, $4::jsonb) as result",
+        "options": {
+          "queryReplacement": "={{ [JSON.stringify($(\"Step 12 · input\").item.json.profile), JSON.stringify($(\"Step 12 · input\").item.json.targets), JSON.stringify($(\"Step 12 · input\").item.json.brief), JSON.stringify($(\"Step 12 · input\").item.json.step10)] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "5d412f7b-5233-50c5-9498-2dbd5ecfa557",
+      "name": "Check step 12 output",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        896,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "step12.output",
+            "value": "={{ $(\"Step 12 · water salts\").item.json.result }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "77c44eff-f42d-5f11-b2f3-45269dbe8ff7",
+      "name": "Step 12 · log ok",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1120,
+        -96
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms) values ($1, 12, 1, $2::jsonb, $3::jsonb, true, round(extract(epoch from clock_timestamp() - $4::timestamptz) * 1000)::int)",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 12 · input\").item.json.run_id, brief: $(\"Step 12 · input\").item.json.brief, profile: $(\"Step 12 · input\").item.json.profile, targets: $(\"Step 12 · input\").item.json.targets, step10: $(\"Step 12 · input\").item.json.step10 }), JSON.stringify($(\"Step 12 · water salts\").item.json.result), $(\"Step 12 · input\").item.json.started_at] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "8a513ea4-5e9d-5b14-80b2-a83d200fe7a2",
+      "name": "Step 12 · log failure",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        896,
+        288
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, error) values ($1, 12, 1, $2::jsonb, null, false, round(extract(epoch from clock_timestamp() - $3::timestamptz) * 1000)::int, $4) returning error",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 12 · input\").item.json.run_id, brief: $(\"Step 12 · input\").item.json.brief, profile: $(\"Step 12 · input\").item.json.profile, targets: $(\"Step 12 · input\").item.json.targets, step10: $(\"Step 12 · input\").item.json.step10 }), $(\"Step 12 · input\").item.json.started_at, /step ?12[:.]/.test($json.error) ? $json.error : \"step 12: \" + $json.error] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "43b900f2-461f-5e6c-87ec-c6abea13161a",
+      "name": "Stop at step 12",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        288
+      ],
+      "parameters": {
+        "errorMessage": "={{ $json.error }}"
+      }
+    },
+    {
+      "id": "5d338452-7d79-5b0d-8a80-d9c29c5123fd",
+      "name": "Step 13 · input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1344,
+        0
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { run_id: $(\"When Executed by Another Workflow\").item.json.run_id, profile: $(\"When Executed by Another Workflow\").item.json.profile, targets: $(\"When Executed by Another Workflow\").item.json.targets, step10: $(\"When Executed by Another Workflow\").item.json.step10, started_at: $now.toISO() } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "44784d00-3917-5eef-83c0-207c7dc37dc4",
+      "name": "Step 13 · mash and boil",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1568,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select app.step13_mash_boil($1::jsonb, $2::jsonb, $3::jsonb) as result",
+        "options": {
+          "queryReplacement": "={{ [JSON.stringify($(\"Step 13 · input\").item.json.profile), JSON.stringify($(\"Step 13 · input\").item.json.targets), JSON.stringify($(\"Step 13 · input\").item.json.step10)] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "e8621d2f-1328-58e1-8df1-e69da2e50622",
+      "name": "Check step 13 output",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1792,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "step13.output",
+            "value": "={{ $(\"Step 13 · mash and boil\").item.json.result }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "51051b86-47e8-5687-a854-659e2bc428e7",
+      "name": "Step 13 · log ok",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2016,
+        -96
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms) values ($1, 13, 1, $2::jsonb, $3::jsonb, true, round(extract(epoch from clock_timestamp() - $4::timestamptz) * 1000)::int)",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 13 · input\").item.json.run_id, profile: $(\"Step 13 · input\").item.json.profile, targets: $(\"Step 13 · input\").item.json.targets, step10: $(\"Step 13 · input\").item.json.step10 }), JSON.stringify($(\"Step 13 · mash and boil\").item.json.result), $(\"Step 13 · input\").item.json.started_at] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "9dd9b2ed-3faf-56c2-9746-4315cd1b57db",
+      "name": "Step 13 · log failure",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1792,
+        288
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, error) values ($1, 13, 1, $2::jsonb, null, false, round(extract(epoch from clock_timestamp() - $3::timestamptz) * 1000)::int, $4) returning error",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 13 · input\").item.json.run_id, profile: $(\"Step 13 · input\").item.json.profile, targets: $(\"Step 13 · input\").item.json.targets, step10: $(\"Step 13 · input\").item.json.step10 }), $(\"Step 13 · input\").item.json.started_at, /step ?13[:.]/.test($json.error) ? $json.error : \"step 13: \" + $json.error] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "efc9ebd8-b2ba-5449-a6f6-a51d83b29c1e",
+      "name": "Stop at step 13",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        2016,
+        288
+      ],
+      "parameters": {
+        "errorMessage": "={{ $json.error }}"
+      }
+    },
+    {
+      "id": "ffcaa125-281d-5c5e-b154-cc0e39e61094",
+      "name": "Step 14 · input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2240,
+        0
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { run_id: $(\"When Executed by Another Workflow\").item.json.run_id, targets: $(\"When Executed by Another Workflow\").item.json.targets, step10: $(\"When Executed by Another Workflow\").item.json.step10, started_at: $now.toISO() } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "74dd64ad-64cf-50a8-9d3e-c7f6e9490a7f",
+      "name": "Step 14 · fermentation and pitch",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2464,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select app.step14_ferment($1::jsonb, $2::jsonb) as result",
+        "options": {
+          "queryReplacement": "={{ [JSON.stringify($(\"Step 14 · input\").item.json.targets), JSON.stringify($(\"Step 14 · input\").item.json.step10)] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "8b959ec1-65c2-54e6-b40d-19f45a7feb68",
+      "name": "Check step 14 output",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2688,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "step14.output",
+            "value": "={{ $(\"Step 14 · fermentation and pitch\").item.json.result }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "f0ee95d3-7519-5200-922b-54c8530a94e4",
+      "name": "Step 14 · log ok",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2912,
+        -96
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms) values ($1, 14, 1, $2::jsonb, $3::jsonb, true, round(extract(epoch from clock_timestamp() - $4::timestamptz) * 1000)::int)",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 14 · input\").item.json.run_id, targets: $(\"Step 14 · input\").item.json.targets, step10: $(\"Step 14 · input\").item.json.step10 }), JSON.stringify($(\"Step 14 · fermentation and pitch\").item.json.result), $(\"Step 14 · input\").item.json.started_at] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "e0719e0e-a1e4-542b-b8a0-c0aed6aa4725",
+      "name": "Step 14 · log failure",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2688,
+        288
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, error) values ($1, 14, 1, $2::jsonb, null, false, round(extract(epoch from clock_timestamp() - $3::timestamptz) * 1000)::int, $4) returning error",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 14 · input\").item.json.run_id, targets: $(\"Step 14 · input\").item.json.targets, step10: $(\"Step 14 · input\").item.json.step10 }), $(\"Step 14 · input\").item.json.started_at, /step ?14[:.]/.test($json.error) ? $json.error : \"step 14: \" + $json.error] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "6be5386b-9d69-5375-a9d9-c345db9837ae",
+      "name": "Stop at step 14",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        2912,
+        288
+      ],
+      "parameters": {
+        "errorMessage": "={{ $json.error }}"
+      }
+    },
+    {
+      "id": "24e36e6b-cc08-574f-b9ce-c2637bddcb22",
+      "name": "Step 15 · input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3136,
+        0
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { run_id: $(\"When Executed by Another Workflow\").item.json.run_id, targets: $(\"When Executed by Another Workflow\").item.json.targets, step10: $(\"When Executed by Another Workflow\").item.json.step10, step14: $(\"Step 14 · fermentation and pitch\").item.json.result, started_at: $now.toISO() } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "356591f5-e876-5a9f-acbd-b07a6519378d",
+      "name": "Step 15 · carbonation and priming",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3360,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select app.step15_package($1::jsonb, $2::jsonb, $3::jsonb) as result",
+        "options": {
+          "queryReplacement": "={{ [JSON.stringify($(\"Step 15 · input\").item.json.targets), JSON.stringify($(\"Step 15 · input\").item.json.step10), JSON.stringify($(\"Step 15 · input\").item.json.step14)] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "5d0dab50-6483-514d-8173-d77729266597",
+      "name": "Check step 15 output",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        3584,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "step15.output",
+            "value": "={{ $(\"Step 15 · carbonation and priming\").item.json.result }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "c8090396-e2f7-5339-a8ce-2a46b2923994",
+      "name": "Step 15 · log ok",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3808,
+        -96
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms) values ($1, 15, 1, $2::jsonb, $3::jsonb, true, round(extract(epoch from clock_timestamp() - $4::timestamptz) * 1000)::int)",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 15 · input\").item.json.run_id, targets: $(\"Step 15 · input\").item.json.targets, step10: $(\"Step 15 · input\").item.json.step10, step14: $(\"Step 15 · input\").item.json.step14 }), JSON.stringify($(\"Step 15 · carbonation and priming\").item.json.result), $(\"Step 15 · input\").item.json.started_at] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "d188c839-fae1-564a-abb4-6b7ff55e549a",
+      "name": "Step 15 · log failure",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3584,
+        288
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into app.run_step (run_id, step, try, input, output, ok, ms, error) values ($1, 15, 1, $2::jsonb, null, false, round(extract(epoch from clock_timestamp() - $3::timestamptz) * 1000)::int, $4) returning error",
+        "options": {
+          "queryReplacement": "={{ [$(\"When Executed by Another Workflow\").item.json.run_id, JSON.stringify({ run_id: $(\"Step 15 · input\").item.json.run_id, targets: $(\"Step 15 · input\").item.json.targets, step10: $(\"Step 15 · input\").item.json.step10, step14: $(\"Step 15 · input\").item.json.step14 }), $(\"Step 15 · input\").item.json.started_at, /step ?15[:.]/.test($json.error) ? $json.error : \"step 15: \" + $json.error] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "617c19e0-c2a7-5193-98e3-d6239f0e5111",
+      "name": "Stop at step 15",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        3808,
+        288
+      ],
+      "parameters": {
+        "errorMessage": "={{ $json.error }}"
+      }
+    },
+    {
+      "id": "307100ae-c359-5b45-b1b8-2e490568b199",
+      "name": "Assemble process",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4032,
+        -96
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select app.recipe_process($1::jsonb, $2::jsonb, $3::jsonb, $4::jsonb, $5::jsonb) as result",
+        "options": {
+          "queryReplacement": "={{ [JSON.stringify($(\"When Executed by Another Workflow\").item.json.step10), JSON.stringify($(\"Step 12 · water salts\").item.json.result), JSON.stringify($(\"Step 13 · mash and boil\").item.json.result), JSON.stringify($(\"Step 14 · fermentation and pitch\").item.json.result), JSON.stringify($(\"Step 15 · carbonation and priming\").item.json.result)] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "106843a4-cb5f-5be6-b655-1158d3f520b1",
+      "name": "Check process output",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        4256,
+        -96
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "CDfsbxzbagphdnVH",
+          "cachedResultName": "Check contract"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contract": "process.output",
+            "value": "={{ $(\"Assemble process\").item.json.result }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contract",
+              "displayName": "contract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "1f2ee4fd-f1d5-5735-8f19-59cc5251d2b8",
+      "name": "Return result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4480,
+        -96
+      ],
+      "parameters": {
+        "mode": "raw",
+        "options": {},
+        "jsonOutput": "={{ { step12: $(\"Step 12 · water salts\").item.json.result, step13: $(\"Step 13 · mash and boil\").item.json.result, step14: $(\"Step 14 · fermentation and pitch\").item.json.result, step15: $(\"Step 15 · carbonation and priming\").item.json.result, process: $(\"Assemble process\").item.json.result } }}"
+      }
+    },
+    {
+      "id": "b01a8c10-d817-58c2-be95-1e9f2e0f500b",
+      "name": "Sticky Note 1215",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -352
+      ],
+      "parameters": {
+        "content": "### Steps 12–15 · process\nThe process of a recipe that passed step 11: water (`app.step12_water`), mash and boil (`app.step13_mash_boil`), fermentation and pitch (`app.step14_ferment`), carbonation and priming (`app.step15_package`, with step 14's output), then `app.recipe_process` joins them into the process that `app.save_recipe` stores. No LLM. Each step's output is checked against its contract and logged as run_step row 12 to 15 (try 1: the process is built once, for the try that passed). A SQL or contract error logs that step's row with ok = false and its message (`step 1N: …`), then stops the workflow with it. Returns `{step12, step13, step14, step15, process}`.",
+        "height": 264,
+        "width": 560,
+        "color": 4
+      }
+    },
+    {
+      "id": "1083ba04-110c-5448-8efd-6b17763be931",
+      "name": "Test data",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        400
+      ],
+      "parameters": {
+        "content": "### Test data · editor run\nPin this on `When Executed by Another Workflow` (open the node, use the output panel's edit / mock-data control, paste the JSON, save), then click *Execute workflow*.\nWrites run_step rows 12 to 15 for `run_id: 0`, which belongs to no run, so the inserts fail on the foreign key and the workflow stops at step 12. Use a real run id to see the rows. b01's step 10, with its brief, profile and targets.\n\n```json\n[{\"run_id\": 0, \"brief\": {\"named\": \"West Coast IPA\", \"stated\": {\"batch_l\": 20, \"abv\": 6.5}, \"hints\": [\"bitter\"], \"wanted\": [], \"excluded\": [], \"inventory\": [], \"unknown\": [], \"guidance\": true}, \"profile\": {\"units\": \"metric\", \"water\": {\"ca\": 0.0, \"cl\": 0.0, \"mg\": 0.0, \"na\": 0.0, \"so4\": 0.0, \"hco3\": 0.0}, \"batch_l\": 20.0, \"losses_l\": 2.0, \"inventory\": [], \"boil_off_l_h\": 4.0, \"efficiency_pct\": 72.0, \"grain_abs_l_kg\": 1.0}, \"targets\": {\"knobs\": [{\"knob\": \"ibu\", \"hints\": \"bitter\", \"intent\": null, \"source\": \"unsourced\", \"direction\": 1}, {\"knob\": \"bu_gu\", \"hints\": \"bitter\", \"intent\": null, \"source\": \"bjcp-exam-study-guide-2017, p60\", \"direction\": 1}], \"style\": {\"code\": \"21A\", \"from\": \"chosen\", \"name\": \"American IPA\", \"because\": \"step 2 chose 21A\"}, \"mash_c\": {\"from\": \"midpoint\", \"value\": 66.5, \"because\": \"middle of rule 10's mash range 64–69 °C\"}, \"batch_l\": {\"from\": \"stated\", \"value\": 20, \"because\": \"stated by the user\"}, \"targets\": {\"fg\": {\"from\": \"midpoint\", \"value\": 1.011, \"because\": \"midpoint of 21A FG 1.008–1.014\"}, \"og\": {\"from\": \"derived\", \"value\": 1.0613, \"because\": \"solved so app.abv gives the stated ABV 6.5 at FG 1.011\"}, \"abv\": {\"from\": \"stated\", \"value\": 6.5, \"because\": \"stated by the user\"}, \"ibu\": {\"from\": \"hint\", \"value\": 66.25, \"because\": \"bitter: 87.5 % of 21A IBU 40–70\"}, \"srm\": {\"from\": \"midpoint\", \"value\": 10.0, \"because\": \"midpoint of 21A SRM 6–14\"}}, \"guidance\": true, \"conflicts\": []}, \"step10\": {\"boil\": {\"because\": \"90 min: Bohemian Pilsner Malt needs at least 90 min (rule 13)\", \"boil_min\": 90}, \"hops\": [{\"g\": 39, \"name\": \"African Queen\", \"usage\": \"boil\", \"minutes\": 90, \"purpose\": \"test\", \"alpha_pct\": 13.5, \"share_pct\": 100.0, \"ingredient_id\": 453}], \"batch\": {\"losses_l\": 2.0, \"volume_l\": 20, \"boil_off_l_h\": 4.0, \"efficiency_pct\": 72.0}, \"colour\": {\"srm\": 4.332038762315092, \"grist\": [{\"kg\": 5.542896412037037, \"ebc\": 4.0, \"pct\": 100, \"name\": \"Bohemian Pilsner Malt\", \"role\": \"base\", \"usage\": \"mash\", \"mashed\": true, \"max_pct\": 100.0, \"purpose\": \"test\", \"extract_pct\": 80.0, \"ingredient_id\": 75, \"fermentability\": \"normal\"}], \"second\": null, \"to_pct\": 100, \"because\": \"Bohemian Pilsner Malt is the darkest fermentable and no other base malt can take up the change\", \"darkest\": {\"name\": \"Bohemian Pilsner Malt\", \"ingredient_id\": 75}, \"reached\": false, \"absorber\": null, \"adjusted\": false, \"from_pct\": 100}, \"extras\": [], \"ferm_c\": 15, \"mash_c\": 66.5, \"recipe\": {\"hops\": [{\"g\": 39, \"usage\": \"boil\", \"minutes\": 90, \"purpose\": \"test\", \"ingredient_id\": 453}], \"batch\": {\"losses_l\": 2.0, \"volume_l\": 20, \"boil_off_l_h\": 4.0, \"efficiency_pct\": 72.0}, \"hints\": [\"bitter\"], \"yeast\": {\"ferm_c\": 15, \"purpose\": \"test\", \"ingredient_id\": 1847}, \"mash_c\": 66.5, \"stated\": {\"abv\": 6.5}, \"targets\": {\"fg\": 1.011, \"og\": 1.06137856, \"abv\": 6.5, \"ibu\": 66.25, \"srm\": 10.0}, \"boil_min\": 90, \"guidance\": true, \"style_code\": \"21A\", \"fermentables\": [{\"pct\": 100.0, \"purpose\": \"test\", \"ingredient_id\": 75}]}, \"yeasts\": [{\"name\": \"BRY-97\", \"role\": \"main\", \"unit\": \"pack\", \"amount\": 1, \"purpose\": \"test\", \"ingredient_id\": 1847}], \"numbers\": {\"fg\": 1.0116619264, \"og\": 1.06137856, \"abv\": 6.424804302408088, \"ibu\": 65.99971939650898, \"srm\": 4.335868739573207, \"attenuation_pct\": 81.0, \"srm_lower_bound\": []}, \"og_used\": {\"moved\": false, \"value\": 1.0613, \"because\": \"ABV 6.42 at OG 1.0613 is within 0.2 of the target 6.5, so the OG stays\"}, \"rounding\": {\"added\": [], \"steps\": {\"hop_g\": 1, \"extra_g\": 1, \"malt_kg\": 0.05, \"sugar_kg\": 0.001}, \"because\": \"Malts and flaked grains are weighed in 50 g steps, sugars in 1 g steps. Hops are weighed to the gram, at least 1 g.\", \"reached\": true, \"off_nearest\": []}, \"values_used\": [{\"what\": \"colour\", \"because\": \"each fermentable counts at the middle of its EBC range: Bohemian Pilsner Malt 4\"}, {\"what\": \"alpha\", \"because\": \"each hop counts at the middle of its alpha acid range: African Queen 13.5 %\"}, {\"what\": \"attenuation\", \"because\": \"BRY-97 attenuates 81 %: the middle of its range [78,84] at a mash of 66.5 C (app.mash_attenuation)\"}, {\"what\": \"ferm_c\", \"because\": \"15 C, the temperature of the chosen \\\"ferment at 15 °C\\\"\"}, {\"what\": \"boil\", \"because\": \"90 min: Bohemian Pilsner Malt needs at least 90 min (rule 13)\"}, {\"what\": \"mash\", \"because\": \"66.5 C stays: the predicted FG 1.0116 is inside the range 1.0090 to 1.0130\"}, {\"what\": \"yeast amount\", \"because\": \"1 pack of each yeast: a placeholder until the pitch rate is set (M7)\"}], \"fermentables\": [{\"kg\": 5.55, \"pct\": 100.0, \"name\": \"Bohemian Pilsner Malt\", \"usage\": \"mash\", \"purpose\": \"test\", \"ingredient_id\": 75}]}}]\n```",
+        "height": 340,
+        "width": 520,
+        "color": 5
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Check process input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check process input": {
+      "main": [
+        [
+          {
+            "node": "Step 12 · input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 12 · input": {
+      "main": [
+        [
+          {
+            "node": "Step 12 · water salts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 12 · water salts": {
+      "main": [
+        [
+          {
+            "node": "Check step 12 output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Step 12 · log failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check step 12 output": {
+      "main": [
+        [
+          {
+            "node": "Step 12 · log ok",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Step 12 · log failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 12 · log failure": {
+      "main": [
+        [
+          {
+            "node": "Stop at step 12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 12 · log ok": {
+      "main": [
+        [
+          {
+            "node": "Step 13 · input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 13 · input": {
+      "main": [
+        [
+          {
+            "node": "Step 13 · mash and boil",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 13 · mash and boil": {
+      "main": [
+        [
+          {
+            "node": "Check step 13 output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Step 13 · log failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check step 13 output": {
+      "main": [
+        [
+          {
+            "node": "Step 13 · log ok",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Step 13 · log failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 13 · log failure": {
+      "main": [
+        [
+          {
+            "node": "Stop at step 13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 13 · log ok": {
+      "main": [
+        [
+          {
+            "node": "Step 14 · input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 14 · input": {
+      "main": [
+        [
+          {
+            "node": "Step 14 · fermentation and pitch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 14 · fermentation and pitch": {
+      "main": [
+        [
+          {
+            "node": "Check step 14 output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Step 14 · log failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check step 14 output": {
+      "main": [
+        [
+          {
+            "node": "Step 14 · log ok",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Step 14 · log failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 14 · log failure": {
+      "main": [
+        [
+          {
+            "node": "Stop at step 14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 14 · log ok": {
+      "main": [
+        [
+          {
+            "node": "Step 15 · input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 15 · input": {
+      "main": [
+        [
+          {
+            "node": "Step 15 · carbonation and priming",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 15 · carbonation and priming": {
+      "main": [
+        [
+          {
+            "node": "Check step 15 output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Step 15 · log failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check step 15 output": {
+      "main": [
+        [
+          {
+            "node": "Step 15 · log ok",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Step 15 · log failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 15 · log failure": {
+      "main": [
+        [
+          {
+            "node": "Stop at step 15",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 15 · log ok": {
+      "main": [
+        [
+          {
+            "node": "Assemble process",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble process": {
+      "main": [
+        [
+          {
+            "node": "Check process output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check process output": {
+      "main": [
+        [
+          {
+            "node": "Return result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  }
+}

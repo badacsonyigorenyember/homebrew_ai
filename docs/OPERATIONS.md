@@ -111,8 +111,8 @@ service up).*
   Files exported from the container are root-owned: `docker exec n8n chown 1000:1000 <path>`.
 - **The pipeline webhook** is `POST http://localhost:5678/webhook/recipe-pipeline` with body
   `{"request": "...", "brief_id": "b01", "model": "...", "think": false, "guide": "any", "temperature": 0, "seed": 42, "profile_id": null}` (`brief_id`, `model`, `think`, `guide`, `temperature`, `seed` and `profile_id` optional; `profile_id` goes to step 0, null means the `default` profile, an unknown id fails at step 0; `temperature` and `seed` go to step 1's Ollama call, defaults 0 and 42; `guide` is `any`, `bjcp` or `ba`: when it is not sent, a guide named in the request text restricts the pick, else `any`; a bad value fails at step 2; defaults `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` and `false`). It
-  answers after the run ends with `{run_id, ok, recipe_id?, tries?, failed_step?, error?}` (`recipe_id` and `tries` on a saved recipe; after three failed tries `ok` is false, `failed_step` 11 and `error` holds `try 1: …; try 2: …; try 3: …`); the record is in
-  `app.run` and `app.run_step`. No auth for now (revisit with the chat trigger, M8). The eleven
+  answers after the run ends with `{run_id, ok, recipe_id?, tries?, failed_step?, error?}` (`recipe_id` and `tries` on a saved recipe; after three failed tries `ok` is false, `failed_step` 11 and `error` holds `try 1: …; try 2: …; try 3: …`; a failure in steps 12 to 15 gives `failed_step` 12 to 15); the record is in
+  `app.run` and `app.run_step`. No auth for now (revisit with the chat trigger, M8). The twelve
   workflows must be **published**. Publish a sub-workflow after editing it too: an Execute Workflow
   node runs the **published** version of the workflow it calls, not the draft (measured 2026-10-12: the
   pipeline's draft was published first, and its call to the still-published old `Step 1` ran the old
@@ -125,7 +125,7 @@ service up).*
   (step 2's `guide_preference`).
 - **Running a workflow from the editor.** Each workflow has a `Test data` sticky note with
   ready-to-paste JSON: pin it on `POST recipe-pipeline` (`Recipe pipeline`) or on `When Executed
-  by Another Workflow` (`Step 1 · read request`, `Step 2 · best-fit style`, `Step 3 · deviations`, `Step 0 · load profile`, `Step 4 · targets`, `Step 5 · design frame`, `Steps 6–9 · choose ingredients`, `Steps 10–11 · compute and validate`, `Steps 6–11 · one try`, `Check contract`), then click *Execute workflow*.
+  by Another Workflow` (`Step 1 · read request`, `Step 2 · best-fit style`, `Step 3 · deviations`, `Step 0 · load profile`, `Step 4 · targets`, `Step 5 · design frame`, `Steps 6–9 · choose ingredients`, `Steps 10–11 · compute and validate`, `Steps 6–11 · one try`, `Steps 12–15 · process`, `Check contract`), then click *Execute workflow*.
   A pipeline run writes a real run log tagged `editor-b01`; open the step 1 sub-execution from the
   `Step 1 · read request` node. Remove editor runs with
   `docker exec supabase-db psql -U postgres -d postgres -c "delete from app.run where eval_id like 'editor-%'"`
@@ -150,8 +150,9 @@ service up).*
   `app.step11_validate`, contract checks around both, no LLM) and logs rows 10 and 11, all with the
   try's number. The pipeline calls it as `Try 1`, `Try 2`, `Try 3` (an If between them, no loop-back
   edge); a failed try hands its `next_feedback` (step 11's lines, the bans so far, the failed picks)
-  to the next try's `choose.feedback`. A passed try goes to `Save recipe` (`app.save_recipe`), then
-  `Finish run`. Three failed tries finish the run with ok false. Publish the two new sub-workflows
+  to the next try's `choose.feedback`. A passed try goes to `Steps 12–15 · process` (id `ST1215process01`: steps 12 to 15 and
+  `app.recipe_process`, rows 12 to 15 logged with try 1, no LLM), then `Save recipe` (`app.save_recipe`,
+  with the process), then `Finish run`. Three failed tries finish the run with ok false. Publish the two new sub-workflows
   before the pipeline, and republish them after every edit.
 - **The `Postgres account` credential** connects as `postgres` to database `postgres` on
   `supabase-db:5432` (measured 2026-10-12 with `select current_user, current_database()`), so
