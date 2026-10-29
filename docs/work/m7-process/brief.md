@@ -237,3 +237,5 @@ None open. Decided by you, 2026-10-27:
   grist-based mash pH estimate to the bottom of *How to Brew*'s colour target and the row's alkalinity/RA are
   reported references only; every style → row mapping carries a basis label (`listed`, `inferred`, `judgement`,
   `web`) that step 12 shows; the honey beer row proposed earlier is dropped (honey beer follows its underlying style).
+- 2026-10-29 · R6, A2 (review finding 1): a beer above 30 °C at step 15 reads HTB Table 10.3's 30 °C row and says so, instead of raising, so a saison or kveik recipe that passed step 11 still saves; user decision "Use the 30 °C row".
+- 2026-10-29 · R2 (review finding 2): the mash pH estimate picks a malt's Table 21.4 row by role (crystal among the Caramel rows, base/kilned/adjunct among the others); user decision "Respect role".

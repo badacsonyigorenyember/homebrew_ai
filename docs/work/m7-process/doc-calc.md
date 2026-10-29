@@ -384,7 +384,9 @@ a surplus or deficit is the gap), made into a pH estimate with HTB's own buffer 
 
 **Classes** (`app.malt_acidity(role, ebc)`, a `values` list and a nearest-row pick). °L ≈ SRM = EBC ÷ 1.97 (HTB p. 234-235, "nearly identical"); colour is the midpoint of the
 ingredient's `ebc` range (no lower end: its upper end).
-- `role` base, kilned, crystal, adjunct: the **non-roast row with the nearest °L** (the 16 rows above the Special Roast / Roasted Barley split: Pilsen... Extra Special).
+- `role` crystal: the **Caramel row with the nearest °L** (Caramel 20L, 40L, 60L, 80L, 120L). `role` base, kilned, adjunct: the **non-roast, non-Caramel row with the nearest °L**
+  (Pilsen ... Extra Special, 11 rows). The role decides the class because HTB's own table shows crystal and kilned malt of one colour differ (Caramel 40L −30.4, Special Roast 40L −13.0);
+  a nearest-°L pick across all 16 rows read Carapils and Carahell as base malt and Abbey and Melanoidin as caramel (user decision 2026-10-29, review of m7-process finding 2).
   Flaked and unmalted adjuncts count as base (Bru'n §2.4 "Grain Acidity": "Flaked malt and grain should be considered base malts"; HTB is silent).
 - `role` roast: **one class, −42.98 mEq/kg** (mean of the five roast rows: the stored roast colours, 450-760 °L, sit beyond Table 21.4's 292-514 °L rows and do not separate them).
 - `role` sugar is not mashed and is skipped.
@@ -669,8 +671,9 @@ the three spot values: 5 °C 2.5 vol → 4.4, 21 °C 2.5 → 6.0, 30 °C 4.5 →
 | 12 | 23.7 | 1.05 | | 21 | 24.5 | 0.80 | | 30 | 25.2 | 0.64 |
 | 13 | 23.8 | 1.02 | | 22 | 24.5 | 0.77 | | | | |
 
-(5–30 °C, 26 rows.) A temperature below 5 or above
-30 °C raises; a fractional temperature takes the nearest whole °C row (plan).
+(5–30 °C, 26 rows.) A temperature below 5 °C raises. **Above 30 °C the 30 °C row is used** (user decision 2026-10-29; a saison or kveik
+schedule goes to 32-38 °C): the table ends there and a warmer beer holds less CO₂, so this slightly under-primes, the safe side; step 15's priming `source` says so.
+A fractional temperature takes the nearest whole °C row (plan).
 
 **Becomes:** `ref.beer_style.co2_family`, `co2_vol`; `app.residual_co2`, `app.priming_sugar_g`;
 tests `test_palmer_cane_sugar`, `test_table_10_3_cells`, `test_residual_rows`, `test_co2_from_style`,

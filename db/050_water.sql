@@ -381,7 +381,8 @@ $$;
 
 -- Acidity or alkalinity of a mashed fermentable to mash pH 5.4, in mEq per kg (positive: alkaline,
 -- negative: acid), and the buffer. How to Brew Table 21.4 p. 351 (Briess data): the non-roast row
--- nearest in degrees Lovibond (EBC / 1.97, HTB p. 234-235; a tie goes to the row listed first); every
+-- nearest in degrees Lovibond (EBC / 1.97, HTB p. 234-235; a tie goes to the row listed first), picked
+-- by role: a crystal malt among the five Caramel rows, base, kilned and adjunct among the others; every
 -- roast is one class, -42.98 mEq/kg, the mean of the five roast rows. Flaked and unmalted adjuncts
 -- count as base malt (Bru'n Water, HTB is silent). Buffer: 40 mEq per pH per kg (HTB p. 342's
 -- 200/Rv ppm per 0.1 pH). A sugar is not mashed: 0 and no buffer. doc-calc.md §7.
@@ -419,6 +420,7 @@ begin
         (13, 'Caramel 60L',        61.0, -43.4), (14, 'Caramel 80L',       80.0, -45.1),
         (15, 'Caramel 120L',       120.0, -60.4), (16, 'Extra Special Malt', 126.0, -67.5)
     ) as v(n, name, lov, meq)
+    where (v.name like 'Caramel%') = (role = 'crystal')
     order by abs(v.lov - lovibond), v.n
     limit 1;
     return jsonb_build_object('class', picked.name, 'meq_kg', picked.meq, 'buffer', 40, 'page', page);

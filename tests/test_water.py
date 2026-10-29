@@ -311,9 +311,22 @@ def test_ph_terms_add_up(conn):
     assert sum(t["buffer"] for t in ph["terms"]) == pytest.approx(40 * 6)
 
 
+def test_malt_acidity_respects_role(conn):
+    """Crystal malt picks among the caramel rows, everything else among the others (doc-calc §7)."""
+    for name, ebc in (("Carapils", 3), ("Carahell", 25)):          # pale crystal: acidic as caramel, not base-like
+        got = sql(conn, "malt_acidity", "crystal", ebc)
+        assert got["class"] == "Caramel 20L" and got["meq_kg"] < 0, name
+    for name, ebc in (("Melanoidin", 70), ("Abbey", 40)):          # kilned: not read as caramel
+        got = sql(conn, "malt_acidity", "kilned", ebc)
+        assert not got["class"].startswith("Caramel"), name
+    assert sql(conn, "malt_acidity", "crystal", 120)["class"] == "Caramel 60L"
+    assert sql(conn, "malt_acidity", "crystal", 1000)["class"] == "Caramel 120L"
+    assert sql(conn, "malt_acidity", "adjunct", 40 * 1.97)["class"] == "Special Roast"
+
+
 def test_malt_acidity_classes(conn):
     assert sql(conn, "malt_acidity", "base", 3)["meq_kg"] == 9.2                 # 1.5 degL: Pilsen Malt
-    assert sql(conn, "malt_acidity", "kilned", 40 * 1.97)["class"] in ("Caramel 40L", "Special Roast")
+    assert sql(conn, "malt_acidity", "kilned", 40 * 1.97)["class"] == "Special Roast"          # kilned: never a caramel row
     assert sql(conn, "malt_acidity", "crystal", 61 * 1.97)["meq_kg"] == -43.4
     assert sql(conn, "malt_acidity", "adjunct", 4)["meq_kg"] == 5.0              # flaked grain counts as base: Brewers Malt
     assert sql(conn, "malt_acidity", "roast", 600)["meq_kg"] == -42.98
