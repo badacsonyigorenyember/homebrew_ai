@@ -1,6 +1,6 @@
 # M7 · Steps 12–15: water, mash and boil, fermentation, packaging — implementation plan
 
-Stage: verify
+Stage: shipped
 Brief: [brief.md](brief.md)
 Branch: m7-process
 
