@@ -176,24 +176,24 @@ Commit: `Let step 2 obey a style field`
 
 ### Task 3: the pipeline takes a style and a brief the chat already read
 Why: R5, R6, A4.
-- [ ] `Recipe pipeline` `Run settings`: `style: body.style ?? null`, `brief: body.brief ?? null`,
+- [x] `Recipe pipeline` `Run settings`: `style: body.style ?? null`, `brief: body.brief ?? null`,
       `brief_llm: body.brief_llm ?? null`. `Step 2 · input` passes `style`.
-- [ ] After `Step 0 · log ok`, an If `Brief given?`: no → `Step 1 · input` → `Step 1 · read
+- [x] After `Step 1 · input`, an If `Brief given?`: no → `Step 1 · read
       request` as now; yes → `Check contract` (`step1.output`, the given brief, error output to
       `Step 1 · log failure`) → Set `Step 1 · given brief` `{brief, llm: brief_llm}`. Both branches
       join in a Set `Step 1 · result` `{brief, llm}`; `Step 1 · log ok`, `Step 1 · save brief`,
       `Step 2 · input` and `Respond failed` read `$("Step 1 · result")` instead of
       `$("Step 1 · read request")`. Row 1's input gains `brief_given` (true/false). Sticky notes
       say so. Import, publish, export.
-- [ ] `docs/OPERATIONS.md` §5 webhook line: `style`, `brief`, `brief_llm`.
-- [ ] Write `tests/test_pipeline.py::test_given_brief_is_step_1` (b01's brief and an `llm`
+- [x] `docs/OPERATIONS.md` §5 webhook line: `style`, `brief`, `brief_llm`.
+- [x] Write `tests/test_pipeline.py::test_given_brief_is_step_1` (b01's brief and an `llm`
       object posted: row 1 output equals the brief, its `llm` equals the posted one, `brief_given`
       true) and `::test_style_field_reaches_step_2` (b05 with `style` 20C: row 2's style 20C, row
       3 has the ABV `number` deviation; the run's later outcome is not asserted). Seen failing
       first.
-- [ ] Run `.venv/bin/pytest tests/test_pipeline.py -k "given_brief or style_field or b01_logs or
+- [x] Run `.venv/bin/pytest tests/test_pipeline.py -k "given_brief or style_field or b01_logs or
       request_kept"`, expect all pass.
-- [ ] Note in PROJECT.md §8 whether the b05 / 20C run validated at step 11 (brief Assumption 2;
+- [x] Note in PROJECT.md §8 whether the b05 / 20C run validated at step 11 (brief Assumption 2;
       read its `run_step` 11). If it fails all three tries, stop and hand back `needs-input`:
       A4's "keep 20C" case depends on it.
 Done when: a webhook run with a given brief logs one step 1 row with the given `llm`, and `style`
@@ -456,3 +456,4 @@ None.
 ## Deviations
 - 2026-10-29 · Tasks 12 and 14, Approach: the brew-day log (R13) and brew day (A9) moved out of m8 into the new side track `s11-brew-day` (draft brief), with `evals/brew_log.py`, `tests/test_brew_log.py` and `docs/brews/`; the docs task is now Task 12 and keeps G7's "you brew one" open, pointing to s11 — your answer to plan question 1. Your answer to question 2: the sheet must cite at least one retrieved chunk, as planned.
 - 2026-10-29 · Task 1: the tests use b08 instead of b01 — b01 does not pass step 11 on its own, so `save_recipe` refuses it.
+- 2026-10-29 · Task 3: `Brief given?` sits after `Step 1 · input`, not after `Step 0 · log ok` — the step 1 log nodes read `Step 1 · input` (run id, start time), which must have run on both branches. `Step 1 · given brief` takes `llm` as `brief_llm ?? {}` and `Step 1 · log ok` counts tokens with `?? 0`, so a given brief without an `llm` still logs.

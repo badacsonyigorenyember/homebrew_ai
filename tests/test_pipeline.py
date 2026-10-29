@@ -9,6 +9,7 @@ import pytest
 from evals import benchmark
 from loaders.db import connect
 from tests.test_save_recipe import RECOMPUTE_TOLERANCES, recompute
+from tests.test_step4 import BRIEFS, brief_of
 
 pytestmark = pytest.mark.stack
 
@@ -88,7 +89,7 @@ def test_b01_logs_step_1(conn, post):
     assert ms >= 0
     assert step_input == {
         "run_id": run_id, "request": "a pale ale", "model": model, "think": False,
-        "temperature": 0, "seed": 42,
+        "temperature": 0, "seed": 42, "brief_given": False,
     }
     assert tokens > 0
     assert llm["model"] == model and llm["tries"] in (1, 2)
@@ -357,3 +358,42 @@ def test_impossible_target_fails_after_three_tries(conn, post):
     assert [r[0] for r in rows] == [1, 2, 3] and not any(r[1] for r in rows) and all(r[2] for r in rows)
     assert conn.execute("select count(*) from app.recipe where brief_id = %s", (run[2],)).fetchone() == (0,)
     assert conn.execute("select count(*) from app.run_step where run_id = %s and step >= 12", (run_id,)).fetchone() == (0,)
+
+
+def test_given_brief_is_step_1(conn, post):
+    """A brief sent with the request is logged as step 1 with the sender's `llm`; no model call (R5, R6)."""
+    brief = brief_of(BRIEFS["b01"])
+    llm = {"model": "chat", "think": False, "temperature": 0, "seed": 42, "tries": 1,
+           "prompt_tokens": 11, "output_tokens": 22, "llm_ms": 33, "done_reason": "stop"}
+    answer = post({"request": BRIEFS["b01"]["request"], "brief": brief, "brief_llm": llm})
+    steps = _step_rows(conn, answer["run_id"])
+    assert [s[0] for s in steps][:3] == [0, 1, 2]
+    step_1 = steps[1]
+    assert step_1[2] is True and step_1[6] == brief and step_1[8] == llm
+    assert step_1[5]["brief_given"] is True
+    assert step_1[7] == 33
+    saved = conn.execute(
+        "select b.brief from app.brief b join app.run r on r.brief_id = b.id where r.id = %s",
+        (answer["run_id"],),
+    ).fetchone()
+    assert saved == (brief,)
+
+
+def test_given_brief_must_match_the_contract(conn, post):
+    answer = post({"request": "a pale ale", "brief": {"named": 3}})
+    assert answer["ok"] is False and answer["failed_step"] == 1
+    assert "step1.output" in answer["error"]
+    steps = _step_rows(conn, answer["run_id"])
+    assert [s[0] for s in steps] == [0, 1] and steps[1][2] is False
+
+
+def test_style_field_reaches_step_2(conn, post):
+    """The webhook's `style` makes step 2 keep the named style, so step 3 lists the number (R5)."""
+    b05 = BRIEFS["b05"]
+    answer = post({"request": b05["request"], "brief": brief_of(b05), "style": "20C"})
+    assert answer["run_id"]  # whether step 11 passes is not asserted here
+    by_step = _by_step(conn, answer["run_id"])
+    assert by_step[2][6]["style"]["code"] == "20C"
+    assert by_step[2][6]["mismatch"] is None
+    numbers = [d for d in by_step[3][6]["deviations"] if d["kind"] == "number"]
+    assert [d["subject"] for d in numbers] == ["ABV 4"]
