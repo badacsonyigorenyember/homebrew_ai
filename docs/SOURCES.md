@@ -29,7 +29,7 @@ pitch rate, diacetyl rest and dry-hop figures come from *How to Brew*; the style
 
 ## Web sources used for calculation values
 
-Fetched or searched 2026-10-28 for [`m7-process`](work/m7-process/doc-calc.md) §4b. None is saved under
+Fetched or searched 2026-10-28 for [`m7-process`](finished/m7-process/doc-calc.md) §4b. None is saved under
 `shared/rag-files/`; they are cited by URL and carry no licence. "Search text only" means the page itself
 was not read (or held nothing relevant) and only the search result's summary was seen.
 

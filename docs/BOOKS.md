@@ -220,7 +220,7 @@ Passes so far:
   volumes, SG ↔ °Plato, FG, ABV (table 9.1), IBU (Tinseth, table 5.5), colour (Morey).
 - `adjunct-fermentables`: Table 18.5 (flaked adjuncts, PDF p. 316) and Table 24.1 (sugars, PDF
   p. 462) are in `ref.fermentable`.
-- `m7-process` (2026-10-28, [doc-calc.md](work/m7-process/doc-calc.md)) passed the water, mash and
+- `m7-process` (2026-10-28, [doc-calc.md](finished/m7-process/doc-calc.md)) passed the water, mash and
   process pages: ch. 7 (pitch rate, Table 7.1), ch. 10 (Tables 10.1-10.3,
   p. 159 families), ch. 6 (fermentation, Table 6.2), ch. 16-17 (mash rests, infusion equation),
   ch. 21 (mash pH, Table 21.4). Page numbers are in doc-calc.
@@ -279,7 +279,7 @@ loader did not flag (unverified).
 
 ### *Water*
 
-Passed by m7-process (2026-10-28, [doc-calc.md](work/m7-process/doc-calc.md) §1-§7): Tables 17, 18a/b and 19a/b (`ref.water_profile`, 16 rows), Kolbach residual alkalinity, and the three worked examples (Pilsner, American pale ale, Foreign Extra Stout), which `tests/test_water.py` reproduces. Not used: Table 9 malt acidity (mash pH follows *How to Brew* ch. 21 instead), acid doses (Appendix B), the titration curves, Appendix C salt and acid calculations beyond the salts in `ref.water_salt`. The salts in
+Passed by m7-process (2026-10-28, [doc-calc.md](finished/m7-process/doc-calc.md) §1-§7): Tables 17, 18a/b and 19a/b (`ref.water_profile`, 16 rows), Kolbach residual alkalinity, and the three worked examples (Pilsner, American pale ale, Foreign Extra Stout), which `tests/test_water.py` reproduces. Not used: Table 9 malt acidity (mash pH follows *How to Brew* ch. 21 instead), acid doses (Appendix B), the titration curves, Appendix C salt and acid calculations beyond the salts in `ref.water_salt`. The salts in
 `ref.water_salt` come from IUPAC atomic masses, not from this book; they reproduce its Table 17.
 
 Pages where the loader cut a markdown table or Docling left a formula placeholder, by chapter
@@ -308,7 +308,7 @@ formulas, so most equations are still in the prose, undecoded (unverified).
 
 ### *Yeast*
 
-Used by m7-process (2026-10-28, [doc-calc.md](work/m7-process/doc-calc.md) §10-§11) as a cross-check of the pitching rate (0.75 and 1.5 million cells per mL per °P, 180 billion cells for 20 L at 12 °P), the diacetyl rest and the temperature ramp; *How to Brew* is the source where it covers the point, so no figure in `app.*` is taken from *Yeast* alone. Strain overviews, nutrient and aeration data, propagation tables, lab media recipes and the troubleshooting charts are not passed. `ref.yeast` comes from the
+Used by m7-process (2026-10-28, [doc-calc.md](finished/m7-process/doc-calc.md) §10-§11) as a cross-check of the pitching rate (0.75 and 1.5 million cells per mL per °P, 180 billion cells for 20 L at 12 °P), the diacetyl rest and the temperature ramp; *How to Brew* is the source where it covers the point, so no figure in `app.*` is taken from *Yeast* alone. Strain overviews, nutrient and aeration data, propagation tables, lab media recipes and the troubleshooting charts are not passed. `ref.yeast` comes from the
 shop's catalogue and the makers' sources, not from this book.
 
 Pages where the loader cut a markdown table or Docling left a formula placeholder, by part (52
