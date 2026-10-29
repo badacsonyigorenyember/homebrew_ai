@@ -60,12 +60,6 @@ Branch: m8-recipe-sheet-chat
   words → *Send and Wait* "Accept this sheet?" → `app.accept_recipe` sets `final`. One execution
   holds both questions; no agent node. The harness keeps calling the webhook without `style` and
   never asks.
-- **Brew-day log (R13).** `python -m evals.brew_log <recipe_id>` writes
-  `docs/brews/<date>-<style code>-r<recipe id>.md` from the saved recipe (refuses one without a
-  sheet): every step from water to packaging with planned temperature, time and gravity from the
-  saved values and empty columns for the actual values and notes. You fill it in during a Claude
-  session on brew day.
-
 **Measured while planning (2026-10-29, read-only, nothing written):**
 - `app.recipe` has `process` and no `sheet`; `status` check allows `draft`, `final`, `brewed`.
   `app.run_step.step` check already allows 0–16, so row 16 needs no schema change.
@@ -117,13 +111,11 @@ Branch: m8-recipe-sheet-chat
 | `n8n/workflows/recipe-pipeline.json` | changed | `style`, `brief`, `brief_llm`, `sheet_chunks`; given-brief branch; step 16 after the save; its failure finish |
 | `n8n/workflows/recipe-chat.json` | new | `Recipe chat` (id `CHATrecipechat01`) |
 | `tests/step16_sample.json` | new | the sub-workflow's `Test data` |
-| `tests/test_recipe_sheet.py`, `test_sheet_facts.py`, `test_sheet_check.py`, `test_sheet_markdown.py`, `test_brew_log.py` | new | Tasks 1, 4–6, 12 |
+| `tests/test_recipe_sheet.py`, `test_sheet_facts.py`, `test_sheet_check.py`, `test_sheet_markdown.py` | new | Tasks 1, 4–6 |
 | `tests/test_step2_pick.py`, `test_step3.py`, `test_contracts.py`, `test_workflows.py`, `test_pipeline.py`, `test_run.py`, `test_grade.py` | changed | as each task says |
 | `evals/run.py`, `evals/grade.py` | changed | sheet columns and totals (R11) |
-| `evals/brew_log.py` | new | the brew-day log (R13) |
-| `docs/brews/` | new | brew-day logs |
 | `evals/results/<date>-m8.json` | new | the full brief run (A1, A3, A5) |
-| `docs/RECIPE-ROADMAP.md`, `docs/WORKFLOW-ROADMAP.md`, `docs/OPERATIONS.md`, `docs/DATABASE.md` | changed | Task 13 (R12, A10) |
+| `docs/RECIPE-ROADMAP.md`, `docs/WORKFLOW-ROADMAP.md`, `docs/OPERATIONS.md`, `docs/DATABASE.md` | changed | Task 12 (R12, A10) |
 | `PROJECT.md` | changed | §4 rows, §8 per task |
 
 Apply every SQL file as `postgres`, twice (idempotent), then check owners (OPERATIONS §4):
@@ -430,51 +422,19 @@ Why: A4, A7, A8; brief Assumption 1 (the hosted chat waits through a long run).
 Done when: you report the hand test passed and the checks agree.
 Commit: `Record the chat hand test`
 
-### Task 12: a brew-day log is made from a sheet
-Why: R13, A9 (preparation).
-- [ ] `evals/brew_log.py`: `render(recipe: dict, items: list, process: dict) -> str` (pure) and
-      `main` (`python -m evals.brew_log <recipe_id> [--out PATH]`, refuses a recipe without a
-      sheet, never overwrites an existing log). The file: header (recipe id, style, batch, the
-      sheet's date, how to fill it in during a Claude session), then one table `Step | Planned
-      temp | Planned time | Planned gravity | Actual temp | Actual time | Actual gravity | Notes`
-      with rows: water and salts (grams per water), strike (temperature, litres), each mash step,
-      sparge (litres), pre-boil (volume), boil (minutes) and each addition, chill and pitch (OG,
-      yeast amount), each fermentation step (temperature, days, `move_on` in Notes), dry hops,
-      secondary, conditioning or lagering (FG on the last fermentation row), packaging (CO₂
-      volumes, priming sugar grams). Planned values only from the saved recipe; a value it does
-      not have is `—`.
-- [ ] Write `tests/test_brew_log.py` (no stack: a process dict from a saved m7 recipe as a
-      fixture): every mash, boil, fermentation and packaging step of the process has a row with
-      its saved temperature and time, OG and FG on their rows, the actual columns empty; the
-      script refuses a recipe without a sheet (stack test). Seen failing first.
-- [ ] Hand back `needs-input`: which recipe you will brew (an accepted one). Then write its log
-      to `docs/brews/` and commit it.
-- [ ] Run `.venv/bin/pytest tests/test_brew_log.py`, expect all pass. PROJECT.md §4 Scripts row and
-      §8.
-Done when: the log of the recipe you chose is in `docs/brews/`.
-Commit: `Add the brew-day log`
-
-### Task 13: the docs describe step 16 and the chat as built
+### Task 12: the docs describe step 16 and the chat as built
 Why: R12, A10.
 - [ ] `docs/RECIPE-ROADMAP.md`: TL;DR line 13, §6 (the "gate for every step" note, line 226) and
       P5 (line 294) state the bar as at most 3 first-try LLM calls per recipe (step 1, steps 6–9,
       step 16), retries reported; §3 row 16 and P8 say what is built, with the measured counts.
       `docs/WORKFLOW-ROADMAP.md`: G6 bar (line 198) the same wording; M8 row and G7 with the
-      measured results (G7's "you brew one" stays open until Task 14). No "about 2" or "≤ 2" left
+      measured results; G7's "you brew one" stays open and points to the side track
+      `s11-brew-day` (brew-day log and brew day, moved out of m8). No "about 2" or "≤ 2" left
       for the full pipeline (`grep -n "about 2\|≤ 2" docs/*ROADMAP.md`).
 - [ ] `docs/OPERATIONS.md` complete for the chat and step 16; `docs/DATABASE.md` column done in
       Task 1. PROJECT.md §3 diagram line F unchanged unless wrong; §4 rows; §8.
 Done when: A10's grep finds nothing and the docs match what runs.
 Commit: `Describe step 16 and the chat in the docs`
-
-### Task 14: you brew from the sheet (gate, A9)
-Why: A9, G7.
-- [ ] On brew day, in a Claude session, you fill in the log from Task 12 step by step (actual
-      temperature, time and gravity, or a note why a value was not taken). Commit the filled log
-      and a PROJECT.md §8 entry with the outcome. Done on `main` after the merge if open
-      question 1 is answered (a).
-Done when: the filled log is committed and §8 records the brew.
-Commit: `Record brew day for recipe <id>`
 
 ## Critical behaviour and its tests
 
@@ -488,10 +448,10 @@ Commit: `Record brew day for recipe <id>`
 | Every quantity on the sheet equals the saved rows; R2 order; labels; deviations; absent items; citation format | `test_sheet_markdown.py` | 6 |
 | Step 16 is logged and counted; two failed checks give `failed_step` 16 and a draft without a sheet | `test_pipeline.py::test_b01_validates_and_saves`, `::test_sheet_fails_twice_without_sources` | 7 |
 | The harness reports sheets and checks | `test_run.py`, `test_grade.py` | 8 |
-| The brew-day log has every step's planned values from the saved recipe | `test_brew_log.py` | 12 |
 
 ## Approved exceptions
 
 None.
 
 ## Deviations
+- 2026-10-29 · Tasks 12 and 14, Approach: the brew-day log (R13) and brew day (A9) moved out of m8 into the new side track `s11-brew-day` (draft brief), with `evals/brew_log.py`, `tests/test_brew_log.py` and `docs/brews/`; the docs task is now Task 12 and keeps G7's "you brew one" open, pointing to s11 — your answer to plan question 1. Your answer to question 2: the sheet must cite at least one retrieved chunk, as planned.
