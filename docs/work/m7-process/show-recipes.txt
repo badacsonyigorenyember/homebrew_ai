@@ -55,7 +55,7 @@ Packaging: CO2 2.45 volumes (style, How to Brew p. 159: the middle of the europe
 Deviations:
   IBU 50: None (asked by user) IBU 50 is above German Pils (5D)'s IBU range 22–40
 
-===== b13 (run 4969) =====
+===== b13 (run 4992) =====
 Request: A traditional Bavarian hefeweizen, 15 litres please.
 
 Style: Weissbier (10A)
@@ -99,14 +99,14 @@ Boil: 90 min
   at 90 min: 5 g Magnum (boil)
 
 Fermentation:
-  ferment: 14 °C, 1 days
-  ferment: 15 °C, 2 days; at least 2 more days (about day 3 of 4); move on to the rest when gravity within 2-5 points of FG (HTB p. 93-94, Table 6.2)
-  rest: 18 °C, 4 days; starts when gravity within 2-5 points of FG (HTB p. 93-94, Table 6.2); stay at least 4 days (up to 8), then cool
-  crash: 7 °C, 7 days
+  ferment: 17 °C, 1 days
+  ferment: 19 °C, 2 days; at least 2 more days (about day 3 of 4); move on to the rest when gravity within 2-5 points of FG (HTB p. 93-94, Table 6.2)
+  rest: 22 °C, 4 days; starts when gravity within 2-5 points of FG (HTB p. 93-94, Table 6.2); stay at least 4 days (up to 8), then cool
+  crash: 11 °C, 7 days
   pitch (main): 2 pack YF-401 Mr. Weizen; 0.75 billion cells/L/degP (HTB ch. 7 p. 111-113) x 15 L x 11.8 degP = 133.3 billion cells; about 100 billion cells per liquid pack is HTB's generic figure (p. 108), not the maker's spec, so the 2 pack(s) are an estimate
 
 Packaging: CO2 3.9 volumes (style, How to Brew p. 159: the middle of the german-wheat family's 3.3-4.5 volumes (doc-calc.md §14))
-  priming: 161 g table sugar (sucrose) for 15 l at 18 °C
+  priming: 164 g table sugar (sucrose) for 15 l at 22 °C
 
 Deviations:
   none

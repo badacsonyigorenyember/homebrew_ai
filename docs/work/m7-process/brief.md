@@ -195,6 +195,7 @@ None open. Decided by you, 2026-10-27:
    functions, and step 12 doses salts for them ("Strike + sparge").
 
 ## Deviations
+- 2026-10-28 · R4, A4: the main fermentation temperature of a non-lager yeast whose range starts below 15 °C is anchored at 18 °C instead of the yeast's lower bound (HTB p. 107, p. 109-110) — b13 missed its process expectation; user decision "Fix the picker" (plan Task 11a). Scope and acceptance criteria unchanged.
 - 2026-10-16 · Needs, Scope, Assumptions, Open questions: sources now named by path; BJCP water
   table, Bru'n Water *Water Knowledge* (calc) and spreadsheet (test oracle only), Janish dry-hop
   sources and Milk The Funk souring pages added; needs `s5-mash-attenuation`; the "PDF not

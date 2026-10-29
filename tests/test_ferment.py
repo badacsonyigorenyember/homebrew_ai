@@ -160,10 +160,23 @@ def test_gravity_trigger_on_the_rest(conn):
 
 
 def test_b13_weizen_schedule(step14):
-    """Munich Classic (17-22 C) at 17: start 17, hold 18, rest 21, cold conditioning 10."""
+    """Munich Classic (17-22 C, lower bound not below 15, so the old rule holds) at 17: start 17, hold 18, rest 21, cold conditioning 10.
+    The b13 pipeline yeast Mr. Weizen is in test_cold_pick_is_lifted_into_the_ale_range."""
     _, out = step14("b13")
     assert [(s["phase"], s["temp_c"], s["days"]) for s in out["steps"]] == [
         ("ferment", 17, 1), ("ferment", 18, 2), ("rest", 21, 4), ("crash", 10, 7)]
+
+
+def test_cold_pick_is_lifted_into_the_ale_range(conn):
+    """b13: YF-401 Mr. Weizen (14-23 C) picked at 14 C. HTB p. 107 says ale yeasts prefer 18-24 C and work 3 C either side,
+    so a range starting below 15 C is anchored at 18: main 19 C (18 + 1), not 15, start 17 C, every ferment step 17-24 C."""
+    yid = conn.execute("select i.id from ref.ingredient i join ref.yeast y on y.ingredient_id = i.id "
+                                   "where i.name = 'YF-401 Mr. Weizen'").fetchone()[0]
+    steps = schedule(conn, yid, 14)
+    ferment = phases(steps, "ferment")
+    assert all(17 <= s["temp_c"] <= 24 for s in ferment), ferment
+    assert [s["temp_c"] for s in ferment] == [17, 19]
+    assert phases(steps, "rest")[0]["temp_c"] == 22
 
 
 def test_b14_souring_first(conn, step14):

@@ -581,6 +581,14 @@ Why: A2, A6, A7, A11 on the real pipeline.
 Done when: every validated recipe of the run has its process and the expectations pass.
 Commit: `Measure steps 12-15 on the briefs`
 
+### Task 11a: a weizen is not fermented at its yeast's cold end (fix)
+Why: Task 11 found b13 missing `ferm_c` [17, 24] (start 14 °C, main 15 °C). User decision 2026-10-28: "Fix the picker"; the expectation stays.
+- [x] `tests/test_ferment.py::test_cold_pick_is_lifted_into_the_ale_range` (Mr. Weizen at 14 °C: ferment steps 17 and 19 °C, rest 22 °C), seen failing first.
+- [x] `db/052_ferment.sql`: for a non-lager yeast whose lower bound is below 15 °C the lower anchor of M is 18 °C (HTB p. 107, p. 109-110); doc-calc §11 updated. Applied with psql as postgres.
+- [x] Full pytest suite; b01 b05 b06 b08 b09 b13 b14 b17 re-run through `evals.run` (no `--save`), `process` column in PROJECT.md §8.
+Done when: b13's process meets its expectation or fails for an unrelated reason that is reported.
+Commit: `Lift cold weizen fermentation into the ale range`
+
 ### Task 12: the docs describe stage E as built
 Why: brief Scope "Docs".
 - [ ] `docs/RECIPE-ROADMAP.md`: §3 rows 12–15 say what is built (functions, sources, the acid
@@ -639,6 +647,7 @@ Answered by you in chat, 2026-10-28:
 None.
 
 ## Deviations
+- 2026-10-28 · Task 11a added (after Task 11): b13 missed `ferm_c` [17, 24] because step 14 raised YF-401 Mr. Weizen's picked 14 °C only to its lower bound + 1; step 14 now anchors M at 18 °C for non-lager yeasts whose lower bound is below 15 °C (HTB p. 107, p. 109-110) — user decision "Fix the picker", expectation unchanged. doc-calc §11 updated.
 - 2026-10-28 · Task 5: `step13.mash` also carries `additions` (the extras step 10 puts in the mash, empty today), and the whirlpool entries use `minutes` where boil entries use `at_min`; a boil extra with no `time_min` goes in at the start of the boil. `app.strike_temp` rounds to 0.1 °C. `test_no_acid_amount_anywhere` now covers step 13 inside `tests/test_water.py` (no separate step 13 test). Implementation details, no scope change.
 - 2026-10-28 · Task 1 (Approach step 12 items 3 and 6, step 13 strike): the doc → calc pass changed three
   details, none of scope — (a) calcium above the row maximum is reported, not corrected (doc-calc

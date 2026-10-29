@@ -70,7 +70,9 @@ $$;
 -- The temperature plan, [{phase, yeast_id, temp_c, days, why, source, move_on}] in order. `days` is the
 -- minimum; `move_on` says what ends the step (HTB Table 6.2's gravity trigger), null where HTB gives none.
 -- main and souring are {ingredient_id} (souring null when no culture). doc-calc.md §11 and §13:
---   main temperature M = ferm_c raised to the yeast's lower bound + 1 C (and kept inside its range);
+--   main temperature M = ferm_c raised to L + 1 C and kept inside the yeast's range, where L is the yeast's lower
+--     bound; but for a non-lager yeast whose lower bound is below 15 C, L is 18 C (HTB p. 107: ale yeasts prefer
+--     18-24 C and work 3 C either side, so 15 C is the coldest HTB allows; p. 109-110: German weizen yeast 18-24 C);
 --   ale (also kveik, brett, untyped): start S = M - 2 (HTB p. 90), 1 day; hold M, 2 days; rest
 --     least(M + 3, upper bound), 4 days (Table 6.2: 3-6 C, minimum 4 days);
 --   lager: start at M (HTB p. 174), 4 days; diacetyl rest least(M + 8, upper bound), 6 days (Table 6.2);
@@ -89,6 +91,7 @@ declare
     y record;
     s record;
     m numeric;
+    low_c numeric;
     start_c numeric;
     rest_c numeric;
     last_c numeric;
@@ -103,7 +106,8 @@ begin
     if ferm_c is null then
         raise exception 'ferment_schedule: no fermentation temperature';
     end if;
-    m := least(y.hi, greatest(ferm_c, y.lo + 1));
+    low_c := case when y.type is distinct from 'lager' and y.lo < 15 then greatest(y.lo, least(18, y.hi - 1)) else y.lo end;
+    m := least(y.hi, greatest(ferm_c, low_c + 1));
 
     if sid is not null then
         select lower(temp_c) as lo, upper(temp_c) as hi into s from ref.yeast where ingredient_id = sid;
