@@ -591,18 +591,18 @@ Commit: `Lift cold weizen fermentation into the ale range`
 
 ### Task 12: the docs describe stage E as built
 Why: brief Scope "Docs".
-- [ ] `docs/RECIPE-ROADMAP.md`: §3 rows 12–15 say what is built (functions, sources, the acid
+- [x] `docs/RECIPE-ROADMAP.md`: §3 rows 12–15 say what is built (functions, sources, the acid
       line, the neutral rests, pitch, priming); §6: carbonation is *How to Brew* ch. 10 (Tables
       10.1–10.3, p. 159 families), residual alkalinity and salts *Water* ch. 4–7 with the tables, mash
       pH ch. 5, pitch rate HTB ch. 7; §8 P6 marked done with the measured counts; §8 Later gains acid
       dosing (*Water* ch. 6, Appendix B), own water ions (already there: check), and water rows and
       CO₂ families for the styles outside the reviewed tables (decision Q1).
-- [ ] `docs/WORKFLOW-ROADMAP.md`: M7 row (built, date, counts), §3 M7 gap marked done.
-- [ ] `PROJECT.md` §5: *How to Brew* (carbonation and mash chapters passed), *Water* and *Yeast*
+- [x] `docs/WORKFLOW-ROADMAP.md`: M7 row (built, date, counts), §3 M7 gap marked done.
+- [x] `PROJECT.md` §5: *How to Brew* (carbonation and mash chapters passed), *Water* and *Yeast*
       ("calc done: m7-process") rows, the BJCP study guide's water table (check only).
       `docs/BOOKS.md`: the m7 owner notes say what was passed. `docs/SOURCES.md`: fates of the
       m7 rows. `docs/DATABASE.md` §7 fill order and §9 (P6 items done).
-- [ ] PROJECT.md §8.
+- [x] PROJECT.md §8.
 Done when: no doc says steps 12–15 are unbuilt or cites Palmer ch. 11 for carbonation.
 Commit: `Describe steps 12-15 in the docs`
 

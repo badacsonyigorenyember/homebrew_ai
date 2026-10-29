@@ -68,12 +68,12 @@ comments, site menus and sidebars were left out.
 
 | File | What | Licence | Fate | Used by |
 |---|---|---|---|---|
-| `how_to_brew.pdf` | Palmer, *How to Brew*, 4th ed. 2017 | © Brewers Publications | loaded · calc · kb | s1-maths, adjunct-fermentables (done); m7-process (water, mash, carbonation chapters); s4-books-kb |
+| `how_to_brew.pdf` | Palmer, *How to Brew*, 4th ed. 2017 | © Brewers Publications | loaded · calc · kb | s1-maths, adjunct-fermentables (done); m7-process (done 2026-10-28: carbonation, mash pH, pitch rate, fermentation, mash rests; calc, nothing copied); s4-books-kb |
 | `obc_recipe_formulation.pdf` | Oregon Brew Crew, *Recipe Formulation* | free | calc | s1-maths (done) |
-| `palmer_kaminski_water.pdf` | Palmer & Kaminski, *Water* (273 pp) | © Brewers Publications | calc · kb | m7-process step 12; s4-books-kb |
-| `white_zainasheff_yeast.pdf` | White & Zainasheff, *Yeast* (325 pp) | © Brewers Publications | calc · kb | m7-process step 14 (pitch rate, schedules); s4-books-kb |
+| `palmer_kaminski_water.pdf` | Palmer & Kaminski, *Water* (273 pp) | © Brewers Publications | calc · kb | m7-process step 12 (done 2026-10-28: Tables 17-19 into `ref.water_profile`, worked examples as tests); s4-books-kb |
+| `white_zainasheff_yeast.pdf` | White & Zainasheff, *Yeast* (325 pp) | © Brewers Publications | calc · kb | m7-process step 14 (cross-check of pitch rate and schedule; *How to Brew* is the source, done 2026-10-28); s4-books-kb |
 | `mallett_malt.pdf` | Mallett, *Malt* (335 pp) | © Brewers Publications | kb | s4-books-kb. No calc: the malt data comes from the maltster catalogues |
-| `bjcp_exam_study_guide_2017.pdf` | BJCP Beer Exam Study Guide, Dec 2017 (2015 guidelines), 77 pp | © BJCP, free | check · calc · kb | s6-style-neighbours (the 91 S0 style triples); m7-process (8-city water table, §IV.B); s4-books-kb (§IV only: sections I–III, exam rules and procedures, go in `skip_pages`); m8 (T14 recipe checklist) |
+| `bjcp_exam_study_guide_2017.pdf` | BJCP Beer Exam Study Guide, Dec 2017 (2015 guidelines), 77 pp | © BJCP, free | check · calc · kb | s6-style-neighbours (the 91 S0 style triples); m7-process (8-city water table, §IV.B; check only in a test, done 2026-10-28); s4-books-kb (§IV only: sections I–III, exam rules and procedures, go in `skip_pages`); m8 (T14 recipe checklist) |
 
 ### `styles/`
 
@@ -89,9 +89,9 @@ comments, site menus and sidebars were left out.
 
 | File | What | Licence | Fate | Used by |
 |---|---|---|---|---|
-| `brunwater_water_knowledge.md` | Brungard, Bru'n Water *Water Knowledge* (~17,000 words, updated 2020) | © Martin Brungard, all rights reserved | calc · kb | m7-process step 12; s7-kb-articles; m4: default profile ions (§4.2.1) |
-| `brunwater_1.25.xlsx` | Bru'n Water 1.25 spreadsheet (free edition, sheets protected) | © Martin Brungard, all rights reserved | oracle | m7-process step 12: expected salt and mash-pH values for test cases, entered by hand. Its formulas are not copied |
-| `bjcp_study_guide_water.md` | Web edition of the study guide's *Water* page (same 2017 text, 8-city ion table checked against the PDF) | © BJCP | copy | readable copy of the table for m7-process |
+| `brunwater_water_knowledge.md` | Brungard, Bru'n Water *Water Knowledge* (~17,000 words, updated 2020) | © Martin Brungard, all rights reserved | calc · kb | m7-process step 12 (done 2026-10-28: source for the `juicy` hint reading, doc-calc §5, and for counting flaked and unmalted adjuncts as base malt in the mash pH estimate, doc-calc §7); s7-kb-articles; m4: default profile ions (§4.2.1) |
+| `brunwater_1.25.xlsx` | Bru'n Water 1.25 spreadsheet (free edition, sheets protected) | © Martin Brungard, all rights reserved | oracle | m7-process step 12: no figure came from it, so `test_brunwater_oracle` was not written and the mash pH estimate is unverified against it (doc-calc §16). Its formulas are not copied |
+| `bjcp_study_guide_water.md` | Web edition of the study guide's *Water* page (same 2017 text, 8-city ion table checked against the PDF) | © BJCP | copy | readable copy of the table for m7-process (done: `test_targets_agree_with_bjcp_cities` reads it, nothing is stored) |
 
 ### `sensory/`
 
@@ -110,12 +110,12 @@ comments, site menus and sidebars were left out.
 | `braukaiser_mash_parameters_2009.pdf` | Troester, *Effects of mash parameters on attenuation and efficiency*, 23 pp: limit of attenuation vs mash temperature, time, pH, crush, thickness | CC BY-NC 3.0 | calc · kb | calc done by s5-mash-attenuation ([doc-calc](finished/s5-mash-attenuation/doc-calc.md)); s7-kb-articles |
 | `braukaiser_mash_time_fermentability.md` | Troester, *Mash Time Dependency of Wort Fermentability* (wiki) | braukaiser.com | calc · kb | calc done by s5-mash-attenuation ([doc-calc](finished/s5-mash-attenuation/doc-calc.md)); s7-kb-articles |
 | `terrill_observations_on_attenuations.md` | Terrill, *Observations on Attenuations* (2017): 44 batches, 3 strains, attenuation vs mash temperature; the plots are images, not saved | seanterrill.com | calc · kb | calc done by s5-mash-attenuation ([doc-calc](finished/s5-mash-attenuation/doc-calc.md); strain dependence not modelled); s7-kb-articles |
-| `janish_dry_hop_best_practices_tq_2021.pdf` | Janish, *Dry Hop Best Practices*, MBAA TQ 58(1) 2021, 8 pp, posted by the author with MBAA's permission | © MBAA | calc · kb | m7-process step 14 (dry-hop timing and temperature); s7-kb-articles |
-| `janish_short_cool_dry_hopping.md` | Janish, *A Case for Short and Cool Dry Hopping* | scottjanish.com | calc · kb | m7-process step 14; s7-kb-articles |
+| `janish_dry_hop_best_practices_tq_2021.pdf` | Janish, *Dry Hop Best Practices*, MBAA TQ 58(1) 2021, 8 pp, posted by the author with MBAA's permission | © MBAA | calc · kb | m7-process step 14 (done 2026-10-28: dry hop 14 °C, contact days; *How to Brew* first where it covers the point); s7-kb-articles |
+| `janish_short_cool_dry_hopping.md` | Janish, *A Case for Short and Cool Dry Hopping* | scottjanish.com | calc · kb | m7-process step 14 (done 2026-10-28); s7-kb-articles |
 | `janish_survivables_hot_side.md` | Janish, *Survivables: Unpacking Hot-Side Hop Flavor* | scottjanish.com | kb | s7-kb-articles; cited by m5 step 8 and m8 (no hop oil data in `ref` to compute from) |
 | `janish_ph_hoppy_beers.md` | Janish, *A Look at pH in Hoppy Beers* | scottjanish.com | kb | s7-kb-articles |
 | `janish_coffee_beers.md` | Janish, *Guide to Coffee Beers* (infusion experiments) | scottjanish.com | kb | s7-kb-articles; m5 step 9 extras |
-| `mtf_berliner_weissbier.md` | Milk The Funk wiki, *Berliner Weissbier* | not stated on the page | calc · kb | m7-process (b14 souring schedule); m5 open question on Lactobacillus; s7-kb-articles |
+| `mtf_berliner_weissbier.md` | Milk The Funk wiki, *Berliner Weissbier* | not stated on the page | calc · kb | m7-process (done 2026-10-28: b14 souring schedule, doc-calc §13); m5 open question on Lactobacillus; s7-kb-articles |
 | `mtf_lactobacillus_fermentation.md` | Milk The Funk wiki, *Lactobacillus Fermentation* | not stated on the page | calc · kb | as above |
 
 ### `hopline/`, `maltsters/`, `recipes/`

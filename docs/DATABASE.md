@@ -389,7 +389,7 @@ erDiagram
         numeric ibu
         numeric srm
         text calc_version
-        jsonb process "P6"
+        jsonb process "water, mash, boil, fermentation, packaging (m7-process)"
     }
     recipe_item {
         bigint recipe_id FK
@@ -515,7 +515,7 @@ All tables exist (§1). This is the order they get data in.
 | 3 | Style-fit vocabulary | `ref.tag`, `tag_synonym`, `ingredient_tag`, `misc`, `fermentable.role` | ✅ every hop has ≥ 1 character tag: 89 of 89 hops tagged (343 hop tags), 38 yeasts flagged in `ingredient_review` instead of guessed (measured 2026-10-15, `s3-style-fit`); `misc` was empty here; s9 filled it with 4 intake rows and 9 family tags (2026-10-18) |
 | 4 | Corpus (not loaded, D7, 2026-10-14; style fit does not use it) | `corpus.recipe`, `recipe_item` ← archive dump · `name_map` · profile job → `style_profile`, `style_grist`, `style_hop_use`, `style_ingredient` | ≥ 90 % of grist mass mapped to a role for the test styles |
 | 5 | Envelopes | `ref.sensory_dimension`, `style_sensory`, `style_character`, `style_ingredient` for the 26 s3 styles (BJCP and BA extracted by the LLM + reviewed); `style_rule` where needed | ✅ 26 styles reviewed (116 `style_ingredient`, 189 `style_sensory`, 237 `style_character` rows); the Citra table reproduces from SQL + code and the 53 golden cases pass (measured 2026-10-15, `s3-style-fit`) |
-| 6 | Pipeline | `app.*` | a test brief → recipe rows + run_step log |
+| 6 | Pipeline | `app.*` | ✅ a test brief → recipe rows + run_step log, steps 0-15; `app.recipe.process` is filled from step 12-15 (`db/048`-`053`, m7-process, measured 2026-10-28: 19 of 24 briefs saved, each with a process) |
 | 7 | Books | `kb.chunk` (and `ref.source.file_path`) | ✅ all five books, 2,180 chunks, prose only, tables cut (measured 2026-10-16, `s4-books-kb`); doc → calc notes per book in [BOOKS.md](BOOKS.md) |
 
 ---

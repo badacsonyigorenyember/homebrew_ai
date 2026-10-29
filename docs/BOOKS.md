@@ -220,8 +220,11 @@ Passes so far:
   volumes, SG ↔ °Plato, FG, ABV (table 9.1), IBU (Tinseth, table 5.5), colour (Morey).
 - `adjunct-fermentables`: Table 18.5 (flaked adjuncts, PDF p. 316) and Table 24.1 (sugars, PDF
   p. 462) are in `ref.fermentable`.
-- Everything else below is **not passed yet**; water chemistry (chapters 8, 21, 22) and mash
-  and process tables go to m7-process.
+- `m7-process` (2026-10-28, [doc-calc.md](work/m7-process/doc-calc.md)) passed the water, mash and
+  process pages: ch. 7 (pitch rate, Table 7.1), ch. 10 (Tables 10.1-10.3,
+  p. 159 families), ch. 6 (fermentation, Table 6.2), ch. 16-17 (mash rests, infusion equation),
+  ch. 21 (mash pH, Table 21.4). Page numbers are in doc-calc.
+- Everything else below is **not passed yet**; ch. 8 and 22 and the other chapters have no owner yet.
 
 Pages where the loader cut a markdown table or Docling left a formula placeholder
 (`<!-- formula-not-decoded -->`), by chapter (194 table pages and 43 formula pages outside the
@@ -269,18 +272,15 @@ Marks: `(s1 §n)` = the page is covered by section n of the `s1-maths`
 [doc-calc.md](finished/s1-maths/doc-calc.md) (checked against the book pages that file cites,
 printed page + 26 = PDF page); `(adjuncts)` = `adjunct-fermentables` read it. Section 3 (SG ↔ °P)
 read table A.2 (p. 491) only to compare it with the formula, and it is not a source. **Pages with
-no mark are not passed yet.** Their owner is m7-process for chapters 8 and 16–22 and Appendices
-D–F (water, pH, mash and process tables); the other chapters have no owner yet. The mapping is by
+no mark are not passed yet.** m7-process passed the pages named in the `m7-process` bullet above (chapters 6, 7, 10, 16, 17 and 21; the marks in the table were not updated, unverified per page); chapters 8 and 22 and Appendices
+D–F have no owner yet. The mapping is by
 the cited page only: s1-maths may also use a figure from a marked page's neighbour that the
 loader did not flag (unverified).
 
 ### *Water*
 
-Nothing is passed yet: no formula or table from this book is in `ref` or code. Its tables
-(water profiles, acid doses, salt contributions, malt acidity data) and formulas (residual
-alkalinity, mash pH prediction, salt and acid calculations in Appendix C) go to m7-process, with
-the water chemistry of *How to Brew* chapters 8, 21 and 22. The seven salts already in
-`ref.water_salt` come from IUPAC atomic masses, not from this book.
+Passed by m7-process (2026-10-28, [doc-calc.md](work/m7-process/doc-calc.md) §1-§7): Tables 17, 18a/b and 19a/b (`ref.water_profile`, 16 rows), Kolbach residual alkalinity, and the three worked examples (Pilsner, American pale ale, Foreign Extra Stout), which `tests/test_water.py` reproduces. Not used: Table 9 malt acidity (mash pH follows *How to Brew* ch. 21 instead), acid doses (Appendix B), the titration curves, Appendix C salt and acid calculations beyond the salts in `ref.water_salt`. The salts in
+`ref.water_salt` come from IUPAC atomic masses, not from this book; they reproduce its Table 17.
 
 Pages where the loader cut a markdown table or Docling left a formula placeholder, by chapter
 (59 table pages and 14 formula pages outside the skipped ranges, measured 2026-10-16; the formula
@@ -308,9 +308,7 @@ formulas, so most equations are still in the prose, undecoded (unverified).
 
 ### *Yeast*
 
-Nothing is passed yet: no formula or table from this book is in `ref` or code. Its tables (strain
-overviews, nutrient and aeration data, pitching-rate and propagation tables, lab media recipes,
-the troubleshooting charts) go to m7-process and the later yeast work; `ref.yeast` comes from the
+Used by m7-process (2026-10-28, [doc-calc.md](work/m7-process/doc-calc.md) §10-§11) as a cross-check of the pitching rate (0.75 and 1.5 million cells per mL per °P, 180 billion cells for 20 L at 12 °P), the diacetyl rest and the temperature ramp; *How to Brew* is the source where it covers the point, so no figure in `app.*` is taken from *Yeast* alone. Strain overviews, nutrient and aeration data, propagation tables, lab media recipes and the troubleshooting charts are not passed. `ref.yeast` comes from the
 shop's catalogue and the makers' sources, not from this book.
 
 Pages where the loader cut a markdown table or Docling left a formula placeholder, by part (52
@@ -354,8 +352,7 @@ kept pages). Chapter page ranges are read from the page headers (unverified at t
 
 ### *BJCP Beer Exam Study Guide*
 
-Nothing is passed yet. The §IV.B water table (famous brewing waters, ion levels, PDF pages 46–48)
-goes to m7-process with the water chemistry of *How to Brew* and *Water*. The style-triple table
+Used as a check only by m7-process (2026-10-28, doc-calc §15): the §IV.B water table (famous brewing waters, ion levels, PDF pages 46–48) is read from `water/bjcp_study_guide_water.md` by `tests/test_water.py::test_targets_agree_with_bjcp_cities` and never stored. The style-triple table
 of question S0 (PDF page 21) is in the skipped sections and is `s6-style-neighbours` data.
 
 Table pages in the kept range 46–77: 46, 47, 48 (section IV.B Water). Formula pages: 46 (one
