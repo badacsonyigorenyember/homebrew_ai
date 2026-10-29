@@ -18,7 +18,8 @@ Stout fits 4 % better. Keep 20C?").
 ## Goal
 From the n8n chat, a request becomes a saved recipe and a recipe sheet. Code puts every number on
 the sheet from the saved rows, and the second writing LLM call adds the reasons, with book and
-article citations and a Deviations box. You brew one recipe from it (G7).
+article citations and a Deviations box, ready to brew from (the brew is
+[`s11-brew-day`](../s11-brew-day/brief.md), which closes G7).
 
 ## Scope
 In:
@@ -39,12 +40,12 @@ In:
 - Accepting the sheet in the chat sets the recipe's `status` to `final`.
 - The harness (`evals.run`) reports the sheet checks per brief.
 - The LLM call bar's wording in RECIPE-ROADMAP and WORKFLOW-ROADMAP: three first-try calls.
-- A brew-day log made from the sheet: a file under `docs/brews/` with each step's planned and
-  actual temperature, time and gravity, filled in during a Claude session on brew day.
 
 Out:
+- The brew-day log and the brew ([`s11-brew-day`](../s11-brew-day/brief.md)).
 - Recipe editing by chat ("make it less bitter"; Priority 2), brewing Q&A, the batch log in the
-  database (Priority 2; the brew-day log file above is in), the `brewed` status. A UI other than n8n's hosted chat. A printable HTML or PDF sheet.
+  database (Priority 2), the `brewed` status. A UI other than n8n's hosted chat. A printable
+  HTML or PDF sheet.
 - Fixing what the sheet shows from earlier steps: the known `because` level errors, crystal
   share, thin hop schedules, the candi sugar amount (RECIPE-ROADMAP §8 Later). The sheet shows
   the saved values and reasons as they are.
@@ -96,10 +97,6 @@ R11. `evals.run` reports per brief whether a sheet was saved, whether its number
     citation check passed, and the number of citations.
 R12. RECIPE-ROADMAP (TL;DR, §6, P5) and WORKFLOW-ROADMAP (G6 bar) state the call bar as at most 3
     first-try LLM calls per recipe (step 1, steps 6–9, step 16), retries reported.
-R13. A brew-day log is made from a saved sheet as a file under `docs/brews/`. It lists every
-    step of the sheet's procedure (mash, boil, fermentation, packaging) with the planned
-    temperature, time and gravity from the saved recipe and empty places for the actual values
-    and notes. You fill it in during a Claude session on brew day, step by step.
 
 ## Constraints
 - PROJECT.md §6.1 and §6.7: numbers come from SQL or code; the LLM writes prose only.
@@ -155,9 +152,8 @@ A6. A failing step 16 check (a test with a wrong number or an unknown chunk id) 
 A7. Accepting a sheet in the chat sets that recipe's `status` to `final`; the sheet is in
     `app.recipe.sheet`, and the column is owned by `postgres` like the rest of `app` (R8, R9).
 A8. Opening the chat URL while not logged in to n8n is refused; logged in, it works (R10).
-A9. You brew one recipe from its sheet, filling in its brew-day log under `docs/brews/` during
-    a Claude session: every step has planned and actual temperature, time and gravity, or a note
-    why a value was not taken. The outcome is recorded in PROJECT.md §8 (G7, R13).
+A9. Not checked in m8: the brew moved to [`s11-brew-day`](../s11-brew-day/brief.md), which
+    closes G7's "you brew from it".
 A10. RECIPE-ROADMAP and WORKFLOW-ROADMAP no longer say "about 2" or "≤ 2" LLM calls per recipe
     for the full pipeline; they say at most 3 first-try calls with retries reported (R12).
 
@@ -194,3 +190,8 @@ None. The five questions of 2026-10-29 are answered (see Deviations).
   temperature, time and gravity, filled in during a Claude session on brew day. "Batch log" in
   Out now reads as the database batch log (Priority 2), which stays out. A4: you test the chat
   by hand in n8n's hosted chat, and that hand test covers A4, A7 and A8.
+- 2026-10-29 · Brew day moved to its own side track, your decision ("move brew day (R13, A9,
+  Tasks 12 and 14) into its own side track s11-brew-day"). The brew-day log left Scope In and R13
+  is removed; A9 now points to [`s11-brew-day`](../s11-brew-day/brief.md), which closes G7's
+  "you brew from it"; the brew-day log and the brew are listed under Out, and the Goal says the
+  brew is s11. Everything else in m8 is unchanged.
