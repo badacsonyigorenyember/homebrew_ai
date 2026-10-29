@@ -2,6 +2,7 @@
 The expected figures are doc-calc.md §14 (How to Brew ch. 10, Table 10.1 p. 158, Table 10.3 p. 161)."""
 
 import copy
+import json
 
 import pytest
 
@@ -66,9 +67,31 @@ def test_residual_rows(conn):
         got = conn.execute("select app.residual_co2(%s::numeric)", (temp,)).fetchone()[0]
         assert (float(got["gas_l_mol"]), float(got["residual_vol"]), float(got["temp_c"])) == (gas, resid, temp)
     assert float(conn.execute("select app.residual_co2(20.6::numeric)").fetchone()[0]["temp_c"]) == 21
-    for out_of_range in (4, 31):
-        with pytest.raises(Exception, match="residual_co2"):
-            conn.execute("select app.residual_co2(%s::numeric)", (out_of_range,))
+    with pytest.raises(Exception, match="residual_co2"):
+        conn.execute("select app.residual_co2(4::numeric)")
+
+
+def test_residual_above_30_reads_the_30_row(conn):
+    """Table 10.3 ends at 30 C: a warmer beer reads the 30 C row (slightly under-primes, the safe side)."""
+    for temp in (31, 35, 38):
+        got = conn.execute("select app.residual_co2(%s::numeric)", (temp,)).fetchone()[0]
+        assert (float(got["temp_c"]), float(got["gas_l_mol"]), float(got["residual_vol"])) == (30, 25.2, 0.64)
+
+
+def test_warm_schedule_primes_at_the_30_row(conn, step15):
+    """A Belle Saison schedule at 35 C goes through step 15 and says it used the 30 C row."""
+    steps = conn.execute("select app.ferment_schedule(%s::jsonb, null, 35::numeric, false)",
+                         (json.dumps({"ingredient_id": 1846}),)).fetchone()[0]
+    warm = max(s["temp_c"] for s in steps if s["phase"] in ("ferment", "rest"))
+    assert warm > 30
+    i, _ = step15("b01")
+    i["step14"]["max_temp_c"] = warm
+    out = sql(conn, "step15_package", i["targets"], i["step10"], i["step14"])
+    assert errors(conn, "step15.output", out) == []
+    assert out["priming"]["temp_c"] == 30 and out["priming"]["g"] > 0
+    assert "30 C row" in out["priming"]["source"] and f"{warm:g}" in out["priming"]["source"]
+    _, cool = step15("b01")
+    assert "30 C row" not in cool["priming"]["source"]
 
 
 def test_priming_uses_max_temp(step15):

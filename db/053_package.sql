@@ -8,13 +8,15 @@
 -- HTB Table 10.3 (p. 161): for a beer temperature in whole degrees C, 5-30, the gas volume constant
 -- (litres per mol of CO2) and the CO2 already dissolved in the beer, in volumes. The temperature is the
 -- highest the beer reached after fermentation (p. 158). A fractional temperature takes the nearest row.
+-- The table ends at 30 C: a warmer beer (a saison or kveik schedule) reads the 30 C row, which holds a
+-- little more CO2 than the beer really does, so the priming sugar comes out slightly low (the safe side).
 create or replace function app.residual_co2(temp_c numeric)
 returns jsonb
 language plpgsql
 immutable
 as $$
 declare
-    t integer := round(temp_c);
+    t integer := least(round(temp_c), 30);
     r record;
 begin
     select * into r from (values
@@ -25,7 +27,7 @@ begin
         (29, 25.1, 0.65), (30, 25.2, 0.64)) as t10_3(c, gas, resid)
      where c = t;
     if not found then
-        raise exception 'residual_co2: % C is outside HTB Table 10.3 (5 to 30 C)', temp_c;
+        raise exception 'residual_co2: % C is below HTB Table 10.3 (5 to 30 C)', temp_c;
     end if;
     return jsonb_build_object('temp_c', r.c, 'gas_l_mol', r.gas, 'residual_vol', r.resid);
 end
@@ -87,7 +89,8 @@ begin
         'priming', jsonb_build_object(
             'sugar', 'table sugar (sucrose)', 'g', round(sugar), 'g_per_l', round(sugar / litres, 2),
             'temp_c', (res ->> 'temp_c')::numeric, 'residual_vol', (res ->> 'residual_vol')::numeric, 'volume_l', litres,
-            'source', 'How to Brew p. 156-161, Table 10.3: (target - residual CO2) x litres x 85.575 / gas volume, residual and gas volume at the highest temperature after fermentation (doc-calc.md §14)'),
+            'source', 'How to Brew p. 156-161, Table 10.3: (target - residual CO2) x litres x 85.575 / gas volume, residual and gas volume at the highest temperature after fermentation (doc-calc.md §14)'
+                || case when temp > 30.5 then format('. The beer reached %s C and the table ends at 30 C, so the 30 C row is used; that slightly under-primes, the safe side.', trim_scale(temp)) else '' end),
         'extras', (select coalesce(jsonb_agg(jsonb_build_object('ingredient_id', (e ->> 'ingredient_id')::bigint, 'name', e ->> 'name',
                                                                  'g', (e ->> 'g')::numeric) order by e ->> 'name'), '[]'::jsonb)
                      from jsonb_array_elements(coalesce(step10 -> 'extras', '[]'::jsonb)) e where e ->> 'usage' = 'package'));
