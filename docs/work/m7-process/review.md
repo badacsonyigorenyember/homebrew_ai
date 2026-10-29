@@ -25,3 +25,18 @@ and accepted: the mash pH model is unverified against Bru'n Water (doc-calc §16
 failure path inside n8n is unverified, and b23 has no process because it failed at step 11. The
 saved `evals/results/2026-10-28-m7.json` shows `process ok` 7/9. The 8/9 the user approved comes
 from the unsaved Task 11a re-run, and PROJECT.md §8 says so.
+
+## Re-review 2026-10-29
+
+Diff: 2e00223..87555e6 (commits 6a67b29, 87555e6)  ·  Verdict: ready for testing
+
+| # | Earlier finding | Result | Checked |
+|---|---|---|---|
+| 1 | must-fix: step 15 raised above 30 °C | **fixed** | `app.residual_co2` now reads `least(round(temp_c), 30)` and still raises below 5 °C. `step15_package` adds "the 30 C row is used… under-primes" to `priming.source` when the beer is above 30.5 °C. The schema forbids extra keys, so `source` is the right place for the note. Ingredient 1846 in the new test is Belle Saison. End to end on the stack, inside a transaction that was rolled back: b11's logged run 4967 was replayed with its yeast swapped for each of the 20 kveik yeasts, Belle Saison and YF-503 Hotspur Viking, each at its warmest step 6 option (22 cases, 21 of them with `max_temp_c` above 30). All 22 went through steps 12-15, `app.recipe_process` and `app.save_recipe`. All 22 saved a recipe with `process` set, the 21 warm ones carry the 30 °C note, and priming at the 30 °C row is 103 g. |
+| 2 | should-fix: malt acidity class ignored role | **fixed** | The `where (v.name like 'Caramel%') = (role = 'crystal')` filter limits crystal malts to the five Caramel rows and base, kilned and adjunct malts to the other 11 non-roast rows. Roast and sugar are unchanged. On the stack, `app.malt_acidity('crystal', 25)` gives Caramel 20L at −21.3. `test_malt_acidity_respects_role` covers Carapils, Carahell, Melanoidin and Abbey, the dark-crystal end and an adjunct. doc-calc §7, plan and brief Deviations, and PROJECT.md §8 are updated. |
+| 3-5 | notes | unchanged | No action was asked for. |
+
+Tests: `test_package.py`, `test_water.py`, `test_ferment.py`, `test_save_process.py` and
+`test_contracts.py` give 206 passed in 22 s. `app.residual_co2`, `app.malt_acidity` and
+`app.step15_package` are owned by `postgres`. Both commit subjects are one line, with no trailer. Nothing new
+was found in the two commits.
