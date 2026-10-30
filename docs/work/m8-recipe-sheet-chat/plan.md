@@ -349,17 +349,17 @@ Commit: `Write the recipe sheet in the pipeline`
 
 ### Task 8: the harness reports the sheets
 Why: R11, A1, A5.
-- [ ] `evals/run.py`: `read_recipe` adds `sheet` (present or not); `read_run` keeps row 16's
+- [x] `evals/run.py`: `read_recipe` adds `sheet` (present or not); `read_run` keeps row 16's
       `check`; the table gains a `sheet` column (`ok n=<citations>`, `FAIL(numbers)`,
       `FAIL(citations)`, `NONE` without a sheet, `-` without a recipe); totals gain `sheets
       saved x/y` (of runs with a saved recipe), `number check x/y`, `citation check x/y`,
       `citations` (total); first-try max and retry calls stay as they are. Pure helpers in
       `evals/grade.py` if a grade is needed (`grade_sheet(recipe, step16)`).
-- [ ] Write tests in `tests/test_run.py` and `tests/test_grade.py` for the column and totals
+- [x] Write tests in `tests/test_run.py` and `tests/test_grade.py` for the column and totals
       (sheet ok, failed check, no sheet, no recipe). Seen failing first.
-- [ ] Run `.venv/bin/pytest tests/test_run.py tests/test_grade.py tests/test_recipe_briefs.py`,
+- [x] Run `.venv/bin/pytest tests/test_run.py tests/test_grade.py tests/test_recipe_briefs.py`,
       expect all pass.
-- [ ] PROJECT.md §8.
+- [x] PROJECT.md §8.
 Done when: `evals.run` prints the sheet column and totals.
 Commit: `Report recipe sheets in the harness`
 
@@ -464,3 +464,4 @@ None.
 - 2026-10-29 · Tasks 9 and 11, brief A4: b05 kept in 20C failed step 11 in all three tries on seeds 42, 1 and 2, so "keep 20C" ends with the chat reporting the failure and no sheet (the `failed_step` 11 path); the Task 9 webhook check and Task 11 hand test step (2) say so — your answer: retry seeds, then accept.
 - 2026-10-29 · Task 5: `app.sheet_read_answer` takes the contract text as a fourth argument (`contract json`) — the plan said n8n passes it, as in step 1, so the function needs it. The contract's absent slot is checked in its own test (`test_sheet_answer_has_an_absent_slot`), not in `ABSENT_SLOTS`, which is for `.output` names only.
 - 2026-10-29 · Task 6: water salts show 1 decimal on the sheet (not whole grams) — salt amounts are small and saved with one decimal (4.5 g), so whole grams would hide the saved value; hops, extras and priming sugar stay whole.
+- 2026-10-30 · Task 8: `read_run` is unchanged — row 16's output, with its `check`, is already in `steps[16]`, which `grade_result` passes to `grade.grade_sheet`; a sheet with no check reads `UNCHECKED` — the plan did not name that case.

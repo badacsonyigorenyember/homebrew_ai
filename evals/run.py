@@ -112,10 +112,10 @@ def read_recipe(conn, run_id) -> dict | None:
                   for k, s_, lv, by, note in conn.execute(
                       "select kind, subject, level, requested_by, note from app.recipe_deviation "
                       "where recipe_id = %s order by id", (rid,)).fetchall()]
-    process = conn.execute("select process from app.recipe where id = %s", (rid,)).fetchone()[0]
+    process, sheet = conn.execute("select process, sheet from app.recipe where id = %s", (rid,)).fetchone()
     conn.commit()
     return {"id": rid, **dict(zip(("batch_l", "og", "fg", "abv", "ibu", "srm"), map(num, row[1:]))),
-            "items": items, "deviations": deviations, "process": process}
+            "items": items, "deviations": deviations, "process": process, "sheet": sheet}
 
 
 def read_facts(conn, steps: dict, inputs: dict | None = None) -> dict:
@@ -236,6 +236,7 @@ def grade_result(brief: dict, answer: dict, steps: dict, llm=None, facts=None, l
     stats = stats or {"calls": sum(int((x or {}).get("tries") or 0) for x in llms.values())}
     recipe_grade = grade.grade_recipe(brief, recipe)
     process_grade = grade.grade_process(brief, (recipe or {}).get("process"))
+    sheet_grade = grade.grade_sheet(recipe, steps.get(16))
     return {
         "id": brief["id"], "run_id": answer.get("run_id"), "run_ok": run_ok,
         "error": answer.get("error"), "failed_step": answer.get("failed_step"),
@@ -245,7 +246,7 @@ def grade_result(brief: dict, answer: dict, steps: dict, llm=None, facts=None, l
         "passed": run_ok and graded["passed"] and recipe_grade["validated"],
         "calls": stats.get("calls", 0), "first_try_calls": stats.get("first_try_calls", 0),
         "retry_calls": stats.get("retry_calls", 0), "tries": stats.get("tries", 0),
-        **recipe_grade, "process": process_grade, "recipe": recipe,
+        **recipe_grade, "process": process_grade, "sheet": sheet_grade, "recipe": recipe,
     }
 
 
@@ -310,7 +311,7 @@ def table(results: list[dict]) -> str:
 
     steps = " ".join(f"{'step ' + str(n):<8}" for n in GRADED_STEPS)
     lines = [f"{'brief':<6} {'run':<8} {'step 1':<26} {steps} {'valid':<6} {'tries':<6} "
-             f"{'calls (first+retry)':<20} {'stated':<24} {'process':<22} result   needs"]
+             f"{'calls (first+retry)':<20} {'stated':<24} {'process':<22} {'sheet':<26} result   needs"]
     for r in results:
         if r["run_ok"]:
             run_col = "ok"
@@ -327,6 +328,7 @@ def table(results: list[dict]) -> str:
                      f"{'yes' if r['validated'] else 'NO':<6} {r['tries']:<6} "
                      f"{str(r['first_try_calls']) + '+' + str(r['retry_calls']):<20} {stated_summary(r):<24} "
                      f"{process_summary(r['process']):<22} "
+                     f"{'sheet ' + r['sheet']['verdict']:<26} "
                      f"{'pass' if r['passed'] else 'FAIL':<8} "
                      f"{needs_summary(r.get('needs') or {})}"
                      + ("" if r["run_ok"] else f"  [{run_col}]"))
@@ -356,6 +358,12 @@ def totals(results: list[dict]) -> dict:
     out["process_present"] = {"present": sum(r["process"]["present"] for r in results), "total": n}
     expecting = [r for r in results if r["process"]["expectations"]]
     out["process_ok"] = {"ok": sum(r["process"]["process_ok"] for r in expecting), "total": len(expecting)}
+    with_recipe = [r for r in results if r["sheet"]["verdict"] != "-"]
+    saved = [r for r in results if r["sheet"]["saved"]]
+    out["sheets_saved"] = {"saved": len(saved), "total": len(with_recipe)}
+    out["number_check"] = {"ok": sum(r["sheet"]["numbers_ok"] for r in saved), "total": len(saved)}
+    out["citation_check"] = {"ok": sum(r["sheet"]["citations_ok"] for r in saved), "total": len(saved)}
+    out["citations"] = sum(r["sheet"]["citations"] for r in saved)
     out["briefs"] = {"passed": sum(r["passed"] for r in results), "total": n}
     return out
 
@@ -373,6 +381,10 @@ def format_totals(t: dict) -> str:
                  f"(first-try max {t['first_try_calls_max']}, retry calls {t['retry_calls']})")
     parts.append(f"process present {t['process_present']['present']}/{t['process_present']['total']}")
     parts.append(f"process ok {t['process_ok']['ok']}/{t['process_ok']['total']}")
+    parts.append(f"sheets saved {t['sheets_saved']['saved']}/{t['sheets_saved']['total']}")
+    parts.append(f"number check {t['number_check']['ok']}/{t['number_check']['total']}")
+    parts.append(f"citation check {t['citation_check']['ok']}/{t['citation_check']['total']}")
+    parts.append(f"citations {t['citations']}")
     parts.append(f"briefs {t['briefs']['passed']}/{t['briefs']['total']}")
     return "; ".join(parts)
 
