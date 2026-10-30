@@ -22,7 +22,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={{ { request: $json.body?.request ?? \"\", eval_id: $json.body?.brief_id ?? null, model: $json.body?.model ?? \"hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K\", think: $json.body?.think ?? false, guide: $json.body?.guide ?? null, temperature: $json.body?.temperature ?? 0, seed: $json.body?.seed ?? 42, profile_id: $json.body?.profile_id ?? null, style: $json.body?.style ?? null, brief: $json.body?.brief ?? null, brief_llm: $json.body?.brief_llm ?? null } }}",
+        "jsonOutput": "={{ { request: $json.body?.request ?? \"\", eval_id: $json.body?.brief_id ?? null, model: $json.body?.model ?? \"hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K\", think: $json.body?.think ?? false, guide: $json.body?.guide ?? null, temperature: $json.body?.temperature ?? 0, seed: $json.body?.seed ?? 42, profile_id: $json.body?.profile_id ?? null, style: $json.body?.style ?? null, brief: $json.body?.brief ?? null, brief_llm: $json.body?.brief_llm ?? null, sheet_chunks: $json.body?.sheet_chunks ?? 3 } }}",
         "options": {}
       },
       "id": "0a2d0b71-b581-4b22-b766-8b7022260189",
@@ -248,7 +248,7 @@
     },
     {
       "parameters": {
-        "content": "### Per-step block\nEach step is: set its input and start time, call its sub-workflow, then log ok or log the failure, and on to the next step. A failure logs its error, finishes the run with ok = false and responds. Steps 0 to 15 are built (step 0 runs before step 1); step 16 copies this block. Steps 6 to 11 run as up to three tries, each the sub-workflow `Steps 6–11 · one try` (`Try 1`, `Try 2`, `Try 3`, no loop-back edge): it makes the one model call of steps 6 to 9 and logs rows 6 to 11 with the try's number (the call's `llm` and tokens on step 6; steps 7 to 9 and 11 log ms 0). A try whose step 11 fails passes its failures and bans to the next one. A passed try goes to `Steps 12–15 · process` (the sub-workflow of steps 12 to 15: it logs rows 12 to 15, try 1, and returns the recipe's process; a failure there logs that step's row and finishes the run with `failed_step` 12 to 15), then `Save recipe` (`app.save_recipe`, with the process), `Finish run` and `Respond ok` (`recipe_id`, `tries`). Three failed tries finish the run with ok = false and respond with `failed_step` 11 and each try's failure lines. A failure in steps 6 to 10 logs the row of the lowest `step N:` in its error text (6 when none) and finishes the run. The webhook body's optional `temperature` and `seed` (defaults 0 and 42) go to step 1. Its optional `profile_id` (null means the default profile) goes to step 0. Its optional `guide` (`any`, `bjcp`, `ba`; null when not sent) goes to step 2, and so does its optional `style` (a style code step 2 must keep). Its optional `brief` (with `brief_llm`, the `llm` details of whoever read it) is a brief already read from the request, by the chat: `Brief given?` then skips the step 1 model call, checks the brief against `step1.output` and logs row 1 with the given brief and `llm` (`brief_given` true in its input); both branches meet in `Step 1 · result`, which the later nodes read. Step 1 also logs tokens and the `llm` details (model, tries, ms), then saves the brief in `app.brief` and sets `app.run.brief_id`.",
+        "content": "### Per-step block\nEach step is: set its input and start time, call its sub-workflow, then log ok or log the failure, and on to the next step. A failure logs its error, finishes the run with ok = false and responds. Steps 0 to 16 are built (step 0 runs before step 1). Steps 6 to 11 run as up to three tries, each the sub-workflow `Steps 6–11 · one try` (`Try 1`, `Try 2`, `Try 3`, no loop-back edge): it makes the one model call of steps 6 to 9 and logs rows 6 to 11 with the try's number (the call's `llm` and tokens on step 6; steps 7 to 9 and 11 log ms 0). A try whose step 11 fails passes its failures and bans to the next one. A passed try goes to `Steps 12–15 · process` (the sub-workflow of steps 12 to 15: it logs rows 12 to 15, try 1, and returns the recipe's process; a failure there logs that step's row and finishes the run with `failed_step` 12 to 15), then `Save recipe` (`app.save_recipe`, with the process), `Step 16 · recipe sheet` (the sub-workflow that writes and saves the sheet and logs row 16; a failure there finishes the run with ok = false, `failed_step` 16 and the saved `recipe_id`, which stays a draft without a sheet), `Finish run` and `Respond ok` (`recipe_id`, `tries`, `sheet`). The optional `sheet_chunks` (default 3) is how many source chunks step 16 keeps per query. Three failed tries finish the run with ok = false and respond with `failed_step` 11 and each try's failure lines. A failure in steps 6 to 10 logs the row of the lowest `step N:` in its error text (6 when none) and finishes the run. The webhook body's optional `temperature` and `seed` (defaults 0 and 42) go to step 1. Its optional `profile_id` (null means the default profile) goes to step 0. Its optional `guide` (`any`, `bjcp`, `ba`; null when not sent) goes to step 2, and so does its optional `style` (a style code step 2 must keep). Its optional `brief` (with `brief_llm`, the `llm` details of whoever read it) is a brief already read from the request, by the chat: `Brief given?` then skips the step 1 model call, checks the brief against `step1.output` and logs row 1 with the given brief and `llm` (`brief_given` true in its input); both branches meet in `Step 1 · result`, which the later nodes read. Step 1 also logs tokens and the `llm` details (model, tries, ms), then saves the brief in `app.brief` and sets `app.run.brief_id`.",
         "height": 300,
         "width": 300,
         "color": 4
@@ -1670,7 +1670,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        7372,
+        7820,
         -288
       ],
       "parameters": {
@@ -1693,12 +1693,12 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        7596,
+        8044,
         -288
       ],
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { run_id: $json.id, ok: true, recipe_id: $(\"Save recipe\").item.json.recipe_id, tries: $(\"Save recipe\").item.json.tries } }}",
+        "responseBody": "={{ { run_id: $json.id, ok: true, recipe_id: $(\"Save recipe\").item.json.recipe_id, tries: $(\"Save recipe\").item.json.tries, sheet: true } }}",
         "options": {}
       }
     },
@@ -2024,6 +2024,159 @@
         2240,
         96
       ]
+    },
+    {
+      "id": "60c82c68-3beb-58f1-821c-63750d0cd120",
+      "name": "Step 16 · input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        7372,
+        -288
+      ],
+      "parameters": {
+        "mode": "raw",
+        "options": {},
+        "jsonOutput": "={{ { run_id: $(\"Start run\").item.json.id, recipe_id: $(\"Save recipe\").item.json.recipe_id, model: $(\"Step 1 · input\").item.json.model, think: $(\"Step 1 · input\").item.json.think, temperature: $(\"Step 1 · input\").item.json.temperature, seed: $(\"Step 1 · input\").item.json.seed, sheet_chunks: $(\"Run settings\").item.json.sheet_chunks } }}"
+      }
+    },
+    {
+      "id": "63dd7019-3d5e-5691-8459-fd919f0c55b0",
+      "name": "Step 16 · recipe sheet",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        7596,
+        -288
+      ],
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ST16recipesheet1",
+          "cachedResultName": "Step 16 · recipe sheet"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "recipe_id": "={{ $json.recipe_id }}",
+            "model": "={{ $json.model }}",
+            "think": "={{ $json.think }}",
+            "temperature": "={{ $json.temperature }}",
+            "seed": "={{ $json.seed }}",
+            "sheet_chunks": "={{ $json.sheet_chunks }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "recipe_id",
+              "displayName": "recipe_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "model",
+              "displayName": "model",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "think",
+              "displayName": "think",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            },
+            {
+              "id": "temperature",
+              "displayName": "temperature",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "seed",
+              "displayName": "seed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "sheet_chunks",
+              "displayName": "sheet_chunks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "95b74b40-a6ce-567e-9b77-47bb471e8a9f",
+      "name": "Finish run (failed, step 16)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        7820,
+        -96
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "update app.run set finished_at = now(), ok = false where id = $1 returning id::int as id, $2::text as error",
+        "options": {
+          "queryReplacement": "={{ [$(\"Start run\").item.json.id, $json.error] }}"
+        }
+      }
+    },
+    {
+      "id": "888f6264-7a6d-5c31-ada2-3ac4881a3609",
+      "name": "Respond failed (step 16)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        8044,
+        -96
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "options": {},
+        "responseBody": "={{ { run_id: $json.id, ok: false, failed_step: 16, recipe_id: $(\"Save recipe\").item.json.recipe_id, error: $json.error } }}"
+      }
     }
   ],
   "connections": {
@@ -2588,7 +2741,7 @@
       "main": [
         [
           {
-            "node": "Finish run",
+            "node": "Step 16 · input",
             "type": "main",
             "index": 0
           }
@@ -2727,6 +2880,46 @@
         [
           {
             "node": "Step 1 · log ok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 16 · input": {
+      "main": [
+        [
+          {
+            "node": "Step 16 · recipe sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 16 · recipe sheet": {
+      "main": [
+        [
+          {
+            "node": "Finish run",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Finish run (failed, step 16)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish run (failed, step 16)": {
+      "main": [
+        [
+          {
+            "node": "Respond failed (step 16)",
             "type": "main",
             "index": 0
           }

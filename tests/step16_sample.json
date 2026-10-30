@@ -1,0 +1,1 @@
+[{"run_id": 4983, "recipe_id": 530, "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K", "think": false, "temperature": 0, "seed": 42, "sheet_chunks": 3}]

@@ -307,11 +307,11 @@ Commit: `Write the recipe sheet in Markdown`
 
 ### Task 7: the pipeline writes and saves the sheet as step 16
 Why: R4, R6, R7, R8, A1, A5, A6.
-- [ ] Contracts `step16.input` `{run_id, recipe_id, model, think, temperature, seed, sheet_chunks}`
+- [x] Contracts `step16.input` `{run_id, recipe_id, model, think, temperature, seed, sheet_chunks}`
       and `step16.output` `{recipe_id, sources: [{chunk_id, topic}], answer, check: {numbers_ok,
       citations_ok, citations, errors}, sheet_chars}`; `tests/test_contracts.py` `NAMES` uses
       `range(17)`.
-- [ ] Sub-workflow `Step 16 · recipe sheet` (id `ST16recipesheet1`), in the pattern of
+- [x] Sub-workflow `Step 16 · recipe sheet` (id `ST16recipesheet1`), in the pattern of
       `steps-6-9-choose-ingredients.json` and `steps-12-15-process.json`: trigger → `Check
       contract` (`step16.input`) → Postgres `Sheet facts` (`app.sheet_facts`, `app.sheet_queries`) →
       HTTP `Embed queries` (`POST http://ollama:11434/api/embed`, `{model: "bge-m3", input: [texts],
@@ -326,22 +326,22 @@ Why: R4, R6, R7, R8, A1, A5, A6.
       `llm` as step 1's with `num_ctx`, `tokens`) → return. Sticky note and `Test data`
       (`tests/step16_sample.json`: a saved m7 run's `run_id` and `recipe_id`; the note says it
       writes that recipe's sheet).
-- [ ] `Recipe pipeline`: `Run settings` gains `sheet_chunks: body.sheet_chunks ?? 3`; `Save recipe` →
+- [x] `Recipe pipeline`: `Run settings` gains `sheet_chunks: body.sheet_chunks ?? 3`; `Save recipe` →
       `Step 16 · input` → `Step 16 · recipe sheet` (continueErrorOutput) → `Finish run` →
       `Respond ok` (adds `sheet: true`); error → `Finish run (failed, step 16)` → `Respond failed
       (step 16)` `{run_id, ok: false, failed_step: 16, recipe_id, error}`. Per-step sticky note:
       steps 0–16 built. Import and publish the sub-workflow, then the pipeline; export.
-- [ ] `tests/test_workflows.py`: `SAMPLES` / `CONTRACT_OF` for the new file;
+- [x] `tests/test_workflows.py`: `SAMPLES` / `CONTRACT_OF` for the new file;
       `test_sheet_num_ctx_matches_choose` (the step 16 request's `num_ctx` equals
       `evals/fit_test.py` `CHOOSE_NUM_CTX`).
-- [ ] `tests/test_pipeline.py::test_b01_validates_and_saves` also checks row 16 (ok, try 1, `llm`
+- [x] `tests/test_pipeline.py::test_b01_validates_and_saves` also checks row 16 (ok, try 1, `llm`
       present, valid against `step16.output`, `check` all true), `app.recipe.sheet` not null and
       `first_try_calls` ≤ 3 (via `evals.run.read_run`). New `::test_sheet_fails_twice_without_sources`
       (b01 with `sheet_chunks` 0: row 16 ok false with `llm.tries` 2, the answer `failed_step` 16
       with `recipe_id`, that recipe `draft` with `sheet` null). Time the file.
-- [ ] Run `.venv/bin/pytest tests/test_workflows.py tests/test_pipeline.py tests/test_contracts.py`,
+- [x] Run `.venv/bin/pytest tests/test_workflows.py tests/test_pipeline.py tests/test_contracts.py`,
       expect all pass.
-- [ ] `docs/OPERATIONS.md` §5: thirteen workflows, `sheet_chunks`, `failed_step` 16 with
+- [x] `docs/OPERATIONS.md` §5: thirteen workflows, `sheet_chunks`, `failed_step` 16 with
       `recipe_id`, the step 16 Ollama and embed calls. PROJECT.md §4 Orchestration row and §8.
 Done when: a webhook run of b01 saves a recipe with its sheet and logs row 16, and the no-sources
 run fails step 16 after one retry with the recipe kept as a draft.
@@ -454,6 +454,9 @@ Commit: `Describe step 16 and the chat in the docs`
 None.
 
 ## Deviations
+- 2026-10-30 · Task 7: `shared/prompts/sheet.system.md` rule 1 now also says ratios, averages, ranges and percentages the model works out itself (such as BU:GU) are left out — b01 with "a pale ale" failed step 16 on both tries ("0.79", then "0.7" in notes[0]: the model wrote a BU:GU ratio the facts do not hold), so the run ended `ok: false`; with the line it passes on try 1.
+- 2026-10-30 · Task 7: the sub-workflow has two Set nodes more than the plan lists, `Step 16 · llm` and `Step 16 · output`, and `Check answer` also returns the retry text from `app.sheet_retry_text` — the row-16 `llm` object and the output contract check needed their own steps, and the retry request needs the text at hand.
+- 2026-10-29 · Task 7: `step16.input` has no optional fields (the pipeline always sends `temperature`, `seed` and `sheet_chunks`), so its `Test data` sample carries all seven; the sample is run 4983 / recipe 530 and a run holds one row 16. The sub-workflow also stops with `step 16: …` on any SQL, embed or model error, logging row 16 as failed.
 - 2026-10-29 · Tasks 12 and 14, Approach: the brew-day log (R13) and brew day (A9) moved out of m8 into the new side track `s11-brew-day` (draft brief), with `evals/brew_log.py`, `tests/test_brew_log.py` and `docs/brews/`; the docs task is now Task 12 and keeps G7's "you brew one" open, pointing to s11 — your answer to plan question 1. Your answer to question 2: the sheet must cite at least one retrieved chunk, as planned.
 - 2026-10-29 · Task 1: the tests use b08 instead of b01 — b01 does not pass step 11 on its own, so `save_recipe` refuses it.
 - 2026-10-29 · Task 3: `Brief given?` sits after `Step 1 · input`, not after `Step 0 · log ok` — the step 1 log nodes read `Step 1 · input` (run id, start time), which must have run on both branches. `Step 1 · given brief` takes `llm` as `brief_llm ?? {}` and `Step 1 · log ok` counts tokens with `?? 0`, so a given brief without an `llm` still logs.

@@ -8,7 +8,7 @@ import pytest
 from loaders.db import connect
 
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
-NAMES = [f"step{n}.{side}" for n in range(16) for side in ("input", "output")]
+NAMES = [f"step{n}.{side}" for n in range(17) for side in ("input", "output")]
 NAMES += ["choose.input", "choose.proposal", "sheet.answer"]
 NAMES += ["process.input", "process.output"]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
@@ -34,6 +34,7 @@ ABSENT_SLOTS = {
     "step13.output": [("boil.whirlpool", "array")],
     "step14.output": [("pitch.cells_billion", "null"), ("dry_hops", "array"), ("secondary.contact_days", "null")],
     "step15.output": [("co2.range", "null"), ("extras", "array")],
+    "step16.output": [("sources", "array"), ("check.errors", "array")],
     "process.output": [("fermentation.pitch.cells_billion", "null"), ("water.salts", "array")],
     "try.output": [("next_feedback", "null")],
 }
@@ -320,7 +321,16 @@ STEP15_OUT = {
 }
 PROCESS_OUT = {"water": STEP12_OUT, "mash": STEP13_OUT["mash"], "boil": STEP13_OUT["boil"],
                "fermentation": STEP14_OUT, "packaging": STEP15_OUT}
+SHEET_ANSWER = {"style_description": "A hoppy pale beer.", "why": [{"key": "style", "text": "It fits.", "cite": [7]}],
+                "notes": [{"text": "Dry hop late.", "cite": []}]}
+STEP16_OUT = {
+    "recipe_id": 530, "sources": [{"chunk_id": 7, "topic": "style"}], "answer": SHEET_ANSWER,
+    "check": {"numbers_ok": True, "citations_ok": True, "citations": 1, "errors": []}, "sheet_chars": 4200,
+}
 GOOD = {
+    "step16.input": {"run_id": 1, "recipe_id": 530, "model": "gemma4:12b", "think": False, "temperature": 0,
+                     "seed": 42, "sheet_chunks": 3},
+    "step16.output": STEP16_OUT,
     "process.input": {"run_id": 1, "brief": BRIEF, "profile": GOOD_PROFILE, "targets": STEP4_OUT, "step10": STEP10_OUT},
     "process.output": PROCESS_OUT,
     **_CHOOSE_OUT,
@@ -377,6 +387,10 @@ GOOD = {
     "step5.output": STEP5_OUT,
 }
 BAD = [
+    ("step16.input", {k: v for k, v in GOOD["step16.input"].items() if k != "recipe_id"}),
+    ("step16.input", {**GOOD["step16.input"], "sheet_chunks": "3"}),
+    ("step16.output", {k: v for k, v in STEP16_OUT.items() if k != "answer"}),
+    ("step16.output", {**STEP16_OUT, "check": {**STEP16_OUT["check"], "citations": "1"}}),
     ("process.input", {k: v for k, v in GOOD["process.input"].items() if k != "step10"}),
     ("process.input", {**GOOD["process.input"], "run_id": "1"}),
     ("process.output", {k: v for k, v in PROCESS_OUT.items() if k != "packaging"}),

@@ -9,7 +9,7 @@ Answer with one JSON object only, with exactly these fields:
 `notes`: a list of `{"text", "cite"}` with other things a brewer should know about this recipe, each one sentence. An empty list when there is nothing to add.
 
 Rules:
-- Use a number only when it appears in the user message, written exactly so. Otherwise say it without a number. Never calculate, convert or round a number, and never write an amount the user message does not show.
+- Use a number only when it appears in the user message, written exactly so. Otherwise say it without a number. Never calculate, convert or round a number, and never write an amount the user message does not show. This includes ratios, averages, ranges and percentages you work out yourself, such as BU:GU: leave them out.
 - `cite` lists the numbers in square brackets at the start of the lines under "SOURCES". Cite only those ids, only for a point the source covers. Prefer a How to Brew source where it covers the point. Cite at least one source in the sheet. A line no source supports gets an empty `cite` list.
 - Do not invent facts about a product that the user message does not state.
 - Plain brewer's English. Do not repeat the quantities; the sheet shows them.

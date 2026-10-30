@@ -51,6 +51,7 @@ SAMPLES["steps-10-11-compute-and-validate.json"] = json.loads(
     (ROOT / "tests" / "step1011_sample.json").read_text())
 SAMPLES["steps-6-11-one-try.json"] = json.loads((ROOT / "tests" / "step611_sample.json").read_text())
 SAMPLES["steps-12-15-process.json"] = json.loads((ROOT / "tests" / "step1215_sample.json").read_text())
+SAMPLES["step-16-recipe-sheet.json"] = json.loads((ROOT / "tests" / "step16_sample.json").read_text())
 # The input contract each sample is checked against.
 CONTRACT_OF = {
     "recipe-pipeline.json": "step1.input",
@@ -65,6 +66,7 @@ CONTRACT_OF = {
     "steps-10-11-compute-and-validate.json": "step10.input",
     "steps-6-11-one-try.json": "try.input",
     "steps-12-15-process.json": "process.input",
+    "step-16-recipe-sheet.json": "step16.input",
 }
 STEP1_INPUT = {
     "recipe-pipeline.json": lambda s: {
@@ -80,6 +82,7 @@ STEP1_INPUT = {
     "steps-10-11-compute-and-validate.json": lambda s: {k: v for k, v in s[0].items() if k != "frame"},
     "steps-6-11-one-try.json": lambda s: s[0],
     "steps-12-15-process.json": lambda s: s[0],
+    "step-16-recipe-sheet.json": lambda s: s[0],
 }
 
 
@@ -106,6 +109,8 @@ def test_test_data_notes(name):
     else:
         declared = [v["name"] for v in trigger["parameters"]["workflowInputs"]["values"]]
         optional = {"temperature", "seed"}  # step 1 defaults them; the sample leaves them out
+        if name == "step-16-recipe-sheet.json":
+            optional = set()  # the sample carries every input
         if name == "step-2-best-fit-style.json":
             optional = {"style"}  # optional; the sample leaves it out
         assert set(sample[0]) == set(declared) - optional
@@ -137,6 +142,13 @@ def test_choose_num_ctx_matches_fit_test():
     from evals import fit_test
 
     nodes = {n["name"]: n for n in _repo("steps-6-9-choose-ingredients.json")["nodes"]}
+    assert f"num_ctx: {fit_test.CHOOSE_NUM_CTX}" in nodes["Build model request"]["parameters"]["jsonOutput"]
+
+
+def test_sheet_num_ctx_matches_choose():
+    from evals import fit_test
+
+    nodes = {n["name"]: n for n in _repo("step-16-recipe-sheet.json")["nodes"]}
     assert f"num_ctx: {fit_test.CHOOSE_NUM_CTX}" in nodes["Build model request"]["parameters"]["jsonOutput"]
 
 

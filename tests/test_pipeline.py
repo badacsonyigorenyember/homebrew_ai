@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from evals import benchmark
+from evals.run import read_run
 from loaders.db import connect
 from tests.test_save_recipe import RECOMPUTE_TOLERANCES, recompute
 from tests.test_step4 import BRIEFS, brief_of
@@ -337,6 +338,19 @@ def test_b01_validates_and_saves(conn, post):
     step10 = rows[0][4]
     assert saved["mash"]["mash_c"] == step10["mash_c"]
     assert (saved["boil"]["boil_min"], saved["boil"]["because"]) == (step10["boil"]["boil_min"], step10["boil"]["because"])
+    sheet_row = conn.execute(
+        "select ok, try, llm, input, output from app.run_step where run_id = %s and step = 16", (run_id,)
+    ).fetchall()
+    assert len(sheet_row) == 1 and sheet_row[0][0] is True and sheet_row[0][1] == 1
+    assert sheet_row[0][2] and sheet_row[0][2]["tries"] in (1, 2)
+    assert _valid(conn, "step16.input", sheet_row[0][3]) == []
+    assert _valid(conn, "step16.output", sheet_row[0][4]) == []
+    check = sheet_row[0][4]["check"]
+    assert check["numbers_ok"] is True and check["citations_ok"] is True and check["citations"] >= 1
+    assert answer["sheet"] is True
+    sheet = conn.execute("select sheet from app.recipe where id = %s", (rid,)).fetchone()[0]
+    assert sheet and len(sheet) == sheet_row[0][4]["sheet_chars"]
+    assert read_run(conn, run_id)["first_try_calls"] <= 3  # R6: step 1, steps 6-9, step 16
     og, ibu, srm = conn.execute("select og, ibu, srm from app.recipe where id = %s", (rid,)).fetchone()
     mine = recompute(conn, rid)
     assert abs(mine["og"] - float(og)) <= RECOMPUTE_TOLERANCES["og"]
@@ -397,3 +411,19 @@ def test_style_field_reaches_step_2(conn, post):
     assert by_step[2][6]["mismatch"] is None
     numbers = [d for d in by_step[3][6]["deviations"] if d["kind"] == "number"]
     assert [d["subject"] for d in numbers] == ["ABV 4"]
+
+
+def test_sheet_fails_twice_without_sources(conn, post):
+    """R7: with no sources the sheet cannot cite one, so both tries fail; the recipe stays a draft."""
+    answer = post({"request": IPA, "brief_id": "b01-nosheet", "sheet_chunks": 0})
+    assert answer["ok"] is False and answer["failed_step"] == 16, answer
+    assert answer["recipe_id"] and "step 16" in answer["error"]
+    run_id = answer["run_id"]
+    row = conn.execute(
+        "select ok, try, error, llm from app.run_step where run_id = %s and step = 16", (run_id,)).fetchall()
+    assert len(row) == 1 and row[0][0] is False and row[0][1] == 1
+    assert row[0][3]["tries"] == 2 and row[0][3]["first_errors"]
+    assert conn.execute("select ok, recipe_id from app.run where id = %s", (run_id,)).fetchone() == (
+        False, answer["recipe_id"])
+    assert conn.execute(
+        "select status, sheet from app.recipe where id = %s", (answer["recipe_id"],)).fetchone() == ("draft", None)

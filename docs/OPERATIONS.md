@@ -110,9 +110,9 @@ service up).*
 
   Files exported from the container are root-owned: `docker exec n8n chown 1000:1000 <path>`.
 - **The pipeline webhook** is `POST http://localhost:5678/webhook/recipe-pipeline` with body
-  `{"request": "...", "brief_id": "b01", "model": "...", "think": false, "guide": "any", "temperature": 0, "seed": 42, "profile_id": null, "style": "15B", "brief": {...}, "brief_llm": {...}}` (`brief_id`, `model`, `think`, `guide`, `temperature`, `seed`, `profile_id`, `style`, `brief` and `brief_llm` optional; `style` is a style code step 2 must keep (an unknown code fails step 2); `brief` is a brief already read from the request, as the chat does: the run skips the step 1 model call, checks it against `step1.output` (a bad one fails step 1) and logs row 1 with it and `brief_llm`, with `brief_given` true in the row's input; `profile_id` goes to step 0, null means the `default` profile, an unknown id fails at step 0; `temperature` and `seed` go to step 1's Ollama call, defaults 0 and 42; `guide` is `any`, `bjcp` or `ba`: when it is not sent, a guide named in the request text restricts the pick, else `any`; a bad value fails at step 2; defaults `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` and `false`). It
-  answers after the run ends with `{run_id, ok, recipe_id?, tries?, failed_step?, error?}` (`recipe_id` and `tries` on a saved recipe; after three failed tries `ok` is false, `failed_step` 11 and `error` holds `try 1: …; try 2: …; try 3: …`; a failure in steps 12 to 15 gives `failed_step` 12 to 15); the record is in
-  `app.run` and `app.run_step`. No auth for now (revisit with the chat trigger, M8). The twelve
+  `{"request": "...", "brief_id": "b01", "model": "...", "think": false, "guide": "any", "temperature": 0, "seed": 42, "profile_id": null, "style": "15B", "brief": {...}, "brief_llm": {...}, "sheet_chunks": 3}` (`brief_id`, `model`, `think`, `guide`, `temperature`, `seed`, `profile_id`, `style`, `brief`, `brief_llm` and `sheet_chunks` optional; `sheet_chunks` is how many source chunks step 16 keeps per retrieval query, default 3, 0 keeps none so the sheet cannot cite and step 16 fails; `style` is a style code step 2 must keep (an unknown code fails step 2); `brief` is a brief already read from the request, as the chat does: the run skips the step 1 model call, checks it against `step1.output` (a bad one fails step 1) and logs row 1 with it and `brief_llm`, with `brief_given` true in the row's input; `profile_id` goes to step 0, null means the `default` profile, an unknown id fails at step 0; `temperature` and `seed` go to step 1's Ollama call, defaults 0 and 42; `guide` is `any`, `bjcp` or `ba`: when it is not sent, a guide named in the request text restricts the pick, else `any`; a bad value fails at step 2; defaults `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` and `false`). It
+  answers after the run ends with `{run_id, ok, recipe_id?, tries?, sheet?, failed_step?, error?}` (`recipe_id`, `tries` and `sheet: true` on a saved recipe with its sheet; after three failed tries `ok` is false, `failed_step` 11 and `error` holds `try 1: …; try 2: …; try 3: …`; a failure in steps 12 to 15 gives `failed_step` 12 to 15; a failure in step 16 gives `failed_step` 16 with the `recipe_id` that was saved, which stays a `draft` without a sheet); the record is in
+  `app.run` and `app.run_step`. No auth for now (revisit with the chat trigger, M8). The thirteen
   workflows must be **published**. Publish a sub-workflow after editing it too: an Execute Workflow
   node runs the **published** version of the workflow it calls, not the draft (measured 2026-10-12: the
   pipeline's draft was published first, and its call to the still-published old `Step 1` ran the old
@@ -125,7 +125,7 @@ service up).*
   (step 2's `guide_preference`).
 - **Running a workflow from the editor.** Each workflow has a `Test data` sticky note with
   ready-to-paste JSON: pin it on `POST recipe-pipeline` (`Recipe pipeline`) or on `When Executed
-  by Another Workflow` (`Step 1 · read request`, `Step 2 · best-fit style`, `Step 3 · deviations`, `Step 0 · load profile`, `Step 4 · targets`, `Step 5 · design frame`, `Steps 6–9 · choose ingredients`, `Steps 10–11 · compute and validate`, `Steps 6–11 · one try`, `Steps 12–15 · process`, `Check contract`), then click *Execute workflow*.
+  by Another Workflow` (`Step 1 · read request`, `Step 2 · best-fit style`, `Step 3 · deviations`, `Step 0 · load profile`, `Step 4 · targets`, `Step 5 · design frame`, `Steps 6–9 · choose ingredients`, `Steps 10–11 · compute and validate`, `Steps 6–11 · one try`, `Steps 12–15 · process`, `Step 16 · recipe sheet`, `Check contract`), then click *Execute workflow*.
   A pipeline run writes a real run log tagged `editor-b01`; open the step 1 sub-execution from the
   `Step 1 · read request` node. Remove editor runs with
   `docker exec supabase-db psql -U postgres -d postgres -c "delete from app.run where eval_id like 'editor-%'"`
@@ -154,6 +154,13 @@ service up).*
   `app.recipe_process`, rows 12 to 15 logged with try 1, no LLM), then `Save recipe` (`app.save_recipe`,
   with the process), then `Finish run`. Three failed tries finish the run with ok false. Publish the two new sub-workflows
   before the pipeline, and republish them after every edit.
+- **Step 16 calls Ollama twice at most, and its embedder once.** `Step 16 · recipe sheet` (id
+  `ST16recipesheet1`) embeds nine retrieval queries with `POST http://ollama:11434/api/embed`
+  (`bge-m3`, `truncate: false`; not a chat call), then one chat call `POST /api/chat` with
+  `num_ctx: 32768` (as steps 6-9, so the model does not reload; `test_sheet_num_ctx_matches_choose`),
+  `num_predict: 4096` and `shared/contracts/sheet.answer.schema.json` as `format`; the system prompt
+  is `shared/prompts/sheet.system.md`. A second call happens only after a failed check. It logs run_step row 16 (try 1, `llm` with `tries`);
+  a run holds one row 16, so re-running the editor sample needs the old row deleted (see its note).
 - **The `Postgres account` credential** connects as `postgres` to database `postgres` on
   `supabase-db:5432` (measured 2026-10-12 with `select current_user, current_database()`), so
   the `app` tables and `extensions.jsonschema_validation_errors` are reachable. The password was

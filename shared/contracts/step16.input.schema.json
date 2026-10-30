@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step16.input",
+  "description": "Step 16, the recipe sheet. run_id is the run that saved recipe_id; the facts and the sources are gathered inside the step from the saved rows. sheet_chunks is how many chunks to keep per retrieval query (0 keeps none). No absent slot.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "recipe_id",
+    "model",
+    "think",
+    "temperature",
+    "seed",
+    "sheet_chunks"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "integer"
+    },
+    "recipe_id": {
+      "type": "integer"
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "think": {
+      "type": "boolean"
+    },
+    "temperature": {
+      "type": "number"
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "sheet_chunks": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}
