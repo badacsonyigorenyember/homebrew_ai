@@ -411,12 +411,12 @@ Commit: `Add the recipe chat workflow`
 
 ### Task 11: you test the chat by hand (gate)
 Why: A4, A7, A8; brief Assumption 1 (the hosted chat waits through a long run).
-- [ ] Hand back `needs-input` with the chat URL and these steps for you: (1) in a private window,
+- [x] Hand back `needs-input` with the chat URL and these steps for you: (1) in a private window,
       not logged in, open the chat URL: refused (A8); (2) logged in, ask b05's request, answer
       "Keep 20C": the step 11 failure in plain words and no sheet; (3) b05 again, "Take 15B": a 15B
       sheet with the mismatch listed; (4) accept one sheet (A7); (5) any request of yours.
-- [ ] After your test, read-only checks per chat run: `app.run.eval_id = 'chat'`, rows 0–16 like
-      a webhook run, one row 1 with `llm.tries` 1 and `brief_given` true (A4), the accepted
+- [x] After your test, read-only checks per chat run: `app.run.eval_id = 'chat'`, rows 0–16 like
+      a webhook run, one row 1 with `llm.tries` 1 and `input.brief_given` true (A4), the accepted
       recipe `final` with its sheet (A7). Record in PROJECT.md §8. If the hosted chat dropped the
       long wait, stop and hand back `needs-input` with what happened.
 Done when: you report the hand test passed and the checks agree.
@@ -466,3 +466,4 @@ None.
 - 2026-10-29 · Task 6: water salts show 1 decimal on the sheet (not whole grams) — salt amounts are small and saved with one decimal (4.5 g), so whole grams would hide the saved value; hops, extras and priming sugar stay whole.
 - 2026-10-30 · Task 8: `read_run` is unchanged — row 16's output, with its `check`, is already in `steps[16]`, which `grade_result` passes to `grade.grade_sheet`; a sheet with no check reads `UNCHECKED` — the plan did not name that case.
 - 2026-10-31 · Task 10: `Recipe chat` also has failure sends for step 2 and for the pipeline call (a timeout or refused call), the Send-and-Wait nodes wait 2 hours at most, and it has no `Test data` note — the plan listed only step 1's failure; the others would leave the chat silent. The approval answer is read as `data.approved` from the documented Send-and-Wait output, not from a first execution (an execution needs a logged-in human); Task 11 confirms it.
+- 2026-10-31 · Task 11: the check reads `brief_given` from row 1's `input` (where Task 10 put it, line 186), not from `llm` — the task's wording was loose.
