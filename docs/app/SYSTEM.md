@@ -77,7 +77,7 @@ names below are the decision, the numbers are not.
 | AI | Microsoft.Extensions.AI with the Ollama client | provider-neutral tool calling in .NET |
 | Streaming | Server-sent events (SSE) | one-way token and event stream over plain HTTP |
 | Background work | `BackgroundService` | the RAPT sync loop |
-| API tests | xUnit, `WebApplicationFactory`, Testcontainers Postgres | real HTTP and a throwaway database per run |
+| API tests | xUnit, `WebApplicationFactory`, Testcontainers with the stack's `supabase/postgres` image | real HTTP and a throwaway database per run; the app's tables need that image's extensions |
 | UI tests | Vitest, React Testing Library, MSW | component tests with a faked API |
 | End-to-end tests | none in v1 | not needed yet |
 
@@ -344,3 +344,5 @@ PROJECT.md changes this design makes (agreed 2026-10-31):
 
 - 2026-10-31 · Approved with: BeerJSON only (no BeerXML); O1, O2, O3 decided; O4 and O5 stay
   open until M5 and M8.
+- 2026-10-31 · §4 API tests: the test database uses the stack's `supabase/postgres` image, because
+  `db/015_app.sql` needs `pg_jsonschema` (found while writing ticket a2-02).
