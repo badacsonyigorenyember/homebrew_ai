@@ -367,8 +367,10 @@ begin
     -- 3. Unknown: nothing fits well enough.
     if best.code is null or best.total < MIN_SCORE then
         return jsonb_build_object(
-            'style', null,
-            'unknown_reason', 'no style name, number or flavour word in the request fits a style',
+            'style', case when given_code is null then null
+                          else jsonb_build_object('id', given_id, 'guide', given_guide, 'code', given_code, 'name', given_name) end,
+            'unknown_reason', case when given_code is null
+                                   then 'no style name, number or flavour word in the request fits a style' end,
             'alt_styles', '[]'::jsonb,
             'candidates', (select coalesce(jsonb_agg(jsonb_build_object('guide', c.guide, 'code', c.code,
                                   'score', round(c.total, 2)) order by c.ord), '[]'::jsonb)
@@ -377,7 +379,9 @@ begin
             'scores', '{}'::jsonb,
             'mismatch', null,
             'guide_reason', g_reason,
-            'reason', 'No style fits the request, so no style is picked.');
+            'reason', case when given_code is null then 'No style fits the request, so no style is picked.'
+                           else 'Picked ' || given_code || ' ' || given_name
+                                || ': you chose it (style field); no other style fits the request.' end);
     end if;
 
     -- 4. Base pick. Under "any" a BA winner that has a BJCP pair is replaced by that pair

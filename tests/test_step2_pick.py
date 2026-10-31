@@ -274,3 +274,14 @@ def test_unknown_style_field_raises(conn):
     with pytest.raises(Exception, match="step 2: unknown style 99Z"):
         run_style(conn, brief_of(BRIEFS["b05"]), BRIEFS["b05"]["request"], "99Z")
     conn.rollback()
+
+
+@pytest.mark.stack
+def test_style_field_wins_even_when_step_2_finds_no_pick(conn):
+    """R5: a sent style is obeyed on a vague request where the "unknown" early return would drop it."""
+    brief = {"named": None, "stated": {}, "hints": [], "wanted": [], "excluded": [], "inventory": [],
+             "unknown": [], "guidance": True}
+    out = run_style(conn, brief, "something nice", "20C")
+    assert out["style"]["code"] == "20C"
+    assert out["mismatch"] is None
+    assert "you chose it" in out["reason"]

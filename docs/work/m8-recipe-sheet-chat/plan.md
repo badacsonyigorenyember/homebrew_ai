@@ -467,3 +467,6 @@ None.
 - 2026-10-30 · Task 8: `read_run` is unchanged — row 16's output, with its `check`, is already in `steps[16]`, which `grade_result` passes to `grade.grade_sheet`; a sheet with no check reads `UNCHECKED` — the plan did not name that case.
 - 2026-10-31 · Task 10: `Recipe chat` also has failure sends for step 2 and for the pipeline call (a timeout or refused call), the Send-and-Wait nodes wait 2 hours at most, and it has no `Test data` note — the plan listed only step 1's failure; the others would leave the chat silent. The approval answer is read as `data.approved` from the documented Send-and-Wait output, not from a first execution (an execution needs a logged-in human); Task 11 confirms it.
 - 2026-10-31 · Task 11: the check reads `brief_given` from row 1's `input` (where Task 10 put it, line 186), not from `llm` — the task's wording was loose.
+- 2026-10-31 · Task 5: the tests were written after the functions, not seen failing first — the number test was seen failing only by turning the rounding check off (review finding 5).
+- 2026-10-31 · Task 6: a kg amount under 0.1 kg shows as whole grams ("1 g", not "0.00 kg") — the 2-decimal kg rule printed a saved 0.001 kg as zero (review finding 2).
+- 2026-10-31 · Task 2: a `style` sent to step 2 is obeyed also when step 2 finds no pick — the early "unknown" return dropped it (review finding 1, R5).

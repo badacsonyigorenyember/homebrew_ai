@@ -97,7 +97,8 @@ def test_quantities_equal_saved_rows(conn, bid):
     for name, usage, time_min, pct, amount, unit, ing in items:
         kind = kinds[ing]
         if kind == "fermentable":
-            assert any(ln.startswith(f"- {q(amount, 2)} kg {name}, {q(pct, 1)} %") for ln in lines(secs["Fermentables"]))
+            shown = f"{q(amount, 2)} kg" if amount >= Decimal("0.1") else f"{q(Decimal(amount) * 1000, 0)} g"
+            assert any(ln.startswith(f"- {shown} {name}, {q(pct, 1)} %") for ln in lines(secs["Fermentables"]))
         elif kind == "hop":
             assert any(ln.startswith(f"- {q(amount, 0)} g {name}, {usage.replace('_', ' ')} {q(time_min, 0)} min")
                        for ln in lines(secs["Hops"]))
@@ -111,6 +112,22 @@ def test_quantities_equal_saved_rows(conn, bid):
     pack = facts["process"]["packaging"]
     assert any(f"{q(pack['co2']['volumes'], 2)} volumes" in ln for ln in lines(secs["Packaging"]))
     assert any(ln.startswith(f"- Priming: {q(pack['priming']['g'], 0)} g") for ln in lines(secs["Packaging"]))
+
+
+def test_tiny_kg_amount_is_shown_in_grams(conn):
+    """0.001 kg must not print as "0.00 kg": under 0.1 kg the sheet shows whole grams."""
+    amount = lambda x, u: conn.execute("select app.sheet_amount(%s::numeric, %s)", [x, u]).fetchone()[0]
+    assert amount("0.001", "kg") == "1 g"
+    assert amount("0.0995", "kg") == "100 g"
+    assert amount("0.1", "kg") == "0.10 kg"
+    assert amount("5.25", "kg") == "5.25 kg"
+    assert amount("20", "g") == "20 g"
+    rid, facts = facts_for(conn, "b01")
+    first = next(i for i in facts["items"] if i["kind"] == "fermentable")
+    first["amount"], first["unit"] = 0.001, "kg"
+    ferm = sections(sheet(conn, facts))["Fermentables"]
+    assert any(ln.startswith(f"- 1 g {first['name']}") for ln in lines(ferm))
+    assert "0.00 kg" not in ferm
 
 
 def test_section_order(conn):

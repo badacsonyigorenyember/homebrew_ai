@@ -31,14 +31,16 @@ language sql
 immutable
 as $$ select case when x is null then '–' else trim_scale(x)::text end $$;
 
--- "<amount> <unit>": kg 2 decimals, g whole, any other unit as stored.
+-- "<amount> <unit>": kg 2 decimals (under 0.1 kg as whole grams, so a tiny amount is not "0.00 kg"),
+-- g whole, any other unit as stored.
 create or replace function app.sheet_amount(amount numeric, unit text)
 returns text
 language sql
 immutable
 as $$
-    select case unit when 'kg' then app.sheet_num(amount, 2) when 'g' then app.sheet_num(amount, 0)
-                     else app.sheet_trim(amount) end || ' ' || coalesce(unit, '')
+    select case when unit = 'kg' and abs(amount) < 0.1 then app.sheet_num(amount * 1000, 0) || ' g'
+                else case unit when 'kg' then app.sheet_num(amount, 2) when 'g' then app.sheet_num(amount, 0)
+                              else app.sheet_trim(amount) end || ' ' || coalesce(unit, '') end
 $$;
 
 -- "low–high" at `places` decimals (null places: whole when whole).
