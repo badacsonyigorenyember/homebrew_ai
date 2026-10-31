@@ -89,12 +89,14 @@ names and dev-ship's move to `docs/finished/` assume `<slug>` is one folder name
 | M8 | [`m8-recipe-sheet-chat`](work/m8-recipe-sheet-chat/brief.md) | Step 16 recipe sheet with reasons, deviations, citations; n8n chat | m7, s4, s7 | **G7** |
 | S10 | [`s10-ingredient-form`](work/s10-ingredient-form/brief.md) | An n8n form that writes the same intake files, pick-lists from `ref` (draft, planned after m8) | s8, s9 | — |
 
-**TODO after s10: talk about what comes after the workflow** (noted 2026-10-29 at the user's
-request, not decided or planned yet). Ideas to keep:
+**After the workflow: the app** (noted 2026-10-29; designed 2026-10-31, ahead of s10, in
+[`docs/app/SYSTEM.md`](app/SYSTEM.md)). The ideas noted then:
 - An app the user runs themself, which tracks their brews and holds the AI chat.
 - The chat as a more general AI that uses tools, with this recipe pipeline as one of them.
 - Iterative recipe editing: the AI gives a recipe, then the user says what to change, or asks
   questions and gets suggestions for what could change, and the recipe is rebuilt round by round.
+
+The first two are in the app's v1 (F4, F6); iterative recipe editing is listed there as later.
 
 ---
 

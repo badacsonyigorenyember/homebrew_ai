@@ -50,7 +50,7 @@ the knowledge base or to a clearly labelled assumption.
 - Recipe critique and adjustment ("make this less bitter", "I have no Crystal 60, substitute")
 - Water chemistry recommendations for a recipe
 - Fault diagnosis from tasting notes
-- Batch log: record what was brewed and learn from the results
+- Batch log: recording what was brewed moves into the app's v1 ([`docs/app/SYSTEM.md`](docs/app/SYSTEM.md) F4, agreed 2026-10-31); learning from the results stays here
 
 ### Non-goals (for now)
 
@@ -133,6 +133,13 @@ decision in §7 replaces it. How to operate the stack safely is in
 n8n, with as many of its parts there as possible; there is no Python service (the Python in
 `loaders/` stays for one-off extract/load jobs). The user talks to the assistant through n8n's
 chat trigger. *Why: the user's call.*
+
+**App (agreed 2026-10-31):** a desktop-first app (React + TypeScript in Tauri 2, then Android; an
+ASP.NET Core API on .NET 10) for inventory, recipes and batches, with an AI panel whose agent runs
+in the API and calls this pipeline through its webhook. It is a second interface next to the n8n
+`Recipe chat`, which stays for now and may be retired once the app covers it. Design and
+milestones: [`docs/app/SYSTEM.md`](docs/app/SYSTEM.md). Rows for the app's UI and API are added
+here once milestone M0 is built.
 
 **Pipeline build (G0, decided 2026-10-12):**
 - Deterministic logic is SQL functions in `db/*.sql`, called from n8n's Postgres node; Code nodes
@@ -250,6 +257,7 @@ Several of these are lessons from the first build (see §9).
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
 ### 2026-10-31
+- App design approved ([`docs/app/SYSTEM.md`](docs/app/SYSTEM.md)): React + TypeScript in Tauri 2 (browser on Linux first, desktop, Android last), an ASP.NET Core API on .NET 10 with EF Core over hand-written `db/*.sql` tables, the agent in the API on Ollama (the 27B model) with read, navigation and confirm-card write tools, RAPT Pill readings polled from the RAPT cloud with catch-up after downtime, and batches as a dated brew-day checklist generated from the saved `process`. Recipe export is BeerJSON only. Milestones M0-M8; tickets go in `docs/app/`, run by an `app-ticket` skill (lesson, your implementation, review, tests, ship). By your agreement §2 moves the batch log into the app's v1 and §4 records the app as a second interface. Open: O4 (RAPT history and rate limits, at M5), O5 (Tauri Android, at M8). Nothing is built yet.
 - Claude Code tooling for the planned app (React + TypeScript in Tauri, .NET API; design in progress), kept away from the workflow. Two Vercel skills sit in `app/.claude/skills/`, so they apply only to `app/`, and are left out of `skills-lock.json` because `npx skills` restores to the root. Project plugins: `typescript-lsp` and `csharp-lsp` (servers `typescript-language-server` from npm and `csharp-ls` 0.16.0 as a .NET global tool, the newest that installs on SDK 8.0.132; update after the .NET 10 SDK is installed), `microsoft-docs`, and `dotnet-aspnetcore`, `dotnet-data`, `dotnet-ai` from the `dotnet/skills` marketplace. `dotnet-test` is installed but disabled: its skills claim all test work, pytest included. Details: [`app/.claude/README.md`](app/.claude/README.md). Not yet used in a session.
 
 ### 2026-10-29
