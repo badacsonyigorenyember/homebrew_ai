@@ -1,6 +1,6 @@
 # M8 · Step 16 and the chat: the recipe sheet you brew from — implementation plan
 
-Stage: review
+Stage: verify
 Brief: [brief.md](brief.md)
 Branch: m8-recipe-sheet-chat
 
