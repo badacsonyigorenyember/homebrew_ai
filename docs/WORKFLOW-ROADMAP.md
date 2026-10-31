@@ -88,7 +88,7 @@ names and dev-ship's move to `docs/finished/` assume `<slug>` is one folder name
 | S5 | [`s5-mash-attenuation`](finished/s5-mash-attenuation/brief.md) | A cited model of mash temperature's effect on attenuation (Troester, Terrill), replacing rule 10's uncited mapping | s2 | — (brief A1–A6) |
 | S6 | [`s6-style-neighbours`](finished/s6-style-neighbours/brief.md) | Step 2 check set from the BJCP exam's 91 style triples; Barnes cross-check of the envelopes; D1 vs BJCP 2021 specialty-entry rules | m2, s3 | — (measured, report only) |
 | S7 | [`s7-kb-articles`](finished/s7-kb-articles/brief.md) | 12 web articles and short papers → `kb` (Markdown path in the s4 loader), eval extended | s4 | G7 (books bar held) |
-| M8 | [`m8-recipe-sheet-chat`](work/m8-recipe-sheet-chat/brief.md) | Step 16 recipe sheet with reasons, deviations, citations; n8n chat | m7, s4, s7 | **G7** (the sheet) |
+| M8 | [`m8-recipe-sheet-chat`](work/m8-recipe-sheet-chat/brief.md) | Step 16 recipe sheet with reasons, deviations, citations; n8n chat. Built 2026-10-31, measured: m8: 19/19 saved recipes have a sheet, number and citation checks 19/19, 211 citations; first-try LLM calls at most 3, 23 retry calls, 90 calls in 24 runs; chat hand test passed (runs 5708-5712, recipe 1159 accepted as final) | m7, s4, s7 | **G7** (the sheet) |
 | S11 | [`s11-brew-day`](work/s11-brew-day/brief.md) | Brew-day log from the sheet (`docs/brews/`, planned vs actual temperature, time, gravity), filled in during a Claude session; the brew and its outcome (draft, split out of m8 2026-10-29) | m8 | **G7** (the brew part) |
 | S10 | [`s10-ingredient-form`](work/s10-ingredient-form/brief.md) | An n8n form that writes the same intake files, pick-lists from `ref` (draft, planned after m8) | s8, s9 | — |
 
@@ -198,8 +198,8 @@ what a brewer would choose? Look at 3 recipes by hand before going on.
 
 ### G6 · MVP: numerically correct, style-checked recipes
 
-**Bar:** ≥ 16/20 validate (RECIPE-ROADMAP P5), stated numbers met within tolerance, ≤ 2 LLM calls
-per recipe plus tie-breaks. **Direction check, the big one:** you read 5 full recipes as a
+**Bar:** ≥ 16/20 validate (RECIPE-ROADMAP P5), stated numbers met within tolerance, at most 3
+first-try LLM calls per recipe (step 1, steps 6–9, step 16), retries reported, plus tie-breaks. **Direction check, the big one:** you read 5 full recipes as a
 brewer. If they pass the numbers but you wouldn't brew them, the scoring (G5) is what to fix,
 not the validator.
 
@@ -209,6 +209,8 @@ not the validator.
 
 **Bar:** every recipe has water, mash, ferment and package (P6); citations resolve to `kb`
 chunks; you brew one. Retrieval recall@5 measured against an agreed bar (P7).
+
+**Measured (2026-10-31, [`m8-recipe-sheet-chat`](work/m8-recipe-sheet-chat/plan.md)):** the sheet part is met. `python -m evals.run --save --label m8`: briefs passed 10/24; sheets saved on 19/19 saved recipes, number check 19/19, citation check 19/19, 211 citations; first-try LLM calls at most 3, 23 retry calls, 90 calls in 24 runs, about 3 h 06 min; "A Belgian dubbel with Special B and dark candi sugar." (run 5707) lists Special B under absent items. Chat hand test passed: runs 5708-5712, recipe 1159 accepted as final. **Open:** "you brew one", in the side track [`s11-brew-day`](work/s11-brew-day/brief.md) (brew-day log and brew).
 
 ---
 

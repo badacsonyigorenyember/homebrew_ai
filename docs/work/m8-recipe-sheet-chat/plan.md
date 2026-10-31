@@ -424,14 +424,14 @@ Commit: `Record the chat hand test`
 
 ### Task 12: the docs describe step 16 and the chat as built
 Why: R12, A10.
-- [ ] `docs/RECIPE-ROADMAP.md`: TL;DR line 13, §6 (the "gate for every step" note, line 226) and
+- [x] `docs/RECIPE-ROADMAP.md`: TL;DR line 13, §6 (the "gate for every step" note, line 226) and
       P5 (line 294) state the bar as at most 3 first-try LLM calls per recipe (step 1, steps 6–9,
       step 16), retries reported; §3 row 16 and P8 say what is built, with the measured counts.
       `docs/WORKFLOW-ROADMAP.md`: G6 bar (line 198) the same wording; M8 row and G7 with the
       measured results; G7's "you brew one" stays open and points to the side track
       `s11-brew-day` (brew-day log and brew day, moved out of m8). No "about 2" or "≤ 2" left
       for the full pipeline (`grep -n "about 2\|≤ 2" docs/*ROADMAP.md`).
-- [ ] `docs/OPERATIONS.md` complete for the chat and step 16; `docs/DATABASE.md` column done in
+- [x] `docs/OPERATIONS.md` complete for the chat and step 16; `docs/DATABASE.md` column done in
       Task 1. PROJECT.md §3 diagram line F unchanged unless wrong; §4 rows; §8.
 Done when: A10's grep finds nothing and the docs match what runs.
 Commit: `Describe step 16 and the chat in the docs`
