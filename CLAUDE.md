@@ -74,6 +74,9 @@ not hoped for. Mark anything unverified as such.
   action is really needed, ask the user to run it.
 - Project skills: `retrieval-evaluation-metrics` and `rag-evaluation-frameworks` (PROJECT.md §6.6),
   and `find-docs`, which goes with [`.claude/rules/context7.md`](.claude/rules/context7.md).
+- App tooling: skills used only for `app/` live in `app/.claude/skills/`; the app's plugins
+  (TypeScript and C# language servers, Microsoft docs, .NET skills) and why `dotnet-test` is
+  disabled are in [`app/.claude/README.md`](app/.claude/README.md).
 - Delivery workflow: `dev-flow` runs brief → plan → implement → review → verify → ship with one
   subagent per step; each step is also its own skill (`dev-brief`, `dev-plan`, `dev-implement`,
   `dev-review`, `dev-verify`, `dev-ship`). Work lives in `docs/work/<slug>/` and moves to `docs/finished/<slug>/` once it

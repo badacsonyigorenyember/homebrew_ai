@@ -1,15 +1,4 @@
 {
-  "extraKnownMarketplaces": {
-    "n8n-io": {
-      "source": {
-        "source": "git",
-        "url": "https://github.com/n8n-io/skills.git"
-      }
-    }
-  },
-  "enabledPlugins": {
-    "n8n-skills@n8n-io": true
-  },
   "hooks": {
     "PreToolUse": [
       {
@@ -23,5 +12,29 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "n8n-skills@n8n-io": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "csharp-lsp@claude-plugins-official": true,
+    "microsoft-docs@anthropic-plugin-directory": true,
+    "dotnet-aspnetcore@dotnet-agent-skills": true,
+    "dotnet-data@dotnet-agent-skills": true,
+    "dotnet-test@dotnet-agent-skills": false,
+    "dotnet-ai@dotnet-agent-skills": true
+  },
+  "extraKnownMarketplaces": {
+    "n8n-io": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/n8n-io/skills.git"
+      }
+    },
+    "dotnet-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "dotnet/skills"
+      }
+    }
   }
 }
