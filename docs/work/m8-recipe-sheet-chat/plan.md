@@ -365,18 +365,18 @@ Commit: `Report recipe sheets in the harness`
 
 ### Task 9: a full brief run has a checked sheet on every saved recipe (gate)
 Why: A1, A2, A3, A5; A4 webhook part.
-- [ ] `.venv/bin/python -m evals.run --save --label m8` (b01–b24). Record in PROJECT.md §8:
+- [x] `.venv/bin/python -m evals.run --save --label m8` (b01–b24). Record in PROJECT.md §8:
       validated count (a sanity check against m7's 19/24), sheets saved / saved recipes, number
       and citation checks, citations, first-try max (A5: ≤ 3), retry calls, run time.
-- [ ] A2: read b10's sheet (every R2 section, inventory items named as used). One webhook run of a
+- [x] A2: read b10's sheet (every R2 section, inventory items named as used). One webhook run of a
       request naming Special B (e.g. `"A Belgian dubbel with Special B and dark candi sugar."`,
       `brief_id` `m8-special-b`): its sheet lists Special B as absent with what to do. If step 1
       does not put Special B in `wanted`, rephrase once and say so.
-- [ ] A3: for b01, b05, b08, b13, b14, a read-only query: every citation number on the sheet maps
+- [x] A3: for b01, b05, b08, b13, b14, a read-only query: every citation number on the sheet maps
       to a chunk id in row 16's `sources`, and each shows page or section and URL as R3 says.
-- [ ] A4 webhook part: b05 with `style` 20C reaches step 2 as 20C (it then fails step 11, measured
+- [x] A4 webhook part: b05 with `style` 20C reaches step 2 as 20C (it then fails step 11, measured
       in Task 3); b05 without `style` picks 15B (both from the run above or one extra webhook call).
-- [ ] Hand back `needs-approval` with the totals, any brief whose step 16 failed (its errors), and
+- [x] Hand back `needs-approval` with the totals, any brief whose step 16 failed (its errors), and
       b10's and the Special B sheet's paths in the results for you to read.
 Done when: you approved the results (A1, A2, A3, A5).
 Commit: `Record the m8 full brief run`
