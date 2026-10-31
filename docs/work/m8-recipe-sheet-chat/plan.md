@@ -383,7 +383,7 @@ Commit: `Record the m8 full brief run`
 
 ### Task 10: the chat workflow runs the pipeline
 Why: R4, R5, R9, R10.
-- [ ] `Recipe chat` (id `CHATrecipechat01`): Chat Trigger (`public: true`, `mode: hostedChat`,
+- [x] `Recipe chat` (id `CHATrecipechat01`): Chat Trigger (`public: true`, `mode: hostedChat`,
       `authentication: n8nUserAuth`, `options.responseMode: responseNodes`, a title and
       placeholder) → Set `Chat request` `{request: chatInput}` → `Step 1 · read request`
       (`run_id` 0, the default model, `think` false, temperature 0, seed 42; error → Chat send
@@ -401,11 +401,11 @@ Why: R4, R5, R9, R10.
       the recipe id when one was saved (a Set node holds the 17 step names). Read the approval
       answer field from the first test execution and use that name. Sticky note: what it does,
       the chat URL, that it needs an n8n login.
-- [ ] Import, publish, export (`n8n/workflows/recipe-chat.json`). `tests/test_workflows.py`
+- [x] Import, publish, export (`n8n/workflows/recipe-chat.json`). `tests/test_workflows.py`
       `test_file_name` covers it; it has no `Test data` note (tested by hand, Task 11).
-- [ ] `docs/OPERATIONS.md` §5: the chat URL, User Auth, `brief_id` `chat` runs, the long wait.
+- [x] `docs/OPERATIONS.md` §5: the chat URL, User Auth, `brief_id` `chat` runs, the long wait.
       PROJECT.md §4 Orchestration row and §8.
-- [ ] Run `.venv/bin/pytest tests/test_workflows.py`, expect all pass.
+- [x] Run `.venv/bin/pytest tests/test_workflows.py`, expect all pass.
 Done when: the chat workflow is published and exported.
 Commit: `Add the recipe chat workflow`
 
@@ -465,3 +465,4 @@ None.
 - 2026-10-29 · Task 5: `app.sheet_read_answer` takes the contract text as a fourth argument (`contract json`) — the plan said n8n passes it, as in step 1, so the function needs it. The contract's absent slot is checked in its own test (`test_sheet_answer_has_an_absent_slot`), not in `ABSENT_SLOTS`, which is for `.output` names only.
 - 2026-10-29 · Task 6: water salts show 1 decimal on the sheet (not whole grams) — salt amounts are small and saved with one decimal (4.5 g), so whole grams would hide the saved value; hops, extras and priming sugar stay whole.
 - 2026-10-30 · Task 8: `read_run` is unchanged — row 16's output, with its `check`, is already in `steps[16]`, which `grade_result` passes to `grade.grade_sheet`; a sheet with no check reads `UNCHECKED` — the plan did not name that case.
+- 2026-10-31 · Task 10: `Recipe chat` also has failure sends for step 2 and for the pipeline call (a timeout or refused call), the Send-and-Wait nodes wait 2 hours at most, and it has no `Test data` note — the plan listed only step 1's failure; the others would leave the chat silent. The approval answer is read as `data.approved` from the documented Send-and-Wait output, not from a first execution (an execution needs a logged-in human); Task 11 confirms it.

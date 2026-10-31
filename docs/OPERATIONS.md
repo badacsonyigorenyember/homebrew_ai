@@ -112,7 +112,7 @@ service up).*
 - **The pipeline webhook** is `POST http://localhost:5678/webhook/recipe-pipeline` with body
   `{"request": "...", "brief_id": "b01", "model": "...", "think": false, "guide": "any", "temperature": 0, "seed": 42, "profile_id": null, "style": "15B", "brief": {...}, "brief_llm": {...}, "sheet_chunks": 3}` (`brief_id`, `model`, `think`, `guide`, `temperature`, `seed`, `profile_id`, `style`, `brief`, `brief_llm` and `sheet_chunks` optional; `sheet_chunks` is how many source chunks step 16 keeps per retrieval query, default 3, 0 keeps none so the sheet cannot cite and step 16 fails; `style` is a style code step 2 must keep (an unknown code fails step 2); `brief` is a brief already read from the request, as the chat does: the run skips the step 1 model call, checks it against `step1.output` (a bad one fails step 1) and logs row 1 with it and `brief_llm`, with `brief_given` true in the row's input; `profile_id` goes to step 0, null means the `default` profile, an unknown id fails at step 0; `temperature` and `seed` go to step 1's Ollama call, defaults 0 and 42; `guide` is `any`, `bjcp` or `ba`: when it is not sent, a guide named in the request text restricts the pick, else `any`; a bad value fails at step 2; defaults `hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K` and `false`). It
   answers after the run ends with `{run_id, ok, recipe_id?, tries?, sheet?, failed_step?, error?}` (`recipe_id`, `tries` and `sheet: true` on a saved recipe with its sheet; after three failed tries `ok` is false, `failed_step` 11 and `error` holds `try 1: …; try 2: …; try 3: …`; a failure in steps 12 to 15 gives `failed_step` 12 to 15; a failure in step 16 gives `failed_step` 16 with the `recipe_id` that was saved, which stays a `draft` without a sheet); the record is in
-  `app.run` and `app.run_step`. No auth for now (revisit with the chat trigger, M8). The thirteen
+  `app.run` and `app.run_step`. No auth on the webhook itself (the chat in front of it uses n8n User Auth, below). The fourteen
   workflows must be **published**. Publish a sub-workflow after editing it too: an Execute Workflow
   node runs the **published** version of the workflow it calls, not the draft (measured 2026-10-12: the
   pipeline's draft was published first, and its call to the still-published old `Step 1` ran the old
@@ -154,6 +154,17 @@ service up).*
   `app.recipe_process`, rows 12 to 15 logged with try 1, no LLM), then `Save recipe` (`app.save_recipe`,
   with the process), then `Finish run`. Three failed tries finish the run with ok false. Publish the two new sub-workflows
   before the pipeline, and republish them after every edit.
+- **The recipe chat** is the workflow `Recipe chat` (id `CHATrecipechat01`), a hosted chat at
+  `http://localhost:5678/webhook/156cfa67-fd3e-5724-836b-f2fa5fac82ab/chat` (the Chat node and the
+  workflow's sticky note show it; the page loads its script from cdn.jsdelivr.net, so it needs internet).
+  It uses **n8n User Auth**: only someone logged in to this n8n can send a message (a post without a login
+  answers 401). It runs step 1 and step 2 itself with `run_id` 0 (these two calls are not logged),
+  asks once on a style mismatch (Send and Wait), then calls the pipeline webhook with the brief
+  (`brief`, `brief_llm`), the chosen `style` and `brief_id` `chat`; those runs are in `app.run`
+  with `eval_id = 'chat'`. **The chat waits for the whole run** (about 6 minutes, up to the HTTP node's
+  30 minute timeout), then shows the sheet and offers to accept it (`app.accept_recipe`, status
+  `final`). A failed run shows `failed_step`, the step's name and the error, and no sheet. Each
+  Send-and-Wait question waits 2 hours at most.
 - **Step 16 calls Ollama twice at most, and its embedder once.** `Step 16 · recipe sheet` (id
   `ST16recipesheet1`) embeds nine retrieval queries with `POST http://ollama:11434/api/embed`
   (`bge-m3`, `truncate: false`; not a chat call), then one chat call `POST /api/chat` with
