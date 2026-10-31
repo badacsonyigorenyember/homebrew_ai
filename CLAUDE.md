@@ -82,6 +82,9 @@ not hoped for. Mark anything unverified as such.
   `dev-review`, `dev-verify`, `dev-ship`). Work lives in `docs/work/<slug>/` and moves to `docs/finished/<slug>/` once it
   is shipped. Shared rules:
   [`.claude/skills/dev-flow/conventions.md`](.claude/skills/dev-flow/conventions.md).
+- App tickets: `app-ticket` runs one ticket of the app (`docs/app/<ticket>/`) per session: lesson,
+  the user's own implementation, review, test lesson, test review, ship. The user writes the code
+  under `app/`; Claude does not. Index: [`docs/app/README.md`](docs/app/README.md).
 - Operational traps (compose, Kong, roles, n8n CLI, the Ollama iGPU warning) are in
   [`docs/OPERATIONS.md`](docs/OPERATIONS.md). Add new ones there, not to personal memory, so
   they are versioned with the repo.
