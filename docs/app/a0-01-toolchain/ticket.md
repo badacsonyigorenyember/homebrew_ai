@@ -39,3 +39,5 @@ Not needed: nothing here has behaviour to test.
   SDK came from 26.04's built-in feed. The .NET 8 SDK package left over from 24.04 has no source on
   26.04 (8.0 is only in the backports PPA there), and .NET 8 support ends 2026-11-10. AC1 is
   unchanged.
+- 2026-11-02 · You removed the .NET 8 SDK (and its runtimes): nothing in the app needs it, csharp-ls
+  runs on .NET 10, and .NET 8 support ends 2026-11-10. AC1 now asks only for a 10.x SDK.

@@ -48,3 +48,53 @@ Done well:
 - `.idea/` stays out of git (the root `.gitignore` already covers it). Keep IDE folders out of commits.
 
 Verdict: fixes needed
+
+## Round 2 · 2026-11-02 · 97cd6cb
+
+Reviewed: `app/README.md` and your AC1 edit in `ticket.md`, both on `a0-01-toolchain`.
+
+Checks (fresh login shell): `dotnet --list-sdks` 10.0.114 only · `dotnet --version` 10.0.114 ·
+`node -v` v26.13.0 · `npm -v` 11.20.0 · `nvm --version` 0.40.3 · `nvm alias default` 26 ·
+`npm ls -g --depth=0` lists `typescript` 7.0.2 and `typescript-language-server` 6.0.3 ·
+`csharp-ls --version` 0.28.0 (on the `PATH` through `/etc/profile.d/dotnet.sh`) · Rider in
+`/opt/JetBrains Rider-2026.2.4` · local `main` is back at `origin/main` (`d440c4d`).
+
+Correction to round 1: Rider is installed from the tarball in `/opt`, not through the Toolbox App.
+
+You removed the .NET 8 SDK and changed AC1 to "shows a 10.x SDK". Recorded in `ticket.md`
+§ Deviations. AC1 is judged against the new text.
+
+Round 1 findings:
+
+| # | Status |
+|---|---|
+| 1 | fixed: the README is on the ticket branch, local `main` matches `origin/main` |
+| 2 | fixed: npm, nvm, typescript, typescript-language-server and Rider have rows; the .NET 8 row is no longer needed |
+| 3 | partly open: the versions are numbers now, but four of them are not what the checks print (finding 7). The global npm packages are now reproducible through their own rows |
+| 4 | fixed: line 2 names Ubuntu 26.04 |
+| 5 | partly open: `<br>` fixed; the final newline is still missing |
+| 6 | fixed |
+
+| AC | Met | How checked |
+|---|---|---|
+| AC1 | yes | `dotnet --list-sdks` shows `10.0.114` |
+| AC2 | yes | `node -v` v26.13.0, `npm -v` 11.20.0 |
+| AC3 | yes | `csharp-ls --version` 0.28.0, newest on NuGet |
+| AC4 | not checked | still needs your word: a `.cs` and a `.tsx` file show colours in Rider |
+| AC5 | no | findings 7 to 9 |
+
+| # | Axis | Severity | Where | Finding | Why it matters | Learn more |
+|---|---|---|---|---|---|---|
+| 7 | Spec | must fix | `app/README.md:8, 9, 13, 14` | Four versions don't match the checks: .NET SDK `10.0.1145` (it is `10.0.114`), npm `10.9.7` (Node 26 has `11.20.0`; 10.9.7 is Node 22's), typescript-language-server `6.0.2` (Node 26 has `6.0.3`), csharp-ls `0.28` (it is `0.28.0`). | AC5 asks for the versions you have. Copy each one from the check command's output, not from memory or the old Node. | [lesson, "Write down what you did"](lesson.md#patterns-to-follow) |
+| 8 | Spec | must fix | `app/README.md:9` | The npm install command `npm install -g npm@10.9.7` is wrong for this setup. npm comes with Node, so nvm installs it with Node 26, and this command would downgrade it to Node 22's version. | Following the table on a new PC would give a different npm than the one you have. | [nvm README, "Migrating global packages"](https://github.com/nvm-sh/nvm#migrating-global-packages-while-installing) (npm ships with each Node version) |
+| 9 | Spec | must fix | `app/README.md:10` | The nvm install command downloads `https://githubusercontent.com`, which is not the install script, so it fails. The nvm README's "Install & Update Script" section gives the full URL, with the version (`v0.40.3`) in it. The check command (`nvm alias default` is 26) checks Node's default, not nvm. nvm's own check is `nvm --version`. | This row is the first step on a new PC; if it fails, no row after it works. | [nvm README, install script](https://github.com/nvm-sh/nvm#install--update-script) |
+| 10 | Standards | nice to have | `app/README.md:15`, end of file | The file still ends without a newline. The Rider row doesn't say how to start Rider after extracting it (`bin/Rider.sh` in the extracted folder). | A missing final newline makes the next diff of that line noisy. Without a start step, the row stops before you can use the tool. | [Install Rider, standalone](https://www.jetbrains.com/help/rider/Installation_guide.html#standalone) |
+
+Done well:
+
+- You moved the work off `main` cleanly: `main` matches `origin/main` again, and the ticket's work is
+  on its branch.
+- You stated the Ubuntu version at the top, so every install command has its context.
+- You changed AC1 when the plan changed, instead of keeping an SDK the app doesn't need.
+
+Verdict: fixes needed
