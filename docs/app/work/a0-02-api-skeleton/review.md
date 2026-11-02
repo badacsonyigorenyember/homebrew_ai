@@ -168,3 +168,43 @@ Done well:
 - One fix per commit, each message saying what changed.
 
 Verdict: fixes needed
+
+## Round 3 · 2026-11-02 · 2c25555
+
+Reviewed: `2c25555 improve health check test`. Read in full:
+`app/api.Tests/Features/Health/HealthEndpointsTests.cs`.
+
+Checks: `dotnet build --no-incremental` in `app/`: 0 errors, **1 warning** (`xUnit2000`, finding 8)
+· `dotnet test`: `Passed! - Failed: 0, Passed: 1` · no trailing spaces, final newline present.
+
+Break-the-code check, same four breaks, same copy-and-restore; `git diff` on `HealthEndpoints.cs`
+empty at the end:
+
+| # | Break | Round 2 | Round 3 |
+|---|---|---|---|
+| B1 | `"okay"` instead of `"ok"` | failed | failed: expected `"ok"`, actual `"okay"` |
+| B2 | route `/api/healthz` | failed (`Expected: True`) | failed, but reads `Expected: NotFound, Actual: OK` (backwards, finding 8) |
+| B3 | JSON key `"Status"` | failed | failed: `KeyNotFoundException` |
+| B4 | status 202, same body | passed | **failed**, but reads `Expected: Accepted, Actual: OK` (backwards, finding 8) |
+
+All four breaks now fail.
+
+Earlier findings:
+
+| # | Status |
+|---|---|
+| 3 | fixed: `HealthEndpoint_ReturnsOkWithStatusOk` says the request and the expected answer |
+| 6 | fixed in behaviour: the status code is compared with `HttpStatusCode.OK`, and B4 fails. The argument order is wrong, see finding 8 |
+| 7 | fixed: the comment names `status`, the layout is clean |
+
+| # | Axis | Severity | Where | Finding | Why it matters | Learn more |
+|---|---|---|---|---|---|---|
+| 8 | Spec | must fix | `app/api.Tests/Features/Health/HealthEndpointsTests.cs:18` | `Assert.Equal(response.StatusCode, HttpStatusCode.OK)` passes the actual value first. `Assert.Equal` takes `(expected, actual)`, so a failure reports them swapped: B2 says "Expected: NotFound, Actual: OK", which is the opposite of what happened. xUnit's analyzer catches it as warning `xUnit2000`, so `dotnet build` is no longer warning-free, and AC3 (no warnings) fails. Swap the two arguments, as line 26 already does. | A failure message that says the opposite of the truth sends you looking in the wrong place. AC3 covers the whole solution build. | [xUnit2000](https://xunit.net/xunit.analyzers/rules/xUnit2000) |
+| 9 | Standards | nice to have | `HealthEndpointsTests.cs:3` | `using Microsoft.AspNetCore.Builder;` looks unused: nothing in the file uses a type from it. Rider greys out unused `using` lines; "Optimize Imports" removes them. | Unused imports suggest a dependency that isn't there. | — |
+
+Done well:
+
+- Every break now fails, so the test protects all of AC1: route, status code, exact key, value.
+- The test name states the request and the expected answer.
+
+Verdict: fixes needed (one swap, then it is ready to ship)
