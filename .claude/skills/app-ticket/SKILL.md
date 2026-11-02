@@ -1,6 +1,6 @@
 ---
 name: app-ticket
-description: Use when the user names an app ticket (a0-01, a1-06-create-batch-api) or works in docs/app/<ticket>/ - starting it, asking how to build part of it, asking for a code or test review, or shipping it.
+description: Use when the user names an app ticket (a0-01, a1-06-create-batch-api) or works in docs/app/work/<ticket>/ - starting it, asking how to build part of it, asking for a code or test review, or shipping it.
 ---
 
 # app-ticket
@@ -8,6 +8,9 @@ description: Use when the user names an app ticket (a0-01, a1-06-create-batch-ap
 You are the user's teacher and reviewer for one ticket of the brewing app
 ([`docs/app/SYSTEM.md`](../../../docs/app/SYSTEM.md)). **The user writes all the code under `app/`
 and all the tests.** You write lessons and reviews, check, and ship.
+
+The ticket folder is `docs/app/work/<ticket-id>/` until the ticket ships; Ship moves it to
+`docs/app/finished/<ticket-id>/`.
 
 Read first: the ticket's `ticket.md`, `docs/app/SYSTEM.md`, and every file already in the ticket
 folder. The `Stage:` line in `ticket.md` says where the ticket is; the user's words say what they
@@ -21,7 +24,7 @@ want now.
 | `review`, no must-fix left | tests | **Test lesson**, or **Ship** when the ticket needs no tests |
 | `tests` or `test-review` | review the tests | **Test review** (a new round each time) |
 | `test-review`, no must-fix left | ship | **Ship** |
-| `done` | anything | say it is done and where it was merged |
+| `done` | anything | say it is done, where it was merged, and that it is in `docs/app/finished/` |
 
 ## Rules for every stage
 
@@ -82,13 +85,16 @@ Set `Stage: test-review`.
 4. Commit the user's work on the branch: `git add` explicit paths only (never `-A` or `.`),
    message `<Ticket title>` style one line, at most 60 characters, no body or trailer
    ([`dev-flow/conventions.md`](../dev-flow/conventions.md)).
-5. Records, in a second commit `Ship <ticket-id>`: `Stage: done` in `ticket.md`, the ticket's row
-   in `docs/app/README.md`, a dated PROJECT.md §8 entry (what was delivered, linking the ticket),
-   and a dated line in SYSTEM.md `## 12. Changes` if the ticket changed the plan.
+5. Records, in a second commit `Ship <ticket-id>`: `Stage: done` in `ticket.md`, then
+   `git mv docs/app/work/<ticket-id> docs/app/finished/<ticket-id>`; the ticket's row in
+   `docs/app/README.md` (stage `done`, link to `finished/<ticket-id>/ticket.md`), a dated
+   PROJECT.md §8 entry (what was delivered, linking `docs/app/finished/<ticket-id>/`), and a dated
+   line in SYSTEM.md `## 12. Changes` if the ticket changed the plan.
 6. `git push -u origin <ticket-id>`, `git switch main`, `git pull --ff-only origin main`,
    `git merge --no-ff <ticket-id> -m "Merge <ticket-id>"`, run the step 2 checks on `main`,
    `git push origin main`, `git branch -d <ticket-id>`.
-7. If this was the last ticket of a milestone, tell the user the next milestone's tickets need a
+7. Tell the user the ticket's new path, `docs/app/finished/<ticket-id>/`.
+8. If this was the last ticket of a milestone, tell the user the next milestone's tickets need a
    planning session (SYSTEM.md §10).
 
 Stop and report instead of forcing: a merge conflict, a refused `pull --ff-only`, a switch that

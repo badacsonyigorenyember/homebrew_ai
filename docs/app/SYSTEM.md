@@ -94,7 +94,7 @@ app/
   web/                  Vite + React project (src/features/<feature>/ mirrors the API)
   .claude/              app-only Claude skills (see app/.claude/README.md)
 db/06x_app_*.sql        the app's tables, roles and functions
-docs/app/               this file, the ticket index and one folder per ticket
+docs/app/               this file, the ticket index, work/ (open tickets), finished/ (shipped)
 ```
 
 ## 6. Features (v1)
@@ -287,7 +287,7 @@ branch name. M0 to M2 and M7 are written in full (M7 was written before the
 reorder); the others get a one-line list in [`README.md`](README.md) and are written in full when the milestone before them is done.
 
 ```
-docs/app/<id>/
+docs/app/work/<id>/      moves to docs/app/finished/<id>/ when the ticket ships
   ticket.md        goal, what to build, acceptance criteria, blocked by, Stage line
   lesson.md        written at start
   test-lesson.md   only if the ticket needs tests
