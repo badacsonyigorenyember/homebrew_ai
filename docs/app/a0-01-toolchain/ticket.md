@@ -1,6 +1,6 @@
 # a0-01 · Toolchain
 
-Stage: implementing
+Stage: review
 Branch: `a0-01-toolchain`
 Milestone: M0 · Requirements: — (§4, §10) ([SYSTEM.md](../SYSTEM.md))
 Blocked by: none
@@ -35,4 +35,7 @@ Not needed: nothing here has behaviour to test.
 
 ## Deviations
 
-None yet.
+- 2026-11-02 · The PC was upgraded from Ubuntu 24.04 to 26.04 while this ticket was open. The .NET 10
+  SDK came from 26.04's built-in feed. The .NET 8 SDK package left over from 24.04 has no source on
+  26.04 (8.0 is only in the backports PPA there), and .NET 8 support ends 2026-11-10. AC1 is
+  unchanged.
