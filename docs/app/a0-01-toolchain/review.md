@@ -98,3 +98,32 @@ Done well:
 - You changed AC1 when the plan changed, instead of keeping an SDK the app doesn't need.
 
 Verdict: fixes needed
+
+## Round 3 · 2026-11-02 · uncommitted
+
+At your request, Claude made the round 2 fixes in `app/README.md` (still uncommitted; it is committed
+at ship). Checks are those of round 2, unchanged since: each version in the table now matches its
+check command's output, all ten table rows have four columns, the file ends with a newline, and the
+nvm install URL returns HTTP 200.
+
+Round 2 findings:
+
+| # | Status |
+|---|---|
+| 7 | fixed: 10.0.114, 11.20.0, 6.0.3, 0.28.0 |
+| 8 | fixed: npm "comes with Node.js"; nvm now comes before Node.js and npm, in install order |
+| 9 | fixed: the full `v0.40.3/install.sh` URL; check is `nvm --version` |
+| 10 | fixed: final newline; Rider row has its start command (`bin/rider.sh`) and checks its version in Help > About |
+| 3, 5 | fixed with 7 and 10 |
+
+| AC | Met | How checked |
+|---|---|---|
+| AC1 | yes | round 2 |
+| AC2 | yes | round 2 |
+| AC3 | yes | round 2 |
+| AC4 | not checked | needs your word: a `.cs` and a `.tsx` file show colours in Rider |
+| AC5 | yes | every installed tool has a row with the version its check prints and the install command |
+
+No new findings.
+
+Verdict: ready to ship, once you confirm AC4
