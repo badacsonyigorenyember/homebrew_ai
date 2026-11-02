@@ -4,7 +4,7 @@ Status: draft
 Slug: s11-brew-day · Branch: s11-brew-day
 Roadmap: [WORKFLOW-ROADMAP.md](../../WORKFLOW-ROADMAP.md) S11, checkpoint **G7** (the brew part) ·
 [RECIPE-ROADMAP.md](../../RECIPE-ROADMAP.md) §8 P8
-Needs: [`m8-recipe-sheet-chat`](../m8-recipe-sheet-chat/brief.md) shipped (an accepted recipe
+Needs: [`m8-recipe-sheet-chat`](../../finished/m8-recipe-sheet-chat/brief.md) shipped (an accepted recipe
 with a saved sheet)
 
 ## Why

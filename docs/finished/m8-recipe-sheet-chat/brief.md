@@ -19,7 +19,7 @@ Stout fits 4 % better. Keep 20C?").
 From the n8n chat, a request becomes a saved recipe and a recipe sheet. Code puts every number on
 the sheet from the saved rows, and the second writing LLM call adds the reasons, with book and
 article citations and a Deviations box, ready to brew from (the brew is
-[`s11-brew-day`](../s11-brew-day/brief.md), which closes G7).
+[`s11-brew-day`](../../work/s11-brew-day/brief.md), which closes G7).
 
 ## Scope
 In:
@@ -42,7 +42,7 @@ In:
 - The LLM call bar's wording in RECIPE-ROADMAP and WORKFLOW-ROADMAP: three first-try calls.
 
 Out:
-- The brew-day log and the brew ([`s11-brew-day`](../s11-brew-day/brief.md)).
+- The brew-day log and the brew ([`s11-brew-day`](../../work/s11-brew-day/brief.md)).
 - Recipe editing by chat ("make it less bitter"; Priority 2), brewing Q&A, the batch log in the
   database (Priority 2), the `brewed` status. A UI other than n8n's hosted chat. A printable
   HTML or PDF sheet.
@@ -155,7 +155,7 @@ A6. A failing step 16 check (a test with a wrong number or an unknown chunk id) 
 A7. Accepting a sheet in the chat sets that recipe's `status` to `final`; the sheet is in
     `app.recipe.sheet`, and the column is owned by `postgres` like the rest of `app` (R8, R9).
 A8. Opening the chat URL while not logged in to n8n is refused; logged in, it works (R10).
-A9. Not checked in m8: the brew moved to [`s11-brew-day`](../s11-brew-day/brief.md), which
+A9. Not checked in m8: the brew moved to [`s11-brew-day`](../../work/s11-brew-day/brief.md), which
     closes G7's "you brew from it".
 A10. RECIPE-ROADMAP and WORKFLOW-ROADMAP no longer say "about 2" or "≤ 2" LLM calls per recipe
     for the full pipeline; they say at most 3 first-try calls with retries reported (R12).
@@ -195,7 +195,7 @@ None. The five questions of 2026-10-29 are answered (see Deviations).
   by hand in n8n's hosted chat, and that hand test covers A4, A7 and A8.
 - 2026-10-29 · Brew day moved to its own side track, your decision ("move brew day (R13, A9,
   Tasks 12 and 14) into its own side track s11-brew-day"). The brew-day log left Scope In and R13
-  is removed; A9 now points to [`s11-brew-day`](../s11-brew-day/brief.md), which closes G7's
+  is removed; A9 now points to [`s11-brew-day`](../../work/s11-brew-day/brief.md), which closes G7's
   "you brew from it"; the brew-day log and the brew are listed under Out, and the Goal says the
   brew is s11. Everything else in m8 is unchanged.
 - 2026-10-29 · Assumption 2, A4: b05 kept in 20C failed step 11 in all three tries on 3 seeds (42, 1, 2), so "keep 20C" ends with the chat reporting the step 11 failure in plain words and no sheet; "take 15B" is unchanged. Your answer: retry seeds, then accept.
