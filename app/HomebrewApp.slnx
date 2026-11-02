@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/api.Tests/">
+    <Project Path="api.Tests/HomebrewApp.Tests.csproj" />
+  </Folder>
   <Folder Name="/api/">
     <Project Path="api/HomebrewApp.csproj" />
   </Folder>
