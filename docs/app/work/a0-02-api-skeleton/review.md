@@ -41,3 +41,41 @@ Done well:
 
 Verdict: ready for tests. Findings 1 and 2 are best fixed before you write the test, since they
 rename what the test project will see; say "tests" when you want the test lesson.
+
+## Round 2 · 2026-11-02 · bc68e62
+
+Reviewed: `2bb0cc4 rename class and methods`, `bc68e62 remove tailing slash to match README`, and
+`a1b53d4`, which commits the README section from round 1. Read in full: `Program.cs`,
+`Features/Health/HealthEndpoints.cs`, `HomebrewApp.http`.
+
+Checks: `dotnet build --no-incremental` in `app/`: ok, 0 warnings, 0 errors · `dotnet run
+--project api`: listens on `http://localhost:5080`, environment `Development` · all three changed
+files end with a newline · `dotnet test`: no test project yet.
+
+Round 1 findings:
+
+| # | Status |
+|---|---|
+| 1 | fixed: `MapHealthEndpoint`, so `Program.cs` reads `app.MapHealthEndpoint();` and a second feature's map method no longer clashes |
+| 2 | fixed: the class is `HealthEndpoints` (file renamed to match), so it no longer shares its namespace's name |
+| 3 | fixed: the `.http` request calls `/api/health` |
+| 4 | fixed: final newlines in `Program.cs` and `HealthEndpoints.cs` |
+
+| AC | Met | How checked |
+|---|---|---|
+| AC1 | yes | `curl -i http://localhost:5080/api/health`: `HTTP/1.1 200 OK`, body `{"status":"ok"}` |
+| AC2 | yes | `/openapi/v1.json`: `/api/health` `get` 200 refers to `#/components/schemas/HealthResponse` |
+| AC3 | yes | `0 Warning(s)`, `0 Error(s)` |
+| AC4 | yes | `Program.cs`: setup, Development-only `MapOpenApi()`, `app.MapHealthEndpoint();`, `Run()` |
+
+| # | Axis | Severity | Where | Finding | Why it matters | Learn more |
+|---|---|---|---|---|---|---|
+| 5 | Standards | nice to have | `app/api/Features/Health/HealthEndpoints.cs:11` | As round 1 guessed, the OpenAPI tag followed the class name: `/openapi/v1.json` now lists the endpoint under the tag `HealthEndpoints`. If you'd rather the document group it as `Health`, `WithTags` on the mapped endpoint sets that. | Tags are how OpenAPI viewers group endpoints. It changes nothing at runtime. | [Tags](https://learn.microsoft.com/aspnet/core/fundamentals/openapi/include-metadata?view=aspnetcore-10.0#tags) |
+
+Done well:
+
+- You renamed the file with the class, so `HealthEndpoints.cs` holds `HealthEndpoints`. That's what
+  you'll look for when the folder gets a second file.
+- Each fix is its own small commit with a message that says what changed.
+
+Verdict: ready for tests
