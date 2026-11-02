@@ -24,7 +24,7 @@ comes last of the features (M7). Milestones are worked in order.
 
 | Ticket | Title | Blocked by | Stage |
 |---|---|---|---|
-| [a0-01](a0-01-toolchain/ticket.md) | Toolchain | — | ready |
+| [a0-01](a0-01-toolchain/ticket.md) | Toolchain | — | done |
 | [a0-02](a0-02-api-skeleton/ticket.md) | API skeleton | a0-01 | ready |
 | [a0-03](a0-03-web-skeleton/ticket.md) | Web skeleton | a0-01 | ready |
 | [a0-04](a0-04-web-calls-api/ticket.md) | The page calls the API | a0-02, a0-03 | ready |

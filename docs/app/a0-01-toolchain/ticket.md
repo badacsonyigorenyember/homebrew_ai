@@ -1,6 +1,6 @@
 # a0-01 · Toolchain
 
-Stage: review
+Stage: done
 Branch: `a0-01-toolchain`
 Milestone: M0 · Requirements: — (§4, §10) ([SYSTEM.md](../SYSTEM.md))
 Blocked by: none

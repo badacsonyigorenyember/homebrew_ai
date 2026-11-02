@@ -127,3 +127,6 @@ Round 2 findings:
 No new findings.
 
 Verdict: ready to ship, once you confirm AC4
+
+AC4 confirmed by you on 2026-11-02 ("Yes, ship it", in answer to whether a `.cs` and a `.tsx` file
+show colours in Rider). Shipped.
