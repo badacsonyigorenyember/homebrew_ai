@@ -59,7 +59,7 @@ Pill readings), and the AI panel can show you any of it on request.
 
 ## 4. Technology
 
-Versions are pinned in ticket `a0-01` after checking current docs (Context7, Microsoft Learn); the
+Versions are pinned in [`app/README.md`](../../app/README.md) § Toolchain (ticket `a0-01`); the
 names below are the decision, the numbers are not.
 
 | Layer | Choice | Why |
@@ -356,3 +356,5 @@ PROJECT.md changes this design makes (agreed 2026-10-31):
   with the AI panel's inventory tools; Recipes become M4, Desktop M8, Android M9. Tickets
   renumbered to match (old a0-05/06 → a2-01/02, a1-03..06 → a2-03..06, a2-01/02 → a1-03/04,
   a2-03..09 → a7-01..07).
+- 2026-11-02 · a0-01: the toolchain is pinned in `app/README.md` (Ubuntu 26.04, .NET SDK 10.0.114,
+  Node.js 26.13.0, csharp-ls 0.28.0, Rider 2026.2.4); the .NET 8 SDK was removed.

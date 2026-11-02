@@ -1,6 +1,6 @@
 # a0-01 · Toolchain
 
-Stage: ready
+Stage: done
 Branch: `a0-01-toolchain`
 Milestone: M0 · Requirements: — (§4, §10) ([SYSTEM.md](../SYSTEM.md))
 Blocked by: none
@@ -20,7 +20,7 @@ never stop on setup.
   it.
 
 ## Acceptance criteria
-- **AC1** `dotnet --list-sdks` shows a 10.x SDK, and the 8.0 SDK is still there.
+- **AC1** `dotnet --list-sdks` shows a 10.x SDK.
 - **AC2** `node -v` prints the current LTS version and `npm -v` works.
 - **AC3** `csharp-ls --version` prints its latest version.
 - **AC4** Your editor opens a `.cs` and a `.tsx` file with highlighting.
@@ -35,4 +35,9 @@ Not needed: nothing here has behaviour to test.
 
 ## Deviations
 
-None yet.
+- 2026-11-02 · The PC was upgraded from Ubuntu 24.04 to 26.04 while this ticket was open. The .NET 10
+  SDK came from 26.04's built-in feed. The .NET 8 SDK package left over from 24.04 has no source on
+  26.04 (8.0 is only in the backports PPA there), and .NET 8 support ends 2026-11-10. AC1 is
+  unchanged.
+- 2026-11-02 · You removed the .NET 8 SDK (and its runtimes): nothing in the app needs it, csharp-ls
+  runs on .NET 10, and .NET 8 support ends 2026-11-10. AC1 now asks only for a 10.x SDK.
