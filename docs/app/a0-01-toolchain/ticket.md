@@ -20,7 +20,7 @@ never stop on setup.
   it.
 
 ## Acceptance criteria
-- **AC1** `dotnet --list-sdks` shows a 10.x SDK, and the 8.0 SDK is still there.
+- **AC1** `dotnet --list-sdks` shows a 10.x SDK.
 - **AC2** `node -v` prints the current LTS version and `npm -v` works.
 - **AC3** `csharp-ls --version` prints its latest version.
 - **AC4** Your editor opens a `.cs` and a `.tsx` file with highlighting.
