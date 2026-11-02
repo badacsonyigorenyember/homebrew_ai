@@ -42,6 +42,10 @@ chain for this work. Do not invoke those.
 If the user asks to skip the brief for a requirement, start at 2 with the requirement text as
 input.
 
+If `docs/work/<slug>/paused.md` exists (written by `pause-work`), read it first: its *Resume
+with* line is the next step, and its half-done work and live-system notes go into the next
+subagent's prompt. Delete the file in the commit that finishes that half-done work.
+
 ## Every step runs, or the user hears why not
 
 All six skills run by default. Skip one only when:

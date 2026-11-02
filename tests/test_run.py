@@ -341,6 +341,7 @@ def test_read_recipe_reads_the_saved_rows():
         assert recipe["abv"] == 6.9 and recipe["batch_l"] == 20.0 and recipe["og"] == 1.065
         assert recipe["items"][0]["ingredient_id"] is None and recipe["items"][0]["amount"] == 5.0
         assert recipe["deviations"][0]["subject"] == "mystery"
+        assert recipe["sheet"] is None
         from evals import grade
         assert grade.grade_recipe({"stated": {"abv": 7}}, recipe)["invented"] == 1
     finally:
@@ -433,3 +434,43 @@ def test_show_recipe_prints_the_process():
                  "Boil: 90 min", "at 60 min: 30 g Saaz", "ferment: 10 °C, 4 days; move on at FG",
                  "pitch (main): 2 pack W-34/70", "CO2 2.5 volumes (style, HTB Table 10.1)", "priming: 110 g dextrose for 20 l"):
         assert part in text, part
+
+
+def _sheeted(brief_id, sheet, step16, recipe=True):
+    brief = next(b for b in BRIEFS if b["id"] == brief_id)
+    steps = {16: step16} if step16 else {}
+    return run.grade_result(brief, {"run_id": 1, "ok": True}, steps,
+                            recipe=_recipe(sheet=sheet) if recipe else None,
+                            stats={"calls": 3, "first_try_calls": 3, "retry_calls": 0, "tries": 1})
+
+
+def _check16(numbers_ok=True, citations_ok=True, citations=2):
+    return {"check": {"numbers_ok": numbers_ok, "citations_ok": citations_ok,
+                      "citations": citations, "errors": []}}
+
+
+def test_sheet_column_and_totals():
+    """M8 Task 8: the result line shows the sheet verdict, the totals count saved sheets and checks."""
+    good = _sheeted("b01", "# sheet", _check16(citations=4))
+    bad_numbers = _sheeted("b02", "# sheet", _check16(numbers_ok=False, citations=1))
+    bad_cites = _sheeted("b03", "# sheet", _check16(citations_ok=False, citations=0))
+    none = _sheeted("b04", None, None)
+    no_recipe = _sheeted("b05", None, None, recipe=False)
+    lines = run.table([good, bad_numbers, bad_cites, none, no_recipe]).splitlines()
+    assert "sheet" in lines[0]
+    assert "sheet ok n=4" in lines[1] and "sheet FAIL(numbers)" in lines[2]
+    assert "sheet FAIL(citations)" in lines[3] and "sheet NONE" in lines[4] and "sheet -" in lines[5]
+    t = run.totals([good, bad_numbers, bad_cites, none, no_recipe])
+    assert t["sheets_saved"] == {"saved": 3, "total": 4}      # of the runs with a saved recipe
+    assert t["number_check"] == {"ok": 2, "total": 3}         # of the saved sheets
+    assert t["citation_check"] == {"ok": 2, "total": 3}
+    assert t["citations"] == 5
+    text = run.format_totals(t)
+    for piece in ("sheets saved 3/4", "number check 2/3", "citation check 2/3", "citations 5"):
+        assert piece in text
+
+
+def test_read_run_keeps_row_16_with_its_check():
+    stored = run.read_run(FakeConn((1, True), [_row(1, 1, 1), (16, 1, True, {"tries": 1}, {}, _check16())]), 5)
+    assert stored["steps"][16]["check"]["citations"] == 2
+    assert stored["first_try_calls"] == 2

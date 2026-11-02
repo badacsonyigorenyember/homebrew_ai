@@ -37,6 +37,12 @@ def run(conn, brief, request, guide=None):
     ).fetchone()[0]
 
 
+def run_style(conn, brief, request, style, guide=None):
+    return conn.execute(
+        "select app.step2_best_style(%s::jsonb, %s, %s, %s)", (json.dumps(brief), request, guide, style)
+    ).fetchone()[0]
+
+
 def pick(conn, b, guide=None, request=None):
     return run(conn, brief_of(b), request if request is not None else b["request"], guide)
 
@@ -241,3 +247,41 @@ def test_output_meets_contract(conn):
             (json.dumps(CONTRACT), json.dumps(out)),
         ).fetchone()[0]
         assert errs == [], (out, errs)
+
+
+@pytest.mark.stack
+def test_style_field_keeps_named_style(conn):
+    """The user keeps the style they named: it wins over the better fit, which leads the alternatives."""
+    brief = brief_of(BRIEFS["b05"])
+    out = run_style(conn, brief, BRIEFS["b05"]["request"], "20C")
+    assert out["style"]["code"] == "20C"
+    assert out["mismatch"] is None
+    assert out["alt_styles"][0] == "15B"
+    assert len(out["alt_styles"]) <= 4 and "20C" not in out["alt_styles"]
+    assert "you chose it" in out["reason"] and "best fit 15B" in out["reason"]
+
+
+@pytest.mark.stack
+def test_style_field_equal_to_pick_changes_nothing(conn):
+    brief = brief_of(BRIEFS["b05"])
+    plain = run(conn, brief, BRIEFS["b05"]["request"])
+    assert run_style(conn, brief, BRIEFS["b05"]["request"], "15B") == plain
+    assert plain["mismatch"] is not None
+
+
+@pytest.mark.stack
+def test_unknown_style_field_raises(conn):
+    with pytest.raises(Exception, match="step 2: unknown style 99Z"):
+        run_style(conn, brief_of(BRIEFS["b05"]), BRIEFS["b05"]["request"], "99Z")
+    conn.rollback()
+
+
+@pytest.mark.stack
+def test_style_field_wins_even_when_step_2_finds_no_pick(conn):
+    """R5: a sent style is obeyed on a vague request where the "unknown" early return would drop it."""
+    brief = {"named": None, "stated": {}, "hints": [], "wanted": [], "excluded": [], "inventory": [],
+             "unknown": [], "guidance": True}
+    out = run_style(conn, brief, "something nice", "20C")
+    assert out["style"]["code"] == "20C"
+    assert out["mismatch"] is None
+    assert "you chose it" in out["reason"]

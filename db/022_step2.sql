@@ -256,7 +256,14 @@ $$;
 -- The "named style" for a mismatch must hold every word the user named (app.style_name_covers), so
 -- a partial match ("session IPA" against English IPA) is never reported as the style the user named.
 -- guide_preference: 'any', 'bjcp', 'ba' from the webhook, or null when it was not sent.
-create or replace function app.step2_best_style(brief jsonb, request text, guide_preference text)
+-- style: a style code the user chose (docs/work/m8-recipe-sheet-chat), or null. It is looked up in
+-- ref.beer_style within the guide setting, BJCP before BA, and an unknown code raises. When it
+-- differs from the pick it wins: "style" is that style, "mismatch" is null (step 3 then lists the
+-- stated number outside its range as a deviation), the pick leads "alt_styles", and "reason" says
+-- the user chose it. A code equal to the pick changes nothing.
+drop function if exists app.step2_best_style(jsonb, text, text);
+create or replace function app.step2_best_style(brief jsonb, request text, guide_preference text,
+                                                style text default null)
 returns jsonb
 language plpgsql
 stable
@@ -290,6 +297,10 @@ declare
     strongest  text;
     reason     text;
     unknown_r  text := null;
+    given_id   bigint;                    -- the style the user chose, when the style argument is set
+    given_guide text;
+    given_code text;
+    given_name text;
 begin
     -- 1. Guide: the webhook setting wins, then a guide named in the request, else both.
     if guide_preference is not null then
@@ -301,6 +312,19 @@ begin
     else
         g := 'any';
         g_reason := 'no guide set or named in the request';
+    end if;
+
+    -- 1b. A chosen style must exist in the allowed guides (BJCP before BA).
+    if style is not null then
+        select s.id, s.guide, s.code, s.name into given_id, given_guide, given_code, given_name
+          from ref.beer_style s
+         where lower(s.code) = lower(trim(style)) and s.name is not null
+           and (g = 'any' or upper(g) = s.guide)
+         order by (s.guide = 'BA')
+         limit 1;
+        if given_code is null then
+            raise exception 'step 2: unknown style %', style;
+        end if;
     end if;
 
     -- 2. Score every style of the allowed guides. Equal totals go BJCP first, then by code.
@@ -343,8 +367,10 @@ begin
     -- 3. Unknown: nothing fits well enough.
     if best.code is null or best.total < MIN_SCORE then
         return jsonb_build_object(
-            'style', null,
-            'unknown_reason', 'no style name, number or flavour word in the request fits a style',
+            'style', case when given_code is null then null
+                          else jsonb_build_object('id', given_id, 'guide', given_guide, 'code', given_code, 'name', given_name) end,
+            'unknown_reason', case when given_code is null
+                                   then 'no style name, number or flavour word in the request fits a style' end,
             'alt_styles', '[]'::jsonb,
             'candidates', (select coalesce(jsonb_agg(jsonb_build_object('guide', c.guide, 'code', c.code,
                                   'score', round(c.total, 2)) order by c.ord), '[]'::jsonb)
@@ -353,7 +379,9 @@ begin
             'scores', '{}'::jsonb,
             'mismatch', null,
             'guide_reason', g_reason,
-            'reason', 'No style fits the request, so no style is picked.');
+            'reason', case when given_code is null then 'No style fits the request, so no style is picked.'
+                           else 'Picked ' || given_code || ' ' || given_name
+                                || ': you chose it (style field); no other style fits the request.' end);
     end if;
 
     -- 4. Base pick. Under "any" a BA winner that has a BJCP pair is replaced by that pair
@@ -459,6 +487,15 @@ begin
     if spec_code is not null then
         reason := 'Picked ' || (style_out ->> 'code') || ' ' || (style_out ->> 'name') || ': ' || spec_item
                   || ' has the role "feature" in step 1''s brief; base style ' || base.code || '.';
+    end if;
+
+    -- 7b. The user's chosen style wins over the pick; the pick leads the alternatives.
+    if given_code is not null and not (given_guide = style_out ->> 'guide' and given_code = style_out ->> 'code') then
+        alts := ((style_out ->> 'code') || array_remove(array_remove(alts, style_out ->> 'code'), given_code))[1:4];
+        reason := 'Picked ' || given_code || ' ' || given_name || ': you chose it (style field); best fit '
+                  || (style_out ->> 'code') || '.';
+        style_out := jsonb_build_object('id', given_id, 'guide', given_guide, 'code', given_code, 'name', given_name);
+        mismatch := null;
     end if;
 
     return jsonb_build_object(

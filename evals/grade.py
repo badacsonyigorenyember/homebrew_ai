@@ -633,6 +633,30 @@ def grade_recipe(brief: dict, recipe: dict | None) -> dict:
             "stated_ok": all(s["met"] for s in stated.values())}
 
 
+def grade_sheet(recipe: dict | None, step16: dict | None) -> dict:
+    """Grade the recipe sheet (docs/work/m8-recipe-sheet-chat, A1): `recipe` is read_recipe's (its
+    `sheet` text, None when none was saved), `step16` the passed row 16's output with its `check`.
+    `verdict`: `-` without a recipe, `NONE` without a sheet, `UNCHECKED` for a sheet without a check,
+    `FAIL(numbers)`, `FAIL(citations)` or both, else `ok n=<citations>`."""
+    saved = bool(recipe and recipe.get("sheet"))
+    check = (step16 or {}).get("check")
+    numbers_ok = bool(check and check["numbers_ok"])
+    citations_ok = bool(check and check["citations_ok"])
+    citations = int(check["citations"]) if check else 0
+    if recipe is None:
+        verdict = "-"
+    elif not saved:
+        verdict = "NONE"
+    elif not check:
+        verdict = "UNCHECKED"
+    elif numbers_ok and citations_ok:
+        verdict = f"ok n={citations}"
+    else:
+        verdict = "FAIL(" + ",".join(n for n, ok in (("numbers", numbers_ok), ("citations", citations_ok)) if not ok) + ")"
+    return {"saved": saved, "numbers_ok": numbers_ok, "citations_ok": citations_ok,
+            "citations": citations, "verdict": verdict}
+
+
 PROCESS_PARTS = ("water", "mash", "boil", "fermentation", "packaging")
 
 

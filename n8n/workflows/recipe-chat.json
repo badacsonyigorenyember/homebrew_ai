@@ -1,0 +1,785 @@
+{
+  "id": "CHATrecipechat01",
+  "name": "Recipe chat",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "hostedChat",
+        "authentication": "n8nUserAuth",
+        "options": {
+          "responseMode": "responseNodes",
+          "title": "Recipe chat",
+          "subtitle": "Describe the beer you want to brew.",
+          "inputPlaceholder": "e.g. a 20 L American pale ale, about 5.5% ABV"
+        }
+      },
+      "id": "e7e45062-c72c-5792-b6ab-0b51a0a98171",
+      "name": "Chat",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "156cfa67-fd3e-5724-836b-f2fa5fac82ab"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { request: $json.chatInput } }}",
+        "options": {}
+      },
+      "id": "16c90e52-e423-5477-99e0-e084a49e1d76",
+      "name": "Chat request",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "xmIkYM80AJ6ynxML",
+          "cachedResultName": "Step 1 · read request"
+        },
+        "workflowInputs": {
+          "value": {
+            "run_id": "={{ 0 }}",
+            "request": "={{ $json.request }}",
+            "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q6_K",
+            "think": "={{ false }}",
+            "temperature": "={{ 0 }}",
+            "seed": "={{ 42 }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "75287078-1835-5b2c-bf7e-0361f5feb4ce",
+      "name": "Step 1 · read request",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        0
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "message": "=I could not read the request: {{ $json.error }}",
+        "options": {}
+      },
+      "id": "2e8ea23f-b121-5f80-818d-1f6b7337b0d8",
+      "name": "Chat: step 1 failed",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        220
+      ],
+      "webhookId": "28f5317a-be0c-52ec-988c-4a648e7a2463"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { request: $(\"Chat request\").item.json.request, brief: $json.brief, llm: $json.llm } }}",
+        "options": {}
+      },
+      "id": "790990a3-0067-5549-8992-3e00506c4347",
+      "name": "Step 1 · result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1EqmT9sq9tWqjJyw",
+          "cachedResultName": "Step 2 · best-fit style"
+        },
+        "workflowInputs": {
+          "value": {
+            "run_id": "={{ 0 }}",
+            "brief": "={{ $json.brief }}",
+            "request": "={{ $json.request }}",
+            "guide_preference": "={{ null }}",
+            "style": "={{ null }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "ad24fd72-ff54-55e2-b110-bd086d5e56fa",
+      "name": "Step 2 · best-fit style",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        896,
+        0
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "message": "=I could not choose a style: {{ $json.error }}",
+        "options": {}
+      },
+      "id": "c9b48c60-2e30-5c0b-8786-d68f8896186b",
+      "name": "Chat: step 2 failed",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        896,
+        220
+      ],
+      "webhookId": "82847306-ebf4-5371-8cb1-b261718bf753"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "39a64cce-e4bb-5743-800c-679ad101d3ae",
+              "leftValue": "={{ $json.mismatch !== null && $json.mismatch !== undefined }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f2004217-aec5-5fc6-8fa6-75f7bd4e39e9",
+      "name": "Mismatch?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1120,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "message": "=You named {{ $json.mismatch.named }}, but {{ $json.mismatch.range }} is outside it; {{ $json.mismatch.chosen }} fits better. Keep {{ $json.mismatch.named.split(' ')[0] }}?",
+        "responseType": "approval",
+        "blockUserInput": true,
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "={{ 'Keep ' + $json.mismatch.named.split(' ')[0] }}",
+            "disapproveLabel": "={{ 'Take ' + $json.mismatch.chosen.split(' ')[0] }}"
+          }
+        },
+        "options": {
+          "limitWaitTime": {
+            "values": {
+              "limitType": "afterTimeInterval",
+              "resumeAmount": 2,
+              "resumeUnit": "hours"
+            }
+          }
+        }
+      },
+      "id": "3cd461c0-7995-5b94-a28c-7b9ae8448647",
+      "name": "Keep or take?",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        1344,
+        -120
+      ],
+      "webhookId": "6ad94bab-ccc5-5a02-93f6-014d1805a0a2"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { style: $json.data?.approved === true ? $(\"Step 2 · best-fit style\").item.json.mismatch.named.split(' ')[0] : $(\"Step 2 · best-fit style\").item.json.mismatch.chosen.split(' ')[0] } }}",
+        "options": {}
+      },
+      "id": "86cbfdb6-1290-53f8-92eb-3e87e74be783",
+      "name": "Style choice",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { style: null } }}",
+        "options": {}
+      },
+      "id": "06fd7742-05de-5af4-9498-84b96216b38c",
+      "name": "No style given",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "message": "Building the recipe; this takes a few minutes.",
+        "options": {}
+      },
+      "id": "dbf853db-c64b-55ab-b83e-0ab265059717",
+      "name": "Chat: building",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        1792,
+        0
+      ],
+      "webhookId": "547b82f6-c51c-5b6e-856f-fdfd633879e4"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { request: $(\"Step 1 · result\").item.json.request, brief: $(\"Step 1 · result\").item.json.brief, brief_llm: $(\"Step 1 · result\").item.json.llm, style: $(\"Style choice\").isExecuted ? $(\"Style choice\").item.json.style : null, brief_id: \"chat\" } }}",
+        "options": {}
+      },
+      "id": "94f1aafa-136f-5224-af45-c3c78641c6f2",
+      "name": "Pipeline request",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2016,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/recipe-pipeline",
+        "authentication": "none",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "timeout": 1800000
+        }
+      },
+      "id": "cb460545-c539-5eb2-8dd4-b034f8f7d902",
+      "name": "Run pipeline",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2240,
+        0
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "message": "=The recipe run did not answer: {{ $json.error?.message ?? $json.error }}",
+        "options": {}
+      },
+      "id": "4f9f6fb5-1a8a-53a1-bcec-bd68a6d6c7aa",
+      "name": "Chat: pipeline call failed",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        2240,
+        220
+      ],
+      "webhookId": "948268b5-49f9-5e69-82da-e87ef740d1d8"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "db6f0b72-6e00-532e-992c-34482f46dfb0",
+              "leftValue": "={{ $json.ok === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d9ef3770-2ef5-5ddb-add5-c25646e3495b",
+      "name": "Recipe ok?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2464,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select sheet from app.recipe where id = $1",
+        "options": {
+          "queryReplacement": "={{ [$(\"Run pipeline\").item.json.recipe_id] }}"
+        }
+      },
+      "id": "fe5da9e0-6242-5ddc-9aad-2255d0c441c3",
+      "name": "Read sheet",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2688,
+        -120
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.sheet }}",
+        "options": {}
+      },
+      "id": "3085d3f2-1d34-5bb8-bffa-20ef767fc9c1",
+      "name": "Chat: sheet",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        2912,
+        -120
+      ],
+      "webhookId": "062ef56f-95f7-5771-b321-350370f2b02c"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "message": "Accept this sheet as final?",
+        "responseType": "approval",
+        "blockUserInput": true,
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "Accept",
+            "disapproveLabel": "Not now"
+          }
+        },
+        "options": {
+          "limitWaitTime": {
+            "values": {
+              "limitType": "afterTimeInterval",
+              "resumeAmount": 2,
+              "resumeUnit": "hours"
+            }
+          }
+        }
+      },
+      "id": "e1c8005c-8764-5445-979d-532d67108c6e",
+      "name": "Accept?",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        3136,
+        -120
+      ],
+      "webhookId": "7ad82ac6-1358-53d4-9fa6-ddd4ea30b70f"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e1b55990-e932-5599-8594-bffaa5cb6464",
+              "leftValue": "={{ $json.data?.approved === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "eab99cc9-fe72-5f47-8c8e-0344d108efac",
+      "name": "Accepted?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3360,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select app.accept_recipe($1)",
+        "options": {
+          "queryReplacement": "={{ [$(\"Run pipeline\").item.json.recipe_id] }}"
+        }
+      },
+      "id": "8c079cfd-8a82-50a0-ba63-471fd9dff491",
+      "name": "Accept recipe",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3584,
+        -240
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "fDjeFLjBj3r9berH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "message": "=Saved as final (recipe {{ $(\"Run pipeline\").item.json.recipe_id }}).",
+        "options": {}
+      },
+      "id": "a0617cf3-e886-504d-90f7-f131dc526015",
+      "name": "Chat: saved as final",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        3808,
+        -240
+      ],
+      "webhookId": "1d921ad4-85a7-5d2f-939b-135ab8724701"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { message: `The recipe stopped at step ${$json.failed_step} (${[\"load profile\", \"read request\", \"best-fit style\", \"deviations\", \"targets\", \"design frame\", \"yeast\", \"fermentables\", \"hops\", \"extras\", \"calculate\", \"validate\", \"water\", \"mash and boil\", \"ferment\", \"package\", \"recipe sheet\"][$json.failed_step]}): ${$json.error}` + ($json.recipe_id ? ` Recipe ${$json.recipe_id} was saved as a draft without a sheet.` : '') } }}",
+        "options": {}
+      },
+      "id": "8c15594a-81ba-560b-9ba8-b563586f504b",
+      "name": "Step names and failure text",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2688,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.message }}",
+        "options": {}
+      },
+      "id": "b67dc1a6-7106-54fa-be2e-fcf3344c83b7",
+      "name": "Chat: run failed",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        2912,
+        160
+      ],
+      "webhookId": "6c0b746d-99d3-5ce8-9282-bdc32826fb88"
+    },
+    {
+      "parameters": {
+        "content": "### Recipe chat\nChat for the recipe pipeline. You type a request; steps 1 and 2 run here once. If step 2 reports a style mismatch the chat asks whether to keep the style you named or take the best fit, then it calls `POST /webhook/recipe-pipeline` with the brief and the chosen `style` (`brief_id` `chat`), shows the sheet and offers to accept it (recipe becomes `final`). A failed run shows the failed step and its error.\n\nChat URL: `http://localhost:5678/webhook/156cfa67-fd3e-5724-836b-f2fa5fac82ab/chat` (the workflow must be published; the *Chat* node also shows it). It needs an n8n login (User Auth): a private window with no login is refused.\n\nA run takes several minutes; the chat waits for it.",
+        "height": 300,
+        "width": 520,
+        "color": 4
+      },
+      "id": "11c80da7-6648-54ac-8af3-062d28f0701f",
+      "name": "Sticky Note chat",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -420
+      ]
+    }
+  ],
+  "connections": {
+    "Chat": {
+      "main": [
+        [
+          {
+            "node": "Chat request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat request": {
+      "main": [
+        [
+          {
+            "node": "Step 1 · read request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 1 · read request": {
+      "main": [
+        [
+          {
+            "node": "Step 1 · result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Chat: step 1 failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 1 · result": {
+      "main": [
+        [
+          {
+            "node": "Step 2 · best-fit style",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 2 · best-fit style": {
+      "main": [
+        [
+          {
+            "node": "Mismatch?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Chat: step 2 failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mismatch?": {
+      "main": [
+        [
+          {
+            "node": "Keep or take?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No style given",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep or take?": {
+      "main": [
+        [
+          {
+            "node": "Style choice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Style choice": {
+      "main": [
+        [
+          {
+            "node": "Chat: building",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No style given": {
+      "main": [
+        [
+          {
+            "node": "Chat: building",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat: building": {
+      "main": [
+        [
+          {
+            "node": "Pipeline request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pipeline request": {
+      "main": [
+        [
+          {
+            "node": "Run pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run pipeline": {
+      "main": [
+        [
+          {
+            "node": "Recipe ok?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Chat: pipeline call failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recipe ok?": {
+      "main": [
+        [
+          {
+            "node": "Read sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Step names and failure text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read sheet": {
+      "main": [
+        [
+          {
+            "node": "Chat: sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat: sheet": {
+      "main": [
+        [
+          {
+            "node": "Accept?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Accept?": {
+      "main": [
+        [
+          {
+            "node": "Accepted?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Accepted?": {
+      "main": [
+        [
+          {
+            "node": "Accept recipe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Accept recipe": {
+      "main": [
+        [
+          {
+            "node": "Chat: saved as final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step names and failure text": {
+      "main": [
+        [
+          {
+            "node": "Chat: run failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  }
+}

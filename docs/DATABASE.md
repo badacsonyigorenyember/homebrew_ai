@@ -390,6 +390,7 @@ erDiagram
         numeric srm
         text calc_version
         jsonb process "water, mash, boil, fermentation, packaging (m7-process)"
+        text sheet "Markdown recipe sheet, step 16 (m8)"
     }
     recipe_item {
         bigint recipe_id FK
@@ -467,13 +468,15 @@ Saving (`db/048_save_recipe.sql`; no LLM): `app.save_recipe(run_id, step3, targe
 
 The process (m7-process Task 8, same file): `app.recipe_process(step10, step12, step13, step14, step15) returns jsonb` builds `{water, mash, boil, fermentation, packaging}` (step 12's output, step 13's `mash` and `boil`, step 14's, step 15's; contract `process.output`) and raises `recipe_process: mash <x> is not step 10's <y>` (or `boil ...`) when step 13's mash temperature or boil differ from step 10's. Given as `process` to `app.save_recipe`, it is stored in `app.recipe.process`, and each yeast row takes its `amount` and `unit` from `process.fermentation.pitch` (matched by `ingredient_id`; a yeast missing from it raises). Without `process` (only the stage D tests) the column stays null and a yeast row is 1 pack.
 
+The sheet (m8-recipe-sheet-chat Task 1, `db/054_recipe_sheet.sql`): `app.recipe.sheet text` holds the Markdown sheet step 16 writes. `app.save_sheet(recipe_id, sheet) returns bigint` saves or overwrites it and raises on an empty sheet or an unknown recipe. `app.accept_recipe(recipe_id) returns text` raises when the recipe has no sheet, turns `draft` into `final`, leaves `final` and `brewed` as they are, and returns the status.
+
 Rule 9 (`app.check_rule_9`, `db/032_formulation_check.sql`) calls `app.step4_numbers` with the recipe's `hints`: an unstated OG, FG, IBU or SRM must be where step 4 puts it (within `midpoint_tolerance`), and the ABV target must be `app.abv` of the OG and FG targets within `midpoint_tolerance.abv`. The `formulation_check` input requires `hints`.
 
 Step 3 best-case rating (`db/037_step3.sql`): `app.level_rank(level)` (order of the 5 levels), `app.ingredient_choices(ingredient_id, role)` (usage and dose choices a later step could make: mash or boil; a misc one choice per usage of its row, no dose; hop boil bands, whirlpool, dry hop, feature hops late only; yeast range ends and warm steps) and `app.rate_wanted(style_code, item, role)` (best level over every product the word names and every choice; level null with a reason when it cannot be rated).
 
 Step 3 output (`db/037_step3.sql`): `app.step3_deviations(brief, style)` returns `{deviations, unrated, guidance}` (`step3.output`): numbers, mismatch, conflicts, then each wanted word at its best choice (`out_of_style` / `changes_style` is a deviation; a word that cannot be rated goes to `unrated`). With no style it gives conflicts only and every wanted word unrated. `excluded` and `inventory` are not read.
 
-Function `app.step2_best_style(brief, request, guide_preference)` (db/022_step2.sql) picks the best-fit style: scores both guides (name, numbers with a tightness bonus, words), returns the BJCP pair of a BA winner unless that pair is a catch-all in `app.bjcp_catch_all()`, applies the specialty and mismatch rules and returns the style, alternatives, scores and reasons.
+Function `app.step2_best_style(brief, request, guide_preference, style default null)` (db/022_step2.sql) picks the best-fit style: scores both guides (name, numbers with a tightness bonus, words), returns the BJCP pair of a BA winner unless that pair is a catch-all in `app.bjcp_catch_all()`, applies the specialty and mismatch rules and returns the style, alternatives, scores and reasons. A `style` code the user chose wins over the pick (mismatch null, the pick first in `alt_styles`); an unknown code raises.
 
 Step 0 (`db/038_step0.sql`, no LLM): `app.step0_profile(profile_id)` returns the `step0.output` shape for a profile id, or for the `default` row when the id is null (batch 20 L, efficiency 72 %, boil-off 4 L/h, losses 2 L, grain absorption 1.0 L/kg, six ions 0 = distilled water, `metric`; placeholder until the user can set their own water). The `default` row is inserted only when absent, so a re-run keeps edited values.
 

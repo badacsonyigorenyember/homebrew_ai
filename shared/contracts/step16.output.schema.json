@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "step16.output",
+  "description": "Step 16, the recipe sheet as saved: the recipe it belongs to, the chunks retrieved (chunk id and the topic that found it), the model's checked prose (a sheet.answer), the check result and the length of the Markdown saved in app.recipe.sheet. Absent: sources is empty when no chunk was kept; check.errors is empty when the answer passed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "recipe_id",
+    "sources",
+    "answer",
+    "check",
+    "sheet_chars"
+  ],
+  "properties": {
+    "recipe_id": {
+      "type": "integer"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "chunk_id",
+          "topic"
+        ],
+        "properties": {
+          "chunk_id": {
+            "type": "integer"
+          },
+          "topic": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "answer": {
+      "type": "object"
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "numbers_ok",
+        "citations_ok",
+        "citations",
+        "errors"
+      ],
+      "properties": {
+        "numbers_ok": {
+          "type": "boolean"
+        },
+        "citations_ok": {
+          "type": "boolean"
+        },
+        "citations": {
+          "type": "integer"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "sheet_chars": {
+      "type": "integer"
+    }
+  }
+}

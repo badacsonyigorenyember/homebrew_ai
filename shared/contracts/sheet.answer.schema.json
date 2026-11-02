@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "sheet.answer",
+  "description": "Step 16, the model's answer: prose only. Code writes every quantity of the recipe sheet. Absent: an empty cite list on a line means no source supports it.",
+  "type": "object",
+  "required": ["style_description", "why", "notes"],
+  "additionalProperties": false,
+  "properties": {
+    "style_description": { "type": "string", "minLength": 1 },
+    "why": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "text", "cite"],
+        "additionalProperties": false,
+        "properties": {
+          "key": { "type": "string", "minLength": 1 },
+          "text": { "type": "string", "minLength": 1 },
+          "cite": { "type": "array", "items": { "type": "integer" } }
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["text", "cite"],
+        "additionalProperties": false,
+        "properties": {
+          "text": { "type": "string", "minLength": 1 },
+          "cite": { "type": "array", "items": { "type": "integer" } }
+        }
+      }
+    }
+  }
+}

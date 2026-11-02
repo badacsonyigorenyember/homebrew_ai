@@ -934,3 +934,32 @@ def test_grade_process_packaging_extras():
     no["packaging"] = {"extras": [{"ingredient_id": 2, "name": "Vanilla beans", "g": 5}]}
     assert not grade.grade_process(b, no)["process_ok"]
     assert not grade.grade_process(b, _process())["process_ok"]  # no packaging extras at all
+
+
+# --- recipe sheet (docs/work/m8-recipe-sheet-chat, Task 8) ---------------------------------------
+def _step16(numbers_ok=True, citations_ok=True, citations=3):
+    return {"recipe_id": 1, "check": {"numbers_ok": numbers_ok, "citations_ok": citations_ok,
+                                       "citations": citations, "errors": []}}
+
+
+def test_grade_sheet_ok():
+    g = grade.grade_sheet({"sheet": "# Sheet"}, _step16())
+    assert g == {"saved": True, "numbers_ok": True, "citations_ok": True, "citations": 3, "verdict": "ok n=3"}
+
+
+def test_grade_sheet_failed_checks():
+    assert grade.grade_sheet({"sheet": "x"}, _step16(numbers_ok=False))["verdict"] == "FAIL(numbers)"
+    assert grade.grade_sheet({"sheet": "x"}, _step16(citations_ok=False))["verdict"] == "FAIL(citations)"
+    both = grade.grade_sheet({"sheet": "x"}, _step16(numbers_ok=False, citations_ok=False))
+    assert both["verdict"] == "FAIL(numbers,citations)"
+
+
+def test_grade_sheet_none_without_a_sheet_and_dash_without_a_recipe():
+    g = grade.grade_sheet({"sheet": None}, None)
+    assert g["verdict"] == "NONE" and not g["saved"] and g["citations"] == 0
+    assert grade.grade_sheet(None, None)["verdict"] == "-"
+    assert not grade.grade_sheet(None, None)["saved"]
+
+
+def test_grade_sheet_saved_without_a_check_is_unchecked():
+    assert grade.grade_sheet({"sheet": "x"}, None)["verdict"] == "UNCHECKED"

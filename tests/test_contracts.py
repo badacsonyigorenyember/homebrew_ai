@@ -8,8 +8,8 @@ import pytest
 from loaders.db import connect
 
 CONTRACTS = Path(__file__).resolve().parent.parent / "shared" / "contracts"
-NAMES = [f"step{n}.{side}" for n in range(16) for side in ("input", "output")]
-NAMES += ["choose.input", "choose.proposal"]
+NAMES = [f"step{n}.{side}" for n in range(17) for side in ("input", "output")]
+NAMES += ["choose.input", "choose.proposal", "sheet.answer"]
 NAMES += ["process.input", "process.output"]
 NAMES += [f"formulation_check.{side}" for side in ("input", "output")]
 NAMES += [f"try.{side}" for side in ("input", "output")]
@@ -34,6 +34,7 @@ ABSENT_SLOTS = {
     "step13.output": [("boil.whirlpool", "array")],
     "step14.output": [("pitch.cells_billion", "null"), ("dry_hops", "array"), ("secondary.contact_days", "null")],
     "step15.output": [("co2.range", "null"), ("extras", "array")],
+    "step16.output": [("sources", "array"), ("check.errors", "array")],
     "process.output": [("fermentation.pitch.cells_billion", "null"), ("water.salts", "array")],
     "try.output": [("next_feedback", "null")],
 }
@@ -68,6 +69,8 @@ def test_contract_files_complete():
             assert schema.get(key), f"{name}: {key} missing"
         assert schema["type"] == "object"
         optional = {"temperature", "seed"} if name == "step1.input" else set()
+        if name == "step2.input":
+            optional = {"style"}
         if name == "formulation_check.input":
             optional = {"extras"}
         assert set(schema["required"]) == set(schema["properties"]) - optional, name
@@ -318,7 +321,16 @@ STEP15_OUT = {
 }
 PROCESS_OUT = {"water": STEP12_OUT, "mash": STEP13_OUT["mash"], "boil": STEP13_OUT["boil"],
                "fermentation": STEP14_OUT, "packaging": STEP15_OUT}
+SHEET_ANSWER = {"style_description": "A hoppy pale beer.", "why": [{"key": "style", "text": "It fits.", "cite": [7]}],
+                "notes": [{"text": "Dry hop late.", "cite": []}]}
+STEP16_OUT = {
+    "recipe_id": 530, "sources": [{"chunk_id": 7, "topic": "style"}], "answer": SHEET_ANSWER,
+    "check": {"numbers_ok": True, "citations_ok": True, "citations": 1, "errors": []}, "sheet_chars": 4200,
+}
 GOOD = {
+    "step16.input": {"run_id": 1, "recipe_id": 530, "model": "gemma4:12b", "think": False, "temperature": 0,
+                     "seed": 42, "sheet_chunks": 3},
+    "step16.output": STEP16_OUT,
     "process.input": {"run_id": 1, "brief": BRIEF, "profile": GOOD_PROFILE, "targets": STEP4_OUT, "step10": STEP10_OUT},
     "process.output": PROCESS_OUT,
     **_CHOOSE_OUT,
@@ -351,6 +363,8 @@ GOOD = {
     "choose.input": {"run_id": 1, "brief": BRIEF, "style": STEP2_OUT, "profile": GOOD_PROFILE, "targets": STEP4_OUT,
                      "frame": STEP5_OUT, "model": "gemma4:12b", "think": False, "temperature": 0, "seed": 42, "feedback": None},
     "choose.proposal": PROPOSAL,
+    "sheet.answer": {"style_description": "A dark ale.", "why": [{"key": "style", "text": "It fits.", "cite": []}],
+                     "notes": [{"text": "Keep it warm.", "cite": [1]}]},
     "formulation_check.input": CHECK_IN,
     "formulation_check.output": CHECK_OUT,
     "step0.input": {"run_id": 1, "profile_id": None},
@@ -373,6 +387,10 @@ GOOD = {
     "step5.output": STEP5_OUT,
 }
 BAD = [
+    ("step16.input", {k: v for k, v in GOOD["step16.input"].items() if k != "recipe_id"}),
+    ("step16.input", {**GOOD["step16.input"], "sheet_chunks": "3"}),
+    ("step16.output", {k: v for k, v in STEP16_OUT.items() if k != "answer"}),
+    ("step16.output", {**STEP16_OUT, "check": {**STEP16_OUT["check"], "citations": "1"}}),
     ("process.input", {k: v for k, v in GOOD["process.input"].items() if k != "step10"}),
     ("process.input", {**GOOD["process.input"], "run_id": "1"}),
     ("process.output", {k: v for k, v in PROCESS_OUT.items() if k != "packaging"}),
@@ -459,6 +477,19 @@ def test_good_examples(conn, name):
 @pytest.mark.parametrize("name,value", BAD, ids=[f"{n}-{i}" for i, (n, _) in enumerate(BAD)])
 def test_bad_examples(conn, name, value):
     assert len(errors(conn, name, value)) >= 1
+
+
+def test_sheet_answer_has_an_absent_slot():
+    """The model's answer has no `.output` name, so its absent slot is checked here: an empty cite list."""
+    schema = load("sheet.answer")
+    assert _walk(schema, "why.cite")["type"] == "array" and _walk(schema, "notes.cite")["type"] == "array"
+
+
+@pytest.mark.stack
+def test_step2_input_style_is_optional(conn):
+    assert errors(conn, "step2.input", {**GOOD["step2.input"], "style": "20C"}) == []
+    assert errors(conn, "step2.input", {**GOOD["step2.input"], "style": None}) == []
+    assert errors(conn, "step2.input", {**GOOD["step2.input"], "style": 5}) != []
 
 
 @pytest.mark.stack
