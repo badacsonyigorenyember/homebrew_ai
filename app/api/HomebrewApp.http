@@ -1,0 +1,6 @@
+@HomebrewApp_HostAddress = http://localhost:5080
+
+GET {{HomebrewApp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
