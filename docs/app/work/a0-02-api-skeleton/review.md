@@ -1,0 +1,43 @@
+# Review: a0-02 · API skeleton
+
+## Round 1 · 2026-11-02 · ce0b1d3
+
+Reviewed: everything on `a0-02-api-skeleton` against `main`: `app/.gitignore`,
+`app/HomebrewApp.slnx`, all of `app/api/`, read in full. Also the uncommitted "Run the API" section
+in `app/README.md`, which Claude wrote at your request in this session (so it isn't judged as your
+work, only checked against what runs).
+
+Checks: `dotnet build --no-incremental` in `app/`: ok, 0 warnings, 0 errors · `dotnet test`: no
+test project yet (comes with the test lesson) · `dotnet run --project api`: listens on
+`http://localhost:5080`, environment `Development` · csharp-ls resolves `app.Map()` in
+`Program.cs` to your extension method, no errors · `git ls-files app`: no `bin/` or `obj/`, and
+`app/.idea/` stays ignored by the root `.gitignore` · skill `dotnet-aspnetcore:dotnet-webapi` not
+needed beyond the minimal-API docs linked below, as there is one endpoint.
+
+| AC | Met | How checked |
+|---|---|---|
+| AC1 | yes | `curl -i http://localhost:5080/api/health`: `HTTP/1.1 200 OK`, `Content-Type: application/json; charset=utf-8`, body `{"status":"ok"}` |
+| AC2 | yes | `/openapi/v1.json` (OpenAPI 3.1.1): `paths./api/health.get.responses.200` refers to `#/components/schemas/HealthResponse`, an object with a required `status` string. `/weatherforecast` is gone |
+| AC3 | yes | `dotnet build --no-incremental`: `0 Warning(s)`, `0 Error(s)` |
+| AC4 | yes | `Program.cs` has builder, `AddOpenApi()`, `Build()`, Development-only `MapOpenApi()`, one feature call, `Run()`. No `MapGet`, no lambda |
+
+Nothing outside the ticket was built.
+
+| # | Axis | Severity | Where | Finding | Why it matters | Learn more |
+|---|---|---|---|---|---|---|
+| 1 | Standards | should fix | `app/api/Features/Health/Health.cs:9`, `app/api/Program.cs:17` | The feature's map method is called `Map`. In `Program.cs` the line reads `app.Map();`, which doesn't say which feature it maps, and ASP.NET Core already has its own `Map(...)` methods on the same builder. Checked in a scratch copy: adding a second feature (`Batches`) with the same `Map` name and its `using` makes `Program.cs` fail with `CS0121: The call is ambiguous between … Health.Map(…) and … Batches.Map(…)`. Give the method a name that carries the feature (the `Map<Feature>` shape the lesson used, e.g. `MapHealth`). | `Program.cs` is meant to be a table of contents. With one generic name per feature it can't be read, and the second feature (a1-06) won't compile. | [Extension methods: binding at compile time](https://learn.microsoft.com/dotnet/csharp/programming-guide/classes-and-structs/extension-methods#binding-extension-members-at-compile-time) · [CS0121](https://learn.microsoft.com/dotnet/csharp/misc/cs0121) |
+| 2 | Standards | should fix | `app/api/Features/Health/Health.cs:3, 7` | The class `Health` sits in the namespace `HomebrewApp.Features.Health`: a type with the same name as its own namespace. .NET's design guidelines say not to do this, because code outside the namespace (your test project in the next step, for one) has to fully qualify the type when `Health` could mean either. A name that says what the class holds, such as `HealthEndpoints`, avoids it and is a pattern every feature folder can copy. After renaming, check the OpenAPI `tags` entry: it is `Health` now and seems to come from the class name, so the rename may change it; `WithTags` sets it explicitly if you want to keep `Health`. | Every feature will repeat this layout (`Features/Batches/…`), so the naming choice is made once for all of them. | [Names of namespaces](https://learn.microsoft.com/dotnet/standard/design-guidelines/names-of-namespaces) ("DO NOT use the same name for a namespace and a type in that namespace") · [CA1724](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1724) · [WithTags](https://learn.microsoft.com/aspnet/core/fundamentals/openapi/include-metadata?view=aspnetcore-10.0#tags) |
+| 3 | Standards | nice to have | `app/api/HomebrewApp.http:3` | The request calls `/api/health/` with a trailing slash. It works (it answers 200), but the endpoint, the OpenAPI document and the README all say `/api/health`. | The `.http` file is a small piece of documentation; it should show the exact path. | — |
+| 4 | Standards | nice to have | `app/api/Program.cs:19`, `app/api/Features/Health/Health.cs:20` | Both files end without a final newline (the same thing came up in a0-01). Rider can add it on save: Settings → Editor → General → "Ensure every saved file ends with a line break". | Without it, the next line added at the end shows the old last line as changed too. | — |
+
+Done well:
+
+- `TypedResults.Ok` with a named record (`HealthResponse`) gives AC2 for free: OpenAPI has a named,
+  reusable schema with `status` marked required. That is what a2-02 will turn into a TypeScript type.
+- The handler is a named `private static` method, mapped by a method group rather than a lambda,
+  and `Program.cs` lost the whole weather sample. The template comments you kept are still true.
+- You ran `dotnet new gitignore` before the first build and created the project with `--no-https`,
+  so the branch has no build output and only the one port the ticket asks for.
+
+Verdict: ready for tests. Findings 1 and 2 are best fixed before you write the test, since they
+rename what the test project will see; say "tests" when you want the test lesson.
