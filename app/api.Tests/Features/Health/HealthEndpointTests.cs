@@ -13,6 +13,8 @@ public class HealthEndpointTests(WebApplicationFactory<Program> factory) : IClas
 
         var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, "/api/health"));
 
+        Assert.True(response.IsSuccessStatusCode);
+        
         var jsonString = await response.Content.ReadAsStringAsync();
         var healthResponse = JsonConvert.DeserializeObject<HealthResponse>(jsonString);
 
