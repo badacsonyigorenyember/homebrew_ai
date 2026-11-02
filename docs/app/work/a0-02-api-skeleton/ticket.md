@@ -1,6 +1,6 @@
 # a0-02 · API skeleton
 
-Stage: tests
+Stage: test-review
 Branch: `a0-02-api-skeleton`
 Milestone: M0 · Requirements: — (§3, §5) ([SYSTEM.md](../SYSTEM.md))
 Blocked by: a0-01

@@ -79,3 +79,48 @@ Done well:
 - Each fix is its own small commit with a message that says what changed.
 
 Verdict: ready for tests
+
+# Test review
+
+## Round 1 · 2026-11-02 · 7c7929d
+
+Reviewed: `3523ed9 init tests project` and `7c7929d add healthcheck test`: `app/HomebrewApp.slnx`,
+`app/api.Tests/HomebrewApp.Tests.csproj`, `app/api.Tests/Features/Health/HealthEndpointTests.cs`,
+read in full.
+
+Checks: `dotnet build --no-incremental` in `app/`: ok, 0 warnings, 0 errors · `dotnet test`:
+`Passed! - Failed: 0, Passed: 1` · `Program.cs` unchanged (no `public partial class Program`) ·
+no `bin/` or `obj/` tracked · `dotnet nuget why … Newtonsoft.Json`: only through
+`Microsoft.NET.Test.Sdk` → `Microsoft.TestPlatform.TestHost` → `Newtonsoft.Json` 13.0.3.
+
+Break-the-code check, one change at a time in `app/api/Features/Health/HealthEndpoints.cs`, the
+file copied first and copied back after each run; `git diff` on it was empty again at the end:
+
+| # | Break | Test result | Should it fail? |
+|---|---|---|---|
+| B1 | handler returns `"okay"` instead of `"ok"` | failed: `Assert.Equal() Failure: Strings differ`, expected `"ok"`, actual `"okay"` | yes, and the message says exactly what broke |
+| B2 | route changed to `/api/healthz` | failed: `Assert.NotNull() Failure: Value is null` | yes, but the message hides the cause (a 404) |
+| B3 | JSON key written as `"Status"` (a `JsonPropertyName("Status")` on the record) | **passed** | yes: AC1 promises `{"status":"ok"}` |
+| B4 | answer is status 202 with the same body | **passed** | yes: AC1 and the ticket's `## Tests` ask for 200 |
+
+| Test | Behaviour | Would it fail? | Needed? | Reliable? |
+|---|---|---|---|---|
+| `HealthCheckTest` | half of AC1: checks the value, not the status code or the exact key | for B1 and B2; not for B3 or B4 | yes, it is the ticket's one test | yes: in-memory server, no time, order or network |
+
+| # | Axis | Severity | Where | Finding | Why it matters | Learn more |
+|---|---|---|---|---|---|---|
+| 1 | Spec | must fix | `app/api.Tests/Features/Health/HealthEndpointTests.cs:14-21` | The test never checks the status code. B4 shows it: with 202 the test still passes. With a status check placed straight after the request (before reading the body), B2 would also fail with `Expected: OK, Actual: NotFound` instead of `Value is null`. | The ticket's `## Tests` asks for "returns 200 and status `ok`", and AC1 says 200. A failing test's first message should name the cause. | [test lesson, step 4](test-lesson.md#steps) · [Integration tests: basic tests](https://learn.microsoft.com/aspnet/core/test/integration-tests?view=aspnetcore-10.0&pivots=xunit#basic-tests-with-the-default-webapplicationfactory) |
+| 2 | Spec | must fix | `HealthEndpointTests.cs:3, 17` | The body is read with Newtonsoft.Json (`JsonConvert.DeserializeObject`). Two problems. Newtonsoft matches property names case-insensitively by default, so B3 (`"Status"`) passes, and AC1's exact key is not checked. And the package isn't in your `.csproj`: it compiles only because the test SDK happens to bring it along (`Microsoft.TestPlatform.TestHost` depends on it), so a test SDK update could drop it and break the build. The app itself uses System.Text.Json. Read the body with `System.Text.Json` and look the key up case-sensitively, as the test lesson describes. | A TypeScript client (a0-04) reads `status`; a test that accepts `Status` lets that break through. And depending on a package by accident means a build that can break without any change of yours. | [test lesson, "Reading the JSON answer"](test-lesson.md#reading-the-json-answer) · [`JsonElement.GetProperty`](https://learn.microsoft.com/dotnet/api/system.text.json.jsonelement.getproperty) ("ordinal, case-sensitive comparison") · [`dotnet nuget why`](https://learn.microsoft.com/dotnet/core/tools/dotnet-nuget-why) |
+| 3 | Standards | should fix | `HealthEndpointTests.cs:10` | `HealthCheckTest` names the area, not the behaviour. When it fails, the name should already say what was expected, for example request plus expected answer. | With a hundred tests in M1, the names in the failure list are what you read first. | [test lesson, Patterns](test-lesson.md#patterns) · [Unit testing best practices: naming](https://learn.microsoft.com/dotnet/core/testing/unit-testing-best-practices#follow-test-naming-standards) |
+| 4 | Standards | nice to have | `HealthEndpointTests.cs:14` | `client.SendAsync(new HttpRequestMessage(HttpMethod.Get, …))` does what `client.GetAsync("/api/health")` does in one call, and the `HttpRequestMessage` is never disposed. | Shorter act line; nothing left undisposed. | [`HttpClient.GetAsync`](https://learn.microsoft.com/dotnet/api/system.net.http.httpclient.getasync) |
+| 5 | Standards | nice to have | `HealthEndpointTests.cs:7`, `HomebrewApp.Tests.csproj:26` | The class under test is `HealthEndpoints`, so its tests read best as `HealthEndpointsTests` (and the file to match). The `.csproj` has no final newline. | Finding a class's tests by name stays mechanical. | — |
+
+Done well:
+
+- The class fixture with a primary constructor is exactly the pattern from the lesson: one factory
+  for the class, `CreateClient()` per test, no port, no `Program.cs` change.
+- The test lives in `api.Tests/Features/Health/` with the namespace
+  `HomebrewApp.Tests.Features.Health`, mirroring the API. Every later feature can copy it.
+- The expected value `"ok"` and the path are literals in the test, so B1 and B2 are caught.
+
+Verdict: fixes needed
