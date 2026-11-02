@@ -124,3 +124,47 @@ Done well:
 - The expected value `"ok"` and the path are literals in the test, so B1 and B2 are caught.
 
 Verdict: fixes needed
+
+## Round 2 · 2026-11-02 · a8b93af
+
+Reviewed: `9a8905b add status code assertion`, `bc6680f use not typed json deserializing …`,
+`2c33376 rename class and use simpler fetching`, `a8b93af add new line`.
+Read in full: `app/api.Tests/Features/Health/HealthEndpointsTests.cs`,
+`app/api.Tests/HomebrewApp.Tests.csproj`.
+
+Checks: `dotnet build --no-incremental` in `app/`: ok, 0 warnings, 0 errors · `dotnet test`:
+`Passed! - Failed: 0, Passed: 1` · no Newtonsoft left in the tests.
+
+Break-the-code check, same four breaks as round 1, same copy-and-restore; `git diff` on
+`HealthEndpoints.cs` empty at the end:
+
+| # | Break | Round 1 | Round 2 |
+|---|---|---|---|
+| B1 | `"okay"` instead of `"ok"` | failed | failed: `Strings differ`, expected `"ok"`, actual `"okay"` |
+| B2 | route `/api/healthz` | failed (`Value is null`) | failed: `Assert.True() Failure, Expected: True, Actual: False` |
+| B3 | JSON key `"Status"` | passed | **failed**: `KeyNotFoundException` from `GetProperty("status")` |
+| B4 | status 202, same body | passed | **still passed** |
+
+Round 1 findings:
+
+| # | Status |
+|---|---|
+| 1 | still open: see finding 6 |
+| 2 | fixed: System.Text.Json with `JsonDocument` and a case-sensitive `GetProperty`; B3 now fails |
+| 3 | still open: the method is still `HealthCheckTest` |
+| 4 | fixed: `GetAsync`, no undisposed request message |
+| 5 | fixed: `HealthEndpointsTests` (file renamed too); final newline in the `.csproj` |
+
+| # | Axis | Severity | Where | Finding | Why it matters | Learn more |
+|---|---|---|---|---|---|---|
+| 6 | Spec | must fix | `app/api.Tests/Features/Health/HealthEndpointsTests.cs:15` | `Assert.True(response.IsSuccessStatusCode)` accepts every 2xx status, so B4 (202) still passes. AC1 and the ticket's `## Tests` ask for 200 exactly. Compare the response's `StatusCode` with `HttpStatusCode.OK` using `Assert.Equal`; that also turns B2's message into `Expected: OK, Actual: NotFound` instead of `Expected: True, Actual: False`. | A test should fail when the promise it covers is broken, and its message should name what changed. | [`HttpResponseMessage.IsSuccessStatusCode`](https://learn.microsoft.com/dotnet/api/system.net.http.httpresponsemessage.issuccessstatuscode) ("in the range 200-299") · [`HttpStatusCode`](https://learn.microsoft.com/dotnet/api/system.net.httpstatuscode) |
+| 3 | Standards | should fix | `HealthEndpointsTests.cs:9` | Still open from round 1: the name `HealthCheckTest` doesn't say what is expected. | The failure list shows names first. | [Unit testing best practices: naming](https://learn.microsoft.com/dotnet/core/testing/unit-testing-best-practices#follow-test-naming-standards) |
+| 7 | Standards | nice to have | `HealthEndpointsTests.cs:20, 23` | The comment says `'Status' (case-sensitive)` while the code looks up `status`: the comment names the wrong key. Line 23 ends with `}    }` (the method's closing brace on the assertion line), and lines 14, 16, 19, 21 and 22 carry trailing spaces. Rider's Reformat Code fixes the layout. | A comment that contradicts the code costs the next reader more than no comment. | [Rider: apply formatting rules](https://www.jetbrains.com/help/rider/Enforcing_Code_Formatting_Rules.html) |
+
+Done well:
+
+- `JsonDocument` with `using` and `GetProperty("status")`: the exact-key contract is now tested,
+  and your commit message says why (what the TypeScript client will do).
+- One fix per commit, each message saying what changed.
+
+Verdict: fixes needed
