@@ -3,7 +3,7 @@
 Stage: ready
 Branch: `a1-01-tailwind-shadcn`
 Milestone: M1 · Requirements: F1.5, F1.6 (base) ([SYSTEM.md](../SYSTEM.md))
-Blocked by: a0-06
+Blocked by: a0-04
 
 ## Goal
 The app has its styling system: Tailwind for layout and spacing, shadcn/ui for components, light and

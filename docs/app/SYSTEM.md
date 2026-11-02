@@ -103,7 +103,7 @@ Each requirement has an id (`F2.3`) that tickets cite.
 
 ### F1 · App shell
 
-- **F1.1** A left menu with Inventory, Recipes, Batches, Devices and Settings.
+- **F1.1** A left menu with Batches, Recipes, Inventory, Devices and Settings; `/` opens Batches.
 - **F1.2** Views open as tabs: opening a view that is already open focuses its tab; tabs can be
   closed; the open tabs survive a page reload.
 - **F1.3** The AI panel is docked on the right and can be collapsed.
@@ -114,7 +114,9 @@ Each requirement has an id (`F2.3`) that tickets cite.
 
 ### F2 · Inventory
 
-Existing table `app.inventory`, one profile (`app.brewer_profile` row `default`).
+Existing table `app.inventory`, one profile (`app.brewer_profile` row `default`). Inventory is
+optional: nothing else in the app needs it, so you can plan and brew a batch without entering
+any.
 
 - **F2.1** A list of items with name, kind, amount and unit, searchable by name and filterable by
   kind (fermentable, hop, yeast, misc).
@@ -191,17 +193,17 @@ screen the stepper becomes a "Brew day · 3/9" dropdown and the recipe moves bel
 ### F6 · AI panel
 
 - **F6.1** A streaming chat; sessions and messages are saved.
-- **F6.2** **Read tools:** inventory, recipes, batches with their steps, readings, and book
-  knowledge through `app.kb_search`, answered with citations.
+- **F6.2** **Read tools:** inventory (added with M7), recipes, batches with their steps,
+  readings, and book knowledge through `app.kb_search`, answered with citations.
 - **F6.3** **UI tool** `open_view(view, params)`: the API sends it to the UI as an SSE event; the
   UI checks it with a Zod schema and opens or focuses the tab. An unknown view is refused and
   reported back to the agent.
 - **F6.4** **Recipe tool** `create_recipe(brief)`: passes **your message word for word** to the
   pipeline (F3.3). The agent never designs, summarises or rewrites the brief.
-- **F6.5** **Write tools with confirm cards:** update an inventory item, add a batch step, set a
-  step's actual values or note. A write tool never changes data itself: it creates a proposal,
-  the UI shows exactly what will change, and only your click calls the API. Rejected and applied
-  proposals are kept.
+- **F6.5** **Write tools with confirm cards:** update an inventory item (added with M7), add a
+  batch step, set a step's actual values or note. A write tool never changes data itself: it
+  creates a proposal, the UI shows exactly what will change, and only your click calls the API.
+  Rejected and applied proposals are kept.
 - **F6.6** Extra prep steps (a tincture, a starter) are proposed through F6.5 ("add batch step"),
   with `app.kb_search` sources; the agent never changes generated steps or their numbers.
 - **F6.7** A test set of chat messages, each with the tool it should call, measures tool choice;
@@ -263,24 +265,26 @@ The API connects as its own Postgres role: read and write on its `app` tables, r
 
 ## 10. How the work is done
 
-**Milestones.** Everything runs in the browser on Linux until M7.
+**Milestones.** Brewing first: M0 and M1 are the shortest path to brewing with the app.
+Everything runs in the browser on Linux until M8.
 
 | # | Milestone | Delivers |
 |---|---|---|
-| M0 | Foundations | toolchain (.NET 10 SDK, Node, editor), `app/api` and `app/web` set up, one endpoint the page calls, API key and CORS, both test projects running |
-| M1 | App shell | F1 |
-| M2 | Inventory | the API's Postgres role and EF mapping, F2 |
-| M3 | Recipes | F3 |
-| M4 | Batches | F4, the generator in slices (brew day, then ferment, condition, package) |
+| M0 | Foundations | toolchain (.NET 10 SDK, Node, editor), `app/api` and `app/web` set up, one endpoint the page calls, both test projects running |
+| M1 | Brew day | Tailwind and shadcn, menu and routes (F1.1, F1.5), the API's Postgres role and EF mapping, the test database, the batch tables, a batch created from a recipe (F4.1), the Brew day slice of the generator (F4.4), ticking (F4.8), planned and actual values with notes (F4.9) |
+| M2 | Hardening and app shell | API key and CORS, generated API types, tabs, AI panel shell, settings, shared states (F1.2-F1.4, F1.6) |
+| M3 | Batches, the rest | the rest of F4: stepper and other phases, the other generator slices, dates, your own steps, order, timers, batch recipe edits, lock, measured ABV |
+| M4 | Recipes | F3 |
 | M5 | Pill | F5, the RAPT API checked first |
-| M6 | AI panel | F6 |
-| M7 | Desktop | Tauri on Linux, the API in `docker-compose.yml`, a Windows build |
-| M8 | Android | Tauri Android, the phone layout pass, LAN setup |
+| M6 | AI panel | F6 without the inventory tools |
+| M7 | Inventory | F2 and the AI panel's inventory tools |
+| M8 | Desktop | Tauri on Linux, the API in `docker-compose.yml`, a Windows build |
+| M9 | Android | Tauri Android, the phone layout pass, LAN setup |
 
 **Tickets.** One ticket is the smallest slice that works end to end, sized for one to three
-sittings. Ids are `a<milestone>-<nn>-<slug>` (`a2-03-inventory-add`); the folder name is also the
-branch name. M0 to M2 are written in full first; later milestones get a one-line list in
-[`README.md`](README.md) and are written in full when the milestone before them is done.
+sittings. Ids are `a<milestone>-<nn>-<slug>` (`a1-06-create-batch-api`); the folder name is also the
+branch name. M0 to M2 and M7 are written in full (M7 was written before the
+reorder); the others get a one-line list in [`README.md`](README.md) and are written in full when the milestone before them is done.
 
 ```
 docs/app/<id>/
@@ -331,7 +335,7 @@ Open:
 | # | Question | Checked when |
 |---|---|---|
 | O4 | RAPT cloud: history retention and rate limits (unverified; community tools show `GetTelemetry` with start and end dates) | start of M5, with your API key |
-| O5 | Tauri Android maturity for this app | start of M8. It can wait: the UI is a plain web app talking HTTP, so if Tauri Android falls short the same build can be wrapped another way (for example Capacitor, or installed as a web app), and no earlier code depends on Tauri |
+| O5 | Tauri Android maturity for this app | start of M9. It can wait: the UI is a plain web app talking HTTP, so if Tauri Android falls short the same build can be wrapped another way (for example Capacitor, or installed as a web app), and no earlier code depends on Tauri |
 
 PROJECT.md changes this design makes (agreed 2026-10-31):
 
@@ -345,4 +349,10 @@ PROJECT.md changes this design makes (agreed 2026-10-31):
 - 2026-10-31 · Approved with: BeerJSON only (no BeerXML); O1, O2, O3 decided; O4 and O5 stay
   open until M5 and M8.
 - 2026-10-31 · §4 API tests: the test database uses the stack's `supabase/postgres` image, because
-  `db/015_app.sql` needs `pg_jsonschema` (found while writing ticket a2-02).
+  `db/015_app.sql` needs `pg_jsonschema` (found while writing ticket a2-02, now a1-04).
+- 2026-11-02 · Brewing first: M1 is now the Brew day slice (menu and routes, the database role and
+  test database, batch tables, create a batch, brew-day steps, ticking, actual values); API key,
+  generated types and the rest of the shell move to M2; inventory is optional (F2) and moves to M7
+  with the AI panel's inventory tools; Recipes become M4, Desktop M8, Android M9. Tickets
+  renumbered to match (old a0-05/06 → a2-01/02, a1-03..06 → a2-03..06, a2-01/02 → a1-03/04,
+  a2-03..09 → a7-01..07).

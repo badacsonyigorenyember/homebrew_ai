@@ -9,8 +9,8 @@ Blocked by: a1-01
 The app has its frame: a menu on the left, a view on the right, and a URL for every view.
 
 ## What to build
-- React Router with routes `/inventory`, `/recipes`, `/batches`, `/devices`, `/settings`; `/` goes
-  to `/inventory`; an unknown path shows a "not found" view.
+- React Router with routes `/batches`, `/recipes`, `/inventory`, `/devices`, `/settings`; `/` goes
+  to `/batches`; an unknown path shows a "not found" view.
 - A layout with the left menu (the five items) and the main area; the current item is highlighted.
 - Below the medium breakpoint the menu becomes a drawer opened by a button.
 - Each route shows a placeholder page with its title.
@@ -23,11 +23,11 @@ The app has its frame: a menu on the left, a view on the right, and a URL for ev
 - **AC4** Everything works by keyboard: Tab reaches each menu item, Enter opens it.
 
 ## Tests
-Needed: component tests with a memory router: `/` lands on Inventory; a menu link shows its page; an
+Needed: component tests with a memory router: `/` lands on Batches; a menu link shows its page; an
 unknown path shows "not found".
 
 ## Out of scope
-- Tabs (a1-03).
+- Tabs (a2-03).
 
 ## Deviations
 

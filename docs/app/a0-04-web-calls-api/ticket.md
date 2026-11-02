@@ -25,8 +25,8 @@ The page shows whether the API is up, using TanStack Query instead of hand-writt
 Needed: MSW fakes `/api/health`; component tests for `ok` and `down`.
 
 ## Out of scope
-- The API key (a0-05).
-- Generated types (a0-06).
+- The API key (a2-01).
+- Generated types (a2-02).
 
 ## Deviations
 

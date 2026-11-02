@@ -30,7 +30,7 @@ Needed. First .NET test lesson: an xUnit project `app/api.Tests` that starts the
 `WebApplicationFactory` and checks `GET /api/health` returns 200 and status `ok`.
 
 ## Out of scope
-- The API key, CORS (a0-05) and the database (a2-01).
+- The API key, CORS (a2-01) and the database (a1-03).
 
 ## Deviations
 

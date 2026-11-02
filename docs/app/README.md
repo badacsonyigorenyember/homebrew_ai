@@ -14,6 +14,12 @@ reviews your tests and ships. See `SYSTEM.md` §10 for the stages.
 Before the first ticket: the `app-design` branch (this folder, `SYSTEM.md` and the app tooling)
 has to be merged into `main`, because every ticket branch starts from `main`.
 
+## Order
+
+Brewing first (decided 2026-11-02): the path to a brew-day checklist is M0 and M1, 14 tickets.
+Hardening and the rest of the shell (M2) come right after; inventory is optional for brewing and
+comes last of the features (M7). Milestones are worked in order.
+
 ## M0 · Foundations
 
 | Ticket | Title | Blocked by | Stage |
@@ -22,46 +28,59 @@ has to be merged into `main`, because every ticket branch starts from `main`.
 | [a0-02](a0-02-api-skeleton/ticket.md) | API skeleton | a0-01 | ready |
 | [a0-03](a0-03-web-skeleton/ticket.md) | Web skeleton | a0-01 | ready |
 | [a0-04](a0-04-web-calls-api/ticket.md) | The page calls the API | a0-02, a0-03 | ready |
-| [a0-05](a0-05-api-key-and-cors/ticket.md) | API key and CORS | a0-04 | ready |
-| [a0-06](a0-06-openapi-types/ticket.md) | Types generated from the API | a0-05 | ready |
 
-## M1 · App shell
+## M1 · Brew day
 
 | Ticket | Title | Blocked by | Stage |
 |---|---|---|---|
-| [a1-01](a1-01-tailwind-shadcn/ticket.md) | Tailwind and shadcn/ui | a0-06 | ready |
+| [a1-01](a1-01-tailwind-shadcn/ticket.md) | Tailwind and shadcn/ui | a0-04 | ready |
 | [a1-02](a1-02-layout-and-routes/ticket.md) | Layout, menu and routes | a1-01 | ready |
-| [a1-03](a1-03-tabs/ticket.md) | Tabs | a1-02 | ready |
-| [a1-04](a1-04-ai-panel-shell/ticket.md) | AI panel shell | a1-02 | ready |
-| [a1-05](a1-05-settings-page/ticket.md) | Settings page | a1-02 | ready |
-| [a1-06](a1-06-shared-states/ticket.md) | Shared loading, empty and error states | a1-05 | ready |
+| [a1-03](a1-03-db-role-and-ef/ticket.md) | The API's database role and EF Core | a1-02 | ready |
+| [a1-04](a1-04-test-database/ticket.md) | Test database | a1-03 | ready |
+| [a1-05](a1-05-batch-tables/ticket.md) | Batch tables | a1-04 | ready |
+| [a1-06](a1-06-create-batch-api/ticket.md) | Create a batch from a recipe | a1-05 | ready |
+| [a1-07](a1-07-batches-page/ticket.md) | Batches page and new batch | a1-06 | ready |
+| [a1-08](a1-08-brew-day-steps/ticket.md) | Brew-day step generator | a1-06 | ready |
+| [a1-09](a1-09-brew-day-checklist/ticket.md) | Brew-day checklist | a1-07, a1-08 | ready |
+| [a1-10](a1-10-brew-day-actuals/ticket.md) | Actual values and notes | a1-09 | ready |
 
-## M2 · Inventory
+## M2 · Hardening and app shell
 
 | Ticket | Title | Blocked by | Stage |
 |---|---|---|---|
-| [a2-01](a2-01-db-role-and-ef/ticket.md) | The API's database role and EF Core | a1-06 | ready |
-| [a2-02](a2-02-test-database/ticket.md) | Test database | a2-01 | ready |
-| [a2-03](a2-03-inventory-list-api/ticket.md) | Inventory list endpoint | a2-02 | ready |
-| [a2-04](a2-04-inventory-list-view/ticket.md) | Inventory list view | a2-03 | ready |
-| [a2-05](a2-05-catalogue-search-api/ticket.md) | Catalogue search endpoint | a2-02 | ready |
-| [a2-06](a2-06-inventory-add-api/ticket.md) | Add inventory item endpoint | a2-03, a2-05 | ready |
-| [a2-07](a2-07-inventory-add-ui/ticket.md) | Add item form | a2-04, a2-06 | ready |
-| [a2-08](a2-08-inventory-edit-delete-api/ticket.md) | Edit and delete endpoints | a2-06 | ready |
-| [a2-09](a2-09-inventory-edit-delete-ui/ticket.md) | Edit and delete in the list | a2-07, a2-08 | ready |
+| [a2-01](a2-01-api-key-and-cors/ticket.md) | API key and CORS | a1-10 | ready |
+| [a2-02](a2-02-openapi-types/ticket.md) | Types generated from the API | a2-01 | ready |
+| [a2-03](a2-03-tabs/ticket.md) | Tabs | a2-01 | ready |
+| [a2-04](a2-04-ai-panel-shell/ticket.md) | AI panel shell | a2-01 | ready |
+| [a2-05](a2-05-settings-page/ticket.md) | Settings page | a2-01 | ready |
+| [a2-06](a2-06-shared-states/ticket.md) | Shared loading, empty and error states | a2-05 | ready |
+
+## M7 · Inventory (written before the reorder; optional for brewing)
+
+| Ticket | Title | Blocked by | Stage |
+|---|---|---|---|
+| [a7-01](a7-01-inventory-list-api/ticket.md) | Inventory list endpoint | a2-06 | ready |
+| [a7-02](a7-02-inventory-list-view/ticket.md) | Inventory list view | a7-01 | ready |
+| [a7-03](a7-03-catalogue-search-api/ticket.md) | Catalogue search endpoint | a2-06 | ready |
+| [a7-04](a7-04-inventory-add-api/ticket.md) | Add inventory item endpoint | a7-01, a7-03 | ready |
+| [a7-05](a7-05-inventory-add-ui/ticket.md) | Add item form | a7-02, a7-04 | ready |
+| [a7-06](a7-06-inventory-edit-delete-api/ticket.md) | Edit and delete endpoints | a7-04 | ready |
+| [a7-07](a7-07-inventory-edit-delete-ui/ticket.md) | Edit and delete in the list | a7-05, a7-06 | ready |
+
+The AI panel's inventory tools (read inventory, update an item) are added at the end of M7.
 
 ## Later milestones (written in full when the milestone before them is done)
 
-- **M3 · Recipes:** list endpoint and view · detail endpoint and view (items, process) · rendered
+- **M3 · Batches, the rest:** the stepper and the Plan, Prep, Ferment, Condition and Package
+  phases · generator slices for ferment, condition and package · brew date moves and pinned dates ·
+  your own steps and reordering · timers · batch recipe edits through the SQL maths and process
+  functions · lock from brew day · measured ABV and attenuation.
+- **M4 · Recipes:** list endpoint and view · detail endpoint and view (items, process) · rendered
   sheet · start a recipe from a brief and follow its run · BeerJSON export.
-- **M4 · Batches:** batch tables (`db/06x`) · create a batch from a recipe (copy) · step generator,
-  brew day slice · generator, ferment, condition and package slices · batch page and stepper ·
-  ticking and actual values with notes · brew date moves and pinned dates · reordering · timers ·
-  batch recipe edits through the SQL maths and process functions · lock from brew day.
 - **M5 · Pill:** check RAPT's API (O4) · device and reading tables · fake telemetry source ·
   background sync with catch-up · RAPT client · assign a device to a batch · charts.
-- **M6 · AI panel:** chat endpoint streaming over SSE · chat UI · saved history · read tools ·
-  `open_view` · `create_recipe` · book questions with citations · proposals and confirm cards ·
-  tool-choice test set and response times.
-- **M7 · Desktop:** Tauri on Linux · the API in `docker-compose.yml` · Windows build.
-- **M8 · Android:** check Tauri Android (O5) · Android build · phone layout pass · LAN setup.
+- **M6 · AI panel:** chat endpoint streaming over SSE · chat UI · saved history · read tools
+  (recipes, batches, readings, books) · `open_view` · `create_recipe` · book questions with
+  citations · proposals and confirm cards · tool-choice test set and response times.
+- **M8 · Desktop:** Tauri on Linux · the API in `docker-compose.yml` · Windows build.
+- **M9 · Android:** check Tauri Android (O5) · Android build · phone layout pass · LAN setup.

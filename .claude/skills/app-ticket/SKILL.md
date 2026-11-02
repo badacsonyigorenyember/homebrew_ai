@@ -1,6 +1,6 @@
 ---
 name: app-ticket
-description: Use when the user names an app ticket (a0-01, a2-03-inventory-list-api) or works in docs/app/<ticket>/ - starting it, asking how to build part of it, asking for a code or test review, or shipping it.
+description: Use when the user names an app ticket (a0-01, a1-06-create-batch-api) or works in docs/app/<ticket>/ - starting it, asking how to build part of it, asking for a code or test review, or shipping it.
 ---
 
 # app-ticket
