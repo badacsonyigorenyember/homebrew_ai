@@ -3,14 +3,14 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace HomebrewApp.Tests.Features.Health;
 
-public class HealthEndpointTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+public class HealthEndpointsTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
 {
     [Fact]
     public async Task HealthCheckTest()
     {
         var client = factory.CreateClient();
 
-        var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, "/api/health"));
+        var response = await client.GetAsync("/api/health");
         
         Assert.True(response.IsSuccessStatusCode);
         
