@@ -14,6 +14,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.Map();
+app.MapHealthEndpoint();
 
 app.Run();

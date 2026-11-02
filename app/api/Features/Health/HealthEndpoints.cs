@@ -4,9 +4,9 @@ namespace HomebrewApp.Features.Health;
 
 public record HealthResponse(string Status);
 
-public static class Health
+public static class HealthEndpoints
 {
-    public static IEndpointRouteBuilder Map(this IEndpointRouteBuilder endpoints)
+    public static IEndpointRouteBuilder MapHealthEndpoint(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet("/api/health", HandleHealthCheck);
         return endpoints;
