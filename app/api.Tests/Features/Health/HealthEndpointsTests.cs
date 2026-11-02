@@ -15,7 +15,7 @@ public class HealthEndpointsTests(WebApplicationFactory<Program> factory)
 
         var response = await client.GetAsync("/api/health");
 
-        Assert.Equal(response.StatusCode, HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         using var document = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
         var root = document.RootElement;
