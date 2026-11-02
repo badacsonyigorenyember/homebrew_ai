@@ -208,3 +208,34 @@ Done well:
 - The test name states the request and the expected answer.
 
 Verdict: fixes needed (one swap, then it is ready to ship)
+
+## Round 4 · 2026-11-02 · bed4f40
+
+Reviewed: `bed4f40 swap assertion parameters` (one line in
+`app/api.Tests/Features/Health/HealthEndpointsTests.cs`).
+
+Checks: `dotnet build --no-incremental` in `app/`: ok, 0 warnings, 0 errors · `dotnet test`:
+`Passed! - Failed: 0, Passed: 1`.
+
+Break-the-code check, same four breaks, same copy-and-restore; `git diff` on `HealthEndpoints.cs`
+empty at the end. All four fail, and every message now reads the right way round:
+
+| # | Break | Result |
+|---|---|---|
+| B1 | `"okay"` instead of `"ok"` | failed: expected `"ok"`, actual `"okay"` |
+| B2 | route `/api/healthz` | failed: expected `OK`, actual `NotFound` |
+| B3 | JSON key `"Status"` | failed: `KeyNotFoundException` |
+| B4 | status 202, same body | failed: expected `OK`, actual `Accepted` |
+
+Earlier findings:
+
+| # | Status |
+|---|---|
+| 8 | fixed: `Assert.Equal(HttpStatusCode.OK, response.StatusCode)`; the `xUnit2000` warning is gone and AC3 holds again |
+| 9 | open, nice to have: the unused `using Microsoft.AspNetCore.Builder;` is still on line 3 |
+
+No new findings.
+
+Done well: you fixed exactly the finding and nothing else, in one commit.
+
+Verdict: ready to ship
