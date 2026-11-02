@@ -1,6 +1,6 @@
 @HomebrewApp_HostAddress = http://localhost:5080
 
-GET {{HomebrewApp_HostAddress}}/weatherforecast/
+GET {{HomebrewApp_HostAddress}}/api/health/
 Accept: application/json
 
 ###
