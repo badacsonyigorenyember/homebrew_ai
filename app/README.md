@@ -61,7 +61,14 @@ It serves the page at `http://localhost:5173` and updates it on save. Stop it wi
 | `npm run lint` | ESLint over the project |
 | `npm run typecheck` | the TypeScript type check on its own, no output files |
 | `npm run format` | Prettier rewrites every file in its layout |
+| `npm test` | Vitest in watch mode: runs the tests, then again on every save; quit with `q` |
+| `npm test -- --run` | runs the tests once and exits (what the review and ship checks use) |
+| `npm run cleanup` | lint, typecheck, tests once, build, then format; stops at the first that fails |
 
 The project pins TypeScript `~6.0.3` in `package.json`, not the global 7.0.2 from the Toolchain
 table: `typescript-eslint` 8.72 supports TypeScript below 6.1 only. Scripts and `npx tsc` use the
 project's version; a bare `tsc` in the terminal uses the global one.
+
+Tests sit next to the component they test (`StatusBadge.test.tsx` beside `StatusBadge.tsx`).
+They run in jsdom, a browser page simulated inside Node, so no browser is needed;
+`src/test/setup.ts` loads the jest-dom matchers and clears the page after each test.
