@@ -85,3 +85,54 @@ Done well:
 - Each fix is its own small commit with a clear message, which makes this round easy to check.
 
 Verdict: ready for tests
+
+# Test review
+
+## Round 1 · 2026-11-03 · 12920d9
+
+Checks (in `app/web`, Node 26.13.0, project TypeScript 6.0.3; working tree clean):
+`npm run lint` ok ·
+`npm run typecheck` ok (also `tsc -b --force`) ·
+`npm test -- --run` 3 passed (3) ·
+`npm run build` ok ·
+`npx prettier . --check` all files formatted.
+
+Break-the-code check: one label in `StatusBadge.tsx` changed at a time, the tests run, the edit
+undone, and `git diff` checked to match what it was before.
+
+| Test | Behaviour (AC) | What I broke | Failed? |
+|---|---|---|---|
+| shows "API ok" when the status is ok | `ok` label on the page (AC4) | `ok: 'API OK'` | yes: *Unable to find an element with the text: API ok*; only this test failed |
+| shows "API down" when the status is down | `down` label (AC4) | `down: 'API ok'` | yes: *Unable to find an element with the text: API down*; only this test failed |
+| shows "API unknown" when the status is unknown | `unknown` label (AC4) | `unknown: 'API unknown'` | yes: *Unable to find an element with the text: API status unknown*; only this test failed (see #1) |
+
+The setup file's cleanup was checked in a scratch copy: with a fourth test rendering `ok` again,
+all 4 pass; with the `afterEach` line removed, it fails with *Found multiple elements with the
+text: API ok*. So each test starts on an empty page.
+
+Needed: each test covers one status, none repeats another, and none tests React, Testing Library
+or what the type checker already refuses. Reliable: no time, randomness, network or order
+dependence (the cleanup check above covers order).
+
+| # | Axis | Severity | Where | Finding | Why it matters | Learn more |
+|---|---|---|---|---|---|---|
+| 1 | Standards | should fix | `app/web/src/components/StatusBadge.test.tsx:22` | The third test's name says it shows "API unknown", but it checks for "API status unknown". The break-the-code check shows the result: with the label changed to "API unknown", the test named *shows "API unknown"* fails. | The name is the bug report when a test fails. Here it says the opposite of what went wrong. | test lesson, "Names that state the behaviour" |
+| 2 | Standards | nice to have | `app/web/src/components/StatusBadge.test.tsx:5`, `:13`, `:21` | Each test has its own `describe('StatusBadge', ...)`. One `describe` with the three `it` blocks inside does the same job. | A group is there to hold the component's tests together. With three groups of the same name, the next test you add has no clear place to go. | test lesson step 6; [`describe`](https://vitest.dev/api/describe.html) |
+| 3 | Standards | nice to have | `app/web/src/test/setup.ts:1` | `import {} from '@testing-library/jest-dom/vitest'`. It works (the matchers load and the types are found), but the usual way to write it is the plain side-effect import: `import`, then the module name in quotes. | Empty braces look like an import whose names were deleted by mistake. The plain form says the module is loaded only for what it does when it runs. | [MDN: import for side effects only](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#import_a_module_for_its_side_effects_only); test lesson step 4a |
+
+Code review findings still open: #5 `labels` rebuilt on every render and #6 template
+`app/web/README.md` (both nice to have). #4 "API downm" was fixed in `e1ec4ea`: the `down` test
+caught it, as intended.
+
+Not a finding: you asked in this conversation for the README, so I wrote it. `app/README.md`
+"Run the web app" now has rows for `npm test`, `npm test -- --run` and your `npm run cleanup`,
+plus a short note on where tests live and what the setup file does. It's uncommitted; read it and
+commit it with your next commit.
+
+Done well:
+- Every test failed when its label broke, and only that test failed: one behaviour per test, as
+  the lesson asked.
+- The cleanup is in the setup file, so tests don't depend on their order.
+- `npm run cleanup` runs all the review and ship checks in one command.
+
+Verdict: ready to ship (fix #1 first: it's a rename)
