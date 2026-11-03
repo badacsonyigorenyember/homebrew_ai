@@ -8,18 +8,14 @@ describe('StatusBadge', () => {
 
     expect(screen.getByText('API ok')).toBeInTheDocument();
   });
-});
 
-describe('StatusBadge', () => {
   it('shows "API down" when the status is down', () => {
     render(<StatusBadge status="down" />);
 
     expect(screen.getByText('API down')).toBeInTheDocument();
   });
-});
 
-describe('StatusBadge', () => {
-  it('shows "API unknown" when the status is unknown', () => {
+  it('shows "API status unknown" when the status is unknown', () => {
     render(<StatusBadge status="unknown" />);
 
     expect(screen.getByText('API status unknown')).toBeInTheDocument();
