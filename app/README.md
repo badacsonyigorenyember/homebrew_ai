@@ -36,3 +36,32 @@ Check it from a second terminal with `curl http://localhost:5080/api/health`, or
 
 `dotnet run` doesn't reload code changes; stop and start it again, or use
 `dotnet watch --project api`, which restarts on save.
+
+## Run the web app
+
+From the `app/web/` folder, once after cloning or after `package-lock.json` changes:
+
+```bash
+npm ci
+```
+
+Then start the dev server:
+
+```bash
+npm run dev
+```
+
+It serves the page at `http://localhost:5173` and updates it on save. Stop it with Ctrl+C.
+
+| Script | What it does |
+|---|---|
+| `npm run dev` | dev server with hot reload; does not check types |
+| `npm run build` | type-checks, then writes the optimised app to `dist/` |
+| `npm run preview` | serves the built `dist/` to look at it |
+| `npm run lint` | ESLint over the project |
+| `npm run typecheck` | the TypeScript type check on its own, no output files |
+| `npm run format` | Prettier rewrites every file in its layout |
+
+The project pins TypeScript `~6.0.3` in `package.json`, not the global 7.0.2 from the Toolchain
+table: `typescript-eslint` 8.72 supports TypeScript below 6.1 only. Scripts and `npx tsc` use the
+project's version; a bare `tsc` in the terminal uses the global one.
