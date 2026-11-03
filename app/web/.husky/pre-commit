@@ -1,0 +1,2 @@
+cd app/web
+npm run lint && npm run typecheck && npm test -- --run && npm run build && prettier --check .

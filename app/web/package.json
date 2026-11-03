@@ -11,7 +11,7 @@
     "format": "prettier --write .",
     "typecheck": "tsc -b",
     "test": "vitest",
-    "cleanup": "npm run lint && npm run typecheck && npm test -- --run && npm run build && npm run format"
+    "prepare": "cd ../.. && husky app/web/.husky"
   },
   "dependencies": {
     "react": "^19.3.1",
@@ -31,6 +31,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.13.0",
+    "husky": "^9.1.7",
     "jsdom": "^30.1.3",
     "prettier": "3.9.10",
     "typescript": "~6.0.3",
