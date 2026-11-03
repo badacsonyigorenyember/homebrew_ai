@@ -1,6 +1,6 @@
 # a0-04 · The page calls the API
 
-Stage: ready
+Stage: implementing
 Branch: `a0-04-web-calls-api`
 Milestone: M0 · Requirements: — ([SYSTEM.md](../SYSTEM.md))
 Blocked by: a0-02, a0-03
