@@ -59,7 +59,7 @@ A short checklist: the ACs, the checks to run, the questions to ask yourself.
 
 The user follows the steps more than the concepts, so a step that asks for code must be doable
 from the step alone plus the docs it links. "Write the component" is too big; a0-03's step 9
-(`docs/app/work/a0-03-web-skeleton/lesson.md`, later in `finished/`) is the model.
+(`docs/app/finished/a0-03-web-skeleton/lesson.md`) is the model.
 
 - **Read first.** Before the first code step that uses a new language construct, a short reading
   list in the order to read it: each link names the sections to read (not the whole page) and what
