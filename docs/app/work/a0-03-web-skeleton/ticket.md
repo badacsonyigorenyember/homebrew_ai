@@ -1,6 +1,6 @@
 # a0-03 · Web skeleton
 
-Stage: implementing
+Stage: review
 Branch: `a0-03-web-skeleton`
 Milestone: M0 · Requirements: F1.5 (start) ([SYSTEM.md](../SYSTEM.md))
 Blocked by: a0-01
