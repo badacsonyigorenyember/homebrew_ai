@@ -12,6 +12,9 @@ needs, so the user can build it alone. Plain words; explain every new term the f
   body, when a concept cannot be explained without it.
 - A pseudo-step in one line ("read the key from configuration, compare it, return 401 if it
   differs").
+- Syntax described in words, for a construct the user meets for the first time ("the keyword
+  `type`, a name, `=`, then the values in double quotes separated by `|`"). One construct at a
+  time, never a whole file read out in words.
 - Shell commands for setup tickets (installing tools, creating projects), because they are
   tooling, not the app's code.
 - Links to official docs, including their examples.
@@ -39,7 +42,8 @@ patterns this ticket uses.
 
 ## Steps
 A numbered list of small subtasks in building order. Each ends with "Check yourself:" and a way
-to see it works (a command, a URL, what the screen shows).
+to see it works (a command, a URL, what the screen shows). Steps where the user writes code
+follow "Code steps" below.
 
 ## Files you will touch
 Paths to create or change, one line each on what goes there.
@@ -50,6 +54,29 @@ The mistakes beginners make with this ticket's tools, and how each one shows up.
 ## Before you ask for a review
 A short checklist: the ACs, the checks to run, the questions to ask yourself.
 ```
+
+## Code steps
+
+The user follows the steps more than the concepts, so a step that asks for code must be doable
+from the step alone plus the docs it links. "Write the component" is too big; a0-03's step 9
+(`docs/app/finished/a0-03-web-skeleton/lesson.md`) is the model.
+
+- **Read first.** Before the first code step that uses a new language construct, a short reading
+  list in the order to read it: each link names the sections to read (not the whole page) and what
+  to look for, and the time it takes. Include plain JavaScript pages (MDN) when the step uses
+  JavaScript the user has not met (destructuring, bracket access, imports), and a place to try
+  things without the project (the TypeScript Playground; for C#, a scratch console project made
+  outside the repo).
+- **One new piece per sub-step** (9a, 9b, …): one type, one function signature, one JSX element,
+  one import. Each sub-step names the construct, describes its syntax in words, says why it is
+  written that way, and points to the docs example closest to it ("react.dev's `MyButton` has the
+  same structure").
+- **A check per sub-step**, preferably one that breaks something on purpose and shows the exact
+  error message ("remove one key: `npm run typecheck` says *Property 'unknown' is missing*").
+  Run each such error before writing it down, with the project's own tool versions, in a scratch
+  folder outside the repo; never write an error message from memory.
+- **Say when a failing check is expected** and which later sub-step fixes it (an unused parameter
+  until the body uses it), so a red error does not read as a mistake.
 
 ## `test-lesson.md`: its parts, in this order
 
@@ -72,7 +99,8 @@ small and visible, and whichever others this ticket needs.
 
 ## Steps
 Numbered, each with "Check yourself:". The first step for each test is to see it fail
-(write it before the behaviour exists, or break the code briefly).
+(write it before the behaviour exists, or break the code briefly). Writing a test is a code
+step: follow "Code steps" above (read first, one new piece per sub-step, checked error messages).
 
 ## Before you ask for a test review
 Checklist.

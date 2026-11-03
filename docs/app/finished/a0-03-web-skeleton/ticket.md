@@ -1,6 +1,6 @@
 # a0-03 · Web skeleton
 
-Stage: ready
+Stage: done
 Branch: `a0-03-web-skeleton`
 Milestone: M0 · Requirements: F1.5 (start) ([SYSTEM.md](../SYSTEM.md))
 Blocked by: a0-01
@@ -34,4 +34,15 @@ Needed. First frontend test lesson: Vitest, React Testing Library and jsdom set 
 
 ## Deviations
 
-None yet.
+- 2026-11-02 · TypeScript is pinned to `~6.0.3` in `app/web`, not the template's 7.0.2. With
+  `--eslint`, create-vite 9.3.3 asks for TypeScript `~7.0.2`, but `typescript-eslint` 8.72.1 (the
+  latest) supports TypeScript `>=4.8.4 <6.1.0`, so `npm install` fails with `ERESOLVE`. Measured in
+  a scratch project: with 6.0.3, install, build and lint pass. ESLint was kept over the template's
+  new default, Oxlint (your call). Move to TypeScript 7 once `typescript-eslint` supports it.
+- 2026-11-03 · Added beyond the ticket, at your request: a `cleanup` script (lint, typecheck,
+  tests once, build, format) and a Husky 9.1.7 pre-commit hook, `app/web/.husky/pre-commit`, that
+  changes into `app/web` and runs lint, typecheck, tests once, build and `prettier --check .`.
+  `prepare` is `cd ../.. && husky app/web/.husky`, because `.git` is two levels above
+  `package.json`; it sets `core.hooksPath` to `app/web/.husky/_` in the repo's shared Git config,
+  so it applies to every worktree and the main checkout. A checkout without `app/web/.husky/_`
+  (made by `npm install` there) runs no hook.
