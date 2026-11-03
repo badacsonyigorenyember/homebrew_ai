@@ -3,7 +3,7 @@ import { StatusBadge } from './components/StatusBadge';
 function App() {
   return (
     <div>
-      <h1>My Application</h1>
+      <h1>Brewing App</h1>
       <StatusBadge status="ok" />
     </div>
   );
