@@ -7,7 +7,7 @@ type StatusBadgeProps = {
 export function StatusBadge({ status }: StatusBadgeProps) {
   const labels: Record<ApiStatus, string> = {
     ok: 'API ok',
-    down: 'API downm',
+    down: 'API down',
     unknown: 'API status unknown',
   };
 
