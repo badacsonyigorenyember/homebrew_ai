@@ -46,3 +46,42 @@ Done well:
   setup is committed in small, separate steps.
 
 Verdict: fixes needed
+
+## Round 2 · 2026-11-03 · 18cce14
+
+Checks (in `app/web`, Node 26.13.0, project TypeScript 6.0.3; working tree clean):
+`npm run lint` ok ·
+`npm run typecheck` (`tsc -b`) ok, also with `--force`, so the result isn't a cached one ·
+`npm run build` ok ·
+`npx prettier . --check` "All matched files use Prettier code style!" ·
+no `npm test` yet (tests come next).
+
+AC1, AC3 and AC4 were tried in a scratch copy of `app/web` with its own TypeScript cache, so your
+files and your `node_modules/.tmp` were not touched.
+
+| AC | Met | How checked |
+|---|---|---|
+| AC1 | yes | `vite` on the scratch copy: the page and tab show "Brewing App" and "API ok" |
+| AC2 | yes | `build`, `lint` and `typecheck` all exit 0 |
+| AC3 | yes | with `status="broken"`: `npm run typecheck` exits 2 with `src/App.tsx(7,20): error TS2322: Type '"broken"' is not assignable to type 'ApiStatus'` |
+| AC4 | yes | page text: `ok` → "API ok", `down` → "API downm", `unknown` → "API status unknown" |
+
+Round 1 findings:
+
+| # | Status |
+|---|---|
+| 1 `typecheck` checks no files | fixed: `tsc -b` follows the references (`18cce14`) |
+| 2 heading and title | fixed: both say "Brewing App" (`49be51b`); the ticket writes "app" in lower case, either is fine |
+| 3 Prettier not applied | fixed: every file passes `--check` |
+| 4 typo "API downm" | still open (nice to have) |
+| 5 `labels` rebuilt on every render | still open (nice to have) |
+| 6 template `app/web/README.md` | still open (nice to have) |
+
+No new findings.
+
+Done well:
+- You fixed #1 the right way: the same build-mode check the `build` script runs, so `typecheck`
+  and `build` can't disagree about types.
+- Each fix is its own small commit with a clear message, which makes this round easy to check.
+
+Verdict: ready for tests
