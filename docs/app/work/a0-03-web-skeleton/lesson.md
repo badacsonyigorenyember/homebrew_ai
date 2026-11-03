@@ -234,12 +234,84 @@ Docs: [Conditional rendering](https://react.dev/learn/conditional-rendering),
    *Check yourself:* the page shows only the heading; `npm run lint` and `npm run typecheck` pass (an
    import of a deleted file is a type error, so this check catches leftovers).
 
-9. **Write `StatusBadge`.** In `src/components/StatusBadge.tsx`: a named union type for the
-   three statuses, a props type with a `status` field of that type, and the component, which shows
-   one label per status (your wording, for example "API OK", "API down", "API status unknown"). Use
-   it in `App` with one status.
-   *Check yourself:* the page shows the heading and the label. Change the status in `App` to each of
-   the other two values and watch the label change after each save (AC4).
+9. **Write `StatusBadge`**, in small steps. Each sub-step adds one piece of TypeScript or React,
+   names the syntax in words, and says how to see it worked. Read the background first.
+
+   **Read first (about 45 minutes, in this order).** Keep the
+   [TypeScript Playground](https://www.typescriptlang.org/play) open in a tab: you type TypeScript
+   on the left and its errors appear as you type, with nothing to install. Try every type below there
+   before you put it in the file.
+   - [TypeScript for the New Programmer](https://www.typescriptlang.org/docs/handbook/typescript-from-scratch.html):
+     what a type checker is for. Skim it.
+   - [Everyday Types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html), only the
+     sections *Type Annotations on Variables*, *Object Types*, *Union Types*, *Type Aliases* and
+     *Literal Types*.
+   - [Destructuring](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring)
+     (MDN), the part on objects: how `{ status }` takes one field out of an object.
+   - [Property accessors](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors)
+     (MDN): the difference between `obj.key` and `obj[variable]`.
+   - [Your first component](https://react.dev/learn/your-first-component) and
+     [Passing props to a component](https://react.dev/learn/passing-props-to-a-component)
+     (react.dev), up to "Specifying a default value for a prop".
+   - [Using TypeScript → Typing component props](https://react.dev/learn/typescript#typing-component-props)
+     (react.dev). Its `MyButton` example has the same structure as `StatusBadge`: a props type, a
+     function that destructures it, JSX that uses the field. Read it slowly and name each part.
+
+   **9a. The file.** Create the folder `src/components/` and in it `StatusBadge.tsx`. The extension
+   is `.tsx`, not `.ts`, because the file will contain JSX; a `.ts` file cannot.
+   *Check yourself:* the editor shows the file as TypeScript React.
+
+   **9b. The status type.** A *type alias* gives a type a name, so you can use the name everywhere.
+   It is written: the keyword `type`, the name (types start with a capital letter, for example
+   `ApiStatus`), `=`, then the type, then `;`. The type here is a union of three string literal
+   types: each value in double quotes, separated by `|`. This line never runs: types exist only for
+   the checker and are gone from the JavaScript Vite sends to the browser.
+   *Check yourself:* in the Playground, write your line, then a `const` with the annotation
+   `: ApiStatus` (colon and type after the variable's name) and give it `"broken"`. You see
+   *Type '"broken"' is not assignable to type 'ApiStatus'*. Give it `"ok"` and the error goes away.
+
+   **9c. The props type.** An *object type* lists the fields an object must have, between curly
+   braces, one per line, written `field: Type;`. Make a second type alias, named after the component
+   plus `Props` (`StatusBadgeProps`), whose object type has one field, `status`, of the type from 9b.
+   *Check yourself:* hovering over `StatusBadgeProps` in the editor shows its one field.
+
+   **9d. The component's signature.** Start the line with `export function StatusBadge`, then the
+   parameter list in round brackets. React calls your function with *one* object holding all the
+   props. You could name that object (`props`) and later write `props.status`; the usual way is to
+   *destructure* it in the parameter list: curly braces with the field name inside, then `:` and the
+   props type from 9c. That gives you `status` as a plain variable in the body. The whole line, without
+   the body, is the signature from New concepts. `export` makes the function importable from
+   `App.tsx`; it is a *named* export (not `export default`), so the import must use the same name.
+   For now, let the body (between `{` and `}`) only `return null;`: a component may return `null`
+   to show nothing.
+   *Check yourself:* `npm run typecheck` fails with *'status' is declared but its value is never
+   read*. That is expected: the template's `noUnusedParameters` setting catches parameters you do not
+   use, and 9f uses it.
+
+   **9e. The labels.** Inside the function body, before `return`, declare a `const` (a variable that
+   is never reassigned), for example `labels`. Its value is an *object literal*: curly braces, one
+   `key: value` pair per status, separated by commas, the key being the status (no quotes needed
+   for these keys) and the value the label text in quotes. Annotate the `const` with
+   `Record<ApiStatus, string>`, read as "an object whose keys are exactly the `ApiStatus` values and
+   whose values are strings".
+   *Check yourself:* remove one pair for a moment: `npm run typecheck` says *Property 'unknown' is
+   missing*. Add a pair with a fourth key: it says *'broken' does not exist in type*. Put the three
+   pairs back. This is the safety net from "Patterns to follow".
+
+   **9f. What it shows.** Replace `return null;` with a `return` of one `<span>` element. Between
+   its opening and closing tag, open curly braces (to switch from markup to JavaScript) and look up
+   the label: the object's name followed by `status` in square brackets. Square brackets look up the
+   key whose name is the *value* of `status`; `labels.status` would look for a key literally called
+   "status", which does not exist.
+   *Check yourself:* `npm run typecheck` and `npm run lint` pass again: `status` is now used.
+
+   **9g. Use it on the page.** At the top of `App.tsx`, import `StatusBadge` by name: curly braces
+   with the name, `from`, then the file's path relative to `App.tsx` in quotes, starting with
+   `./components/`. In `App`'s JSX, under the heading, write the tag as a self-closing tag with
+   `status` set to `"ok"`, like an HTML attribute.
+   *Check yourself:* the page shows the heading and the "ok" label. While you type `status="`, the
+   editor offers exactly the three values: that list comes from your type. Change the value to each
+   of the other two and watch the label change after each save (AC4).
 
 10. **Prove AC3.** In `App`, set `status` to a value outside the three (for example `"broken"`).
     *Check yourself:* the editor underlines it; `npm run typecheck` fails with an error saying the
