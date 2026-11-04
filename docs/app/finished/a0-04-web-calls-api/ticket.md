@@ -1,6 +1,6 @@
 # a0-04 · The page calls the API
 
-Stage: test-review
+Stage: done
 Branch: `a0-04-web-calls-api`
 Milestone: M0 · Requirements: — ([SYSTEM.md](../SYSTEM.md))
 Blocked by: a0-02, a0-03
@@ -30,4 +30,4 @@ Needed: MSW fakes `/api/health`; component tests for `ok` and `down`.
 
 ## Deviations
 
-None yet.
+- 2026-11-04 · Claude wrote three pieces under `app/` at your request in the conversation, not you: the "Run the web app" proxy paragraph in `app/README.md` (code review round 1), and the code review round 4 fix (retry numbers and their comment in `useHealth.ts`; the "stays down while checking again" clause in `App.tsx`).

@@ -27,7 +27,7 @@ comes last of the features (M7). Milestones are worked in order.
 | [a0-01](finished/a0-01-toolchain/ticket.md) | Toolchain | — | done |
 | [a0-02](finished/a0-02-api-skeleton/ticket.md) | API skeleton | a0-01 | done |
 | [a0-03](finished/a0-03-web-skeleton/ticket.md) | Web skeleton | a0-01 | done |
-| [a0-04](work/a0-04-web-calls-api/ticket.md) | The page calls the API | a0-02, a0-03 | ready |
+| [a0-04](finished/a0-04-web-calls-api/ticket.md) | The page calls the API | a0-02, a0-03 | done |
 
 ## M1 · Brew day
 
