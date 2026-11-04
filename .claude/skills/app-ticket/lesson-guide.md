@@ -1,11 +1,13 @@
 # Writing lessons
 
-The user is new to React, TypeScript and .NET (SYSTEM.md C8). A lesson teaches what the ticket
-needs, so the user can build it alone. Plain words; explain every new term the first time.
+The user is new to React, TypeScript and .NET (SYSTEM.md C8) and learns by doing. A lesson teaches
+what the ticket needs, so the user can build it alone, and it teaches it inside the steps: there
+is no separate concepts or patterns section to read first. Each step says what to do, why it is
+needed, and why it is done that way. Plain words; explain every new term the first time.
 
 ## What a lesson may contain
 
-- Concepts, explained in words, with why they exist.
+- Concepts, explained in words, with why they exist, in the step that first needs them.
 - Names: of libraries, CLI commands and their purpose, files and folders to create, functions,
   hooks, components, endpoints, configuration keys.
 - A signature: a function, component or endpoint's name, parameters and return type, without its
@@ -28,38 +30,46 @@ is solution code and stays out.
 # Lesson: <short id> · <title>
 
 ## What you will build
-Two or three sentences, then the acceptance criteria it must meet (AC1…, by id).
-
-## New concepts
-One subsection per concept the ticket needs and the user has not met in an earlier ticket
-(check the earlier tickets' lessons). For each: what it is, why it exists (the problem it solves),
-how it fits this ticket, and a doc link. Split into "React and TypeScript" and ".NET" when both
-appear.
-
-## Patterns to follow
-Each pattern named, why it is good, and what the usual mistake looks like, in words. Only the
-patterns this ticket uses.
+Two or three sentences, then the acceptance criteria it must meet (AC1…, by id). Then a short
+paragraph on how the pieces fit together (what calls what, where data goes), so the steps have a
+map. No concept explanations here; they come in the steps.
 
 ## Steps
-A numbered list of small subtasks in building order. Each ends with "Check yourself:" and a way
-to see it works (a command, a URL, what the screen shows). Steps where the user writes code
-follow "Code steps" below.
+The main part of the lesson. A numbered list of small subtasks in building order, each written as
+"Steps" below describes.
 
 ## Files you will touch
 Paths to create or change, one line each on what goes there.
-
-## Pitfalls
-The mistakes beginners make with this ticket's tools, and how each one shows up.
 
 ## Before you ask for a review
 A short checklist: the ACs, the checks to run, the questions to ask yourself.
 ```
 
-## Code steps
+## Steps
 
-The user follows the steps more than the concepts, so a step that asks for code must be doable
-from the step alone plus the docs it links. "Write the component" is too big; a0-03's step 9
-(`docs/app/finished/a0-03-web-skeleton/lesson.md`) is the model.
+Every step has these parts, in this order:
+
+1. **What to do**, in a bold title and a sentence or two.
+2. **Why:** why this step is needed (what would be missing or broken without it) and why it is done
+   this way rather than the obvious alternative ("a named export, not `export default`, so a
+   renamed import cannot silently point at the wrong thing").
+   - A **new concept** is explained here, in the first step that needs it: what it is, the problem
+     it solves, how it fits this ticket, and a doc link. Later steps refer back to it ("the query
+     key from step 4") instead of explaining it again. Check the earlier tickets' lessons; a
+     concept met there gets one line and a pointer, not a new explanation.
+   - A **pattern** is taught in the step that applies it: its name, why it is good, and what the
+     usual mistake looks like, in words.
+3. **Watch out:** (only when there is one) the mistake beginners make at this step and how it shows
+   up (the error text, what the screen does).
+4. **Check yourself:** a way to see it works (a command, a URL, what the screen shows).
+
+A step that is only tooling (run a command, open a page) still gets its *Why*, in a sentence.
+
+### Code steps
+
+A step that asks for code must be doable from the step alone plus the docs it links. "Write the
+component" is too big; a0-03's step 9 (`docs/app/finished/a0-03-web-skeleton/lesson.md`) is the
+model for the size and the checks.
 
 - **Read first.** Before the first code step that uses a new language construct, a short reading
   list in the order to read it: each link names the sections to read (not the whole page) and what
@@ -69,8 +79,8 @@ from the step alone plus the docs it links. "Write the component" is too big; a0
   outside the repo).
 - **One new piece per sub-step** (9a, 9b, …): one type, one function signature, one JSX element,
   one import. Each sub-step names the construct, describes its syntax in words, says why it is
-  written that way, and points to the docs example closest to it ("react.dev's `MyButton` has the
-  same structure").
+  written that way and what it does when the app runs, and points to the docs example closest to it
+  ("react.dev's `MyButton` has the same structure").
 - **A check per sub-step**, preferably one that breaks something on purpose and shows the exact
   error message ("remove one key: `npm run typecheck` says *Property 'unknown' is missing*").
   Run each such error before writing it down, with the project's own tool versions, in a scratch
@@ -83,24 +93,18 @@ from the step alone plus the docs it links. "Write the component" is too big; a0
 ```markdown
 # Test lesson: <short id> · <title>
 
-## What to test
+## What you will test
 Each behaviour worth a test, tied to its AC, and the level it belongs at (unit, API integration,
-component) with why.
-
-## What not to test
-Framework behaviour, private details, things the type checker already proves.
-
-## New concepts
-As in the lesson: test runner, fixtures, faking the API or database, whatever is new.
-
-## Patterns
-Arrange-act-assert, one behaviour per test, names that state the behaviour, test data kept
-small and visible, and whichever others this ticket needs.
+component) with why. Then, in a few lines, what not to test (framework behaviour, private details,
+things the type checker already proves) and why.
 
 ## Steps
-Numbered, each with "Check yourself:". The first step for each test is to see it fail
-(write it before the behaviour exists, or break the code briefly). Writing a test is a code
-step: follow "Code steps" above (read first, one new piece per sub-step, checked error messages).
+Written as "Steps" above: what to do, *Why*, *Watch out*, *Check yourself*. New test concepts
+(test runner, fixtures, faking the API or database) and test patterns (arrange-act-assert, one
+behaviour per test, names that state the behaviour, test data kept small and visible) are taught
+in the step that first uses them. The first step for each test is to see it fail (write it before
+the behaviour exists, or break the code briefly). Writing a test is a code step: follow "Code
+steps" above (read first, one new piece per sub-step, checked error messages).
 
 ## Before you ask for a test review
 Checklist.
@@ -108,6 +112,6 @@ Checklist.
 
 ## Size
 
-As long as the ticket needs and no longer. A setup ticket's lesson is mostly concepts and steps; a
-feature ticket's is mostly patterns and steps. Skip a section only by writing "None for this
-ticket."
+As long as the ticket needs and no longer. The steps carry the lesson: when a step's *Why* grows
+past a short paragraph, split the step rather than move the explanation out of it. Skip a section
+only by writing "None for this ticket."
