@@ -2,7 +2,7 @@ import { StatusBadge, type ApiStatus } from './components/StatusBadge';
 import { useHealth } from './features/health/useHealth';
 
 const statusLookup: Record<'pending' | 'error' | 'success', ApiStatus> = {
-  pending: 'unknown', // Adjust 'unknown' or 'down' based on your exact ticket instructions
+  pending: 'unknown',
   error: 'down',
   success: 'ok',
 };
