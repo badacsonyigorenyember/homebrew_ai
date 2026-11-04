@@ -167,3 +167,53 @@ Round 3 findings:
 No new findings.
 
 Verdict: ready for tests
+
+# Test review
+
+## Round 1 · 2026-11-04 · e89b204
+
+Checks (in `app/web`; working tree clean): `npm run lint` ok · `npm run typecheck` ok, also
+`npx tsc -b --force` · `npm test -- --run` 7 passed (3 `StatusBadge`, 4 `App`) in 2.4 s ·
+`npm run build` ok, and `dist/assets/*.js` has no `msw` in it · `npx prettier . --check` ok.
+
+The round 4 fix is its own commit (`6f66870`), before the MSW setup (`c5932ed`) and the tests
+(`e89b204`).
+
+**Break-the-code check.** Each break was one edit in your file: a copy saved first, the edit made,
+`src/App.test.tsx` run, the copy put back, and `git diff` checked empty after each one (it was).
+
+| # | Broke | Expected to fail | Result |
+|---|---|---|---|
+| B1 | `App.tsx` lookup: `pending: 'down'` | unknown | unknown failed (21 ms); 3 passed |
+| B2 | `App.tsx` lookup: `success: 'down'` | ok | ok failed (1003 ms); 3 passed |
+| B3 | `App.tsx` lookup: `error: 'ok'` | both down | both down failed (2004 ms); 2 passed |
+| B4 | `useHealth.ts`: deleted the `if (!response.ok) { ... }` block | 500 | 500 failed (2003 ms); the 502 test passed, as the test lesson said it would |
+| B5 | `useHealth.ts`: `retry: 2` (down after 2 s) | both down | both down failed (2004 ms): the 2 s timeout holds AC2 |
+| B6 | `useHealth.ts`: URL `/api/healthz` | ok | ok failed (1004 ms); MSW reported the unhandled request |
+| B7 | `App.tsx`: removed the "stays down" clause | none (not tested, by plan) | 4 passed, as the test lesson says |
+
+| Test | Behaviour? | Would it fail? | Needed? | Reliable? |
+|---|---|---|---|---|
+| shows "API status unknown" before the API answers | yes: the first draw | yes (B1) | yes: the ticket's "unknown while loading" | yes: no waiting |
+| shows "API ok" when the API answers | yes: AC1 | yes (B2, B6) | yes | yes: 24 ms |
+| shows "API down" when the API is stopped | yes: AC2, Vite's real 502 | yes (B3, B5) | yes: it overlaps the 500 test on B3 and B5, but it is the exact "API stopped" case | yes: 1009 ms against a 2000 ms timeout |
+| shows "API down" when the API answers 500 | yes: AC2, an error answer with a body | yes (B3, B4, B5) | yes: the only guard on the `ok` check | yes: 1008 ms against 2000 ms |
+
+Reliability: no real network (every request goes to MSW, and an unhandled one is an error); a new
+`QueryClient` per test and `resetHandlers` after each, so order doesn't matter (10 runs in a row
+and one `--sequence.shuffle` run: 7 passed each time). The two `down` tests depend on the clock: they
+pass because `down` arrives about 1 s before the 2 s limit, which is the margin AC2's comment
+promises.
+
+| # | Axis | Severity | Where | Finding | Why it matters | Learn more |
+|---|---|---|---|---|---|---|
+| 1 | Standards | nice to have | `app/web/src/App.test.tsx:47` | Typo in the test data: "occured" (should be "occurred"). | It's only test data, but it's meant to look like the API's real message. | — |
+
+Done well:
+- Every test is named for what the user sees, has one `renderApp()` and one `expect`, and reads as
+  arrange then assert. The overrides come before `renderApp()`.
+- `onUnhandledFrame: 'error'`, the MSW 3 name, so a request nobody answers is reported (B6 showed
+  it), and the default handler sends the same body as the real API.
+- The 500-with-body test is there and does its job: it is what catches a missing `ok` check (B4).
+
+Verdict: ready to ship
