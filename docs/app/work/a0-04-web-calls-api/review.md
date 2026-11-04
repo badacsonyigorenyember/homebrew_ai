@@ -47,3 +47,45 @@ Done well:
   The install is its own commit, separate from the code.
 
 Verdict: fixes needed
+
+## Round 2 · 2026-11-04 · 70b2468
+
+Checks (in `app/web`; working tree clean):
+`npm run lint` ok ·
+`npm run typecheck` ok, also `npx tsc -b --force` ·
+`npm test -- --run` 3 passed ·
+`npm run build` ok ·
+`npx prettier . --check` "All matched files use Prettier code style!"
+
+Tried on a fresh scratch copy of your committed `src/` and `vite.config.ts`, so your files were not
+touched. For AC2 its proxy pointed at an empty port (5081), as in round 1. For AC1 I started the
+API from `app/` (yours was not running) and stopped it afterwards.
+
+| AC | Met | How checked |
+|---|---|---|
+| AC1 | yes | API running: the page shows "API ok" |
+| AC2 | no | API unreachable: the page still showed "API status unknown" after 20 s, with 18 requests to `/api/health`, one a second. It never reaches "API down" (#1) |
+| AC3 | yes | `grep -rn "useEffect" src` prints nothing |
+| AC4 | yes | `5080` appears only in `vite.config.ts:14` |
+
+Round 1 findings:
+
+| # | Status | Note |
+|---|---|---|
+| 1 | open | changed, but AC2 is now further away; see below |
+| 2 | fixed | `fetch('/api/health')` |
+| 3 | fixed | `queryKey: ['health']` |
+| 4 | open | the "Adjust 'unknown' or 'down'…" comment is still on `App.tsx:5` |
+| 5 | fixed | the message uses `response.status` |
+| 6 | fixed | one import line from `StatusBadge`, no extensions |
+
+| # | Axis | Severity | Where | Finding | Why it matters | Learn more |
+|---|---|---|---|---|---|---|
+| 1 | Spec | must fix | `app/web/src/features/health/useHealth.ts:23-25` | `retry: true` means *retry forever*. The query never gives up, so `status` never becomes `'error'` and the badge never says `down`. `retryOnMount: true` is the default already and is about something else (retrying a query that is in error when a component mounts), so it changes nothing here. There is still no `refetchInterval` (a page showing `ok` doesn't notice the API stopping) and no comment explaining the numbers. | AC2 needs a *limit*: a number of retries, so the query fails after a known time. The comment says what your numbers add up to, for the reload case and for the page-already-open case. | [`useQuery` reference: `retry`, `retryDelay`, `retryOnMount`, `refetchInterval`](https://tanstack.com/query/latest/docs/framework/react/reference/useQuery); lesson step 9 |
+| 4 | Standards | nice to have | `app/web/src/App.tsx:5` | The leftover "Adjust 'unknown' or 'down'…" comment (round 1). | — | — |
+
+Done well:
+- Every round 1 finding except the two above is fixed, each the way it was meant.
+- `retryDelay: 1000` is a fixed wait, which keeps the arithmetic simple once `retry` is a number.
+
+Verdict: fixes needed
