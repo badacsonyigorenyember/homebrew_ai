@@ -5,11 +5,11 @@ type HealthResponse = {
 };
 
 async function fetchHealth(): Promise<HealthResponse> {
-  const response = await fetch('api/health');
+  const response = await fetch('/api/health');
 
   if (!response.ok) {
     throw new Error(
-      `An error happened during health check: ${response.statusText}`,
+      `An error happened during health check: ${response.status}`,
     );
   }
 
@@ -17,5 +17,11 @@ async function fetchHealth(): Promise<HealthResponse> {
 }
 
 export function useHealth() {
-  return useQuery({ queryKey: ['data'], queryFn: fetchHealth });
+  return useQuery({
+    queryKey: ['health'],
+    queryFn: fetchHealth,
+    retry: true,
+    retryDelay: 1000,
+    retryOnMount: true,
+  });
 }
