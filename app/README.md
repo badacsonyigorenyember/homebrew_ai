@@ -53,6 +53,13 @@ npm run dev
 
 It serves the page at `http://localhost:5173` and updates it on save. Stop it with Ctrl+C.
 
+The page asks the API for its health, so start the API too ([Run the API](#run-the-api)); the
+order doesn't matter. The dev server forwards every request whose path starts with `/api` to the
+API at `http://localhost:5080`, so the page only ever talks to its own address. That address is
+set in one place: `server.proxy` in `web/vite.config.ts` (`npm run preview` uses the same
+proxy). While the API is stopped, the badge shows "API down" and the dev server's terminal
+prints `http proxy error: /api/health` with `ECONNREFUSED`.
+
 | Script | What it does |
 |---|---|
 | `npm run dev` | dev server with hot reload; does not check types |
