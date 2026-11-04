@@ -20,8 +20,8 @@ export function useHealth() {
   return useQuery({
     queryKey: ['health'],
     queryFn: fetchHealth,
-    retry: true,
+    retry: 3,
     retryDelay: 1000,
-    retryOnMount: true,
+    refetchInterval: 5000,
   });
 }
