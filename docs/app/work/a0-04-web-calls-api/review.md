@@ -129,3 +129,41 @@ Done well:
 - Small commits, each naming the change (`finetune retry`, `remove comment`).
 
 Verdict: fixes needed
+
+## Round 4 · 2026-11-04 · 8f5c2a6 + uncommitted
+
+You asked me in the conversation to fix #1 (better numbers and the comment) and #7 myself, so this
+round checks my change, not yours. The change is uncommitted, in two files:
+
+- `app/web/src/features/health/useHealth.ts:23-30` — `retry: 1`, `retryDelay: 1000`,
+  `refetchInterval: 5000`, with a comment saying what they add up to. One retry instead of three,
+  because a stopped API on the home network is refused at once, so extra retries only delay `down`.
+- `app/web/src/App.tsx:12-18` — `status` comes from the lookup as before, except when the query is
+  `'pending'` and `errorUpdatedAt` is above 0: then it is `'down'`. `errorUpdatedAt` is set when a
+  fetch fails and is not cleared when the next fetch starts (`query-core` `query.js`: the `error`
+  case sets it, `fetchState` leaves it), so it still remembers the failure during the refetch.
+
+Checks (in `app/web`): `npm run lint` ok · `npm run typecheck` ok, also `npx tsc -b --force` ·
+`npm test -- --run` 3 passed · `npm run build` ok · `npx prettier . --check` "All matched files use
+Prettier code style!"
+
+Tried on a scratch copy of `src/` and `vite.config.ts` with these changes, against an API I
+started and stopped from `app/`.
+
+| AC | Met | How checked |
+|---|---|---|
+| AC1 | yes | API started while the page showed "API down": "API ok" 2.1 s later (comment: within 5 s) |
+| AC2 | yes | **Page loaded with the API stopped:** "API status unknown" at 0.06 s, "API down" at 1.06 s (comment: about 1 s), and it stayed "API down" for the 22 s watched, with no return to "unknown". **API stopped while the page showed ok:** "API down" 5.1 s after the stop (comment: within about 6 s), and it stayed down. The comment explains the numbers |
+| AC3 | yes | `grep -rn "useEffect" src` prints nothing |
+| AC4 | yes | `5080` appears only in `vite.config.ts:14` |
+
+Round 3 findings:
+
+| # | Status | Note |
+|---|---|---|
+| 1 | fixed | by Claude, at your request: new numbers and the comment |
+| 7 | fixed | by Claude, at your request: a recorded error turns `'pending'` into `'down'` |
+
+No new findings.
+
+Verdict: ready for tests
