@@ -1,4 +1,4 @@
-type ApiStatus = 'ok' | 'down' | 'unknown';
+export type ApiStatus = 'ok' | 'down' | 'unknown';
 
 type StatusBadgeProps = {
   status: ApiStatus;
