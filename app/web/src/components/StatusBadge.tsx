@@ -14,10 +14,14 @@ export function StatusBadge({ status }: StatusBadgeProps) {
   };
 
   const variants: Record<ApiStatus, 'default' | 'destructive' | 'secondary'> = {
-    down: 'destructive',
     ok: 'default',
+    down: 'destructive',
     unknown: 'secondary',
   };
 
-  return <Badge variant={variants[status]}>{labels[status]}</Badge>;
+  return (
+    <Badge role="status" variant={variants[status]}>
+      {labels[status]}
+    </Badge>
+  );
 }
