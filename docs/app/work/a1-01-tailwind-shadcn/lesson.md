@@ -80,8 +80,12 @@ comes from that run):
 
 5. **Teach Vite the `@` alias.** In `vite.config.ts`, add a `resolve` key next to `plugins`, whose
    `alias` object maps `'@'` to the absolute path of your `src` folder. The shadcn Vite page shows
-   the line: Node's `path.resolve` joins the folder the config lives in (`__dirname`) with
-   `./src`; import `path` from `'path'` at the top.
+   the line: Node's `path.resolve` joins the folder the config lives in with `./src`; import
+   `path` from `'path'` at the top. Write that folder as `import.meta.dirname`, not the docs'
+   `__dirname`: `__dirname` exists only in CommonJS, your `package.json` has `"type": "module"`,
+   and `npm run build` warns that `__dirname` will stop working when Vite's native config loader
+   becomes the default. (Corrected 2026-11-08 in review round 1; the first version said
+   `__dirname` was fine.)
    *Why:* an **import alias** is a short name for a folder. With it, `@/components/ui/badge`
    means the same file from anywhere in `src/`, instead of `../../components/ui/badge` whose number
    of `../` depends on where the importing file sits. shadcn's generated files import each other this
@@ -89,7 +93,8 @@ comes from that run):
    builds and tests the app (Vitest reads the same config).
    Docs: [shadcn — Vite installation, "Update vite.config.ts"](https://ui.shadcn.com/docs/installation/vite),
    [Vite — `resolve.alias`](https://vite.dev/config/shared-options#resolve-alias).
-   *Check yourself:* `npm run typecheck` passes (measured: `__dirname` is accepted in this config).
+   *Check yourself:* `npm run typecheck` passes, and `npm run build` prints no warning about
+   `configLoader: 'native'`.
 
 6. **Teach TypeScript the alias, in `tsconfig.app.json`.** In `compilerOptions`, add `paths`: an
    object whose key is `"@/*"` and whose value is an array with one string, `"./src/*"`. The `*` on
@@ -253,7 +258,11 @@ comes from that run):
     *Watch out:* the usual quick fix is an `// eslint-disable-next-line` comment in `badge.tsx`. That
     is an edit to a generated file (AC2), and you would repeat it in every future component that
     exports a variant list.
-    *Check yourself:* `npm run lint` passes. Then, for a moment, add an exported constant to
+    *Watch out:* add the override as its **own** object. Changing `files` on the existing object
+    instead makes every rule apply to `src/components/ui/` only, and ESLint then skips your other
+    files with *File ignored because no matching configuration was supplied*.
+    *Check yourself:* `npm run lint` passes. Then, for a moment, add an exported array (for example
+    `export const statusNames = ['ok'];`; a plain number or string is allowed by this rule) to
     `StatusBadge.tsx`: lint reports the same rule there, proving the override reaches only
     `src/components/ui/`. Remove it.
 

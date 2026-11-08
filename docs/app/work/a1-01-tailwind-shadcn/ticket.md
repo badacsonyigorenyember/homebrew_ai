@@ -1,6 +1,6 @@
 # a1-01 · Tailwind and shadcn/ui
 
-Stage: implementing
+Stage: review
 Branch: `a1-01-tailwind-shadcn`
 Milestone: M1 · Requirements: F1.5, F1.6 (base) ([SYSTEM.md](../SYSTEM.md))
 Blocked by: a0-04
