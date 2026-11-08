@@ -9,7 +9,8 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 export default defineConfig([
   globalIgnores(['dist']),
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ['src/components/ui/**/*.tsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,

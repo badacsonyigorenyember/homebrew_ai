@@ -1,3 +1,5 @@
+import { Badge } from '@/components/ui/badge';
+
 export type ApiStatus = 'ok' | 'down' | 'unknown';
 
 type StatusBadgeProps = {
@@ -11,5 +13,11 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     unknown: 'API status unknown',
   };
 
-  return <span>{labels[status]}</span>;
+  const variants: Record<ApiStatus, 'default' | 'destructive' | 'secondary'> = {
+    down: 'destructive',
+    ok: 'default',
+    unknown: 'secondary',
+  };
+
+  return <Badge variant={variants[status]}>{labels[status]}</Badge>;
 }
