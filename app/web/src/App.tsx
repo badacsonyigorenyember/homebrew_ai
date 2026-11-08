@@ -1,27 +1,25 @@
-import { StatusBadge, type ApiStatus } from './components/StatusBadge';
-import { useHealth } from './features/health/useHealth';
-
-const statusLookup: Record<'pending' | 'error' | 'success', ApiStatus> = {
-  pending: 'unknown',
-  error: 'down',
-  success: 'ok',
-};
+import { Navigate, Route, Routes } from 'react-router';
+import { BatchesPage } from '@/features/batches/BatchesPage';
+import { DevicesPage } from '@/features/devices/DevicesPage';
+import { InventoryPage } from '@/features/inventory/InventoryPage';
+import { RecipesPage } from '@/features/recipes/RecipesPage';
+import { SettingsPage } from '@/features/settings/SettingsPage';
+import { NotFoundPage } from '@/components/NotFoundPage';
+import { AppLayout } from './components/layout/AppLayout';
 
 function App() {
-  const health = useHealth();
-  // A query that has never had data goes back to 'pending' on every refetch, so while
-  // the API is down, `status` alone would flip to 'unknown' each time it asks again.
-  // A recorded error means that 'pending' is "down, checking again".
-  const status =
-    health.status === 'pending' && health.errorUpdatedAt > 0
-      ? 'down'
-      : statusLookup[health.status];
-
   return (
-    <div>
-      <h1>Brewing App</h1>
-      <StatusBadge status={status} />
-    </div>
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route index element={<Navigate to="batches" replace />}></Route>
+        <Route path={'batches'} element={<BatchesPage />}></Route>
+        <Route path={'devices'} element={<DevicesPage />}></Route>
+        <Route path={'inventory'} element={<InventoryPage />}></Route>
+        <Route path={'recipes'} element={<RecipesPage />}></Route>
+        <Route path={'settings'} element={<SettingsPage />}></Route>
+        <Route path={'*'} element={<NotFoundPage />}></Route>
+      </Route>
+    </Routes>
   );
 }
 

@@ -4,13 +4,16 @@ import { describe, it, expect } from 'vitest';
 import App from './App';
 import { http, HttpResponse } from 'msw/http';
 import { server } from './test/server';
+import { MemoryRouter } from 'react-router';
 
 function renderApp() {
   const queryClient = new QueryClient();
 
   render(
     <QueryClientProvider client={queryClient}>
-      <App />
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>
     </QueryClientProvider>,
   );
 }

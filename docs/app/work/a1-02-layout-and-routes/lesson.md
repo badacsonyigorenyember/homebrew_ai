@@ -146,7 +146,7 @@ Node 26.13.0, TypeScript 6.0.3 and Vite 8.3; every error message quoted below co
    still there to get you back.
 
 6. **Write `AppLayout`**, the frame, in `src/components/layout/AppLayout.tsx`, in small steps. The
-   menu itself comes in step 7 and the drawer in step 9; this step builds the shape.
+   menu itself comes in step 7 and the drawer in steps 9 and 10; this step builds the shape.
 
    **Read first (about 20 minutes).**
    - [React Router — Routing, "Nested Routes"](https://reactrouter.com/start/declarative/routing#nested-routes):
@@ -178,6 +178,11 @@ Node 26.13.0, TypeScript 6.0.3 and Vite 8.3; every error message quoted below co
    squeeze it, a right border and padding. For now, put a placeholder text in it; step 8 puts the
    menu there.
 
+   *Changed 2026-11-08, after you finished 6d:* from here on, every numbered step ends with all
+   checks passing and a **Commit:** line, so you can commit step by step. The router (was step 10)
+   and the test fix (was step 12) moved into this step as 6f and 6g, because the app cannot pass
+   its checks without them; the later steps are renumbered.
+
    **6e. The page slot.** A `<main>` with `flex-1` (take the remaining width), `min-w-0` and padding,
    and inside it `<Outlet />`, imported by name from `'react-router'`.
    *Why:* `Outlet` is where the layout route draws whichever child route matches the URL (step 5c).
@@ -188,11 +193,41 @@ Node 26.13.0, TypeScript 6.0.3 and Vite 8.3; every error message quoted below co
    *Watch out:* forget `<Outlet />` and nothing complains: measured, the menu and header draw and
    the page side stays empty on every URL.
 
-   **6f. Check the joins.** `App` now finds `AppLayout`, and `AppLayout` shows `HealthBadge` and the
-   pages; only the router is missing (step 10). Run `npm run typecheck` and `npm run lint`.
-   *Check yourself:* both pass. `npm run dev` shows a blank page until step 10 adds the router; the
-   console says *Uncaught Error: useRoutes() may be used only in the context of a &lt;Router&gt;
-   component.* (measured). That is expected.
+   **6f. Give the app a router.** In `main.tsx`, import `BrowserRouter` by name from
+   `'react-router'` and wrap `<App />` in it, inside `QueryClientProvider`.
+   *Why:* `Routes` and `Outlet` (and `NavLink` in step 7) read the URL from the router above them.
+   `BrowserRouter` connects that to the browser's address bar. It goes in `main.tsx`, not in
+   `App`, so tests can wrap the same `App` in a different router that keeps the URL in memory
+   (6g, and the test lesson). Without it, measured, the page is blank and the console says
+   *Uncaught Error: useRoutes() may be used only in the context of a &lt;Router&gt; component.*
+   *Check yourself:* `npm run dev`, open the address it prints. `/` turns into `/batches` and shows
+   "Batches" next to the column's placeholder text. The failing check is expected until 6g:
+   `npm test -- --run` now fails, see there.
+
+   **6g. Keep the existing tests passing.** Run `npm test -- --run`. Measured, the four `App` tests
+   fail with *Error: useRoutes() may be used only in the context of a &lt;Router&gt;
+   component.*, because `renderApp` draws `App` with no router around it. In `App.test.tsx`,
+   import `MemoryRouter` by name from `'react-router'` and wrap `<App />` in it, inside
+   `QueryClientProvider`.
+   *Why:* a test has no address bar. `MemoryRouter` is a router that keeps its URL in a list in
+   memory, so a test can start the app at any path; with no starting path it is at `/`, which
+   redirects to `/batches`, and the badge is in the header on every page. The four tests still
+   check what they checked before. The new routing tests are the test lesson's work. This belongs
+   in the same step as 6f: the change that breaks the tests and the fix go in one commit.
+   Docs: [React Router — `MemoryRouter`](https://reactrouter.com/api/declarative-routers/MemoryRouter).
+   *Check yourself:* *Tests 7 passed (7)*.
+
+   **6h. Check and commit.** Run `npm run lint`, `npm run typecheck`, `npm test -- --run` and
+   `npm run build`.
+   *Why:* this is the first point since step 2 where the app works again: routes, layout and
+   router are all in place. Everything from steps 2 to 6 that is not committed yet goes in now.
+   *Check yourself:* all four pass, and `git status` shows only this ticket's files.
+
+   *Commit:* whichever of these `git status` still lists: `package.json`, `package-lock.json`,
+   `src/main.tsx`, `src/App.tsx`, `src/App.test.tsx`, `src/features/health/HealthBadge.tsx`,
+   `src/components/layout/AppLayout.tsx` (all under `app/web/`), message
+   `Add routes and the app layout`. If the hook refuses the commit, the step is not finished: fix
+   what it reports and commit again.
 
 7. **Write `MainMenu`**, in `src/components/layout/MainMenu.tsx`, in small steps.
 
@@ -218,7 +253,7 @@ Node 26.13.0, TypeScript 6.0.3 and Vite 8.3; every error message quoted below co
    is a function with no parameters that returns nothing. An optional field has a `?` after its
    name; a function type is written as the parameter list in brackets, an arrow `=>`, then the
    return type `void`.
-   *Why:* the drawer (step 9) needs to know when a link was clicked, so it can close. The column
+   *Why:* the drawer (step 10) needs to know when a link was clicked, so it can close. The column
    (step 8) does not care, so the prop is optional. The menu does not know about drawers; it only
    reports "someone navigated". That is the **callback prop** pattern: a child tells its parent
    something happened by calling a function the parent passed in, and the parent decides what to do.
@@ -260,7 +295,10 @@ Node 26.13.0, TypeScript 6.0.3 and Vite 8.3; every error message quoted below co
    Docs: the `className` example in the NavLink section above is this shape.
    *Check yourself:* `npm run typecheck` and `npm run lint` pass. If typecheck says *Binding element
    'isActive' implicitly has an 'any' type*, the function is on something that is not a `NavLink`
-   (measured with the wrong import from step 2).
+   (measured with the wrong import from step 2). Nothing changes on screen yet: `MainMenu` is
+   exported but not used, which breaks no check (measured: the whole hook passes). Step 8 uses it.
+
+   *Commit:* `src/components/layout/MainMenu.tsx`, message `Add the main menu`.
 
 8. **Put the menu in the column.** In `AppLayout`, replace the `<aside>` placeholder with
    `<MainMenu />`, no props. Then hide the column on narrow screens: `hidden` (display none) plus
@@ -269,12 +307,16 @@ Node 26.13.0, TypeScript 6.0.3 and Vite 8.3; every error message quoted below co
    applies from 768 px (48rem) up. So you write the narrow layout first and add what changes on
    wider screens, which is what F1.5 asks for ("narrow layout first"). The ticket's "below the
    medium breakpoint" is exactly "without `md:`".
-   *Check yourself:* after step 10, the column shows on a wide window and disappears when you drag
-   the window narrower than 768 px.
+   *Check yourself (AC1):* with `npm run dev`, each of the five links shows its page, the URL
+   changes, and the clicked link is highlighted. Drag the window narrower than 768 px: the column
+   disappears. For now there is no way to the menu at that width; step 10 adds the button. Lint,
+   type check and tests pass.
 
-9. **Add the drawer**, in small steps.
+   *Commit:* `src/components/layout/AppLayout.tsx`, message `Show the menu in the left column`.
 
-   **Read first (about 15 minutes).**
+9. **Add the Sheet component.** In `app/web`: `npx shadcn@latest add sheet`.
+
+   **Read first for steps 9 and 10 (about 15 minutes).**
    - [shadcn — Sheet (Base UI)](https://ui.shadcn.com/docs/components/base/sheet): "Usage" and
      "Side". Look at how `SheetTrigger` uses `render`.
    - [react.dev — State: A Component's Memory](https://react.dev/learn/state-a-components-memory):
@@ -282,7 +324,6 @@ Node 26.13.0, TypeScript 6.0.3 and Vite 8.3; every error message quoted below co
    - [Base UI — Dialog](https://base-ui.com/react/components/dialog), the "State" example: the
      `open` and `onOpenChange` props, and why `onOpenChange` is preferred over a `useEffect`.
 
-   **9a. Add the component.** In `app/web`: `npx shadcn@latest add sheet`.
    *Why:* a drawer is a dialog that slides in from an edge. Getting a dialog right is more work than
    it looks: focus must move into it, Tab must stay inside it, Escape must close it, focus must go
    back to the button afterwards, and the page behind must not scroll. Base UI's `Dialog`, which
@@ -290,9 +331,14 @@ Node 26.13.0, TypeScript 6.0.3 and Vite 8.3; every error message quoted below co
    it, and focus returns to the menu button. Your `.prettierignore` and ESLint override from a1-01
    already cover the new file.
    *Check yourself:* the output says *Created 1 file: src/components/ui/sheet.tsx* and skips
-   `button.tsx` (already identical).
+   `button.tsx` (already identical). Nothing uses it yet, and every check still passes (measured).
 
-   **9b. The state.** At the top of `AppLayout`'s body, `useState(false)` from `'react'`, with the
+   *Commit:* `src/components/ui/sheet.tsx`, message `Add the shadcn Sheet component`.
+
+10. **Put the menu in a drawer on narrow screens**, in small steps, all in `AppLayout`.
+
+
+   **10a. The state.** At the top of `AppLayout`'s body, `useState(false)` from `'react'`, with the
    result destructured into two names, for example `menuOpen` and `setMenuOpen`: square brackets
    around the two names, then `=`, then the call.
    *Why:* **state** is a value a component remembers between renders; changing it with the setter
@@ -301,17 +347,17 @@ Node 26.13.0, TypeScript 6.0.3 and Vite 8.3; every error message quoted below co
    when a link was clicked. So the drawer is **controlled**: your state holds whether it is open,
    and the drawer only asks for changes. An *uncontrolled* `Sheet` (no `open` prop) keeps that
    value to itself, and you cannot close it from outside.
-   *Check yourself:* the failing check is expected until 9c and 9e use them: lint says *'menuOpen'
+   *Check yourself:* the failing check is expected until 10b and 10d use them: lint says *'menuOpen'
    is assigned a value but never used* (and the same for `setMenuOpen`), typecheck says *error
    TS6133: 'menuOpen' is declared but its value is never read.*
 
-   **9c. The `Sheet`.** In the header, before the app name, a `<Sheet>` with `open={menuOpen}` and
+   **10b. The `Sheet`.** In the header, before the app name, a `<Sheet>` with `open={menuOpen}` and
    `onOpenChange={setMenuOpen}`.
    *Why:* `onOpenChange` is called with `true` or `false` whenever the drawer wants to open or close
    (button, Escape, a click on the dimmed page). The setter takes exactly that one value, so it can
    be passed as it is.
 
-   **9d. The trigger.** Inside the `Sheet`, a `SheetTrigger` whose `render` prop is a shadcn
+   **10c. The trigger.** Inside the `Sheet`, a `SheetTrigger` whose `render` prop is a shadcn
    `<Button>` with `variant="ghost"`, `size="icon"`, `aria-label="Open menu"` and the class
    `md:hidden`. Between `SheetTrigger`'s tags goes the icon: `<MenuIcon />` from `lucide-react`.
    *Why:* `render` is Base UI's way to say "draw the trigger as this element, with my behaviour
@@ -324,7 +370,7 @@ Node 26.13.0, TypeScript 6.0.3 and Vite 8.3; every error message quoted below co
    *Watch out:* `asChild`, which many shadcn examples use, belongs to the Radix version; your
    components are Base UI and use `render`.
 
-   **9e. The drawer's content.** After the trigger, inside the `Sheet`: `<SheetContent>` with
+   **10d. The drawer's content.** After the trigger, inside the `Sheet`: `<SheetContent>` with
    `side="left"` and some padding, holding a `SheetTitle` ("Brewing App" or "Menu") and
    `<MainMenu />` with an `onNavigate` that sets the state to `false`: an arrow function with no
    parameters that calls `setMenuOpen(false)`.
@@ -334,16 +380,11 @@ Node 26.13.0, TypeScript 6.0.3 and Vite 8.3; every error message quoted below co
    `onNavigate={setMenuOpen(false)}` would *call* it during render instead of passing a function.
    This is the same `MainMenu` as in the column: one component, two containers, so the five links
    are written once.
-   *Check yourself:* `npm run typecheck` and `npm run lint` pass.
+   *Check yourself:* `npm run typecheck` and `npm run lint` pass. With `npm run dev`, make the
+   window narrower than 768 px: the column disappears, the menu button shows, and it opens the
+   drawer; a link click changes the page and closes it. Step 12 checks this properly at 375 px.
 
-10. **Give the app a router.** In `main.tsx`, import `BrowserRouter` by name from `'react-router'`
-    and wrap `<App />` in it, inside `QueryClientProvider`.
-    *Why:* `Routes`, `NavLink` and `Outlet` read the URL from the router above them. `BrowserRouter`
-    connects that to the browser's address bar. It goes in `main.tsx`, not in `App`, so tests can
-    wrap the same `App` in a different router that keeps the URL in memory (step 12, and the test
-    lesson).
-    *Check yourself:* `npm run dev`, open the address it prints. `/` turns into `/batches` and shows
-    "Batches"; the Batches link is highlighted, and the console error from step 6f is gone.
+   *Commit:* `src/components/layout/AppLayout.tsx`, message `Open the menu in a drawer when narrow`.
 
 11. **Check AC2: direct URLs.** With `npm run dev` running, type `/inventory` into the address bar
     and press Enter, then reload on `/settings`, then open `/nope`.
@@ -355,19 +396,9 @@ Node 26.13.0, TypeScript 6.0.3 and Vite 8.3; every error message quoted below co
     *Check yourself:* `/inventory` and `/settings` show their pages with the right item
     highlighted; `/nope` shows "Page not found" with no item highlighted and the menu still there.
 
-12. **Keep the existing tests passing.** Run `npm test -- --run`. Measured, the four `App` tests
-    now fail with *Error: useRoutes() may be used only in the context of a &lt;Router&gt;
-    component.*, because `renderApp` draws `App` with no router around it. In `App.test.tsx`,
-    import `MemoryRouter` by name from `'react-router'` and wrap `<App />` in it, inside
-    `QueryClientProvider`.
-    *Why:* a test has no address bar. `MemoryRouter` is a router that keeps its URL in a list in
-    memory, so a test can start the app at any path; with no starting path it is at `/`, which
-    redirects to `/batches`, and the badge is in the header on every page. The four tests still check
-    what they checked before. The new routing tests are the test lesson's work.
-    Docs: [React Router — `MemoryRouter`](https://reactrouter.com/api/declarative-routers/MemoryRouter).
-    *Check yourself:* *Tests 7 passed (7)*.
+    No commit.
 
-13. **Check AC3 at phone width.** With `npm run dev` running, press F12, click the device toolbar
+12. **Check AC3 at phone width.** With `npm run dev` running, press F12, click the device toolbar
     icon (Ctrl+Shift+M) and choose a width of 375. Open the drawer, click Recipes, then try Escape
     and a click on the dimmed side.
     *Why:* this is the layout a phone gets in M9; checking it now is what makes that milestone a
@@ -377,7 +408,9 @@ Node 26.13.0, TypeScript 6.0.3 and Vite 8.3; every error message quoted below co
     `document.documentElement.scrollWidth` prints `375` (measured), the same as the screen: nothing
     scrolls sideways.
 
-14. **Check AC4 by keyboard.** On a wide window, click the address bar, then press Tab repeatedly:
+    No commit.
+
+13. **Check AC4 by keyboard.** On a wide window, click the address bar, then press Tab repeatedly:
     focus goes through the five menu links in order, each with a visible ring. Press Enter on one.
     Then at 375 px: Tab to the menu button, Enter opens the drawer, Tab moves through its links, Enter
     opens one.
@@ -386,11 +419,16 @@ Node 26.13.0, TypeScript 6.0.3 and Vite 8.3; every error message quoted below co
     `focus-visible:` ring (Tailwind's `focus-visible:` prefix applies only when focus came from the
     keyboard).
 
-15. **Prove the generated file is unedited.** `npx shadcn@latest add sheet button badge --diff`.
+    *Commit:* only if you added a focus ring: `src/components/layout/MainMenu.tsx`, message
+    `Show a focus ring on menu links`. Otherwise no commit.
+
+14. **Prove the generated file is unedited.** `npx shadcn@latest add sheet button badge --diff`.
     *Why:* the a1-01 rule holds for every file in `src/components/ui/`: as the CLI wrote it.
     *Check yourself:* every file says *No changes.*
 
-16. **Run every check and ask for a review** (say "review a1-02").
+    No commit.
+
+15. **Run every check and ask for a review** (say "review a1-02").
     *Check yourself:* the list under "Before you ask for a review" is all ticked.
 
 ## Files you will touch
@@ -423,4 +461,6 @@ Node 26.13.0, TypeScript 6.0.3 and Vite 8.3; every error message quoted below co
 - [ ] `npx shadcn@latest add sheet button badge --diff` says *No changes.* for each.
 - [ ] No import from `react-router-dom`; no `<a href>` to an app page.
 - [ ] The browser console shows no React warning (the `key` one in particular).
+- [ ] Every step is committed: `git status` shows nothing of this ticket left uncommitted, and
+      `git log --oneline main..` lists your step commits.
 - [ ] Could you add a sixth view by adding one route and one menu item, and nothing else?
