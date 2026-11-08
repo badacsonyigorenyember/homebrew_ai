@@ -42,10 +42,38 @@ The main part of the lesson. A numbered list of small subtasks in building order
 Paths to create or change, one line each on what goes there.
 
 ## Before you ask for a review
-A short checklist: the ACs, the checks to run, the questions to ask yourself.
+A short checklist: the ACs, the checks to run, the questions to ask yourself, and that every
+step is committed (`git status` shows nothing of this ticket left uncommitted).
 ```
 
 ## Steps
+
+### Every step is a commit
+
+The user commits after each numbered step, so each step has to end with the app working. The
+pre-commit hook (`app/web/.husky/pre-commit`) runs lint, type check, tests, build and Prettier, and
+refuses the commit if any of them fails. A step that leaves the app broken for a later step to fix
+cannot be committed. Order and size the steps so that this never happens:
+
+- **Green at every step end.** When a numbered step is done, every check the hook runs passes (for
+  the API: `dotnet build` and `dotnet test`), and the app still does what it did before, or more.
+  Sub-steps (9a, 9b, …) inside a step may leave a check failing, as long as a later sub-step of the
+  **same** step fixes it.
+- **Build before you wire.** A new piece (a component, a hook, a page, an endpoint) is written and
+  exported in its own step, unused; an unused export breaks no check. A later step puts it to use.
+- **Change a thing together with everything it breaks.** When a change breaks its callers or the
+  existing tests (a router around `App`, a renamed prop, a moved function), the step that makes it
+  also updates those callers and tests. Moving code means: create the new place, switch the users
+  to it, delete the old place, all in one step.
+- **Setup is a step too.** Installing a package (`package.json` and `package-lock.json`) or adding
+  a generated component is its own commit.
+- **Checking is not a commit.** A step that only checks an AC in the browser or runs a command says
+  "No commit" instead of a Commit line.
+
+If a step cannot be made green without growing past one sitting, split the work differently
+(build the piece first, wire it second) rather than allowing a broken commit.
+
+### The parts of a step
 
 Every step has these parts, in this order:
 
@@ -62,6 +90,10 @@ Every step has these parts, in this order:
 3. **Watch out:** (only when there is one) the mistake beginners make at this step and how it shows
    up (the error text, what the screen does).
 4. **Check yourself:** a way to see it works (a command, a URL, what the screen shows).
+5. **Commit:** the paths to `git add` (explicit paths, never `-A` or `.`) and a one-line message,
+   imperative, at most 60 characters ([`dev-flow/conventions.md`](../dev-flow/conventions.md)), for
+   example `Add the five placeholder pages`. The hook running green is the step's last check. A
+   step with nothing to commit says "No commit".
 
 A step that is only tooling (run a command, open a page) still gets its *Why*, in a sentence.
 
@@ -86,7 +118,8 @@ model for the size and the checks.
   Run each such error before writing it down, with the project's own tool versions, in a scratch
   folder outside the repo; never write an error message from memory.
 - **Say when a failing check is expected** and which later sub-step fixes it (an unused parameter
-  until the body uses it), so a red error does not read as a mistake.
+  until the body uses it), so a red error does not read as a mistake. That sub-step is always in
+  the same numbered step: no check is still failing when the step reaches its Commit line.
 
 ## `test-lesson.md`: its parts, in this order
 
@@ -104,7 +137,9 @@ Written as "Steps" above: what to do, *Why*, *Watch out*, *Check yourself*. New 
 behaviour per test, names that state the behaviour, test data kept small and visible) are taught
 in the step that first uses them. The first step for each test is to see it fail (write it before
 the behaviour exists, or break the code briefly). Writing a test is a code step: follow "Code
-steps" above (read first, one new piece per sub-step, checked error messages).
+steps" above (read first, one new piece per sub-step, checked error messages) and "Every step is a
+commit": the hook runs the tests, so seeing a test fail happens inside the step, and the step
+commits it only once it passes.
 
 ## Before you ask for a test review
 Checklist.

@@ -6,7 +6,8 @@ safety, or teaches a pattern the user will use again.
 ## What to read
 
 `git diff main` (committed and uncommitted work on the branch) and `git status` for new files.
-Read every changed file in full, not only the diff lines.
+Read every changed file in full, not only the diff lines. `git log --oneline main..` lists the
+user's step commits; review the branch as a whole, not commit by commit.
 
 ## Checks to run
 
