@@ -6,12 +6,12 @@ import { http, HttpResponse } from 'msw/http';
 import { server } from './test/server';
 import { MemoryRouter } from 'react-router';
 
-function renderApp() {
+function renderApp(path = '/') {
   const queryClient = new QueryClient();
 
   render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
+      <MemoryRouter initialEntries={[path]}>
         <App />
       </MemoryRouter>
     </QueryClientProvider>,
@@ -58,6 +58,16 @@ describe('App', () => {
 
     expect(
       await screen.findByText('API down', {}, { timeout: 2000 }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe('routes', () => {
+  it('opens Batches at /', () => {
+    renderApp();
+
+    expect(
+      screen.getByRole('heading', { name: 'Batches' }),
     ).toBeInTheDocument();
   });
 });
