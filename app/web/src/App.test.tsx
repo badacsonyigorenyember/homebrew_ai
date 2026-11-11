@@ -98,6 +98,8 @@ describe('routes', () => {
   it('shows "Page not found" for an unknown path', () => {
     renderApp('/asd');
 
-    expect(screen.getByRole('heading', { name: 'Page not found' }));
+    expect(
+      screen.queryByRole('heading', { name: 'Page not found' }),
+    ).toBeInTheDocument();
   });
 });
