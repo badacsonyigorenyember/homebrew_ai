@@ -94,4 +94,10 @@ describe('routes', () => {
       'page',
     );
   });
+
+  it('shows "Page not found" for an unknown path', () => {
+    renderApp('/asd');
+
+    expect(screen.getByRole('heading', { name: 'Page not found' }));
+  });
 });
