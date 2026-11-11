@@ -1,6 +1,6 @@
 # a1-03 · The API's database role and EF Core
 
-Stage: ready
+Stage: implementing
 Branch: `a1-03-db-role-and-ef`
 Milestone: M1 · Requirements: §8 role, C5 ([SYSTEM.md](../SYSTEM.md))
 Blocked by: a1-02
