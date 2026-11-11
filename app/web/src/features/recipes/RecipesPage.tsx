@@ -1,3 +1,3 @@
 export function RecipesPage() {
-  return <h1>Recipes</h1>;
+  return <h1 className={'text-2xl font-semibold'}>Recipes</h1>;
 }

@@ -1,3 +1,3 @@
 export function SettingsPage() {
-  return <div>Settings</div>;
+  return <div className={'text-2xl font-semibold'}>Settings</div>;
 }

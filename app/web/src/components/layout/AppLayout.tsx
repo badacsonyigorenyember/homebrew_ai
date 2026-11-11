@@ -16,7 +16,7 @@ export function AppLayout() {
 
   return (
     <div className="min-h-svh flex flex-col">
-      <header className="flex h-14 items-center gap-2">
+      <header className="flex h-14 items-center gap-2 border-b px-4">
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger
             render={
@@ -35,7 +35,7 @@ export function AppLayout() {
             <MainMenu onNavigate={() => setMenuOpen(false)} />
           </SheetContent>
         </Sheet>
-        <span>Brewing App</span>
+        <span className={'font-semibold'}>Brewing App</span>
         <span className="ml-auto">
           <HealthBadge />
         </span>
@@ -44,7 +44,7 @@ export function AppLayout() {
         <aside className="w-56 shrink-0 border-r p-4 hidden md:block">
           <MainMenu />
         </aside>
-        <main className="flex-1 min-w-0 px-4 border-b p-4 text-2xl font-semibold">
+        <main className="flex-1 min-w-0 p-4">
           <Outlet />
         </main>
       </div>
