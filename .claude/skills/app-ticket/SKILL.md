@@ -80,10 +80,12 @@ Set `Stage: test-review`.
 2. Run every check fresh: `dotnet build` and `dotnet test` in `app/` when the API exists;
    `npm run lint`, `npm run typecheck`, `npm test -- --run` and `npm run build` in `app/web` when
    it exists. All must pass. Earlier results do not count.
-3. Show the user: what the ticket delivered (by AC), the checks run and their results, the files
-   to commit. Ask once: "Ship it?" Wait for yes.
-4. Commit the user's work on the branch: `git add` explicit paths only (never `-A` or `.`),
-   message `<Ticket title>` style one line, at most 60 characters, no body or trailer
+3. Show the user: what the ticket delivered (by AC), the checks run and their results, the
+   user's commits on the branch (`git log --oneline main..`), and any of the ticket's files still
+   uncommitted. Ask once: "Ship it?" Wait for yes.
+4. The user commits step by step (lesson-guide "Every step is a commit"), so usually nothing is
+   left. If some of the user's work is still uncommitted, commit it on the branch: `git add`
+   explicit paths only (never `-A` or `.`), one line, at most 60 characters, no body or trailer
    ([`dev-flow/conventions.md`](../dev-flow/conventions.md)).
 5. Records, in a second commit `Ship <ticket-id>`: `Stage: done` in `ticket.md`, then
    `git mv docs/app/work/<ticket-id> docs/app/finished/<ticket-id>`; the ticket's row in

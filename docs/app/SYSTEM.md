@@ -301,7 +301,8 @@ docs/app/work/<id>/      moves to docs/app/finished/<id>/ when the ticket ships
 1. **start:** checks the blocking tickets are done, creates the branch from `main`, writes
    `lesson.md`: the concepts from zero (React and .NET as relevant), the patterns and best
    practices to follow and why, official docs to read, and the ticket split into small subtasks,
-   each with a way to check yourself. No solution code: at most a signature or a one-line
+   each with a way to check yourself. Each numbered step leaves the app working, so you commit it
+   when it is done (the pre-commit hook runs every check). No solution code: at most a signature or a one-line
    pseudo-step where a concept cannot be explained without it.
 2. **implementing:** you build; Claude answers questions with explanations and hints and does not
    edit files under `app/` unless you ask for a specific change.
@@ -358,3 +359,6 @@ PROJECT.md changes this design makes (agreed 2026-10-31):
   a2-03..09 → a7-01..07).
 - 2026-11-02 · a0-01: the toolchain is pinned in `app/README.md` (Ubuntu 26.04, .NET SDK 10.0.114,
   Node.js 26.13.0, csharp-ls 0.28.0, Rider 2026.2.4); the .NET 8 SDK was removed.
+- 2026-11-11 · a1-02: lessons and test lessons are cut into steps that each end with every check
+  passing and a commit, so you commit step by step instead of once at ship
+  (`.claude/skills/app-ticket/lesson-guide.md`, "Every step is a commit").
