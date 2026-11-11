@@ -44,7 +44,7 @@ export function AppLayout() {
         <aside className="w-56 shrink-0 border-r p-4 hidden md:block">
           <MainMenu />
         </aside>
-        <main className="flex-1 min-w-0">
+        <main className="flex-1 min-w-0 px-4 border-b p-4 text-2xl font-semibold">
           <Outlet />
         </main>
       </div>
