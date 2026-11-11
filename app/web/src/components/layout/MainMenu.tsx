@@ -3,10 +3,10 @@ import { cn } from '@/lib/utils';
 
 const menuItems = [
   { to: '/batches', label: 'Batches' },
-  { to: 'devices', label: 'Devices' },
-  { to: 'inventory', label: 'Inventory' },
-  { to: 'recipes', label: 'Recipes' },
-  { to: 'settings', label: 'Settings' },
+  { to: '/recipes', label: 'Recipes' },
+  { to: '/inventory', label: 'Inventory' },
+  { to: '/devices', label: 'Devices' },
+  { to: '/settings', label: 'Settings' },
 ];
 
 type MainMenuProps = { onNavigate?: () => void };
