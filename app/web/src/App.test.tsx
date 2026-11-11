@@ -5,6 +5,7 @@ import App from './App';
 import { http, HttpResponse } from 'msw/http';
 import { server } from './test/server';
 import { MemoryRouter } from 'react-router';
+import { userEvent } from '@testing-library/user-event';
 
 function renderApp(path = '/') {
   const queryClient = new QueryClient();
@@ -77,5 +78,20 @@ describe('routes', () => {
     expect(
       screen.getByRole('heading', { name: 'Inventory' }),
     ).toBeInTheDocument();
+  });
+
+  it('shows the page of a clicked menu link and marks the link current', async () => {
+    const user = userEvent.setup();
+    renderApp('/batches');
+
+    await user.click(screen.getByRole('link', { name: 'Recipes' }));
+
+    expect(
+      screen.getByRole('heading', { name: 'Recipes' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Recipes' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   });
 });
