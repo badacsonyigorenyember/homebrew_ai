@@ -75,3 +75,35 @@ Done well:
 
 Verdict: ready for tests (no must-fix open; #6 and #7 are small and worth doing before the tests,
 since the tests will look for the page headings)
+
+## Round 3 · 2026-11-11 · d782005
+
+Checks (in `app/web`, working tree clean):
+`npm run lint` exit 0 ·
+`npm run typecheck` ok ·
+`npm test -- --run` 7 passed ·
+`npm run build` ok, no warning ·
+`npx prettier . --check` "All matched files use Prettier code style!" ·
+`npx shadcn@latest add sheet button badge --diff`: all three "No changes."
+
+Measured in the dev server: `<main>` is back to 16px / 400 with 16 px padding and no border; the
+header has 16 px side padding and a 1 px bottom border; the page `<h1>`s are 24px / 600.
+
+| AC | Met | How checked |
+|---|---|---|
+| AC1–AC4 | yes | only class names changed since round 2, where all four were tried; the pages and the menu look as before, with the spacing fixed |
+
+Earlier findings: #1, #2, #3 fixed (round 2) · #4 and #6 fixed (header and page titles styled
+where they belong, `<main>` only lays out) · #5 still open, nice to have (`./useHealth.ts`) ·
+**#7 still open:** `SettingsPage.tsx:2` now has the heading's classes, but it is still a `<div>`.
+It looks like a title and is not one: `document.querySelectorAll('main h1')` finds none on
+`/settings` (measured). The fix is the element, not the classes: an `<h1>`, like the other four.
+
+No new findings.
+
+Done well:
+- The styles now sit on the element each one describes, and `<main>` carries only layout: the
+  pattern every later page will build on.
+
+Verdict: ready for tests (#7 is a one-word change; do it first, because the test lesson finds
+pages by their heading)
