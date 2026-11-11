@@ -70,4 +70,12 @@ describe('routes', () => {
       screen.getByRole('heading', { name: 'Batches' }),
     ).toBeInTheDocument();
   });
+
+  it('opens a page directly from its URL', () => {
+    renderApp('/inventory');
+
+    expect(
+      screen.getByRole('heading', { name: 'Inventory' }),
+    ).toBeInTheDocument();
+  });
 });
