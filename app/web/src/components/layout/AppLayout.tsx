@@ -1,11 +1,40 @@
 import { HealthBadge } from '@/features/health/HealthBadge';
 import { Outlet } from 'react-router';
 import { MainMenu } from '@/components/layout/MainMenu';
+import { useState } from 'react';
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { MenuIcon } from 'lucide-react';
 
 export function AppLayout() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div className="min-h-svh flex flex-col">
       <header className="flex h-14 items-center gap-2">
+        <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+          <SheetTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Open menu"
+                className="md:hidden"
+              />
+            }
+          >
+            <MenuIcon />
+          </SheetTrigger>
+          <SheetContent side={'left'} className={'p-2'}>
+            <SheetTitle>Brewing App</SheetTitle>
+            <MainMenu onNavigate={() => setMenuOpen(false)} />
+          </SheetContent>
+        </Sheet>
         <span>Brewing App</span>
         <span className="ml-auto">
           <HealthBadge />
