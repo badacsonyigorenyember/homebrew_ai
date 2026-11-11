@@ -151,3 +151,15 @@ Done well:
 
 Verdict: ready to ship (no must-fix open; T-1 is one matcher and #7 one element, both worth doing
 before you ship)
+
+## Round 2 · 2026-11-11 · 3f8e310
+
+Checks, fresh: `npm run lint` exit 0 · `npm run typecheck` ok · `npm test -- --run` 11 passed ·
+`npm run build` ok · `npx prettier . --check` ok · API `dotnet build` 0 warnings, `dotnet test` 1 passed.
+
+Earlier findings: T-1 fixed (T4 now ends in `.toBeInTheDocument()`; break-checked again by deleting
+the `*` route: it fails; edit undone, tree clean) · code review #7 fixed (`SettingsPage` is an `<h1>`).
+The T4 query is now `queryByRole`; `getByRole` would give a clearer message on failure (it lists
+the roles it found), but both fail correctly. No new findings.
+
+Verdict: ready to ship

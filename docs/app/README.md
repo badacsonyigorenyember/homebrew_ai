@@ -34,7 +34,7 @@ comes last of the features (M7). Milestones are worked in order.
 | Ticket | Title | Blocked by | Stage |
 |---|---|---|---|
 | [a1-01](finished/a1-01-tailwind-shadcn/ticket.md) | Tailwind and shadcn/ui | a0-04 | done |
-| [a1-02](work/a1-02-layout-and-routes/ticket.md) | Layout, menu and routes | a1-01 | ready |
+| [a1-02](finished/a1-02-layout-and-routes/ticket.md) | Layout, menu and routes | a1-01 | done |
 | [a1-03](work/a1-03-db-role-and-ef/ticket.md) | The API's database role and EF Core | a1-02 | ready |
 | [a1-04](work/a1-04-test-database/ticket.md) | Test database | a1-03 | ready |
 | [a1-05](work/a1-05-batch-tables/ticket.md) | Batch tables | a1-04 | ready |

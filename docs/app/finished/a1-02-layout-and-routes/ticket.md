@@ -1,6 +1,6 @@
 # a1-02 · Layout, menu and routes
 
-Stage: test-review
+Stage: done
 Branch: `a1-02-layout-and-routes`
 Milestone: M1 · Requirements: F1.1, F1.5 ([SYSTEM.md](../SYSTEM.md))
 Blocked by: a1-01
