@@ -40,3 +40,38 @@ Done well:
   and the four old tests pass with only the `MemoryRouter` added.
 
 Verdict: fixes needed
+
+## Round 2 · 2026-11-11 · e374e8b
+
+Checks (in `app/web`, working tree clean):
+`npm run lint` exit 0 ·
+`npm run typecheck` ok ·
+`npm test -- --run` 7 passed ·
+`npm run build` ok, no warning ·
+`npx prettier . --check` "All matched files use Prettier code style!" ·
+`npx shadcn@latest add sheet button badge --diff`: all three "No changes." ·
+browser console: no React warning.
+
+| AC | Met | How checked |
+|---|---|---|
+| AC1 | yes | unchanged since round 1; the menu now reads `/batches,/recipes,/inventory,/devices,/settings` and `/` lands on Batches, highlighted |
+| AC2 | yes | unchanged since round 1 (routes only reordered in `App.tsx`) |
+| AC3 | yes | at 375 px the column is hidden (`aside` not displayed), `<main>` is the full 375 px, `scrollWidth` 375; the drawer opens, Devices in it opens `/devices`, the drawer closes and focus is back on "Open menu" |
+| AC4 | yes | unchanged since round 1; at 375 px the column's links are no longer in the Tab order, so the menu is tabbed through once |
+
+Earlier findings: #1 fixed (`hidden md:block` on the `<aside>`) · #2 fixed (all five paths
+absolute) · #3 fixed (F1.1 order) · #4 changed but not fixed, see #6 · #5 partly fixed: the alias
+and `.tsx` are gone, `./useHealth.ts` still ends in `.ts` (still a nice to have).
+
+| # | Axis | Severity | Where | Finding | Why it matters | Learn more |
+|---|---|---|---|---|---|---|
+| 6 | Standards | should fix | `app/web/src/components/layout/AppLayout.tsx:19,47` | The classes meant for the header and the headings went onto `<main>`: `text-2xl font-semibold` makes **everything** on every page 24 px semibold (measured: `<main>` computes to 24px / 600), `border-b` draws a line under the page area, and `px-4` repeats what `p-4` already sets. The `<header>` still has no padding or border (measured: left padding 0, "Brewing App" touches the window edge). | `<main>` wraps every page you will build. a1-07's table and form would inherit 24 px bold text and each page would have to undo it. Size belongs on the element it describes: the header gets its padding and bottom border, each page's `<h1>` gets the heading size, and `<main>` keeps only its layout and padding. | [MDN — Inheritance](https://developer.mozilla.org/en-US/docs/Web/CSS/Inheritance) (why `font-size` on `<main>` reaches every page) |
+| 7 | Spec | should fix | `app/web/src/features/settings/SettingsPage.tsx:2` | Settings returns `<div>Settings</div>`, the other four pages an `<h1>`. (There since `83760c4`; round 1 missed it.) | The page's title is its `<h1>` (lesson step 4): it is what a screen reader jumps to, and what the routing tests in the test lesson will look for by role. Settings would be the one page they cannot find. | [MDN — Heading elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Heading_Elements) |
+
+Done well:
+- Each round-1 finding got its own commit with a message that says what it fixes, so this round
+  could check them one by one.
+- `hidden md:block` went on the `<aside>`, not on `MainMenu`, so the drawer still shows the menu.
+
+Verdict: ready for tests (no must-fix open; #6 and #7 are small and worth doing before the tests,
+since the tests will look for the page headings)
