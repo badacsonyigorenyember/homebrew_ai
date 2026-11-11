@@ -1,5 +1,5 @@
-import { useHealth } from '@/features/health/useHealth.ts';
-import { type ApiStatus, StatusBadge } from '@/components/StatusBadge.tsx';
+import { useHealth } from './useHealth.ts';
+import { type ApiStatus, StatusBadge } from '@/components/StatusBadge';
 
 const statusLookup: Record<'pending' | 'error' | 'success', ApiStatus> = {
   pending: 'unknown',
