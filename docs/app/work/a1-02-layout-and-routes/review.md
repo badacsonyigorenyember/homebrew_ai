@@ -107,3 +107,47 @@ Done well:
 
 Verdict: ready for tests (#7 is a one-word change; do it first, because the test lesson finds
 pages by their heading)
+
+# Test review
+
+## Round 1 · 2026-11-11 · a9b95fc
+
+Checks (in `app/web`, working tree clean):
+`npm run lint` exit 0 ·
+`npm run typecheck` ok ·
+`npm test -- --run` 11 passed, three runs in a row, no warnings in the output ·
+`npm run build` ok ·
+`npx prettier . --check` "All matched files use Prettier code style!" ·
+`@testing-library/user-event` 14.6.9 is under `devDependencies`.
+
+Break-the-code check (each edit undone exactly; `git diff` of `App.tsx` and `MainMenu.tsx`
+compared before and after: identical, working tree clean):
+
+| Test | What I broke | Failed? |
+|---|---|---|
+| T1 `opens Batches at /` | deleted the `index` route | yes: *Unable to find … role "heading" and name "Batches"* |
+| T2 `opens a page directly from its URL` | `/inventory` drew `BatchesPage` | yes: *… name "Inventory"* |
+| T3 `shows the page of a clicked menu link…` | `NavLink` → `Link` in `MainMenu` | yes, on the second assert: *Expected the element to have attribute* |
+| T3 | Recipes' `to` → `'/recipe'` | yes, on the first assert: *… name "Recipes"* |
+| T4 `shows "Page not found" for an unknown path` | deleted the `*` route | yes: *… name "Page not found"*, with *No routes matched location "/asd"* |
+
+Per test: all four check what the user sees (a page's heading, the current link as a screen reader
+hears it), not how the code does it; none duplicates another or a health test; none depends on
+time, order or the real network (MSW answers `/api/health` in every test).
+
+| # | Axis | Severity | Where | Finding | Why it matters | Learn more |
+|---|---|---|---|---|---|---|
+| T-1 | Standards | should fix | `app/web/src/App.test.tsx:101` | `expect(screen.getByRole('heading', { name: 'Page not found' }))` has no matcher. The test fails when the heading is missing only because `getByRole` itself throws; the `expect(…)` line checks nothing. | An `expect` without a matcher reads as an assertion and is not one. The day it is changed to `queryByRole` (which returns `null` instead of throwing), the test passes with no page at all. End it with `.toBeInTheDocument()`, like the other three. | [Vitest — `expect`](https://vitest.dev/api/expect.html), [Testing Library — Types of queries](https://testing-library.com/docs/queries/about#types-of-queries) (`getBy` throws, `queryBy` returns `null`) |
+
+Code review #7 is still open: test-lesson step 1 (`SettingsPage` as an `<h1>`) has no commit, and
+`SettingsPage.tsx:2` is still a `<div>`.
+
+Done well:
+- Every test was committed on its own, with the order and names of the test lesson, so each
+  behaviour arrived with its test.
+- T3 checks `aria-current`, not a class name: it fails when the highlight's *meaning* breaks, and
+  survives a colour change.
+- `renderApp('/inventory')` picks a page that is not where `/` goes, so T2 cannot pass by accident.
+
+Verdict: ready to ship (no must-fix open; T-1 is one matcher and #7 one element, both worth doing
+before you ship)
