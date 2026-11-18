@@ -1,6 +1,6 @@
 # a1-03 · The API's database role and EF Core
 
-Stage: ready
+Stage: done
 Branch: `a1-03-db-role-and-ef`
 Milestone: M1 · Requirements: §8 role, C5 ([SYSTEM.md](../SYSTEM.md))
 Blocked by: a1-02
@@ -50,4 +50,7 @@ health test that does not need the database (the `down` case with an unreachable
 
 ## Deviations
 
-None yet.
+- 2026-11-18 · Outside the ticket, in their own commits: `app/.editorconfig` (the .NET defaults plus
+  Rider's attributes-on-their-own-line rule, final newlines, no trailing whitespace) and the .NET
+  checks in the pre-commit hook (`dotnet format --verify-no-changes`, `dotnet build -warnaserror`,
+  `dotnet test`). Neither changes what the ticket delivers.

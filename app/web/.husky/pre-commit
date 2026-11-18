@@ -1,2 +1,10 @@
-cd app/web
+# Husky runs this with `sh -e`: each line that fails stops the commit.
+# One check per line, because a failure inside an `&&` chain does not stop `sh -e`.
+
+cd app
+dotnet format HomebrewApp.slnx --verify-no-changes
+dotnet build HomebrewApp.slnx -warnaserror
+dotnet test HomebrewApp.slnx --no-build
+
+cd web
 npm run lint && npm run typecheck && npm test -- --run && npm run build && prettier --check .

@@ -16,7 +16,22 @@ Currently, I'm using Ubuntu 26.04 as operating system and all the tools are inst
 
 ## Run the API
 
-From the `app/` folder:
+Once per machine, give the API its database connection string. The API reads Postgres as the
+role `app_api`; how that role and its password are set up is in
+[`docs/OPERATIONS.md`](../docs/OPERATIONS.md) §4. The connection string goes into the API's
+user secrets, a file in your home folder that is never committed. From the `app/` folder, in
+the terminal where `APP_API_PASSWORD` holds the role's password:
+
+```bash
+dotnet user-secrets set --project api "ConnectionStrings:App" "Host=localhost;Port=5432;Database=postgres;Username=app_api.<POOLER_TENANT_ID>;Password=$APP_API_PASSWORD"
+```
+
+Replace `<POOLER_TENANT_ID>` with the value from the repo root's `.env`
+(`grep ^POOLER_TENANT_ID= .env`). `dotnet user-secrets list --project api` shows the stored
+value. Without this key the API stops at start-up with an `InvalidOperationException`, and so
+does `dotnet test`, because the tests start the API in `Development` too.
+
+Then, from the `app/` folder:
 
 ```bash
 dotnet run --project api
@@ -26,16 +41,33 @@ It uses the `http` profile in `api/Properties/launchSettings.json`: it listens o
 `http://localhost:5080` and runs in the `Development` environment. Wait for
 `Now listening on: http://localhost:5080` in the output.
 
-| What | URL |
-|---|---|
-| Health check | `http://localhost:5080/api/health` (answers `{"status":"ok"}`) |
-| OpenAPI document (Development only) | `http://localhost:5080/openapi/v1.json` |
+| What                                | URL                                                                                                                                         |
+|-------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| Health check                        | `http://localhost:5080/api/health` (answers `{"status":"ok","database":"ok"}`; `"database":"down"` when the API cannot connect to Postgres) |
+| OpenAPI document (Development only) | `http://localhost:5080/openapi/v1.json`                                                                                                     |
 
 Check it from a second terminal with `curl http://localhost:5080/api/health`, or open
 `api/HomebrewApp.http` in Rider and run the request. Stop the API with Ctrl+C.
 
 `dotnet run` doesn't reload code changes; stop and start it again, or use
 `dotnet watch --project api`, which restarts on save.
+
+## Checks before every commit
+
+The pre-commit hook (`web/.husky/pre-commit`, installed by `npm ci` in `app/web`) runs the API's
+checks first, then the web app's, and refuses the commit at the first one that fails:
+
+| Check                                                | What it does                                                                                                                         | To fix                                                                                          |
+|------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| `dotnet format HomebrewApp.slnx --verify-no-changes` | compares the C# code with `.editorconfig` (whitespace, final newlines, the style rules set to `warning` or `error`); changes nothing | run `dotnet format HomebrewApp.slnx` in `app/`, which rewrites the files, then look at the diff |
+| `dotnet build HomebrewApp.slnx -warnaserror`         | builds both projects; a warning counts as an error (the zero-warnings rule)                                                          | fix the warning                                                                                 |
+| `dotnet test HomebrewApp.slnx --no-build`            | runs the API tests on that build                                                                                                     | fix the test or the code                                                                        |
+| the npm checks                                       | see [Run the web app](#run-the-web-app)                                                                                              | `npm run cleanup` in `app/web`                                                                  |
+
+The checks run on the files in the working folder, not only on what is staged, and every commit
+runs all of them, even one that touches only docs. `dotnet format` doesn't know Rider's own
+`resharper_…` settings (such as attributes on their own line); Rider's **Code | Reformat Code**
+applies those.
 
 ## Run the web app
 

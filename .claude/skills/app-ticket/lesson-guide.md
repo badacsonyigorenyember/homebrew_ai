@@ -51,7 +51,8 @@ step is committed (`git status` shows nothing of this ticket left uncommitted).
 ### Every step is a commit
 
 The user commits after each numbered step, so each step has to end with the app working. The
-pre-commit hook (`app/web/.husky/pre-commit`) runs lint, type check, tests, build and Prettier, and
+pre-commit hook (`app/web/.husky/pre-commit`) runs `dotnet format --verify-no-changes`,
+`dotnet build -warnaserror` and `dotnet test`, then lint, type check, tests, build and Prettier, and
 refuses the commit if any of them fails. A step that leaves the app broken for a later step to fix
 cannot be committed. Order and size the steps so that this never happens:
 
