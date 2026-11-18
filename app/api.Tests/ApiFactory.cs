@@ -14,7 +14,7 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     public string AppApiConnectionString =>
         new NpgsqlConnectionStringBuilder(_container.GetConnectionString())
         {
-            Username = "api_app",
+            Username = "app_api",
             Password = _password
         }.ConnectionString;
 
@@ -57,10 +57,14 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         var command = new List<string>
         {
             "psql",
-            "-U postgres",
-            "-d postgres",
-            "-v ON_ERROR_STOP=1",
-            $"-f {pathInContainer}"
+            "-U",
+            "postgres",
+            "-d",
+            "postgres",
+            "-v",
+            "ON_ERROR_STOP=1",
+            "-f",
+            $"{pathInContainer}"
         };
 
         foreach (var variable in variables)

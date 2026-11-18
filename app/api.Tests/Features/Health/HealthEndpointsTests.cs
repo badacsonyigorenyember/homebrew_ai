@@ -1,16 +1,13 @@
 using System.Net;
 using System.Text.Json;
 
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc.Testing;
-
 namespace HomebrewApp.Tests.Features.Health;
 
-public class HealthEndpointsTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+[Collection(nameof(ApiCollection))]
+public class HealthEndpointsTests(ApiFactory factory)
 {
     [Fact]
-    public async Task HealthEndpoint_ReturnsOkWithStatusOk()
+    public async Task HealthEndpoint_DatabaseReachable_ReturnsOkWithDatabaseOk()
     {
         var client = factory.CreateClient();
 
@@ -23,8 +20,10 @@ public class HealthEndpointsTests(WebApplicationFactory<Program> factory)
 
         // This throws an exception if 'status' (case-sensitive) doesn't exist
         var statusProperty = root.GetProperty("status");
+        var databaseProperty = root.GetProperty("database");
 
         Assert.Equal("ok", statusProperty.GetString());
+        Assert.Equal("ok", databaseProperty.GetString());
     }
 
     [Fact]
