@@ -14,7 +14,8 @@ public static class HealthEndpoints
         return endpoints;
     }
 
-    private static async Task<Ok<HealthResponse>> HandleHealthCheck(AppDbContext dbContext, CancellationToken cancellationToken)
+    private static async Task<Ok<HealthResponse>> HandleHealthCheck(AppDbContext dbContext,
+        CancellationToken cancellationToken)
     {
         var canConnectToDb = await dbContext.Database.CanConnectAsync(cancellationToken);
         var response = new HealthResponse("ok", canConnectToDb ? "ok" : "down");

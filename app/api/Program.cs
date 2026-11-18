@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var config = builder.Configuration.GetConnectionString("App") 
+var config = builder.Configuration.GetConnectionString("App")
              ?? throw new InvalidOperationException("Missing key");
 
 // Add services to the container.

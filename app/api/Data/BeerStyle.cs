@@ -7,10 +7,10 @@ public class BeerStyle
 {
     [Column("id")]
     public long Id { get; init; }
-    
+
     [Column("code")]
     public required string Code { get; init; }
-    
+
     [Column("name")]
     public string? Name { get; init; }
 }
