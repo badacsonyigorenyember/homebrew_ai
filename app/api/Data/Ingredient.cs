@@ -6,7 +6,7 @@ namespace HomebrewApp.Data;
 public class Ingredient
 {
     [Column("id")]
-    public long Id { get; set; }
+    public long Id { get; init; }
 
     [Column("kind")]
     public required string Kind { get; init; }

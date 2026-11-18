@@ -11,7 +11,7 @@ public class Recipe
     [Column("style_id")]
     public required long StyleId { get; init; }
 
-    public required BeerStyle Style { get; init; }
+    public BeerStyle Style { get; init; } = null!;
 
     [Column("status")]
     public required string Status { get; init; }

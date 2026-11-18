@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HomebrewApp.Data;
 
-[Table("app.recipe_item")]
+[Table("recipe_item", Schema = "app")]
 public class RecipeItem
 {
     [Column("id")]

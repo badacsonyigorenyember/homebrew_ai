@@ -21,6 +21,7 @@ indent_size = 2
 
 # C# files
 [*.cs]
+# Rider: every attribute on its own line, above the type, member or field it belongs to
 resharper_place_attribute_on_same_line = false
 
 #### Core EditorConfig Options ####
@@ -30,7 +31,8 @@ indent_size = 4
 tab_width = 4
 
 # New line preferences
-insert_final_newline = false
+insert_final_newline = true
+trim_trailing_whitespace = true
 
 #### .NET Coding Conventions ####
 [*.{cs,vb}]
