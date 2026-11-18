@@ -259,6 +259,15 @@ Several of these are lessons from the first build (see §9).
 
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
+### 2026-11-18
+
+- The pre-commit hook (`app/web/.husky/pre-commit`) now checks the API too, before the web checks:
+  `dotnet format HomebrewApp.slnx --verify-no-changes`, `dotnet build -warnaserror`, `dotnet test --no-build`, one per
+  line, because under Husky's `sh -e` a failure inside an `&&` chain does not stop the script. Measured 2026-11-18: the
+  format check flags 3 C# files without a final newline (the EditorConfig now asks for one), so commits are refused
+  until `dotnet format` has run once; the other checks pass (0 warnings, 2 API tests, 11 web tests). `app/README.md`
+  gained "Checks before every commit".
+
 ### 2026-11-11
 - App ticket a1-02 (Layout, menu and routes) shipped ([`docs/app/finished/a1-02-layout-and-routes/`](docs/app/finished/a1-02-layout-and-routes/)). `app/web` uses React Router 8.5.1 in declarative mode: `BrowserRouter` in `main.tsx`; `App.tsx` is the route list, a pathless layout route (`AppLayout`) with `/batches`, `/recipes`, `/inventory`, `/devices`, `/settings`, an index redirect to `/batches` (`replace`) and a `*` not-found page. `AppLayout` has a header (menu button, name, `HealthBadge`, which holds the health logic moved out of `App`), a menu column shown from `md` up, and `<main>` with the `Outlet`; below `md` the same `MainMenu` (five `NavLink`s, `aria-current` on the current one) opens in a shadcn `Sheet` (Base UI dialog) that closes on a link click. Placeholder pages live in `src/features/<feature>/`. Measured 2026-11-11 in the browser: each link and direct URL shows its page; at 375 px the column is hidden, `scrollWidth` 375, and the drawer works by keyboard (focus returns to the menu button). Tests: four new routing tests with `MemoryRouter` and `@testing-library/user-event` 14.6.9 (`/` → Batches, a direct URL, a menu click with `aria-current`, not found), each break-checked; `npm run lint`, `typecheck`, `npm test -- --run` (11 passed), `build`, `prettier --check`, `dotnet build` (0 warnings) and `dotnet test` (1 passed) pass. Three code review rounds and two test review rounds. The `app-ticket` lessons now make every step a commit that leaves the app working ([`docs/app/SYSTEM.md`](docs/app/SYSTEM.md) §12).
 

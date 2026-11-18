@@ -52,6 +52,23 @@ Check it from a second terminal with `curl http://localhost:5080/api/health`, or
 `dotnet run` doesn't reload code changes; stop and start it again, or use
 `dotnet watch --project api`, which restarts on save.
 
+## Checks before every commit
+
+The pre-commit hook (`web/.husky/pre-commit`, installed by `npm ci` in `app/web`) runs the API's
+checks first, then the web app's, and refuses the commit at the first one that fails:
+
+| Check                                                | What it does                                                                                                                         | To fix                                                                                          |
+|------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| `dotnet format HomebrewApp.slnx --verify-no-changes` | compares the C# code with `.editorconfig` (whitespace, final newlines, the style rules set to `warning` or `error`); changes nothing | run `dotnet format HomebrewApp.slnx` in `app/`, which rewrites the files, then look at the diff |
+| `dotnet build HomebrewApp.slnx -warnaserror`         | builds both projects; a warning counts as an error (the zero-warnings rule)                                                          | fix the warning                                                                                 |
+| `dotnet test HomebrewApp.slnx --no-build`            | runs the API tests on that build                                                                                                     | fix the test or the code                                                                        |
+| the npm checks                                       | see [Run the web app](#run-the-web-app)                                                                                              | `npm run cleanup` in `app/web`                                                                  |
+
+The checks run on the files in the working folder, not only on what is staged, and every commit
+runs all of them, even one that touches only docs. `dotnet format` doesn't know Rider's own
+`resharper_…` settings (such as attributes on their own line); Rider's **Code | Reformat Code**
+applies those.
+
 ## Run the web app
 
 From the `app/web/` folder, once after cloning or after `package-lock.json` changes:
