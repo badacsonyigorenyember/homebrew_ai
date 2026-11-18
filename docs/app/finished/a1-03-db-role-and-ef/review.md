@@ -74,3 +74,36 @@ Done well:
   nothing secret.
 
 Verdict: ready for tests
+
+# Test review
+
+## Round 1 · 2026-11-18 · 197ab3e
+
+Checks: `dotnet format HomebrewApp.slnx --verify-no-changes` ok · `dotnet build HomebrewApp.slnx
+-warnaserror` ok (0 warnings, 0 errors) · `dotnet test` ok (2 passed) · `794c077` changes only
+final newlines in the three C# files, plus the hook and its docs.
+
+Test: `HealthEndpoint_DatabaseUnreachable_ReturnsOkWithDatabaseDown`
+(`app/api.Tests/Features/Health/HealthEndpointsTests.cs`).
+
+| Question | Answer |
+|---|---|
+| Behaviour | Yes: AC4's second half, through a real request. It checks the status code, `status` and `database` by their exact JSON names, all on one answer, and has no knowledge of how the handler decides. |
+| Would it fail? | Yes, twice. (1) Handler answers `"ok"` for `Database` whatever `CanConnectAsync` says: the test failed with *Expected: "down"*, *Actual: "ok"*. (2) Handler checks the database with a query (`AnyAsync` on `Recipes`) instead of `CanConnectAsync`, so a down database throws: the test failed with *Expected: OK*, *Actual: InternalServerError*. That is the "API still answers" half of AC4. After each break the file was copied back, and `git diff` of it matched the saved one exactly; the other test passed both times. |
+| Needed? | Yes. No other test covers the `down` answer, and the existing test checks only `status`. |
+| Reliable? | Yes. No time, order or randomness. The only connection is to port 1 on `127.0.0.1`: nothing listens there (`ss -ltn` empty; ports below 1024 need root, `ip_unprivileged_port_start` is 1024), so it is refused at once without leaving the machine. The override comes from `UseSetting` on a factory of its own, so it cannot leak into the other test. The made-up user and password keep secrets out of the file (AC5). |
+
+No findings.
+
+For a1-04, not a finding here: the first test still reads your user secrets and connects to your
+real database (the tests run in `Development`), so on a machine without the secret it fails at
+start-up. a1-04's test database is where that changes.
+
+Done well:
+- The override is `UseSetting` on `WithWebHostBuilder`, the one form that reaches `Program.cs`
+  before it reads the connection string, and the connection string is a visible literal in the
+  test.
+- Arrange, act and assert are separate, with one request, and the name states the condition and
+  the expected answer.
+
+Verdict: ready to ship
