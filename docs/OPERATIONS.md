@@ -86,6 +86,29 @@ service up).*
   ```
 
   *Working as of 2026-10-08.*
+- **`app_api` is the API's login role.** It can read `app.recipe`, `app.recipe_item`,
+  `ref.ingredient` and `ref.beer_style` and nothing else; the list lives in
+  `db/060_app_api_role.sql`, and later tickets add grants as they add tables. Its password is
+  never written in a file: set it in a shell variable, then apply the file with it as a psql
+  variable (the file runs as `postgres`, is idempotent, and sets the password on every run):
+
+  ```bash
+  read -rs APP_API_PASSWORD
+  docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+    -v app_api_password="$APP_API_PASSWORD" < db/060_app_api_role.sql
+  ```
+
+  Run both lines in the same terminal: in a new shell the variable is empty, and an empty
+  value leaves the role with no password. The API keeps the password in its user secrets, key
+  `ConnectionStrings:App` (see `app/README.md`, "Run the API"), with the user name
+  `app_api.<POOLER_TENANT_ID>`: port 5432 on the host is the Supavisor pooler, which needs the
+  tenant id in the user name. **After a password change, or after the DB volume is recreated,
+  run the file again with the password and update the user secret to match**, or
+  `/api/health` answers `"database":"down"`. To tell which side is wrong, test the password
+  against Postgres directly, bypassing the pooler (`-h supabase-db` checks it, `-h 127.0.0.1`
+  is trusted):
+  `PGPASSWORD="$APP_API_PASSWORD" docker exec -e PGPASSWORD supabase-db psql -h supabase-db -U app_api -d postgres -c "select current_user"`.
+  *Working as of 2026-11-18.*
 - MCP `get_logs` is permanently broken (`fetch failed`). There is no analytics/logflare
   container in this stack.
 - **Check the catalog before believing a status.** Before treating a DB object as missing,

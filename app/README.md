@@ -16,7 +16,22 @@ Currently, I'm using Ubuntu 26.04 as operating system and all the tools are inst
 
 ## Run the API
 
-From the `app/` folder:
+Once per machine, give the API its database connection string. The API reads Postgres as the
+role `app_api`; how that role and its password are set up is in
+[`docs/OPERATIONS.md`](../docs/OPERATIONS.md) §4. The connection string goes into the API's
+user secrets, a file in your home folder that is never committed. From the `app/` folder, in
+the terminal where `APP_API_PASSWORD` holds the role's password:
+
+```bash
+dotnet user-secrets set --project api "ConnectionStrings:App" "Host=localhost;Port=5432;Database=postgres;Username=app_api.<POOLER_TENANT_ID>;Password=$APP_API_PASSWORD"
+```
+
+Replace `<POOLER_TENANT_ID>` with the value from the repo root's `.env`
+(`grep ^POOLER_TENANT_ID= .env`). `dotnet user-secrets list --project api` shows the stored
+value. Without this key the API stops at start-up with an `InvalidOperationException`, and so
+does `dotnet test`, because the tests start the API in `Development` too.
+
+Then, from the `app/` folder:
 
 ```bash
 dotnet run --project api
@@ -26,10 +41,10 @@ It uses the `http` profile in `api/Properties/launchSettings.json`: it listens o
 `http://localhost:5080` and runs in the `Development` environment. Wait for
 `Now listening on: http://localhost:5080` in the output.
 
-| What | URL |
-|---|---|
-| Health check | `http://localhost:5080/api/health` (answers `{"status":"ok"}`) |
-| OpenAPI document (Development only) | `http://localhost:5080/openapi/v1.json` |
+| What                                | URL                                                                                                                                         |
+|-------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| Health check                        | `http://localhost:5080/api/health` (answers `{"status":"ok","database":"ok"}`; `"database":"down"` when the API cannot connect to Postgres) |
+| OpenAPI document (Development only) | `http://localhost:5080/openapi/v1.json`                                                                                                     |
 
 Check it from a second terminal with `curl http://localhost:5080/api/health`, or open
 `api/HomebrewApp.http` in Rider and run the request. Stop the API with Ctrl+C.
