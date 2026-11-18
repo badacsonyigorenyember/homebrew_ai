@@ -1,6 +1,6 @@
 # a1-04 · Test database
 
-Stage: ready
+Stage: implementing
 Branch: `a1-04-test-database`
 Milestone: M1 · Requirements: §4 API tests ([SYSTEM.md](../SYSTEM.md))
 Blocked by: a1-03
@@ -40,4 +40,8 @@ the two tests fail when the grant is wrong.
 
 ## Deviations
 
-None yet.
+- 2026-11-18 · Recipe 1349 (Notes) does not exist: the stack has 93 recipes, ids 112–1489. The
+  seeded process is recipe 1155's (2026-10-30), the newest with salts, two mash steps, one boil hop
+  (Columbus), one whirlpool hop (Citra) and one yeast (US-05); it also has a Cascade dry hop.
+- 2026-11-18 · The tests are taught in `lesson.md` (the ticket is test code throughout), so there
+  is no `test-lesson.md`: the code review is followed directly by the test review.
