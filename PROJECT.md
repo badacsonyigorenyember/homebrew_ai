@@ -259,6 +259,12 @@ Several of these are lessons from the first build (see §9).
 
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
+### 2026-11-19
+- App tickets: Claude now writes the docs. `app/README.md` and any other doc a ticket makes
+  outdated are updated by Claude before shipping (`app-ticket` Ship step 2, commit
+  `Update docs for <ticket-id>`), no longer as a lesson step for you. *Why: your time goes to the
+  code; the docs only have to be true.* First used on a1-04, whose lesson step 8 Claude did.
+
 ### 2026-11-18
 - App ticket a1-03 (The API's database role and EF Core) shipped ([`docs/app/finished/a1-03-db-role-and-ef/`](docs/app/finished/a1-03-db-role-and-ef/)). `db/060_app_api_role.sql` creates the login role `app_api` (idempotent `DO` block; password from the psql variable `app_api_password`, never in a file) with `USAGE` on `app` and `ref` and `SELECT` on `app.recipe`, `app.recipe_item`, `ref.ingredient` and `ref.beer_style` only; OPERATIONS.md §4 says how to set and rotate its password. The API (Npgsql.EntityFrameworkCore.PostgreSQL 10.0.3) reads `ConnectionStrings:App` from user secrets (user `app_api.<POOLER_TENANT_ID>` through the Supavisor pooler on 5432) and stops at start-up without it; `AppDbContext` maps the four tables with data annotations, `init`-only properties and no-tracking queries, no migrations. `/api/health` answers `{"status":"ok","database":"ok"|"down"}` from `CanConnectAsync`. Measured 2026-11-18: catalog shows exactly the listed grants; as `app_api` the reads work (93 recipes, 301 ingredients) and an update is refused; all four sets load against the real database (530 recipe items with style and ingredient includes); `database: down` with a wrong password and the API still answers 200; `dotnet build` 0 warnings, `dotnet test` 2 passed (the new one: `down` via an unreachable connection string set with `UseSetting`, which reaches `Program.cs` before it reads the key, where `ConfigureAppConfiguration` does not); web checks pass. Two review rounds (one must-fix: a `[Table]` with the schema in the name), one test review round. `app/README.md` "Run the API" explains the user secret.
 

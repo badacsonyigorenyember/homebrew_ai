@@ -45,3 +45,5 @@ the two tests fail when the grant is wrong.
   (Columbus), one whirlpool hop (Citra) and one yeast (US-05); it also has a Cascade dry hop.
 - 2026-11-18 · The tests are taught in `lesson.md` (the ticket is test code throughout), so there
   is no `test-lesson.md`: the code review is followed directly by the test review.
+- 2026-11-19 · Lesson step 8 (`app/README.md`) was done by Claude, not you: from this ticket on,
+  Claude writes the docs before shipping (`app-ticket` Ship step 2).

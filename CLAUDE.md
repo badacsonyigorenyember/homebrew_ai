@@ -84,7 +84,8 @@ not hoped for. Mark anything unverified as such.
   [`.claude/skills/dev-flow/conventions.md`](.claude/skills/dev-flow/conventions.md).
 - App tickets: `app-ticket` runs one ticket of the app (`docs/app/work/<ticket>/`) per session: lesson,
   the user's own implementation, review, test lesson, test review, ship. The user writes the code
-  under `app/`; Claude does not. Shipped tickets move to `docs/app/finished/<ticket>/`. Index:
+  under `app/`; Claude does not, but writes the docs (`app/README.md` and any doc the ticket made
+  outdated) before shipping. Shipped tickets move to `docs/app/finished/<ticket>/`. Index:
   [`docs/app/README.md`](docs/app/README.md).
 - Operational traps (compose, Kong, roles, n8n CLI, the Ollama iGPU warning) are in
   [`docs/OPERATIONS.md`](docs/OPERATIONS.md). Add new ones there, not to personal memory, so

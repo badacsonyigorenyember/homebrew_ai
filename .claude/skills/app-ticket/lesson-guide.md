@@ -39,7 +39,8 @@ The main part of the lesson. A numbered list of small subtasks in building order
 "Steps" below describes.
 
 ## Files you will touch
-Paths to create or change, one line each on what goes there.
+Paths to create or change, one line each on what goes there. No docs: `app/README.md` and the
+other docs are not a lesson step; Claude writes them before shipping (SKILL.md Ship step 2).
 
 ## Before you ask for a review
 A short checklist: the ACs, the checks to run, the questions to ask yourself, and that every
