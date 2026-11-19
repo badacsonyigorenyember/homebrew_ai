@@ -7,7 +7,7 @@ like the rest. The entity classes came from the Rider generator script (outside 
 
 Checks: `dotnet build` ok (0 warnings, 0 errors) · `dotnet format --verify-no-changes` ok ·
 `dotnet test` 4 passed · `[Column]` names against the catalog: 40 of 40 match · no web changes.
-`app/api/Data/AppDbContext.cs` (step 8) is staged but not committed yet.
+`app/api/Data/AppDbContext.cs` (step 8) was staged during the review and committed as 319918c.
 
 AC2's catalog query, run on the stack:
 
@@ -51,4 +51,4 @@ Done well:
 - The fixture runs `061` right after `060`, in the one list of SQL files (a1-04's pattern kept).
 
 Verdict: fixes needed (finding 1, before the test lesson: its AC3 test inserts a batch with its
-item and step through `Batch.Items`). Then commit step 8 too.
+item and step through `Batch.Items`).
