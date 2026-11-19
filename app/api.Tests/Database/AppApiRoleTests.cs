@@ -24,7 +24,7 @@ public class AppApiRoleTests(ApiFactory factory)
         await conn.OpenAsync();
 
         await using var command = new NpgsqlCommand("update app.recipe set status = status where false", conn);
-        var exception = await Assert.ThrowsAsync<PostgresException>(async () => await command.ExecuteScalarAsync());
+        var exception = await Assert.ThrowsAsync<PostgresException>(async () => await command.ExecuteNonQueryAsync());
 
         Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, exception.SqlState);
     }

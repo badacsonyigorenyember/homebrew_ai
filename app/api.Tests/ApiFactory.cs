@@ -43,9 +43,9 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         // The app_api login role and its grants; the password is a psql variable, as on the stack.
         await RunSqlFileAsync("/db/060_app_api_role.sql", "app_api_password=" + _password);
 
-        var seed = await File.ReadAllTextAsync(Path.Combine(CommonDirectoryPath.GetProjectDirectory().DirectoryPath,
+        var process = await File.ReadAllTextAsync(Path.Combine(CommonDirectoryPath.GetProjectDirectory().DirectoryPath,
             "TestData/recipe-1155-process.json"));
-        await RunSqlFileAsync("/seed/seed.sql", "process=" + seed);
+        await RunSqlFileAsync("/seed/seed.sql", "process=" + process);
     }
 
     async Task IAsyncLifetime.DisposeAsync()
