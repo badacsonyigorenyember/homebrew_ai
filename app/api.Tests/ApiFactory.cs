@@ -42,6 +42,8 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         await RunSqlFileAsync("/db/015_app.sql");
         // The app_api login role and its grants; the password is a psql variable, as on the stack.
         await RunSqlFileAsync("/db/060_app_api_role.sql", "app_api_password=" + _password);
+        // The batch tables of the brewing app: app.batch, app.batch_item, app.batch_step
+        await RunSqlFileAsync("/db/061_app_batch.sql");
 
         var process = await File.ReadAllTextAsync(Path.Combine(CommonDirectoryPath.GetProjectDirectory().DirectoryPath,
             "TestData/recipe-1155-process.json"));
