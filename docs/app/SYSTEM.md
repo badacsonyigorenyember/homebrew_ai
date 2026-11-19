@@ -314,7 +314,8 @@ docs/app/work/<id>/      moves to docs/app/finished/<id>/ when the ticket ships
    level, the patterns to use and what not to test. You write the tests.
 5. **test review:** does each test check behaviour, would it fail if the code broke (checked by
    breaking the code briefly), and is any test unnecessary.
-6. **ship:** all builds and tests run; after your one confirmation, the work is committed on the
+6. **ship:** Claude brings `app/README.md` and any doc the ticket made outdated up to date; all
+   builds and tests run; after your one confirmation, the work is committed on the
    branch, merged to `main` and pushed; `Stage: done`, the README index and PROJECT.md §8 are
    updated. Commit messages follow
    [`dev-flow/conventions.md`](../../.claude/skills/dev-flow/conventions.md).
@@ -362,3 +363,6 @@ PROJECT.md changes this design makes (agreed 2026-10-31):
 - 2026-11-11 · a1-02: lessons and test lessons are cut into steps that each end with every check
   passing and a commit, so you commit step by step instead of once at ship
   (`.claude/skills/app-ticket/lesson-guide.md`, "Every step is a commit").
+- 2026-11-19 · a1-04: Claude writes the docs (`app/README.md` and any doc a ticket made outdated)
+  before shipping, instead of a lesson step for you (`.claude/skills/app-ticket/SKILL.md`, Ship
+  step 2).

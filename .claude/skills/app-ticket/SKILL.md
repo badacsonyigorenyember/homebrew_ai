@@ -7,7 +7,7 @@ description: Use when the user names an app ticket (a0-01, a1-06-create-batch-ap
 
 You are the user's teacher and reviewer for one ticket of the brewing app
 ([`docs/app/SYSTEM.md`](../../../docs/app/SYSTEM.md)). **The user writes all the code under `app/`
-and all the tests.** You write lessons and reviews, check, and ship.
+and all the tests.** You write lessons and reviews, check, write the docs, and ship.
 
 The ticket folder is `docs/app/work/<ticket-id>/` until the ticket ships; Ship moves it to
 `docs/app/finished/<ticket-id>/`.
@@ -29,7 +29,8 @@ want now.
 ## Rules for every stage
 
 - **Never edit files under `app/` or `db/`.** The only exception: the user asks, in this
-  conversation, for one specific change ("fix line 12 for me"). Do that change only.
+  conversation, for one specific change ("fix line 12 for me"). Do that change only. Docs are
+  not code: `app/README.md` and the other docs a ticket makes outdated are yours (Ship step 2).
 - **No solution code in lessons, answers or reviews.** What a lesson may contain is fixed in
   [`lesson-guide.md`](lesson-guide.md); it holds for answers and reviews too. If the user
   explicitly asks to see code, give the smallest piece that answers that question.
@@ -77,26 +78,31 @@ Set `Stage: test-review`.
 ## Ship
 
 1. The latest review round (and test review round, if any) has no open must-fix.
-2. Run every check fresh: `dotnet build` and `dotnet test` in `app/` when the API exists;
+2. Docs, before anything else: bring `app/README.md` up to date with what the ticket changed
+   (how to run, configure or test the app; a0-02's rule: someone who has never seen the project
+   can follow it), and any other doc the ticket made wrong (`docs/OPERATIONS.md`, SYSTEM.md).
+   Every fact is measured on this branch. Commit it on the branch as `Update docs for <ticket-id>`.
+   The user may ask for this earlier; do it then, and here only check it is still true.
+3. Run every check fresh: `dotnet build` and `dotnet test` in `app/` when the API exists;
    `npm run lint`, `npm run typecheck`, `npm test -- --run` and `npm run build` in `app/web` when
    it exists. All must pass. Earlier results do not count.
-3. Show the user: what the ticket delivered (by AC), the checks run and their results, the
+4. Show the user: what the ticket delivered (by AC), the checks run and their results, the
    user's commits on the branch (`git log --oneline main..`), and any of the ticket's files still
    uncommitted. Ask once: "Ship it?" Wait for yes.
-4. The user commits step by step (lesson-guide "Every step is a commit"), so usually nothing is
+5. The user commits step by step (lesson-guide "Every step is a commit"), so usually nothing is
    left. If some of the user's work is still uncommitted, commit it on the branch: `git add`
    explicit paths only (never `-A` or `.`), one line, at most 60 characters, no body or trailer
    ([`dev-flow/conventions.md`](../dev-flow/conventions.md)).
-5. Records, in a second commit `Ship <ticket-id>`: `Stage: done` in `ticket.md`, then
+6. Records, in a second commit `Ship <ticket-id>`: `Stage: done` in `ticket.md`, then
    `git mv docs/app/work/<ticket-id> docs/app/finished/<ticket-id>`; the ticket's row in
    `docs/app/README.md` (stage `done`, link to `finished/<ticket-id>/ticket.md`), a dated
    PROJECT.md §8 entry (what was delivered, linking `docs/app/finished/<ticket-id>/`), and a dated
    line in SYSTEM.md `## 12. Changes` if the ticket changed the plan.
-6. `git push -u origin <ticket-id>`, `git switch main`, `git pull --ff-only origin main`,
-   `git merge --no-ff <ticket-id> -m "Merge <ticket-id>"`, run the step 2 checks on `main`,
+7. `git push -u origin <ticket-id>`, `git switch main`, `git pull --ff-only origin main`,
+   `git merge --no-ff <ticket-id> -m "Merge <ticket-id>"`, run the step 3 checks on `main`,
    `git push origin main`, `git branch -d <ticket-id>`.
-7. Tell the user the ticket's new path, `docs/app/finished/<ticket-id>/`.
-8. If this was the last ticket of a milestone, tell the user the next milestone's tickets need a
+8. Tell the user the ticket's new path, `docs/app/finished/<ticket-id>/`.
+9. If this was the last ticket of a milestone, tell the user the next milestone's tickets need a
    planning session (SYSTEM.md §10).
 
 Stop and report instead of forcing: a merge conflict, a refused `pull --ff-only`, a switch that
