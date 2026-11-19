@@ -1,6 +1,6 @@
 # a1-04 · Test database
 
-Stage: implementing
+Stage: done
 Branch: `a1-04-test-database`
 Milestone: M1 · Requirements: §4 API tests ([SYSTEM.md](../SYSTEM.md))
 Blocked by: a1-03
