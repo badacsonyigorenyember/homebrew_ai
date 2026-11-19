@@ -1,0 +1,337 @@
+{
+  "boil": {
+    "because": "60 min: the minimum boil time (rule 13)",
+    "boil_min": 60,
+    "additions": [
+      {
+        "g": 18,
+        "kind": "hop",
+        "name": "Columbus",
+        "usage": "boil",
+        "at_min": 60,
+        "ingredient_id": 472
+      }
+    ],
+    "whirlpool": [
+      {
+        "g": 13,
+        "kind": "hop",
+        "name": "Citra",
+        "usage": "whirlpool",
+        "minutes": 0,
+        "ingredient_id": 470
+      }
+    ]
+  },
+  "mash": {
+    "steps": [
+      {
+        "why": "step 10's mash temperature 66.5 C, which sets the fermentability",
+        "name": "saccharification rest",
+        "source": "How to Brew Table 17.1 p. 263 (30-60 min); the temperature is step 10's",
+        "temp_c": 66.5,
+        "minutes": 60
+      },
+      {
+        "why": "raise the mash to 77 C before lautering",
+        "name": "mash-out",
+        "source": "How to Brew ch. 16 p. 252 (77 C); the 10 minutes are unsourced",
+        "temp_c": 77,
+        "minutes": 10
+      }
+    ],
+    "mash_c": 66.5,
+    "grain_c": 21,
+    "volumes": {
+      "because": "strike 11.10 L = 3.70 kg x 3 L/kg; total 29.70 L = pre-boil 26.00 L + 3.70 L absorbed by the grain; sparge is the rest",
+      "total_l": 29.7,
+      "grist_kg": 3.7,
+      "sparge_l": 18.6,
+      "strike_l": 11.1,
+      "preboil_l": 26,
+      "absorbed_l": 3.7,
+      "ratio_l_kg": 3
+    },
+    "strike_c": 72.7,
+    "additions": []
+  },
+  "water": {
+    "acid": {
+      "text": "no acid needed: the mash pH estimate 5.34 is not above 5.4 (target 5.2-5.4)",
+      "needed": false,
+      "acidify": "maybe"
+    },
+    "salts": [
+      {
+        "name": "gypsum",
+        "aims_at": "sulfate",
+        "total_g": 19.3,
+        "sparge_g": 12.1,
+        "strike_g": 7.2,
+        "ingredient_id": 3360
+      },
+      {
+        "name": "calcium chloride",
+        "aims_at": "chloride",
+        "total_g": 0.8,
+        "sparge_g": 0.5,
+        "strike_g": 0.3,
+        "ingredient_id": 3361
+      }
+    ],
+    "target": {
+      "aim": {
+        "ca": 50,
+        "cl": 12.5,
+        "so4": 362.5
+      },
+      "row": "ale-medium-pale-assertive",
+      "from": "style",
+      "page": "p. 122-123",
+      "basis": "judgement",
+      "colour": "pale",
+      "ranges": {
+        "ca": {
+          "low": 50,
+          "high": 150
+        },
+        "cl": {
+          "low": 0,
+          "high": 100
+        },
+        "ra": {
+          "low": -30,
+          "high": 30
+        },
+        "so4": {
+          "low": 100,
+          "high": 400
+        },
+        "alkalinity": {
+          "low": 40,
+          "high": 120
+        }
+      },
+      "acidify": "maybe",
+      "fallback": true,
+      "moved_by": [
+        "hoppy: sulfate side (How to Brew p. 133)"
+      ],
+      "strength": "medium",
+      "table_no": "19",
+      "beer_type": "ale",
+      "bitterness": "moderate, assertive",
+      "style_code": "session-india-pale-ale",
+      "outside_row": [
+        "outside_row: calcium 158.4 mg/L is above the row's [50,150] (a reference, not corrected)",
+        "outside_row: alkalinity 0.0 mg/L as CaCO3 is below the row's [40,120] (a reference, not corrected)",
+        "outside_row: residual alkalinity -113.1 mg/L as CaCO3 is below the row's [-30,30] (a reference, not corrected)"
+      ]
+    },
+    "mash_ph": {
+      "ph": 5.343,
+      "because": "pH 5.4 + -8.45 mEq / 148.0 mEq per pH = 5.343; target 5.2-5.4 (How to Brew p. 341, 365)",
+      "target_low": 5.2,
+      "target_high": 5.4
+    },
+    "volumes": {
+      "because": "strike 11.10 L = 3.70 kg x 3 L/kg; total 29.70 L = pre-boil 26.00 L + 3.70 L absorbed by the grain; sparge is the rest",
+      "total_l": 29.7,
+      "grist_kg": 3.7,
+      "sparge_l": 18.6,
+      "strike_l": 11.1,
+      "preboil_l": 26,
+      "absorbed_l": 3.7,
+      "ratio_l_kg": 3
+    },
+    "none_needed": false,
+    "values_used": [
+      {
+        "what": "water volumes",
+        "source": "How to Brew ch. 17 p. 262, 267-269 (3 L/kg); profile grain absorption (doc-calc.md §8)",
+        "because": "strike 11.10 L = 3.70 kg x 3 L/kg; total 29.70 L = pre-boil 26.00 L + 3.70 L absorbed by the grain; sparge is the rest"
+      },
+      {
+        "what": "water row",
+        "source": "Water p. 122-123 (doc-calc.md §4)",
+        "because": "style session-india-pale-ale uses ale-medium-pale-assertive (judgement)"
+      },
+      {
+        "what": "sulfate and chloride aim",
+        "source": "How to Brew p. 133-135 (doc-calc.md §5)",
+        "because": "sulfate 362.5 and chloride 12.5 mg/L inside the row; hoppy: sulfate side (How to Brew p. 133)"
+      },
+      {
+        "what": "alkalinity",
+        "source": "How to Brew p. 342, 349-351, 363 (doc-calc.md §6, §7)",
+        "because": "the mash pH estimate is already at or above 5.2, so no alkalinity is added"
+      },
+      {
+        "what": "mash pH",
+        "source": "How to Brew p. 341-342, 349-351, 365 (doc-calc.md §7); unverified against Bru'n Water",
+        "because": "pH 5.4 + -8.45 mEq / 148.0 mEq per pH = 5.343; target 5.2-5.4 (How to Brew p. 341, 365)"
+      }
+    ],
+    "source_water": {
+      "ions": {
+        "ca": 0,
+        "cl": 0,
+        "mg": 0,
+        "na": 0,
+        "so4": 0,
+        "hco3": 0
+      },
+      "ra_ppm": 0,
+      "ra_meq_l": 0,
+      "alkalinity_ppm": 0
+    },
+    "sparge_water": {
+      "ions": {
+        "ca": 158.7731182795699,
+        "cl": 12.96505376344086,
+        "mg": 0,
+        "na": 0,
+        "oh": 0,
+        "co3": 0,
+        "so4": 362.93494623655914,
+        "hco3": 0
+      },
+      "ra_ppm": -113.40937019969277,
+      "ra_meq_l": -2.2681874039938554,
+      "alkalinity_ppm": 0
+    },
+    "strike_water": {
+      "ions": {
+        "ca": 158.37297297297297,
+        "cl": 13.035135135135135,
+        "mg": 0,
+        "na": 0,
+        "oh": 0,
+        "co3": 0,
+        "so4": 361.8810810810811,
+        "hco3": 0
+      },
+      "ra_ppm": -113.12355212355213,
+      "ra_meq_l": -2.2624710424710424,
+      "alkalinity_ppm": 0
+    }
+  },
+  "packaging": {
+    "co2": {
+      "from": "style",
+      "basis": "inferred",
+      "range": [
+        2.2,
+        2.7
+      ],
+      "family": "american-ales",
+      "source": "How to Brew p. 159: the middle of the american-ales family's 2.2-2.7 volumes (doc-calc.md §14)",
+      "volumes": 2.45
+    },
+    "extras": [],
+    "priming": {
+      "g": 117,
+      "sugar": "table sugar (sucrose)",
+      "source": "How to Brew p. 156-161, Table 10.3: (target - residual CO2) x litres x 85.575 / gas volume, residual and gas volume at the highest temperature after fermentation (doc-calc.md §14)",
+      "temp_c": 22,
+      "g_per_l": 5.87,
+      "volume_l": 20,
+      "residual_vol": 0.77
+    }
+  },
+  "fermentation": {
+    "pitch": [
+      {
+        "name": "SafAle US-05",
+        "role": "main",
+        "unit": "g",
+        "plato": 10.01,
+        "amount": 16,
+        "because": "0.75 billion cells/L/degP (HTB ch. 7 p. 111-113) x 20 L x 10.0 degP = 150.2 billion cells; dry yeast at 10 billion cells per gram is HTB's generic figure (p. 108), not the maker's spec, so the 16 g are an estimate",
+        "cells_billion": 150.2,
+        "ingredient_id": 1830,
+        "rate_m_per_ml_p": 0.75
+      }
+    ],
+    "steps": [
+      {
+        "why": "pitch at or slightly below the fermentation temperature; the first day is mostly adaptation",
+        "days": 1,
+        "phase": "ferment",
+        "source": "How to Brew p. 90-91",
+        "temp_c": 18,
+        "move_on": null,
+        "yeast_id": 1830
+      },
+      {
+        "why": "fermentation temperature; high-growth phase of 1-3 days for ales",
+        "days": 2,
+        "phase": "ferment",
+        "source": "How to Brew p. 91, Table 6.2",
+        "temp_c": 19,
+        "move_on": "at least 2 more days (about day 3 of 4); move on to the rest when gravity within 2-5 points of FG (HTB p. 93-94, Table 6.2)",
+        "yeast_id": 1830
+      },
+      {
+        "why": "maturation rest: raise by 3-6 C (the lowest figure, capped at the yeast's upper bound) to finish the clean-up",
+        "days": 4,
+        "phase": "rest",
+        "source": "How to Brew p. 93-94, Table 6.2",
+        "temp_c": 22,
+        "move_on": "starts when gravity within 2-5 points of FG (HTB p. 93-94, Table 6.2); stay at least 4 days (up to 8), then cool",
+        "yeast_id": 1830
+      },
+      {
+        "why": "dry hops after fermentation: 3 days is the low end of HTB's 3-5 days of contact at 10-21 C (less contact when warmer); remove them after",
+        "days": 3,
+        "phase": "dry_hop",
+        "source": "How to Brew p. 72; the 14 C point is Janish, Dry Hop Best Practices (MBAA TQ 58(1), 2021)",
+        "temp_c": 14,
+        "move_on": null,
+        "yeast_id": null
+      },
+      {
+        "why": "cold conditioning: cool slowly (1 C a day) 5-8 C below the fermentation temperature for a week",
+        "days": 7,
+        "phase": "crash",
+        "source": "How to Brew p. 95",
+        "temp_c": 11,
+        "move_on": null,
+        "yeast_id": null
+      }
+    ],
+    "dry_hops": [
+      {
+        "day": 7,
+        "hops": [
+          {
+            "g": 13,
+            "name": "Cascade",
+            "ingredient_id": 464
+          }
+        ],
+        "temp_c": 14,
+        "contact_days": 3
+      }
+    ],
+    "secondary": [],
+    "max_temp_c": 22,
+    "values_used": [
+      {
+        "what": "fermentation plan",
+        "source": "How to Brew ch. 6 p. 90-95, Table 6.2, p. 174 (doc-calc.md §11)",
+        "because": "5 step(s) for session-india-pale-ale; each step is a minimum, the next starts on the gravity trigger given with it"
+      },
+      {
+        "what": "pitch amounts",
+        "source": "How to Brew ch. 7 p. 108-114, p. 206, 212 (doc-calc.md §10)",
+        "because": "cells = rate x litres x degP; the cells per gram and per pack are How to Brew's generic figures, not the makers' specs (estimates)"
+      },
+      {
+        "what": "highest fermentation temperature",
+        "source": "How to Brew p. 159 (doc-calc.md §14)",
+        "because": "22 C, the highest ferment or rest step: step 15 reads it for the residual CO2"
+      }
+    ]
+  }
+}

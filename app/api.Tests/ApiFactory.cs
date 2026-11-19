@@ -27,6 +27,9 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
             .WithResourceMapping(
                 DirectoryPath.Of(Path.Combine(CommonDirectoryPath.GetGitDirectory().DirectoryPath, "db")),
                 DirectoryPath.Of("/db/"))
+            .WithResourceMapping(
+                DirectoryPath.Of(Path.Combine(CommonDirectoryPath.GetProjectDirectory().DirectoryPath, "TestData")),
+                DirectoryPath.Of("/seed/"))
             .Build();
 
     public async Task InitializeAsync()
@@ -39,6 +42,10 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         await RunSqlFileAsync("/db/015_app.sql");
         // The app_api login role and its grants; the password is a psql variable, as on the stack.
         await RunSqlFileAsync("/db/060_app_api_role.sql", "app_api_password=" + _password);
+
+        var seed = await File.ReadAllTextAsync(Path.Combine(CommonDirectoryPath.GetProjectDirectory().DirectoryPath,
+            "TestData/recipe-1155-process.json"));
+        await RunSqlFileAsync("/seed/seed.sql", "process=" + seed);
     }
 
     async Task IAsyncLifetime.DisposeAsync()
