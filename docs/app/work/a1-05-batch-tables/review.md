@@ -52,3 +52,35 @@ Done well:
 
 Verdict: fixes needed (finding 1, before the test lesson: its AC3 test inserts a batch with its
 item and step through `Batch.Items`).
+
+## Round 2 · 2026-11-20 · 2939fb1
+
+Checks: `dotnet build` ok (0 warnings, 0 errors) · `dotnet format --verify-no-changes` ok ·
+`dotnet test` 4 passed · no web changes.
+
+Round 1:
+
+| # | Status |
+|---|---|
+| 1 | fixed: `Batch.Recipe`, `Batch.Items`, `Batch.Steps` and `BatchItem.Ingredient` are in. EF Core's model now has 1 foreign key on `Batch`, 2 on `BatchItem`, 1 on `BatchStep`. |
+| 2 | still open (nice to have): the `061` comment in `ApiFactory.cs:45` says what, not why. |
+| 3 | fixed: `Percentage`, as on `RecipeItem`. |
+
+| AC | Met | How checked |
+|---|---|---|
+| AC1 | yes | `061` unchanged since round 1. |
+| AC2 | yes | `061` unchanged since round 1; the round 1 catalog query stands. |
+| AC3 | yes (by hand) | Throwaway container from the stack's image (`010`, `015`, `060`, `061`, seed), your `AppDbContext` as `app_api`: **one** `Add` of a batch with an item and a step in `Items` and `Steps`, one `SaveChanges`; EF Core filled both `BatchId`s with the new id. Read back with `Include(Recipe).ThenInclude(Style)`, `Include(Items).ThenInclude(Ingredient)` and `Include(Steps)`: style, ingredient name, `Percentage` 90.00 and the step all came back; `CreatedAt` in UTC. |
+| AC4 | yes (by hand) | Same run: `ExecuteDeleteAsync` on the batch left 0 items and 0 steps (the database's cascade; EF Core loaded none of them). Status check unchanged since round 1. |
+
+No new findings.
+
+Outside the ticket: commit 38baf68 (`db/059_home_profile_efficiency.sql`, `docs/RECIPE-ROADMAP.md`)
+is on this branch and will be merged with a1-05.
+
+Done well:
+- The navigations sit next to their foreign key properties (`Recipe` under `RecipeId`,
+  `Ingredient` under `IngredientId`), so each relationship reads in one place.
+- `Recipe Recipe = null!` and the two `= []` lists follow a1-03's pattern exactly.
+
+Verdict: ready for tests.
