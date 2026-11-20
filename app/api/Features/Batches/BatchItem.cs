@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
+using HomebrewApp.Data;
+
 namespace HomebrewApp.Features.Batches;
 
 [Table("batch_item", Schema = "app")]
@@ -17,6 +19,8 @@ public class BatchItem
     [Column("ingredient_id")]
     public long? IngredientId { get; init; }
 
+    public Ingredient? Ingredient { get; init; }
+
     [Column("raw_name")]
     public required string RawName { get; init; }
 
@@ -27,7 +31,7 @@ public class BatchItem
     public decimal? TimeMin { get; init; }
 
     [Column("pct")]
-    public decimal? Pct { get; init; }
+    public decimal? Percentage { get; init; }
 
     [Column("amount")]
     public required decimal Amount { get; init; }

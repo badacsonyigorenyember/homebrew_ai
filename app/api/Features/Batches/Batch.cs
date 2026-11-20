@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
+using HomebrewApp.Data;
+
 namespace HomebrewApp.Features.Batches;
 
 [Table("batch", Schema = "app")]
@@ -16,6 +18,12 @@ public class Batch
 
     [Column("recipe_id")]
     public long RecipeId { get; init; }
+
+    public Recipe Recipe { get; init; } = null!;
+
+    public List<BatchItem> Items { get; init; } = [];
+
+    public List<BatchStep> Steps { get; init; } = [];
 
     [Column("brew_date")]
     public required DateOnly BrewDate { get; init; }
