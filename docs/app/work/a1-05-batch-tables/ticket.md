@@ -1,6 +1,6 @@
 # a1-05 · Batch tables
 
-Stage: review
+Stage: tests
 Branch: `a1-05-batch-tables`
 Milestone: M1 · Requirements: §8 `app.batch`, `app.batch_item`, `app.batch_step`, C5 ([SYSTEM.md](../SYSTEM.md))
 Blocked by: a1-04
