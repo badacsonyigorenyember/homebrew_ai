@@ -14,6 +14,7 @@ public class BatchTablesTests(ApiFactory factory)
     [Fact]
     public async Task Batch_WithItemAndStep_ReadsBackThroughAppDbContext()
     {
+        long batchId;
         await using (var scope = factory.Services.CreateAsyncScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -58,8 +59,8 @@ public class BatchTablesTests(ApiFactory factory)
 
             context.Batches.Add(batch);
             await context.SaveChangesAsync();
+            batchId = (await context.Batches.FirstAsync()).Id;
         }
-
 
         await using (var scope = factory.Services.CreateAsyncScope())
         {
@@ -68,7 +69,7 @@ public class BatchTablesTests(ApiFactory factory)
             var result = await context.Batches
                 .Include(b => b.Items)
                 .Include(b => b.Steps)
-                .SingleAsync();
+                .SingleAsync(b => b.Id == batchId);
 
             Assert.Equal("Read back", result.Name);
             Assert.Single(result.Items);
