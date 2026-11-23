@@ -84,3 +84,30 @@ Done well:
 - `Recipe Recipe = null!` and the two `= []` lists follow a1-03's pattern exactly.
 
 Verdict: ready for tests.
+
+# Test review
+
+## Round 1 · 2026-11-23 · 511db97
+
+Checks: `dotnet build` ok (0 warnings, 0 errors) · `dotnet format --verify-no-changes` ok ·
+`dotnet test` 7 passed · no web changes.
+
+| AC | Met | How checked |
+|---|---|---|
+| AC3 | yes | `Batch_WithItemAndStep_ReadsBackThroughAppDbContext` passes. Broke it: `[DatabaseGenerated]` commented out on `Batch.CreatedAt` → the test failed (*Assert.NotEqual() Failure … Not 0001-01-01*). |
+| AC4 | yes | `DeleteBatch_WithItemAndStep_DeletesThem` and `Batch_WithStatusOutsideThePhases_IsRefused` pass. Broke them in `061`, one at a time: `on delete cascade` removed from `batch_item.batch_id` → failed (*23503 … "batch_item_batch_id_fkey"*); the same on `batch_step.batch_id` → failed (*23503 … "batch_step_batch_id_fkey"*); `'brewing'` added to the status check → the status test failed (*Assert.Throws() Failure: No exception was thrown*). Every edit undone; `git diff` empty afterwards. |
+
+| # | Axis | Severity | Where | Finding | Why it matters | Learn more |
+|---|---|---|---|---|---|---|
+| 1 | Standards | should fix | `app/api.Tests/Database/BatchTablesTests.cs:68-71`, `:133-134` | The tests read whole tables instead of their own batch: the read-back uses `SingleAsync()` on all batches, the delete test counts all batches and all steps. The three tests share one database, so one test's leftover breaks the others. Measured twice in the break-the-code runs: with `CreatedAt` broken, the read-back failed before its clean-up, and its batch 501 then failed the delete test too (*Expected: 0*); with `'brewing'` allowed, batch 503 was saved and the read-back failed with *Sequence contains more than one element*. | One real failure shows up as two or three, and the extra ones point at the wrong test. Every database test from a1-06 on shares this database. Test lesson 1c/1d: keep `batch.Id` and read by it (items and steps by their `BatchId`). | [xUnit shared context](https://xunit.net/docs/shared-context) |
+| 2 | Spec | nice to have | `app/api.Tests/Database/BatchTablesTests.cs:133-134` | The delete test is named for items and steps, and AC4 says both, but it counts only steps. | Today the missing item cascade is still caught, by the delete's *23503* exception rather than by an assertion; checking items too makes the test say what AC4 says. | — |
+| 3 | Standards | nice to have | `app/api.Tests/Database/BatchTablesTests.cs` | The same batch, item and step are written out three times (502 and 503 also keep the name "Read back"). | The helper you planned (a valid batch, with the number and status as parameters) leaves each test showing only what it is about. | — |
+
+Done well:
+- The status test checks `SqlState` and `ConstraintName`, not only that something failed: it
+  fails for the right reason or not at all.
+- The read-back uses two scopes, so it reads from the database, not from the first context's
+  tracked objects.
+- Every value is fixed (date 2026-01-01, recipe looked up), nothing from the clock.
+
+Verdict: fixes needed (finding 1).

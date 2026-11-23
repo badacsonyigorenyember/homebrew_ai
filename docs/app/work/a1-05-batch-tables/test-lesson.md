@@ -74,7 +74,8 @@ tests (the `db/` files), as in a1-04.
 
    **1c. Arrange and act: one batch, one item, one step, one save.** Look up a recipe id first:
    `db.Recipes`, `Select` the `Id`, `FirstAsync()`. Then a `new Batch { … }` with every
-   `required` property, a batch number no other test uses (say `501`), and `Items` and `Steps`
+   `required` property **and `RecipeId`** (a foreign key, so not `required`: the compiler will not
+   remind you, and a missing one is `0`, which the database refuses), a batch number no other test uses (say `501`), and `Items` and `Steps`
    each given a one-element collection expression (`[new BatchItem { … }]`), the same `[ … ]`
    you used to initialise them in the entity. Leave `BatchId` out of both children. Add the batch
    to `db.Batches`, `await db.SaveChangesAsync()`, and keep `batch.Id` in a variable.
