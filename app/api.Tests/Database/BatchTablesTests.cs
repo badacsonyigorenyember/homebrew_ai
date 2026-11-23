@@ -78,4 +78,57 @@ public class BatchTablesTests(ApiFactory factory)
             await context.Batches.Where(b => b.Id == result.Id).ExecuteDeleteAsync();
         }
     }
+
+    [Fact]
+    public async Task DeleteBatch_WithItemAndStep_DeletesThem()
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var recipeId = context.Recipes.FirstAsync().Id;
+
+        var batch = new Batch
+        {
+            Number = 501,
+            Name = "Read back",
+            RecipeId = recipeId,
+            BrewDate = new DateOnly(2026, 01, 01),
+            Status = "plan",
+            BatchL = 20,
+            EfficiencyPct = 72,
+            Process = "{}",
+            Items =
+            [
+                new BatchItem
+                {
+                    RawName = "Test Item",
+                    Usage = "mash",
+                    Amount = 1,
+                    Unit = "kg",
+                    Changed = false
+                }
+            ],
+            Steps =
+            [
+                new BatchStep
+                {
+                    Phase = "brew_day",
+                    Position = 0,
+                    Title = "Test Step",
+                    Planned = "[]",
+                    Actual = "{}",
+                    DatePinned = false,
+                    Source = "user"
+                }
+            ]
+        };
+
+        context.Batches.Add(batch);
+        await context.SaveChangesAsync();
+
+        await context.Batches.Where(b => b.Id == batch.Id).ExecuteDeleteAsync();
+
+        Assert.Equal(0, await context.Batches.CountAsync());
+        Assert.Equal(0, await context.BatchSteps.CountAsync());
+    }
 }
