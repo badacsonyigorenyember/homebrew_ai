@@ -170,3 +170,27 @@ Done well:
 - Each break now fails exactly the test it is about, not its neighbours.
 
 Verdict: fixes needed (finding 1).
+
+## Round 4 · 2026-11-23 · 8fea0e8
+
+Checks: `dotnet build` ok (0 warnings, 0 errors) · `dotnet format --verify-no-changes` ok ·
+`dotnet test` 7 passed · no web changes.
+
+Round 3:
+
+| # | Status |
+|---|---|
+| 1 | fixed: the item and step counts filter on `BatchId`. |
+
+| AC | Met | How checked |
+|---|---|---|
+| AC3 | yes | `[DatabaseGenerated]` commented out on `CreatedAt` → only the read-back failed (*Assert.NotEqual() Failure*). |
+| AC4 | yes | No cascade on `batch_item`, then on `batch_step` → the delete test failed (*23503*); the `batch_id` foreign key removed from `batch_item`, then from `batch_step` (orphans left, no error) → the delete test failed both times (*Assert.Equal() Failure: Values differ*), and only it; `'brewing'` allowed → only the status test failed (*No exception was thrown*). Every edit undone; `git diff` empty afterwards. |
+
+No new findings.
+
+Done well:
+- The delete test now asks exactly AC4's question: are this batch's items and steps gone?
+- Every break fails the one test it is about.
+
+Verdict: ready to ship.
