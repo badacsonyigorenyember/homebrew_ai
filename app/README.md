@@ -62,10 +62,10 @@ dotnet test HomebrewApp.slnx
 
 The tests never touch your stack's database. Each run starts its own throwaway Postgres container
 from `supabase/postgres:15.8.1.085`, the image the stack already uses, so nothing new is
-downloaded. It applies `db/010_ref_schema.sql`, `db/015_app.sql` and `db/060_app_api_role.sql`,
-then `api.Tests/TestData/seed.sql` (two recipes copied from the stack's recipe 1155, one with its
-saved process from `recipe-1155-process.json`). The API under test connects as `app_api` with a
-made-up password, so the user secret above is not needed. The container is removed at the end of
+downloaded. It applies `db/010_ref_schema.sql`, `db/015_app.sql`, `db/060_app_api_role.sql` and
+`db/061_app_batch.sql`, then `api.Tests/TestData/seed.sql` (two recipes copied from the stack's
+recipe 1155, one with its saved process from `recipe-1155-process.json`). The API under test
+connects as `app_api` with a made-up password, so the user secret above is not needed. The container is removed at the end of
 the run; `docker ps -a --filter label=org.testcontainers=true` lists nothing a few seconds later.
 The list of SQL files, with why each is needed, is in `api.Tests/ApiFactory.cs`.
 
