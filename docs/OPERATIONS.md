@@ -87,8 +87,9 @@ service up).*
 
   *Working as of 2026-10-08.*
 - **`app_api` is the API's login role.** It can read `app.recipe`, `app.recipe_item`,
-  `ref.ingredient` and `ref.beer_style` and nothing else; the list lives in
-  `db/060_app_api_role.sql`, and later tickets add grants as they add tables. Its password is
+  `ref.ingredient` and `ref.beer_style` (granted in `db/060_app_api_role.sql`), and read and write
+  `app.batch`, `app.batch_item` and `app.batch_step` (granted in `db/061_app_batch.sql`), and
+  nothing else; later tickets add grants in the file that adds the table. Its password is
   never written in a file: set it in a shell variable, then apply the file with it as a psql
   variable (the file runs as `postgres`, is idempotent, and sets the password on every run):
 
