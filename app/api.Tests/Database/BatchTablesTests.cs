@@ -24,7 +24,7 @@ public class BatchTablesTests(ApiFactory factory)
 
             context.Batches.Add(batch);
             await context.SaveChangesAsync();
-            batchId = (await context.Batches.FirstAsync()).Id;
+            batchId = batch.Id;
         }
 
         await using (var scope = factory.Services.CreateAsyncScope())
@@ -61,9 +61,9 @@ public class BatchTablesTests(ApiFactory factory)
 
         await context.Batches.Where(b => b.Id == batch.Id).ExecuteDeleteAsync();
 
-        Assert.Equal(0, await context.Batches.CountAsync());
-        Assert.Equal(0, await context.BatchItems.CountAsync());
-        Assert.Equal(0, await context.BatchSteps.CountAsync());
+        Assert.Equal(0, await context.Batches.CountAsync(b => b.Id == batch.Id));
+        Assert.Equal(0, await context.BatchItems.CountAsync(b => b.Id == batch.Id));
+        Assert.Equal(0, await context.BatchSteps.CountAsync(b => b.Id == batch.Id));
     }
 
     [Fact]

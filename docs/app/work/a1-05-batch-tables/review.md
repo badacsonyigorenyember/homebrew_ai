@@ -111,3 +111,36 @@ Done well:
 - Every value is fixed (date 2026-01-01, recipe looked up), nothing from the clock.
 
 Verdict: fixes needed (finding 1).
+
+## Round 2 · 2026-11-23 · aa5b179
+
+Checks: `dotnet build` ok (0 warnings, 0 errors) · `dotnet format --verify-no-changes` ok ·
+`dotnet test` 7 passed · no web changes.
+
+Round 1:
+
+| # | Status |
+|---|---|
+| 1 | still open, half fixed: the read-back now reads `SingleAsync(b => b.Id == batchId)`, but `batchId` comes from `context.Batches.FirstAsync()` (line 27), the first row of the whole table with no `OrderBy`, not this test's batch. The delete test still counts whole tables (lines 64-66). |
+| 2 | fixed: the delete test counts items too. |
+| 3 | fixed: `CreateBatch(number, recipeId, status)`, and each test shows only its number and status. |
+
+| AC | Met | How checked |
+|---|---|---|
+| AC3 | yes | Same break as round 1 (`[DatabaseGenerated]` commented out on `CreatedAt`): the read-back failed (*Assert.NotEqual() Failure*). |
+| AC4 | yes | Same breaks as round 1 in `061`: no cascade on `batch_item` → failed (*23503 … batch_item_batch_id_fkey*); no cascade on `batch_step` → failed (*23503 … batch_step_batch_id_fkey*); `'brewing'` allowed → the status test failed (*No exception was thrown*). Every edit undone; `git diff` empty afterwards. |
+
+The leftover effect from round 1 is still measurable: with `CreatedAt` broken the delete test failed
+as well (*Assert.Equal() Failure: Values differ*), and with `'brewing'` allowed the status test's
+batch 503 stayed in the table and the delete test failed the same way. In that second run the
+read-back **passed** while batch 503 was in the table; which batch line 27 picked was not checked.
+
+No new findings.
+
+Done well:
+- `CreateBatch` takes exactly what the tests vary, with `status` defaulting to `"plan"`, so the
+  status test reads as "batch 503 with status brewing".
+- The read-back's query now filters by id inside `SingleAsync`, one call instead of two.
+
+Verdict: fixes needed (finding 1: take the id from `batch.Id` after `SaveChangesAsync`, and count
+the delete test's rows by its batch's id).
