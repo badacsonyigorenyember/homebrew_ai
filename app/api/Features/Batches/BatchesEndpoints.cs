@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 using HomebrewApp.Data;
 
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -15,6 +17,35 @@ public static class BatchesEndpoints
         string? StyleName,
         DateOnly BrewDate,
         string Status);
+
+    public record Request([Required] long? RecipeId, [Required] string? Name, [Required] DateOnly? BrewDate);
+
+    public record Response(
+        long Id,
+        int Number,
+        string Name,
+        long RecipeId,
+        DateOnly BrewDate,
+        string Status,
+        decimal BatchL,
+        decimal EfficiencyPct,
+        decimal? OG,
+        decimal? FG,
+        decimal? ABV,
+        decimal? IBU,
+        decimal? SRM,
+        List<ItemResponse> Items);
+
+    public record ItemResponse(
+        long Id,
+        long? SourceItemId,
+        long? IngredientId,
+        string RawName,
+        string Usage,
+        decimal? TimeMin,
+        decimal? Percentage,
+        decimal Amount,
+        string Unit);
 
     public static IEndpointRouteBuilder MapBatchesEndpoints(this IEndpointRouteBuilder endpoints)
     {
