@@ -62,8 +62,8 @@ public class BatchTablesTests(ApiFactory factory)
         await context.Batches.Where(b => b.Id == batch.Id).ExecuteDeleteAsync();
 
         Assert.Equal(0, await context.Batches.CountAsync(b => b.Id == batch.Id));
-        Assert.Equal(0, await context.BatchItems.CountAsync(b => b.Id == batch.Id));
-        Assert.Equal(0, await context.BatchSteps.CountAsync(b => b.Id == batch.Id));
+        Assert.Equal(0, await context.BatchItems.CountAsync(b => b.BatchId == batch.Id));
+        Assert.Equal(0, await context.BatchSteps.CountAsync(b => b.BatchId == batch.Id));
     }
 
     [Fact]

@@ -144,3 +144,29 @@ Done well:
 
 Verdict: fixes needed (finding 1: take the id from `batch.Id` after `SaveChangesAsync`, and count
 the delete test's rows by its batch's id).
+
+## Round 3 · 2026-11-23 · 7e0b009
+
+Checks: `dotnet build` ok (0 warnings, 0 errors) · `dotnet format --verify-no-changes` ok ·
+`dotnet test` 7 passed · no web changes. (The test fix was amended into the round 2 review commit.)
+
+Earlier rounds:
+
+| # | Status |
+|---|---|
+| 1 | fixed for the batch: the read-back takes `batch.Id` after the save, and the delete test counts its own batch. Measured: with `CreatedAt` broken only the read-back fails now; with `'brewing'` allowed only the status test fails. The item and step counts are new finding 1 below. |
+
+| AC | Met | How checked |
+|---|---|---|
+| AC3 | yes | `[DatabaseGenerated]` commented out on `CreatedAt` → the read-back failed (*Assert.NotEqual() Failure*), and only it. |
+| AC4 | partly | No cascade on `batch_item` or `batch_step` → the delete test failed (*23503*), as before; `'brewing'` allowed → the status test failed (*No exception was thrown*). New break: the `batch_id` foreign key removed entirely from `batch_item`, then from `batch_step`, so deleting a batch leaves its items (or steps) behind with no error → **all 3 tests passed** both times. Every edit undone; `git diff` empty afterwards. |
+
+| # | Axis | Severity | Where | Finding | Why it matters | Learn more |
+|---|---|---|---|---|---|---|
+| 1 | Spec | must fix | `app/api.Tests/Database/BatchTablesTests.cs:65-66` | The item and step counts compare the row's own `Id` with `batch.Id`, not its `BatchId`. An item's id comes from `batch_item`'s own identity, so it says nothing about which batch the item belongs to. Measured above: items and steps left behind after the delete, and the test passed. | AC4's "deleting a batch deletes its items and steps" is checked today only by the delete's *23503* exception, not by these assertions; they would pass whatever is left in the table. With `BatchId` in the condition, the orphans from the break would be counted (expected, not run: the test file is yours). | — |
+
+Done well:
+- `batchId = batch.Id`: the id EF filled in on save, no second query.
+- Each break now fails exactly the test it is about, not its neighbours.
+
+Verdict: fixes needed (finding 1).
