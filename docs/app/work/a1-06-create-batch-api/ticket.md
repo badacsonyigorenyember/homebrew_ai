@@ -1,6 +1,6 @@
 # a1-06 · Create a batch from a recipe
 
-Stage: review
+Stage: tests
 Branch: `a1-06-create-batch-api`
 Milestone: M1 · Requirements: F4.1 ([SYSTEM.md](../SYSTEM.md))
 Blocked by: a1-05
