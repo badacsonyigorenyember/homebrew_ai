@@ -45,7 +45,7 @@ public record BatchItemResponse(
     decimal Amount,
     string Unit);
 
-public static class BatchesEndpoints
+public static class BatchEndpoints
 {
     public static IEndpointRouteBuilder MapBatchEndpoints(this IEndpointRouteBuilder endpoints)
     {
@@ -82,11 +82,11 @@ public static class BatchesEndpoints
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        var nextNumber = await context.Batches.MaxAsync(b => (int?)b.Number, cancellationToken);
+        var highestNumber = await context.Batches.MaxAsync(b => (int?)b.Number, cancellationToken);
 
         var batch = new Batch
         {
-            Number = (nextNumber ?? 0) + 1,
+            Number = (highestNumber ?? 0) + 1,
             Name = request.Name!,
             BrewDate = request.BrewDate!.Value,
             RecipeId = recipe.Id,
