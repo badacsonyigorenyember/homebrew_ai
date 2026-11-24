@@ -33,6 +33,6 @@ if (app.Environment.IsDevelopment())
 
 app.MapHealthEndpoint()
     .MapRecipeEndpoints()
-    .MapBatchesEndpoints();
+    .MapBatchEndpoints();
 
 app.Run();

@@ -26,10 +26,10 @@ public static class RecipeEndpoints
     }
 
     private static async Task<Ok<List<BrewableRecipeResponse>>> GetBrewableRecipes(
-        AppDbContext dbContext,
+        AppDbContext context,
         CancellationToken cancellationToken)
     {
-        var recipes = await dbContext.Recipes.Where(r => r.Process != null)
+        var recipes = await context.Recipes.Where(r => r.Process != null)
             .OrderByDescending(r => r.CreatedAt)
             .Select(r => new BrewableRecipeResponse(r.Id, r.Style.Code, r.Style.Name, r.OG, r.FG, r.ABV, r.IBU,
                 r.BatchL, r.CreatedAt))
