@@ -12,3 +12,39 @@ Accept: application/json
 
 GET {{HomebrewApp_HostAddress}}/api/batches
 Accept: application/json
+
+### Create a batch: writes a real batch to the stack (delete trial batches afterwards)
+POST {{HomebrewApp_HostAddress}}/api/batches
+Content-Type: application/json
+
+{
+  "recipeId": 1489,
+  "name": "Trial 1",
+  "brewDate": "2026-12-05"
+}
+
+### Missing fields: 400 with a message per field
+POST {{HomebrewApp_HostAddress}}/api/batches
+Content-Type: application/json
+
+{}
+
+### Recipe without a process: 400
+POST {{HomebrewApp_HostAddress}}/api/batches
+Content-Type: application/json
+
+{
+  "recipeId": 163,
+  "name": "Trial",
+  "brewDate": "2026-12-05"
+}
+
+### Unknown recipe: 404
+POST {{HomebrewApp_HostAddress}}/api/batches
+Content-Type: application/json
+
+{
+  "recipeId": 999999,
+  "name": "Trial",
+  "brewDate": "2026-12-05"
+}
