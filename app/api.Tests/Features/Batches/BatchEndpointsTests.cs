@@ -43,4 +43,49 @@ public class BatchEndpointsTests(ApiFactory factory)
         Assert.Equal(1, batchResponse1?.Number);
         Assert.Equal(2, batchResponse2?.Number);
     }
+
+    [Fact]
+    public async Task CreateBatch_FromRecipe_CopiesItems()
+    {
+        long recipeId;
+        IEnumerable<(long Id, long? IngredientId, string RawName, string Usage, decimal? TimeMin, decimal? Percentage,
+            decimal Amount, string Unit)> recipeItems;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            await context.Batches.ExecuteDeleteAsync();
+
+            recipeId = await context.Recipes.Where(r => r.Process != null)
+                .Select(r => r.Id)
+                .SingleAsync();
+
+            var rawRecipeItems = await context.RecipeItems.Where(ri => ri.RecipeId == recipeId).ToListAsync();
+            recipeItems = rawRecipeItems.Select(ri => (ri.Id, ri.IngredientId, ri.RawName, ri.Usage, ri.TimeMin,
+                ri.Percentage, ri.Amount, ri.Unit));
+        }
+
+        var client = factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/batches",
+            new CreateBatchRequest(recipeId, "Test name 1", new DateOnly(2026, 11, 25)));
+        var batchResponse = await response.Content.ReadFromJsonAsync<BatchResponse>();
+
+        Assert.NotNull(batchResponse);
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var rawBatchItems = await context.BatchItems.Where(bi => bi.BatchId == batchResponse.Id)
+                .OrderBy(bi => bi.SourceItemId)
+                .ToListAsync();
+            var batchItems = rawBatchItems.Select(bi => ((long)bi.SourceItemId!, bi.IngredientId, bi.RawName, bi.Usage,
+                bi.TimeMin, bi.Percentage, bi.Amount, bi.Unit));
+
+            Assert.Equal(recipeItems, batchItems);
+
+            await context.Batches.Where(b => b.Id == batchResponse.Id).ExecuteDeleteAsync();
+        }
+    }
 }
