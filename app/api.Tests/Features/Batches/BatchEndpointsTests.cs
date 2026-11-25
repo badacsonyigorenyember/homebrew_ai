@@ -7,6 +7,8 @@ using HomebrewApp.Features.Batches;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using Npgsql;
+
 namespace HomebrewApp.Tests.Features.Batches;
 
 [Collection(nameof(ApiCollection))]
@@ -87,5 +89,53 @@ public class BatchEndpointsTests(ApiFactory factory)
 
             await context.Batches.Where(b => b.Id == batchResponse.Id).ExecuteDeleteAsync();
         }
+    }
+
+    [Fact]
+    public async Task CreateBatch_RecipeItemChangedAfterwards_BatchItemKeepsItsValue()
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        long recipeId = await context.Recipes.Where(r => r.Process != null)
+            .Select(r => r.Id)
+            .SingleAsync();
+
+        var client = factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/batches",
+            new CreateBatchRequest(recipeId, "Test name 1", new DateOnly(2026, 11, 25)));
+
+        var batchResponse = await response.Content.ReadFromJsonAsync<BatchResponse>();
+        var item = batchResponse?.Items.First();
+        Assert.NotNull(batchResponse);
+        Assert.NotNull(item);
+        Assert.NotNull(item.SourceItemId);
+
+        await using var conn = new NpgsqlConnection(factory.AdminConnectionString);
+        await conn.OpenAsync();
+        await using var transaction = await conn.BeginTransactionAsync();
+
+        await using (var command = new NpgsqlCommand("UPDATE app.recipe_item SET amount = amount + 1 WHERE id = @id;",
+                         conn,
+                         transaction))
+        {
+            command.Parameters.AddWithValue("id", item.SourceItemId);
+            await command.ExecuteScalarAsync();
+        }
+
+        await using (var command = new NpgsqlCommand("SELECT amount FROM app.batch_item WHERE id = @id;",
+                         conn,
+                         transaction))
+        {
+            command.Parameters.AddWithValue("id", item.Id);
+            var amount = await command.ExecuteScalarAsync();
+
+            Assert.Equal(item.Amount, amount);
+        }
+
+        await transaction.RollbackAsync();
+
+        await context.Batches.Where(b => b.Id == batchResponse.Id).ExecuteDeleteAsync();
     }
 }
