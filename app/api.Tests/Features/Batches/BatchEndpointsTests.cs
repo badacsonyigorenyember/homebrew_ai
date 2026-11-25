@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using HomebrewApp.Data;
 using HomebrewApp.Features.Batches;
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -137,5 +138,40 @@ public class BatchEndpointsTests(ApiFactory factory)
         await transaction.RollbackAsync();
 
         await context.Batches.Where(b => b.Id == batchResponse.Id).ExecuteDeleteAsync();
+    }
+
+    [Fact]
+    public async Task CreateBatch_RecipeWithoutProcess_Returns400Problem()
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        await context.Batches.ExecuteDeleteAsync();
+
+        var recipeId = await context.Recipes.Where(r => r.Process == null)
+            .Select(r => r.Id)
+            .SingleAsync();
+
+        var client = factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/batches",
+            new CreateBatchRequest(recipeId, "Test name 1", new DateOnly(2026, 11, 25)));
+        var content = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        Assert.Contains("process", content?.Detail);
+    }
+
+    [Fact]
+    public async Task CreateBatch_UnknownRecipe_Returns404Problem()
+    {
+        var client = factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/batches",
+            new CreateBatchRequest(long.MaxValue, "Test name 1", new DateOnly(2026, 11, 25)));
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
     }
 }
