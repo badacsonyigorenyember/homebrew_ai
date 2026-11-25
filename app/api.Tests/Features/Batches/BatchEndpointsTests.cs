@@ -135,7 +135,9 @@ public class BatchEndpointsTests(ApiFactory factory)
                          transaction))
         {
             command.Parameters.AddWithValue("id", item.SourceItemId);
-            await command.ExecuteScalarAsync();
+            var numberOfChangedRows = await command.ExecuteNonQueryAsync();
+
+            Assert.Equal(1, numberOfChangedRows);
         }
 
         await using (var command = new NpgsqlCommand("SELECT amount FROM app.batch_item WHERE id = @id;",
