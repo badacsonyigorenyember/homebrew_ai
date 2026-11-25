@@ -90,3 +90,39 @@ Done well:
 - The response is built from the saved `batch`, so its ids are the database's.
 
 Verdict: ready for tests.
+
+# Test review
+
+## Round 1 · 2026-11-25 · 4f7a4de
+
+Checks: `dotnet build -warnaserror` ok (0 warnings, 0 errors) · `dotnet format
+--verify-no-changes` ok · `dotnet test` 14 passed, twice in a row · no web changes. Each break
+below was one edit in `app/api/Features/Batches/BatchEndpoints.cs` (one in the test file, marked),
+run with only the test it is about, then put back byte for byte; `git diff` matched before and
+after every time, and `git status` is clean.
+
+| AC | Met | How checked |
+|---|---|---|
+| AC1 | yes | `Amount = 0` → `CreateBatch_FromRecipe_CopiesItems` failed (*Collections differ*, `3.350` against `0.000`). `SourceItemId = null` → it failed (*Nullable object must have a value.*). The change-afterwards test cannot be broken in the API (the copy is its own row), so its second command was pointed at `app.recipe_item` (test file) → *Expected: 3.350 · Actual: 4.350*: the update really happens inside the transaction. |
+| AC2 | yes | `+ 1` dropped → *Expected: Created · Actual: InternalServerError*. |
+| AC3 | yes | The process check made `if (false)` → *Expected: BadRequest · Actual: InternalServerError*; the `recipe is null` check made `if (false)` → *Expected: NotFound · Actual: InternalServerError*. |
+| AC4 | yes | `[Required]` removed from `Name` → *Key not found in dictionary*. A gap, finding 3. |
+| AC5 | yes | `ListBatches` leaving out status `plan` → *Item not found in collection*. |
+
+| # | Axis | Severity | Where | Finding | Why it matters | Learn more |
+|---|---|---|---|---|---|---|
+| 1 | Standards | should fix | `app/api.Tests/Features/Batches/BatchEndpointsTests.cs:69` | The recipe's items are read with no `OrderBy`, while the batch's items are ordered by `SourceItemId` (line 88). The lists are compared position by position, so the test relies on Postgres returning the recipe items in insert order. A query with no `ORDER BY` has no order; today a fresh container happens to give insert order. Once a row is updated and committed (a later ticket's test, say), it moves on disk and comes back later (by reading; not run). | A test that fails for a reason unrelated to the code is worse than no test: the next red run gets ignored. Order both sides by the same key (test lesson 2a: "ordered by `Id`"). | [PostgreSQL 15 — `ORDER BY`](https://www.postgresql.org/docs/15/queries-order.html) ("the rows are returned in an unspecified order") |
+| 2 | Standards | should fix | `BatchEndpointsTests.cs:78, 115, 227` | Three tests read the created body without asserting 201 first (the AC2 test does, lines 42–43). Measured: with the create made to fail (`Status = "planned"`, refused by the check constraint → 500), all three said *System.Text.Json.JsonException : The JSON value could not be converted to … BatchResponse. Path: $.status*, a message about JSON for a bug in saving. Lines 165–167 read the problem body before the status assert too. | Status before body (test lesson 1c) makes the failure say what happened: *Expected: Created · Actual: InternalServerError*. You will write this create-then-read shape in every API test from here on. | — |
+| 3 | Spec | should fix | `BatchEndpointsTests.cs:206-207` | `Assert.Contains` checks that `Name` and `BrewDate` are among the keys, not that they are the only keys or have one message each (test lesson 5). Measured: with an extra, wrong `[Range(3, 1000000)]` on `RecipeId`, the response had a third error for a valid recipe id, and this test passed. | AC4 is "a message per field": the UI in a1-07 puts each message under its own input, so an error on a field the user filled in correctly is a bug the user sees. Comparing the sorted keys with the expected two, and `Assert.Single` on each entry, catches it. | [`HttpValidationProblemDetails.Errors`](https://learn.microsoft.com/dotnet/api/microsoft.aspnetcore.http.httpvalidationproblemdetails.errors) |
+| 4 | Standards | nice to have | `BatchEndpointsTests.cs:154, 190, 192-195, 234` | The clean-up is uneven: the AC5 test leaves its batch behind; the 400 and AC4 tests empty the batch table though they create nothing, and the AC4 test looks up a recipe that validation never reaches. | Each test doing exactly the setup it needs makes it easier to read what it depends on (test lesson: "every other test deletes the batch it made"). | — |
+| 5 | Standards | nice to have | `BatchEndpointsTests.cs:130` | The `UPDATE` runs with `ExecuteScalarAsync`, which returns the first column of the first row: `null` for an update. `ExecuteNonQueryAsync` returns the number of rows changed; asserting it is 1 proves the recipe item really changed (with a wrong `SourceItemId` the update would change nothing and the test would still pass). | Commands that change data report how many rows they touched; checking it is a cheap guard. | [Npgsql basic usage](https://www.npgsql.org/doc/basic-usage.html) |
+
+Done well:
+- The AC2 test empties the table itself and asserts the status before the body: it does not
+  depend on which test ran before it.
+- Tuples make the item copy one `Assert.Equal`, read back from the **database**, and the failure
+  prints both lists, so the wrong field is visible at a glance.
+- The recipe change runs as the container's admin, with the id as a parameter, inside a
+  transaction that is rolled back: two runs in a row pass with the seed unchanged.
+
+Verdict: fixes needed (findings 1–3, all should fix; nothing here blocks shipping).
