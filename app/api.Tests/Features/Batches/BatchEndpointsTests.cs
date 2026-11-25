@@ -66,7 +66,10 @@ public class BatchEndpointsTests(ApiFactory factory)
                 .Select(r => r.Id)
                 .SingleAsync();
 
-            var rawRecipeItems = await context.RecipeItems.Where(ri => ri.RecipeId == recipeId).ToListAsync();
+            var rawRecipeItems = await context.RecipeItems
+                .Where(ri => ri.RecipeId == recipeId)
+                .OrderBy(ri => ri.Id)
+                .ToListAsync();
             recipeItems = rawRecipeItems.Select(ri => (ri.Id, ri.IngredientId, ri.RawName, ri.Usage, ri.TimeMin,
                 ri.Percentage, ri.Amount, ri.Unit));
         }
