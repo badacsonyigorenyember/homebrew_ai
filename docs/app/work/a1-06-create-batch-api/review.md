@@ -126,3 +126,38 @@ Done well:
   transaction that is rolled back: two runs in a row pass with the seed unchanged.
 
 Verdict: fixes needed (findings 1–3, all should fix; nothing here blocks shipping).
+
+## Round 2 · 2026-11-25 · ade0ea0
+
+Checks: `dotnet build -warnaserror` ok (0 warnings, 0 errors) · `dotnet format
+--verify-no-changes` ok · `dotnet test` 14 passed, twice in a row · no web changes. Breaks as in
+round 1: one edit, the test it is about, put back byte for byte; `git diff` matched before and
+after every time, and `git status` is clean.
+
+Round 1:
+
+| # | Status |
+|---|---|
+| 1 | fixed: both sides ordered by the recipe item's id (lines 71 and 94). `Amount = 0` still fails with *Collections differ*. |
+| 2 | fixed: the three creates assert 201 first (lines 82, 121, 234). The same break as round 1 (`Status = "planned"`, a 500) now says *Expected: Created · Actual: InternalServerError* in all three. The 400 test still reads the problem body before its status assert (lines 173–175); round 1 measured that it reports *Expected: BadRequest · Actual: InternalServerError* anyway, because an error answer is problem details too, so that is left as it is. |
+| 3 | fixed: `Errors.Count` is 2 and both keys are there, so exactly these two keys. The `[Range(3, 1000000)]` break on `RecipeId` now fails: *Expected: 2 · Actual: 3*. One message per key is not asserted; no realistic break gives a null field two messages, so the count is enough. |
+| 4 | partly: the AC5 test deletes its batch, and the 400 and AC4 tests no longer empty the table. Open: the AC4 test still looks up a recipe (lines 195–201) that validation never reaches; `long.MaxValue`, as in the 404 test, would make the scope and the lookup unnecessary. Nice to have. |
+| 5 | fixed: `ExecuteNonQueryAsync` with 1 row asserted. The test's update pointed at `@id + 1000` (test file) → *Expected: 1 · Actual: 0*. (A wrong `SourceItemId` in the API is already refused by the foreign key, a 500 at the create.) |
+
+| AC | Met | How checked |
+|---|---|---|
+| AC1 | yes | Round 1's breaks, re-run for the copy test after the ordering change: *Collections differ*. |
+| AC2 | yes | Round 1; the test is unchanged. |
+| AC3 | yes | Round 1; only a batch delete was removed from the 400 test. |
+| AC4 | yes | `[Required]` off `Name` (round 1) and an extra error on `RecipeId` (above) both fail the test. |
+| AC5 | yes | Round 1; the test now also asserts 201 and deletes its batch. |
+
+No new findings.
+
+Done well:
+- Each fix is the small one the finding asked for; nothing around it was rewritten.
+- `Count` plus the two `Contains` is an exact-keys check that reads like the AC.
+- Asserting the update changed one row turns "the recipe changed" from an assumption into a fact
+  the test checks.
+
+Verdict: ready to ship.
