@@ -67,7 +67,8 @@ public static class BatchEndpoints
     {
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
-        var recipe = await context.Recipes.Include(r => r.Items)
+        var recipe = await context.Recipes
+            .Include(r => r.Items)
             .SingleOrDefaultAsync(r => r.Id == request.RecipeId, cancellationToken);
 
         if (recipe is null)
@@ -134,7 +135,8 @@ public static class BatchEndpoints
         AppDbContext context,
         CancellationToken cancellationToken)
     {
-        var batches = await context.Batches.OrderByDescending(b => b.BrewDate)
+        var batches = await context.Batches
+            .OrderByDescending(b => b.BrewDate)
             .ThenByDescending(b => b.Number)
             .Select(b => new BatchSummaryResponse(b.Id, b.Number, b.Name, b.Recipe.Style.Code,
                 b.Recipe.Style.Name, b.BrewDate, b.Status))

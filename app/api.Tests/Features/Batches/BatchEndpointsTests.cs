@@ -26,7 +26,8 @@ public class BatchEndpointsTests(ApiFactory factory)
 
             await context.Batches.ExecuteDeleteAsync();
 
-            recipeId = await context.Recipes.Where(r => r.Process != null)
+            recipeId = await context.Recipes
+                .Where(r => r.Process != null)
                 .Select(r => r.Id)
                 .SingleAsync();
         }
@@ -60,7 +61,8 @@ public class BatchEndpointsTests(ApiFactory factory)
 
             await context.Batches.ExecuteDeleteAsync();
 
-            recipeId = await context.Recipes.Where(r => r.Process != null)
+            recipeId = await context.Recipes
+                .Where(r => r.Process != null)
                 .Select(r => r.Id)
                 .SingleAsync();
 
@@ -81,7 +83,8 @@ public class BatchEndpointsTests(ApiFactory factory)
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            var rawBatchItems = await context.BatchItems.Where(bi => bi.BatchId == batchResponse.Id)
+            var rawBatchItems = await context.BatchItems
+                .Where(bi => bi.BatchId == batchResponse.Id)
                 .OrderBy(bi => bi.SourceItemId)
                 .ToListAsync();
             var batchItems = rawBatchItems.Select(bi => ((long)bi.SourceItemId!, bi.IngredientId, bi.RawName, bi.Usage,
@@ -99,7 +102,8 @@ public class BatchEndpointsTests(ApiFactory factory)
         await using var scope = factory.Services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        long recipeId = await context.Recipes.Where(r => r.Process != null)
+        long recipeId = await context.Recipes
+            .Where(r => r.Process != null)
             .Select(r => r.Id)
             .SingleAsync();
 
@@ -149,7 +153,8 @@ public class BatchEndpointsTests(ApiFactory factory)
 
         await context.Batches.ExecuteDeleteAsync();
 
-        var recipeId = await context.Recipes.Where(r => r.Process == null)
+        var recipeId = await context.Recipes
+            .Where(r => r.Process == null)
             .Select(r => r.Id)
             .SingleAsync();
 
@@ -184,7 +189,8 @@ public class BatchEndpointsTests(ApiFactory factory)
 
         await context.Batches.ExecuteDeleteAsync();
 
-        var recipeId = await context.Recipes.Where(r => r.Process == null)
+        var recipeId = await context.Recipes
+            .Where(r => r.Process == null)
             .Select(r => r.Id)
             .SingleAsync();
 
@@ -199,5 +205,31 @@ public class BatchEndpointsTests(ApiFactory factory)
         Assert.NotNull(content.Errors);
         Assert.Contains("Name", content.Errors);
         Assert.Contains("BrewDate", content.Errors);
+    }
+
+    [Fact]
+    public async Task ListBatches_AfterCreate_ContainsTheBatch()
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        await context.Batches.ExecuteDeleteAsync();
+
+        var recipeId = await context.Recipes
+            .Where(r => r.Process != null)
+            .Select(r => r.Id)
+            .SingleAsync();
+
+        var client = factory.CreateClient();
+
+        var createResponse = await client.PostAsJsonAsync("/api/batches",
+            new CreateBatchRequest(recipeId, "Test name 1", new DateOnly(2026, 11, 25)));
+        var createContent = await createResponse.Content.ReadFromJsonAsync<BatchResponse>();
+
+        var listResponse = await client.GetFromJsonAsync<IEnumerable<BatchSummaryResponse>>("/api/batches");
+
+        Assert.NotNull(createContent);
+        Assert.NotNull(listResponse);
+        Assert.Contains(createContent.Id, listResponse.Select(b => b.Id));
     }
 }
