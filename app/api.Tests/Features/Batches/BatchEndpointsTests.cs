@@ -156,8 +156,6 @@ public class BatchEndpointsTests(ApiFactory factory)
         await using var scope = factory.Services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        await context.Batches.ExecuteDeleteAsync();
-
         var recipeId = await context.Recipes
             .Where(r => r.Process == null)
             .Select(r => r.Id)
@@ -191,8 +189,6 @@ public class BatchEndpointsTests(ApiFactory factory)
     {
         await using var scope = factory.Services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        await context.Batches.ExecuteDeleteAsync();
 
         var recipeId = await context.Recipes
             .Where(r => r.Process == null)
@@ -239,5 +235,7 @@ public class BatchEndpointsTests(ApiFactory factory)
         Assert.NotNull(createContent);
         Assert.NotNull(listResponse);
         Assert.Contains(createContent.Id, listResponse.Select(b => b.Id));
+
+        await context.Batches.Where(b => b.Id == createContent.Id).ExecuteDeleteAsync();
     }
 }
