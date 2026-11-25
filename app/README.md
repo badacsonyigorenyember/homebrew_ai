@@ -45,9 +45,21 @@ It uses the `http` profile in `api/Properties/launchSettings.json`: it listens o
 |-------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
 | Health check                        | `http://localhost:5080/api/health` (answers `{"status":"ok","database":"ok"}`; `"database":"down"` when the API cannot connect to Postgres) |
 | OpenAPI document (Development only) | `http://localhost:5080/openapi/v1.json`                                                                                                     |
+| Recipes that can be brewed          | `GET http://localhost:5080/api/recipes/brewable`: the recipes with a saved process, newest first                                            |
+| Batches                             | `GET http://localhost:5080/api/batches`: every batch, latest brew date first                                                                |
+| New batch                           | `POST http://localhost:5080/api/batches` with `{"recipeId": …, "name": "…", "brewDate": "yyyy-mm-dd"}`: copies the recipe into a batch     |
+
+Errors come back as problem details (`application/problem+json`): 400 with a message per field
+when `recipeId`, `name` or `brewDate` is missing, 400 for a recipe without a process, 404 for an
+unknown recipe.
 
 Check it from a second terminal with `curl http://localhost:5080/api/health`, or open
-`api/HomebrewApp.http` in Rider and run the request. Stop the API with Ctrl+C.
+`api/HomebrewApp.http` in Rider and run its requests. Stop the API with Ctrl+C.
+
+The `.http` file's "Create a batch" request writes a real batch to your stack's database, and
+the next batch number is the highest so far plus one. Delete trial batches afterwards, in psql as
+`postgres` (`docker exec -it supabase-db psql -U postgres -d postgres`):
+`delete from app.batch where name like 'Trial%';` (their items go with them).
 
 `dotnet run` doesn't reload code changes; stop and start it again, or use
 `dotnet watch --project api`, which restarts on save.

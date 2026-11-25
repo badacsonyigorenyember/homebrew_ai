@@ -19,8 +19,8 @@ public class BatchTablesTests(ApiFactory factory)
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            var recipe = await context.Recipes.FirstAsync();
-            var batch = CreateBatch(501, recipe.Id);
+            var recipeId = await context.Recipes.Select(r => r.Id).FirstAsync();
+            var batch = CreateBatch(501, recipeId);
 
             context.Batches.Add(batch);
             await context.SaveChangesAsync();
@@ -53,8 +53,8 @@ public class BatchTablesTests(ApiFactory factory)
         await using var scope = factory.Services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        var recipe = await context.Recipes.FirstAsync();
-        var batch = CreateBatch(502, recipe.Id);
+        var recipeId = await context.Recipes.Select(r => r.Id).FirstAsync();
+        var batch = CreateBatch(502, recipeId);
 
         context.Batches.Add(batch);
         await context.SaveChangesAsync();
@@ -72,8 +72,8 @@ public class BatchTablesTests(ApiFactory factory)
         await using var scope = factory.Services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        var recipe = await context.Recipes.FirstAsync();
-        var batch = CreateBatch(503, recipe.Id, "brewing");
+        var recipeId = await context.Recipes.Select(r => r.Id).FirstAsync();
+        var batch = CreateBatch(503, recipeId, "brewing");
 
         context.Batches.Add(batch);
 

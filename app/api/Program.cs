@@ -1,5 +1,7 @@
 using HomebrewApp.Data;
+using HomebrewApp.Features.Batches;
 using HomebrewApp.Features.Health;
+using HomebrewApp.Features.Recipes;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -12,7 +14,9 @@ var conn = builder.Configuration.GetConnectionString("App")
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi()
+    .AddProblemDetails()
+    .AddValidation();
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseNpgsql(conn);
@@ -27,6 +31,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.MapHealthEndpoint();
+app.MapHealthEndpoint()
+    .MapRecipeEndpoints()
+    .MapBatchEndpoints();
 
 app.Run();

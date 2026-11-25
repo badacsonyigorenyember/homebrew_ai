@@ -18,6 +18,8 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
             Password = _password
         }.ConnectionString;
 
+    public string AdminConnectionString => _container.GetConnectionString();
+
     private const string _password = "dummy_password";
 
     private readonly PostgreSqlContainer _container =
