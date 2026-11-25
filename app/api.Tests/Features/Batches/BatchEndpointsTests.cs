@@ -75,6 +75,9 @@ public class BatchEndpointsTests(ApiFactory factory)
 
         var response = await client.PostAsJsonAsync("/api/batches",
             new CreateBatchRequest(recipeId, "Test name 1", new DateOnly(2026, 11, 25)));
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
         var batchResponse = await response.Content.ReadFromJsonAsync<BatchResponse>();
 
         Assert.NotNull(batchResponse);
@@ -111,6 +114,8 @@ public class BatchEndpointsTests(ApiFactory factory)
 
         var response = await client.PostAsJsonAsync("/api/batches",
             new CreateBatchRequest(recipeId, "Test name 1", new DateOnly(2026, 11, 25)));
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
         var batchResponse = await response.Content.ReadFromJsonAsync<BatchResponse>();
         var item = batchResponse?.Items.First();
@@ -202,7 +207,7 @@ public class BatchEndpointsTests(ApiFactory factory)
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotNull(content);
-        Assert.NotNull(content.Errors);
+        Assert.Equal(2, content.Errors.Count);
         Assert.Contains("Name", content.Errors);
         Assert.Contains("BrewDate", content.Errors);
     }
@@ -224,6 +229,9 @@ public class BatchEndpointsTests(ApiFactory factory)
 
         var createResponse = await client.PostAsJsonAsync("/api/batches",
             new CreateBatchRequest(recipeId, "Test name 1", new DateOnly(2026, 11, 25)));
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
         var createContent = await createResponse.Content.ReadFromJsonAsync<BatchResponse>();
 
         var listResponse = await client.GetFromJsonAsync<IEnumerable<BatchSummaryResponse>>("/api/batches");
