@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using HomebrewApp.Data;
 using HomebrewApp.Features.Batches;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -173,5 +174,30 @@ public class BatchEndpointsTests(ApiFactory factory)
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
+    public async Task CreateBatch_WithoutNameAndBrewDate_Returns400PerField()
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        await context.Batches.ExecuteDeleteAsync();
+
+        var recipeId = await context.Recipes.Where(r => r.Process == null)
+            .Select(r => r.Id)
+            .SingleAsync();
+
+        var client = factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/batches",
+            new CreateBatchRequest(recipeId, null, null));
+        var content = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotNull(content);
+        Assert.NotNull(content.Errors);
+        Assert.Contains("Name", content.Errors);
+        Assert.Contains("BrewDate", content.Errors);
     }
 }
