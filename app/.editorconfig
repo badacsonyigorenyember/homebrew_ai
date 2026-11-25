@@ -23,7 +23,6 @@ indent_size = 2
 [*.cs]
 # Rider: every attribute on its own line, above the type, member or field it belongs to
 resharper_place_attribute_on_same_line = false
-resharper_csharp_place_attribute_on_same_line = true
 #### Core EditorConfig Options ####
 
 # Indentation and spacing
