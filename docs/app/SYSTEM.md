@@ -366,3 +366,7 @@ PROJECT.md changes this design makes (agreed 2026-10-31):
 - 2026-11-19 · a1-04: Claude writes the docs (`app/README.md` and any doc a ticket made outdated)
   before shipping, instead of a lesson step for you (`.claude/skills/app-ticket/SKILL.md`, Ship
   step 2).
+- 2026-11-26 · a1-07: UI steps in lessons get at least the detail of API steps: every import,
+  the markup element by element, every Tailwind class explained, the JSX ground rules, and
+  measured watch-outs from your real mistakes (`.claude/skills/app-ticket/lesson-guide.md`, "UI
+  steps"). a1-07's steps 4 to 10 were rewritten that way.

@@ -123,6 +123,28 @@ model for the size and the checks.
   until the body uses it), so a red error does not read as a mistake. That sub-step is always in
   the same numbered step: no check is still failing when the step reaches its Commit line.
 
+### UI steps
+
+The user finds the API lessons' level of detail right and has no UI experience (decided
+2026-11-26, a1-07). A step that writes a component, a hook or a page under `app/web` gets at
+least the detail of an API step, written for someone who has never built a UI:
+
+- **Every import named:** what, by name or default, and from which path.
+- **The markup piece by piece:** one element per sub-step (or a short list in words when elements
+  nest), in the order it appears, with its props and what goes between its tags. Words only,
+  never the JSX itself.
+- **Every Tailwind class named and explained** the first time a ticket uses it: what it does and
+  why it is there (`gap-2` puts space between children, `md:hidden` hides from 768 px up).
+- **The JSX ground rules in the first component step of a ticket**, as a read-first list with
+  react.dev pages: one root element or a fragment, the round bracket on the `return` line, curly
+  braces for values, `className`, `map` returning in round brackets with a `key`.
+- **Hooks placed:** the hook calls listed as the first lines of the body, with the rule (no hook
+  outside a component, in an `if` or after an early `return`).
+- **What the screen shows** after the sub-step, or that nothing shows yet and which step shows
+  it.
+- **Watch-outs from real mistakes:** the errors the user actually hit in earlier UI tickets, each
+  measured, go into later lessons where the same construct comes back.
+
 ## `test-lesson.md`: its parts, in this order
 
 ```markdown
