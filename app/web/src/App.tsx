@@ -6,6 +6,7 @@ import { DevicesPage } from '@/features/devices/DevicesPage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
 import { NotFoundPage } from '@/components/NotFoundPage';
 import { AppLayout } from './components/layout/AppLayout';
+import { BatchPage } from '@/features/batches/BatchPage.tsx';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
       <Route element={<AppLayout />}>
         <Route index element={<Navigate to="batches" replace />}></Route>
         <Route path={'batches'} element={<BatchesPage />}></Route>
+        <Route path={'batches/:id'} element={<BatchPage />}></Route>
         <Route path={'recipes'} element={<RecipesPage />}></Route>
         <Route path={'inventory'} element={<InventoryPage />}></Route>
         <Route path={'devices'} element={<DevicesPage />}></Route>
