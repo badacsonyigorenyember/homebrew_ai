@@ -32,9 +32,9 @@ type NewBatchValues = z.infer<typeof newBatchSchema>;
 function recipeLabel(recipe: BrewableRecipe): string {
   return [
     recipe.styleName ?? recipe.styleCode,
-    recipe.og?.toFixed(3) ?? '-',
+    recipe.og ? 'OG ' + recipe.og.toFixed(3) : '-',
     recipe.abv != null ? `${recipe.abv}%` : '-',
-    new Date(recipe.createdAt).getDate().toLocaleString(),
+    new Date(recipe.createdAt).toLocaleString(),
   ].join('·');
 }
 
