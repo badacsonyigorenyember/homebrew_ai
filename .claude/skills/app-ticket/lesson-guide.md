@@ -126,15 +126,34 @@ model for the size and the checks.
 ### UI steps
 
 The user finds the API lessons' level of detail right and has no UI experience (decided
-2026-11-26, a1-07). A step that writes a component, a hook or a page under `app/web` gets at
-least the detail of an API step, written for someone who has never built a UI:
+2026-11-26, a1-07; refined 2026-11-27). Detail goes to what is new in UI work, not to what the
+user knows from .NET:
 
+- **What .NET already taught, said plainly.** Functions, parameters, return types, `async` and
+  `await`, generics, classes, object and union types: name them in one phrase ("an async function
+  `fetchBatches`, no parameters, returning `Promise<BatchSummary[]>`"), never token by token. The
+  "syntax described in words" rule above is for constructs with no C# counterpart (JSX, spread,
+  destructuring, template literals, optional chaining).
+- **Exact class strings.** Every Tailwind class is given exactly as it is written in the code
+  (`rounded-lg border p-3 break-words`, not "a border, rounded corners and padding"), each with a
+  few words on what it does.
+- **Exact values and fields.** Every list the code needs is written out in full: union values,
+  object fields with their types, the keys of a lookup, option texts, routes, query keys, the
+  JSON field names. Never "the seven statuses from the database" or "the fields of the response";
+  the user must not have to look them up in the database, the API or the docs.
+- **The Why explains; it never instructs.** Everything the user has to build is in the "what to
+  do" part. The Why says what each part is good for and why it is done that way; it carries no
+  extra prop, class, value or step that the code needs.
+- **New components and APIs shown in use.** The first time a library piece is used (a shadcn
+  component, a hook, a React Hook Form or TanStack function), the step says how to use it, not
+  only where its docs are: which file under `src/components/ui/` or which package it comes from,
+  which pieces it has, how they nest ("`Table`; inside it `TableHeader` with one `TableRow` of
+  `TableHead`s; then `TableBody` with a `TableRow` of `TableCell`s per item"), and the props this
+  ticket needs. The doc link is for further reading, never required to finish the step.
 - **Every import named:** what, by name or default, and from which path.
 - **The markup piece by piece:** one element per sub-step (or a short list in words when elements
   nest), in the order it appears, with its props and what goes between its tags. Words only,
   never the JSX itself.
-- **Every Tailwind class named and explained** the first time a ticket uses it: what it does and
-  why it is there (`gap-2` puts space between children, `md:hidden` hides from 768 px up).
 - **The JSX ground rules in the first component step of a ticket**, as a read-first list with
   react.dev pages: one root element or a fragment, the round bracket on the `return` line, curly
   braces for values, `className`, `map` returning in round brackets with a `key`.

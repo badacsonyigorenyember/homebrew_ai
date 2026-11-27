@@ -370,3 +370,6 @@ PROJECT.md changes this design makes (agreed 2026-10-31):
   the markup element by element, every Tailwind class explained, the JSX ground rules, and
   measured watch-outs from your real mistakes (`.claude/skills/app-ticket/lesson-guide.md`, "UI
   steps"). a1-07's steps 4 to 10 were rewritten that way.
+- 2026-11-27 · a1-07: the "UI steps" rule refined: .NET-familiar syntax is named plainly; exact
+  class strings, value lists and fields are written out; the Why never carries instructions; new
+  components are shown in use, not only linked.
