@@ -23,7 +23,7 @@ export function NewBatchDialog() {
           <NewBatchForm
             onCreated={(batch) => {
               setOpen(false);
-              navigate(`/batchs/${batch.id}`);
+              navigate(`/batches/${batch.id}`);
             }}
           />
         </DialogHeader>
