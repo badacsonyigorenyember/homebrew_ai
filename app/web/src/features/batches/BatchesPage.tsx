@@ -8,7 +8,7 @@ export function BatchesPage() {
   return (
     <div className={'flex flex-col gap-4'}>
       <div className={'flex items-center justify-between gap-2'}>
-        <h1 className={''}>Batches</h1>
+        <h1 className={'text-2xl font-semibold'}>Batches</h1>
         <NewBatchDialog />
       </div>
       {batches.isPending && <p>Loading batches…</p>}
