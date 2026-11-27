@@ -36,3 +36,43 @@ Done well:
   type error. The table and card switch at `md` fits AC4, measured.
 
 Verdict: fixes needed
+
+## Round 2 · 2026-11-28 · 8bd3d7a
+
+Checks: `npm run lint` ok · `npm run typecheck` ok · `npm test -- --run` ok (11 passed) ·
+`npm run build` ok · `prettier --check .` ok. Browser checks against the running API and dev
+server, as in round 1.
+
+Round 1 findings:
+
+| # | Status | How checked |
+|---|---|---|
+| 1 | fixed | A create opened `/batches/6` with the batch's name. |
+| 2 | **partly fixed** | The errors are right: an empty submit shows *Choose a recipe*, *Choose a name*, *Choose a brew date* under their own fields. The labels are not: "Name" and "Brew date" still have `htmlFor` `recipeId` (measured in the page). Now finding 10. |
+| 3 | fixed | All three fields have `aria-invalid="false"` when the dialog opens. |
+| 4 | fixed | After picking a recipe the *Choose a recipe* error goes away and the name becomes *Weissbier*. |
+| 5 | fixed | The option has the OG and a real date: *Weissbier·OG 1.048·4.9%·11/4/2026, 10:18:21 AM*. Its form is finding 11. |
+| 6 | fixed | `useBrewableRecipes`. |
+| 7 | fixed | `text-2xl font-semibold`. |
+| 8 | fixed | *Choose a brew date*. |
+| 9 | fixed | The form is after `DialogHeader`. |
+
+| AC | Met | How checked |
+|---|---|---|
+| AC1 | yes | Unchanged since round 1 (`BatchesPage` only got its heading classes back). |
+| AC2 | yes | Created "Trial review": the dialog closed, `/batches/6` showed *Trial review*, Back showed it first in the list with number 4, *10A Weissbier*, *2026-11-28*, *Plan*. The trial batch is deleted. |
+| AC3 | yes | The real API's 400 (the request's name changed to spaces in the page's fetch): *The Name field is required.* under Name, the field red, the dialog open. |
+| AC4 | yes | Unchanged since round 1; the dialog's classes are the same. |
+
+| # | Axis | Severity | Where | Finding | Why it matters | Learn more |
+|---|---|---|---|---|---|---|
+| 10 | Standards | must fix | `src/features/batches/NewBatchForm.tsx:108`, `:117` | The "Name" and "Brew date" labels still point at `recipeId`. Each label's `htmlFor` must be the `id` of its own input: `name`, `brewDate`. | Clicking "Name" focuses the recipe select, a screen reader reads the select as "Name", and the test lesson's tests find each field by its label: `getByLabelText('Name')` would get the select. | lesson 9g |
+| 11 | Standards | nice to have | `src/features/batches/NewBatchForm.tsx:37-38` | `toLocaleString()` adds the time of day, and the parts are joined with a bare `·`. Lesson 9d: `toLocaleDateString()` and ` · ` with spaces, so the line reads *Weissbier · OG 1.048 · 4.9% · 11/4/2026*. | The time of day does not help tell two recipes apart, and the bare dots run the parts together. | [MDN toLocaleDateString](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleDateString) |
+
+Done well:
+- Every round 1 finding got its own small commit with a clear message, so each fix can be read
+  alone.
+- The recipe's `onChange` now sits in `register`'s options: the name follows the recipe and the
+  recipe's error clears as soon as you pick one.
+
+Verdict: fixes needed
