@@ -76,3 +76,25 @@ Done well:
   recipe's error clears as soon as you pick one.
 
 Verdict: fixes needed
+
+## Round 3 · 2026-11-28 · e5c3674
+
+Checks: `npm run lint` ok · `npm run typecheck` ok · `npm test -- --run` ok (11 passed) ·
+`npm run build` ok · `prettier --check .` ok.
+
+Earlier findings:
+
+| # | Status | How checked |
+|---|---|---|
+| 10 | fixed | In the page, each label's `control` is its own input: Recipe → `recipeId`, Name → `name`, Brew date → `brewDate`; the accessibility tree has a textbox named "Name". |
+| 11 | fixed | The option reads *Weissbier · OG 1.048 · 4.9% · 11/4/2026*. |
+
+| AC | Met | How checked |
+|---|---|---|
+| AC1–AC4 | yes | As in round 2; these two commits change only the labels and the option text. |
+
+No new findings.
+
+Done well: both fixes are exactly the change asked for, each in its own commit.
+
+Verdict: ready for tests
