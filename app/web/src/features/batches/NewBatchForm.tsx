@@ -81,15 +81,17 @@ export function NewBatchForm({ onCreated }: NewBatchFormProps) {
             id={'recipeId'}
             className={'w-full'}
             aria-invalid={!!errors.recipeId}
-            {...form.register('recipeId', { valueAsNumber: true })}
-            onChange={(event) => {
-              const recipe = recipes.data?.find(
-                (b) => b.id === Number(event.target.value),
-              );
-              if (recipe && !form.getFieldState('name').isDirty) {
-                form.setValue('name', recipe.styleName ?? recipe.styleCode);
-              }
-            }}
+            {...form.register('recipeId', {
+              valueAsNumber: true,
+              onChange: (event) => {
+                const recipe = recipes.data?.find(
+                  (b) => b.id === Number(event.target.value),
+                );
+                if (recipe && !form.getFieldState('name').isDirty) {
+                  form.setValue('name', recipe.styleName ?? recipe.styleCode);
+                }
+              },
+            })}
           >
             <NativeSelectOption value={''}>
               {recipes.isPending ? 'Loading recipes...' : 'Choose a recipe'}
