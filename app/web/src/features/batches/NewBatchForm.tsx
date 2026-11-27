@@ -34,8 +34,8 @@ function recipeLabel(recipe: BrewableRecipe): string {
     recipe.styleName ?? recipe.styleCode,
     recipe.og ? 'OG ' + recipe.og.toFixed(3) : '-',
     recipe.abv != null ? `${recipe.abv}%` : '-',
-    new Date(recipe.createdAt).toLocaleString(),
-  ].join('·');
+    new Date(recipe.createdAt).toLocaleDateString(),
+  ].join(' · ');
 }
 
 type NewBatchFormProps = { onCreated: (batch: CreatedBatch) => void };
