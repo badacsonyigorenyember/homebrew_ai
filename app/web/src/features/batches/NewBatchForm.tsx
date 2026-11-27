@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button.tsx';
 const newBatchSchema = z.object({
   recipeId: z.number('Choose a recipe'),
   name: z.string().trim().min(1, 'Choose a name'),
-  brewDate: z.iso.date(),
+  brewDate: z.iso.date('Choose a brew date'),
 });
 
 type NewBatchValues = z.infer<typeof newBatchSchema>;
