@@ -20,13 +20,13 @@ export function NewBatchDialog() {
       <DialogContent className="h-svh max-w-none content-start rounded-none sm:h-auto sm:max-w-lg sm:rounded-xl">
         <DialogHeader>
           <DialogTitle>New Batch</DialogTitle>
-          <NewBatchForm
-            onCreated={(batch) => {
-              setOpen(false);
-              navigate(`/batches/${batch.id}`);
-            }}
-          />
         </DialogHeader>
+        <NewBatchForm
+          onCreated={(batch) => {
+            setOpen(false);
+            navigate(`/batches/${batch.id}`);
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
