@@ -1,5 +1,6 @@
 import { useBatches } from '@/features/batches/api.ts';
 import { BatchList } from '@/features/batches/BatchList.tsx';
+import { NewBatchDialog } from '@/features/batches/NewBatchDialog.tsx';
 
 export function BatchesPage() {
   const batches = useBatches();
@@ -8,6 +9,7 @@ export function BatchesPage() {
     <div className={'flex flex-col gap-4'}>
       <div className={'flex items-center justify-between gap-2'}>
         <h1 className={''}>Batches</h1>
+        <NewBatchDialog />
       </div>
       {batches.isPending && <p>Loading batches…</p>}
       {batches.isError && (
