@@ -105,7 +105,7 @@ export function NewBatchForm({ onCreated }: NewBatchFormProps) {
           <FieldError errors={[errors.recipeId]} />
         </Field>
         <Field data-invalid={!!errors.name}>
-          <FieldLabel htmlFor={'recipeId'}>Name</FieldLabel>
+          <FieldLabel htmlFor={'name'}>Name</FieldLabel>
           <Input
             id={'name'}
             aria-invalid={!!errors.name}
@@ -114,7 +114,7 @@ export function NewBatchForm({ onCreated }: NewBatchFormProps) {
           <FieldError errors={[errors.name]} />
         </Field>
         <Field data-invalid={!!errors.brewDate}>
-          <FieldLabel htmlFor={'recipeId'}>Brew date</FieldLabel>
+          <FieldLabel htmlFor={'brewDate'}>Brew date</FieldLabel>
           <Input
             id={'brewDate'}
             type={'date'}
