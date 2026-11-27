@@ -3,7 +3,7 @@ import {
   ApiProblemError,
   type BrewableRecipe,
   type CreatedBatch,
-  useBrewableBatches,
+  useBrewableRecipes,
   useCreateBatch,
 } from '@/features/batches/api';
 import { useForm } from 'react-hook-form';
@@ -47,7 +47,7 @@ const fieldNames: Partial<Record<string, keyof NewBatchValues>> = {
 };
 
 export function NewBatchForm({ onCreated }: NewBatchFormProps) {
-  const recipes = useBrewableBatches();
+  const recipes = useBrewableRecipes();
   const createBatch = useCreateBatch();
   const form = useForm<NewBatchValues>({
     resolver: zodResolver(newBatchSchema),

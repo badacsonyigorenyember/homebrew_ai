@@ -99,7 +99,7 @@ export function useBatches() {
   });
 }
 
-export function useBrewableBatches() {
+export function useBrewableRecipes() {
   return useQuery({
     queryKey: ['recipes', 'brewable'],
     queryFn: fetchBrewableRecipes,
