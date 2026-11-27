@@ -102,21 +102,24 @@ export function NewBatchForm({ onCreated }: NewBatchFormProps) {
           </NativeSelect>
           <FieldError errors={[errors.recipeId]} />
         </Field>
-
-        <Field data-invalid={!!errors.recipeId}>
+        <Field data-invalid={!!errors.name}>
           <FieldLabel htmlFor={'recipeId'}>Name</FieldLabel>
-          <Input id={'name'} aria-invalid {...form.register('name')} />
-          <FieldError errors={[errors.recipeId]} />
+          <Input
+            id={'name'}
+            aria-invalid={!!errors.name}
+            {...form.register('name')}
+          />
+          <FieldError errors={[errors.name]} />
         </Field>
-        <Field data-invalid={!!errors.recipeId}>
+        <Field data-invalid={!!errors.brewDate}>
           <FieldLabel htmlFor={'recipeId'}>Brew date</FieldLabel>
           <Input
             id={'brewDate'}
             type={'date'}
-            aria-invalid
+            aria-invalid={!!errors.brewDate}
             {...form.register('brewDate')}
           />
-          <FieldError errors={[errors.recipeId]} />
+          <FieldError errors={[errors.brewDate]} />
         </Field>
         {errors.root?.server && (
           <p role={'alert'} className={'text-sm text-destructive'}>
