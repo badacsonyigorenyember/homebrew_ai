@@ -77,16 +77,23 @@ If a step cannot be made green without growing past one sitting, split the work 
 
 ### The parts of a step
 
-Every step has these parts, in this order:
+Every step has these parts, in this order. Each part is its own labelled block on its own lines,
+in steps and sub-steps (9a, 9b, …) alike, so the to-do can be read without the explanation and
+the other way round; never one paragraph that mixes them (decided 2026-11-28, a1-07):
 
-1. **What to do**, in a bold title and a sentence or two.
-2. **Why:** why this step is needed (what would be missing or broken without it) and why it is done
+1. **What to do**, in a bold title, then a **Do:** block: a sentence or two, or a list.
+2. **Why:**, a separate block after the Do block: why this step is needed (what would be missing or broken without it) and why it is done
    this way rather than the obvious alternative ("a named export, not `export default`, so a
    renamed import cannot silently point at the wrong thing").
    - A **new concept** is explained here, in the first step that needs it: what it is, the problem
      it solves, how it fits this ticket, and a doc link. Later steps refer back to it ("the query
-     key from step 4") instead of explaining it again. Check the earlier tickets' lessons; a
-     concept met there gets one line and a pointer, not a new explanation.
+     key from step 4") instead of explaining it again.
+   - A concept **met in an earlier ticket** gets one line and a pointer into the user's own code,
+     not into an earlier lesson: the file and the function, type or component that does the same
+     thing, and what is alike ("in `api.ts`, `useBatches` has the shape you need: a `useQuery`
+     with a key and a fetch function"). Never "as in a1-02 step 10" or "the pattern from a1-02's
+     `onNavigate`": the user has the code open, not the old lessons. Check the earlier tickets'
+     lessons only to know what was taught.
    - A **pattern** is taught in the step that applies it: its name, why it is good, and what the
      usual mistake looks like, in words.
 3. **Watch out:** (only when there is one) the mistake beginners make at this step and how it shows

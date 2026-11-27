@@ -373,3 +373,7 @@ PROJECT.md changes this design makes (agreed 2026-10-31):
 - 2026-11-27 · a1-07: the "UI steps" rule refined: .NET-familiar syntax is named plainly; exact
   class strings, value lists and fields are written out; the Why never carries instructions; new
   components are shown in use, not only linked.
+- 2026-11-28 · a1-07: in lessons, every step and sub-step has its to-do (**Do:**) and its *Why* as
+  separate blocks; something met in an earlier ticket is pointed at in your own code (file and
+  function, type or component), never at an earlier lesson
+  (`.claude/skills/app-ticket/lesson-guide.md`, "The parts of a step").
