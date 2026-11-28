@@ -98,3 +98,69 @@ No new findings.
 Done well: both fixes are exactly the change asked for, each in its own commit.
 
 Verdict: ready for tests
+
+# Test review
+
+## Round 1 · 2026-11-28 · d3b6c05
+
+Checks: `npm run lint` ok · `npm run typecheck` ok · `npm test -- --run` ok (15 passed; 4 runs,
+15 each) · `npm run build` ok · `prettier --check .` ok. No API changes, so no `dotnet` checks.
+
+| Test | Behaviour (AC) | Broke | Failed? |
+|---|---|---|---|
+| T1 `lists the batches` | the row shows number, name, style, date, status label (AC2) | `BatchList.tsx`: `batch.status` instead of `statusLabels[batch.status]` in the table | yes: *Unable to find role="row" and name "1 First brew 10A Weissbier 2026-11-28 Brew day"* |
+| T2 `shows "No batches yet" …` | the empty sentence and the button (AC1) | `BatchesPage.tsx`: `=== 1` instead of `=== 0` | yes: *Unable to find an element with the text: No batches yet.* |
+| T2, the button | | `NewBatchDialog.tsx`: the trigger's text changed to "Add batch" | yes: *Unable to find an accessible element with the role "button" and name "New Batch"* |
+| T3 `creates a batch and opens its page` | the request and the new page (AC2) | `NewBatchDialog.tsx`: `/batchs/` in `navigate` | yes: *Unable to find role="heading" and name "Weissbier"* |
+| T3, the request | | `NewBatchForm.tsx`: the name follows the style code instead of the style name | yes: *expected { recipeId: 1489, name: '10A', …(1) } to deeply equal { recipeId: 1489, …(2) }* |
+| T4 `shows the API's message …` | the 400's message on the Name field (AC3) | `NewBatchForm.tsx`: the `Name: 'name'` line removed from `fieldNames` | yes: *expect(element).toBeInvalid() … Received element is not currently invalid* |
+
+Each break was undone exactly: `git diff` of every file matched what it was before.
+
+Needed and reliable: no duplicates, no test of framework behaviour. No test depends on time,
+order or the machine's language: T3 and T4 wait for the recipe option and pick it by value. The
+fake API is MSW, no real network.
+
+| # | Axis | Severity | Where | Finding | Why it matters | Learn more |
+|---|---|---|---|---|---|---|
+| 1 | Standards | should fix | `src/features/batches/batches.test.tsx:47`, `:101` | Two checks have no matcher. Line 47 is a bare `screen.getByRole(…)`; line 101 is `expect(await screen.findByText(…))` with nothing after it. They catch a missing element only because `getBy` and `findBy` throw. Measured: removing the button still fails T2. Wrap line 47 in `expect(…)`, and give both `.toBeInTheDocument()`, like the line above each. | `expect(x)` alone asserts nothing. The day one of these becomes a `queryBy` (which returns `null` instead of throwing), the test passes with the element gone. With a matcher, each line reads as the check it is. | [jest-dom `toBeInTheDocument`](https://github.com/testing-library/jest-dom#tobeinthedocument) |
+| 2 | Standards | nice to have | `src/features/batches/batches.test.tsx:52` | `let sent;` has no type, so TypeScript treats it as `any`. Step 5b gives it `unknown`. | With `any`, a typo like `sent.recipeID` compiles; `unknown` makes you check first. | test lesson 5b |
+| 3 | Standards | nice to have | `src/features/batches/batches.test.tsx:86` | *occured*: the real API's title says *occurred*. | The fake 400 is meant to be a copy of the real one (measured with curl). | |
+
+Done well:
+- `fillOutCreateBatchForm`: T3 and T4 share the user's steps, so the two tests show only what
+  differs, the fake API and the asserts.
+- T3 checks both sides of a create: the page the user lands on, and the exact body the API gets.
+  The second break above (the name default) is caught only by the body check.
+- Every test finds things by role, label or text, the way a person does.
+
+Verdict: ready to ship (finding 1 is worth the two-line fix first)
+
+## Round 2 · 2026-11-28 · 5266efc
+
+Checks: `npm run lint` ok · `npm run typecheck` ok · `npm test -- --run` ok (15 passed) ·
+`npm run build` ok · `prettier --check .` ok.
+
+| # | Status | How checked |
+|---|---|---|
+| 1 | **partly fixed** | Line 47 now reads `expect(screen.getByRole('button', …)).toBeInTheDocument()`. Line 103 (101 in round 1) is still `expect(await screen.findByText('The Name field is required.'))` with no matcher. |
+| 2 | fixed | `let sent: unknown;`. |
+| 3 | fixed | *occurred*. |
+
+No new findings; the commit changes only these three lines, so the round 1 breaks still hold.
+
+Verdict: ready to ship (finding 1's second line is worth the one-line fix first)
+
+## Round 3 · 2026-11-28 · uncommitted (staged)
+
+Checks: `dotnet build` ok (0 warnings) · `dotnet test` ok (14 passed) · `npm run lint` ok ·
+`npm run typecheck` ok · `npm test -- --run` ok (15 passed) · `npm run build` ok ·
+`prettier --check .` ok.
+
+| # | Status | How checked |
+|---|---|---|
+| 1 | fixed | Line 103 is now `expect(await screen.findByText('The Name field is required.')).toBeInTheDocument()`. |
+
+No new findings.
+
+Verdict: ready to ship
