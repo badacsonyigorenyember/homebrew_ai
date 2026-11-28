@@ -26,4 +26,11 @@ describe('batches', () => {
       }),
     ).toBeInTheDocument();
   });
+
+  it('shows "No batches yet" and the New batch button when there are none', async () => {
+    renderApp('/batches');
+
+    expect(await screen.findByText('No batches yet')).toBeInTheDocument();
+    screen.getByRole('button', { name: 'New Batch' });
+  });
 });
