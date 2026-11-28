@@ -44,12 +44,14 @@ describe('batches', () => {
     renderApp('/batches');
 
     expect(await screen.findByText('No batches yet')).toBeInTheDocument();
-    screen.getByRole('button', { name: 'New Batch' });
+    expect(
+      screen.getByRole('button', { name: 'New Batch' }),
+    ).toBeInTheDocument();
   });
 
   it('creates a batch and opens its page', async () => {
     let batches: BatchSummary[] = [];
-    let sent;
+    let sent: unknown;
 
     server.use(
       http.get('/api/recipes/brewable', () => HttpResponse.json([weissbier])),
@@ -83,7 +85,7 @@ describe('batches', () => {
       http.post('/api/batches', () =>
         HttpResponse.json(
           {
-            title: 'One or more validation errors occured.',
+            title: 'One or more validation errors occurred.',
             status: 400,
             errors: { Name: ['The Name field is required.'] },
           },
