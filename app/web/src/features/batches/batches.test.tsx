@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { renderApp } from '@/test/renderApp';
 import { server } from '@/test/server';
 import type { BatchSummary, BrewableRecipe } from '@/features/batches/api';
-import { userEvent } from '@testing-library/user-event';
+import { type UserEvent, userEvent } from '@testing-library/user-event';
 
 const firstBatch: BatchSummary = {
   id: 7,
@@ -63,18 +63,9 @@ describe('batches', () => {
         );
       }),
     );
-
-    const user = userEvent.setup();
     renderApp('/batches');
 
-    await user.click(screen.getByRole('button', { name: 'New Batch' }));
-    await screen.findByRole('option', { name: /^Weissbier/ });
-    await user.selectOptions(
-      screen.getByRole('combobox', { name: 'Recipe' }),
-      '1489',
-    );
-    await user.type(screen.getByLabelText('Brew date'), '2026-11-28');
-    await user.click(screen.getByRole('button', { name: 'Create batch' }));
+    await fillOutCreateBatchForm(userEvent.setup());
 
     expect(
       await screen.findByRole('heading', { name: 'Weissbier' }),
@@ -85,4 +76,40 @@ describe('batches', () => {
       brewDate: '2026-11-28',
     });
   });
+
+  it("shows the API's message under the field it is about", async () => {
+    server.use(
+      http.get('/api/recipes/brewable', () => HttpResponse.json([weissbier])),
+      http.post('/api/batches', () =>
+        HttpResponse.json(
+          {
+            title: 'One or more validation errors occured.',
+            status: 400,
+            errors: { Name: ['The Name field is required.'] },
+          },
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/problem+json' },
+          },
+        ),
+      ),
+    );
+    renderApp('/batches');
+
+    await fillOutCreateBatchForm(userEvent.setup());
+
+    expect(await screen.findByText('The Name field is required.'));
+    expect(screen.getByRole('textbox', { name: 'Name' })).toBeInvalid();
+  });
 });
+
+async function fillOutCreateBatchForm(user: UserEvent) {
+  await user.click(screen.getByRole('button', { name: 'New Batch' }));
+  await screen.findByRole('option', { name: /^Weissbier/ });
+  await user.selectOptions(
+    screen.getByRole('combobox', { name: 'Recipe' }),
+    '1489',
+  );
+  await user.type(screen.getByLabelText('Brew date'), '2026-11-28');
+  await user.click(screen.getByRole('button', { name: 'Create batch' }));
+}
