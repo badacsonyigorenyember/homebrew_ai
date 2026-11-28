@@ -377,3 +377,8 @@ PROJECT.md changes this design makes (agreed 2026-10-31):
   separate blocks; something met in an earlier ticket is pointed at in your own code (file and
   function, type or component), never at an earlier lesson
   (`.claude/skills/app-ticket/lesson-guide.md`, "The parts of a step").
+- 2026-11-28 · a1-07: the Do and Why blocks are separated by a blank line in sub-steps too, so
+  they render as separate paragraphs; no imports sub-step: each name is imported in the sub-step
+  that first uses it, with its source only when more than one place offers it
+  (`lesson-guide.md`, "The parts of a step" and "Code steps"). a1-07's test lesson steps 3 to 6
+  were reworked that way.

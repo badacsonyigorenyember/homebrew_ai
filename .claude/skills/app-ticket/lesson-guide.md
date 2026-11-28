@@ -80,7 +80,10 @@ If a step cannot be made green without growing past one sitting, split the work 
 
 Every step has these parts, in this order. Each part is its own labelled block on its own lines,
 in steps and sub-steps (9a, 9b, …) alike, so the to-do can be read without the explanation and
-the other way round; never one paragraph that mixes them (decided 2026-11-28, a1-07):
+the other way round; never one paragraph that mixes them (decided 2026-11-28, a1-07). Each block
+is a paragraph of its own, with a **blank line** before it, also inside a sub-step: Markdown joins
+lines that have no blank line between them, so a **Do:** line followed directly by a **Why:** line
+renders as one paragraph (the user saw exactly that in a1-07's test lesson).
 
 1. **What to do**, in a bold title, then a **Do:** block: a sentence or two, or a list.
 2. **Why:**, a separate block after the Do block: why this step is needed (what would be missing or broken without it) and why it is done
@@ -119,8 +122,14 @@ model for the size and the checks.
   JavaScript the user has not met (destructuring, bracket access, imports), and a place to try
   things without the project (the TypeScript Playground; for C#, a scratch console project made
   outside the repo).
-- **One new piece per sub-step** (9a, 9b, …): one type, one function signature, one JSX element,
-  one import. Each sub-step names the construct, describes its syntax in words, says why it is
+- **Imports where they are first used.** No sub-step of imports at the start of a file. The
+  sub-step that first uses a name says, in its Do block, to import it. The source is given only
+  when more than one place offers that name and the editor could pick the wrong one (`screen`
+  from `@testing-library/react`, not `@testing-library/dom`; `http` from `msw/http`, as the
+  project's other files), and a type is marked as a type import; otherwise the name is enough,
+  because the editor's auto-import finds it (decided 2026-11-28, a1-07).
+- **One new piece per sub-step** (9a, 9b, …): one type, one function signature, one JSX element.
+  Each sub-step names the construct, describes its syntax in words, says why it is
   written that way and what it does when the app runs, and points to the docs example closest to it
   ("react.dev's `MyButton` has the same structure").
 - **A check per sub-step**, preferably one that breaks something on purpose and shows the exact
@@ -158,7 +167,8 @@ user knows from .NET:
   which pieces it has, how they nest ("`Table`; inside it `TableHeader` with one `TableRow` of
   `TableHead`s; then `TableBody` with a `TableRow` of `TableCell`s per item"), and the props this
   ticket needs. The doc link is for further reading, never required to finish the step.
-- **Every import named:** what, by name or default, and from which path.
+- **Imports at first use**, as "Code steps" above says: the name, and the source only when there
+  is a choice.
 - **The markup piece by piece:** one element per sub-step (or a short list in words when elements
   nest), in the order it appears, with its props and what goes between its tags. Words only,
   never the JSX itself.

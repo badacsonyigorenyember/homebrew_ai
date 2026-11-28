@@ -98,18 +98,12 @@ Every step ends with all checks passing and a **Commit** line. Paths are from `a
      test goes **in front of** the defaults, and `resetHandlers` in `setup.ts` removes it after
      the test.
 
-   **3a. The imports.**
-   **Do:** by name: `screen` from `'@testing-library/react'`; `http` and `HttpResponse` from
-   `'msw/http'`; `describe`, `expect` and `it` from `'vitest'`; `renderApp` from
-   `'@/test/renderApp'`; `server` from `'@/test/server'`; and the type `BatchSummary` from
-   `'./api'` (`import type`, or `type` in front of the name inside the braces).
-   **Why:** the same set as `App.test.tsx`, plus your type. Step 5 adds two more imports, when
-   it first uses them. An import nobody uses yet would fail lint.
+   **3a. The test batch.**
 
-   **3b. The test batch.**
-   **Do:** below the imports, a `const firstBatch` with the type `BatchSummary` and these values:
+   **Do:** a `const firstBatch` with the type `BatchSummary` (a type import) and these values:
    `id: 7`, `number: 1`, `name: 'First brew'`, `styleCode: '10A'`, `styleName: 'Weissbier'`,
    `brewDate: '2026-11-28'`, `status: 'brew_day'`.
+
    **Why:** this is **test data**, kept small and visible at the top of the file, so the reader
    sees what the API "returned" without looking anywhere else. The type makes TypeScript check it
    against what `api.ts` expects from the real API: a missing field or a misspelt status is a
@@ -118,41 +112,56 @@ Every step ends with all checks passing and a **Commit** line. Paths are from `a
    label (*Brew day*) is not just the value with a capital letter, so a missing `statusLabels`
    lookup is caught.
 
-   **3c. The group and the test.**
-   **Do:** `describe('batches', …)` with an arrow function, and inside it an `it` with an `async`
-   arrow function, named for example `'lists the batches'`.
-   **Why:** the same shape as `describe('routes', …)` in `App.test.tsx`. It is `async` because the
-   list arrives after the fake API answers, and the test has to wait for it (3e).
+   **Check yourself:** lint reports `firstBatch` as unused, and `npm test` says *No test suite
+   found in file* (measured). Both are expected until 3c and 3b.
 
-   **3d. Arrange.**
+   **3b. The group and the test.**
+
+   **Do:** `describe('batches', …)` with an arrow function, and inside it an `it` with an `async`
+   arrow function, named for example `'lists the batches'`. Import `describe` and `it`.
+
+   **Why:** the same shape as `describe('routes', …)` in `App.test.tsx`. It is `async` because the
+   list arrives after the fake API answers, and the test has to wait for it (3d).
+
+   **3c. Arrange.**
+
    **Do:** two lines.
    - `server.use(…)` with one handler: `http.get('/api/batches', …)` returning
-     `HttpResponse.json(…)` of an array holding `firstBatch`.
-   - `renderApp('/batches')`.
+     `HttpResponse.json(…)` of an array holding `firstBatch`. Import `server`, and `http` and
+     `HttpResponse` from `'msw/http'` (the `msw` package offers them in more than one place;
+     `server.ts` and `App.test.tsx` use this one).
+   - `renderApp('/batches')`. Import `renderApp`.
+
    **Why:** for this one test, the API has one batch. Starting at `/batches` rather than `/` says
    which page the test is about, without relying on the redirect.
 
-   **3e. Assert.**
+   **3d. Assert.**
+
    **Do:** `expect(await screen.findByRole('row', { name: '1 First brew 10A Weissbier 2026-11-28
-   Brew day' })).toBeInTheDocument()`.
+   Brew day' })).toBeInTheDocument()`. Import `expect`, and `screen` from
+   `'@testing-library/react'` (not `'@testing-library/dom'`, which offers it too).
+
    **Why:** `findByRole` waits (up to a second) for the element, because the list only appears
    once the fake API has answered. One row holds every column the ticket asks for, so one assert
    checks them all and that they belong to the same batch. A row is found by role and its whole
    text. Its name puts a space between cells, so the style cell (`10A Weissbier`, from
    `styleText`) reads into the name naturally. A row only exists in the table, not in the cards.
+
    **Watch out:** `findByText('First brew')`. Measured: *TestingLibraryElementError: Found
    multiple elements with the text: First brew*. In jsdom both the table's link and the card's
    link are on the page ("What not to test"), so the name alone is ambiguous.
 
-   **3f. See it fail.**
+   **3e. See it fail.**
+
    **Do:** in `BatchList.tsx`, show `batch.status` instead of `statusLabels[batch.status]` in the
    table's status cell for a moment, and run the test. Then undo it.
+
    **Why:** a test you have never seen fail may check nothing. Measured: *TestingLibraryElementError:
    Unable to find role="row" and name "1 First brew 10A Weissbier 2026-11-28 Brew day"*. The row
-   now ends in *brew_day*. After the undo, `git diff src/features/batches/BatchList.tsx` shows
-   nothing.
+   now ends in *brew_day*.
 
-   **Check yourself:** `npm test -- --run` says *Tests 12 passed (12)*; lint and typecheck pass.
+   **Check yourself:** after the undo, `git diff src/features/batches/BatchList.tsx` shows nothing.
+   `npm test -- --run` says *Tests 12 passed (12)*; lint and typecheck pass.
 
    **Commit:** `src/features/batches/batches.test.tsx`, message `Test the batch list`.
 
@@ -170,6 +179,7 @@ Every step ends with all checks passing and a **Commit** line. Paths are from `a
    that one state, so one test holds both asserts. The first needs `findBy` and `await`: the
    sentence appears after the answer. The second can be `getBy` without `await`, because by then
    the page is drawn, and the button is in the header row anyway, outside the loading branches.
+
    **Watch out:** `getByText('No batches yet')` without waiting. Measured: *Unable to find an
    element with the text: No batches yet.* The test looked while the page still said *Loading
    batches…*.
@@ -191,25 +201,30 @@ Every step ends with all checks passing and a **Commit** line. Paths are from `a
      request.json()` inside a handler.
    - [Vitest — `toEqual`](https://vitest.dev/api/expect.html#toequal).
 
-   **5a. Two more imports and a test recipe.**
-   **Do:** add `userEvent` by name from `'@testing-library/user-event'`, and the type
-   `BrewableRecipe` to the `'./api'` import. Below `firstBatch`, a `const weissbier` of type
-   `BrewableRecipe`: `id: 1489`, `styleCode: '10A'`, `styleName: 'Weissbier'`, `og: 1.0481`,
-   `fg: 1.0099`, `abv: 4.9`, `ibu: 11.8`, `batchL: 10`, `createdAt: '2026-11-04T09:18:21Z'`.
+   **5a. A test recipe.**
+
+   **Do:** below `firstBatch`, a `const weissbier` of type `BrewableRecipe` (a type import):
+   `id: 1489`, `styleCode: '10A'`, `styleName: 'Weissbier'`, `og: 1.0481`, `fg: 1.0099`,
+   `abv: 4.9`, `ibu: 11.8`, `batchL: 10`, `createdAt: '2026-11-04T09:18:21Z'`.
+
    **Why:** the form needs at least one recipe to pick. These are the values of your real
    recipe 1489 (measured from `GET /api/recipes/brewable`), so the test looks like the app does.
-   Lint reports `userEvent` and `weissbier` as unused until 5c and 5d; that is expected.
+
+   **Check yourself:** lint reports `weissbier` as unused until 5c; that is expected.
 
    **5b. The test and its two variables.**
+
    **Do:** a third `it`, `async`, for example `'creates a batch and opens its page'`. Its first
    two lines: `let batches` of type `BatchSummary[]`, starting as an empty array; and `let sent`
    of type `unknown`, with no value.
+
    **Why:** the fake API needs a memory. Before the create the list is empty; after it, the list
    has the new batch, because `BatchPage` finds the batch's name in the list. `sent` keeps what
    the form posted, so the test can check it after the click. `unknown` is TypeScript's "anything,
    and you must check before using it", the honest type for a body that came over the wire.
 
    **5c. The fake API for this test.**
+
    **Do:** `server.use(…)` with three handlers:
    - `http.get('/api/recipes/brewable', …)` returning `HttpResponse.json` of an array holding
      `weissbier`;
@@ -221,20 +236,24 @@ Every step ends with all checks passing and a **Commit** line. Paths are from `a
      `...firstBatch` first and `name: 'Weissbier'` after it, and last `return HttpResponse.json(…)`
      with two arguments: the body `{ id: 7, number: 1, name: 'Weissbier' }` and the options
      `{ status: 201 }`.
+
    **Why:** the GET handler reads `batches` each time it is called, not once. So when
    `useCreateBatch` invalidates the `['batches']` query after the POST, the refetch gets the new
    list. That is your real invalidation at work. `...firstBatch` copies every field, and the
    `name` after it overrides one, so the copy stays a complete `BatchSummary` without repeating
    seven lines. The 201 and the body match what the real API sends (`CreatedBatch`).
+
    **Watch out:** forgetting the `batches = …` line. Measured: *Unable to find role="heading" and
    name "Weissbier"*, because the page says *Batch not found.*: the list never got the new batch.
+
    **Watch out:** forgetting the recipes handler. Measured: *[MSW] Error: intercepted a request
    without a matching request handler: • GET /api/recipes/brewable*, then *Unable to find
    role="option" and name `/^Weissbier/`*.
 
    **5d. Act: fill in and send the form.**
-   **Do:** first `const user = userEvent.setup();`, then `renderApp('/batches')`, then these
-   lines, each starting with `await`:
+
+   **Do:** first `const user = userEvent.setup();` (import `userEvent`), then
+   `renderApp('/batches')`, then these lines, each starting with `await`:
    - `user.click` on `screen.getByRole('button', { name: 'New Batch' })`;
    - `screen.findByRole('option', { name: /^Weissbier/ })`, waiting for the recipe to arrive (the
      slashes make a regular expression; `^` means "starts with");
@@ -242,6 +261,7 @@ Every step ends with all checks passing and a **Commit** line. Paths are from `a
      and the value `'1489'`;
    - `user.type` with `screen.getByLabelText('Brew date')` and `'2026-11-28'`;
    - `user.click` on `screen.getByRole('button', { name: 'Create batch' })`.
+
    **Why:** the steps a person takes, in their order. There is no typing in Name on purpose: your
    `onChange` in `register` fills it with the style name (*Weissbier*), and 5e checks that it
    was sent. A `<select>` has the role `combobox`, and its name comes from its label (*Recipe*);
@@ -250,24 +270,31 @@ Every step ends with all checks passing and a **Commit** line. Paths are from `a
    date input has no `textbox` role, so it is found by its label. Measured with `getByRole('textbox',
    { name: 'Brew date' })`: *Unable to find an accessible element with the role "textbox" and name
    "Brew date"*.
+
    **Watch out:** selecting before the recipe has arrived. Measured, with the recipes answer
    delayed by 200 ms: *TestingLibraryElementError: Value "1489" not found in options*. The dialog
    opens at once, but the options come with the API's answer. Without the `findByRole('option', …)`
    line the test passes on a fast machine and fails on a slow one: the worst kind of test.
 
    **5e. Assert, twice.**
+
    **Do:** `await screen.findByRole('heading', { name: 'Weissbier' })` is in the document. Then
    `expect(sent).toEqual(…)` with `{ recipeId: 1489, name: 'Weissbier', brewDate: '2026-11-28' }`.
+
    **Why:** the heading is the user's view of AC2: the dialog closed and the batch's own page
    opened. The body is the API's view. `recipeId` is a **number** (your `valueAsNumber`), the name
    is the recipe's default, and the date is in `yyyy-mm-dd`. `toEqual` compares the contents;
-   `toBe` asks whether it is the very same object. Measured with `toBe`: *expected { recipeId:
-   1489, …(2) } to be { recipeId: 1489, …(2) } // Object.is equality*, and Vitest's hint *If it
-   should pass with deep equality, replace "toBe" with "toStrictEqual"*.
+   `toBe` asks whether it is the very same object.
+
+   **Watch out:** `toBe` instead of `toEqual`. Measured: *expected { recipeId: 1489, …(2) } to be
+   { recipeId: 1489, …(2) } // Object.is equality*, and Vitest's hint *If it should pass with deep
+   equality, replace "toBe" with "toStrictEqual"*.
 
    **5f. See it fail.**
+
    **Do:** put back the typo from review round 1, `/batchs/` in `NewBatchDialog.tsx`'s
    `navigate`, and run the test. Then undo it.
+
    **Why:** this is the mistake the review found by hand. Measured: *Unable to find role="heading"
    and name "Weissbier"*. From now on, the test finds it for you.
 
@@ -296,6 +323,7 @@ Every step ends with all checks passing and a **Commit** line. Paths are from `a
    send `application/json`. `toBeInvalid()` checks `aria-invalid="true"`. The message alone could
    be anywhere on the page; the field being invalid proves it reached the **Name** field. That is
    AC3's "next to the fields".
+
    **Watch out:** leaving out `headers`. Measured: *Unable to find an element with the text: The
    Name field is required.* `createBatch` then does not recognise the answer as a problem, throws
    a plain `Error`, and the API's messages never reach the fields.
@@ -319,7 +347,7 @@ Every step ends with all checks passing and a **Commit** line. Paths are from `a
 
 - [ ] `npm run lint`, `npm run typecheck`, `npm test -- --run` (*Tests 15 passed (15)*),
       `npm run build` and `npx prettier . --check` pass.
-- [ ] You saw each of T1–T4 fail once (3f, 4, 5f, 6) and undid each break: `git status` shows no
+- [ ] You saw each of T1–T4 fail once (3e, 4, 5f, 6) and undid each break: `git status` shows no
       change outside the test files.
 - [ ] No test depends on timing or on your machine's language: T3 and T4 wait for the recipe
       option, and pick it by its value.
