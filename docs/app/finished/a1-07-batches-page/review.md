@@ -151,7 +151,7 @@ No new findings; the commit changes only these three lines, so the round 1 break
 
 Verdict: ready to ship (finding 1's second line is worth the one-line fix first)
 
-## Round 3 · 2026-11-28 · uncommitted (staged)
+## Round 3 · 2026-11-28 · 6b5bf00
 
 Checks: `dotnet build` ok (0 warnings) · `dotnet test` ok (14 passed) · `npm run lint` ok ·
 `npm run typecheck` ok · `npm test -- --run` ok (15 passed) · `npm run build` ok ·
