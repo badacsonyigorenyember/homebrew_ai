@@ -100,7 +100,9 @@ describe('batches', () => {
 
     await fillOutCreateBatchForm(userEvent.setup());
 
-    expect(await screen.findByText('The Name field is required.'));
+    expect(
+      await screen.findByText('The Name field is required.'),
+    ).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Name' })).toBeInvalid();
   });
 });
