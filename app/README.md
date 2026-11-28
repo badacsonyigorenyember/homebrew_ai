@@ -84,7 +84,10 @@ The list of SQL files, with why each is needed, is in `api.Tests/ApiFactory.cs`.
 ## Checks before every commit
 
 The pre-commit hook (`web/.husky/pre-commit`, installed by `npm ci` in `app/web`) runs the API's
-checks first, then the web app's, and refuses the commit at the first one that fails:
+checks first, then the web app's, and refuses the commit at the first one that fails. It runs only
+the side the commit touches, decided from the staged paths: the API checks for `api/`,
+`api.Tests/`, `HomebrewApp.slnx` and the repo's `db/` (the API tests load those SQL files), the web
+checks for `web/`, both for `.editorconfig`, and none for a commit of docs only:
 
 | Check                                                | What it does                                                                                                                         | To fix                                                                                          |
 |------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
@@ -93,8 +96,8 @@ checks first, then the web app's, and refuses the commit at the first one that f
 | `dotnet test HomebrewApp.slnx --no-build`            | runs the API tests on that build, against a throwaway database container                                                             | start Docker if it is stopped; otherwise fix the test or the code                               |
 | the npm checks                                       | see [Run the web app](#run-the-web-app)                                                                                              | `npm run cleanup` in `app/web`                                                                  |
 
-The checks run on the files in the working folder, not only on what is staged, and every commit
-runs all of them, even one that touches only docs. `dotnet format` doesn't know Rider's own
+Which side runs is decided by the staged paths, but the checks themselves run on the files in the
+working folder, not only on what is staged. `dotnet format` doesn't know Rider's own
 `resharper_…` settings (such as attributes on their own line); Rider's **Code | Reformat Code**
 applies those.
 
@@ -121,6 +124,12 @@ set in one place: `server.proxy` in `web/vite.config.ts` (`npm run preview` uses
 proxy). While the API is stopped, the badge shows "API down" and the dev server's terminal
 prints `http proxy error: /api/health` with `ECONNREFUSED`.
 
+`/batches` lists the batches from `GET /api/batches`: a table from 768 px wide, cards below
+that. Its **New Batch** button opens a dialog (full screen below 640 px) that picks a recipe from
+`GET /api/recipes/brewable`, creates the batch with `POST /api/batches`, and opens
+`/batches/<id>`, which shows only the batch's name until a1-09. A batch created there is as real
+as one from the `.http` file; delete trial batches the same way ([Run the API](#run-the-api)).
+
 | Script | What it does |
 |---|---|
 | `npm run dev` | dev server with hot reload; does not check types |
@@ -140,3 +149,10 @@ project's version; a bare `tsc` in the terminal uses the global one.
 Tests sit next to the component they test (`StatusBadge.test.tsx` beside `StatusBadge.tsx`).
 They run in jsdom, a browser page simulated inside Node, so no browser is needed;
 `src/test/setup.ts` loads the jest-dom matchers and clears the page after each test.
+
+No test talks to the real API. MSW answers every request in Node: `src/test/server.ts` holds the
+default answers (health `ok`, an empty batch list); a request nothing answers fails, and MSW
+prints `[MSW] Error: intercepted a request without a matching request handler`. A test that needs
+other data adds handlers with `server.use(…)`; `setup.ts` removes them after the test.
+`src/test/renderApp.tsx` draws the whole app, with its query client and an in-memory router, at
+the path it is given; the batch tests are in `src/features/batches/batches.test.tsx`.

@@ -1,6 +1,6 @@
 # a1-07 · Batches page and new batch
 
-Stage: ready
+Stage: done
 Branch: `a1-07-batches-page`
 Milestone: M1 · Requirements: F4.1, F1.5 ([SYSTEM.md](../SYSTEM.md))
 Blocked by: a1-06

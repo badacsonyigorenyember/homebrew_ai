@@ -302,7 +302,7 @@ docs/app/work/<id>/      moves to docs/app/finished/<id>/ when the ticket ships
    `lesson.md`: the concepts from zero (React and .NET as relevant), the patterns and best
    practices to follow and why, official docs to read, and the ticket split into small subtasks,
    each with a way to check yourself. Each numbered step leaves the app working, so you commit it
-   when it is done (the pre-commit hook runs every check). No solution code: at most a signature or a one-line
+   when it is done (the pre-commit hook runs the checks of the side you changed). No solution code: at most a signature or a one-line
    pseudo-step where a concept cannot be explained without it.
 2. **implementing:** you build; Claude answers questions with explanations and hints and does not
    edit files under `app/` unless you ask for a specific change.
@@ -366,3 +366,19 @@ PROJECT.md changes this design makes (agreed 2026-10-31):
 - 2026-11-19 · a1-04: Claude writes the docs (`app/README.md` and any doc a ticket made outdated)
   before shipping, instead of a lesson step for you (`.claude/skills/app-ticket/SKILL.md`, Ship
   step 2).
+- 2026-11-26 · a1-07: UI steps in lessons get at least the detail of API steps: every import,
+  the markup element by element, every Tailwind class explained, the JSX ground rules, and
+  measured watch-outs from your real mistakes (`.claude/skills/app-ticket/lesson-guide.md`, "UI
+  steps"). a1-07's steps 4 to 10 were rewritten that way.
+- 2026-11-27 · a1-07: the "UI steps" rule refined: .NET-familiar syntax is named plainly; exact
+  class strings, value lists and fields are written out; the Why never carries instructions; new
+  components are shown in use, not only linked.
+- 2026-11-28 · a1-07: in lessons, every step and sub-step has its to-do (**Do:**) and its *Why* as
+  separate blocks; something met in an earlier ticket is pointed at in your own code (file and
+  function, type or component), never at an earlier lesson
+  (`.claude/skills/app-ticket/lesson-guide.md`, "The parts of a step").
+- 2026-11-28 · a1-07: the Do and Why blocks are separated by a blank line in sub-steps too, so
+  they render as separate paragraphs; no imports sub-step: each name is imported in the sub-step
+  that first uses it, with its source only when more than one place offers it
+  (`lesson-guide.md`, "The parts of a step" and "Code steps"). a1-07's test lesson steps 3 to 6
+  were reworked that way.

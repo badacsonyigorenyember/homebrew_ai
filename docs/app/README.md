@@ -39,7 +39,7 @@ comes last of the features (M7). Milestones are worked in order.
 | [a1-04](finished/a1-04-test-database/ticket.md) | Test database | a1-03 | done |
 | [a1-05](finished/a1-05-batch-tables/ticket.md) | Batch tables | a1-04 | done |
 | [a1-06](finished/a1-06-create-batch-api/ticket.md) | Create a batch from a recipe | a1-05 | done |
-| [a1-07](work/a1-07-batches-page/ticket.md) | Batches page and new batch | a1-06 | ready |
+| [a1-07](finished/a1-07-batches-page/ticket.md) | Batches page and new batch | a1-06 | done |
 | [a1-08](work/a1-08-brew-day-steps/ticket.md) | Brew-day step generator | a1-06 | ready |
 | [a1-09](work/a1-09-brew-day-checklist/ticket.md) | Brew-day checklist | a1-07, a1-08 | ready |
 | [a1-10](work/a1-10-brew-day-actuals/ticket.md) | Actual values and notes | a1-09 | ready |

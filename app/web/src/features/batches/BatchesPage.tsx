@@ -1,3 +1,26 @@
+import { useBatches } from '@/features/batches/api.ts';
+import { BatchList } from '@/features/batches/BatchList.tsx';
+import { NewBatchDialog } from '@/features/batches/NewBatchDialog.tsx';
+
 export function BatchesPage() {
-  return <h1 className={'text-2xl font-semibold'}>Batches</h1>;
+  const batches = useBatches();
+
+  return (
+    <div className={'flex flex-col gap-4'}>
+      <div className={'flex items-center justify-between gap-2'}>
+        <h1 className={'text-2xl font-semibold'}>Batches</h1>
+        <NewBatchDialog />
+      </div>
+      {batches.isPending && <p>Loading batches…</p>}
+      {batches.isError && (
+        <p>The page could not be loaded: {batches.error.message}</p>
+      )}
+      {batches.isSuccess &&
+        (batches.data.length === 0 ? (
+          <p>No batches yet</p>
+        ) : (
+          <BatchList batches={batches.data} />
+        ))}
+    </div>
+  );
 }

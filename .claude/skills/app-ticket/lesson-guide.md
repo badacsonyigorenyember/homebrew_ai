@@ -53,8 +53,9 @@ step is committed (`git status` shows nothing of this ticket left uncommitted).
 
 The user commits after each numbered step, so each step has to end with the app working. The
 pre-commit hook (`app/web/.husky/pre-commit`) runs `dotnet format --verify-no-changes`,
-`dotnet build -warnaserror` and `dotnet test`, then lint, type check, tests, build and Prettier, and
-refuses the commit if any of them fails. A step that leaves the app broken for a later step to fix
+`dotnet build -warnaserror` and `dotnet test` when the commit touches the API, its tests or `db/`,
+and lint, type check, tests, build and Prettier when it touches `app/web`, and refuses the commit if
+any of them fails. A step that leaves the app broken for a later step to fix
 cannot be committed. Order and size the steps so that this never happens:
 
 - **Green at every step end.** When a numbered step is done, every check the hook runs passes (for
@@ -77,16 +78,26 @@ If a step cannot be made green without growing past one sitting, split the work 
 
 ### The parts of a step
 
-Every step has these parts, in this order:
+Every step has these parts, in this order. Each part is its own labelled block on its own lines,
+in steps and sub-steps (9a, 9b, …) alike, so the to-do can be read without the explanation and
+the other way round; never one paragraph that mixes them (decided 2026-11-28, a1-07). Each block
+is a paragraph of its own, with a **blank line** before it, also inside a sub-step: Markdown joins
+lines that have no blank line between them, so a **Do:** line followed directly by a **Why:** line
+renders as one paragraph (the user saw exactly that in a1-07's test lesson).
 
-1. **What to do**, in a bold title and a sentence or two.
-2. **Why:** why this step is needed (what would be missing or broken without it) and why it is done
+1. **What to do**, in a bold title, then a **Do:** block: a sentence or two, or a list.
+2. **Why:**, a separate block after the Do block: why this step is needed (what would be missing or broken without it) and why it is done
    this way rather than the obvious alternative ("a named export, not `export default`, so a
    renamed import cannot silently point at the wrong thing").
    - A **new concept** is explained here, in the first step that needs it: what it is, the problem
      it solves, how it fits this ticket, and a doc link. Later steps refer back to it ("the query
-     key from step 4") instead of explaining it again. Check the earlier tickets' lessons; a
-     concept met there gets one line and a pointer, not a new explanation.
+     key from step 4") instead of explaining it again.
+   - A concept **met in an earlier ticket** gets one line and a pointer into the user's own code,
+     not into an earlier lesson: the file and the function, type or component that does the same
+     thing, and what is alike ("in `api.ts`, `useBatches` has the shape you need: a `useQuery`
+     with a key and a fetch function"). Never "as in a1-02 step 10" or "the pattern from a1-02's
+     `onNavigate`": the user has the code open, not the old lessons. Check the earlier tickets'
+     lessons only to know what was taught.
    - A **pattern** is taught in the step that applies it: its name, why it is good, and what the
      usual mistake looks like, in words.
 3. **Watch out:** (only when there is one) the mistake beginners make at this step and how it shows
@@ -111,8 +122,14 @@ model for the size and the checks.
   JavaScript the user has not met (destructuring, bracket access, imports), and a place to try
   things without the project (the TypeScript Playground; for C#, a scratch console project made
   outside the repo).
-- **One new piece per sub-step** (9a, 9b, …): one type, one function signature, one JSX element,
-  one import. Each sub-step names the construct, describes its syntax in words, says why it is
+- **Imports where they are first used.** No sub-step of imports at the start of a file. The
+  sub-step that first uses a name says, in its Do block, to import it. The source is given only
+  when more than one place offers that name and the editor could pick the wrong one (`screen`
+  from `@testing-library/react`, not `@testing-library/dom`; `http` from `msw/http`, as the
+  project's other files), and a type is marked as a type import; otherwise the name is enough,
+  because the editor's auto-import finds it (decided 2026-11-28, a1-07).
+- **One new piece per sub-step** (9a, 9b, …): one type, one function signature, one JSX element.
+  Each sub-step names the construct, describes its syntax in words, says why it is
   written that way and what it does when the app runs, and points to the docs example closest to it
   ("react.dev's `MyButton` has the same structure").
 - **A check per sub-step**, preferably one that breaks something on purpose and shows the exact
@@ -122,6 +139,48 @@ model for the size and the checks.
 - **Say when a failing check is expected** and which later sub-step fixes it (an unused parameter
   until the body uses it), so a red error does not read as a mistake. That sub-step is always in
   the same numbered step: no check is still failing when the step reaches its Commit line.
+
+### UI steps
+
+The user finds the API lessons' level of detail right and has no UI experience (decided
+2026-11-26, a1-07; refined 2026-11-27). Detail goes to what is new in UI work, not to what the
+user knows from .NET:
+
+- **What .NET already taught, said plainly.** Functions, parameters, return types, `async` and
+  `await`, generics, classes, object and union types: name them in one phrase ("an async function
+  `fetchBatches`, no parameters, returning `Promise<BatchSummary[]>`"), never token by token. The
+  "syntax described in words" rule above is for constructs with no C# counterpart (JSX, spread,
+  destructuring, template literals, optional chaining).
+- **Exact class strings.** Every Tailwind class is given exactly as it is written in the code
+  (`rounded-lg border p-3 break-words`, not "a border, rounded corners and padding"), each with a
+  few words on what it does.
+- **Exact values and fields.** Every list the code needs is written out in full: union values,
+  object fields with their types, the keys of a lookup, option texts, routes, query keys, the
+  JSON field names. Never "the seven statuses from the database" or "the fields of the response";
+  the user must not have to look them up in the database, the API or the docs.
+- **The Why explains; it never instructs.** Everything the user has to build is in the "what to
+  do" part. The Why says what each part is good for and why it is done that way; it carries no
+  extra prop, class, value or step that the code needs.
+- **New components and APIs shown in use.** The first time a library piece is used (a shadcn
+  component, a hook, a React Hook Form or TanStack function), the step says how to use it, not
+  only where its docs are: which file under `src/components/ui/` or which package it comes from,
+  which pieces it has, how they nest ("`Table`; inside it `TableHeader` with one `TableRow` of
+  `TableHead`s; then `TableBody` with a `TableRow` of `TableCell`s per item"), and the props this
+  ticket needs. The doc link is for further reading, never required to finish the step.
+- **Imports at first use**, as "Code steps" above says: the name, and the source only when there
+  is a choice.
+- **The markup piece by piece:** one element per sub-step (or a short list in words when elements
+  nest), in the order it appears, with its props and what goes between its tags. Words only,
+  never the JSX itself.
+- **The JSX ground rules in the first component step of a ticket**, as a read-first list with
+  react.dev pages: one root element or a fragment, the round bracket on the `return` line, curly
+  braces for values, `className`, `map` returning in round brackets with a `key`.
+- **Hooks placed:** the hook calls listed as the first lines of the body, with the rule (no hook
+  outside a component, in an `if` or after an early `return`).
+- **What the screen shows** after the sub-step, or that nothing shows yet and which step shows
+  it.
+- **Watch-outs from real mistakes:** the errors the user actually hit in earlier UI tickets, each
+  measured, go into later lessons where the same construct comes back.
 
 ## `test-lesson.md`: its parts, in this order
 

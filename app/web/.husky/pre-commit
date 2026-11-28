@@ -1,10 +1,30 @@
 # Husky runs this with `sh -e`: each line that fails stops the commit.
 # One check per line, because a failure inside an `&&` chain does not stop `sh -e`.
+#
+# Only the side the commit touches is checked, decided from the staged paths:
+# - the API checks for app/api, app/api.Tests, the solution file, and db/ (the API tests load
+#   the db/*.sql files into their test database, see api.Tests/ApiFactory.cs);
+# - the web checks for app/web;
+# - both for app/.editorconfig, which dotnet format and Prettier both read.
+# A commit of docs only runs no checks.
 
-cd app
-dotnet format HomebrewApp.slnx --verify-no-changes
-dotnet build HomebrewApp.slnx -warnaserror
-dotnet test HomebrewApp.slnx --no-build
+root=$(git rev-parse --show-toplevel)
+staged=$(git diff --cached --name-only)
 
-cd web
-npm run lint && npm run typecheck && npm test -- --run && npm run build && prettier --check .
+if echo "$staged" | grep -qE '^(app/api/|app/api\.Tests/|app/HomebrewApp\.slnx|app/\.editorconfig|db/)'; then
+  echo "pre-commit: API checks"
+  cd "$root/app"
+  dotnet format HomebrewApp.slnx --verify-no-changes
+  dotnet build HomebrewApp.slnx -warnaserror
+  dotnet test HomebrewApp.slnx --no-build
+fi
+
+if echo "$staged" | grep -qE '^(app/web/|app/\.editorconfig)'; then
+  echo "pre-commit: web checks"
+  cd "$root/app/web"
+  npm run lint
+  npm run typecheck
+  npm test -- --run
+  npm run build
+  prettier --check .
+fi

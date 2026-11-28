@@ -1,23 +1,9 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import App from './App';
 import { http, HttpResponse } from 'msw/http';
 import { server } from './test/server';
-import { MemoryRouter } from 'react-router';
 import { userEvent } from '@testing-library/user-event';
-
-function renderApp(path = '/') {
-  const queryClient = new QueryClient();
-
-  render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[path]}>
-        <App />
-      </MemoryRouter>
-    </QueryClientProvider>,
-  );
-}
+import { renderApp } from '@/test/renderApp';
 
 describe('App', () => {
   it('shows "API status unknown" before the API answers', () => {
