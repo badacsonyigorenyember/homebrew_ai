@@ -84,7 +84,10 @@ The list of SQL files, with why each is needed, is in `api.Tests/ApiFactory.cs`.
 ## Checks before every commit
 
 The pre-commit hook (`web/.husky/pre-commit`, installed by `npm ci` in `app/web`) runs the API's
-checks first, then the web app's, and refuses the commit at the first one that fails:
+checks first, then the web app's, and refuses the commit at the first one that fails. It runs only
+the side the commit touches, decided from the staged paths: the API checks for `api/`,
+`api.Tests/`, `HomebrewApp.slnx` and the repo's `db/` (the API tests load those SQL files), the web
+checks for `web/`, both for `.editorconfig`, and none for a commit of docs only:
 
 | Check                                                | What it does                                                                                                                         | To fix                                                                                          |
 |------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|

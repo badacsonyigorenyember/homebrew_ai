@@ -302,7 +302,7 @@ docs/app/work/<id>/      moves to docs/app/finished/<id>/ when the ticket ships
    `lesson.md`: the concepts from zero (React and .NET as relevant), the patterns and best
    practices to follow and why, official docs to read, and the ticket split into small subtasks,
    each with a way to check yourself. Each numbered step leaves the app working, so you commit it
-   when it is done (the pre-commit hook runs every check). No solution code: at most a signature or a one-line
+   when it is done (the pre-commit hook runs the checks of the side you changed). No solution code: at most a signature or a one-line
    pseudo-step where a concept cannot be explained without it.
 2. **implementing:** you build; Claude answers questions with explanations and hints and does not
    edit files under `app/` unless you ask for a specific change.

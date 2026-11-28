@@ -259,6 +259,14 @@ Several of these are lessons from the first build (see §9).
 
 Newest first. One entry per meaningful change: what was done, and why if that is not obvious.
 
+### 2026-11-28
+- The pre-commit hook (`app/web/.husky/pre-commit`) runs only the side a commit touches, from the
+  staged paths: the API checks for `app/api/`, `app/api.Tests/`, `app/HomebrewApp.slnx` and `db/`
+  (the API tests load `db/*.sql`), the web checks for `app/web/`, both for `app/.editorconfig`,
+  none for docs only. *Why: a web-only commit no longer waits for the API build and its test
+  container.* Measured 2026-11-28 with a temporary index and stand-in commands: each of those
+  path sets picks the expected checks, and a failing check still stops the commit at once.
+
 ### 2026-11-25
 - App ticket a1-06 (Create a batch from a recipe) shipped ([`docs/app/finished/a1-06-create-batch-api/`](docs/app/finished/a1-06-create-batch-api/)). The API answers `GET /api/recipes/brewable` (recipes with a `process`, newest first, with style, `og`, `fg`, `abv`, `ibu`, `batchL`, created date; measured on the stack 2026-11-25: 53 recipes, 1489 first), `GET /api/batches` (latest brew date first) and `POST /api/batches` (`recipeId`, `name`, `brewDate`, all `[Required]`): in one transaction it takes the highest batch number plus one, copies the recipe's numbers and `process` into a batch with status `plan`, and one `batch_item` per recipe item with its `source_item_id`; 201 with a `Location` header. Errors are problem details: 400 with a message per field (`AddProblemDetails` + `AddValidation`), 400 for a recipe without a process, 404 for an unknown recipe. `api/HomebrewApp.http` holds the new requests. Tests: `BatchEndpointsTests`, seven HTTP tests on the test container (numbers 1 and 2; the items copied, read back from the database; a recipe item changed afterwards as the container's admin in a rolled-back transaction leaves the batch's copy alone; the 400 and 404 problems; exactly `Name` and `BrewDate` in the validation errors; a new batch listed), with `ApiFactory.AdminConnectionString` added; each failed when its code was broken (review.md). Measured: `dotnet build` 0 warnings, `dotnet test` 14 passed. Two review rounds, two test review rounds. `app/README.md` lists the endpoints and how to delete trial batches from the stack.
 
